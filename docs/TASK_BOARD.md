@@ -360,7 +360,8 @@
 | P3-301 | 拒绝 MCP 配置中的孤立 Unicode surrogate | done | 检查嵌套值和对象键；孤立高/低 surrogate 有界失败、不泄露值且不 spawn，合法代理对与 BMP Unicode 通过；定向 24 项，全量 480/65 |
 | P3-302 | 限制配置 MCP 审计子进程超时 | done | CLI、MCP schema、直接 API 共用 1–120 秒边界，默认 15 秒；非法值在配置读取和 spawn 前拒绝；保留子进程超时回收测试；全量 482/65 |
 | P3-303 | 限制配置 MCP 审计预期工具数 | done | CLI、MCP schema、直接 API 共用 1–10,000 边界；非法值在配置读取/spawn 前拒绝，默认值不变；全量 483/65 |
-| P3-304 | 限制配置 MCP server 名称 | next | CLI、MCP schema、直接 API 共用非空及 256 字符上限；非法值在配置读取/spawn 前拒绝，不回显用户输入 |
+| P3-304 | 限制配置 MCP server 名称 | done | CLI、MCP schema、API 共用非空及 256 字符边界；非法值在配置读取/spawn 前拒绝且不回显；adapter 同时落实 minLength/maxLength/pattern；全量 484/65 |
+| P3-305 | 对齐 MCP adapter 字符串 schema 校验 | next | adapter 支持 catalog 公告的 minLength/maxLength/pattern，安全拒绝无效 pattern，并验证工具契约一致性 |
 
 进展记录：
 - 2026-10-09: P3-298 已完成 MCP 配置根节点与 `mcpServers` 对象形状校验；6 种畸形结构均有界失败且不启动子进程，全量测试 477 passed/65 skipped，safe regression 15/15；实现和下一项范围见 `docs\P3_NEXT_MCP_CONFIG_JSON_AMBIGUITY_SCOPE.md`。
@@ -374,6 +375,8 @@
 - P3-302 release: local-release-gates 5/5 passed，package readiness passed，WPS 未启动。
 - 2026-10-09: P3-303 已统一 `expected_min_tools` 为 1–10,000，非法值在读取配置前失败；全量 483 passed/65 skipped，当前 next 为 P3-304 server 名称边界。
 - P3-303 release: local-release-gates 5/5 passed，package readiness passed，WPS 未启动。
+- 2026-10-09: P3-304 已统一 server 名称非空/最多 256 字符约束，schema 的 pattern/长度约束由 adapter 实际执行；空白和超长值不读取配置、不 spawn、不回显；全量 484 passed/65 skipped。当前 next 为 P3-305。
+- P3-304 release: local-release-gates 5/5 passed，package readiness passed，WPS 未启动。
 - 2026-10-03: P3-004 已为 `regression-run` 增加 `--artifact-dir`，safe profile 生成 `artifacts\regression\regression-run-20261003T063513662051Z-regression-artifact-p3-004-001.json`，报告见 `docs\P3_REGRESSION_ARTIFACT_EXPORT_REPORT.md`。
 - 2026-10-03: P3-005 已形成 CI 交接文档，覆盖 safe/WPS 调用命令、artifact 留存路径、通过门槛和失败分诊，见 `docs\REGRESSION_CI_HANDOFF.md`。
 - 2026-10-03: P3-006 已执行失败恢复演练，构造 `p3_006_failed_writer_replace` 终态失败任务，验证 `task-recovery`、备份清单和 Writer snapshot 证据，报告见 `docs\P3_RECOVERY_HARDENING_DRILL.md`。

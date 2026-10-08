@@ -26,6 +26,7 @@ MCP_CONFIG_AUDIT_TIMEOUT_MIN_SECONDS = 1
 MCP_CONFIG_AUDIT_TIMEOUT_MAX_SECONDS = 120
 MCP_CONFIG_AUDIT_MIN_EXPECTED_TOOLS = 1
 MCP_CONFIG_AUDIT_MAX_EXPECTED_TOOLS = 10000
+MCP_CONFIG_AUDIT_MAX_SERVER_NAME_CHARS = 256
 
 
 def _check(name: str, passed: bool, details: Any) -> dict[str, Any]:
@@ -370,6 +371,24 @@ def audit_mcp_client_config(
     timeout_seconds: int = 15,
 ) -> tuple[bool, dict[str, Any], list[dict[str, Any]]]:
     path = Path(config_path)
+    server_name_valid = (
+        isinstance(server_name, str)
+        and bool(server_name.strip())
+        and len(server_name) <= MCP_CONFIG_AUDIT_MAX_SERVER_NAME_CHARS
+    )
+    server_name_check = _check(
+        "server_name_within_limit",
+        server_name_valid,
+        {"maximum_characters": MCP_CONFIG_AUDIT_MAX_SERVER_NAME_CHARS},
+    )
+    if not server_name_valid:
+        result = {
+            "config_path": str(path),
+            "server_name": None,
+            "checks": [server_name_check],
+            "smoke": None,
+        }
+        return False, result, [{"code": "MCP_CONFIG_AUDIT_FAILED", "message": "Server name must be nonempty and at most 256 characters."}]
     expected_tools_valid = (
         isinstance(expected_min_tools, int)
         and not isinstance(expected_min_tools, bool)
@@ -387,7 +406,7 @@ def audit_mcp_client_config(
         result = {
             "config_path": str(path),
             "server_name": server_name,
-            "checks": [expected_tools_check],
+            "checks": [server_name_check, expected_tools_check],
             "smoke": None,
         }
         return False, result, [{"code": "MCP_CONFIG_AUDIT_FAILED", "message": "Expected tool count must be between 1 and 10000."}]
@@ -408,12 +427,12 @@ def audit_mcp_client_config(
         result = {
             "config_path": str(path),
             "server_name": server_name,
-            "checks": [expected_tools_check, timeout_check],
+            "checks": [server_name_check, expected_tools_check, timeout_check],
             "smoke": None,
         }
         return False, result, [{"code": "MCP_CONFIG_AUDIT_FAILED", "message": "Timeout must be between 1 and 120 seconds."}]
     config, checks = _load_config(path)
-    checks[0:0] = [expected_tools_check, timeout_check]
+    checks[0:0] = [server_name_check, expected_tools_check, timeout_check]
     if config is None:
         result = {
             "config_path": str(path),

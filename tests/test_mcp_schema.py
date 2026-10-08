@@ -149,6 +149,10 @@ class McpSchemaTests(unittest.TestCase):
         expected = properties["expected_min_tools"]
         self.assertEqual(expected["minimum"], 1)
         self.assertEqual(expected["maximum"], 10000)
+        server_name = properties["server_name"]
+        self.assertEqual(server_name["minLength"], 1)
+        self.assertEqual(server_name["maxLength"], 256)
+        self.assertIn(r"\S", server_name["pattern"])
 
 
 if __name__ == "__main__":

@@ -4,6 +4,7 @@ from typing import Any
 
 from .mcp_config_audit import (
     MCP_CONFIG_AUDIT_MAX_EXPECTED_TOOLS,
+    MCP_CONFIG_AUDIT_MAX_SERVER_NAME_CHARS,
     MCP_CONFIG_AUDIT_MIN_EXPECTED_TOOLS,
     MCP_CONFIG_AUDIT_TIMEOUT_MAX_SECONDS,
     MCP_CONFIG_AUDIT_TIMEOUT_MIN_SECONDS,
@@ -855,7 +856,12 @@ MCP_TOOL_SCHEMAS: tuple[dict[str, Any], ...] = (
         "mcp",
         properties={
             "config": _string("Path to MCP client config JSON."),
-            "server_name": _string("Server key under mcpServers."),
+            "server_name": {
+                **_string("Server key under mcpServers."),
+                "minLength": 1,
+                "maxLength": MCP_CONFIG_AUDIT_MAX_SERVER_NAME_CHARS,
+                "pattern": r".*\S.*",
+            },
             "expected_min_tools": _integer(
                 "Minimum number of tools expected from tools/list.",
                 minimum=MCP_CONFIG_AUDIT_MIN_EXPECTED_TOOLS,

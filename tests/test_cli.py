@@ -566,6 +566,12 @@ class CliParsingTests(unittest.TestCase):
         for count in (0, -1, 10001):
             with self.subTest(expected_min_tools=count), self.assertRaises(SystemExit):
                 parser.parse_args(["mcp-config-audit", "--expected-min-tools", str(count)])
+        self.assertEqual(parser.parse_args([
+            "mcp-config-audit", "--server-name", "n" * 256,
+        ]).server_name, "n" * 256)
+        for name in ("", "   ", "n" * 257):
+            with self.subTest(server_name=repr(name)), self.assertRaises(SystemExit):
+                parser.parse_args(["mcp-config-audit", "--server-name", name])
         self.assertEqual(manifest_args.command, "regression-manifest")
         self.assertEqual(manifest_args.profile, "safe")
         self.assertEqual(run_args.command, "regression-run")

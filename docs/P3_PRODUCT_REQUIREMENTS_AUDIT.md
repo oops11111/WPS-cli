@@ -169,7 +169,8 @@ test totals and WPS integration evidence are maintained in
 143. P3-301 done: decoded JSON object keys and nested string values reject isolated high/low UTF-16 surrogates before spawn, without exposing values; valid surrogate pairs are normalized by JSON decoding and accepted, as is ordinary non-ASCII Unicode. Audit tests: 24 passed; full suite: 480 passed/65 skipped.
 144. P3-302 done: timeout is bounded to 1–120 seconds in CLI parsing, MCP schema, and direct API; default remains 15 seconds, and invalid values fail before config loading or spawn. Existing child-timeout cleanup test remains green. Full suite: 482 passed/65 skipped.
 145. P3-303 done: `expected_min_tools` is bounded to 1–10,000 across CLI parsing, MCP schema, and direct API; invalid values fail before config reads or spawn while the default remains unchanged. Full suite: 483 passed/65 skipped.
-146. P3-304 next: bound `server_name` to a nonempty string of at most 256 characters consistently across CLI, MCP schema, and direct API.
+146. P3-304 done: `server_name` is constrained to non-whitespace text of at most 256 characters across CLI, MCP schema, and API; invalid input fails before config reads/spawn without echoing values. Adapter now enforces the catalog's string length/pattern keywords. Full suite: 484 passed/65 skipped.
+147. P3-305 next: make MCP adapter string schema validation fully support catalog `minLength`, `maxLength`, and `pattern` constraints and safely reject malformed patterns.
 45. Later: broaden visual/semantic fidelity and WPS version coverage while preserving independent failures and artifact provenance.
 
 These milestones are actionable entirely in the local workspace. Offline parsing fixes

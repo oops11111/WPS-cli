@@ -30,6 +30,7 @@ from .mcp_config_audit import (
     MCP_CONFIG_AUDIT_TIMEOUT_MAX_SECONDS,
     MCP_CONFIG_AUDIT_TIMEOUT_MIN_SECONDS,
     MCP_CONFIG_AUDIT_MAX_EXPECTED_TOOLS,
+    MCP_CONFIG_AUDIT_MAX_SERVER_NAME_CHARS,
     MCP_CONFIG_AUDIT_MIN_EXPECTED_TOOLS,
     audit_mcp_client_config,
 )
@@ -109,6 +110,12 @@ def _mcp_config_audit_expected_tools(value: str) -> int:
             f"must be between {MCP_CONFIG_AUDIT_MIN_EXPECTED_TOOLS} and {MCP_CONFIG_AUDIT_MAX_EXPECTED_TOOLS}"
         )
     return count
+
+
+def _mcp_config_audit_server_name(value: str) -> str:
+    if not value.strip() or len(value) > MCP_CONFIG_AUDIT_MAX_SERVER_NAME_CHARS:
+        raise argparse.ArgumentTypeError("must be nonempty and at most 256 characters")
+    return value
 
 
 def _extract_request_id(argv: list[str]) -> tuple[list[str], str | None]:
@@ -592,8 +599,9 @@ def build_parser() -> argparse.ArgumentParser:
     )
     mcp_config_audit_parser.add_argument(
         "--server-name",
+        type=_mcp_config_audit_server_name,
         default="wps-ai-agent-cli",
-        help="Server key under mcpServers.",
+        help="Server key under mcpServers (1-256 non-whitespace characters).",
     )
     mcp_config_audit_parser.add_argument(
         "--expected-min-tools",

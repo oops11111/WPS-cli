@@ -3,6 +3,7 @@ from __future__ import annotations
 import io
 import json
 import math
+import re
 from typing import Any
 
 from .mcp_schema import get_mcp_tool_schema
@@ -53,6 +54,19 @@ def _validate_arguments(schema: dict[str, Any], arguments: dict[str, Any]) -> li
             continue
         if "enum" in property_schema and value not in property_schema["enum"]:
             errors.append(_error("MCP_ARGUMENT_ENUM_INVALID", "Argument is not one of the permitted values.", name))
+        if expected == "string":
+            if "minLength" in property_schema and len(value) < property_schema["minLength"]:
+                errors.append(_error("MCP_ARGUMENT_STRING_TOO_SHORT", "Argument is shorter than its minimum length.", name))
+            if "maxLength" in property_schema and len(value) > property_schema["maxLength"]:
+                errors.append(_error("MCP_ARGUMENT_STRING_TOO_LONG", "Argument is longer than its maximum length.", name))
+            if "pattern" in property_schema:
+                try:
+                    matches = re.search(property_schema["pattern"], value) is not None
+                except (TypeError, re.error):
+                    errors.append(_error("MCP_SCHEMA_PATTERN_UNSUPPORTED", "Tool input schema uses an unsupported string pattern.", name))
+                else:
+                    if not matches:
+                        errors.append(_error("MCP_ARGUMENT_PATTERN_MISMATCH", "Argument does not match its required pattern.", name))
         if expected in {"integer", "number"}:
             if "minimum" in property_schema and value < property_schema["minimum"]:
                 errors.append(_error("MCP_ARGUMENT_BELOW_MINIMUM", "Argument is below its minimum.", name))

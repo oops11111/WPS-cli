@@ -16,6 +16,7 @@ class McpAdapterTests(unittest.TestCase):
         supported_types = {"string", "integer", "number", "boolean", "array", "object"}
         supported_property_keywords = {
             "type", "description", "enum", "minimum", "maximum", "items",
+            "minLength", "maxLength", "pattern",
         }
         for tool in list_mcp_tool_schemas():
             input_schema = tool["input_schema"]
@@ -37,6 +38,8 @@ class McpAdapterTests(unittest.TestCase):
             ("wps_agent_writer_structure", {"offset": -1}, "MCP_ARGUMENT_BELOW_MINIMUM"),
             ("wps_agent_task_status_create", {"task_id": "task", "recovery_guidance": ["ok", 2]}, "MCP_ARGUMENT_ARRAY_ITEM_INVALID"),
             ("wps_agent_spreadsheet_set_sheet_visibility", {"document_id": "doc", "sheet_name": "S", "visible": False}, "MCP_ARGUMENT_TYPE_INVALID"),
+            ("wps_agent_mcp_config_audit", {"server_name": "   "}, "MCP_ARGUMENT_PATTERN_MISMATCH"),
+            ("wps_agent_mcp_config_audit", {"server_name": "x" * 257}, "MCP_ARGUMENT_STRING_TOO_LONG"),
         )
         for tool_name, arguments, expected_code in cases:
             with self.subTest(tool=tool_name, arguments=arguments):

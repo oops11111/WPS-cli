@@ -2369,8 +2369,15 @@ TASKS: tuple[ProjectTask, ...] = (
         id="P3-304",
         phase="phase3",
         title="Bound configured MCP server name input",
-        status="next",
+        status="done",
         acceptance="Require a nonempty server name of at most 256 characters across CLI, MCP schema, and direct API; invalid values fail before config reads or process spawn without echoing user input.",
+    ),
+    ProjectTask(
+        id="P3-305",
+        phase="phase3",
+        title="Align MCP adapter string schema validation",
+        status="next",
+        acceptance="Support the advertised minLength, maxLength, and pattern constraints in MCP adapter validation; reject malformed schema patterns safely and verify catalog-wide contract parity.",
     ),
 )
 
