@@ -126,7 +126,8 @@ test totals and WPS integration evidence are maintained in
 100. P3-258 done: 150 oversized relationship diagnostics are capped at 127 detailed entries plus one omitted-count summary (128 total), under 120 KB and deterministic. Default suite 422 passed/65 skipped; real-WPS parity 7/7 and 4/4.
 101. P3-259 done: the 128-entry details list and omitted-count summary survive direct preflight/CLI/MCP, while validation remains failed and backup/COM are not invoked. Default suite 423 passed/65 skipped.
 102. P3-260 done: exact 127/128/129 issue boundaries retain all details at or below cap and report omitted_count=2 above it. Default suite 424 passed/65 skipped.
-103. P3-261 next: verify worst-case serialized diagnostic byte size through CLI/MCP.
+103. P3-261 done: relationship diagnostic values are UTF-8 bounded to 96 bytes (including the truncation marker); a 150-drawing case with quote/backslash-heavy values remains at or below 120,000 serialized UTF-8 bytes through CLI and MCP, with 127 details, omitted_count=23, failed status, and no backup/COM. A separate Unicode test verifies codepoint-safe truncation. Full suite: 426 passed/65 skipped.
+104. P3-262 next: paginate MCP `tools/list` with stable opaque cursors so the growing catalog can be discovered without oversized single responses; preserve the cache metadata required by the 2026-07-28 protocol and make smoke/config-audit count all pages.
 45. Later: broaden visual/semantic fidelity and WPS version coverage while preserving independent failures and artifact provenance.
 
 These milestones are actionable entirely in the local workspace. Offline parsing fixes

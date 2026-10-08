@@ -317,7 +317,8 @@
 | P3-258 | Writer 诊断总 payload 上限审计 | done | 150 条超长关系异常稳定压缩为 127 条明细加 1 条 omitted_count 摘要，总数 128、JSON <120 KB、索引顺序稳定；422 项通过/65 项跳过，WPS parity 7/7 与 4/4 |
 | P3-259 | Writer 诊断截断摘要传递审计 | done | 150 错误生成的 128 条 details 与 omission summary 经 direct/CLI/MCP 完整保留，CLI/MCP validation=failed，backup/COM 未触发；423 项通过/65 项跳过 |
 | P3-260 | Writer 诊断条数边界审计 | done | 127/128 条完整保留；129 条保留 127 明细并以 omitted_count=2 摘要占第 128 项，无 off-by-one；424 项通过/65 项跳过 |
-| P3-261 | Writer 序列化诊断字节上限审计 | next | 最坏关系诊断经 CLI/MCP 的 JSON 字节数低于约定上限，摘要和失败状态保留 |
+| P3-261 | Writer 序列化诊断字节上限审计 | done | 每个关系字段限制为 UTF-8 96 字节（含截断标记）；150 个含引号/反斜线的最大 JSON 转义输入经 CLI/MCP JSON 均不超过 120,000 字节，保留 127 条明细、omitted_count=23 和 failed 状态；Unicode 码点边界测试通过；全量 426 项通过/65 项跳过 |
+| P3-262 | MCP tools/list 游标分页 | next | 使用稳定不透明游标分页；遍历完整清单时工具按目录顺序无重无漏；无效游标返回 JSON-RPC -32602；保留 cache 元数据，smoke/config-audit 统计所有分页 |
 
 进展记录：
 - 2026-10-03: P3-004 已为 `regression-run` 增加 `--artifact-dir`，safe profile 生成 `artifacts\regression\regression-run-20261003T063513662051Z-regression-artifact-p3-004-001.json`，报告见 `docs\P3_REGRESSION_ARTIFACT_EXPORT_REPORT.md`。

@@ -24,8 +24,21 @@ WPS_DEFAULT_WRAP_DISTANCES = {
     "distL": "114300",
     "distR": "114300",
 }
-DRAWING_DIAGNOSTIC_VALUE_LIMIT = 256
+DRAWING_DIAGNOSTIC_VALUE_BYTE_LIMIT = 96
 DRAWING_DIAGNOSTIC_COUNT_LIMIT = 128
+
+
+def _bound_drawing_diagnostic_value(value: str) -> tuple[str, bool]:
+    encoded = value.encode("utf-8")
+    if len(encoded) <= DRAWING_DIAGNOSTIC_VALUE_BYTE_LIMIT:
+        return value, False
+
+    prefix = encoded[:DRAWING_DIAGNOSTIC_VALUE_BYTE_LIMIT - 3]
+    while True:
+        try:
+            return prefix.decode("utf-8") + "...", True
+        except UnicodeDecodeError as exc:
+            prefix = prefix[:exc.start]
 
 
 def _drawing_relationship_issue(
@@ -40,9 +53,10 @@ def _drawing_relationship_issue(
     for field, value in (("relationship_id", relationship_id), ("target", target), ("mode", mode)):
         if field == "mode" and value is None:
             continue
-        if isinstance(value, str) and len(value) > DRAWING_DIAGNOSTIC_VALUE_LIMIT:
-            issue[field] = value[:DRAWING_DIAGNOSTIC_VALUE_LIMIT - 3] + "..."
-            issue[f"{field}_truncated"] = True
+        if isinstance(value, str):
+            issue[field], truncated = _bound_drawing_diagnostic_value(value)
+            if truncated:
+                issue[f"{field}_truncated"] = True
         else:
             issue[field] = value
     if reason is not None:

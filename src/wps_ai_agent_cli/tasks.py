@@ -2068,8 +2068,15 @@ TASKS: tuple[ProjectTask, ...] = (
         id="P3-261",
         phase="phase3",
         title="Writer serialized diagnostic byte bound audit",
+        status="done",
+        acceptance="Worst-case bounded relationship diagnostics remain at or below 120,000 UTF-8 bytes through CLI and MCP; each relationship field is UTF-8 bounded to 96 bytes, with truncation summary and failure status preserved.",
+    ),
+    ProjectTask(
+        id="P3-262",
+        phase="phase3",
+        title="MCP tools/list cursor pagination",
         status="next",
-        acceptance="Worst-case bounded relationship diagnostics remain under a documented serialized byte ceiling through CLI and MCP, with truncation summary and failure status preserved.",
+        acceptance="Paginate the MCP tools/list response using stable opaque cursors; traversing every page yields each tool exactly once in catalog order, invalid cursors return JSON-RPC -32602, cache metadata is retained, and smoke/config-audit checks count all pages.",
     ),
 )
 
