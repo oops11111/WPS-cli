@@ -51,6 +51,7 @@ class StateCorruptionTests(unittest.TestCase):
         self.assertEqual(code, 0)
         self.assertFalse(payload["ok"])
         self.assertEqual(payload["errors"][0]["code"], "STATE_CORRUPT")
+        self.assertIn("state_path", payload["data"])
         self.assertEqual(payload["request_id"], "r-corrupt")
         self.assertEqual(payload["command"], "documents")
 

@@ -9,7 +9,7 @@ from typing import Any
 from xml.etree import ElementTree as ET
 from zipfile import ZipFile
 
-from openpyxl import load_workbook
+from .ooxml import load_workbook_guarded as load_workbook
 from openpyxl.utils.cell import get_column_letter, range_boundaries
 from openpyxl.styles.numbers import is_date_format
 
@@ -21,6 +21,7 @@ from .operations import record_operation, replay_operation
 from .sessions import get_document
 from .spreadsheet_ranges import validate_spreadsheet_read_range
 from .wps_script_snippets import QUIT_IF_IDLE
+from .ooxml import parse_xml_part, read_zip_part
 
 
 def _format_category(cell: Any) -> str:
@@ -950,8 +951,8 @@ def _read_ignored_errors(path: Path) -> dict[str, dict[str, Any]]:
     relationship_namespace = "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}"
     package_relationship_namespace = "{http://schemas.openxmlformats.org/package/2006/relationships}"
     with ZipFile(path) as archive:
-        workbook_root = ET.fromstring(archive.read("xl/workbook.xml"))
-        relationships_root = ET.fromstring(archive.read("xl/_rels/workbook.xml.rels"))
+        workbook_root = parse_xml_part(archive, "xl/workbook.xml")
+        relationships_root = parse_xml_part(archive, "xl/_rels/workbook.xml.rels")
         relationships = {
             item.attrib["Id"]: item.attrib["Target"]
             for item in relationships_root.findall(f"{package_relationship_namespace}Relationship")

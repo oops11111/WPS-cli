@@ -7,7 +7,7 @@ import subprocess
 import tempfile
 from typing import Any
 
-from openpyxl import load_workbook
+from .ooxml import load_workbook_guarded as load_workbook
 from openpyxl.utils.cell import get_column_letter
 from openpyxl.utils.datetime import to_excel
 

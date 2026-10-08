@@ -13,6 +13,7 @@ import zipfile
 import xml.etree.ElementTree as ET
 
 from .html_editable import _TreeParser, _bookmark_name, _safe_link_target, _text, _walk, convert_html_editable
+from .ooxml import parse_xml_part, read_zip_part
 
 
 SCHEMA_VERSION = "wps-agent-html/v1"
@@ -127,7 +128,7 @@ def import_controlled_html(input_path: str | Path, output_path: str | Path) -> t
     document_identity = destination.stat()
     try:
         with zipfile.ZipFile(destination) as archive:
-            xml_root = ET.fromstring(archive.read("word/document.xml"))
+            xml_root = parse_xml_part(archive, "word/document.xml")
         bookmark_names = [element.get("{http://schemas.openxmlformats.org/wordprocessingml/2006/main}name") for element in xml_root.iter("{http://schemas.openxmlformats.org/wordprocessingml/2006/main}bookmarkStart")]
         expected = [item["bookmark_name"] for item in mapping["mappings"]]
         if sorted(bookmark_names.count(name) for name in expected) != [1] * len(expected):
@@ -172,7 +173,7 @@ def verify_controlled_document(document_path: str | Path, mapping_path: str | Pa
         if not all(isinstance(item, dict) and isinstance(item.get("bookmark_name"), str) and isinstance(item.get("object_type"), str) for item in mapping["mappings"]):
             raise ValueError("Mapping sidecar contains an invalid object entry.")
         with zipfile.ZipFile(document) as archive:
-            root = ET.fromstring(archive.read("word/document.xml"))
+            root = parse_xml_part(archive, "word/document.xml")
     except (OSError, ValueError, KeyError, TypeError, AttributeError, zipfile.BadZipFile, ET.ParseError) as exc:
         return False, {}, [{"code": "ROUNDTRIP_VERIFY_INPUT_INVALID", "message": str(exc)[:500]}]
     w_name = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}name"

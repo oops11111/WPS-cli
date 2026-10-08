@@ -42,6 +42,7 @@ from .regression_evidence import build_regression_evidence
 from .regression_history import build_regression_history
 from .security_audit import build_security_boundary_audit
 from .sessions import list_documents, register_document
+from .ooxml import OoxmlTooLargeError
 from .state_store import StateCorruptError
 from .snapshots import snapshot_document
 from .spreadsheet_ops import copy_spreadsheet_sheet, create_spreadsheet_sheet, delete_spreadsheet_sheet, list_spreadsheet_sheets, read_spreadsheet_range, rename_spreadsheet_sheet, set_spreadsheet_sheet_tab_color, set_spreadsheet_sheet_visibility, write_spreadsheet_formulas, write_spreadsheet_range
@@ -3781,7 +3782,7 @@ def run(argv: list[str] | None = None, output_stream: TextIO | None = None) -> i
     argv = [item for item in argv if item != "--strict-exit"]
     try:
         return _run_command(argv, output_stream, strict_exit)
-    except StateCorruptError as exc:
+    except (StateCorruptError, OoxmlTooLargeError) as exc:
         command = next((item for item in argv if not item.startswith("-")), "unknown")
         _, request_id = _extract_request_id(argv)
         response = CommandResponse(
@@ -3789,8 +3790,12 @@ def run(argv: list[str] | None = None, output_stream: TextIO | None = None) -> i
             command=command,
             request_id=request_id or "unknown",
             backend=BACKEND,
-            summary="Workspace state file is corrupt; the command was not executed.",
-            data={"state_path": str(exc.path), "quarantined_path": str(exc.quarantined) if exc.quarantined else None},
+            summary=(
+                "Workspace state file is corrupt; the command was not executed."
+                if isinstance(exc, StateCorruptError)
+                else "Input document exceeds the supported size limits; the command was not executed."
+            ),
+            data=dict(exc.details),
             validation=ValidationResult(status="failed"),
             errors=[{"code": exc.code, "message": str(exc)}],
         )

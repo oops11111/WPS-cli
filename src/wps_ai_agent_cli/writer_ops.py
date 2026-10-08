@@ -32,6 +32,7 @@ from .operations import record_operation, replay_operation
 from .sessions import get_document
 from .writer_structure import W, read_body_bookmark_text, read_supported_bookmark_text, read_writer_structure
 from .wps_script_snippets import QUIT_IF_IDLE
+from .ooxml import parse_xml_part, read_zip_part
 
 
 BODY_PARTS = ("word/document.xml",)
@@ -39,7 +40,7 @@ BODY_PARTS = ("word/document.xml",)
 
 def _body_ends_with_table(path: Path) -> bool:
     with ZipFile(path) as archive:
-        root = ET.fromstring(archive.read("word/document.xml"))
+        root = parse_xml_part(archive, "word/document.xml")
     body = root.find(f"{W}body")
     content = [child for child in body if child.tag != f"{W}sectPr"] if body is not None else []
     return bool(content and content[-1].tag == f"{W}tbl")

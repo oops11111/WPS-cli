@@ -15,6 +15,7 @@ class StateCorruptError(Exception):
         self.path = path
         self.quarantined = quarantined
         self.reason = reason
+        self.details = {"state_path": str(path), "quarantined_path": str(quarantined) if quarantined else None}
         location = f" moved to {quarantined}" if quarantined else ""
         super().__init__(f"State file {path} is not valid JSON ({reason});{location}. Restore it from a copy or re-register documents before retrying.")
 

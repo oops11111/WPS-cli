@@ -7,6 +7,7 @@ import shlex
 import xml.etree.ElementTree as ET
 from pathlib import Path
 from zipfile import ZipFile
+from .ooxml import parse_xml_part, read_zip_part
 
 
 W = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
@@ -144,13 +145,13 @@ def _story_paragraphs(node: ET.Element) -> Iterable[str]:
 
 def docx_body_story_paragraphs(path: str | Path) -> list[str]:
     with ZipFile(path) as archive:
-        root = ET.fromstring(archive.read("word/document.xml"))
+        root = parse_xml_part(archive, "word/document.xml")
     return list(_story_paragraphs(root))
 
 
 def docx_document_paragraphs(path: str | Path) -> list[str]:
     with ZipFile(path) as archive:
-        root = ET.fromstring(archive.read("word/document.xml"))
+        root = parse_xml_part(archive, "word/document.xml")
     return [_paragraph_text(paragraph) for paragraph in root.iter(f"{W}p")]
 
 
@@ -168,7 +169,7 @@ def count_text_in_docx(
             if part_filter is not None and name not in part_filter:
                 continue
             if name.startswith("word/") and name.endswith(".xml"):
-                root = ET.fromstring(archive.read(name))
+                root = parse_xml_part(archive, name)
                 if root.tag in {f"{W}{tag}" for tag in ("document", "hdr", "ftr", "footnotes", "endnotes", "comments")}:
                     # Never join different paragraphs, cells or stories into a match.
                     total += sum(paragraph.count(text) for paragraph in _story_paragraphs(root))
@@ -177,7 +178,7 @@ def count_text_in_docx(
 
 def docx_body_paragraphs(path: str | Path) -> list[str]:
     with ZipFile(path) as archive:
-        payload = archive.read("word/document.xml")
+        payload = read_zip_part(archive, "word/document.xml")
     root = ET.fromstring(payload)
     namespace = {"w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main"}
     paragraphs = []
@@ -207,7 +208,7 @@ def count_text_in_docx_paragraph(path: str | Path, paragraph_index: int, text: s
 
 def docx_body_tables(path: str | Path) -> list[list[list[str]]]:
     with ZipFile(path) as archive:
-        payload = archive.read("word/document.xml")
+        payload = read_zip_part(archive, "word/document.xml")
     root = ET.fromstring(payload)
     namespace = {"w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main"}
     tables = []
@@ -228,7 +229,7 @@ def docx_body_tables(path: str | Path) -> list[list[list[str]]]:
 
 def docx_body_table_topology(path: str | Path) -> list[dict[str, object]]:
     with ZipFile(path) as archive:
-        root = ET.fromstring(archive.read("word/document.xml"))
+        root = parse_xml_part(archive, "word/document.xml")
     body = root.find(f"{W}body")
     if body is None:
         return []
@@ -265,9 +266,9 @@ def docx_body_table_topology(path: str | Path) -> list[dict[str, object]]:
 
 def docx_body_link_field_semantics(path: str | Path) -> dict[str, list[dict[str, object]]]:
     with ZipFile(path) as archive:
-        root = ET.fromstring(archive.read("word/document.xml"))
+        root = parse_xml_part(archive, "word/document.xml")
         rels = (
-            ET.fromstring(archive.read("word/_rels/document.xml.rels"))
+            parse_xml_part(archive, "word/_rels/document.xml.rels")
             if "word/_rels/document.xml.rels" in archive.namelist() else None
         )
     relationships = {
@@ -358,9 +359,9 @@ def docx_body_link_field_semantics(path: str | Path) -> dict[str, list[dict[str,
 def docx_body_drawing_semantics(path: str | Path) -> dict[str, list[dict[str, object]]]:
     with ZipFile(path) as archive:
         names = set(archive.namelist())
-        root = ET.fromstring(archive.read("word/document.xml"))
+        root = parse_xml_part(archive, "word/document.xml")
         rels = (
-            ET.fromstring(archive.read("word/_rels/document.xml.rels"))
+            parse_xml_part(archive, "word/_rels/document.xml.rels")
             if "word/_rels/document.xml.rels" in names else None
         )
         relationships = {
@@ -540,7 +541,7 @@ def docx_body_drawing_semantics(path: str | Path) -> dict[str, list[dict[str, ob
                                 reason="target_outside_package",
                             ))
                         elif part_name in names:
-                            part_hash = hashlib.sha256(archive.read(part_name)).hexdigest()
+                            part_hash = hashlib.sha256(read_zip_part(archive, part_name)).hexdigest()
                         else:
                             unresolved.append(_drawing_relationship_issue(
                                 rel_id, target, current_drawing_index,
@@ -588,7 +589,7 @@ def docx_bookmark_overlaps_link_or_field(
     start_offset: int, end_offset: int,
 ) -> bool:
     with ZipFile(path) as archive:
-        root = ET.fromstring(archive.read("word/document.xml"))
+        root = parse_xml_part(archive, "word/document.xml")
     paragraphs = list(root.iter(f"{W}p"))
     if not 1 <= story_paragraph_index <= len(paragraphs):
         return True
@@ -649,7 +650,7 @@ def docx_bookmark_precedes_character_anchor(
     path: str | Path, bookmark_name: str, story_paragraph_index: int,
 ) -> bool:
     with ZipFile(path) as archive:
-        root = ET.fromstring(archive.read("word/document.xml"))
+        root = parse_xml_part(archive, "word/document.xml")
     paragraphs = list(root.iter(f"{W}p"))
     if not 1 <= story_paragraph_index <= len(paragraphs):
         return True
