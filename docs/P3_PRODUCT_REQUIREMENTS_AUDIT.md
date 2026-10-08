@@ -152,7 +152,8 @@ test totals and WPS integration evidence are maintained in
 126. P3-284 done: adapter and MCP boundary enforce the catalog's JSON types, required/additional-property rules, enums, numeric bounds, and array item types; invalid arguments return `-32602` before adapter invocation. MCP/schema/adapter tests 67 passed; full suite 460 passed/65 skipped.
 127. P3-285 done: the configured-client audit now performs initialize, initialized, and complete paginated tools/list traversal over one process; it validates IDs and lifecycle metadata, uses bounded deadlines, drains stderr, closes stdin for clean exit, and kills/cleans up on failures. MCP config audit tests: 8 passed; full suite: 462 passed/65 skipped.
 128. P3-286 done: the legacy `ping` request accepts omitted or empty params and returns an empty result with the request ID; nonempty params return `-32602`. Handler and initialized persistent-stdio tests prove a following tools/list still succeeds. MCP server/config audit tests: 43 passed; full suite: 464 passed/65 skipped.
-129. P3-287 next: validate the shape and input/output schemas of every tool descriptor returned by the configured-client audit across all pages.
+129. P3-287 done: configured-client audit validates tool names, object input/output schemas, and optional descriptor field types on every page; malformed fields produce at most 20 page/index/field diagnostics. Fake multi-page and real configured-server tests pass; audit tests: 10 passed; full suite: 466 passed/65 skipped.
+130. P3-288 next: bound configured MCP audit stdout line size and response queue buffering while ensuring stderr is drained and child processes are cleaned up.
 45. Later: broaden visual/semantic fidelity and WPS version coverage while preserving independent failures and artifact provenance.
 
 These milestones are actionable entirely in the local workspace. Offline parsing fixes

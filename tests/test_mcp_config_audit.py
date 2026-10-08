@@ -8,6 +8,17 @@ from wps_ai_agent_cli.mcp_config_audit import audit_mcp_client_config
 from wps_ai_agent_cli.mcp_schema import list_mcp_tool_schemas
 
 
+def tool_descriptor(name):
+    return {
+        "name": name,
+        "title": "Example tool",
+        "description": "A test tool.",
+        "inputSchema": {"type": "object", "properties": {}, "required": []},
+        "outputSchema": {"type": "object", "properties": {}},
+        "annotations": {},
+    }
+
+
 class McpConfigAuditTests(unittest.TestCase):
     def audit_fake_paged_server(self, pages, expected_min_tools=1):
         with tempfile.TemporaryDirectory() as tmp:
@@ -89,6 +100,7 @@ class McpConfigAuditTests(unittest.TestCase):
             self.assertEqual(result["smoke"]["tool_count"], len(list_mcp_tool_schemas()))
             self.assertGreater(result["smoke"]["page_count"], 1)
             self.assertEqual(result["smoke"]["duplicate_tool_count"], 0)
+            self.assertEqual(result["smoke"]["invalid_descriptor_count"], 0)
             self.assertTrue(result["smoke"]["persistent_session"])
             self.assertEqual(result["smoke"]["protocol_version"], "2025-11-25")
             self.assertTrue(all(check["passed"] for check in result["checks"]))
@@ -106,8 +118,8 @@ class McpConfigAuditTests(unittest.TestCase):
 
     def test_audit_rejects_duplicate_tool_names_across_pages(self):
         ok, result, errors = self.audit_fake_paged_server([
-            {"resultType": "complete", "tools": [{"name": "tool_a"}], "nextCursor": "page-2"},
-            {"resultType": "complete", "tools": [{"name": "tool_a"}]},
+            {"resultType": "complete", "tools": [tool_descriptor("tool_a")], "nextCursor": "page-2"},
+            {"resultType": "complete", "tools": [tool_descriptor("tool_a")]},
         ], expected_min_tools=2)
 
         self.assertFalse(ok)
@@ -120,8 +132,8 @@ class McpConfigAuditTests(unittest.TestCase):
 
     def test_audit_rejects_repeated_cursor_without_extra_request(self):
         ok, result, errors = self.audit_fake_paged_server([
-            {"resultType": "complete", "tools": [{"name": "tool_a"}], "nextCursor": "repeat"},
-            {"resultType": "complete", "tools": [{"name": "tool_b"}], "nextCursor": "repeat"},
+            {"resultType": "complete", "tools": [tool_descriptor("tool_a")], "nextCursor": "repeat"},
+            {"resultType": "complete", "tools": [tool_descriptor("tool_b")], "nextCursor": "repeat"},
         ])
 
         self.assertFalse(ok)
@@ -131,7 +143,7 @@ class McpConfigAuditTests(unittest.TestCase):
 
     def test_audit_rejects_response_id_mismatch(self):
         ok, result, errors = self.audit_fake_paged_server([
-            {"resultType": "complete", "tools": [{"name": "tool_a"}], "_responseId": "wrong-id"},
+            {"resultType": "complete", "tools": [tool_descriptor("tool_a")], "_responseId": "wrong-id"},
         ])
 
         self.assertFalse(ok)
@@ -177,7 +189,7 @@ class McpConfigAuditTests(unittest.TestCase):
         for name in ("tool name", "tool/name", "naïve", "a" * 129):
             with self.subTest(name=name[:20]):
                 ok, result, _ = self.audit_fake_paged_server([
-                    {"resultType": "complete", "tools": [{"name": name}]},
+                    {"resultType": "complete", "tools": [tool_descriptor(name)]},
                     {"resultType": "complete", "tools": []},
                 ])
                 self.assertFalse(ok)
@@ -186,12 +198,48 @@ class McpConfigAuditTests(unittest.TestCase):
         for name in ("a", "A" * 128, "tool.name_v2-3"):
             with self.subTest(valid_name=name[:20]):
                 ok, result, errors = self.audit_fake_paged_server([
-                    {"resultType": "complete", "tools": [{"name": name}]},
+                    {"resultType": "complete", "tools": [tool_descriptor(name)]},
                     {"resultType": "complete", "tools": []},
                 ])
                 self.assertTrue(ok, errors)
                 self.assertEqual(result["smoke"]["invalid_tool_count"], 0)
                 self.assertEqual(result["smoke"]["duplicate_tool_count"], 0)
+
+    def test_audit_rejects_malformed_tool_schema_on_later_page_with_bounded_diagnostics(self):
+        malformed = tool_descriptor("tool_b")
+        malformed["inputSchema"] = {"type": "string"}
+        malformed["outputSchema"] = {"type": "array"}
+        malformed["description"] = "  "
+        malformed["annotations"] = []
+        ok, result, errors = self.audit_fake_paged_server([
+            {"resultType": "complete", "tools": [tool_descriptor("tool_a")], "nextCursor": "page-2"},
+            {"resultType": "complete", "tools": [malformed]},
+        ], expected_min_tools=2)
+
+        self.assertFalse(ok)
+        self.assertEqual(errors[0]["code"], "MCP_CONFIG_AUDIT_FAILED")
+        self.assertEqual(result["smoke"]["page_count"], 2)
+        self.assertEqual(result["smoke"]["invalid_descriptor_count"], 4)
+        self.assertEqual(result["smoke"]["descriptor_issues"], [
+            {"page": 2, "index": 0, "field": "description"},
+            {"page": 2, "index": 0, "field": "inputSchema"},
+            {"page": 2, "index": 0, "field": "outputSchema"},
+            {"page": 2, "index": 0, "field": "annotations"},
+        ])
+
+    def test_audit_caps_reported_descriptor_diagnostics(self):
+        descriptors = []
+        for index in range(25):
+            descriptor = tool_descriptor(f"tool_{index}")
+            descriptor["inputSchema"] = {"type": "string"}
+            descriptors.append(descriptor)
+        ok, result, _ = self.audit_fake_paged_server([
+            {"resultType": "complete", "tools": descriptors},
+        ], expected_min_tools=25)
+
+        self.assertFalse(ok)
+        self.assertEqual(result["smoke"]["invalid_descriptor_count"], 20)
+        self.assertEqual(len(result["smoke"]["descriptor_issues"]), 20)
 
 
 if __name__ == "__main__":

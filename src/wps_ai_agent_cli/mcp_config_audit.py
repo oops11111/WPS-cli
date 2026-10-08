@@ -40,6 +40,43 @@ def _resolve_command(command: str) -> str | None:
     return shutil.which(command)
 
 
+def _tool_descriptor_issues(tools: list[Any], page_number: int) -> list[dict[str, Any]]:
+    issues: list[dict[str, Any]] = []
+
+    def add(index: int, field: str) -> None:
+        if len(issues) < 20:
+            issues.append({"page": page_number, "index": index, "field": field})
+
+    def valid_object_schema(schema: Any) -> bool:
+        if not isinstance(schema, dict) or schema.get("type") != "object":
+            return False
+        properties = schema.get("properties", {})
+        required = schema.get("required", [])
+        additional = schema.get("additionalProperties", True)
+        return (
+            isinstance(properties, dict)
+            and all(isinstance(key, str) and isinstance(value, dict) for key, value in properties.items())
+            and isinstance(required, list)
+            and all(isinstance(item, str) for item in required)
+            and isinstance(additional, (bool, dict))
+        )
+
+    for index, tool in enumerate(tools):
+        if not isinstance(tool, dict):
+            add(index, "tool")
+            continue
+        for field in ("title", "description"):
+            if field in tool and (not isinstance(tool[field], str) or not tool[field].strip()):
+                add(index, field)
+        if not valid_object_schema(tool.get("inputSchema")):
+            add(index, "inputSchema")
+        if "outputSchema" in tool and not valid_object_schema(tool["outputSchema"]):
+            add(index, "outputSchema")
+        if "annotations" in tool and not isinstance(tool["annotations"], dict):
+            add(index, "annotations")
+    return issues
+
+
 def audit_mcp_client_config(
     config_path: str | Path = DEFAULT_CONFIG_PATH,
     server_name: str = DEFAULT_SERVER_NAME,
@@ -95,6 +132,8 @@ def audit_mcp_client_config(
         if isinstance(env_overrides, dict):
             env.update({str(key): str(value) for key, value in env_overrides.items()})
         page_count = 0
+        descriptor_issues: list[dict[str, Any]] = []
+        descriptor_issue_count = 0
         process: subprocess.Popen[str] | None = None
         stdout_thread: Thread | None = None
         stderr_thread: Thread | None = None
@@ -192,6 +231,9 @@ def audit_mcp_client_config(
                 page_tools = page.get("tools")
                 if not isinstance(page_tools, list):
                     raise ValueError("Configured server returned an invalid tools/list page.")
+                page_issues = _tool_descriptor_issues(page_tools, page_count + 1)
+                descriptor_issue_count += len(page_issues)
+                descriptor_issues.extend(page_issues[:max(0, 20 - len(descriptor_issues))])
                 tools.extend(page_tools)
                 page_count += 1
                 next_cursor = page.get("nextCursor")
@@ -229,6 +271,8 @@ def audit_mcp_client_config(
                 "page_count": page_count,
                 "invalid_tool_count": invalid_tool_count,
                 "duplicate_tool_count": duplicate_tool_count,
+                "invalid_descriptor_count": descriptor_issue_count,
+                "descriptor_issues": descriptor_issues,
                 "stderr": "".join(stderr_chunks).strip(),
                 "protocol_version": initialize["protocolVersion"],
                 "persistent_session": True,
@@ -241,6 +285,11 @@ def audit_mcp_client_config(
                     smoke,
                 )
             )
+            checks.append(_check(
+                "configured_tool_descriptors",
+                descriptor_issue_count == 0,
+                {"invalid_count": descriptor_issue_count, "issues": descriptor_issues},
+            ))
         except (subprocess.SubprocessError, OSError, json.JSONDecodeError, ValueError) as exc:
             smoke = {"error": str(exc), "page_count": page_count, "stderr": "".join(stderr_chunks).strip()}
             checks.append(_check("configured_tools_list_smoke", False, smoke))

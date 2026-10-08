@@ -2250,8 +2250,15 @@ TASKS: tuple[ProjectTask, ...] = (
         id="P3-287",
         phase="phase3",
         title="Validate configured MCP tool descriptors and schemas",
-        status="next",
+        status="done",
         acceptance="During persistent configured-client audit, validate every tools/list descriptor has the expected MCP shape and usable input/output schemas; report malformed descriptors with bounded diagnostics and add paginated fake-server plus real configuration tests.",
+    ),
+    ProjectTask(
+        id="P3-288",
+        phase="phase3",
+        title="Bound configured MCP audit output buffering",
+        status="next",
+        acceptance="Limit stdout line size and queued response buffering while continuously draining stderr from configured MCP servers; oversized output fails with bounded diagnostics, process cleanup completes, and later normal persistent audits still pass.",
     ),
 )
 

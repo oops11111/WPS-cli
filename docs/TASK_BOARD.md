@@ -343,7 +343,8 @@
 | P3-284 | 按 inputSchema 校验 MCP 工具参数 | done | adapter 与 MCP boundary 按 81 个 catalog schema 校验 JSON 类型、required/unknown、enum、数值范围和数组元素；无效参数在 adapter 前返回 `-32602`；MCP/schema/adapter 定向 67 项通过，全量 460/65 |
 | P3-285 | 配置 MCP 客户端审计使用持久 stdio | done | 单个服务进程内完成 initialize、initialized、全部分页 tools/list；核对 ID、deadline、EOF exit 和 stderr，不再借助 one-shot 跳过生命周期；MCP 配置审计定向 8 项通过，全量 462/65 |
 | P3-286 | 实现 MCP ping utility request | done | legacy 协议 ping 对无 params/空 params 返回空 result，非空 params 返回 `-32602`；覆盖 handler 和初始化后持久 stdio；MCP server/config audit 定向 43 项通过，全量 464/65 |
-| P3-287 | 校验配置审计返回的工具描述与 schema | next | persistent tools/list 分页审计校验每个 descriptor 的 MCP 字段形状及 input/output schema；畸形项返回有界诊断，覆盖多页 fake server 和真实配置 |
+| P3-287 | 校验配置审计返回的工具描述与 schema | done | persistent tools/list 分页审计校验每个 descriptor 的工具名、input/output object schema 及可选字段形状；跨页畸形数据返回最多 20 条字段级诊断；配置审计定向 10 项通过，全量 466/65 |
+| P3-288 | 限制配置 MCP 审计输出缓冲 | next | 对 configured MCP server 的 stdout 行和响应队列设限，同时持续 drain stderr；超限时返回有界错误并清理子进程，正常持久审计继续通过 |
 
 进展记录：
 - 2026-10-03: P3-004 已为 `regression-run` 增加 `--artifact-dir`，safe profile 生成 `artifacts\regression\regression-run-20261003T063513662051Z-regression-artifact-p3-004-001.json`，报告见 `docs\P3_REGRESSION_ARTIFACT_EXPORT_REPORT.md`。
