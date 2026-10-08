@@ -170,4 +170,20 @@ PowerShell 在 stdout 混入警告或 BOM 时会抛出 `JSONDecodeError`，函�
 
 ## 修复状态
 
-F-01、F-02、F-03、F-05，以及 F-06 中冒烟命令的超时处理，已在 PR #2 中修复并带测试。F-04 需要先在真实 WPS 验证。F-07 到 F-13 尚未处理。
+F-01、F-02、F-03、F-05，以及 F-06 中冒烟命令的超时处理，已在 PR #2 中修复并带测试。
+
+F-04 到 F-13 已在分支 `cursor/review-batch-1-3-completion-a8c1` 中处理，均带离线测试：
+
+| 编号 | 状态 | 说明 |
+| --- | --- | --- |
+| F-04 | 已缓解，未在真实 WPS 验证 | 三个脚本改为只在 `Documents`、`Workbooks`、`Presentations` 都为空时才 `Quit()`（`wps_script_snippets.QUIT_IF_IDLE`）。是否真的会命中用户已有实例仍需 Windows 验证 |
+| F-06 | 已完成 | 三个 PowerShell 运行器统一走 `powershell_runner.run_powershell_script`，超时与启动失败都返回结构化错误 |
+| F-07 | 已完成 | 状态文件损坏返回 `STATE_CORRUPT`，原文件改名隔离，顶层非对象同样处理 |
+| F-08 | 已完成 | 文档 ID 用 `os.path.normcase`，只在大小写不敏感文件系统上折叠 |
+| F-09 | 已完成 | 同线程重入加锁不再阻塞，并增加 inode 复查与 7 天过期锁文件清理 |
+| F-10 | 已完成 | `process_audit` 容错解析，单个对象与空输出都能处理。未迁移到共享运行器 |
+| F-11 | 部分完成 | 只做了进程内 300 秒缓存，没有做跨进程缓存 |
+| F-12 | 已完成 | 增加可选 `--strict-exit`，默认仍为退出码 0（文档约定） |
+| F-13 | 已完成 | 注入的 resolver 在非 Windows 上也生效 |
+
+同时修复了：恢复备份时的备份完整性校验与原子替换（`BACKUP_CHANGED_AFTER_CREATION`、`RESTORE_COPY_MISMATCH`、`RESTORE_TARGET_WRITE_FAILED`），`_with_optional_task_status` 在工厂函数抛出异常时把任务标为 `failed`，以及测试在 Linux 上的可移植性（路径规范化、PowerShell 专用用例跳过）。

@@ -785,6 +785,14 @@ def writer_table_write(
             False,
         )
 
+    if len(text) > 4096 or any(ord(char) < 32 or ord(char) == 127 for char in text):
+        return (
+            False,
+            {},
+            [{"code": "INVALID_ARGUMENT", "message": "Table-cell text must be at most 4096 characters on one line without control characters."}],
+            False,
+        )
+
     document = get_document(document_id, workspace)
     if not document:
         return (
