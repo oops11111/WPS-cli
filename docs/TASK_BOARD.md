@@ -52,6 +52,18 @@
 | P2-008 | MCP desktop 集成审计 | done | 用桌面客户端配置审计本地 MCP server，记录 transport、路径和环境变量问题 |
 | P2-009 | Phase 2 最终交付报告 | done | 汇总 MCP readiness、验证证据、已知边界和后续可选扩展方向 |
 
+## PRD v1.2 对齐任务
+
+来源：`docs/WPS_AI_Agent_CLI_PRD_v1.2.docx`，详见 `docs/PRD_V1_2_OPEN_DOCUMENT_OPERATIONS.md`。
+
+| ID | 任务 | 状态 | 验收标准 |
+| --- | --- | --- | --- |
+| PRD12-001 | 附着运行中实例并列出打开文档 | done | `open-documents` 不启动 WPS、不关闭实例，返回路径、保存状态和稳定 document_id；离线与假 COM 测试通过，真实 WPS 待验证 |
+| PRD12-002 | 读取 Writer 当前选区 | done | `writer-selection-read` 按 document_id 定位文档，返回范围、文本、段落序号，页码固定标记为未验证 |
+| PRD12-003 | 替换 Writer 当前选区 | done | `writer-selection-replace` 支持 dry-run、备份、期望文本保护、读回校验和幂等；拒绝未保存文档与跨结构选区 |
+| PRD12-004 | 已打开文档直接导出 HTML | done | `export-open-document` 不改动、不关闭源文档，不覆盖输出，校验源文件哈希并报告已知损失 |
+| PRD12-005 | 真实 WPS 实测上述四个命令 | next | 在目标 WPS 版本上确认 GetActiveObject、选区与页码、`Documents.Add` 副本导出和 HTML 保真度，并更新支持矩阵 |
+
 ## Phase 3 当前任务
 
 | ID | 任务 | 状态 | 验收标准 |
@@ -235,7 +247,7 @@
 | P3-176 | 共享状态原子持久化 | done | 文档与操作注册表分别使用有界跨进程状态锁和同目录原子替换；4 进程共 48 份不同文档/操作不丢更新，读取无半写，跨文档相同请求 ID 冲突；替换失败保留旧 JSON；339 项全量测试通过（27 跳过），真实 WPS 定向 2/2 通过 |
 | P3-177 | 操作提交与文档身份一致性审计 | done | 操作记录保存提交时文件身份；刷新失败后可在原文件身份吻合时修复重放，外部变更则拒绝；身份采集失败留下不可验证记录阻止重做；Windows 锁初始化与原子替换读取竞争已修复，342 项全量测试通过（27 跳过），WPS 定向 2/2 通过 |
 | P3-178 | 已保存未记账修改的恢复审计 | done | 主操作不存在但派生备份已落盘时检查源文件身份；未变允许安全重试，已变返回 `UNRECORDED_MUTATION_AMBIGUOUS` 且阻止自动重做；命令级与故障注入测试通过，344 项全量测试通过（27 跳过），真实 WPS 定向 2/2 通过 |
-| P3-179 | 歧义修改请求检查 | done | 新增只读 `mutation-request-inspect` / `wps_agent_mutation_request_inspect`，汇总主操作、派生备份与当前文件身份；区分已记录、可修复、可重试、歧义与无证据；CLI/MCP 一致且 JSON 状态不变，stdio MCP 81-tool 冒烟通过 |
+| P3-179 | 歧义修改请求检查 | done | 新增只读 `mutation-request-inspect` / `wps_agent_mutation_request_inspect`，汇总主操作、派生备份与当前文件身份；区分已记录、可修复、可重试、歧义与无证据；CLI/MCP 一致且 JSON 状态不变，stdio MCP 冒烟通过 |
 | P3-180 | 歧义修改恢复指引 | done | 检查结果按 8 种状态返回非破坏性恢复建议，歧义/文件变化/身份不可验证不建议自动覆盖或重放；validation-runbook 增加只读请求证据检查；345 项全量测试通过（27 跳过） |
 | P3-181 | 歧义修改恢复演练 | done | 真实 WPS Writer/Spreadsheet 在一次性文件上保存后故意不写主记录；CLI/MCP 均报歧义，同请求重试被拦截且文件身份不变；当前/备份/哈希清单各两组留存在 `artifacts/recovery-drill/p3-181-final`，全量 347 项测试通过（29 跳过），WPS 演练 2/2 通过 |
 | P3-182 | 恢复演练工件核验 | done | 只读核验两组件清单、固定路径、64 MiB 文件上限、当前/备份不同且 SHA-256 匹配；缺失、篡改、非对象清单及工作区外路径均报失败，未提供工件则明确标注 absent；真实 local-handoff-summary 报 passed；351 项全量测试通过（29 跳过） |

@@ -38,7 +38,7 @@
       "command": ["mcp-tools"],
       "expected_ok": true,
       "required_checks": [
-        {"path": "data.tools", "min_length": 81}
+        {"path": "data.tools", "min_length": 85}
       ]
     },
     {
@@ -225,7 +225,7 @@
       "profile": "safe",
       "risk_level": "low",
       "requires_wps": false,
-      "command": ["mcp-smoke", "--expected-min-tools", "81", "--tool-name", "wps_agent_tasks"],
+      "command": ["mcp-smoke", "--expected-min-tools", "85", "--tool-name", "wps_agent_tasks"],
       "expected_ok": true,
       "required_checks": [
         {"path": "validation.status", "equals": "passed"}
@@ -245,7 +245,7 @@
         "--server-name",
         "wps-ai-agent-cli",
         "--expected-min-tools",
-        "81"
+        "85"
       ],
       "expected_ok": true,
       "required_checks": [

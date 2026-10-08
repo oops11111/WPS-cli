@@ -65,6 +65,12 @@ from .tasks import list_tasks
 from .validators import validate_document
 from .validation_runbook import build_validation_runbook
 from .workspace_health import build_workspace_health
+from .open_documents import (
+    export_open_document_html,
+    list_open_documents,
+    read_writer_selection,
+    replace_writer_selection,
+)
 from .writer_ops import writer_fill_bookmark, writer_replace, writer_table_write
 from .writer_inspect import inspect_writer_structure
 from .writer_structure_parity import run_writer_structure_parity
@@ -376,6 +382,42 @@ def build_parser() -> argparse.ArgumentParser:
     writer_table_parser.add_argument("--text", required=True, help="Replacement cell text.")
     writer_table_parser.add_argument("--dry-run", action="store_true", help="Preview target cell without modifying the file.")
     writer_table_parser.add_argument("--task-id", help="Optional long-running task status id to update.")
+
+    open_documents_parser = subparsers.add_parser(
+        "open-documents",
+        help="Attach to running WPS instances (never launches WPS) and list their open documents.",
+    )
+    open_documents_parser.add_argument(
+        "--component", choices=["writer", "spreadsheets", "presentation"], help="Limit the probe to one component."
+    )
+    open_documents_parser.add_argument(
+        "--register", action="store_true", help="Register saved open documents and return their stable document_id."
+    )
+
+    selection_read_parser = subparsers.add_parser(
+        "writer-selection-read",
+        help="Read the current selection of a registered Writer document that is open in a running WPS instance.",
+    )
+    selection_read_parser.add_argument("--document-id", required=True, help="Registered writer document_id.")
+
+    selection_replace_parser = subparsers.add_parser(
+        "writer-selection-replace",
+        help="Replace the current selection text of an open, saved Writer document with backup and read-back validation.",
+    )
+    selection_replace_parser.add_argument("--document-id", required=True, help="Registered writer document_id.")
+    selection_replace_parser.add_argument("--text", required=True, help="Replacement text (single line, at most 4096 characters).")
+    selection_replace_parser.add_argument(
+        "--expected-selection-text", help="Refuse to write unless the current selection text equals this value."
+    )
+    selection_replace_parser.add_argument("--dry-run", action="store_true", help="Preview the selection replacement without modifying the file.")
+    selection_replace_parser.add_argument("--task-id", help="Optional long-running task status id to update.")
+
+    export_open_parser = subparsers.add_parser(
+        "export-open-document",
+        help="Export an open, saved Writer document to HTML without closing it or changing the source.",
+    )
+    export_open_parser.add_argument("--document-id", required=True, help="Registered writer document_id.")
+    export_open_parser.add_argument("--output", required=True, help="New .html or .htm output path; existing files are never overwritten.")
 
     validate_parser = subparsers.add_parser(
         "validate-document",
@@ -1476,6 +1518,118 @@ def documents_response(request_id: str) -> CommandResponse:
         summary=f"Returned {len(documents)} registered documents.",
         data={"documents": documents},
         validation=ValidationResult(status="not_applicable"),
+    )
+
+
+def open_documents_response(request_id: str, component: str | None, register: bool) -> CommandResponse:
+    ok, result, errors = list_open_documents(component=component, register=register)
+    documents = result.get("documents", [])
+    return CommandResponse(
+        ok=ok,
+        command="open-documents",
+        request_id=request_id,
+        backend="wps-com",
+        summary=(
+            f"Attached to running WPS and found {len(documents)} open documents."
+            if ok
+            else "Could not list open WPS documents."
+        ),
+        data=result,
+        validation=ValidationResult(status="not_applicable"),
+        errors=errors,
+    )
+
+
+def writer_selection_read_response(request_id: str, document_id: str) -> CommandResponse:
+    ok, result, errors = read_writer_selection(document_id)
+    return CommandResponse(
+        ok=ok,
+        command="writer-selection-read",
+        request_id=request_id,
+        backend="wps-com",
+        summary="Writer selection read." if ok else "Writer selection could not be read.",
+        data=result,
+        validation=ValidationResult(status="not_applicable"),
+        errors=errors,
+    )
+
+
+def writer_selection_replace_response(
+    request_id: str,
+    document_id: str,
+    text: str,
+    expected_selection_text: str | None,
+    dry_run: bool,
+) -> CommandResponse:
+    ok, result, errors, replayed = replace_writer_selection(
+        document_id=document_id,
+        text=text,
+        request_id=request_id,
+        expected_selection_text=expected_selection_text,
+        dry_run=dry_run,
+    )
+    return CommandResponse(
+        ok=ok,
+        command="writer-selection-replace",
+        request_id=request_id,
+        backend="wps-com",
+        summary=(
+            "Writer selection replace request replayed from idempotency record."
+            if replayed
+            else "Writer selection replace dry-run completed."
+            if dry_run and ok
+            else "Writer selection replace completed."
+            if ok
+            else "Writer selection replace could not complete."
+        ),
+        data=result,
+        validation=ValidationResult(
+            status="passed" if ok else "failed",
+            checks=[
+                {
+                    "name": "backup_created",
+                    "passed": bool(dry_run or result.get("backup", {}).get("created") or replayed),
+                    "details": result.get("backup", {}).get("backup_path"),
+                },
+                {
+                    "name": "selection_write_validated",
+                    "passed": bool(dry_run or result.get("validation_passed") or replayed),
+                    "details": {
+                        "read_back_text": result.get("read_back_text"),
+                        "replacement_text": result.get("replacement_text"),
+                    },
+                },
+            ],
+        ),
+        errors=errors,
+    )
+
+
+def export_open_document_response(request_id: str, document_id: str, output: str) -> CommandResponse:
+    ok, result, errors, replayed = export_open_document_html(
+        document_id=document_id, output=output, request_id=request_id,
+    )
+    return CommandResponse(
+        ok=ok,
+        command="export-open-document",
+        request_id=request_id,
+        backend="wps-com",
+        summary=(
+            "Open document export request replayed from idempotency record."
+            if replayed
+            else "Open document exported to HTML."
+            if ok
+            else "Open document could not be exported."
+        ),
+        data=result,
+        validation=ValidationResult(
+            status="passed" if ok else "failed",
+            checks=[
+                {"name": "output_created", "passed": bool(ok), "details": result.get("output")},
+                {"name": "source_unchanged", "passed": bool(result.get("source_unchanged")), "details": result.get("source_path")},
+            ],
+        ),
+        errors=errors,
     )
 
 
@@ -3487,6 +3641,26 @@ def _run_command(argv: list[str], output_stream: TextIO | None = None, strict_ex
             operation_request_id=request_id,
             document_id=args.document_id,
         )
+    elif args.command == "open-documents":
+        response = open_documents_response(request_id, component=args.component, register=args.register)
+    elif args.command == "writer-selection-read":
+        response = writer_selection_read_response(request_id, document_id=args.document_id)
+    elif args.command == "writer-selection-replace":
+        response = _with_optional_task_status(
+            lambda: writer_selection_replace_response(
+                request_id,
+                document_id=args.document_id,
+                text=args.text,
+                expected_selection_text=args.expected_selection_text,
+                dry_run=args.dry_run,
+            ),
+            task_id=args.task_id,
+            tracked_command="writer-selection-replace",
+            operation_request_id=request_id,
+            document_id=args.document_id,
+        )
+    elif args.command == "export-open-document":
+        response = export_open_document_response(request_id, document_id=args.document_id, output=args.output)
     elif args.command == "validate-document":
         response = validate_document_response(
             request_id,

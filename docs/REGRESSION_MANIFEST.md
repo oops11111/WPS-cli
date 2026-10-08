@@ -32,7 +32,7 @@ python -m wps_ai_agent_cli regression-run --profile wps --include-wps --artifact
 | --- | --- | --- |
 | `cli-plan` | CLI | Phase 3 is active |
 | `cli-phase3-next` | CLI | P3 next task is exposed |
-| `mcp-tools-count` | MCP | At least 81 tools are listed |
+| `mcp-tools-count` | MCP | At least 85 tools are listed |
 | `artifact-retention-summary` | Maintenance | artifact retention summary is passed and performs no deletion |
 | `validation-runbook` | Project | validation runbook is passed and executes no commands |
 | `documentation-freshness` | Project | current docs and config references are fresh |
