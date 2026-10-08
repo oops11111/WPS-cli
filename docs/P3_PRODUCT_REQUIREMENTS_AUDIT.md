@@ -127,7 +127,8 @@ test totals and WPS integration evidence are maintained in
 101. P3-259 done: the 128-entry details list and omitted-count summary survive direct preflight/CLI/MCP, while validation remains failed and backup/COM are not invoked. Default suite 423 passed/65 skipped.
 102. P3-260 done: exact 127/128/129 issue boundaries retain all details at or below cap and report omitted_count=2 above it. Default suite 424 passed/65 skipped.
 103. P3-261 done: relationship diagnostic values are UTF-8 bounded to 96 bytes (including the truncation marker); a 150-drawing case with quote/backslash-heavy values remains at or below 120,000 serialized UTF-8 bytes through CLI and MCP, with 127 details, omitted_count=23, failed status, and no backup/COM. A separate Unicode test verifies codepoint-safe truncation. Full suite: 426 passed/65 skipped.
-104. P3-262 next: paginate MCP `tools/list` with stable opaque cursors so the growing catalog can be discovered without oversized single responses; preserve the cache metadata required by the 2026-07-28 protocol and make smoke/config-audit count all pages.
+104. P3-262 done: MCP `tools/list` returns 81 tools in stable 50+31 pages; full traversal preserves catalog order with no duplicates/omissions, every page retains cache metadata, and malformed/stale/out-of-range cursors return JSON-RPC -32602. `mcp-smoke` and config audit traverse both pages. MCP tests: 19 passed; full suite: 428 passed/65 skipped; `project-status` passed with P3-263 as the sole next task.
+105. P3-263 next: perform a read-only integration audit against an available desktop MCP client, recording client/version, initialize, paginated `tools/list`, and safe `tools/call` evidence without changing client configuration or documents.
 45. Later: broaden visual/semantic fidelity and WPS version coverage while preserving independent failures and artifact provenance.
 
 These milestones are actionable entirely in the local workspace. Offline parsing fixes

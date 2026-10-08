@@ -2075,8 +2075,15 @@ TASKS: tuple[ProjectTask, ...] = (
         id="P3-262",
         phase="phase3",
         title="MCP tools/list cursor pagination",
+        status="done",
+        acceptance="Paginate MCP tools/list using stable opaque cursors; all 81 tools traverse in catalog order over 2 pages (50 + 31), invalid cursors return JSON-RPC -32602, cache metadata is retained, and smoke/config-audit count all pages without duplicates.",
+    ),
+    ProjectTask(
+        id="P3-263",
+        phase="phase3",
+        title="Desktop MCP client integration audit",
         status="next",
-        acceptance="Paginate the MCP tools/list response using stable opaque cursors; traversing every page yields each tool exactly once in catalog order, invalid cursors return JSON-RPC -32602, cache metadata is retained, and smoke/config-audit checks count all pages.",
+        acceptance="Perform a read-only audit of an available desktop MCP client connection and record client/version, initialize, paginated tools/list, and a safe tools/call; do not modify user configuration or documents.",
     ),
 )
 

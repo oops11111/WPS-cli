@@ -5,6 +5,7 @@ import unittest
 from pathlib import Path
 
 from wps_ai_agent_cli.mcp_config_audit import audit_mcp_client_config
+from wps_ai_agent_cli.mcp_schema import list_mcp_tool_schemas
 
 
 class McpConfigAuditTests(unittest.TestCase):
@@ -30,13 +31,15 @@ class McpConfigAuditTests(unittest.TestCase):
 
             ok, result, errors = audit_mcp_client_config(
                 config_path=config_path,
-                expected_min_tools=1,
+                expected_min_tools=len(list_mcp_tool_schemas()),
                 timeout_seconds=15,
             )
 
             self.assertTrue(ok)
             self.assertEqual(errors, [])
-            self.assertGreaterEqual(result["smoke"]["tool_count"], 1)
+            self.assertEqual(result["smoke"]["tool_count"], len(list_mcp_tool_schemas()))
+            self.assertGreater(result["smoke"]["page_count"], 1)
+            self.assertEqual(result["smoke"]["duplicate_tool_count"], 0)
             self.assertTrue(all(check["passed"] for check in result["checks"]))
 
     def test_audit_mcp_client_config_reports_missing_server(self):

@@ -8,6 +8,7 @@ from unittest.mock import patch
 from wps_ai_agent_cli.mcp_smoke import run_mcp_server_smoke
 from wps_ai_agent_cli.cli import mcp_smoke_response, run
 from wps_ai_agent_cli.batch_conversion import _request_record_path
+from wps_ai_agent_cli.mcp_schema import list_mcp_tool_schemas
 
 
 class McpSmokeTests(unittest.TestCase):
@@ -50,13 +51,24 @@ class McpSmokeTests(unittest.TestCase):
 
     def test_mcp_server_smoke_passes_for_tasks_tool(self):
         ok, result, errors = run_mcp_server_smoke(
-            expected_min_tools=1,
+            expected_min_tools=len(list_mcp_tool_schemas()),
             tool_name="wps_agent_tasks",
         )
 
         self.assertTrue(ok)
         self.assertEqual(errors, [])
         self.assertTrue(all(check["passed"] for check in result["checks"]))
+        self.assertEqual(
+            result["checks"][1]["details"]["tool_count"], len(list_mcp_tool_schemas()),
+        )
+        self.assertGreater(result["checks"][1]["details"]["page_count"], 1)
+        self.assertEqual(result["responses"]["tools_list"]["page_count"], 2)
+        self.assertEqual(
+            result["responses"]["tools_list"]["pages"][0]["tool_count"], 50,
+        )
+        self.assertEqual(
+            result["responses"]["tools_list"]["pages"][1]["tool_count"], 31,
+        )
         self.assertEqual(
             result["responses"]["tools_call"]["result"]["structuredContent"]["mcp_call"]["response"]["command"],
             "tasks",

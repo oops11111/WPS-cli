@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import base64
+import hashlib
 import json
 import sys
 from concurrent.futures import Future, ThreadPoolExecutor
@@ -12,6 +14,8 @@ from .mcp_schema import list_mcp_tool_schemas
 
 MCP_PROTOCOL_VERSION = "2026-07-28"
 SERVER_INFO = {"name": "wps-ai-agent-cli", "version": "phase2-prototype"}
+MCP_TOOLS_PAGE_SIZE = 50
+_CURSOR_OMITTED = object()
 
 
 def _response(request_id: Any, result: dict[str, Any]) -> dict[str, Any]:
@@ -54,13 +58,41 @@ def _initialize_result() -> dict[str, Any]:
     }
 
 
-def _tools_list_result() -> dict[str, Any]:
-    return {
+def _tools_list_result(cursor: Any = _CURSOR_OMITTED) -> dict[str, Any]:
+    tools = [_tool_from_schema(schema) for schema in list_mcp_tool_schemas()]
+    fingerprint = hashlib.sha256(
+        json.dumps(tools, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    ).hexdigest()[:16]
+    offset = 0
+    if cursor is not _CURSOR_OMITTED:
+        if not isinstance(cursor, str) or not cursor:
+            raise ValueError("Invalid tools/list cursor.")
+        try:
+            encoded = cursor.encode("ascii")
+            padded = encoded + b"=" * (-len(encoded) % 4)
+            decoded = base64.b64decode(padded, altchars=b"-_", validate=True).decode("ascii")
+        except (UnicodeEncodeError, UnicodeDecodeError, ValueError):
+            raise ValueError("Invalid tools/list cursor.") from None
+        prefix, separator, offset_text = decoded.rpartition(":")
+        if (prefix != fingerprint or not separator or not offset_text.isdecimal()
+                or (len(offset_text) > 1 and offset_text.startswith("0"))):
+            raise ValueError("Invalid tools/list cursor.")
+        offset = int(offset_text)
+        if offset <= 0 or offset >= len(tools) or offset % MCP_TOOLS_PAGE_SIZE:
+            raise ValueError("Invalid tools/list cursor.")
+
+    page = tools[offset:offset + MCP_TOOLS_PAGE_SIZE]
+    result = {
         "resultType": "complete",
-        "tools": [_tool_from_schema(schema) for schema in list_mcp_tool_schemas()],
+        "tools": page,
         "ttlMs": 300000,
         "cacheScope": "public",
     }
+    next_offset = offset + len(page)
+    if next_offset < len(tools):
+        cursor_payload = f"{fingerprint}:{next_offset}".encode("ascii")
+        result["nextCursor"] = base64.urlsafe_b64encode(cursor_payload).rstrip(b"=").decode("ascii")
+    return result
 
 
 def _tools_call_result(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
@@ -101,7 +133,16 @@ def handle_mcp_request(message: dict[str, Any]) -> dict[str, Any] | None:
     if method == "initialize":
         return _response(request_id, _initialize_result())
     if method == "tools/list":
-        return _response(request_id, _tools_list_result())
+        params = message.get("params")
+        if params is None:
+            params = {}
+        if not isinstance(params, dict):
+            return _error_response(request_id, -32602, "tools/list params must be an object.")
+        try:
+            cursor = params["cursor"] if "cursor" in params else _CURSOR_OMITTED
+            return _response(request_id, _tools_list_result(cursor))
+        except ValueError:
+            return _error_response(request_id, -32602, "Invalid tools/list cursor.")
     if method == "tools/call":
         params = message.get("params") or {}
         if not isinstance(params, dict):

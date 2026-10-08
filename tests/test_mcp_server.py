@@ -1,3 +1,4 @@
+import base64
 import io
 import json
 import unittest
@@ -10,7 +11,13 @@ from tempfile import TemporaryDirectory
 from threading import Event, Thread
 from unittest.mock import patch
 
-from wps_ai_agent_cli.mcp_server import handle_mcp_json, handle_mcp_request, serve_stdio
+from wps_ai_agent_cli.mcp_schema import list_mcp_tool_schemas
+from wps_ai_agent_cli.mcp_server import (
+    MCP_TOOLS_PAGE_SIZE,
+    handle_mcp_json,
+    handle_mcp_request,
+    serve_stdio,
+)
 
 
 class McpServerTests(unittest.TestCase):
@@ -111,8 +118,71 @@ class McpServerTests(unittest.TestCase):
 
         self.assertEqual(response["result"]["resultType"], "complete")
         self.assertIn("wps_agent_tasks", names)
-        self.assertIn("wps_agent_mcp_server", names)
         self.assertIn("inputSchema", tools[0])
+        self.assertEqual(len(tools), MCP_TOOLS_PAGE_SIZE)
+        self.assertIn("nextCursor", response["result"])
+
+    def test_tools_list_cursor_traversal_covers_catalog_once_in_order(self):
+        expected_names = [schema["name"] for schema in list_mcp_tool_schemas()]
+        cursor = None
+        seen_cursors = set()
+        names = []
+        page_count = 0
+        while True:
+            params = {"cursor": cursor} if cursor is not None else {}
+            response = handle_mcp_request({
+                "jsonrpc": "2.0", "id": page_count + 1,
+                "method": "tools/list", "params": params,
+            })
+            result = response["result"]
+            page_count += 1
+            self.assertEqual(result["resultType"], "complete")
+            self.assertEqual(result["ttlMs"], 300000)
+            self.assertEqual(result["cacheScope"], "public")
+            self.assertLessEqual(len(result["tools"]), MCP_TOOLS_PAGE_SIZE)
+            names.extend(tool["name"] for tool in result["tools"])
+            cursor = result.get("nextCursor")
+            if cursor is None:
+                break
+            self.assertIsInstance(cursor, str)
+            self.assertNotIn(cursor, seen_cursors)
+            seen_cursors.add(cursor)
+
+        self.assertGreater(page_count, 1)
+        self.assertEqual(names, expected_names)
+        self.assertEqual(len(names), len(set(names)))
+
+    def test_tools_list_rejects_invalid_and_stale_cursors(self):
+        for cursor in ("", "not-a-cursor", 12, None):
+            with self.subTest(cursor=cursor):
+                response = handle_mcp_request({
+                    "jsonrpc": "2.0", "id": "invalid", "method": "tools/list",
+                    "params": {"cursor": cursor},
+                })
+                self.assertEqual(response["error"]["code"], -32602)
+
+        first_page = handle_mcp_request({
+            "jsonrpc": "2.0", "id": 1, "method": "tools/list", "params": {},
+        })["result"]
+        cursor_payload = first_page["nextCursor"]
+        encoded = cursor_payload.encode("ascii")
+        decoded = base64.urlsafe_b64decode(encoded + b"=" * (-len(encoded) % 4)).decode("ascii")
+        fingerprint, _, _ = decoded.rpartition(":")
+        out_of_range = base64.urlsafe_b64encode(
+            f"{fingerprint}:{len(list_mcp_tool_schemas())}".encode("ascii")
+        ).rstrip(b"=").decode("ascii")
+        response = handle_mcp_request({
+            "jsonrpc": "2.0", "id": 2, "method": "tools/list",
+            "params": {"cursor": out_of_range},
+        })
+        self.assertEqual(response["error"]["code"], -32602)
+
+        with patch("wps_ai_agent_cli.mcp_server.list_mcp_tool_schemas", return_value=list_mcp_tool_schemas()[:-1]):
+            response = handle_mcp_request({
+                "jsonrpc": "2.0", "id": 3, "method": "tools/list",
+                "params": {"cursor": cursor_payload},
+            })
+        self.assertEqual(response["error"]["code"], -32602)
 
     def test_tools_call_uses_adapter(self):
         response = handle_mcp_request(

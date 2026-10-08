@@ -4,6 +4,7 @@ import json
 import os
 import shutil
 import subprocess
+import time
 from pathlib import Path
 from typing import Any
 
@@ -85,40 +86,89 @@ def audit_mcp_client_config(
 
     smoke: dict[str, Any] | None = None
     if cwd_ok and command_resolved and isinstance(args, list):
-        request = json.dumps({"jsonrpc": "2.0", "id": 1, "method": "tools/list", "params": {}})
-        command_line = [command_resolved, *[str(arg) for arg in args], "--once-json", request]
+        base_command = [command_resolved, *[str(arg) for arg in args]]
         env = os.environ.copy()
         if isinstance(env_overrides, dict):
             env.update({str(key): str(value) for key, value in env_overrides.items()})
+        page_count = 0
         try:
-            completed = subprocess.run(
-                command_line,
-                cwd=str(cwd_path),
-                env=env,
-                capture_output=True,
-                text=True,
-                timeout=timeout_seconds,
-                check=False,
+            deadline = time.monotonic() + timeout_seconds
+            tools = []
+            cursor = None
+            seen_cursors = set()
+            stderr_lines = []
+            last_command = base_command
+            exit_code = 0
+            while page_count < 1000:
+                params = {"cursor": cursor} if cursor is not None else {}
+                request = json.dumps({
+                    "jsonrpc": "2.0", "id": page_count + 1,
+                    "method": "tools/list", "params": params,
+                })
+                last_command = [*base_command, "--once-json", request]
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    raise subprocess.TimeoutExpired(last_command, timeout_seconds)
+                completed = subprocess.run(
+                    last_command,
+                    cwd=str(cwd_path),
+                    env=env,
+                    capture_output=True,
+                    text=True,
+                    encoding="utf-8",
+                    timeout=remaining,
+                    check=False,
+                )
+                exit_code = completed.returncode
+                if completed.stderr.strip():
+                    stderr_lines.append(completed.stderr.strip())
+                stdout = completed.stdout.strip()
+                response = json.loads(stdout) if stdout else {}
+                if not isinstance(response, dict):
+                    raise ValueError("Configured server returned an invalid JSON-RPC response.")
+                if exit_code != 0 or isinstance(response.get("error"), dict):
+                    raise ValueError("Configured server returned an error for tools/list.")
+                page = response.get("result")
+                page_tools = page.get("tools") if isinstance(page, dict) else None
+                if not isinstance(page_tools, list):
+                    raise ValueError("Configured server returned an invalid tools/list page.")
+                tools.extend(page_tools)
+                page_count += 1
+                next_cursor = page.get("nextCursor")
+                if next_cursor is None:
+                    break
+                if not isinstance(next_cursor, str) or next_cursor in seen_cursors:
+                    raise ValueError("Configured server returned an invalid or repeated cursor.")
+                seen_cursors.add(next_cursor)
+                cursor = next_cursor
+            else:
+                raise ValueError("Configured server exceeded the tools/list page limit.")
+
+            names = [tool.get("name") for tool in tools if isinstance(tool, dict)]
+            invalid_tool_count = len(tools) - sum(
+                isinstance(tool, dict) and isinstance(tool.get("name"), str) for tool in tools
             )
-            stdout = completed.stdout.strip()
-            response = json.loads(stdout) if stdout else {}
-            tools = response.get("result", {}).get("tools", [])
-            tool_count = len(tools) if isinstance(tools, list) else None
+            duplicate_tool_count = len(names) - len(set(names)) if not invalid_tool_count else 0
+            tool_count = len(tools)
             smoke = {
-                "command_line": command_line,
-                "exit_code": completed.returncode,
+                "command_line": last_command,
+                "exit_code": exit_code,
                 "tool_count": tool_count,
-                "stderr": completed.stderr.strip(),
+                "page_count": page_count,
+                "invalid_tool_count": invalid_tool_count,
+                "duplicate_tool_count": duplicate_tool_count,
+                "stderr": "\n".join(stderr_lines),
             }
             checks.append(
                 _check(
                     "configured_tools_list_smoke",
-                    completed.returncode == 0 and tool_count is not None and tool_count >= expected_min_tools,
+                    exit_code == 0 and tool_count >= expected_min_tools
+                    and invalid_tool_count == 0 and duplicate_tool_count == 0,
                     smoke,
                 )
             )
-        except (subprocess.SubprocessError, OSError, json.JSONDecodeError) as exc:
-            smoke = {"error": str(exc)}
+        except (subprocess.SubprocessError, OSError, json.JSONDecodeError, ValueError) as exc:
+            smoke = {"error": str(exc), "page_count": page_count}
             checks.append(_check("configured_tools_list_smoke", False, smoke))
     else:
         checks.append(_check("configured_tools_list_smoke", False, "Skipped because command or cwd check failed."))
