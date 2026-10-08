@@ -50,7 +50,7 @@
 
 ### H-04（P3）单元格内富内容在写入时会被丢弃
 
-写入单元格文本时，`Range.Text` 赋值会替换该单元格内的图片、域、超链接、嵌套表格、内容控件。目前没有预检。备份与恢复流程可以回滚，但 Agent 看不到风险提示。
+写入单元格文本时，按 Word 对象模型的常规行为，替换单元格文本会连带丢弃该单元格内的图片、域、超链接、嵌套表格、内容控件（未在真实 WPS 验证）。目前没有预检。备份与恢复流程可以回滚，但 Agent 看不到风险提示。
 
 建议：在 `document_text` 增加 `docx_table_cell_rich_content` 之类的预检，检测到 `w:drawing`、`w:pict`、`w:object`、`w:hyperlink`、`w:fldChar`、`w:tbl`、`w:sdt` 时返回新错误码，或要求显式 `--allow-rich-content`。需要新增错误码与文档，本次未做。
 
