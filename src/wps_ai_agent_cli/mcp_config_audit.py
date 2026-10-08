@@ -27,6 +27,19 @@ def _check(name: str, passed: bool, details: Any) -> dict[str, Any]:
     return {"name": name, "passed": passed, "details": details}
 
 
+def _reject_duplicate_members(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+    result: dict[str, Any] = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError("duplicate JSON member")
+        result[key] = value
+    return result
+
+
+def _reject_nonstandard_constant(_value: str) -> None:
+    raise ValueError("non-standard JSON numeric constant")
+
+
 def _load_config(path: Path) -> tuple[dict[str, Any] | None, list[dict[str, Any]]]:
     if not path.exists():
         return None, [_check("config_exists", False, str(path))]
@@ -62,9 +75,13 @@ def _load_config(path: Path) -> tuple[dict[str, Any] | None, list[dict[str, Any]
         return None, checks + [_check("config_utf8_valid", False, None)]
     checks.append(_check("config_utf8_valid", True, None))
     try:
-        config = json.loads(config_text)
-    except json.JSONDecodeError as exc:
-        return None, checks + [_check("config_json_valid", False, str(exc))]
+        config = json.loads(
+            config_text,
+            object_pairs_hook=_reject_duplicate_members,
+            parse_constant=_reject_nonstandard_constant,
+        )
+    except (json.JSONDecodeError, ValueError, RecursionError):
+        return None, checks + [_check("config_json_valid", False, None)]
     checks.append(_check("config_json_valid", True, str(path)))
     if not isinstance(config, dict):
         return None, checks + [_check("config_root_is_object", False, None)]

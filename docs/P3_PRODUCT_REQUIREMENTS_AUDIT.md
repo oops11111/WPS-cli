@@ -164,7 +164,8 @@ test totals and WPS integration evidence are maintained in
 138. P3-296 done: malformed command/args/env results do not expose environment values or full argument contents; command and cwd summaries are capped at 256 characters. Tests assert a secret marker stays absent and no child process is created. Audit tests: 18 passed; full suite: 474 passed/65 skipped.
 139. P3-297 done: MCP config loading reads at most 1 MiB + 1 byte before decoding/parsing; oversize input gets a bounded failure and never spawns, while an exact 1 MiB valid UTF-8 config completes a persistent audit. Audit tests: 20 passed; full suite: 476 passed/65 skipped.
 140. P3-298 done: config JSON root and `mcpServers` map must be objects before accessing fields; six malformed shape cases produce bounded failures without exceptions or process spawn. Audit tests: 21 passed; full suite: 477 passed/65 skipped.
-141. P3-299 next: reject duplicate JSON member names recursively and non-standard numeric constants in MCP client configuration before process spawn.
+141. P3-299 done: duplicate JSON members at root, process, and nested levels plus NaN/Infinity constants are rejected as bounded config failures before spawn; diagnostics expose no raw configuration values. Audit tests: 22 passed; full suite: 478 passed/65 skipped.
+142. P3-300 next: bound MCP client configuration JSON nesting before recursive object construction, with no spawn on over-depth input.
 45. Later: broaden visual/semantic fidelity and WPS version coverage while preserving independent failures and artifact provenance.
 
 These milestones are actionable entirely in the local workspace. Offline parsing fixes

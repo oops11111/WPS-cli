@@ -2334,8 +2334,15 @@ TASKS: tuple[ProjectTask, ...] = (
         id="P3-299",
         phase="phase3",
         title="Reject ambiguous MCP client configuration JSON values",
-        status="next",
+        status="done",
         acceptance="Reject duplicate JSON members recursively and non-standard numeric constants in client configuration files with bounded audit failures before process spawn; preserve valid standard JSON behavior.",
+    ),
+    ProjectTask(
+        id="P3-300",
+        phase="phase3",
+        title="Bound MCP client configuration JSON nesting depth",
+        status="next",
+        acceptance="Reject excessively nested configuration JSON before recursive object construction, with bounded diagnostics and no process spawn; keep ordinary and exact-byte-limit valid configurations supported.",
     ),
 )
 

@@ -256,6 +256,32 @@ class McpConfigAuditTests(unittest.TestCase):
                 self.assertFalse(check["passed"])
                 popen.assert_not_called()
 
+    def test_ambiguous_json_members_and_constants_are_rejected_before_spawn(self):
+        cases = (
+            b'{"mcpServers":{},"mcpServers":{}}',
+            b'{"mcpServers":{"fake":{"command":"first","command":"second"}}}',
+            b'{"mcpServers":{},"nested":{"value":1,"value":2}}',
+            b'{"mcpServers":{},"number":NaN}',
+            b'{"mcpServers":{},"nested":{"number":Infinity}}',
+            b'{"mcpServers":{},"number":-Infinity}',
+        )
+        for raw_config in cases:
+            with self.subTest(raw_config=raw_config), tempfile.TemporaryDirectory() as tmp:
+                config_path = Path(tmp) / "mcp.json"
+                config_path.write_bytes(raw_config)
+
+                with patch("wps_ai_agent_cli.mcp_config_audit.subprocess.Popen") as popen:
+                    ok, result, errors = audit_mcp_client_config(config_path=config_path)
+
+                self.assertFalse(ok)
+                self.assertEqual(errors[0]["code"], "MCP_CONFIG_AUDIT_FAILED")
+                self.assertIsNone(result["smoke"])
+                json_check = next(item for item in result["checks"] if item["name"] == "config_json_valid")
+                self.assertFalse(json_check["passed"])
+                self.assertIsNone(json_check["details"])
+                self.assertLess(len(json.dumps(result)), 1024)
+                popen.assert_not_called()
+
     def test_valid_config_at_exact_byte_limit_is_audited(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
