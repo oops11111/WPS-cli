@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import math
 import posixpath
 from pathlib import Path
 import subprocess
@@ -1118,6 +1119,37 @@ def _matrix_shape(values: list[list[Any]]) -> tuple[int, int]:
     return len(values), width
 
 
+FORMULA_PREFIXES = ("=", "+", "-", "@")
+
+
+def _validate_write_values(values: list[list[Any]]) -> dict[str, Any] | None:
+    for row_index, row in enumerate(values):
+        for column_index, value in enumerate(row):
+            position = {"row": row_index + 1, "column": column_index + 1}
+            if value is not None and not isinstance(value, (str, int, float, bool)):
+                return {
+                    "code": "INVALID_ARGUMENT",
+                    "message": f"values_json cell ({position['row']},{position['column']}) must be null, string, number or boolean.",
+                    "details": position,
+                }
+            if isinstance(value, float) and not math.isfinite(value):
+                return {
+                    "code": "INVALID_ARGUMENT",
+                    "message": f"values_json cell ({position['row']},{position['column']}) must be a finite number.",
+                    "details": position,
+                }
+            if isinstance(value, str) and value.startswith(FORMULA_PREFIXES):
+                return {
+                    "code": "FORMULA_PREFIX_REJECTED",
+                    "message": (
+                        f"values_json cell ({position['row']},{position['column']}) starts with {value[0]!r}; "
+                        "WPS would evaluate it as a formula. Use spreadsheet-formula-write for formulas."
+                    ),
+                    "details": position,
+                }
+    return None
+
+
 def _run_spreadsheet_write_com(
     path: str,
     sheet_name: str | None,
@@ -1175,6 +1207,8 @@ try {{
       $value = $row[$c]
       if ($null -eq $value) {{
         $cell.Value2 = $null
+      }} elseif ($value -is [bool]) {{
+        $cell.Value2 = [bool]$value
       }} elseif ($value -is [int] -or $value -is [long] -or $value -is [double] -or $value -is [decimal]) {{
         $cell.Value2 = [double]$value
       }} else {{
@@ -1453,6 +1487,9 @@ def write_spreadsheet_range(
         return False, {}, [{"code": "INVALID_ARGUMENT", "message": str(exc)}], False
     if row_count == 0 or column_count == 0:
         return False, {}, [{"code": "INVALID_ARGUMENT", "message": "values_json must not be empty."}], False
+    value_error = _validate_write_values(values)
+    if value_error is not None:
+        return False, {}, [value_error], False
 
     bounds, range_error = validate_spreadsheet_read_range(range_address)
     if range_error:

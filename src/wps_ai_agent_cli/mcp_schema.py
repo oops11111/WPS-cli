@@ -1213,6 +1213,7 @@ MCP_TOOL_SCHEMAS: tuple[dict[str, Any], ...] = (
         safety_notes=[
             "Uses WPS to mutate a registered spreadsheet and creates a backup before mutation.",
             "Creates a backup before mutation and validates read-back results.",
+            "Rejects non-scalar or non-finite values and text starting with '=', '+', '-' or '@' before backup or WPS launch; use spreadsheet-formula-write for formulas.",
         ],
     ),
     _tool(
