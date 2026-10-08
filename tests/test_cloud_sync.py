@@ -1,3 +1,4 @@
+import shutil
 import unittest
 import json
 from pathlib import Path
@@ -9,6 +10,10 @@ from wps_ai_agent_cli.recovery_drill_evidence import verify_recovery_drill_packa
 from wps_ai_agent_cli.sessions import file_identity
 
 
+POWERSHELL_AVAILABLE = bool(shutil.which("pwsh") or shutil.which("powershell"))
+
+
+@unittest.skipUnless(POWERSHELL_AVAILABLE, "cloud sync packaging requires PowerShell")
 class CloudSyncTests(unittest.TestCase):
     def test_recovery_drill_artifacts_are_verified_in_package(self):
         with TemporaryDirectory() as tmp:
