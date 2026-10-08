@@ -167,3 +167,7 @@ PowerShell 在 stdout 混入警告或 BOM 时会抛出 `JSONDecodeError`，函�
 - `read_json_state`：损坏文件用例。
 - `convert-smoke` 与 `com-smoke`：输出等于输入的拒绝用例。
 - 并发：两个进程同时对同一 `request_id` 执行修改，断言只有一个真正执行。
+
+## 修复状态
+
+F-01、F-02、F-03、F-05，以及 F-06 中冒烟命令的超时处理，已在 PR #2 中修复并带测试。F-04 需要先在真实 WPS 验证。F-07 到 F-13 尚未处理。
