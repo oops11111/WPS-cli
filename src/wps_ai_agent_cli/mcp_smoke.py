@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from .mcp_server import handle_mcp_request
+from .mcp_server import MCP_PROTOCOL_VERSION, handle_mcp_request
 from .mcp_schema import get_mcp_tool_schema
 from .mcp_tool_names import audit_mcp_tool_names
 
@@ -51,7 +51,11 @@ def run_mcp_server_smoke(
         if (schema is None or schema["mutates_document"] or schema["requires_wps"]
                 or schema["cli_command"] not in _PARAMETERIZED_READ_ONLY_COMMANDS):
             return False, {}, [{"code": "MCP_SMOKE_TOOL_NOT_READ_ONLY", "message": "Parameterized smoke requires a local read-only tool."}]
-    initialize_response = handle_mcp_request(_request(1, "initialize"))
+    initialize_response = handle_mcp_request(_request(1, "initialize", {
+        "protocolVersion": MCP_PROTOCOL_VERSION,
+        "capabilities": {},
+        "clientInfo": {"name": "wps-ai-agent-cli-smoke", "version": "1"},
+    }))
     tools_list_pages = []
     tools = []
     cursor = None

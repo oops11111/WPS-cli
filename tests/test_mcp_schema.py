@@ -94,6 +94,17 @@ class McpSchemaTests(unittest.TestCase):
         self.assertIn("task_id", schema["input_schema"]["properties"])
         self.assertIn("output_contract", schema)
 
+    def test_every_tool_output_contract_matches_tools_call_structured_content(self):
+        schemas = list_mcp_tool_schemas()
+        for schema in schemas:
+            with self.subTest(tool=schema["name"]):
+                contract = schema["output_contract"]
+                self.assertEqual(contract["type"], "object")
+                self.assertEqual(contract["required"], ["mcp_call", "errors"])
+                self.assertEqual(contract["properties"]["mcp_call"]["type"], "object")
+                self.assertEqual(contract["properties"]["errors"]["type"], "array")
+                self.assertFalse(contract["additionalProperties"])
+
     def test_schema_lookup_accepts_cli_command_name(self):
         schema = get_mcp_tool_schema("writer-replace")
 

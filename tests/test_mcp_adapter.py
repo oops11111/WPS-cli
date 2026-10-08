@@ -7,11 +7,42 @@ from tempfile import TemporaryDirectory
 from threading import Event, Thread
 from unittest.mock import patch
 
-from wps_ai_agent_cli.mcp_adapter import build_cli_argv, call_mcp_tool
-from wps_ai_agent_cli.mcp_schema import get_mcp_tool_schema
+from wps_ai_agent_cli.mcp_adapter import build_cli_argv, call_mcp_tool, validate_mcp_tool_arguments
+from wps_ai_agent_cli.mcp_schema import get_mcp_tool_schema, list_mcp_tool_schemas
 
 
 class McpAdapterTests(unittest.TestCase):
+    def test_catalog_input_schemas_use_only_supported_validation_keywords(self):
+        supported_types = {"string", "integer", "number", "boolean", "array", "object"}
+        supported_property_keywords = {
+            "type", "description", "enum", "minimum", "maximum", "items",
+        }
+        for tool in list_mcp_tool_schemas():
+            input_schema = tool["input_schema"]
+            self.assertEqual(input_schema.get("type"), "object", tool["name"])
+            self.assertIsInstance(input_schema.get("required"), list, tool["name"])
+            self.assertIs(input_schema.get("additionalProperties"), False, tool["name"])
+            for name, property_schema in input_schema["properties"].items():
+                with self.subTest(tool=tool["name"], argument=name):
+                    self.assertLessEqual(set(property_schema), supported_property_keywords)
+                    self.assertIn(property_schema.get("type"), supported_types)
+                    if property_schema.get("type") == "array":
+                        self.assertIn(property_schema.get("items", {}).get("type"), supported_types)
+
+    def test_validate_arguments_enforces_type_enum_bounds_and_array_items(self):
+        cases = (
+            ("wps_agent_spreadsheet_copy_sheet", {"document_id": "doc", "source_name": "A", "new_name": "B", "index": True}, "MCP_ARGUMENT_TYPE_INVALID"),
+            ("wps_agent_com_smoke", {"component": "word"}, "MCP_ARGUMENT_ENUM_INVALID"),
+            ("wps_agent_writer_structure", {"limit": 201}, "MCP_ARGUMENT_ABOVE_MAXIMUM"),
+            ("wps_agent_writer_structure", {"offset": -1}, "MCP_ARGUMENT_BELOW_MINIMUM"),
+            ("wps_agent_task_status_create", {"task_id": "task", "recovery_guidance": ["ok", 2]}, "MCP_ARGUMENT_ARRAY_ITEM_INVALID"),
+            ("wps_agent_spreadsheet_set_sheet_visibility", {"document_id": "doc", "sheet_name": "S", "visible": False}, "MCP_ARGUMENT_TYPE_INVALID"),
+        )
+        for tool_name, arguments, expected_code in cases:
+            with self.subTest(tool=tool_name, arguments=arguments):
+                errors = validate_mcp_tool_arguments(tool_name, arguments)
+                self.assertIn(expected_code, {error["code"] for error in errors})
+
     def test_batch_request_inspection_cli_and_mcp_share_read_only_record(self):
         from wps_ai_agent_cli.batch_conversion import _request_record_path
         from wps_ai_agent_cli.cli import run

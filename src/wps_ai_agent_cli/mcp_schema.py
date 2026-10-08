@@ -5,20 +5,25 @@ from typing import Any
 
 SCHEMA_VERSION = "draft-2026-10-03"
 
-COMMON_OUTPUT_CONTRACT: dict[str, Any] = {
+MCP_TOOL_RESULT_OUTPUT_CONTRACT: dict[str, Any] = {
     "type": "object",
-    "description": "All tools return the shared CommandResponse envelope.",
-    "required": ["ok", "command", "request_id", "backend", "summary", "data", "validation", "errors"],
+    "description": "The structuredContent envelope returned by tools/call.",
+    "required": ["mcp_call", "errors"],
     "properties": {
-        "ok": {"type": "boolean"},
-        "command": {"type": "string"},
-        "request_id": {"type": "string"},
-        "backend": {"type": "string"},
-        "summary": {"type": "string"},
-        "data": {"type": "object"},
-        "validation": {"type": "object"},
-        "errors": {"type": "array", "items": {"type": "object"}},
+        "mcp_call": {
+            "type": "object",
+            "description": "Adapter call metadata and the underlying CLI CommandResponse, when available.",
+        },
+        "errors": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": ["code", "message"],
+                "properties": {"code": {"type": "string"}, "message": {"type": "string"}},
+            },
+        },
     },
+    "additionalProperties": False,
 }
 
 
@@ -84,7 +89,7 @@ def _tool(
         "requires_wps": requires_wps,
         "idempotency": idempotency,
         "input_schema": _object_schema(properties or {}, required),
-        "output_contract": COMMON_OUTPUT_CONTRACT,
+        "output_contract": MCP_TOOL_RESULT_OUTPUT_CONTRACT,
         "cli_example": cli_example or f"python -m wps_ai_agent_cli {cli_command}",
         "safety_notes": safety_notes or [],
     }

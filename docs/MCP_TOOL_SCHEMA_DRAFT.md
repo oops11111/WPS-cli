@@ -55,7 +55,7 @@ python -m wps_ai_agent_cli performance-baseline
 - `requires_wps`: 是否需要真实 WPS COM 能力。
 - `idempotency`: request_id 与幂等策略说明。
 - `input_schema`: JSON Schema 风格的输入草案。
-- `output_contract`: 统一 `CommandResponse` 输出契约。
+- `output_contract`: 与 MCP `tools/call` `structuredContent` 一致的 `{mcp_call, errors}` JSON Schema；底层 CLI `CommandResponse` 位于 `mcp_call.response`。
 - `cli_example`: 等价 CLI 示例。
 - `safety_notes`: 安全注意事项。
 
@@ -126,7 +126,7 @@ Large collections have explicit total counts and truncation flags.
 
 `mcp-server` 是本地 JSON-RPC/stdin/stdout 原型入口：
 
-- `initialize`: 返回 `protocolVersion = 2026-07-28`、server info 和 tools capability。
+- `initialize`: legacy stdio handshake 返回协商后的 `protocolVersion = 2025-11-25`、server info 和 tools capability。未知但合法的客户端版本回退到服务器支持版本；畸形或缺失必需参数返回 `-32602`。
 - `notifications/initialized`: 作为 notification 处理，不返回响应。
 - `tools/list`: 当前目录包含 81 个工具；每页最多返回 50 个，字段包含 `name`、`title`、`description`、`inputSchema`、`outputSchema`、`annotations` 和 `_meta`，有后续页时返回 `nextCursor`。
 - Cursor is opaque: clients pass `nextCursor` unchanged as `params.cursor` until `nextCursor` is absent. Do not infer total catalog size from one response.

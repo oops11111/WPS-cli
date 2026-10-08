@@ -331,7 +331,19 @@
 | P3-272 | MCP 目录审计拒绝空白工具名 | done | `mcp-smoke` 与 `mcp-config-audit` 均拒绝空名称与纯空白名称，即使目录数量达标也失败；两组定向审计覆盖通过；全量 436/65 |
 | P3-273 | 校验 MCP 工具命名建议 | done | 共用校验器限制 1-128 ASCII 字符集合 `[A-Za-z0-9_.-]`，非法名与重复名独立计数；空格、斜杠、非 ASCII、超长和有效长度边界定向测试通过；全量 438/65 |
 | P3-274 | 验证 MCP stdio 畸形请求后恢复 | done | 真实 mcp-server 子进程依次接收畸形 JSON 与数组/标量 JSON，返回 `-32700`/`-32600` 且 null ID；同进程随后成功 initialize 并在 EOF 正常退出；定向 29 项通过，全量 439/65 |
-| P3-275 | 加固 MCP JSON-RPC 请求信封校验 | next | 审核 JSON-RPC 版本、method、ID、params 类型；用 handler 与真实 stdio 子进程测试非法信封、请求连续性和有效 notification，明确当前 MCP stdio 支持边界 |
+| P3-275 | 加固 MCP JSON-RPC 请求信封校验 | done | 按 MCP 基础协议校验 `jsonrpc`、method、string/integer 非 null ID 和 object params；notification 不响应；无 ID 的 tools/call 不执行；handler/真实 stdio 均覆盖，MCP 定向 33 项通过，全量 443/65 |
+| P3-276 | 校验 MCP initialize 版本协商 | done | Legacy stdio 明确支持 `2025-11-25`；initialize 校验 protocolVersion/capabilities/clientInfo，未知版本协商回退至支持版本，缺失/畸形参数返回 `-32602` 并保留 ID；MCP 定向 35 项通过，全量 445/65 |
+| P3-277 | 强制 MCP initialize 生命周期顺序 | done | 持久 stdio 在 initialize 和 initialized notification 前拒绝常规请求，拒绝重复 initialize，合法顺序可继续；one-shot 明确为诊断入口；MCP 定向 36 项通过，全量 446/65 |
+| P3-278 | 拒绝 MCP stdio JSON 重复对象键 | done | 专用 JSON parser 在任意对象深度拒绝重复 member；handler 和真实 stdio 验证 null-ID `-32600`、不触发 HTML 输出副作用，后续 tools/list 成功；MCP 定向 38 项通过，全量 448/65 |
+| P3-279 | 限制 MCP stdio 输入行长度 | done | 单行最多 1,048,576 字符；TextIO 使用限量 `readline` 并以 8,192 字符块 drain 超长记录；精确边界和超限后恢复测试通过，MCP 定向 40 项通过，全量 450/65 |
+| P3-280 | 拒绝 MCP 非标准 JSON 数值常量 | done | 专用 parser 在顶层及嵌套值拒绝 NaN/Infinity/-Infinity，返回 null-ID `-32700`；真实 stdio 随后 tools/list 成功；MCP 定向 42 项通过，全量 452/65 |
+| P3-281 | 强制 MCP stdio 会话请求 ID 唯一 | done | 持久会话记录所有合法 string/integer ID（含方法校验失败请求）；重用 ID 在 dispatch 前返回 `-32600`，重复 HTML 转换无副作用，后续唯一 ID 可继续；MCP 定向 43 项通过，全量 453/65 |
+| P3-282 | 对齐 MCP 输出 schema 与结构化结果 | done | 全部 81 个工具的 output contract 描述实际 `{mcp_call, errors}` 结构化 envelope；成功与工具执行错误的字段/JSON 类型测试通过；MCP 相关 54 项通过，全量 455/65 |
+| P3-283 | 对未知 MCP 工具返回协议错误 | done | 未知工具名在 adapter 前返回 JSON-RPC `-32602`，adapter 不调用；已知工具的执行失败仍为 `isError` tool result；handler/子进程覆盖通过，MCP/server/schema/adapter 定向 64 项通过，全量 457/65 |
+| P3-284 | 按 inputSchema 校验 MCP 工具参数 | done | adapter 与 MCP boundary 按 81 个 catalog schema 校验 JSON 类型、required/unknown、enum、数值范围和数组元素；无效参数在 adapter 前返回 `-32602`；MCP/schema/adapter 定向 67 项通过，全量 460/65 |
+| P3-285 | 配置 MCP 客户端审计使用持久 stdio | done | 单个服务进程内完成 initialize、initialized、全部分页 tools/list；核对 ID、deadline、EOF exit 和 stderr，不再借助 one-shot 跳过生命周期；MCP 配置审计定向 8 项通过，全量 462/65 |
+| P3-286 | 实现 MCP ping utility request | done | legacy 协议 ping 对无 params/空 params 返回空 result，非空 params 返回 `-32602`；覆盖 handler 和初始化后持久 stdio；MCP server/config audit 定向 43 项通过，全量 464/65 |
+| P3-287 | 校验配置审计返回的工具描述与 schema | next | persistent tools/list 分页审计校验每个 descriptor 的 MCP 字段形状及 input/output schema；畸形项返回有界诊断，覆盖多页 fake server 和真实配置 |
 
 进展记录：
 - 2026-10-03: P3-004 已为 `regression-run` 增加 `--artifact-dir`，safe profile 生成 `artifacts\regression\regression-run-20261003T063513662051Z-regression-artifact-p3-004-001.json`，报告见 `docs\P3_REGRESSION_ARTIFACT_EXPORT_REPORT.md`。

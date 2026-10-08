@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import io
 import json
+import math
 from typing import Any
 
 from .mcp_schema import get_mcp_tool_schema
@@ -25,14 +26,61 @@ def _validate_arguments(schema: dict[str, Any], arguments: dict[str, Any]) -> li
     input_schema = schema["input_schema"]
     properties = input_schema.get("properties", {})
     required = input_schema.get("required", [])
-    missing = [name for name in required if name not in arguments or arguments[name] is None]
-    unknown = sorted(set(arguments) - set(properties))
+    missing = [name for name in required if name not in arguments]
+    unknown = sorted(set(arguments) - set(properties)) if input_schema.get("additionalProperties", True) is False else []
     errors: list[dict[str, Any]] = []
     if missing:
         errors.append(_error("MCP_ARGUMENTS_MISSING_REQUIRED", "Required arguments are missing.", missing))
     if unknown:
         errors.append(_error("MCP_ARGUMENTS_UNKNOWN", "Unknown arguments were supplied.", unknown))
+    for name in sorted(set(arguments) & set(properties)):
+        value = arguments[name]
+        property_schema = properties[name]
+        expected = property_schema.get("type")
+        valid_type = {
+            "string": lambda item: isinstance(item, str),
+            "integer": lambda item: type(item) is int,
+            "number": lambda item: type(item) in (int, float) and math.isfinite(item),
+            "boolean": lambda item: isinstance(item, bool),
+            "array": lambda item: isinstance(item, list),
+            "object": lambda item: isinstance(item, dict),
+        }.get(expected)
+        if valid_type is None:
+            errors.append(_error("MCP_SCHEMA_TYPE_UNSUPPORTED", "Tool input schema uses an unsupported JSON type.", name))
+            continue
+        if not valid_type(value):
+            errors.append(_error("MCP_ARGUMENT_TYPE_INVALID", "Argument has an invalid JSON type.", name))
+            continue
+        if "enum" in property_schema and value not in property_schema["enum"]:
+            errors.append(_error("MCP_ARGUMENT_ENUM_INVALID", "Argument is not one of the permitted values.", name))
+        if expected in {"integer", "number"}:
+            if "minimum" in property_schema and value < property_schema["minimum"]:
+                errors.append(_error("MCP_ARGUMENT_BELOW_MINIMUM", "Argument is below its minimum.", name))
+            if "maximum" in property_schema and value > property_schema["maximum"]:
+                errors.append(_error("MCP_ARGUMENT_ABOVE_MAXIMUM", "Argument is above its maximum.", name))
+        item_schema = property_schema.get("items")
+        if expected == "array" and isinstance(item_schema, dict):
+            item_type = item_schema.get("type")
+            item_validators = {
+                "string": lambda item: isinstance(item, str),
+                "integer": lambda item: type(item) is int,
+                "number": lambda item: type(item) is int or (type(item) is float and math.isfinite(item)),
+                "boolean": lambda item: isinstance(item, bool),
+                "object": lambda item: isinstance(item, dict),
+            }
+            item_validator = item_validators.get(item_type)
+            if item_validator is None:
+                errors.append(_error("MCP_SCHEMA_ITEMS_UNSUPPORTED", "Tool input schema uses unsupported array item constraints.", name))
+            elif any(not item_validator(item) for item in value):
+                errors.append(_error("MCP_ARGUMENT_ARRAY_ITEM_INVALID", "Array contains an item with an invalid JSON type.", name))
     return errors
+
+
+def validate_mcp_tool_arguments(tool_name: str, arguments: dict[str, Any]) -> list[dict[str, Any]]:
+    schema = get_mcp_tool_schema(tool_name)
+    if schema is None:
+        return [_error("MCP_TOOL_SCHEMA_NOT_FOUND", f"MCP tool schema not found: {tool_name}")]
+    return _validate_arguments(schema, arguments)
 
 
 def build_cli_argv(tool_name: str, arguments: dict[str, Any]) -> tuple[bool, list[str], dict[str, Any] | None, list[dict[str, Any]]]:
