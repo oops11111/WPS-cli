@@ -362,7 +362,8 @@
 | P3-303 | 限制配置 MCP 审计预期工具数 | done | CLI、MCP schema、直接 API 共用 1–10,000 边界；非法值在配置读取/spawn 前拒绝，默认值不变；全量 483/65 |
 | P3-304 | 限制配置 MCP server 名称 | done | CLI、MCP schema、API 共用非空及 256 字符边界；非法值在配置读取/spawn 前拒绝且不回显；adapter 同时落实 minLength/maxLength/pattern；全量 484/65 |
 | P3-305 | 对齐 MCP adapter 字符串 schema 校验 | done | adapter 执行 minLength/maxLength/pattern；空白/边界/超长值行为通过测试，三类畸形 pattern 均有界失败且不泄露参数；全量 486/65 |
-| P3-306 | 拒绝畸形 MCP schema 约束元数据 | next | 在比较前校验 adapter 消费的约束元数据类型与关系；结构化失败、不抛异常、不泄露参数 |
+| P3-306 | 拒绝畸形 MCP schema 约束元数据 | done | 预检 enum/numeric/string/items 元数据类型与上下界关系；异常元数据在参数比较前结构化失败且不泄露值；catalog 检查和全量 487/65 通过 |
+| P3-307 | 校验 MCP enum 唯一性语义 | next | 用区分 JSON 类型的相等规则拒绝空 enum/重复项，保留合法混合类型枚举并给出有界诊断 |
 
 进展记录：
 - 2026-10-09: P3-298 已完成 MCP 配置根节点与 `mcpServers` 对象形状校验；6 种畸形结构均有界失败且不启动子进程，全量测试 477 passed/65 skipped，safe regression 15/15；实现和下一项范围见 `docs\P3_NEXT_MCP_CONFIG_JSON_AMBIGUITY_SCOPE.md`。
@@ -378,6 +379,8 @@
 - P3-303 release: local-release-gates 5/5 passed，package readiness passed，WPS 未启动。
 - 2026-10-09: P3-304 已统一 server 名称非空/最多 256 字符约束，schema 的 pattern/长度约束由 adapter 实际执行；空白和超长值不读取配置、不 spawn、不回显；全量 484 passed/65 skipped。当前 next 为 P3-305。
 - 2026-10-09: P3-305 已补齐 adapter 的 minLength/maxLength/pattern 验证；catalog 关键字扫描通过，空/空白/精确上限/超限及无效 pattern 用例通过；全量 486 passed/65 skipped。当前 next 为 P3-306。
+- 2026-10-09: P3-306 已在比较调用参数前预检 enum、数值上下界、字符串长度/pattern、数组 items 的元数据类型与关系；畸形 schema 不抛异常、不泄露值；全量 487 passed/65 skipped。当前 next 为 P3-307。
+- P3-306 release: local-release-gates 5/5 passed，package readiness passed，WPS 未启动。
 - P3-305 release: local-release-gates 5/5 passed，package readiness passed，WPS 未启动。
 - P3-304 release: local-release-gates 5/5 passed，package readiness passed，WPS 未启动。
 - 2026-10-03: P3-004 已为 `regression-run` 增加 `--artifact-dir`，safe profile 生成 `artifacts\regression\regression-run-20261003T063513662051Z-regression-artifact-p3-004-001.json`，报告见 `docs\P3_REGRESSION_ARTIFACT_EXPORT_REPORT.md`。

@@ -2383,8 +2383,15 @@ TASKS: tuple[ProjectTask, ...] = (
         id="P3-306",
         phase="phase3",
         title="Reject malformed MCP schema constraint metadata",
-        status="next",
+        status="done",
         acceptance="Validate types and relationships of adapter-consumed schema constraints before comparison; malformed metadata returns bounded schema errors without uncaught exceptions or argument-value disclosure.",
+    ),
+    ProjectTask(
+        id="P3-307",
+        phase="phase3",
+        title="Validate MCP enum uniqueness semantics",
+        status="next",
+        acceptance="Reject empty or duplicate enum metadata using JSON type-aware equality, while preserving valid mixed-type enum semantics and bounded diagnostics.",
     ),
 )
 

@@ -74,9 +74,37 @@ class McpAdapterTests(unittest.TestCase):
                     {"value": "DO_NOT_ECHO"},
                 )
                 self.assertEqual(len(errors), 1)
-                self.assertEqual(errors[0]["code"], "MCP_SCHEMA_PATTERN_UNSUPPORTED")
+                self.assertEqual(errors[0]["code"], "MCP_SCHEMA_CONSTRAINT_INVALID")
                 self.assertNotIn("DO_NOT_ECHO", str(errors))
                 self.assertLess(len(str(errors)), 256)
+
+    def test_malformed_constraint_metadata_fails_before_argument_comparison(self):
+        cases = (
+            ({"type": "integer", "minimum": "1"}, "MCP_SCHEMA_CONSTRAINT_INVALID"),
+            ({"type": "integer", "minimum": True}, "MCP_SCHEMA_CONSTRAINT_INVALID"),
+            ({"type": "number", "maximum": float("inf")}, "MCP_SCHEMA_CONSTRAINT_INVALID"),
+            ({"type": "integer", "minimum": 3, "maximum": 2}, "MCP_SCHEMA_CONSTRAINT_INVALID"),
+            ({"type": "string", "minLength": True}, "MCP_SCHEMA_CONSTRAINT_INVALID"),
+            ({"type": "string", "minLength": -1}, "MCP_SCHEMA_CONSTRAINT_INVALID"),
+            ({"type": "string", "minLength": 4, "maxLength": 3}, "MCP_SCHEMA_CONSTRAINT_INVALID"),
+            ({"type": "string", "enum": None}, "MCP_SCHEMA_CONSTRAINT_INVALID"),
+            ({"type": "integer", "enum": [1, "2"]}, "MCP_SCHEMA_CONSTRAINT_INVALID"),
+            ({"type": "array", "items": []}, "MCP_SCHEMA_CONSTRAINT_INVALID"),
+        )
+        for property_schema, expected_code in cases:
+            with self.subTest(property_schema=property_schema):
+                errors = _validate_arguments(
+                    {
+                        "input_schema": {
+                            "properties": {"value": property_schema},
+                            "required": [],
+                        },
+                    },
+                    {"value": "DO_NOT_ECHO"},
+                )
+                self.assertEqual({error["code"] for error in errors}, {expected_code})
+                self.assertNotIn("DO_NOT_ECHO", str(errors))
+                self.assertLess(len(str(errors)), 300)
 
     def test_batch_request_inspection_cli_and_mcp_share_read_only_record(self):
         from wps_ai_agent_cli.batch_conversion import _request_record_path

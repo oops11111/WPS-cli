@@ -171,7 +171,8 @@ test totals and WPS integration evidence are maintained in
 145. P3-303 done: `expected_min_tools` is bounded to 1–10,000 across CLI parsing, MCP schema, and direct API; invalid values fail before config reads or spawn while the default remains unchanged. Full suite: 483 passed/65 skipped.
 146. P3-304 done: `server_name` is constrained to non-whitespace text of at most 256 characters across CLI, MCP schema, and API; invalid input fails before config reads/spawn without echoing values. Adapter now enforces the catalog's string length/pattern keywords. Full suite: 484 passed/65 skipped.
 147. P3-305 done: adapter enforces `minLength`, `maxLength`, and `pattern`; exact 256-character server names pass, blank/whitespace/overlong values fail, and malformed string patterns return bounded errors without exposing argument values. Full suite: 486 passed/65 skipped.
-148. P3-306 next: validate types and relationships of schema constraint metadata consumed by the MCP adapter before comparing argument values.
+148. P3-306 done: adapter preflights enum, numeric bounds, string lengths/patterns, and array item metadata; wrong types, non-finite bounds, reversed limits, and malformed items return bounded schema errors before comparing arguments. Catalog checks pass; full suite: 487 passed/65 skipped.
+149. P3-307 next: enforce nonempty, duplicate-free enum metadata with JSON type-aware equality.
 45. Later: broaden visual/semantic fidelity and WPS version coverage while preserving independent failures and artifact provenance.
 
 These milestones are actionable entirely in the local workspace. Offline parsing fixes
