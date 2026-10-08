@@ -55,7 +55,14 @@ Get-Process |
     if not stdout:
         processes: list[dict[str, Any]] = []
     else:
-        payload = json.loads(stdout)
+        try:
+            payload = json.loads(stdout[stdout.index(next(c for c in stdout if c in "[{")):])
+        except (StopIteration, ValueError):
+            return (
+                False,
+                {"stdout": stdout[:1_000], "process_names": list(WPS_PROCESS_NAMES)},
+                [{"code": "WPS_PROCESS_AUDIT_FAILED", "message": "PowerShell process audit returned output that is not valid JSON."}],
+            )
         processes = payload if isinstance(payload, list) else [payload]
 
     return (
