@@ -8,6 +8,8 @@ import time
 from pathlib import Path
 from typing import Any
 
+from .mcp_tool_names import audit_mcp_tool_names
+
 
 DEFAULT_CONFIG_PATH = "config/mcp_client_config.example.json"
 DEFAULT_SERVER_NAME = "wps-ai-agent-cli"
@@ -144,11 +146,7 @@ def audit_mcp_client_config(
             else:
                 raise ValueError("Configured server exceeded the tools/list page limit.")
 
-            names = [tool.get("name") for tool in tools if isinstance(tool, dict)]
-            invalid_tool_count = len(tools) - sum(
-                isinstance(tool, dict) and isinstance(tool.get("name"), str) for tool in tools
-            )
-            duplicate_tool_count = len(names) - len(set(names)) if not invalid_tool_count else 0
+            invalid_tool_count, duplicate_tool_count = audit_mcp_tool_names(tools)
             tool_count = len(tools)
             smoke = {
                 "command_line": last_command,

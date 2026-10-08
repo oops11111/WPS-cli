@@ -57,10 +57,16 @@ python -m wps_ai_agent_cli mcp-server --once-json "{\"jsonrpc\":\"2.0\",\"id\":2
 python -m wps_ai_agent_cli mcp-server --once-json "{\"jsonrpc\":\"2.0\",\"id\":3,\"method\":\"tools/call\",\"params\":{\"name\":\"wps_agent_tasks\",\"arguments\":{\"phase\":\"phase2\"}}}"
 ```
 
+## `tools/list` 分页
+
+当前目录共 81 个工具，每个响应最多包含 50 个工具，因此完整目录通常是 50 + 31 两页。客户端把响应中的 `nextCursor` 作为后续请求 `params.cursor` 原样传回；游标是不透明值，不要解析或改写。继续请求直到响应中不再包含 `nextCursor`。每页都会保留 `resultType`、`ttlMs` 和 `cacheScope`。
+
+`mcp-server --once-json` 只处理一个请求，所以无 cursor 的示例只返回第一页（最多 50 个），带 cursor 的调用才会返回后续页。`mcp-smoke` 与 `mcp-config-audit` 会跟随所有 cursor 并统计完整目录。
+
 ## Expected Results
 
 - `initialize` 返回 `protocolVersion`、`serverInfo` 和 `capabilities.tools`。
-- `tools/list` 当前返回 81 个工具。
+- `tools/list` 当前目录有 81 个工具，单页最多返回 50 个；客户端需按 `nextCursor` 取完所有页。
 - `mcp-catalog-snapshot` 返回当前 MCP 工具目录摘要，包含分类计数、修改类工具数、WPS-required 工具数和 safety-note 覆盖情况。
 - `mcp-catalog-drift` 会对比当前 MCP 工具目录和 `config\mcp_catalog_guard.json` baseline；无 drift 时返回 passed。
 - `tools/call` 返回 `isError = false`，并在 `structuredContent.mcp_call.response` 中包含原始 CLI `CommandResponse`。

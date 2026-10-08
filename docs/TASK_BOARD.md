@@ -319,7 +319,19 @@
 | P3-260 | Writer 诊断条数边界审计 | done | 127/128 条完整保留；129 条保留 127 明细并以 omitted_count=2 摘要占第 128 项，无 off-by-one；424 项通过/65 项跳过 |
 | P3-261 | Writer 序列化诊断字节上限审计 | done | 每个关系字段限制为 UTF-8 96 字节（含截断标记）；150 个含引号/反斜线的最大 JSON 转义输入经 CLI/MCP JSON 均不超过 120,000 字节，保留 127 条明细、omitted_count=23 和 failed 状态；Unicode 码点边界测试通过；全量 426 项通过/65 项跳过 |
 | P3-262 | MCP tools/list 游标分页 | done | 81 个工具按目录顺序稳定遍历为 2 页（50+31），无重无漏；无效/过期游标返回 JSON-RPC -32602；每页保留 cache 元数据；smoke/config-audit 遍历全页且无重复；MCP 定向测试 19 项通过，全量 428 项通过/65 项跳过；project-status 通过 |
-| P3-263 | 桌面 MCP 客户端联调审计 | next | 只读审计可用桌面客户端连接，记录客户端/版本、initialize、分页 tools/list 与安全 tools/call；不修改用户配置或文档 |
+| P3-263 | 桌面 MCP 客户端联调审计 | done | 只读检查 Claude Desktop 进程存在；Claude Code 2.1.293 的 `claude mcp list` 显示未配置 server，Claude Desktop 配置文件未发现；电脑 UI 检查接口两次初始化失败；未修改配置/文档；真实客户端 initialize/tools/list/tools/call 门槛明确保持未验证 |
+| P3-264 | MCP 分页性能基线 | done | Python 3.12.14 / Windows 10，200 次完整遍历均为 81 工具、50+31 两页，目录顺序精确且无重复；整轮 p50 5.078ms/p95 6.726ms，逐页 wire JSON 65,054/41,965 UTF-8 字节；报告 `docs/P3_MCP_PAGINATION_PERFORMANCE_BASELINE_20261009.md`；不设跨机器门槛 |
+| P3-265 | 刷新 MCP 性能基线目录守卫 | done | `mcp-smoke` 与 `mcp-config-audit` 性能场景均由 47 提升至 81 工具最小值；4 项 performance 定向测试通过；safe regression 15/15、sync-package-coverage/readiness 通过；实际 performance-baseline 6/6、未启动 WPS |
+| P3-266 | MCP stdio 分页端到端契约 | done | 真实子进程 stdio 验证 initialize、50+31 全量目录顺序和 cache 元数据；无效游标通过 wire 返回 -32602 且服务继续；只读 wps_agent_tasks 成功；请求 ID 对齐、EOF 后退出码 0；完整测试 430 项通过/65 项跳过 |
+| P3-267 | 限制 MCP tools/list 游标长度 | done | 长度超过 128 字符的游标在 base64 解码前返回 -32602；测试确认 oversized 输入未触发 decoder；有效全页遍历和现有错误路径保留；全量 431 项通过/65 项跳过 |
+| P3-268 | 文档化 MCP tools/list 游标分页 | done | 客户端配置与工具 schema 文档现说明总目录 81、单页最多 50、nextCursor 不透明且必须原样迭代至缺省；澄清 --once-json 一次一页、smoke/config-audit 聚合全页；文档新鲜度通过 |
+| P3-269 | MCP 配置审计分页失败路径测试 | done | 隔离 fake server 验证跨页重复工具使审计失败并保留 count=2/pages=2/duplicate=1；重复 nextCursor 在第 2 页后失败并给出错误，不会请求第 3 页；配置审计测试 4 项通过；全量 433/65 |
+| P3-270 | 加固 MCP smoke 畸形响应处理 | done | initialize/tools/list/tools/call 的 null 或非对象 result 安全降级为结构化失败；畸形列表页摘要不抛异常；null-result 回归测试通过，MCP server/smoke 定向 20 项通过，全量 434/65 |
+| P3-271 | 刷新 MCP 分页加固后的本地同步包 | done | Safe regression 15/15 的 artifact `regression-run-20261008T173106394967Z-p3-271-passing-safe.json` 已包含；本地包 315 项、无失败，coverage/readiness 通过；project-status、workspace-health、documentation-freshness 均通过；package SHA256 `0E049F7E478AAE76D77755D87CE4FC0D2F54E02361A364D5853006E9D51DCCBC` |
+| P3-272 | MCP 目录审计拒绝空白工具名 | done | `mcp-smoke` 与 `mcp-config-audit` 均拒绝空名称与纯空白名称，即使目录数量达标也失败；两组定向审计覆盖通过；全量 436/65 |
+| P3-273 | 校验 MCP 工具命名建议 | done | 共用校验器限制 1-128 ASCII 字符集合 `[A-Za-z0-9_.-]`，非法名与重复名独立计数；空格、斜杠、非 ASCII、超长和有效长度边界定向测试通过；全量 438/65 |
+| P3-274 | 验证 MCP stdio 畸形请求后恢复 | done | 真实 mcp-server 子进程依次接收畸形 JSON 与数组/标量 JSON，返回 `-32700`/`-32600` 且 null ID；同进程随后成功 initialize 并在 EOF 正常退出；定向 29 项通过，全量 439/65 |
+| P3-275 | 加固 MCP JSON-RPC 请求信封校验 | next | 审核 JSON-RPC 版本、method、ID、params 类型；用 handler 与真实 stdio 子进程测试非法信封、请求连续性和有效 notification，明确当前 MCP stdio 支持边界 |
 
 进展记录：
 - 2026-10-03: P3-004 已为 `regression-run` 增加 `--artifact-dir`，safe profile 生成 `artifacts\regression\regression-run-20261003T063513662051Z-regression-artifact-p3-004-001.json`，报告见 `docs\P3_REGRESSION_ARTIFACT_EXPORT_REPORT.md`。

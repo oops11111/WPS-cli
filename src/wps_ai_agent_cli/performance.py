@@ -6,6 +6,9 @@ import time
 from typing import Any
 
 
+MCP_BASELINE_EXPECTED_TOOL_COUNT = 81
+
+
 PERFORMANCE_BASELINE_COMMANDS: tuple[dict[str, Any], ...] = (
     {
         "id": "mcp-tools",
@@ -16,7 +19,7 @@ PERFORMANCE_BASELINE_COMMANDS: tuple[dict[str, Any], ...] = (
     {
         "id": "mcp-smoke",
         "category": "mcp",
-        "command": ["mcp-smoke", "--expected-min-tools", "47", "--tool-name", "wps_agent_tasks"],
+        "command": ["mcp-smoke", "--expected-min-tools", str(MCP_BASELINE_EXPECTED_TOOL_COUNT), "--tool-name", "wps_agent_tasks"],
         "launches_wps": False,
     },
     {
@@ -29,7 +32,7 @@ PERFORMANCE_BASELINE_COMMANDS: tuple[dict[str, Any], ...] = (
             "--server-name",
             "wps-ai-agent-cli",
             "--expected-min-tools",
-            "47",
+            str(MCP_BASELINE_EXPECTED_TOOL_COUNT),
         ],
         "launches_wps": False,
     },

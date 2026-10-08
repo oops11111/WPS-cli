@@ -15,6 +15,7 @@ from .mcp_schema import list_mcp_tool_schemas
 MCP_PROTOCOL_VERSION = "2026-07-28"
 SERVER_INFO = {"name": "wps-ai-agent-cli", "version": "phase2-prototype"}
 MCP_TOOLS_PAGE_SIZE = 50
+MCP_TOOLS_CURSOR_MAX_LENGTH = 128
 _CURSOR_OMITTED = object()
 
 
@@ -65,7 +66,8 @@ def _tools_list_result(cursor: Any = _CURSOR_OMITTED) -> dict[str, Any]:
     ).hexdigest()[:16]
     offset = 0
     if cursor is not _CURSOR_OMITTED:
-        if not isinstance(cursor, str) or not cursor:
+        if (not isinstance(cursor, str) or not cursor
+                or len(cursor) > MCP_TOOLS_CURSOR_MAX_LENGTH):
             raise ValueError("Invalid tools/list cursor.")
         try:
             encoded = cursor.encode("ascii")

@@ -14,6 +14,7 @@ from unittest.mock import patch
 from wps_ai_agent_cli.mcp_schema import list_mcp_tool_schemas
 from wps_ai_agent_cli.mcp_server import (
     MCP_TOOLS_PAGE_SIZE,
+    MCP_TOOLS_CURSOR_MAX_LENGTH,
     handle_mcp_json,
     handle_mcp_request,
     serve_stdio,
@@ -21,6 +22,127 @@ from wps_ai_agent_cli.mcp_server import (
 
 
 class McpServerTests(unittest.TestCase):
+    def test_subprocess_stdio_recovers_after_malformed_and_non_object_requests(self):
+        root = Path(__file__).resolve().parents[1]
+        env = dict(os.environ, PYTHONPATH=str(root / "src"))
+        process = subprocess.Popen(
+            [sys.executable, "-m", "wps_ai_agent_cli", "mcp-server"],
+            stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            text=True, encoding="utf-8", cwd=root, env=env,
+        )
+        replies = Queue()
+
+        def read_replies():
+            for line in process.stdout:
+                replies.put(line)
+
+        reader = Thread(target=read_replies)
+        reader.start()
+        try:
+            for payload, code in (("{not-json", -32700), ("[]", -32600), ("7", -32600)):
+                process.stdin.write(payload + "\n")
+                process.stdin.flush()
+                response = json.loads(replies.get(timeout=10))
+                self.assertEqual(response["jsonrpc"], "2.0")
+                self.assertIsNone(response["id"])
+                self.assertEqual(response["error"]["code"], code)
+
+            request = {"jsonrpc": "2.0", "id": "recovered", "method": "initialize", "params": {}}
+            process.stdin.write(json.dumps(request) + "\n")
+            process.stdin.flush()
+            response = json.loads(replies.get(timeout=10))
+            self.assertEqual(response["id"], "recovered")
+            self.assertIn("protocolVersion", response["result"])
+            self.assertIsNone(process.poll())
+        finally:
+            process.stdin.close()
+            try:
+                process.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                process.kill()
+                process.wait(timeout=5)
+            reader.join(timeout=5)
+            stderr = process.stderr.read()
+            process.stdout.close()
+            process.stderr.close()
+
+        self.assertEqual(process.returncode, 0, stderr)
+        self.assertFalse(reader.is_alive())
+        self.assertTrue(replies.empty())
+
+    def test_subprocess_stdio_completes_paginated_mcp_contract(self):
+        root = Path(__file__).resolve().parents[1]
+        env = dict(os.environ, PYTHONPATH=str(root / "src"))
+        process = subprocess.Popen(
+            [sys.executable, "-m", "wps_ai_agent_cli", "mcp-server"],
+            stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            text=True, encoding="utf-8", cwd=root, env=env,
+        )
+        replies = Queue()
+
+        def read_replies():
+            for line in process.stdout:
+                replies.put(line)
+
+        reader = Thread(target=read_replies)
+        reader.start()
+
+        def exchange(request_id, method, params):
+            request = {"jsonrpc": "2.0", "id": request_id, "method": method, "params": params}
+            process.stdin.write(json.dumps(request) + "\n")
+            process.stdin.flush()
+            response = json.loads(replies.get(timeout=10))
+            self.assertEqual(response["id"], request_id)
+            self.assertEqual(response["jsonrpc"], "2.0")
+            return response
+
+        expected_names = [schema["name"] for schema in list_mcp_tool_schemas()]
+        try:
+            initialize = exchange("init", "initialize", {
+                "protocolVersion": "2026-07-28", "capabilities": {},
+                "clientInfo": {"name": "wps-cli-test", "version": "1"},
+            })
+            self.assertEqual(initialize["result"]["protocolVersion"], "2026-07-28")
+
+            first = exchange("page-1", "tools/list", {})["result"]
+            self.assertEqual(first["ttlMs"], 300000)
+            self.assertEqual(first["cacheScope"], "public")
+            self.assertEqual(len(first["tools"]), MCP_TOOLS_PAGE_SIZE)
+            cursor = first["nextCursor"]
+
+            second = exchange("page-2", "tools/list", {"cursor": cursor})["result"]
+            self.assertEqual(second["ttlMs"], 300000)
+            self.assertEqual(second["cacheScope"], "public")
+            self.assertNotIn("nextCursor", second)
+            names = [tool["name"] for tool in first["tools"] + second["tools"]]
+            self.assertEqual(names, expected_names)
+            self.assertEqual(len(names), len(set(names)))
+
+            invalid_cursor = exchange("bad-cursor", "tools/list", {"cursor": "invalid"})
+            self.assertEqual(invalid_cursor["error"]["code"], -32602)
+
+            call = exchange("safe-call", "tools/call", {
+                "name": "wps_agent_tasks", "arguments": {"phase": "phase3", "status": "next"},
+            })["result"]
+            self.assertFalse(call["isError"])
+            self.assertTrue(call["structuredContent"]["mcp_call"]["response"]["ok"])
+            self.assertIsNone(process.poll())
+        finally:
+            process.stdin.close()
+            try:
+                process.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                process.kill()
+                process.wait(timeout=5)
+            reader.join(timeout=5)
+            stderr = process.stderr.read()
+            process.stdout.close()
+            process.stderr.close()
+
+        self.assertEqual(process.returncode, 0, stderr)
+        self.assertFalse(reader.is_alive())
+        self.assertTrue(replies.empty())
+
     def test_subprocess_returns_batch_before_stdin_closes(self):
         with TemporaryDirectory() as directory:
             root = Path(directory)
@@ -183,6 +305,17 @@ class McpServerTests(unittest.TestCase):
                 "params": {"cursor": cursor_payload},
             })
         self.assertEqual(response["error"]["code"], -32602)
+
+    def test_tools_list_rejects_oversized_cursor_before_base64_decode(self):
+        oversized = "A" * (MCP_TOOLS_CURSOR_MAX_LENGTH + 1)
+        with patch("wps_ai_agent_cli.mcp_server.base64.b64decode") as decode:
+            response = handle_mcp_request({
+                "jsonrpc": "2.0", "id": "oversized", "method": "tools/list",
+                "params": {"cursor": oversized},
+            })
+
+        self.assertEqual(response["error"]["code"], -32602)
+        decode.assert_not_called()
 
     def test_tools_call_uses_adapter(self):
         response = handle_mcp_request(

@@ -9,6 +9,7 @@ from wps_ai_agent_cli.mcp_smoke import run_mcp_server_smoke
 from wps_ai_agent_cli.cli import mcp_smoke_response, run
 from wps_ai_agent_cli.batch_conversion import _request_record_path
 from wps_ai_agent_cli.mcp_schema import list_mcp_tool_schemas
+from wps_ai_agent_cli.mcp_server import handle_mcp_request as real_handle_mcp_request
 
 
 class McpSmokeTests(unittest.TestCase):
@@ -80,6 +81,63 @@ class McpSmokeTests(unittest.TestCase):
         self.assertFalse(ok)
         self.assertEqual(errors[0]["code"], "MCP_SMOKE_FAILED")
         self.assertFalse(result["checks"][1]["passed"])
+
+    def test_mcp_server_smoke_reports_malformed_json_rpc_results_without_raising(self):
+        malformed_results = {
+            "missing": {},
+            "null": {"result": None},
+            "non_object": {"result": []},
+        }
+        for shape, result_fields in malformed_results.items():
+            with self.subTest(shape=shape):
+                def malformed_response(request):
+                    return {"jsonrpc": "2.0", "id": request["id"], **result_fields}
+
+                with patch("wps_ai_agent_cli.mcp_smoke.handle_mcp_request", side_effect=malformed_response):
+                    ok, result, errors = run_mcp_server_smoke(expected_min_tools=1)
+
+                self.assertFalse(ok)
+                self.assertEqual(errors[0]["code"], "MCP_SMOKE_FAILED")
+                self.assertTrue(all(not check["passed"] for check in result["checks"]))
+                self.assertEqual(result["responses"]["tools_list"]["tool_count"], 0)
+                self.assertEqual(result["responses"]["tools_list"]["page_count"], 1)
+                self.assertEqual(result["responses"]["tools_list"]["pages"][0]["tool_count"], 0)
+                self.assertFalse(result["responses"]["tools_list"]["pages"][0]["has_next_page"])
+
+    def test_mcp_server_smoke_rejects_nonconforming_tool_names(self):
+        for name in ("", "   ", "tool name", "tool/name", "naïve", "a" * 129):
+            with self.subTest(name=repr(name)):
+                def response(request):
+                    if request["method"] == "tools/list":
+                        return {"jsonrpc": "2.0", "id": request["id"], "result": {
+                            "tools": [{"name": name}], "resultType": "complete",
+                        }}
+                    return real_handle_mcp_request(request)
+
+                with patch("wps_ai_agent_cli.mcp_smoke.handle_mcp_request", side_effect=response):
+                    ok, result, errors = run_mcp_server_smoke(expected_min_tools=1)
+
+                self.assertFalse(ok)
+                self.assertEqual(errors[0]["code"], "MCP_SMOKE_FAILED")
+                details = result["checks"][1]["details"]
+                self.assertEqual(details["tool_count"], 1)
+                self.assertEqual(details["invalid_tool_count"], 1)
+
+    def test_mcp_server_smoke_accepts_mcp_tool_name_boundaries(self):
+        for name in ("a", "A" * 128, "tool.name_v2-3"):
+            with self.subTest(name=name[:20]):
+                def response(request):
+                    if request["method"] == "tools/list":
+                        return {"jsonrpc": "2.0", "id": request["id"], "result": {
+                            "tools": [{"name": name}], "resultType": "complete",
+                        }}
+                    return real_handle_mcp_request(request)
+
+                with patch("wps_ai_agent_cli.mcp_smoke.handle_mcp_request", side_effect=response):
+                    ok, result, errors = run_mcp_server_smoke(expected_min_tools=1)
+
+                self.assertTrue(ok, errors)
+                self.assertEqual(result["checks"][1]["details"]["invalid_tool_count"], 0)
 
     def test_mcp_server_smoke_passes_for_no_argument_tool(self):
         ok, result, errors = run_mcp_server_smoke(

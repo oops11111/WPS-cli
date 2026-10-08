@@ -4,6 +4,7 @@ from typing import Any
 
 from .mcp_server import handle_mcp_request
 from .mcp_schema import get_mcp_tool_schema
+from .mcp_tool_names import audit_mcp_tool_names
 
 
 _PARAMETERIZED_READ_ONLY_COMMANDS = {
@@ -24,6 +25,13 @@ def _request(request_id: int, method: str, params: dict[str, Any] | None = None)
 
 def _check(name: str, passed: bool, details: Any) -> dict[str, Any]:
     return {"name": name, "passed": passed, "details": details}
+
+
+def _response_result(response: Any) -> dict[str, Any]:
+    if not isinstance(response, dict):
+        return {}
+    result = response.get("result")
+    return result if isinstance(result, dict) else {}
 
 
 def _tool_arguments(tool_name: str) -> dict[str, Any]:
@@ -53,9 +61,10 @@ def run_mcp_server_smoke(
         params = {"cursor": cursor} if cursor is not None else {}
         page_response = handle_mcp_request(_request(2 + page_index, "tools/list", params))
         tools_list_pages.append(page_response)
-        page_result = (page_response or {}).get("result")
-        if not isinstance(page_result, dict) or not isinstance(page_result.get("tools"), list):
-            tools_list_error = (page_response or {}).get("error") or "Invalid tools/list page."
+        page_result = _response_result(page_response)
+        if not isinstance(page_result.get("tools"), list):
+            response_object = page_response if isinstance(page_response, dict) else {}
+            tools_list_error = response_object.get("error") or "Invalid tools/list page."
             break
         tools.extend(page_result["tools"])
         next_cursor = page_result.get("nextCursor")
@@ -82,35 +91,42 @@ def run_mcp_server_smoke(
         )
     )
 
-    initialize_result = (initialize_response or {}).get("result", {})
-    call_result = (tools_call_response or {}).get("result", {})
-    structured = call_result.get("structuredContent", {})
-    cli_response = structured.get("mcp_call", {}).get("response") or {}
-    tool_names = [tool.get("name") for tool in tools if isinstance(tool, dict)]
-    invalid_tool_count = len(tools) - sum(
-        isinstance(tool, dict) and isinstance(tool.get("name"), str) for tool in tools
-    )
-    duplicate_tool_count = len(tool_names) - len(set(tool_names)) if not invalid_tool_count else 0
+    initialize_result = _response_result(initialize_response)
+    call_result = _response_result(tools_call_response)
+    structured = call_result.get("structuredContent")
+    if not isinstance(structured, dict):
+        structured = {}
+    mcp_call = structured.get("mcp_call")
+    if not isinstance(mcp_call, dict):
+        mcp_call = {}
+    cli_response = mcp_call.get("response")
+    if not isinstance(cli_response, dict):
+        cli_response = {}
+    invalid_tool_count, duplicate_tool_count = audit_mcp_tool_names(tools)
+    page_summaries = []
+    for index, response in enumerate(tools_list_pages):
+        page_result = _response_result(response)
+        page_tools = page_result.get("tools")
+        page_summaries.append({
+            "page": index + 1,
+            "tool_count": len(page_tools) if isinstance(page_tools, list) else 0,
+            "has_next_page": "nextCursor" in page_result,
+            "ttlMs": page_result.get("ttlMs"),
+            "cacheScope": page_result.get("cacheScope"),
+        })
     tools_list_summary = {
         "tool_count": len(tools),
         "page_count": len(tools_list_pages),
-        "pages": [
-            {
-                "page": index + 1,
-                "tool_count": len((response or {}).get("result", {}).get("tools", [])),
-                "has_next_page": "nextCursor" in (response or {}).get("result", {}),
-                "ttlMs": (response or {}).get("result", {}).get("ttlMs"),
-                "cacheScope": (response or {}).get("result", {}).get("cacheScope"),
-            }
-            for index, response in enumerate(tools_list_pages)
-        ],
+        "pages": page_summaries,
     }
+    capabilities = initialize_result.get("capabilities")
+    tool_capabilities = capabilities.get("tools") if isinstance(capabilities, dict) else None
 
     checks = [
         _check(
             "initialize_protocol",
             initialize_result.get("protocolVersion") is not None
-            and initialize_result.get("capabilities", {}).get("tools") is not None,
+            and tool_capabilities is not None,
             {
                 "protocolVersion": initialize_result.get("protocolVersion"),
                 "serverInfo": initialize_result.get("serverInfo"),
@@ -134,7 +150,7 @@ def run_mcp_server_smoke(
             call_result.get("isError") is False and cli_response.get("ok") is True,
             {
                 "tool_name": tool_name,
-                "cli_command": structured.get("mcp_call", {}).get("cli_command"),
+                "cli_command": mcp_call.get("cli_command"),
                 "summary": cli_response.get("summary"),
             },
         ),

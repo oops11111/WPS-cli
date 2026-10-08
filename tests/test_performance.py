@@ -2,7 +2,12 @@ import unittest
 import json
 from unittest.mock import patch
 
-from wps_ai_agent_cli.performance import capture_performance_baseline, PERFORMANCE_BASELINE_COMMANDS, _run_cli
+from wps_ai_agent_cli.performance import (
+    MCP_BASELINE_EXPECTED_TOOL_COUNT,
+    PERFORMANCE_BASELINE_COMMANDS,
+    _run_cli,
+    capture_performance_baseline,
+)
 
 
 class PerformanceBaselineTests(unittest.TestCase):
@@ -31,6 +36,19 @@ class PerformanceBaselineTests(unittest.TestCase):
         self.assertTrue(payload["ok"])
         self.assertEqual(json.loads(raw)["command"], "tasks")
         self.assertGreater(duration, 0)
+
+    def test_mcp_scenarios_require_the_current_catalog_size(self):
+        scenarios = {item["id"]: item["command"] for item in PERFORMANCE_BASELINE_COMMANDS}
+        expected = str(MCP_BASELINE_EXPECTED_TOOL_COUNT)
+        self.assertEqual(MCP_BASELINE_EXPECTED_TOOL_COUNT, 81)
+        self.assertEqual(
+            scenarios["mcp-smoke"][scenarios["mcp-smoke"].index("--expected-min-tools") + 1],
+            expected,
+        )
+        self.assertEqual(
+            scenarios["mcp-config-audit"][scenarios["mcp-config-audit"].index("--expected-min-tools") + 1],
+            expected,
+        )
 
     def test_failed_command_is_preserved_in_baseline(self):
         def completed(command):
