@@ -2376,8 +2376,15 @@ TASKS: tuple[ProjectTask, ...] = (
         id="P3-305",
         phase="phase3",
         title="Align MCP adapter string schema validation",
-        status="next",
+        status="done",
         acceptance="Support the advertised minLength, maxLength, and pattern constraints in MCP adapter validation; reject malformed schema patterns safely and verify catalog-wide contract parity.",
+    ),
+    ProjectTask(
+        id="P3-306",
+        phase="phase3",
+        title="Reject malformed MCP schema constraint metadata",
+        status="next",
+        acceptance="Validate types and relationships of adapter-consumed schema constraints before comparison; malformed metadata returns bounded schema errors without uncaught exceptions or argument-value disclosure.",
     ),
 )
 
