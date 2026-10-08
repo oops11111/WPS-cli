@@ -2264,8 +2264,15 @@ TASKS: tuple[ProjectTask, ...] = (
         id="P3-289",
         phase="phase3",
         title="Normalize malformed MCP audit responses",
-        status="next",
+        status="done",
         acceptance="Convert malformed JSON, excessive nesting, and invalid UTF-8 from configured MCP subprocesses into bounded audit failures without uncaught reader-thread exceptions; always reap the child and preserve subsequent independent audits.",
+    ),
+    ProjectTask(
+        id="P3-290",
+        phase="phase3",
+        title="Validate nested MCP descriptor schema definitions",
+        status="next",
+        acceptance="Recursively validate nested properties, array items, required fields, and JSON Schema keyword shapes in advertised MCP input/output schemas; report bounded page/index/schema-path diagnostics and preserve the real configured catalog audit.",
     ),
 )
 

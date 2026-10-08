@@ -171,7 +171,11 @@ def audit_mcp_client_config(
                     return False
 
                 while not stop_readers.is_set():
-                    output_line = process.stdout.readline(MCP_AUDIT_MAX_STDOUT_LINE_CHARS + 1)
+                    try:
+                        output_line = process.stdout.readline(MCP_AUDIT_MAX_STDOUT_LINE_CHARS + 1)
+                    except UnicodeDecodeError:
+                        enqueue(ValueError("Configured server stdout was not valid UTF-8."))
+                        return
                     if not output_line:
                         enqueue(None)
                         return
@@ -318,7 +322,7 @@ def audit_mcp_client_config(
                 descriptor_issue_count == 0,
                 {"invalid_count": descriptor_issue_count, "issues": descriptor_issues},
             ))
-        except (subprocess.SubprocessError, OSError, json.JSONDecodeError, ValueError) as exc:
+        except (subprocess.SubprocessError, OSError, json.JSONDecodeError, RecursionError, ValueError) as exc:
             smoke = {"error": str(exc), "page_count": page_count, "stderr": "".join(stderr_chunks).strip()}
             checks.append(_check("configured_tools_list_smoke", False, smoke))
         finally:

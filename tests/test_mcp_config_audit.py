@@ -33,6 +33,18 @@ class McpConfigAuditTests(unittest.TestCase):
                 "    sys.stdout.write('x'*(1024*1024+1)+'\\n')",
                 "    sys.stdout.flush()",
                 "    time.sleep(30)",
+                "if pages and pages[0].get('_invalidUtf8'):",
+                "    sys.stdout.buffer.write(b'\\xff\\n')",
+                "    sys.stdout.flush()",
+                "    time.sleep(30)",
+                "if pages and pages[0].get('_deepJson'):",
+                "    sys.stdout.write('['*1500+'0'+']'*1500+'\\n')",
+                "    sys.stdout.flush()",
+                "    time.sleep(30)",
+                "if pages and pages[0].get('_malformedJson'):",
+                "    sys.stdout.write('{bad json\\n')",
+                "    sys.stdout.flush()",
+                "    time.sleep(30)",
                 "if pages and pages[0].get('_stderrFlood'):",
                 "    sys.stderr.write('e'*20000)",
                 "    sys.stderr.flush()",
@@ -275,6 +287,36 @@ class McpConfigAuditTests(unittest.TestCase):
 
         self.assertTrue(ok, errors)
         self.assertEqual(len(result["smoke"]["stderr"]), 8192)
+
+    def test_audit_normalizes_invalid_utf8_malformed_and_deep_json(self):
+        real_popen = subprocess.Popen
+        for mode, expected in (
+            ("_invalidUtf8", "not valid UTF-8"),
+            ("_malformedJson", "Expecting"),
+            ("_deepJson", "invalid json-rpc response"),
+        ):
+            children = []
+
+            def track_process(*args, **kwargs):
+                process = real_popen(*args, **kwargs)
+                children.append(process)
+                return process
+
+            with self.subTest(mode=mode), patch(
+                "wps_ai_agent_cli.mcp_config_audit.subprocess.Popen", side_effect=track_process,
+            ):
+                ok, result, errors = self.audit_fake_paged_server([{mode: True}])
+                self.assertFalse(ok)
+                self.assertEqual(errors[0]["code"], "MCP_CONFIG_AUDIT_FAILED")
+                self.assertIn(expected.lower(), result["smoke"]["error"].lower())
+                self.assertLess(len(result["smoke"]["error"]), 256)
+                self.assertEqual(len(children), 1)
+                self.assertIsNotNone(children[0].poll())
+
+        ok, _, errors = self.audit_fake_paged_server([
+            {"resultType": "complete", "tools": [tool_descriptor("tool_after_bad_server")]},
+        ])
+        self.assertTrue(ok, errors)
 
 
 if __name__ == "__main__":
