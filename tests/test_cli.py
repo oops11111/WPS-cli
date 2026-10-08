@@ -551,6 +551,14 @@ class CliParsingTests(unittest.TestCase):
         self.assertEqual(calc_args.timeout_seconds, 3)
         self.assertEqual(audit_args.command, "mcp-config-audit")
         self.assertEqual(audit_args.config, "config/mcp_client_config.example.json")
+        self.assertEqual(audit_args.timeout_seconds, 15)
+        for timeout in (1, 120):
+            self.assertEqual(parser.parse_args([
+                "mcp-config-audit", "--timeout-seconds", str(timeout),
+            ]).timeout_seconds, timeout)
+        for timeout in (0, -1, 121):
+            with self.subTest(timeout=timeout), self.assertRaises(SystemExit):
+                parser.parse_args(["mcp-config-audit", "--timeout-seconds", str(timeout)])
         self.assertEqual(manifest_args.command, "regression-manifest")
         self.assertEqual(manifest_args.profile, "safe")
         self.assertEqual(run_args.command, "regression-run")

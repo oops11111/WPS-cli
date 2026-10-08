@@ -358,7 +358,8 @@
 | P3-299 | 拒绝 MCP 配置 JSON 歧义值 | done | 递归拒绝重复成员名和 NaN/Infinity 等非标准数值常量；6 种原始 JSON 输入均有界失败、不泄露原文且不 spawn；审计定向 22 项，全量 478/65 |
 | P3-300 | 限制 MCP 配置 JSON 嵌套深度 | done | 在递归解码前限制 64 层容器；65 层被拒且 json.loads/Popen 均未调用，恰好 64 层通过；字符串内括号和转义不误判；定向 23 项，全量 479/65 |
 | P3-301 | 拒绝 MCP 配置中的孤立 Unicode surrogate | done | 检查嵌套值和对象键；孤立高/低 surrogate 有界失败、不泄露值且不 spawn，合法代理对与 BMP Unicode 通过；定向 24 项，全量 480/65 |
-| P3-302 | 限制配置 MCP 审计子进程超时 | next | CLI、MCP schema、直接 API 共用正数及最大超时限制；非法值在 spawn 前拒绝，默认值行为不变 |
+| P3-302 | 限制配置 MCP 审计子进程超时 | done | CLI、MCP schema、直接 API 共用 1–120 秒边界，默认 15 秒；非法值在配置读取和 spawn 前拒绝；保留子进程超时回收测试；全量 482/65 |
+| P3-303 | 限制配置 MCP 审计预期工具数 | next | CLI、MCP schema、直接 API 共用正数及最大工具数限制；非法值在配置读取/spawn 前拒绝，默认值不变 |
 
 进展记录：
 - 2026-10-09: P3-298 已完成 MCP 配置根节点与 `mcpServers` 对象形状校验；6 种畸形结构均有界失败且不启动子进程，全量测试 477 passed/65 skipped，safe regression 15/15；实现和下一项范围见 `docs\P3_NEXT_MCP_CONFIG_JSON_AMBIGUITY_SCOPE.md`。
@@ -368,6 +369,8 @@
 - P3-300 release: local-release-gates 5/5 passed，package readiness passed，WPS 未启动。
 - 2026-10-09: P3-301 已拒绝配置 JSON 字符串和对象键中的孤立 UTF-16 surrogate；有效代理对与非 ASCII Unicode 保持可用，定向 24 项、全量 480/65。当前 next 为 P3-302 子进程超时上限。
 - P3-301 release: local-release-gates 5/5 passed，package readiness passed，WPS 未启动。
+- 2026-10-09: P3-302 已统一配置审计超时范围为 1–120 秒、默认 15 秒，CLI/MCP schema/API 均覆盖边界并在 spawn 前拒绝非法输入；全量测试 482 passed/65 skipped，当前 next 为 P3-303。
+- P3-302 release: local-release-gates 5/5 passed，package readiness passed，WPS 未启动。
 - 2026-10-03: P3-004 已为 `regression-run` 增加 `--artifact-dir`，safe profile 生成 `artifacts\regression\regression-run-20261003T063513662051Z-regression-artifact-p3-004-001.json`，报告见 `docs\P3_REGRESSION_ARTIFACT_EXPORT_REPORT.md`。
 - 2026-10-03: P3-005 已形成 CI 交接文档，覆盖 safe/WPS 调用命令、artifact 留存路径、通过门槛和失败分诊，见 `docs\REGRESSION_CI_HANDOFF.md`。
 - 2026-10-03: P3-006 已执行失败恢复演练，构造 `p3_006_failed_writer_replace` 终态失败任务，验证 `task-recovery`、备份清单和 Writer snapshot 证据，报告见 `docs\P3_RECOVERY_HARDENING_DRILL.md`。

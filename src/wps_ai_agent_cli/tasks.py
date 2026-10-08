@@ -2355,8 +2355,15 @@ TASKS: tuple[ProjectTask, ...] = (
         id="P3-302",
         phase="phase3",
         title="Bound configured MCP audit subprocess timeout",
-        status="next",
+        status="done",
         acceptance="Enforce a documented upper bound and positive lower bound for configured-client audit timeouts across CLI, MCP schema, and direct API; reject invalid values before spawning while preserving default behavior.",
+    ),
+    ProjectTask(
+        id="P3-303",
+        phase="phase3",
+        title="Bound configured MCP audit expected tool count",
+        status="next",
+        acceptance="Require a positive bounded expected_min_tools value across CLI, MCP schema, and direct API; reject invalid expectations before config reads or process spawn while preserving the existing default.",
     ),
 )
 

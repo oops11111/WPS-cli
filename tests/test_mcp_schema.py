@@ -141,6 +141,12 @@ class McpSchemaTests(unittest.TestCase):
             self.assertIn("task_id", properties)
             self.assertTrue(schema["safety_notes"])
 
+    def test_mcp_config_audit_timeout_schema_has_shared_bounds(self):
+        properties = get_mcp_tool_schema("wps_agent_mcp_config_audit")["input_schema"]["properties"]
+        timeout = properties["timeout_seconds"]
+        self.assertEqual(timeout["minimum"], 1)
+        self.assertEqual(timeout["maximum"], 120)
+
 
 if __name__ == "__main__":
     unittest.main()

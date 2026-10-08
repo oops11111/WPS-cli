@@ -22,6 +22,8 @@ MCP_AUDIT_STDOUT_QUEUE_SIZE = 8
 MCP_AUDIT_READ_CHUNK_CHARS = 8192
 MCP_CONFIG_MAX_BYTES = 1024 * 1024
 MCP_CONFIG_MAX_JSON_DEPTH = 64
+MCP_CONFIG_AUDIT_TIMEOUT_MIN_SECONDS = 1
+MCP_CONFIG_AUDIT_TIMEOUT_MAX_SECONDS = 120
 
 
 def _check(name: str, passed: bool, details: Any) -> dict[str, Any]:
@@ -366,7 +368,29 @@ def audit_mcp_client_config(
     timeout_seconds: int = 15,
 ) -> tuple[bool, dict[str, Any], list[dict[str, Any]]]:
     path = Path(config_path)
+    timeout_valid = (
+        isinstance(timeout_seconds, int)
+        and not isinstance(timeout_seconds, bool)
+        and MCP_CONFIG_AUDIT_TIMEOUT_MIN_SECONDS <= timeout_seconds <= MCP_CONFIG_AUDIT_TIMEOUT_MAX_SECONDS
+    )
+    timeout_check = _check(
+        "timeout_seconds_within_limit",
+        timeout_valid,
+        {
+            "minimum": MCP_CONFIG_AUDIT_TIMEOUT_MIN_SECONDS,
+            "maximum": MCP_CONFIG_AUDIT_TIMEOUT_MAX_SECONDS,
+        },
+    )
+    if not timeout_valid:
+        result = {
+            "config_path": str(path),
+            "server_name": server_name,
+            "checks": [timeout_check],
+            "smoke": None,
+        }
+        return False, result, [{"code": "MCP_CONFIG_AUDIT_FAILED", "message": "Timeout must be between 1 and 120 seconds."}]
     config, checks = _load_config(path)
+    checks.insert(0, timeout_check)
     if config is None:
         result = {
             "config_path": str(path),

@@ -26,7 +26,11 @@ from .html_roundtrip import build_html_roundtrip_mapping, export_controlled_html
 from .mcp_adapter import call_mcp_tool
 from .mcp_catalog_drift import DEFAULT_MCP_CATALOG_GUARD, build_mcp_catalog_drift_report
 from .mcp_catalog import build_mcp_catalog_snapshot
-from .mcp_config_audit import audit_mcp_client_config
+from .mcp_config_audit import (
+    MCP_CONFIG_AUDIT_TIMEOUT_MAX_SECONDS,
+    MCP_CONFIG_AUDIT_TIMEOUT_MIN_SECONDS,
+    audit_mcp_client_config,
+)
 from .mcp_schema import get_mcp_tool_schema, list_mcp_tool_categories, list_mcp_tool_schemas
 from .mcp_server import handle_mcp_json, serve_stdio
 from .mcp_smoke import run_mcp_server_smoke
@@ -79,6 +83,18 @@ def _configure_stdout() -> None:
 
 def _request_id(value: str | None) -> str:
     return value or str(uuid4())
+
+
+def _mcp_config_audit_timeout(value: str) -> int:
+    try:
+        timeout = int(value)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError("must be an integer") from exc
+    if not MCP_CONFIG_AUDIT_TIMEOUT_MIN_SECONDS <= timeout <= MCP_CONFIG_AUDIT_TIMEOUT_MAX_SECONDS:
+        raise argparse.ArgumentTypeError(
+            f"must be between {MCP_CONFIG_AUDIT_TIMEOUT_MIN_SECONDS} and {MCP_CONFIG_AUDIT_TIMEOUT_MAX_SECONDS} seconds"
+        )
+    return timeout
 
 
 def _extract_request_id(argv: list[str]) -> tuple[list[str], str | None]:
@@ -573,9 +589,9 @@ def build_parser() -> argparse.ArgumentParser:
     )
     mcp_config_audit_parser.add_argument(
         "--timeout-seconds",
-        type=int,
+        type=_mcp_config_audit_timeout,
         default=15,
-        help="Timeout for the configured tools/list smoke.",
+        help="Timeout for configured tools/list smoke (1-120 seconds).",
     )
 
     regression_manifest_parser = subparsers.add_parser(
