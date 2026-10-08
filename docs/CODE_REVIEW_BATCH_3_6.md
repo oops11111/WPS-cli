@@ -54,9 +54,19 @@ Python 3.12 自带的 expat 对实体膨胀有防护，外部实体也不会被�
 
 `project_status`、`workspace_health`、`local_handoff`、`validation_runbook`、`documentation_freshness`、`regression_history`、`sync_package_*`（6 个模块）、`recovery_drill_evidence`、`security_audit` 等约 20 个模块是项目对自身状态的审计与汇报，而不是对 WPS 的能力。它们各自带 CLI 命令、MCP 工具、文档和测试，增加了 `cli.py` 和 MCP 目录的体积。
 
-`security_audit.py` 值得单独复核：它是一个"审计报告生成器"，要确认检查项是真实检测，不是硬编码的 `passed`。本次没有深入。
+`security_audit.py` 见 G-08。
 
 建议：评估哪些对 Agent 用户有价值（回归、健康检查），把其余收敛为一个 `dev` 子命令组，不暴露为 MCP 工具。
+
+### G-08（P2）`security_audit` 检查的是 schema 文案，不是行为，容易给出虚假的安全感
+
+位置：`security_audit.py`。
+
+7 项检查（`backup_or_protection_boundary`、`file_system_boundary_documented`、`idempotency_mentions_request_id` 等）通过在工具 schema 的 `description`、`safety_notes`、`idempotency` 字符串里搜索 "backup"、"protect"、"file"、"request_id" 等关键词来判定。它验证的是"文档里提到了"，不是"代码里做了"。
+
+例如批次 1 发现的 F-01（超时导致任务卡死）、F-02（恢复非原子）、F-03（不校验备份）都不会被它发现，只要 schema 描述里写了 "backup" 就会通过。把它叫做 "security boundary audit" 并放进发布门槛，会让人误以为已经覆盖了行为层面的安全。
+
+建议：改名为 schema 文案检查（例如 `mcp-schema-lint`），或补充行为类检查，比如对每个修改类工具的 mock 超时与失败注入用例，把"已验证的失败模式"作为门槛项。
 
 ## 已确认没问题的点
 
@@ -70,6 +80,6 @@ Python 3.12 自带的 expat 对实体膨胀有防护，外部实体也不会被�
 
 - `spreadsheet_ops.py` 与 `writer_ops.py` 的逐分支审查、`spreadsheet_ranges.py` 的 A1 解析边界。
 - `mcp_server.py` 的 stdin 行大小限制与并发取消的竞态。
-- `tasks.py`（2092 行）的业务逻辑。它主要是任务清单的数据与过滤，未发现风险。
+- `tasks.py`（2092 行）只有一个函数 `list_tasks`，其余全是任务清单数据，没有逻辑，不需要审查。
 
 这些可作为下一轮审查对象。
