@@ -2779,7 +2779,21 @@ def _with_optional_task_status(
             validation=ValidationResult(status="failed"),
             errors=_errors,
         )
-    response = response_factory()
+    try:
+        response = response_factory()
+    except BaseException as exc:
+        current_status = get_task_status(task_id)
+        if current_status and not current_status.get("terminal"):
+            update_task_status(
+                task_id,
+                "failed",
+                message=f"{tracked_command} raised {type(exc).__name__}: {exc}",
+                recovery_guidance=[
+                    "The operation raised an unexpected exception; run mutation-request-inspect with the request_id before retrying.",
+                ],
+                result_ref=operation_request_id,
+            )
+        raise
     current_status = get_task_status(task_id)
     if current_status and not current_status.get("terminal"):
         update_task_status(

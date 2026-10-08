@@ -47,6 +47,13 @@ def validate_smoke_inputs(component: str, input_path: str, output_path: str) -> 
                 "message": "Output file path is required.",
             }
         )
+    elif input_path and Path(input_path).resolve() == Path(output_path).resolve():
+        errors.append(
+            {
+                "code": COM_OPERATION_FAILED,
+                "message": "output_path must differ from input_path; refusing to overwrite the source document.",
+            }
+        )
     return errors
 
 
@@ -156,6 +163,12 @@ try {{
             text=True,
             timeout=120,
         )
+    except subprocess.TimeoutExpired:
+        return {
+            "ok": False,
+            "errors": [{"code": COM_OPERATION_TIMEOUT, "message": "WPS operation timed out after 120 seconds; WPS may still be running. Run wps-process-audit before retrying."}],
+            "data": {"backend": "powershell-com", "timed_out": True},
+        }
     finally:
         if script_path:
             try:
@@ -517,6 +530,12 @@ try {{
             text=True,
             timeout=120,
         )
+    except subprocess.TimeoutExpired:
+        return {
+            "ok": False,
+            "errors": [{"code": COM_OPERATION_TIMEOUT, "message": "WPS operation timed out after 120 seconds; WPS may still be running. Run wps-process-audit before retrying."}],
+            "data": {"backend": "powershell-com", "timed_out": True},
+        }
     finally:
         if script_path:
             try:
