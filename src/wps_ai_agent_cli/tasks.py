@@ -2362,8 +2362,15 @@ TASKS: tuple[ProjectTask, ...] = (
         id="P3-303",
         phase="phase3",
         title="Bound configured MCP audit expected tool count",
-        status="next",
+        status="done",
         acceptance="Require a positive bounded expected_min_tools value across CLI, MCP schema, and direct API; reject invalid expectations before config reads or process spawn while preserving the existing default.",
+    ),
+    ProjectTask(
+        id="P3-304",
+        phase="phase3",
+        title="Bound configured MCP server name input",
+        status="next",
+        acceptance="Require a nonempty server name of at most 256 characters across CLI, MCP schema, and direct API; invalid values fail before config reads or process spawn without echoing user input.",
     ),
 )
 
