@@ -20,6 +20,7 @@ DEFAULT_SERVER_NAME = "wps-ai-agent-cli"
 MCP_AUDIT_MAX_STDOUT_LINE_CHARS = 1024 * 1024
 MCP_AUDIT_STDOUT_QUEUE_SIZE = 8
 MCP_AUDIT_READ_CHUNK_CHARS = 8192
+MCP_CONFIG_MAX_BYTES = 1024 * 1024
 
 
 def _check(name: str, passed: bool, details: Any) -> dict[str, Any]:
@@ -30,12 +31,45 @@ def _load_config(path: Path) -> tuple[dict[str, Any] | None, list[dict[str, Any]
     if not path.exists():
         return None, [_check("config_exists", False, str(path))]
     try:
-        return json.loads(path.read_text(encoding="utf-8")), [_check("config_exists", True, str(path))]
-    except json.JSONDecodeError as exc:
+        if not path.is_file():
+            return None, [
+                _check("config_exists", True, str(path)),
+                _check("config_is_file", False, None),
+            ]
+        with path.open("rb") as config_file:
+            raw_config = config_file.read(MCP_CONFIG_MAX_BYTES + 1)
+    except OSError:
         return None, [
             _check("config_exists", True, str(path)),
-            _check("config_json_valid", False, str(exc)),
+            _check("config_readable", False, None),
         ]
+
+    checks = [_check("config_exists", True, str(path))]
+    if len(raw_config) > MCP_CONFIG_MAX_BYTES:
+        return None, checks + [
+            _check(
+                "config_size_within_limit", False,
+                {"limit_bytes": MCP_CONFIG_MAX_BYTES, "observed_at_least": len(raw_config)},
+            )
+        ]
+    checks.append(_check(
+        "config_size_within_limit", True,
+        {"size_bytes": len(raw_config), "limit_bytes": MCP_CONFIG_MAX_BYTES},
+    ))
+    try:
+        config_text = raw_config.decode("utf-8")
+    except UnicodeDecodeError:
+        return None, checks + [_check("config_utf8_valid", False, None)]
+    checks.append(_check("config_utf8_valid", True, None))
+    try:
+        config = json.loads(config_text)
+    except json.JSONDecodeError as exc:
+        return None, checks + [_check("config_json_valid", False, str(exc))]
+    checks.append(_check("config_json_valid", True, str(path)))
+    if not isinstance(config, dict):
+        return None, checks + [_check("config_root_is_object", False, None)]
+    checks.append(_check("config_root_is_object", True, None))
+    return config, checks
 
 
 def _resolve_command(command: str) -> str | None:
@@ -260,9 +294,18 @@ def audit_mcp_client_config(
         }
         return False, result, [{"code": "MCP_CONFIG_AUDIT_FAILED", "message": "Config could not be loaded."}]
 
-    checks.append(_check("config_json_valid", True, str(path)))
-    servers = config.get("mcpServers", {})
-    server = servers.get(server_name) if isinstance(servers, dict) else None
+    servers = config.get("mcpServers")
+    if not isinstance(servers, dict):
+        checks.append(_check("mcp_servers_is_object", False, None))
+        result = {
+            "config_path": str(path),
+            "server_name": server_name,
+            "checks": checks,
+            "smoke": None,
+        }
+        return False, result, [{"code": "MCP_CONFIG_AUDIT_FAILED", "message": "mcpServers must be an object."}]
+    checks.append(_check("mcp_servers_is_object", True, None))
+    server = servers.get(server_name)
     checks.append(_check("server_found", isinstance(server, dict), server_name))
     if not isinstance(server, dict):
         result = {

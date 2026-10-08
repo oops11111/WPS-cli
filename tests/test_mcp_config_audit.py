@@ -6,7 +6,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from wps_ai_agent_cli.mcp_config_audit import audit_mcp_client_config
+from wps_ai_agent_cli.mcp_config_audit import MCP_CONFIG_MAX_BYTES, audit_mcp_client_config
 from wps_ai_agent_cli.mcp_schema import list_mcp_tool_schemas
 
 
@@ -135,7 +135,8 @@ class McpConfigAuditTests(unittest.TestCase):
 
             self.assertFalse(ok)
             self.assertEqual(errors[0]["code"], "MCP_CONFIG_AUDIT_FAILED")
-            self.assertFalse(result["checks"][2]["passed"])
+            server_check = next(check for check in result["checks"] if check["name"] == "server_found")
+            self.assertFalse(server_check["passed"])
 
     def test_malformed_process_argument_shapes_do_not_spawn(self):
         invalid_server_fields = (
@@ -214,6 +215,83 @@ class McpConfigAuditTests(unittest.TestCase):
                 self.assertLessEqual(len(checks["cwd_exists"] or ""), 256)
                 self.assertNotIn("ARG_SECRET_", json.dumps(result))
                 popen.assert_not_called()
+
+    def test_oversized_config_is_rejected_before_spawn(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            config_path = Path(tmp) / "mcp.json"
+            config_path.write_bytes(b"{}" + b" " * MCP_CONFIG_MAX_BYTES)
+
+            with patch("wps_ai_agent_cli.mcp_config_audit.subprocess.Popen") as popen:
+                ok, result, errors = audit_mcp_client_config(config_path=config_path)
+
+        self.assertFalse(ok)
+        self.assertEqual(errors[0]["code"], "MCP_CONFIG_AUDIT_FAILED")
+        self.assertIsNone(result["smoke"])
+        size_check = next(check for check in result["checks"] if check["name"] == "config_size_within_limit")
+        self.assertFalse(size_check["passed"])
+        self.assertLess(len(json.dumps(size_check)), 128)
+        popen.assert_not_called()
+
+    def test_malformed_config_object_shapes_are_rejected_before_spawn(self):
+        cases = (
+            ([], "config_root_is_object"),
+            ("not an object", "config_root_is_object"),
+            (7, "config_root_is_object"),
+            (None, "config_root_is_object"),
+            ({"mcpServers": []}, "mcp_servers_is_object"),
+            ({"mcpServers": None}, "mcp_servers_is_object"),
+        )
+        for config, expected_check in cases:
+            with self.subTest(config=repr(config)), tempfile.TemporaryDirectory() as tmp:
+                config_path = Path(tmp) / "mcp.json"
+                config_path.write_text(json.dumps(config), encoding="utf-8")
+
+                with patch("wps_ai_agent_cli.mcp_config_audit.subprocess.Popen") as popen:
+                    ok, result, errors = audit_mcp_client_config(config_path=config_path)
+
+                self.assertFalse(ok)
+                self.assertEqual(errors[0]["code"], "MCP_CONFIG_AUDIT_FAILED")
+                self.assertIsNone(result["smoke"])
+                check = next(item for item in result["checks"] if item["name"] == expected_check)
+                self.assertFalse(check["passed"])
+                popen.assert_not_called()
+
+    def test_valid_config_at_exact_byte_limit_is_audited(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            config_path = root / "mcp.json"
+            server_script = "\n".join((
+                "import json,sys",
+                "for line in sys.stdin:",
+                "    request=json.loads(line)",
+                "    method=request['method']",
+                "    if method=='notifications/initialized': continue",
+                "    result={'protocolVersion':'2025-11-25','capabilities':{'tools':{}},'serverInfo':{'name':'edge','version':'1'}} if method=='initialize' else {'tools':[{'name':'edge_tool','inputSchema':{'type':'object'}}]}",
+                "    print(json.dumps({'jsonrpc':'2.0','id':request['id'],'result':result}),flush=True)",
+            ))
+            config = {
+                "mcpServers": {"fake-server": {
+                    "command": sys.executable,
+                    "args": ["-c", server_script, "mcp-server"],
+                    "cwd": str(root),
+                    "env": {"PYTHONPATH": "src"},
+                }},
+                "padding": "",
+            }
+            base_size = len(json.dumps(config).encode("utf-8"))
+            config["padding"] = "x" * (MCP_CONFIG_MAX_BYTES - base_size)
+            encoded = json.dumps(config).encode("utf-8")
+            self.assertEqual(len(encoded), MCP_CONFIG_MAX_BYTES)
+            config_path.write_bytes(encoded)
+
+            ok, result, errors = audit_mcp_client_config(
+                config_path=config_path, server_name="fake-server", expected_min_tools=1,
+            )
+
+        self.assertTrue(ok, errors)
+        size_check = next(check for check in result["checks"] if check["name"] == "config_size_within_limit")
+        self.assertTrue(size_check["passed"])
+        self.assertEqual(size_check["details"]["size_bytes"], MCP_CONFIG_MAX_BYTES)
 
     def test_audit_rejects_duplicate_tool_names_across_pages(self):
         ok, result, errors = self.audit_fake_paged_server([

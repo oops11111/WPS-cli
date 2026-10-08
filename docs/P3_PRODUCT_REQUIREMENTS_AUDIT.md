@@ -162,7 +162,9 @@ test totals and WPS integration evidence are maintained in
 136. P3-294 done: configured process validation now requires a nonempty string command, a list of string args, and a string-to-string env object; five malformed command/args/env variants fail without invoking Popen. MCP audit tests: 17 passed; full suite: 473 passed/65 skipped.
 137. P3-295 done: command/args/env validation rejects NULs, empty or `=`-containing environment keys before process creation; diagnostics expose only bounded command/cwd prefixes and argument counts, not environment values or argument contents. A secret marker is absent from serialized errors and malformed configs do not spawn. Audit tests: 17 passed; full suite: 473 passed/65 skipped.
 138. P3-296 done: malformed command/args/env results do not expose environment values or full argument contents; command and cwd summaries are capped at 256 characters. Tests assert a secret marker stays absent and no child process is created. Audit tests: 18 passed; full suite: 474 passed/65 skipped.
-139. P3-297 next: cap MCP config file bytes before JSON parsing and prove oversize input never spawns a server process.
+139. P3-297 done: MCP config loading reads at most 1 MiB + 1 byte before decoding/parsing; oversize input gets a bounded failure and never spawns, while an exact 1 MiB valid UTF-8 config completes a persistent audit. Audit tests: 20 passed; full suite: 476 passed/65 skipped.
+140. P3-298 done: config JSON root and `mcpServers` map must be objects before accessing fields; six malformed shape cases produce bounded failures without exceptions or process spawn. Audit tests: 21 passed; full suite: 477 passed/65 skipped.
+141. P3-299 next: reject duplicate JSON member names recursively and non-standard numeric constants in MCP client configuration before process spawn.
 45. Later: broaden visual/semantic fidelity and WPS version coverage while preserving independent failures and artifact provenance.
 
 These milestones are actionable entirely in the local workspace. Offline parsing fixes

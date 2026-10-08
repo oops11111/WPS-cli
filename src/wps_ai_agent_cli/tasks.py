@@ -2320,8 +2320,22 @@ TASKS: tuple[ProjectTask, ...] = (
         id="P3-297",
         phase="phase3",
         title="Bound MCP client configuration file loading",
-        status="next",
+        status="done",
         acceptance="Limit config file bytes before JSON parsing, report oversize input with bounded diagnostics, never spawn configured commands for rejected config, and preserve valid UTF-8 JSON configuration behavior.",
+    ),
+    ProjectTask(
+        id="P3-298",
+        phase="phase3",
+        title="Validate MCP client configuration JSON shape",
+        status="done",
+        acceptance="Require a top-level object and an object mcpServers map before accessing configuration fields; malformed JSON shapes return bounded audit failures without uncaught exceptions or process spawn, while valid configurations continue to pass.",
+    ),
+    ProjectTask(
+        id="P3-299",
+        phase="phase3",
+        title="Reject ambiguous MCP client configuration JSON values",
+        status="next",
+        acceptance="Reject duplicate JSON members recursively and non-standard numeric constants in client configuration files with bounded audit failures before process spawn; preserve valid standard JSON behavior.",
     ),
 )
 
