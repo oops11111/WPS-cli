@@ -347,7 +347,13 @@
 | P3-288 | 限制配置 MCP 审计输出缓冲 | done | stdout 单行上限 1 MiB、响应队列容量 8，stderr 分 8,192 字符块持续 drain 且仅保留 8,192 字符；超限错误有界并回收子进程；审计定向 12 项通过，全量 468/65 |
 | P3-289 | 规范化异常 MCP 审计响应 | done | 畸形 JSON、深层 JSON、无效 UTF-8 均返回有界审计失败；UTF-8 在 reader thread 内转换为诊断，子进程均被回收，随后独立正常审计通过；定向审计 13 项通过，全量 469/65 |
 | P3-290 | 校验 MCP descriptor 的嵌套 schema | done | 递归检查 properties、patternProperties、$defs/definitions、items/prefixItems、组合 schema、required/dependentRequired、类型/数值/字符串/布尔关键字；每页最多 20 条 page/index/schema-path 诊断；审计定向 14 项通过，全量 470/65 |
-| P3-291 | 校验配置审计的 MCP initialize 元数据 | next | initialize 要求非空 serverInfo.name/version，检查 capabilities 与 tools 元数据结构；畸形握手有界失败并回收进程，后续有效审计不受影响 |
+| P3-291 | 校验配置审计的 MCP initialize 元数据 | done | initialize 要求非空 serverInfo.name/version，检查 capabilities/tools 元数据及 listChanged 布尔类型；5 类坏握手有界失败，后续有效审计继续通过；配置审计定向 15 项通过，全量 471/65 |
+| P3-292 | 要求 initialize 声明 tools capability | done | tools/list 前必须确认 capabilities.tools 存在且为 object；缺失能力在 handshake 阶段有界失败；合法服务审计通过；定向 15 项、全量 471/65 |
+| P3-293 | 校验可选 MCP implementation 元数据 | done | title/description/websiteUrl/icons 均为可选；存在时校验类型、HTTP(S)/data icon URI、mimeType/sizes/theme，不联网；有效完整元数据和 7 类畸形值覆盖通过；定向 16 项，全量 472/65 |
+| P3-294 | 校验配置 MCP 进程参数类型 | done | spawn 前要求 command 非空字符串、args 为字符串列表、env 为字符串到字符串映射；5 类畸形配置均通过 mock 证明不会启动命令；审计定向 17 项通过，全量 473/65 |
+| P3-295 | 拒绝 MCP 进程配置中的无效字符 | done | spawn 前拒绝 command/args/env NUL、空/含 `=` 的环境变量名；配置验证不回显环境值、args 仅报告数量；secret marker 不出现在序列化结果；审计定向 17 项，全量 473/65 |
+| P3-296 | 确认有界 MCP 配置错误不泄露进程设置 | done | env 值/完整 args 不回显，command/cwd 摘要最多 256 字符；secret marker 不在结果中，所有错误路径均不 spawn；审计定向 18 项，全量 474/65 |
+| P3-297 | 限制 MCP 客户端配置文件读取 | next | JSON 解析前限制 config 文件字节数；超限返回有界错误且不启动 configured command，合法 UTF-8 JSON 行为不变 |
 
 进展记录：
 - 2026-10-03: P3-004 已为 `regression-run` 增加 `--artifact-dir`，safe profile 生成 `artifacts\regression\regression-run-20261003T063513662051Z-regression-artifact-p3-004-001.json`，报告见 `docs\P3_REGRESSION_ARTIFACT_EXPORT_REPORT.md`。

@@ -55,7 +55,7 @@ class McpConfigAuditTests(unittest.TestCase):
                 "    method=request['method']",
                 "    response={'jsonrpc':'2.0','id':request.get('id')}",
                 "    if method=='initialize':",
-                "        response['result']={'protocolVersion':'2025-11-25','capabilities':{'tools':{}},'serverInfo':{'name':'fake','version':'1'}}",
+                "        response['result']=pages[0].get('_initialize',{'protocolVersion':'2025-11-25','capabilities':{'tools':{}},'serverInfo':{'name':'fake','version':'1'}})",
                 "    elif method=='notifications/initialized':",
                 "        initialized=True",
                 "        continue",
@@ -136,6 +136,84 @@ class McpConfigAuditTests(unittest.TestCase):
             self.assertFalse(ok)
             self.assertEqual(errors[0]["code"], "MCP_CONFIG_AUDIT_FAILED")
             self.assertFalse(result["checks"][2]["passed"])
+
+    def test_malformed_process_argument_shapes_do_not_spawn(self):
+        invalid_server_fields = (
+            {"command": 7},
+            {"args": ["-c", "pass", "mcp-server", 7]},
+            {"args": "-m wps_ai_agent_cli mcp-server"},
+            {"env": {"PYTHONPATH": "src", "BAD_VALUE": 7}},
+            {"env": []},
+            {"command": "bad\0command"},
+            {"args": ["-c", "pass", "mcp-server", "bad\0arg"]},
+            {"env": {"PYTHONPATH": "src", "BAD=KEY": "value"}},
+            {"env": {"PYTHONPATH": "src", "BAD_VALUE": "bad\0value"}},
+            {"env": {"": "empty key"}},
+        )
+        for overrides in invalid_server_fields:
+            with self.subTest(overrides=overrides), tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                config_path = root / "mcp.json"
+                server = {
+                    "command": sys.executable,
+                    "args": ["-c", "pass", "mcp-server"],
+                    "cwd": str(root),
+                    "env": {"PYTHONPATH": "DO_NOT_ECHO_SECRET"},
+                }
+                server.update(overrides)
+                config_path.write_text(json.dumps({
+                    "mcpServers": {"fake-server": server},
+                }), encoding="utf-8")
+
+                with patch("wps_ai_agent_cli.mcp_config_audit.subprocess.Popen") as popen:
+                    ok, result, errors = audit_mcp_client_config(
+                        config_path=config_path,
+                        server_name="fake-server",
+                    )
+
+                self.assertFalse(ok)
+                self.assertEqual(errors[0]["code"], "MCP_CONFIG_AUDIT_FAILED")
+                self.assertIsNone(result["smoke"])
+                self.assertNotIn("DO_NOT_ECHO_SECRET", json.dumps(result))
+                popen.assert_not_called()
+
+    def test_process_config_diagnostics_are_bounded_and_hide_argument_values(self):
+        cases = (
+            {"command": "missing-" + "c" * 600},
+            {"cwd": "missing-" + "d" * 600},
+            {
+                "args": ["-c", "pass", "mcp-server", "ARG_SECRET_" + "s" * 300],
+                "cwd": "missing-" + "d" * 600,
+            },
+        )
+        for overrides in cases:
+            with self.subTest(field=next(iter(overrides))), tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                config_path = root / "mcp.json"
+                server = {
+                    "command": sys.executable,
+                    "args": ["-c", "pass", "mcp-server"],
+                    "cwd": str(root),
+                    "env": {"PYTHONPATH": "src"},
+                }
+                server.update(overrides)
+                config_path.write_text(json.dumps({
+                    "mcpServers": {"fake-server": server},
+                }), encoding="utf-8")
+
+                with patch("wps_ai_agent_cli.mcp_config_audit.subprocess.Popen") as popen:
+                    ok, result, errors = audit_mcp_client_config(
+                        config_path=config_path,
+                        server_name="fake-server",
+                    )
+
+                self.assertFalse(ok)
+                self.assertEqual(errors[0]["code"], "MCP_CONFIG_AUDIT_FAILED")
+                checks = {check["name"]: check["details"] for check in result["checks"]}
+                self.assertLessEqual(len(checks["command_resolves"] or ""), 256)
+                self.assertLessEqual(len(checks["cwd_exists"] or ""), 256)
+                self.assertNotIn("ARG_SECRET_", json.dumps(result))
+                popen.assert_not_called()
 
     def test_audit_rejects_duplicate_tool_names_across_pages(self):
         ok, result, errors = self.audit_fake_paged_server([
@@ -303,6 +381,72 @@ class McpConfigAuditTests(unittest.TestCase):
         self.assertIn("inputSchema.properties.profile.dependentRequired", paths)
         self.assertIn("inputSchema.properties.tags.items.maxLength", paths)
         self.assertIn("inputSchema.properties.tags.uniqueItems", paths)
+
+    def test_audit_rejects_invalid_initialize_metadata_and_later_audit_succeeds(self):
+        invalid_initialize_results = (
+            {"protocolVersion": "2025-11-25", "capabilities": {"tools": {}}, "serverInfo": {"name": " ", "version": "1"}},
+            {"protocolVersion": "2025-11-25", "capabilities": {"tools": {}}, "serverInfo": {"name": "fake", "version": ""}},
+            {"protocolVersion": "2025-11-25", "capabilities": {}, "serverInfo": {"name": "fake", "version": "1"}},
+            {"protocolVersion": "2025-11-25", "capabilities": {"tools": []}, "serverInfo": {"name": "fake", "version": "1"}},
+            {"protocolVersion": "2025-11-25", "capabilities": {"tools": {"listChanged": "yes"}}, "serverInfo": {"name": "fake", "version": "1"}},
+        )
+        for initialize in invalid_initialize_results:
+            with self.subTest(initialize=initialize):
+                ok, result, errors = self.audit_fake_paged_server([
+                    {"_initialize": initialize, "resultType": "complete", "tools": []},
+                ])
+                self.assertFalse(ok)
+                self.assertEqual(errors[0]["code"], "MCP_CONFIG_AUDIT_FAILED")
+                self.assertEqual(result["smoke"]["page_count"], 0)
+                self.assertLess(len(result["smoke"]["error"]), 160)
+
+        ok, _, errors = self.audit_fake_paged_server([
+            {"resultType": "complete", "tools": [tool_descriptor("valid_after_bad_initialize")]},
+        ])
+        self.assertTrue(ok, errors)
+
+    def test_audit_validates_optional_implementation_metadata_without_fetching_icons(self):
+        valid_initialize = {
+            "protocolVersion": "2025-11-25",
+            "capabilities": {"tools": {}},
+            "serverInfo": {
+                "name": "fake", "version": "1", "title": "Fake server",
+                "description": "A test implementation.",
+                "websiteUrl": "https://example.test/docs",
+                "icons": [{
+                    "src": "data:image/png;base64,AAAA", "mimeType": "image/png",
+                    "sizes": ["48x48", "any"], "theme": "light",
+                }],
+            },
+        }
+        ok, _, errors = self.audit_fake_paged_server([
+            {"_initialize": valid_initialize, "resultType": "complete", "tools": [tool_descriptor("icon_server")]},
+        ])
+        self.assertTrue(ok, errors)
+
+        invalid_info = (
+            {"title": 4},
+            {"websiteUrl": "file:///private"},
+            {"icons": "not-an-array"},
+            {"icons": [{"src": "javascript:alert(1)"}]},
+            {"icons": [{"src": "https://example.test/icon.png", "mimeType": 5}]},
+            {"icons": [{"src": "https://example.test/icon.png", "sizes": "48x48"}]},
+            {"icons": [{"src": "https://example.test/icon.png", "theme": "sepia"}]},
+        )
+        for optional_fields in invalid_info:
+            with self.subTest(optional_fields=optional_fields):
+                server_info = {"name": "fake", "version": "1", **optional_fields}
+                initialize = {
+                    "protocolVersion": "2025-11-25", "capabilities": {"tools": {}},
+                    "serverInfo": server_info,
+                }
+                ok, result, errors = self.audit_fake_paged_server([
+                    {"_initialize": initialize, "resultType": "complete", "tools": [tool_descriptor("bad_metadata")]},
+                ])
+                self.assertFalse(ok)
+                self.assertEqual(errors[0]["code"], "MCP_CONFIG_AUDIT_FAILED")
+                self.assertEqual(result["smoke"]["page_count"], 0)
+                self.assertLess(len(result["smoke"]["error"]), 200)
 
     def test_audit_rejects_oversized_stdout_and_reaps_server(self):
         children = []

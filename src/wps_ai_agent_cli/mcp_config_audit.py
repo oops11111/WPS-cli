@@ -6,6 +6,7 @@ import os
 import shutil
 import subprocess
 import time
+from urllib.parse import urlsplit
 from queue import Empty, Full, Queue
 from pathlib import Path
 from threading import Event, Thread
@@ -42,6 +43,61 @@ def _resolve_command(command: str) -> str | None:
     if command_path.is_absolute():
         return str(command_path) if command_path.exists() else None
     return shutil.which(command)
+
+
+def _implementation_metadata_issue(server_info: dict[str, Any]) -> str | None:
+    for field in ("title", "description"):
+        if field in server_info and (
+            not isinstance(server_info[field], str) or not server_info[field].strip()
+        ):
+            return f"serverInfo.{field}"
+
+    if "websiteUrl" in server_info:
+        website = server_info["websiteUrl"]
+        if not isinstance(website, str):
+            return "serverInfo.websiteUrl"
+        try:
+            parsed = urlsplit(website)
+        except ValueError:
+            return "serverInfo.websiteUrl"
+        if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+            return "serverInfo.websiteUrl"
+
+    if "icons" in server_info:
+        icons = server_info["icons"]
+        if not isinstance(icons, list):
+            return "serverInfo.icons"
+        for index, icon in enumerate(icons):
+            prefix = f"serverInfo.icons[{index}]"
+            if not isinstance(icon, dict) or not isinstance(icon.get("src"), str):
+                return f"{prefix}.src"
+            src = icon["src"]
+            try:
+                parsed = urlsplit(src)
+            except ValueError:
+                return f"{prefix}.src"
+            if parsed.scheme in {"http", "https"}:
+                if not parsed.netloc:
+                    return f"{prefix}.src"
+            elif parsed.scheme == "data":
+                if "," not in src:
+                    return f"{prefix}.src"
+            else:
+                return f"{prefix}.src"
+            if "mimeType" in icon and (
+                not isinstance(icon["mimeType"], str) or not icon["mimeType"].strip()
+            ):
+                return f"{prefix}.mimeType"
+            if "sizes" in icon and (
+                not isinstance(icon["sizes"], list)
+                or not all(isinstance(size, str) and size.strip() for size in icon["sizes"])
+            ):
+                return f"{prefix}.sizes"
+            if "theme" in icon and (
+                not isinstance(icon["theme"], str) or icon["theme"] not in {"light", "dark"}
+            ):
+                return f"{prefix}.theme"
+    return None
 
 
 def _tool_descriptor_issues(tools: list[Any], page_number: int) -> list[dict[str, Any]]:
@@ -221,26 +277,47 @@ def audit_mcp_client_config(
     args = server.get("args", [])
     cwd = server.get("cwd")
     env_overrides = server.get("env", {})
-    cwd_path = Path(cwd) if isinstance(cwd, str) else None
+    command_valid = isinstance(command, str) and bool(command.strip()) and "\0" not in command
+    args_valid = isinstance(args, list) and all(isinstance(arg, str) and "\0" not in arg for arg in args)
+    env_valid = isinstance(env_overrides, dict) and all(
+        isinstance(key, str) and bool(key) and "=" not in key and "\0" not in key
+        and isinstance(value, str) and "\0" not in value
+        for key, value in env_overrides.items()
+    )
+    cwd_path = Path(cwd) if isinstance(cwd, str) and cwd.strip() else None
     cwd_ok = bool(cwd_path and cwd_path.exists())
-    checks.append(_check("cwd_exists", cwd_ok, cwd))
-    command_resolved = _resolve_command(command) if isinstance(command, str) else None
-    checks.append(_check("command_resolves", command_resolved is not None, command))
-    checks.append(_check("args_include_mcp_server", isinstance(args, list) and "mcp-server" in args, args))
+    checks.append(_check(
+        "cwd_exists", cwd_ok,
+        cwd[:256] if isinstance(cwd, str) else None,
+    ))
+    command_resolved = _resolve_command(command) if command_valid else None
+    checks.append(_check(
+        "command_resolves", command_resolved is not None,
+        command[:256] if isinstance(command, str) else None,
+    ))
+    checks.append(_check("command_characters_valid", command_valid, "NUL-free nonempty command required."))
+    checks.append(_check("args_are_strings", args_valid, "Arguments must be strings without NUL."))
+    checks.append(_check(
+        "args_include_mcp_server", args_valid and "mcp-server" in args,
+        {"argument_count": len(args) if isinstance(args, list) else None},
+    ))
+    checks.append(_check(
+        "env_overrides_are_strings", env_valid,
+        "Environment must map valid string keys to NUL-free string values.",
+    ))
     checks.append(
         _check(
             "env_pythonpath_present",
             isinstance(env_overrides, dict) and bool(env_overrides.get("PYTHONPATH")),
-            env_overrides.get("PYTHONPATH") if isinstance(env_overrides, dict) else None,
+            bool(env_overrides.get("PYTHONPATH")) if isinstance(env_overrides, dict) else False,
         )
     )
 
     smoke: dict[str, Any] | None = None
-    if cwd_ok and command_resolved and isinstance(args, list):
-        base_command = [command_resolved, *[str(arg) for arg in args]]
+    if cwd_ok and command_resolved and args_valid and env_valid:
+        base_command = [command_resolved, *args]
         env = os.environ.copy()
-        if isinstance(env_overrides, dict):
-            env.update({str(key): str(value) for key, value in env_overrides.items()})
+        env.update(env_overrides)
         page_count = 0
         descriptor_issues: list[dict[str, Any]] = []
         descriptor_issue_count = 0
@@ -350,9 +427,21 @@ def audit_mcp_client_config(
                 },
             )["result"]
             if (initialize.get("protocolVersion") != "2025-11-25"
-                    or not isinstance(initialize.get("capabilities"), dict)
-                    or not isinstance(initialize.get("serverInfo"), dict)):
+                    or not isinstance(initialize.get("capabilities"), dict)):
                 raise ValueError("Configured server returned an invalid initialize result.")
+            server_info = initialize.get("serverInfo")
+            capabilities = initialize["capabilities"]
+            tools_capability = capabilities.get("tools")
+            if (not isinstance(server_info, dict)
+                    or not isinstance(server_info.get("name"), str) or not server_info["name"].strip()
+                    or not isinstance(server_info.get("version"), str) or not server_info["version"].strip()
+                    or not isinstance(tools_capability, dict)
+                    or isinstance(tools_capability, dict) and "listChanged" in tools_capability
+                    and not isinstance(tools_capability["listChanged"], bool)):
+                raise ValueError("Configured server returned invalid initialize metadata.")
+            optional_metadata_issue = _implementation_metadata_issue(server_info)
+            if optional_metadata_issue is not None:
+                raise ValueError(f"Configured server returned invalid metadata at {optional_metadata_issue}.")
 
             assert process.stdin is not None
             process.stdin.write(json.dumps({
@@ -449,7 +538,10 @@ def audit_mcp_client_config(
                 if process.stderr is not None:
                     process.stderr.close()
     else:
-        checks.append(_check("configured_tools_list_smoke", False, "Skipped because command or cwd check failed."))
+        checks.append(_check(
+            "configured_tools_list_smoke", False,
+            "Skipped because command, cwd, args, or env validation failed.",
+        ))
 
     ok = all(check["passed"] for check in checks)
     result = {
