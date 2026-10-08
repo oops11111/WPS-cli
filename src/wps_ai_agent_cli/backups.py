@@ -1,12 +1,16 @@
 from __future__ import annotations
 
+import os
 import shutil
+import subprocess
+import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 import re
 from typing import Any, Callable
 
-from .operations import record_operation, replay_operation
+from .errors import COM_OPERATION_FAILED, COM_OPERATION_TIMEOUT
+from .operations import list_operations, record_operation, replay_operation
 from .sessions import get_document
 from .sessions import file_identity
 from .mutation_lock import coordinated_mutation, coordinated_request
@@ -180,7 +184,23 @@ def guarded_com_mutation(path: str | Path, backup: dict[str, Any], operation: Ca
     error = verify_backup_source(path, backup)
     if error is not None:
         return {"ok": False, "errors": [error], "data": {"backend": "source-preflight"}}
-    result = operation()
+    try:
+        result = operation()
+    except subprocess.TimeoutExpired as exc:
+        return {
+            "ok": False,
+            "errors": [{
+                "code": COM_OPERATION_TIMEOUT,
+                "message": f"WPS operation timed out after {exc.timeout} seconds; the document may still be open in WPS and its state is unknown. Run mutation-request-inspect before retrying.",
+            }],
+            "data": {"backend": "powershell-com", "timed_out": True},
+        }
+    except OSError as exc:
+        return {
+            "ok": False,
+            "errors": [{"code": COM_OPERATION_FAILED, "message": f"WPS operation could not run: {exc}"}],
+            "data": {"backend": "powershell-com"},
+        }
     if result.get("ok"):
         try:
             result["data"] = {**result.get("data", {}), "source_identity_after_com": file_identity(Path(path))}
@@ -229,6 +249,55 @@ def _resolve_backup_file(
             [{"code": "BACKUP_NOT_FOUND", "message": f"Backup not found: {candidate}"}],
         )
     return candidate, []
+
+
+def _recorded_backup_sha256(document_id: str, backup_file: Path, workspace: str | Path = ".") -> str | None:
+    resolved = backup_file.resolve()
+    for record in reversed(list_operations(workspace)):
+        if record.get("command") != "backup-document":
+            continue
+        result = record.get("result", {})
+        recorded_path = result.get("backup_path")
+        if result.get("document_id") != document_id or not result.get("created") or not recorded_path:
+            continue
+        if Path(recorded_path).resolve() != resolved:
+            continue
+        identity = result.get("source_identity")
+        if isinstance(identity, dict) and identity.get("source_sha256"):
+            return str(identity["source_sha256"])
+    return None
+
+
+def _verify_backup_integrity(document_id: str, backup_file: Path, workspace: str | Path = ".") -> dict[str, str] | None:
+    expected = _recorded_backup_sha256(document_id, backup_file, workspace)
+    if expected is None:
+        return None
+    try:
+        actual = file_identity(backup_file)["source_sha256"]
+    except OSError as exc:
+        return {"code": "BACKUP_SOURCE_UNAVAILABLE", "message": str(exc)}
+    if actual != expected:
+        return {"code": "BACKUP_CHANGED_AFTER_CREATION", "message": "Backup bytes differ from the hash recorded when it was created; refusing to restore."}
+    return None
+
+
+def _restore_file_atomically(backup_file: Path, target_path: Path) -> dict[str, str] | None:
+    temporary = None
+    try:
+        descriptor, temporary_name = tempfile.mkstemp(prefix=f".{target_path.name}.", suffix=".restore", dir=target_path.parent)
+        os.close(descriptor)
+        temporary = Path(temporary_name)
+        shutil.copy2(backup_file, temporary)
+        if file_identity(temporary)["source_sha256"] != file_identity(backup_file)["source_sha256"]:
+            return {"code": "RESTORE_COPY_MISMATCH", "message": "Restored copy did not match the backup; the target was not modified."}
+        os.replace(temporary, target_path)
+        temporary = None
+    except OSError as exc:
+        return {"code": "RESTORE_TARGET_WRITE_FAILED", "message": f"Target was not modified or could not be replaced (it may be open in WPS): {exc}"}
+    finally:
+        if temporary is not None:
+            temporary.unlink(missing_ok=True)
+    return None
 
 
 @coordinated_mutation
@@ -286,6 +355,10 @@ def restore_backup(
         "dry_run": dry_run,
         "restored": False,
     }
+    integrity_error = _verify_backup_integrity(document_id, backup_file, workspace)
+    if integrity_error is not None:
+        return False, {"restore": result}, [integrity_error], False
+    result["backup_integrity_verified"] = _recorded_backup_sha256(document_id, backup_file, workspace) is not None
     if dry_run:
         return True, result, [], False
 
@@ -299,7 +372,9 @@ def restore_backup(
     if not pre_restore_ok:
         return False, {"restore": result, "pre_restore_backup": pre_restore_result}, pre_restore_errors, False
 
-    shutil.copy2(backup_file, target_path)
+    write_error = _restore_file_atomically(backup_file, target_path)
+    if write_error is not None:
+        return False, {"restore": result, "pre_restore_backup": pre_restore_result}, [write_error], False
     result["restored"] = True
     result["restored_bytes"] = target_path.stat().st_size
     result["pre_restore_backup"] = pre_restore_result
