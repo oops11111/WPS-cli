@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import math
 import os
 import shutil
 import subprocess
@@ -46,23 +47,120 @@ def _resolve_command(command: str) -> str | None:
 def _tool_descriptor_issues(tools: list[Any], page_number: int) -> list[dict[str, Any]]:
     issues: list[dict[str, Any]] = []
 
-    def add(index: int, field: str) -> None:
+    def add(index: int, path: str) -> None:
         if len(issues) < 20:
-            issues.append({"page": page_number, "index": index, "field": field})
+            issues.append({"page": page_number, "index": index, "path": path[:160]})
 
-    def valid_object_schema(schema: Any) -> bool:
-        if not isinstance(schema, dict) or schema.get("type") != "object":
-            return False
-        properties = schema.get("properties", {})
-        required = schema.get("required", [])
-        additional = schema.get("additionalProperties", True)
-        return (
-            isinstance(properties, dict)
-            and all(isinstance(key, str) and isinstance(value, dict) for key, value in properties.items())
-            and isinstance(required, list)
-            and all(isinstance(item, str) for item in required)
-            and isinstance(additional, (bool, dict))
+    def schema_paths(schema: Any, root_path: str) -> list[str]:
+        found: list[str] = []
+        pending = [(schema, root_path, 0)]
+        allowed_types = {"array", "boolean", "integer", "null", "number", "object", "string"}
+        maps = ("properties", "patternProperties", "$defs", "definitions", "dependentSchemas")
+        nested = (
+            "additionalItems", "additionalProperties", "contains", "contentSchema", "else",
+            "if", "items", "not", "propertyNames", "then", "unevaluatedItems", "unevaluatedProperties",
         )
+        applicators = ("allOf", "anyOf", "oneOf", "prefixItems")
+        number_keywords = (
+            "maximum", "minimum", "exclusiveMaximum", "exclusiveMinimum", "multipleOf",
+        )
+        integer_keywords = (
+            "maxContains", "maxItems", "maxLength", "maxProperties", "minContains",
+            "minItems", "minLength", "minProperties",
+        )
+        string_keywords = (
+            "$anchor", "$comment", "$dynamicRef", "$dynamicAnchor", "$id", "$ref", "$schema",
+            "contentEncoding", "contentMediaType", "format", "pattern", "title", "description",
+        )
+        boolean_keywords = ("deprecated", "readOnly", "uniqueItems", "writeOnly")
+
+        def issue(path: str) -> None:
+            if len(found) < 20:
+                found.append(path[:160])
+
+        while pending and len(found) < 20:
+            current, path, depth = pending.pop()
+            if isinstance(current, bool):
+                continue
+            if not isinstance(current, dict):
+                issue(path)
+                continue
+            if depth > 64:
+                issue(path)
+                continue
+
+            value = current.get("type")
+            if "type" in current:
+                valid_type = (
+                    value in allowed_types if isinstance(value, str)
+                    else isinstance(value, list) and bool(value)
+                    and all(isinstance(item, str) and item in allowed_types for item in value)
+                    and len(set(value)) == len(value)
+                )
+                if not valid_type:
+                    issue(f"{path}.type")
+
+            if "required" in current:
+                value = current["required"]
+                if (not isinstance(value, list) or not all(isinstance(item, str) for item in value)
+                        or len(set(value)) != len(value)):
+                    issue(f"{path}.required")
+
+            for keyword in maps:
+                if keyword not in current:
+                    continue
+                value = current[keyword]
+                if not isinstance(value, dict):
+                    issue(f"{path}.{keyword}")
+                    continue
+                for name, child in value.items():
+                    pending.append((child, f"{path}.{keyword}.{name}", depth + 1))
+
+            for keyword in nested:
+                if keyword in current:
+                    pending.append((current[keyword], f"{path}.{keyword}", depth + 1))
+
+            for keyword in applicators:
+                if keyword not in current:
+                    continue
+                value = current[keyword]
+                if not isinstance(value, list):
+                    issue(f"{path}.{keyword}")
+                    continue
+                for item_index, child in enumerate(value):
+                    pending.append((child, f"{path}.{keyword}[{item_index}]", depth + 1))
+
+            if "enum" in current and (not isinstance(current["enum"], list) or not current["enum"]):
+                issue(f"{path}.enum")
+            for keyword in number_keywords:
+                if keyword in current:
+                    value = current[keyword]
+                    if (isinstance(value, bool) or not isinstance(value, (int, float))
+                            or isinstance(value, float) and not math.isfinite(value)
+                            or keyword == "multipleOf" and value <= 0):
+                        issue(f"{path}.{keyword}")
+            for keyword in integer_keywords:
+                if keyword in current:
+                    value = current[keyword]
+                    if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+                        issue(f"{path}.{keyword}")
+            for keyword in string_keywords:
+                if keyword in current and not isinstance(current[keyword], str):
+                    issue(f"{path}.{keyword}")
+            for keyword in boolean_keywords:
+                if keyword in current and not isinstance(current[keyword], bool):
+                    issue(f"{path}.{keyword}")
+            if "dependentRequired" in current:
+                value = current["dependentRequired"]
+                if (not isinstance(value, dict) or any(
+                    not isinstance(names, list) or not all(isinstance(name, str) for name in names)
+                    or len(set(names)) != len(names)
+                    for names in value.values()
+                )):
+                    issue(f"{path}.dependentRequired")
+            if "examples" in current and not isinstance(current["examples"], list):
+                issue(f"{path}.examples")
+        return found
 
     for index, tool in enumerate(tools):
         if not isinstance(tool, dict):
@@ -71,10 +169,19 @@ def _tool_descriptor_issues(tools: list[Any], page_number: int) -> list[dict[str
         for field in ("title", "description"):
             if field in tool and (not isinstance(tool[field], str) or not tool[field].strip()):
                 add(index, field)
-        if not valid_object_schema(tool.get("inputSchema")):
-            add(index, "inputSchema")
-        if "outputSchema" in tool and not valid_object_schema(tool["outputSchema"]):
-            add(index, "outputSchema")
+        input_schema = tool.get("inputSchema")
+        if not isinstance(input_schema, dict) or input_schema.get("type") != "object":
+            add(index, "inputSchema.type")
+        else:
+            for path in schema_paths(input_schema, "inputSchema"):
+                add(index, path)
+        if "outputSchema" in tool:
+            output_schema = tool["outputSchema"]
+            if not isinstance(output_schema, dict) or output_schema.get("type") != "object":
+                add(index, "outputSchema.type")
+            else:
+                for path in schema_paths(output_schema, "outputSchema"):
+                    add(index, path)
         if "annotations" in tool and not isinstance(tool["annotations"], dict):
             add(index, "annotations")
     return issues

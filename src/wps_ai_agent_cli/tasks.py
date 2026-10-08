@@ -2271,8 +2271,15 @@ TASKS: tuple[ProjectTask, ...] = (
         id="P3-290",
         phase="phase3",
         title="Validate nested MCP descriptor schema definitions",
-        status="next",
+        status="done",
         acceptance="Recursively validate nested properties, array items, required fields, and JSON Schema keyword shapes in advertised MCP input/output schemas; report bounded page/index/schema-path diagnostics and preserve the real configured catalog audit.",
+    ),
+    ProjectTask(
+        id="P3-291",
+        phase="phase3",
+        title="Validate MCP initialize metadata in configured audit",
+        status="next",
+        acceptance="Require nonempty serverInfo name/version and validate capabilities/tools metadata shape during initialize; malformed handshakes produce bounded configured-audit failures, clean up the process, and do not block later valid audits.",
     ),
 )
 

@@ -242,10 +242,10 @@ class McpConfigAuditTests(unittest.TestCase):
         self.assertEqual(result["smoke"]["page_count"], 2)
         self.assertEqual(result["smoke"]["invalid_descriptor_count"], 4)
         self.assertEqual(result["smoke"]["descriptor_issues"], [
-            {"page": 2, "index": 0, "field": "description"},
-            {"page": 2, "index": 0, "field": "inputSchema"},
-            {"page": 2, "index": 0, "field": "outputSchema"},
-            {"page": 2, "index": 0, "field": "annotations"},
+            {"page": 2, "index": 0, "path": "description"},
+            {"page": 2, "index": 0, "path": "inputSchema.type"},
+            {"page": 2, "index": 0, "path": "outputSchema.type"},
+            {"page": 2, "index": 0, "path": "annotations"},
         ])
 
     def test_audit_caps_reported_descriptor_diagnostics(self):
@@ -261,6 +261,48 @@ class McpConfigAuditTests(unittest.TestCase):
         self.assertFalse(ok)
         self.assertEqual(result["smoke"]["invalid_descriptor_count"], 20)
         self.assertEqual(len(result["smoke"]["descriptor_issues"]), 20)
+
+    def test_audit_recursively_validates_schema_paths_and_keyword_shapes(self):
+        invalid = tool_descriptor("nested_invalid")
+        invalid["inputSchema"] = {
+            "type": "object",
+            "properties": {
+                "profile": {
+                    "type": "object",
+                    "properties": {"age": {"type": "integer", "minimum": "zero"}},
+                    "required": "age",
+                    "dependentRequired": {"age": ["name", "name"]},
+                },
+                "tags": {
+                    "type": "array", "items": {"type": "string", "maxLength": -1},
+                    "prefixItems": [{"type": "string"}], "uniqueItems": "false",
+                },
+            },
+        }
+        valid = tool_descriptor("nested_valid")
+        valid["inputSchema"] = {
+            "type": "object",
+            "properties": {
+                "profile": {
+                    "type": "object",
+                    "properties": {"age": {"type": ["integer", "null"], "minimum": 0}},
+                    "required": ["age"],
+                },
+                "tags": {"type": "array", "items": {"type": "string", "maxLength": 64}},
+            },
+        }
+        ok, result, errors = self.audit_fake_paged_server([
+            {"resultType": "complete", "tools": [valid, invalid]},
+        ], expected_min_tools=2)
+
+        self.assertFalse(ok)
+        self.assertEqual(errors[0]["code"], "MCP_CONFIG_AUDIT_FAILED")
+        paths = [entry["path"] for entry in result["smoke"]["descriptor_issues"]]
+        self.assertIn("inputSchema.properties.profile.required", paths)
+        self.assertIn("inputSchema.properties.profile.properties.age.minimum", paths)
+        self.assertIn("inputSchema.properties.profile.dependentRequired", paths)
+        self.assertIn("inputSchema.properties.tags.items.maxLength", paths)
+        self.assertIn("inputSchema.properties.tags.uniqueItems", paths)
 
     def test_audit_rejects_oversized_stdout_and_reaps_server(self):
         children = []

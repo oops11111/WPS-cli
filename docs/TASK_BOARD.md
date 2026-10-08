@@ -346,7 +346,8 @@
 | P3-287 | 校验配置审计返回的工具描述与 schema | done | persistent tools/list 分页审计校验每个 descriptor 的工具名、input/output object schema 及可选字段形状；跨页畸形数据返回最多 20 条字段级诊断；配置审计定向 10 项通过，全量 466/65 |
 | P3-288 | 限制配置 MCP 审计输出缓冲 | done | stdout 单行上限 1 MiB、响应队列容量 8，stderr 分 8,192 字符块持续 drain 且仅保留 8,192 字符；超限错误有界并回收子进程；审计定向 12 项通过，全量 468/65 |
 | P3-289 | 规范化异常 MCP 审计响应 | done | 畸形 JSON、深层 JSON、无效 UTF-8 均返回有界审计失败；UTF-8 在 reader thread 内转换为诊断，子进程均被回收，随后独立正常审计通过；定向审计 13 项通过，全量 469/65 |
-| P3-290 | 校验 MCP descriptor 的嵌套 schema | next | 递归校验 properties、数组 items、required 与 schema keyword 结构；错误以 page/index/schema-path 形式有界返回，真实配置审计仍通过 |
+| P3-290 | 校验 MCP descriptor 的嵌套 schema | done | 递归检查 properties、patternProperties、$defs/definitions、items/prefixItems、组合 schema、required/dependentRequired、类型/数值/字符串/布尔关键字；每页最多 20 条 page/index/schema-path 诊断；审计定向 14 项通过，全量 470/65 |
+| P3-291 | 校验配置审计的 MCP initialize 元数据 | next | initialize 要求非空 serverInfo.name/version，检查 capabilities 与 tools 元数据结构；畸形握手有界失败并回收进程，后续有效审计不受影响 |
 
 进展记录：
 - 2026-10-03: P3-004 已为 `regression-run` 增加 `--artifact-dir`，safe profile 生成 `artifacts\regression\regression-run-20261003T063513662051Z-regression-artifact-p3-004-001.json`，报告见 `docs\P3_REGRESSION_ARTIFACT_EXPORT_REPORT.md`。
