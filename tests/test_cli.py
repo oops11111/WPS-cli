@@ -559,6 +559,13 @@ class CliParsingTests(unittest.TestCase):
         for timeout in (0, -1, 121):
             with self.subTest(timeout=timeout), self.assertRaises(SystemExit):
                 parser.parse_args(["mcp-config-audit", "--timeout-seconds", str(timeout)])
+        for count in (1, 10000):
+            self.assertEqual(parser.parse_args([
+                "mcp-config-audit", "--expected-min-tools", str(count),
+            ]).expected_min_tools, count)
+        for count in (0, -1, 10001):
+            with self.subTest(expected_min_tools=count), self.assertRaises(SystemExit):
+                parser.parse_args(["mcp-config-audit", "--expected-min-tools", str(count)])
         self.assertEqual(manifest_args.command, "regression-manifest")
         self.assertEqual(manifest_args.profile, "safe")
         self.assertEqual(run_args.command, "regression-run")

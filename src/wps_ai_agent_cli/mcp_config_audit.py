@@ -24,6 +24,8 @@ MCP_CONFIG_MAX_BYTES = 1024 * 1024
 MCP_CONFIG_MAX_JSON_DEPTH = 64
 MCP_CONFIG_AUDIT_TIMEOUT_MIN_SECONDS = 1
 MCP_CONFIG_AUDIT_TIMEOUT_MAX_SECONDS = 120
+MCP_CONFIG_AUDIT_MIN_EXPECTED_TOOLS = 1
+MCP_CONFIG_AUDIT_MAX_EXPECTED_TOOLS = 10000
 
 
 def _check(name: str, passed: bool, details: Any) -> dict[str, Any]:
@@ -368,6 +370,27 @@ def audit_mcp_client_config(
     timeout_seconds: int = 15,
 ) -> tuple[bool, dict[str, Any], list[dict[str, Any]]]:
     path = Path(config_path)
+    expected_tools_valid = (
+        isinstance(expected_min_tools, int)
+        and not isinstance(expected_min_tools, bool)
+        and MCP_CONFIG_AUDIT_MIN_EXPECTED_TOOLS <= expected_min_tools <= MCP_CONFIG_AUDIT_MAX_EXPECTED_TOOLS
+    )
+    expected_tools_check = _check(
+        "expected_min_tools_within_limit",
+        expected_tools_valid,
+        {
+            "minimum": MCP_CONFIG_AUDIT_MIN_EXPECTED_TOOLS,
+            "maximum": MCP_CONFIG_AUDIT_MAX_EXPECTED_TOOLS,
+        },
+    )
+    if not expected_tools_valid:
+        result = {
+            "config_path": str(path),
+            "server_name": server_name,
+            "checks": [expected_tools_check],
+            "smoke": None,
+        }
+        return False, result, [{"code": "MCP_CONFIG_AUDIT_FAILED", "message": "Expected tool count must be between 1 and 10000."}]
     timeout_valid = (
         isinstance(timeout_seconds, int)
         and not isinstance(timeout_seconds, bool)
@@ -385,12 +408,12 @@ def audit_mcp_client_config(
         result = {
             "config_path": str(path),
             "server_name": server_name,
-            "checks": [timeout_check],
+            "checks": [expected_tools_check, timeout_check],
             "smoke": None,
         }
         return False, result, [{"code": "MCP_CONFIG_AUDIT_FAILED", "message": "Timeout must be between 1 and 120 seconds."}]
     config, checks = _load_config(path)
-    checks.insert(0, timeout_check)
+    checks[0:0] = [expected_tools_check, timeout_check]
     if config is None:
         result = {
             "config_path": str(path),

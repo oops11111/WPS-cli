@@ -3,6 +3,8 @@ from __future__ import annotations
 from typing import Any
 
 from .mcp_config_audit import (
+    MCP_CONFIG_AUDIT_MAX_EXPECTED_TOOLS,
+    MCP_CONFIG_AUDIT_MIN_EXPECTED_TOOLS,
     MCP_CONFIG_AUDIT_TIMEOUT_MAX_SECONDS,
     MCP_CONFIG_AUDIT_TIMEOUT_MIN_SECONDS,
 )
@@ -854,7 +856,11 @@ MCP_TOOL_SCHEMAS: tuple[dict[str, Any], ...] = (
         properties={
             "config": _string("Path to MCP client config JSON."),
             "server_name": _string("Server key under mcpServers."),
-            "expected_min_tools": _integer("Minimum number of tools expected from tools/list.", minimum=1),
+            "expected_min_tools": _integer(
+                "Minimum number of tools expected from tools/list.",
+                minimum=MCP_CONFIG_AUDIT_MIN_EXPECTED_TOOLS,
+                maximum=MCP_CONFIG_AUDIT_MAX_EXPECTED_TOOLS,
+            ),
             "timeout_seconds": _integer(
                 "Timeout for the configured tools/list smoke.",
                 minimum=MCP_CONFIG_AUDIT_TIMEOUT_MIN_SECONDS,

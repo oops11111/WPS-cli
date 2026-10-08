@@ -29,6 +29,8 @@ from .mcp_catalog import build_mcp_catalog_snapshot
 from .mcp_config_audit import (
     MCP_CONFIG_AUDIT_TIMEOUT_MAX_SECONDS,
     MCP_CONFIG_AUDIT_TIMEOUT_MIN_SECONDS,
+    MCP_CONFIG_AUDIT_MAX_EXPECTED_TOOLS,
+    MCP_CONFIG_AUDIT_MIN_EXPECTED_TOOLS,
     audit_mcp_client_config,
 )
 from .mcp_schema import get_mcp_tool_schema, list_mcp_tool_categories, list_mcp_tool_schemas
@@ -95,6 +97,18 @@ def _mcp_config_audit_timeout(value: str) -> int:
             f"must be between {MCP_CONFIG_AUDIT_TIMEOUT_MIN_SECONDS} and {MCP_CONFIG_AUDIT_TIMEOUT_MAX_SECONDS} seconds"
         )
     return timeout
+
+
+def _mcp_config_audit_expected_tools(value: str) -> int:
+    try:
+        count = int(value)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError("must be an integer") from exc
+    if not MCP_CONFIG_AUDIT_MIN_EXPECTED_TOOLS <= count <= MCP_CONFIG_AUDIT_MAX_EXPECTED_TOOLS:
+        raise argparse.ArgumentTypeError(
+            f"must be between {MCP_CONFIG_AUDIT_MIN_EXPECTED_TOOLS} and {MCP_CONFIG_AUDIT_MAX_EXPECTED_TOOLS}"
+        )
+    return count
 
 
 def _extract_request_id(argv: list[str]) -> tuple[list[str], str | None]:
@@ -583,9 +597,9 @@ def build_parser() -> argparse.ArgumentParser:
     )
     mcp_config_audit_parser.add_argument(
         "--expected-min-tools",
-        type=int,
+        type=_mcp_config_audit_expected_tools,
         default=33,
-        help="Minimum number of tools expected from configured tools/list smoke.",
+        help="Minimum expected tools (1-10000).",
     )
     mcp_config_audit_parser.add_argument(
         "--timeout-seconds",

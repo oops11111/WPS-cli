@@ -11,6 +11,8 @@ from wps_ai_agent_cli.mcp_config_audit import (
     MCP_CONFIG_MAX_JSON_DEPTH,
     MCP_CONFIG_AUDIT_TIMEOUT_MAX_SECONDS,
     MCP_CONFIG_AUDIT_TIMEOUT_MIN_SECONDS,
+    MCP_CONFIG_AUDIT_MAX_EXPECTED_TOOLS,
+    MCP_CONFIG_AUDIT_MIN_EXPECTED_TOOLS,
     _load_config,
     audit_mcp_client_config,
 )
@@ -53,6 +55,32 @@ class McpConfigAuditTests(unittest.TestCase):
         self.assertFalse(ok)
         check = next(item for item in result["checks"] if item["name"] == "timeout_seconds_within_limit")
         self.assertTrue(check["passed"])
+
+    def test_expected_tool_count_bounds_are_checked_before_config_read_or_spawn(self):
+        for count in (0, -1, MCP_CONFIG_AUDIT_MAX_EXPECTED_TOOLS + 1, True, 1.5):
+            with self.subTest(expected_min_tools=count):
+                with patch("wps_ai_agent_cli.mcp_config_audit._load_config") as load_config:
+                    with patch("wps_ai_agent_cli.mcp_config_audit.subprocess.Popen") as popen:
+                        ok, result, errors = audit_mcp_client_config(
+                            config_path="missing-config.json", expected_min_tools=count,
+                        )
+                self.assertFalse(ok)
+                self.assertEqual(errors[0]["code"], "MCP_CONFIG_AUDIT_FAILED")
+                check = next(item for item in result["checks"] if item["name"] == "expected_min_tools_within_limit")
+                self.assertFalse(check["passed"])
+                self.assertIsNone(result["smoke"])
+                load_config.assert_not_called()
+                popen.assert_not_called()
+
+        for count in (MCP_CONFIG_AUDIT_MIN_EXPECTED_TOOLS, MCP_CONFIG_AUDIT_MAX_EXPECTED_TOOLS):
+            with self.subTest(valid_expected_min_tools=count):
+                with patch("wps_ai_agent_cli.mcp_config_audit._load_config", return_value=(None, [])):
+                    ok, result, _ = audit_mcp_client_config(
+                        config_path="missing-config.json", expected_min_tools=count,
+                    )
+                self.assertFalse(ok)
+                check = next(item for item in result["checks"] if item["name"] == "expected_min_tools_within_limit")
+                self.assertTrue(check["passed"])
 
     def audit_fake_paged_server(self, pages, expected_min_tools=1):
         with tempfile.TemporaryDirectory() as tmp:

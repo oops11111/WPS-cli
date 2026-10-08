@@ -146,6 +146,9 @@ class McpSchemaTests(unittest.TestCase):
         timeout = properties["timeout_seconds"]
         self.assertEqual(timeout["minimum"], 1)
         self.assertEqual(timeout["maximum"], 120)
+        expected = properties["expected_min_tools"]
+        self.assertEqual(expected["minimum"], 1)
+        self.assertEqual(expected["maximum"], 10000)
 
 
 if __name__ == "__main__":
