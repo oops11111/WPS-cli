@@ -4,6 +4,7 @@ import functools
 import hashlib
 import inspect
 import os
+import threading
 from contextlib import ExitStack
 from pathlib import Path
 import time
@@ -11,6 +12,10 @@ from typing import Any, Callable
 
 
 DEFAULT_TIMEOUT_SECONDS = 30.0
+STALE_LOCK_SECONDS = 7 * 24 * 3600
+
+_held = threading.local()
+_pruned_directories: set[str] = set()
 
 
 class DocumentBusyError(Exception):
@@ -45,29 +50,85 @@ def _unlock(stream) -> None:
         fcntl.flock(stream.fileno(), fcntl.LOCK_UN)
 
 
+def _prune_stale_locks(directory: Path) -> None:
+    key = str(directory)
+    if key in _pruned_directories:
+        return
+    _pruned_directories.add(key)
+    cutoff = time.time() - STALE_LOCK_SECONDS
+    try:
+        candidates = [item for item in directory.glob("*.lock") if item.stat().st_mtime < cutoff]
+    except OSError:
+        return
+    for candidate in candidates:
+        try:
+            if os.name == "nt":
+                # Windows refuses to delete a file another process still has open.
+                candidate.unlink()
+                continue
+            with candidate.open("a+b") as stream:
+                if _try_lock(stream):
+                    # Holders re-check the inode after locking, so unlinking here is safe.
+                    candidate.unlink()
+                    _unlock(stream)
+        except OSError:
+            continue
+
+
 class document_mutation_lock:
     def __init__(self, document_id: str, workspace: str | Path = ".", timeout_seconds: float = DEFAULT_TIMEOUT_SECONDS):
         digest = hashlib.sha256(document_id.encode("utf-8")).hexdigest()[:32]
         self.path = Path(workspace).resolve() / ".wps-agent" / "locks" / f"{digest}.lock"
         self.timeout_seconds = timeout_seconds
         self.stream = None
+        self._reentrant = False
+
+    def _held_locks(self) -> dict[str, int]:
+        if not hasattr(_held, "counts"):
+            _held.counts = {}
+        return _held.counts
+
+    def _open_and_lock(self, deadline: float):
+        while True:
+            stream = self.path.open("a+b")
+            try:
+                while not _try_lock(stream):
+                    if time.monotonic() >= deadline:
+                        raise DocumentBusyError("Document mutation is already active in this workspace.")
+                    time.sleep(0.05)
+                try:
+                    same_file = os.path.samestat(os.fstat(stream.fileno()), os.stat(self.path))
+                except OSError:
+                    same_file = False
+                if same_file:
+                    return stream
+                _unlock(stream)
+                stream.close()
+            except BaseException:
+                stream.close()
+                raise
 
     def __enter__(self):
-        self.path.parent.mkdir(parents=True, exist_ok=True)
-        stream = self.path.open("a+b")
-        try:
-            deadline = time.monotonic() + self.timeout_seconds
-            while not _try_lock(stream):
-                if time.monotonic() >= deadline:
-                    raise DocumentBusyError("Document mutation is already active in this workspace.")
-                time.sleep(0.05)
-            self.stream = stream
+        counts = self._held_locks()
+        key = str(self.path)
+        if counts.get(key, 0) > 0:
+            counts[key] += 1
+            self._reentrant = True
             return self
-        except BaseException:
-            stream.close()
-            raise
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        _prune_stale_locks(self.path.parent)
+        self.stream = self._open_and_lock(time.monotonic() + self.timeout_seconds)
+        counts[key] = 1
+        return self
 
     def __exit__(self, exc_type, exc, traceback):
+        counts = self._held_locks()
+        key = str(self.path)
+        if self._reentrant:
+            counts[key] -= 1
+            self._reentrant = False
+            return
+        counts.pop(key, None)
         if self.stream is not None:
             try:
                 try:

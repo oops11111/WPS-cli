@@ -44,7 +44,7 @@ def file_identity(path: Path) -> dict[str, int | str]:
 
 
 def stable_document_id(component: str, path: str) -> str:
-    canonical = str(Path(path).resolve()).lower()
+    canonical = os.path.normcase(str(Path(path).resolve()))
     digest = hashlib.sha256(f"{component}:{canonical}".encode("utf-8")).hexdigest()[:16]
     return f"doc_{digest}"
 
