@@ -42,6 +42,7 @@ from .regression_evidence import build_regression_evidence
 from .regression_history import build_regression_history
 from .security_audit import build_security_boundary_audit
 from .sessions import list_documents, register_document
+from .state_store import StateCorruptError
 from .snapshots import snapshot_document
 from .spreadsheet_ops import copy_spreadsheet_sheet, create_spreadsheet_sheet, delete_spreadsheet_sheet, list_spreadsheet_sheets, read_spreadsheet_range, rename_spreadsheet_sheet, set_spreadsheet_sheet_tab_color, set_spreadsheet_sheet_visibility, write_spreadsheet_formulas, write_spreadsheet_range
 from .spreadsheet_inspect import inspect_spreadsheet_range
@@ -107,6 +108,7 @@ def build_parser() -> argparse.ArgumentParser:
         description="Agent-friendly CLI for WPS feasibility validation and automation.",
     )
     parser.add_argument("--request-id", help="Stable request id for idempotent agent calls.")
+    parser.epilog = "Add --strict-exit anywhere to exit with status 1 when the response has ok=false (default exit status is 0)."
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     subparsers.add_parser("inspect-env", help="Inspect OS, pywin32, and WPS ProgID registration.")
@@ -3249,11 +3251,10 @@ def presentation_replace_response(
     )
 
 
-def run(argv: list[str] | None = None, output_stream: TextIO | None = None) -> int:
+def _run_command(argv: list[str], output_stream: TextIO | None = None, strict_exit: bool = False) -> int:
     if output_stream is None:
         _configure_stdout()
-    argv = list(sys.argv[1:] if argv is None else argv)
-    argv, extracted_request_id = _extract_request_id(argv)
+    argv, extracted_request_id = _extract_request_id(list(argv))
     parser = build_parser()
     args = parser.parse_args(argv)
     request_id = _request_id(extracted_request_id or args.request_id)
@@ -3771,7 +3772,30 @@ def run(argv: list[str] | None = None, output_stream: TextIO | None = None) -> i
         parser.error(f"Unsupported command: {args.command}")
 
     print(dumps_json(response.to_dict()), file=output_stream or sys.stdout)
-    return 0
+    return 0 if response.ok or not strict_exit else 1
+
+
+def run(argv: list[str] | None = None, output_stream: TextIO | None = None) -> int:
+    argv = list(sys.argv[1:] if argv is None else argv)
+    strict_exit = "--strict-exit" in argv
+    argv = [item for item in argv if item != "--strict-exit"]
+    try:
+        return _run_command(argv, output_stream, strict_exit)
+    except StateCorruptError as exc:
+        command = next((item for item in argv if not item.startswith("-")), "unknown")
+        _, request_id = _extract_request_id(argv)
+        response = CommandResponse(
+            ok=False,
+            command=command,
+            request_id=request_id or "unknown",
+            backend=BACKEND,
+            summary="Workspace state file is corrupt; the command was not executed.",
+            data={"state_path": str(exc.path), "quarantined_path": str(exc.quarantined) if exc.quarantined else None},
+            validation=ValidationResult(status="failed"),
+            errors=[{"code": exc.code, "message": str(exc)}],
+        )
+        print(dumps_json(response.to_dict()), file=output_stream or sys.stdout)
+        return 1 if strict_exit else 0
 
 
 def main() -> int:

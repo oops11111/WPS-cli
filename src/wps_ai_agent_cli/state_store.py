@@ -8,16 +8,43 @@ import time
 from typing import Any
 
 
+class StateCorruptError(Exception):
+    code = "STATE_CORRUPT"
+
+    def __init__(self, path: Path, quarantined: Path | None, reason: str):
+        self.path = path
+        self.quarantined = quarantined
+        self.reason = reason
+        location = f" moved to {quarantined}" if quarantined else ""
+        super().__init__(f"State file {path} is not valid JSON ({reason});{location}. Restore it from a copy or re-register documents before retrying.")
+
+
+def _quarantine(path: Path) -> Path | None:
+    stamp = time.strftime("%Y%m%dT%H%M%S", time.gmtime())
+    target = path.with_name(f"{path.name}.corrupt-{stamp}-{os.getpid()}")
+    try:
+        os.replace(path, target)
+    except OSError:
+        return None
+    return target
+
+
 def read_json_state(path: Path, default: dict[str, Any]) -> dict[str, Any]:
     for attempt in range(20):
         try:
-            return json.loads(path.read_text(encoding="utf-8"))
+            value = json.loads(path.read_text(encoding="utf-8"))
         except FileNotFoundError:
             return default
+        except (json.JSONDecodeError, UnicodeDecodeError) as exc:
+            raise StateCorruptError(path, _quarantine(path), str(exc)) from exc
         except PermissionError:
             if attempt == 19:
                 raise
             time.sleep(0.025)
+        else:
+            if not isinstance(value, dict):
+                raise StateCorruptError(path, _quarantine(path), "top-level value is not an object")
+            return value
     raise AssertionError("Unreachable state read retry limit")
 
 
