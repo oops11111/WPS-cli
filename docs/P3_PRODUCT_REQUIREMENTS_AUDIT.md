@@ -153,7 +153,8 @@ test totals and WPS integration evidence are maintained in
 127. P3-285 done: the configured-client audit now performs initialize, initialized, and complete paginated tools/list traversal over one process; it validates IDs and lifecycle metadata, uses bounded deadlines, drains stderr, closes stdin for clean exit, and kills/cleans up on failures. MCP config audit tests: 8 passed; full suite: 462 passed/65 skipped.
 128. P3-286 done: the legacy `ping` request accepts omitted or empty params and returns an empty result with the request ID; nonempty params return `-32602`. Handler and initialized persistent-stdio tests prove a following tools/list still succeeds. MCP server/config audit tests: 43 passed; full suite: 464 passed/65 skipped.
 129. P3-287 done: configured-client audit validates tool names, object input/output schemas, and optional descriptor field types on every page; malformed fields produce at most 20 page/index/field diagnostics. Fake multi-page and real configured-server tests pass; audit tests: 10 passed; full suite: 466 passed/65 skipped.
-130. P3-288 next: bound configured MCP audit stdout line size and response queue buffering while ensuring stderr is drained and child processes are cleaned up.
+130. P3-288 done: configured MCP audit reads stdout with a 1 Mi-character line cap and an eight-response queue, drains stderr in 8,192-character chunks while retaining at most 8,192 characters, and rejects oversized lines with bounded errors while reaping the child. MCP audit tests: 12 passed; full suite: 468 passed/65 skipped.
+131. P3-289 next: normalize malformed JSON, excessive nesting, and invalid UTF-8 from configured servers into bounded audit failures without reader-thread exceptions.
 45. Later: broaden visual/semantic fidelity and WPS version coverage while preserving independent failures and artifact provenance.
 
 These milestones are actionable entirely in the local workspace. Offline parsing fixes

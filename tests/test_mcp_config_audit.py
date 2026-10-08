@@ -1,8 +1,10 @@
 import json
+import subprocess
 import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from wps_ai_agent_cli.mcp_config_audit import audit_mcp_client_config
 from wps_ai_agent_cli.mcp_schema import list_mcp_tool_schemas
@@ -25,8 +27,15 @@ class McpConfigAuditTests(unittest.TestCase):
             root = Path(tmp)
             config_path = root / "mcp.json"
             server_script = "\n".join((
-                "import json,sys",
+                "import json,sys,time",
                 "pages=json.loads(sys.argv[-1])",
+                "if pages and pages[0].get('_oversized'):",
+                "    sys.stdout.write('x'*(1024*1024+1)+'\\n')",
+                "    sys.stdout.flush()",
+                "    time.sleep(30)",
+                "if pages and pages[0].get('_stderrFlood'):",
+                "    sys.stderr.write('e'*20000)",
+                "    sys.stderr.flush()",
                 "index=0",
                 "initialized=False",
                 "for line in sys.stdin:",
@@ -240,6 +249,32 @@ class McpConfigAuditTests(unittest.TestCase):
         self.assertFalse(ok)
         self.assertEqual(result["smoke"]["invalid_descriptor_count"], 20)
         self.assertEqual(len(result["smoke"]["descriptor_issues"]), 20)
+
+    def test_audit_rejects_oversized_stdout_and_reaps_server(self):
+        children = []
+        real_popen = subprocess.Popen
+
+        def track_process(*args, **kwargs):
+            process = real_popen(*args, **kwargs)
+            children.append(process)
+            return process
+
+        with patch("wps_ai_agent_cli.mcp_config_audit.subprocess.Popen", side_effect=track_process):
+            ok, result, errors = self.audit_fake_paged_server([{"_oversized": True}])
+
+        self.assertFalse(ok)
+        self.assertEqual(errors[0]["code"], "MCP_CONFIG_AUDIT_FAILED")
+        self.assertIn("stdout line exceeded", result["smoke"]["error"])
+        self.assertEqual(len(children), 1)
+        self.assertIsNotNone(children[0].poll())
+
+    def test_audit_drains_large_stderr_but_retains_only_bounded_prefix(self):
+        ok, result, errors = self.audit_fake_paged_server([
+            {"_stderrFlood": True, "resultType": "complete", "tools": [tool_descriptor("tool_a")]},
+        ])
+
+        self.assertTrue(ok, errors)
+        self.assertEqual(len(result["smoke"]["stderr"]), 8192)
 
 
 if __name__ == "__main__":

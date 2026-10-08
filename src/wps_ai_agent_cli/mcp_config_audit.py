@@ -5,9 +5,9 @@ import os
 import shutil
 import subprocess
 import time
-from queue import Empty, Queue
+from queue import Empty, Full, Queue
 from pathlib import Path
-from threading import Thread
+from threading import Event, Thread
 from typing import Any
 
 from .mcp_tool_names import audit_mcp_tool_names
@@ -15,6 +15,9 @@ from .mcp_tool_names import audit_mcp_tool_names
 
 DEFAULT_CONFIG_PATH = "config/mcp_client_config.example.json"
 DEFAULT_SERVER_NAME = "wps-ai-agent-cli"
+MCP_AUDIT_MAX_STDOUT_LINE_CHARS = 1024 * 1024
+MCP_AUDIT_STDOUT_QUEUE_SIZE = 8
+MCP_AUDIT_READ_CHUNK_CHARS = 8192
 
 
 def _check(name: str, passed: bool, details: Any) -> dict[str, Any]:
@@ -137,7 +140,8 @@ def audit_mcp_client_config(
         process: subprocess.Popen[str] | None = None
         stdout_thread: Thread | None = None
         stderr_thread: Thread | None = None
-        replies: Queue[str | None] = Queue()
+        replies: Queue[Any] = Queue(maxsize=MCP_AUDIT_STDOUT_QUEUE_SIZE)
+        stop_readers = Event()
         stderr_chunks: list[str] = []
         stderr_size = 0
         try:
@@ -156,17 +160,39 @@ def audit_mcp_client_config(
 
             def collect_stdout() -> None:
                 assert process is not None and process.stdout is not None
-                for output_line in process.stdout:
-                    replies.put(output_line)
-                replies.put(None)
+
+                def enqueue(item: Any) -> bool:
+                    while not stop_readers.is_set():
+                        try:
+                            replies.put(item, timeout=0.1)
+                            return True
+                        except Full:
+                            continue
+                    return False
+
+                while not stop_readers.is_set():
+                    output_line = process.stdout.readline(MCP_AUDIT_MAX_STDOUT_LINE_CHARS + 1)
+                    if not output_line:
+                        enqueue(None)
+                        return
+                    if len(output_line) > MCP_AUDIT_MAX_STDOUT_LINE_CHARS:
+                        while output_line and not output_line.endswith("\n"):
+                            output_line = process.stdout.readline(MCP_AUDIT_READ_CHUNK_CHARS)
+                        enqueue(ValueError("Configured server stdout line exceeded the audit limit."))
+                        return
+                    if not enqueue(output_line):
+                        return
 
             def collect_stderr() -> None:
                 nonlocal stderr_size
                 assert process is not None and process.stderr is not None
-                for error_line in process.stderr:
+                while True:
+                    error_chunk = process.stderr.read(MCP_AUDIT_READ_CHUNK_CHARS)
+                    if not error_chunk:
+                        return
                     remaining = 8192 - stderr_size
                     if remaining > 0:
-                        chunk = error_line[:remaining]
+                        chunk = error_chunk[:remaining]
                         stderr_chunks.append(chunk)
                         stderr_size += len(chunk)
 
@@ -191,6 +217,8 @@ def audit_mcp_client_config(
                     raise subprocess.TimeoutExpired(base_command, timeout_seconds) from exc
                 if raw_response is None:
                     raise ValueError("Configured server closed stdout before replying.")
+                if isinstance(raw_response, BaseException):
+                    raise raw_response
                 response = json.loads(raw_response)
                 if (not isinstance(response, dict) or response.get("jsonrpc") != "2.0"
                         or response.get("id") != request_id):
@@ -294,6 +322,7 @@ def audit_mcp_client_config(
             smoke = {"error": str(exc), "page_count": page_count, "stderr": "".join(stderr_chunks).strip()}
             checks.append(_check("configured_tools_list_smoke", False, smoke))
         finally:
+            stop_readers.set()
             if process is not None:
                 if process.stdin is not None and not process.stdin.closed:
                     process.stdin.close()

@@ -2257,8 +2257,15 @@ TASKS: tuple[ProjectTask, ...] = (
         id="P3-288",
         phase="phase3",
         title="Bound configured MCP audit output buffering",
-        status="next",
+        status="done",
         acceptance="Limit stdout line size and queued response buffering while continuously draining stderr from configured MCP servers; oversized output fails with bounded diagnostics, process cleanup completes, and later normal persistent audits still pass.",
+    ),
+    ProjectTask(
+        id="P3-289",
+        phase="phase3",
+        title="Normalize malformed MCP audit responses",
+        status="next",
+        acceptance="Convert malformed JSON, excessive nesting, and invalid UTF-8 from configured MCP subprocesses into bounded audit failures without uncaught reader-thread exceptions; always reap the child and preserve subsequent independent audits.",
     ),
 )
 
