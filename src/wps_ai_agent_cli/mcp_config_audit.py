@@ -41,6 +41,36 @@ def _reject_nonstandard_constant(_value: str) -> None:
     raise ValueError("non-standard JSON numeric constant")
 
 
+def _has_only_paired_surrogates(text: str) -> bool:
+    index = 0
+    while index < len(text):
+        codepoint = ord(text[index])
+        if 0xD800 <= codepoint <= 0xDBFF:
+            if index + 1 >= len(text) or not 0xDC00 <= ord(text[index + 1]) <= 0xDFFF:
+                return False
+            index += 2
+            continue
+        if 0xDC00 <= codepoint <= 0xDFFF:
+            return False
+        index += 1
+    return True
+
+
+def _config_strings_have_valid_unicode(value: Any) -> bool:
+    pending = [value]
+    while pending:
+        current = pending.pop()
+        if isinstance(current, str):
+            if not _has_only_paired_surrogates(current):
+                return False
+        elif isinstance(current, dict):
+            pending.extend(current.keys())
+            pending.extend(current.values())
+        elif isinstance(current, list):
+            pending.extend(current)
+    return True
+
+
 def _json_nesting_depth_within_limit(text: str, limit: int) -> bool:
     depth = 0
     in_string = False
@@ -115,6 +145,9 @@ def _load_config(path: Path) -> tuple[dict[str, Any] | None, list[dict[str, Any]
     except (json.JSONDecodeError, ValueError, RecursionError):
         return None, checks + [_check("config_json_valid", False, None)]
     checks.append(_check("config_json_valid", True, str(path)))
+    if not _config_strings_have_valid_unicode(config):
+        return None, checks + [_check("config_unicode_valid", False, None)]
+    checks.append(_check("config_unicode_valid", True, None))
     if not isinstance(config, dict):
         return None, checks + [_check("config_root_is_object", False, None)]
     checks.append(_check("config_root_is_object", True, None))

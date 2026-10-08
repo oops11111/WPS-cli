@@ -2348,8 +2348,15 @@ TASKS: tuple[ProjectTask, ...] = (
         id="P3-301",
         phase="phase3",
         title="Reject unpaired Unicode surrogates in MCP client config",
-        status="next",
+        status="done",
         acceptance="Reject JSON strings containing unpaired UTF-16 surrogate code points before process spawn while accepting valid surrogate pairs and ordinary Unicode; diagnostics remain bounded and do not expose values.",
+    ),
+    ProjectTask(
+        id="P3-302",
+        phase="phase3",
+        title="Bound configured MCP audit subprocess timeout",
+        status="next",
+        acceptance="Enforce a documented upper bound and positive lower bound for configured-client audit timeouts across CLI, MCP schema, and direct API; reject invalid values before spawning while preserving default behavior.",
     ),
 )
 

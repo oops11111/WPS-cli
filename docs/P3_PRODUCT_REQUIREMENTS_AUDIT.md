@@ -166,7 +166,8 @@ test totals and WPS integration evidence are maintained in
 140. P3-298 done: config JSON root and `mcpServers` map must be objects before accessing fields; six malformed shape cases produce bounded failures without exceptions or process spawn. Audit tests: 21 passed; full suite: 477 passed/65 skipped.
 141. P3-299 done: duplicate JSON members at root, process, and nested levels plus NaN/Infinity constants are rejected as bounded config failures before spawn; diagnostics expose no raw configuration values. Audit tests: 22 passed; full suite: 478 passed/65 skipped.
 142. P3-300 done: config JSON container depth is capped at 64 before `json.loads`; depth 65 is rejected without parser or process invocation, depth 64 parses, and brackets/braces/escaped quotes inside strings do not affect depth. Audit tests: 23 passed; full suite: 479 passed/65 skipped.
-143. P3-301 next: reject unpaired UTF-16 surrogate code points in decoded config strings before process spawn while retaining valid surrogate pairs.
+143. P3-301 done: decoded JSON object keys and nested string values reject isolated high/low UTF-16 surrogates before spawn, without exposing values; valid surrogate pairs are normalized by JSON decoding and accepted, as is ordinary non-ASCII Unicode. Audit tests: 24 passed; full suite: 480 passed/65 skipped.
+144. P3-302 next: bound configured-client audit subprocess timeouts consistently across CLI, MCP schema, and direct API.
 45. Later: broaden visual/semantic fidelity and WPS version coverage while preserving independent failures and artifact provenance.
 
 These milestones are actionable entirely in the local workspace. Offline parsing fixes

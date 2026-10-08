@@ -25,7 +25,7 @@
       "command": ["tasks", "--phase", "phase3", "--status", "next"],
       "expected_ok": true,
       "required_checks": [
-        {"path": "data.tasks", "contains_item": {"id": "P3-301", "status": "next"}}
+        {"path": "data.tasks", "contains_item": {"id": "P3-302", "status": "next"}}
       ]
     },
     {

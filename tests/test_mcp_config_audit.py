@@ -312,6 +312,39 @@ class McpConfigAuditTests(unittest.TestCase):
         loads.assert_not_called()
         popen.assert_not_called()
 
+    def test_unpaired_surrogates_are_rejected_and_valid_unicode_is_preserved(self):
+        invalid_cases = (
+            b'{"mcpServers":{},"private":"SECRET_HIGH\\ud800"}',
+            b'{"mcpServers":{},"nested":{"private":"SECRET_LOW\\udfff"}}',
+        )
+        for raw_config in invalid_cases:
+            with self.subTest(raw_config=raw_config), tempfile.TemporaryDirectory() as tmp:
+                config_path = Path(tmp) / "mcp.json"
+                config_path.write_bytes(raw_config)
+
+                with patch("wps_ai_agent_cli.mcp_config_audit.subprocess.Popen") as popen:
+                    ok, result, errors = audit_mcp_client_config(config_path=config_path)
+
+                self.assertFalse(ok)
+                self.assertEqual(errors[0]["code"], "MCP_CONFIG_AUDIT_FAILED")
+                self.assertIsNone(result["smoke"])
+                unicode_check = next(item for item in result["checks"] if item["name"] == "config_unicode_valid")
+                self.assertFalse(unicode_check["passed"])
+                self.assertIsNone(unicode_check["details"])
+                self.assertNotIn("SECRET_", json.dumps(result))
+                popen.assert_not_called()
+
+        with tempfile.TemporaryDirectory() as tmp:
+            config_path = Path(tmp) / "mcp.json"
+            config_path.write_bytes(b'{"mcpServers":{},"emoji":"\\ud83d\\ude00","text":"caf\xc3\xa9"}')
+            config, checks = _load_config(config_path)
+
+        self.assertIsInstance(config, dict)
+        self.assertEqual(config["emoji"], "\U0001f600")
+        self.assertEqual(config["text"], "caf\u00e9")
+        unicode_check = next(item for item in checks if item["name"] == "config_unicode_valid")
+        self.assertTrue(unicode_check["passed"])
+
     def test_valid_config_at_exact_byte_limit_is_audited(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
