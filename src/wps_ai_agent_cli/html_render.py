@@ -114,10 +114,14 @@ def render_html(
         temporary_output.unlink(missing_ok=True)
         return False, {"diagnostic": payload}, [{"code": "RENDER_OUTPUT_INVALID", "message": "Browser output was empty or did not match the requested format."}]
     try:
-        temporary_output.rename(destination)
+        # A hard link fails if the destination appeared after the earlier existence check.
+        os.link(temporary_output, destination)
+    except FileExistsError:
+        return False, {}, [{"code": "OUTPUT_ALREADY_EXISTS", "message": f"Refusing to overwrite existing output: {destination}"}]
     except OSError as exc:
-        temporary_output.unlink(missing_ok=True)
         return False, {}, [{"code": "OUTPUT_WRITE_FAILED", "message": str(exc)}]
+    finally:
+        temporary_output.unlink(missing_ok=True)
     result = {
         "input_path": str(source), "output_path": str(destination),
         "format": output_format, "bytes": len(artifact),

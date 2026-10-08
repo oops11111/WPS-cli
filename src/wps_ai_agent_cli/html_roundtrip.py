@@ -13,6 +13,7 @@ import zipfile
 import xml.etree.ElementTree as ET
 
 from .html_editable import _TreeParser, _bookmark_name, _safe_link_target, _text, _walk, convert_html_editable
+from .html_text import decode_html_bytes
 from .ooxml import parse_xml_part, read_zip_part
 
 
@@ -36,7 +37,7 @@ def build_html_roundtrip_mapping(input_path: str | Path) -> tuple[bool, dict[str
     if len(raw) > 10 * 1024 * 1024:
         return False, {}, [{"code": "INPUT_TOO_LARGE", "message": "HTML input exceeds the 10 MiB limit."}]
     parser = _TreeParser()
-    parser.feed(raw.decode("utf-8-sig", errors="replace"))
+    parser.feed(decode_html_bytes(raw)[0])
     nodes = list(_walk(parser.root))
     html_root = next((node for node in nodes if node.tag == "html"), None)
     meta = next((node for node in nodes if node.tag == "meta" and node.attrs.get("name", "").casefold() == "wps-agent-schema"), None)

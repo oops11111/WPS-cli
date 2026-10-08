@@ -12,6 +12,8 @@ import tempfile
 from typing import Any
 from urllib.parse import urlsplit
 
+from .html_text import decode_html_bytes
+
 
 _VOID = {"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr"}
 _SKIP = {"script", "style", "noscript", "template", "svg", "iframe", "object", "canvas"}
@@ -24,7 +26,10 @@ _MAX_IMAGES = 100
 
 
 def _safe_link_target(value: str) -> bool:
-    parsed = urlsplit(value.strip())
+    stripped = value.strip()
+    if "\\" in stripped or any(ord(char) < 32 for char in stripped):
+        return False
+    parsed = urlsplit(stripped)
     return parsed.scheme.casefold() in {"http", "https", "mailto", "tel"} or (
         not parsed.scheme and not value.strip().startswith("//")
     )
@@ -146,7 +151,8 @@ def convert_html_editable(input_path: str | Path, output_path: str | Path) -> tu
         return False, {}, [{"code": "CONVERTER_UNAVAILABLE", "message": "Install the html optional dependency: python-docx."}]
 
     parser = _TreeParser()
-    parser.feed(source.read_text(encoding="utf-8-sig", errors="replace"))
+    html_text, source_encoding, decode_warning = decode_html_bytes(source.read_bytes())
+    parser.feed(html_text)
     nodes = list(_walk(parser.root))
     html_root = next((node for node in nodes if node.tag == "html"), None)
     meta = next((node for node in nodes if node.tag == "meta" and node.attrs.get("name", "").casefold() == "wps-agent-schema"), None)
@@ -172,12 +178,16 @@ def convert_html_editable(input_path: str | Path, output_path: str | Path) -> tu
         "thead", "tbody", "tfoot", "tr", "td", "th", "figure", "figcaption",
     }
     warnings = sorted(parser.warnings | {
-        f"Unsupported element <{node.tag}> omitted or flattened to text." for node in nodes if node.tag not in supported_tags
+        f"Unsupported element <{node.tag}> omitted or flattened to text."
+        for node in nodes
+        if node is not parser.root and node.tag not in supported_tags
     } | {
         f"Unsupported element <{tag}> omitted." for tag in parser.unsupported_elements
     } | {
         "Scripts and executable content were omitted." for node in nodes if node.tag == "script"
     })
+    if decode_warning:
+        warnings.append(decode_warning)
     document = Document()
     bookmark_counter = 0
     bookmark_count = 0
@@ -377,6 +387,7 @@ def convert_html_editable(input_path: str | Path, output_path: str | Path) -> tu
         "backend": "python-docx-semantic-mapping", "editable": True,
         "mapped_objects": counts, "unsupported_css": unsupported_css,
         "warnings": warnings, "fidelity": "semantic-content; CSS layout is not preserved",
+        "source_encoding": source_encoding,
         "javascript_executed": False, "remote_resources_fetched": False,
         "roundtrip_bookmarks": bookmark_count,
     }, []
