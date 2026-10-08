@@ -21,6 +21,7 @@ MCP_AUDIT_MAX_STDOUT_LINE_CHARS = 1024 * 1024
 MCP_AUDIT_STDOUT_QUEUE_SIZE = 8
 MCP_AUDIT_READ_CHUNK_CHARS = 8192
 MCP_CONFIG_MAX_BYTES = 1024 * 1024
+MCP_CONFIG_MAX_JSON_DEPTH = 64
 
 
 def _check(name: str, passed: bool, details: Any) -> dict[str, Any]:
@@ -38,6 +39,30 @@ def _reject_duplicate_members(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
 
 def _reject_nonstandard_constant(_value: str) -> None:
     raise ValueError("non-standard JSON numeric constant")
+
+
+def _json_nesting_depth_within_limit(text: str, limit: int) -> bool:
+    depth = 0
+    in_string = False
+    escaped = False
+    for character in text:
+        if in_string:
+            if escaped:
+                escaped = False
+            elif character == "\\":
+                escaped = True
+            elif character == '"':
+                in_string = False
+            continue
+        if character == '"':
+            in_string = True
+        elif character in "[{":
+            depth += 1
+            if depth > limit:
+                return False
+        elif character in "]}" and depth:
+            depth -= 1
+    return True
 
 
 def _load_config(path: Path) -> tuple[dict[str, Any] | None, list[dict[str, Any]]]:
@@ -74,6 +99,13 @@ def _load_config(path: Path) -> tuple[dict[str, Any] | None, list[dict[str, Any]
     except UnicodeDecodeError:
         return None, checks + [_check("config_utf8_valid", False, None)]
     checks.append(_check("config_utf8_valid", True, None))
+    if not _json_nesting_depth_within_limit(config_text, MCP_CONFIG_MAX_JSON_DEPTH):
+        return None, checks + [
+            _check("config_json_depth_within_limit", False, {"limit": MCP_CONFIG_MAX_JSON_DEPTH})
+        ]
+    checks.append(
+        _check("config_json_depth_within_limit", True, {"limit": MCP_CONFIG_MAX_JSON_DEPTH})
+    )
     try:
         config = json.loads(
             config_text,

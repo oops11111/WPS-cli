@@ -2341,8 +2341,15 @@ TASKS: tuple[ProjectTask, ...] = (
         id="P3-300",
         phase="phase3",
         title="Bound MCP client configuration JSON nesting depth",
-        status="next",
+        status="done",
         acceptance="Reject excessively nested configuration JSON before recursive object construction, with bounded diagnostics and no process spawn; keep ordinary and exact-byte-limit valid configurations supported.",
+    ),
+    ProjectTask(
+        id="P3-301",
+        phase="phase3",
+        title="Reject unpaired Unicode surrogates in MCP client config",
+        status="next",
+        acceptance="Reject JSON strings containing unpaired UTF-16 surrogate code points before process spawn while accepting valid surrogate pairs and ordinary Unicode; diagnostics remain bounded and do not expose values.",
     ),
 )
 

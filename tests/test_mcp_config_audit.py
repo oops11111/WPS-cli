@@ -6,7 +6,12 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from wps_ai_agent_cli.mcp_config_audit import MCP_CONFIG_MAX_BYTES, audit_mcp_client_config
+from wps_ai_agent_cli.mcp_config_audit import (
+    MCP_CONFIG_MAX_BYTES,
+    MCP_CONFIG_MAX_JSON_DEPTH,
+    _load_config,
+    audit_mcp_client_config,
+)
 from wps_ai_agent_cli.mcp_schema import list_mcp_tool_schemas
 
 
@@ -281,6 +286,31 @@ class McpConfigAuditTests(unittest.TestCase):
                 self.assertIsNone(json_check["details"])
                 self.assertLess(len(json.dumps(result)), 1024)
                 popen.assert_not_called()
+
+    def test_config_json_depth_limit_respects_strings_and_escapes(self):
+        prefix = b'{"mcpServers":{},"payload":"braces [] {} and quote \\\"", "nested":'
+        exact_depth = b"[" * (MCP_CONFIG_MAX_JSON_DEPTH - 1) + b"0" + b"]" * (MCP_CONFIG_MAX_JSON_DEPTH - 1)
+        over_depth = b"[" * MCP_CONFIG_MAX_JSON_DEPTH + b"0" + b"]" * MCP_CONFIG_MAX_JSON_DEPTH
+        with tempfile.TemporaryDirectory() as tmp:
+            config_path = Path(tmp) / "mcp.json"
+            config_path.write_bytes(prefix + exact_depth + b"}")
+            config, checks = _load_config(config_path)
+            self.assertIsInstance(config, dict)
+            exact_check = next(item for item in checks if item["name"] == "config_json_depth_within_limit")
+            self.assertTrue(exact_check["passed"])
+
+            config_path.write_bytes(prefix + over_depth + b"}")
+            with patch("wps_ai_agent_cli.mcp_config_audit.json.loads") as loads:
+                with patch("wps_ai_agent_cli.mcp_config_audit.subprocess.Popen") as popen:
+                    ok, result, errors = audit_mcp_client_config(config_path=config_path)
+
+        self.assertFalse(ok)
+        self.assertEqual(errors[0]["code"], "MCP_CONFIG_AUDIT_FAILED")
+        depth_check = next(item for item in result["checks"] if item["name"] == "config_json_depth_within_limit")
+        self.assertFalse(depth_check["passed"])
+        self.assertLess(len(json.dumps(depth_check)), 128)
+        loads.assert_not_called()
+        popen.assert_not_called()
 
     def test_valid_config_at_exact_byte_limit_is_audited(self):
         with tempfile.TemporaryDirectory() as tmp:
