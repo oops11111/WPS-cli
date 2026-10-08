@@ -52,7 +52,7 @@ def read_zip_part(archive: ZipFile, name: str, max_bytes: int = MAX_PART_BYTES) 
             f"Package part {name} expands to {info.file_size} bytes; the limit is {max_bytes}.",
             {"part": name, "uncompressed_bytes": info.file_size, "limit": max_bytes},
         )
-    return archive.read(info)
+    return archive.read(name)
 
 
 def parse_xml_part(archive: ZipFile, name: str, max_bytes: int = MAX_PART_BYTES) -> ET.Element:
