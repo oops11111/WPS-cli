@@ -7,10 +7,10 @@
 - Phase 0/1/2: 已完成可行性验证、核心 CLI、恢复能力和 MCP server 原型
 - 已实现: 环境探测、WPS ProgID 注册检测、结构化响应、任务清单、文档注册、备份/恢复、Writer/Spreadsheet/Presentation 修改命令、MCP adapter/server、回归套件和本地复现脚本
 - MCP: legacy `2025-11-25` initialize 生命周期、分页工具发现、ping、参数/schema 校验和配置客户端持久 stdio 审计；审计会校验工具描述/schema，并限制子进程输出，当前工具面 81 项
-- 最近验证: 默认测试套件 486 项通过、65 项跳过；P3-305 MCP adapter 字符串长度和 pattern 约束已验证
+- 最近验证: 默认测试套件 487 项通过、65 项跳过；P3-306 adapter 会在参数比较前校验 schema 约束元数据
 - 当前实测: WPS Writer、Spreadsheets、Presentation 均已通过 PowerShell COM fallback 完成打开、保存副本和关闭；表格公式计算验证和 DOCX 到 PDF 转换验证已通过
 - Phase 1: 已完成 release candidate 审计，详见 `docs/PHASE1_RELEASE_CANDIDATE_REPORT.md`
-- 当前 Phase 3: 本地工作区持续开发，不依赖远程 Git 工作流；当前下一任务为拒绝畸形 MCP schema 约束元数据，可用 `tasks --phase phase3 --status next` 或 `project-status` 查看
+- 当前 Phase 3: 本地工作区持续开发，不依赖远程 Git 工作流；当前下一任务为校验 MCP enum 唯一性语义，可用 `tasks --phase phase3 --status next` 或 `project-status` 查看
 
 ## 本地运行
 
