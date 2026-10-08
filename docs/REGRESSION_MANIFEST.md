@@ -72,3 +72,7 @@ The WPS profile is intentionally not part of the default regression run because 
 As of P3-013, the full WPS profile passes all 4 scenarios. The spreadsheet calculation smoke now disables WPS alerts, removes a pre-existing output file before `SaveAs`, and uses a manifest timeout of 30 seconds.
 
 CI handoff, artifact retention, and pass/fail gates are documented in `docs/REGRESSION_CI_HANDOFF.md`.
+
+## 场景命令白名单
+
+`regression-run` 通过 `--manifest` 接受调用方提供的清单，MCP 中它被标记为非修改类工具，所以场景只能运行随仓库发布的清单已使用的只读与冒烟命令（见 `regression.REGRESSION_ALLOWED_COMMANDS`）。其他命令（例如 `restore-backup`、`regression-run`、`mcp-server`）不会被执行，该场景返回 `REGRESSION_COMMAND_NOT_ALLOWED`。给默认清单新增使用新命令的场景时，需要同步更新白名单；`tests/test_review_batch_4_5.py` 会检查两者一致。

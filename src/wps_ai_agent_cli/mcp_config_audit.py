@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import shutil
 import subprocess
 from pathlib import Path
@@ -10,6 +11,32 @@ from typing import Any
 
 DEFAULT_CONFIG_PATH = "config/mcp_client_config.example.json"
 DEFAULT_SERVER_NAME = "wps-ai-agent-cli"
+
+
+EXPECTED_ARGS = ["-m", "wps_ai_agent_cli", "mcp-server"]
+ALLOWED_ENV_KEYS = {"PYTHONPATH"}
+_PACKAGE_INIT = Path(__file__).with_name("__init__.py").resolve()
+
+
+def _is_python_interpreter(command: str) -> bool:
+    name = Path(command).name.casefold()
+    name = name[:-4] if name.endswith(".exe") else name
+    return re.fullmatch(r"python(\d+(\.\d+)*)?", name) is not None
+
+
+def _pythonpath_serves_this_package(pythonpath: Any, cwd: Path | None) -> bool:
+    if not isinstance(pythonpath, str) or cwd is None:
+        return False
+    for entry in pythonpath.split(os.pathsep):
+        if not entry:
+            continue
+        base = Path(entry) if Path(entry).is_absolute() else cwd / entry
+        try:
+            if (base / "wps_ai_agent_cli" / "__init__.py").resolve() == _PACKAGE_INIT:
+                return True
+        except OSError:
+            continue
+    return False
 
 
 def _check(name: str, passed: bool, details: Any) -> dict[str, Any]:
@@ -83,8 +110,31 @@ def audit_mcp_client_config(
         )
     )
 
+    # The audited command is executed, so only this package's own `python -m wps_ai_agent_cli mcp-server`
+    # launch line is allowed; anything else in an untrusted config would be arbitrary code execution.
+    safe_launch = (
+        isinstance(command, str)
+        and _is_python_interpreter(command)
+        and args == EXPECTED_ARGS
+        and isinstance(env_overrides, dict)
+        and set(env_overrides) <= ALLOWED_ENV_KEYS
+        and _pythonpath_serves_this_package(env_overrides.get("PYTHONPATH"), cwd_path)
+    )
+    checks.append(
+        _check(
+            "launch_line_is_this_package",
+            safe_launch,
+            {
+                "requires": "a python interpreter, args exactly -m wps_ai_agent_cli mcp-server, env limited to PYTHONPATH that resolves to this package",
+                "command": command,
+                "args": args,
+                "env_keys": sorted(env_overrides) if isinstance(env_overrides, dict) else None,
+            },
+        )
+    )
+
     smoke: dict[str, Any] | None = None
-    if cwd_ok and command_resolved and isinstance(args, list):
+    if cwd_ok and command_resolved and safe_launch:
         request = json.dumps({"jsonrpc": "2.0", "id": 1, "method": "tools/list", "params": {}})
         command_line = [command_resolved, *[str(arg) for arg in args], "--once-json", request]
         env = os.environ.copy()
@@ -121,7 +171,7 @@ def audit_mcp_client_config(
             smoke = {"error": str(exc)}
             checks.append(_check("configured_tools_list_smoke", False, smoke))
     else:
-        checks.append(_check("configured_tools_list_smoke", False, "Skipped because command or cwd check failed."))
+        checks.append(_check("configured_tools_list_smoke", False, "Skipped because command, cwd or launch-line checks failed; nothing was executed."))
 
     ok = all(check["passed"] for check in checks)
     result = {

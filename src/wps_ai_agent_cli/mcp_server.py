@@ -10,6 +10,7 @@ from .mcp_adapter import call_mcp_tool
 from .mcp_schema import list_mcp_tool_schemas
 
 
+MAX_REQUEST_LINE_CHARS = 4 * 1024 * 1024
 MCP_PROTOCOL_VERSION = "2026-07-28"
 SERVER_INFO = {"name": "wps-ai-agent-cli", "version": "phase2-prototype"}
 
@@ -96,7 +97,7 @@ def handle_mcp_request(message: dict[str, Any]) -> dict[str, Any] | None:
     if message.get("jsonrpc") != "2.0" or not method:
         return _error_response(request_id, -32600, "Invalid JSON-RPC request.")
 
-    if method == "notifications/initialized":
+    if isinstance(method, str) and method.startswith("notifications/"):
         return None
     if method == "initialize":
         return _response(request_id, _initialize_result())
@@ -112,7 +113,10 @@ def handle_mcp_request(message: dict[str, Any]) -> dict[str, Any] | None:
             return _error_response(request_id, -32602, "tools/call requires a tool name.")
         if not isinstance(arguments, dict):
             return _error_response(request_id, -32602, "tools/call arguments must be an object.")
-        return _response(request_id, _tools_call_result(name, arguments))
+        try:
+            return _response(request_id, _tools_call_result(name, arguments))
+        except Exception as exc:  # noqa: BLE001
+            return _error_response(request_id, -32603, f"Tool call failed unexpectedly: {type(exc).__name__}")
 
     return _error_response(request_id, -32601, f"Method not found: {method}")
 
@@ -125,6 +129,25 @@ def handle_mcp_json(raw_json: str) -> dict[str, Any] | None:
     if not isinstance(message, dict):
         return _error_response(None, -32600, "Invalid JSON-RPC request.")
     return handle_mcp_request(message)
+
+
+def _read_request_lines(stream: TextIO, limit: int | None = None):
+    """Yield input lines, or None for a line longer than ``limit`` (which is discarded)."""
+    limit = MAX_REQUEST_LINE_CHARS if limit is None else limit
+    if not hasattr(stream, "readline"):
+        for line in stream:
+            yield None if len(line) > limit else line
+        return
+    while True:
+        chunk = stream.readline(limit + 1)
+        if not chunk:
+            return
+        if len(chunk) <= limit or chunk.endswith("\n"):
+            yield chunk
+            continue
+        while chunk and not chunk.endswith("\n"):
+            chunk = stream.readline(limit)
+        yield None
 
 
 def serve_stdio(input_stream: TextIO | None = None, output_stream: TextIO | None = None) -> int:
@@ -150,8 +173,11 @@ def serve_stdio(input_stream: TextIO | None = None, output_stream: TextIO | None
 
     with ThreadPoolExecutor(max_workers=1, thread_name_prefix="mcp-html-batch") as executor:
         pending: Future[None] | None = None
-        for line in input_stream:
-            line = line.strip()
+        for raw_line in _read_request_lines(input_stream):
+            if raw_line is None:
+                write_response(_error_response(None, -32600, f"Request line exceeds {MAX_REQUEST_LINE_CHARS} characters and was discarded."))
+                continue
+            line = raw_line.strip()
             if not line:
                 continue
             try:

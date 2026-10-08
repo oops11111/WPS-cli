@@ -32,7 +32,37 @@ def _validate_arguments(schema: dict[str, Any], arguments: dict[str, Any]) -> li
         errors.append(_error("MCP_ARGUMENTS_MISSING_REQUIRED", "Required arguments are missing.", missing))
     if unknown:
         errors.append(_error("MCP_ARGUMENTS_UNKNOWN", "Unknown arguments were supplied.", unknown))
+    invalid = [
+        problem
+        for name, value in arguments.items()
+        if name in properties and value is not None and (problem := _type_problem(name, properties[name], value))
+    ]
+    if invalid:
+        errors.append(_error("MCP_ARGUMENTS_INVALID", "Arguments do not match the tool input schema.", invalid))
     return errors
+
+
+def _type_problem(name: str, spec: dict[str, Any], value: Any) -> str | None:
+    kind = spec.get("type")
+    if kind == "string":
+        if not isinstance(value, str):
+            return f"{name} must be a string"
+    elif kind == "integer":
+        if isinstance(value, bool) or not isinstance(value, int):
+            return f"{name} must be an integer"
+        if "minimum" in spec and value < spec["minimum"]:
+            return f"{name} must be at least {spec['minimum']}"
+        if "maximum" in spec and value > spec["maximum"]:
+            return f"{name} must be at most {spec['maximum']}"
+    elif kind == "boolean":
+        if not isinstance(value, bool):
+            return f"{name} must be a boolean"
+    elif kind == "array":
+        if not isinstance(value, list) or not all(isinstance(item, (str, int)) and not isinstance(item, bool) for item in value):
+            return f"{name} must be an array of strings or integers"
+    if "enum" in spec and value not in spec["enum"]:
+        return f"{name} must be one of {spec['enum']}"
+    return None
 
 
 def build_cli_argv(tool_name: str, arguments: dict[str, Any]) -> tuple[bool, list[str], dict[str, Any] | None, list[dict[str, Any]]]:
@@ -70,10 +100,16 @@ def build_cli_argv(tool_name: str, arguments: dict[str, Any]) -> tuple[bool, lis
             for item in value:
                 argv.extend([_flag_name(name), str(item)])
             continue
-        argv.extend([_flag_name(name), str(value)])
+        if str(value).startswith("-"):
+            argv.append(f"{_flag_name(name)}={value}")
+        else:
+            argv.extend([_flag_name(name), str(value)])
 
     if request_id:
-        argv.extend(["--request-id", str(request_id)])
+        if str(request_id).startswith("-"):
+            argv.append(f"--request-id={request_id}")
+        else:
+            argv.extend(["--request-id", str(request_id)])
     return True, argv, schema, []
 
 
@@ -94,7 +130,31 @@ def call_mcp_tool(tool_name: str, arguments: dict[str, Any]) -> tuple[bool, dict
     from .cli import run
 
     output = io.StringIO()
-    exit_code = run(argv, output_stream=output)
+    try:
+        exit_code = run(argv, output_stream=output)
+    except SystemExit as exc:
+        return (
+            False,
+            {
+                "tool_name": schema["name"] if schema else tool_name,
+                "cli_command": schema["cli_command"] if schema else None,
+                "cli_argv": argv,
+                "response": None,
+                "exit_code": exc.code,
+            },
+            [_error("MCP_CLI_ARGUMENTS_REJECTED", "The CLI parser rejected the arguments; see the server's stderr for the usage message.", {"exit_code": exc.code})],
+        )
+    except Exception as exc:  # noqa: BLE001
+        return (
+            False,
+            {
+                "tool_name": schema["name"] if schema else tool_name,
+                "cli_command": schema["cli_command"] if schema else None,
+                "cli_argv": argv,
+                "response": None,
+            },
+            [_error("MCP_TOOL_EXECUTION_FAILED", f"{type(exc).__name__}: {exc}"[:500])],
+        )
     raw_output = output.getvalue().strip()
     try:
         response = json.loads(raw_output) if raw_output else {}

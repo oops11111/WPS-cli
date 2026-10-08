@@ -2842,7 +2842,7 @@ def security_audit_response(request_id: str) -> CommandResponse:
         command="security-audit",
         request_id=request_id,
         backend=BACKEND,
-        summary="Security boundary audit passed." if ok else "Security boundary audit failed.",
+        summary="Schema text and parser consistency audit passed (not a behavioral security test)." if ok else "Schema text and parser consistency audit failed.",
         data={"security_audit": result},
         validation=ValidationResult(
             status="passed" if ok else "failed",

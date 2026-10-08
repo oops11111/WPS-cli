@@ -1338,7 +1338,7 @@ MCP_TOOL_SCHEMAS: tuple[dict[str, Any], ...] = (
         "wps_agent_security_audit",
         "security-audit",
         "Audit security boundaries",
-        "Audit mutating CLI and MCP tool safety boundaries.",
+        "Lint mutating tool schemas for documented safety boundaries and check every tool schema against its CLI parser. This is a schema and parser consistency check, not a behavioral test.",
         "security",
     ),
     _tool(

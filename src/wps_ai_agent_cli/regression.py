@@ -8,6 +8,33 @@ from typing import Any
 
 DEFAULT_REGRESSION_MANIFEST = "config/regression_manifest.json"
 
+# A manifest is data supplied by the caller (including over MCP, where regression-run is advertised as
+# non-mutating), so scenarios may only run the read-only and smoke commands the shipped manifest uses.
+REGRESSION_ALLOWED_COMMANDS = frozenset({
+    "artifact-retention-summary",
+    "calc-smoke",
+    "com-smoke",
+    "convert-smoke",
+    "documentation-freshness",
+    "local-handoff-summary",
+    "mcp-catalog-drift",
+    "mcp-config-audit",
+    "mcp-smoke",
+    "mcp-tools",
+    "plan",
+    "regression-evidence",
+    "regression-history",
+    "security-audit",
+    "sync-package-coverage",
+    "sync-package-inspect",
+    "sync-package-manifest",
+    "sync-package-readiness",
+    "sync-package-summary",
+    "tasks",
+    "validation-runbook",
+    "writer-table-smoke",
+})
+
 
 def load_regression_manifest(path: str | Path = DEFAULT_REGRESSION_MANIFEST) -> tuple[bool, dict[str, Any], list[dict[str, Any]]]:
     manifest_path = Path(path)
@@ -114,7 +141,24 @@ def run_regression_manifest(
     scenarios = list_regression_scenarios(manifest, profile=resolved_profile, include_wps=include_wps)
     results: list[dict[str, Any]] = []
     for scenario in scenarios:
-        exit_code, payload, raw_output = _run_cli(list(scenario.get("command", [])))
+        command = scenario.get("command")
+        if (
+            not isinstance(command, list)
+            or not command
+            or not all(isinstance(part, str) for part in command)
+            or command[0] not in REGRESSION_ALLOWED_COMMANDS
+        ):
+            exit_code, payload, raw_output = 1, {
+                "ok": False,
+                "summary": "Regression scenario command is not allowed.",
+                "errors": [{
+                    "code": "REGRESSION_COMMAND_NOT_ALLOWED",
+                    "message": "Scenarios may only run the read-only and smoke commands used by the shipped manifest; nothing was executed.",
+                    "command": command[0] if isinstance(command, list) and command and isinstance(command[0], str) else None,
+                }],
+            }, ""
+        else:
+            exit_code, payload, raw_output = _run_cli(list(command))
         checks = []
         if payload is not None:
             checks = [_evaluate_check(payload, check) for check in scenario.get("required_checks", [])]
