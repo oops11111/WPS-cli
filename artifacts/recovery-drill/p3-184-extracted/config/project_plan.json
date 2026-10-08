@@ -1,0 +1,38 @@
+{
+  "product": "WPS AI Agent CLI",
+  "source_prd": "WPS_AI_Agent_CLI_PRD_v1.1.docx",
+  "current_phase": "phase2",
+  "phases": [
+    {
+      "id": "phase0",
+      "name": "Technical feasibility validation",
+      "goal": "Validate WPS COM, ProgID fallback, conversion behavior, calculation fidelity, and HTML baseline before large-scale implementation.",
+      "status": "done",
+      "exit_criteria": [
+        "WPS component ProgID matrix is recorded",
+        "Minimal COM prototype can open, save a copy, and close documents",
+        "Spreadsheet calculation can be verified against displayed values",
+        "Conversion backend and loss matrix is documented",
+        "Go/no-go recommendation for Phase 1 is written"
+      ]
+    },
+    {
+      "id": "phase1",
+      "name": "MVP CLI",
+      "goal": "Deliver an Agent-callable CLI with document_id, backup, validation, dry-run, JSON protocol, and core WPS operations.",
+      "status": "done"
+    },
+    {
+      "id": "phase2",
+      "name": "Agent-ready scalable version",
+      "goal": "Add mature sessions, MCP reuse, batch operations, HTML modes, observability, and long-running task controls.",
+      "status": "active"
+    },
+    {
+      "id": "phase3",
+      "name": "Production-ready automation infrastructure",
+      "goal": "Strengthen recovery, security, performance, regression testing, and ecosystem integration.",
+      "status": "planned"
+    }
+  ]
+}

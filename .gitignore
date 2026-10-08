@@ -1,0 +1,10 @@
+.venv/
+.cache/
+tmp*/
+__pycache__/
+*.pyc
+.pytest_cache/
+.wps-agent/
+dist/
+build/
+*.egg-info/

@@ -1,0 +1,223 @@
+{
+  "backend": "local-python",
+  "command": "regression-run",
+  "data": {
+    "regression": {
+      "failed_count": 0,
+      "include_wps": false,
+      "manifest_path": "config/regression_manifest.json",
+      "passed_count": 6,
+      "profile": "safe",
+      "results": [
+        {
+          "category": "cli",
+          "checks": [
+            {
+              "details": {
+                "expected_item": {
+                  "id": "phase3",
+                  "status": "active"
+                }
+              },
+              "passed": true,
+              "path": "data.phases"
+            }
+          ],
+          "command": [
+            "plan"
+          ],
+          "errors": [],
+          "exit_code": 0,
+          "id": "cli-plan",
+          "ok": true,
+          "profile": "safe",
+          "raw_output": null,
+          "requires_wps": false,
+          "response_ok": true,
+          "risk_level": "low",
+          "summary": "Development roadmap loaded from PRD v1.1 phase goals.",
+          "title": "Roadmap exposes Phase 3 active state"
+        },
+        {
+          "category": "cli",
+          "checks": [
+            {
+              "details": {
+                "expected_item": {
+                  "id": "P3-013",
+                  "status": "next"
+                }
+              },
+              "passed": true,
+              "path": "data.tasks"
+            }
+          ],
+          "command": [
+            "tasks",
+            "--phase",
+            "phase3",
+            "--status",
+            "next"
+          ],
+          "errors": [],
+          "exit_code": 0,
+          "id": "cli-phase3-next",
+          "ok": true,
+          "profile": "safe",
+          "raw_output": null,
+          "requires_wps": false,
+          "response_ok": true,
+          "risk_level": "low",
+          "summary": "Returned 1 development tasks.",
+          "title": "Phase 3 next task is available"
+        },
+        {
+          "category": "mcp",
+          "checks": [
+            {
+              "details": {
+                "actual": 40,
+                "expected_min": 40
+              },
+              "passed": true,
+              "path": "data.tools"
+            }
+          ],
+          "command": [
+            "mcp-tools"
+          ],
+          "errors": [],
+          "exit_code": 0,
+          "id": "mcp-tools-count",
+          "ok": true,
+          "profile": "safe",
+          "raw_output": null,
+          "requires_wps": false,
+          "response_ok": true,
+          "risk_level": "low",
+          "summary": "Returned 40 draft MCP tool schemas.",
+          "title": "MCP schema list includes current tool count"
+        },
+        {
+          "category": "mcp",
+          "checks": [
+            {
+              "details": {
+                "actual": "passed",
+                "expected": "passed"
+              },
+              "passed": true,
+              "path": "validation.status"
+            }
+          ],
+          "command": [
+            "mcp-smoke",
+            "--expected-min-tools",
+            "40",
+            "--tool-name",
+            "wps_agent_tasks"
+          ],
+          "errors": [],
+          "exit_code": 0,
+          "id": "mcp-smoke",
+          "ok": true,
+          "profile": "safe",
+          "raw_output": null,
+          "requires_wps": false,
+          "response_ok": true,
+          "risk_level": "low",
+          "summary": "MCP server smoke checks passed.",
+          "title": "MCP server initialize, tools/list, and tools/call smoke"
+        },
+        {
+          "category": "mcp",
+          "checks": [
+            {
+              "details": {
+                "actual": "passed",
+                "expected": "passed"
+              },
+              "passed": true,
+              "path": "validation.status"
+            }
+          ],
+          "command": [
+            "mcp-config-audit",
+            "--config",
+            "config/mcp_client_config.example.json",
+            "--server-name",
+            "wps-ai-agent-cli",
+            "--expected-min-tools",
+            "40"
+          ],
+          "errors": [],
+          "exit_code": 0,
+          "id": "mcp-config-audit",
+          "ok": true,
+          "profile": "safe",
+          "raw_output": null,
+          "requires_wps": false,
+          "response_ok": true,
+          "risk_level": "medium",
+          "summary": "MCP client config audit passed.",
+          "title": "MCP desktop client config audit"
+        },
+        {
+          "category": "security",
+          "checks": [
+            {
+              "details": {
+                "actual": "passed",
+                "expected": "passed"
+              },
+              "passed": true,
+              "path": "validation.status"
+            },
+            {
+              "details": {
+                "actual": 8,
+                "expected_min": 8
+              },
+              "passed": true,
+              "path": "data.security_audit.tools"
+            }
+          ],
+          "command": [
+            "security-audit"
+          ],
+          "errors": [],
+          "exit_code": 0,
+          "id": "security-boundary-audit",
+          "ok": true,
+          "profile": "safe",
+          "raw_output": null,
+          "requires_wps": false,
+          "response_ok": true,
+          "risk_level": "medium",
+          "summary": "Security boundary audit passed.",
+          "title": "Mutating tool security boundary audit"
+        }
+      ],
+      "scenario_count": 6,
+      "version": "phase3-regression-2026-10-03"
+    }
+  },
+  "errors": [],
+  "ok": true,
+  "request_id": "regression-writer-table-p3-013-safe-prewps",
+  "summary": "Regression scenarios passed.",
+  "validation": {
+    "checks": [
+      {
+        "details": {
+          "failed_count": 0,
+          "passed_count": 6,
+          "scenario_count": 6
+        },
+        "name": "regression_scenarios_passed",
+        "passed": true
+      }
+    ],
+    "status": "passed"
+  }
+}

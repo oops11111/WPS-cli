@@ -1,0 +1,9 @@
+# Mutation Source Stability
+
+P3-174 extends the registered-document identity preflight across the backup-to-WPS handoff. A successful backup records the source SHA-256, file device, and file inode. Every Writer, Spreadsheet, and Presentation COM mutation rechecks that source identity and the backup bytes immediately before calling WPS. Successful COM calls capture a post-save identity; after the operation-specific readback, the source must still match before a successful operation record is written. A replayed backup without source-identity evidence cannot authorize a new mutation. No-op Spreadsheet operations do not refresh a stale registration identity.
+
+Focused tests atomically replaced Writer and Spreadsheet files with byte-identical copies after backup and confirmed COM was not called. They also changed a Writer file after COM while its bookmark readback still matched, and confirmed `DOCUMENT_CHANGED_AFTER_COM` with no success operation record. Backup tampering was rejected before COM. The default suite passed 334 tests (27 skipped). Real WPS tests passed for eight Writer/Spreadsheet cases and one Presentation case on temporary documents; backup and follow-up operations remained valid.
+
+These checks narrow and detect races, but do not lock the file. A non-cooperating process can still write between the last identity check and WPS opening the file, or between final verification and identity refresh. P3-175 evaluates cross-process coordination and must not treat these checks as an OS-level exclusion guarantee. No remote Git was used.
+
+P3-175 subsequently added a cooperative workspace/document-ID lock around Agent mutations and re-registration. See `P3_CROSS_PROCESS_MUTATION_COORDINATION.md`. It serializes participating Agent processes but does not exclude an unrelated editor from the document file.

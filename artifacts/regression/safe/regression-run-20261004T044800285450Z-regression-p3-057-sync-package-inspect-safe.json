@@ -1,0 +1,543 @@
+{
+  "backend": "local-python",
+  "command": "regression-run",
+  "data": {
+    "regression": {
+      "failed_count": 0,
+      "include_wps": false,
+      "manifest_path": "config/regression_manifest.json",
+      "passed_count": 14,
+      "profile": "safe",
+      "results": [
+        {
+          "category": "cli",
+          "checks": [
+            {
+              "details": {
+                "expected_item": {
+                  "id": "phase3",
+                  "status": "active"
+                }
+              },
+              "passed": true,
+              "path": "data.phases"
+            }
+          ],
+          "command": [
+            "plan"
+          ],
+          "errors": [],
+          "exit_code": 0,
+          "id": "cli-plan",
+          "ok": true,
+          "profile": "safe",
+          "raw_output": null,
+          "requires_wps": false,
+          "response_ok": true,
+          "risk_level": "low",
+          "summary": "Development roadmap loaded from PRD v1.1 phase goals.",
+          "title": "Roadmap exposes Phase 3 active state"
+        },
+        {
+          "category": "cli",
+          "checks": [
+            {
+              "details": {
+                "expected_item": {
+                  "id": "P3-058",
+                  "status": "next"
+                }
+              },
+              "passed": true,
+              "path": "data.tasks"
+            }
+          ],
+          "command": [
+            "tasks",
+            "--phase",
+            "phase3",
+            "--status",
+            "next"
+          ],
+          "errors": [],
+          "exit_code": 0,
+          "id": "cli-phase3-next",
+          "ok": true,
+          "profile": "safe",
+          "raw_output": null,
+          "requires_wps": false,
+          "response_ok": true,
+          "risk_level": "low",
+          "summary": "Returned 1 development tasks.",
+          "title": "Phase 3 next task is available"
+        },
+        {
+          "category": "mcp",
+          "checks": [
+            {
+              "details": {
+                "actual": 55,
+                "expected_min": 55
+              },
+              "passed": true,
+              "path": "data.tools"
+            }
+          ],
+          "command": [
+            "mcp-tools"
+          ],
+          "errors": [],
+          "exit_code": 0,
+          "id": "mcp-tools-count",
+          "ok": true,
+          "profile": "safe",
+          "raw_output": null,
+          "requires_wps": false,
+          "response_ok": true,
+          "risk_level": "low",
+          "summary": "Returned 55 draft MCP tool schemas.",
+          "title": "MCP schema list includes current tool count"
+        },
+        {
+          "category": "maintenance",
+          "checks": [
+            {
+              "details": {
+                "actual": "passed",
+                "expected": "passed"
+              },
+              "passed": true,
+              "path": "validation.status"
+            },
+            {
+              "details": {
+                "actual": "passed",
+                "expected": "passed"
+              },
+              "passed": true,
+              "path": "data.artifact_retention_summary.retention_status"
+            },
+            {
+              "details": {
+                "actual": false,
+                "expected": false
+              },
+              "passed": true,
+              "path": "data.artifact_retention_summary.deletion_performed"
+            }
+          ],
+          "command": [
+            "artifact-retention-summary"
+          ],
+          "errors": [],
+          "exit_code": 0,
+          "id": "artifact-retention-summary",
+          "ok": true,
+          "profile": "safe",
+          "raw_output": null,
+          "requires_wps": false,
+          "response_ok": true,
+          "risk_level": "low",
+          "summary": "Artifact retention summary is passed.",
+          "title": "Artifact retention summary is ready"
+        },
+        {
+          "category": "project",
+          "checks": [
+            {
+              "details": {
+                "actual": "passed",
+                "expected": "passed"
+              },
+              "passed": true,
+              "path": "validation.status"
+            },
+            {
+              "details": {
+                "actual": "passed",
+                "expected": "passed"
+              },
+              "passed": true,
+              "path": "data.local_handoff_summary.handoff_status"
+            }
+          ],
+          "command": [
+            "local-handoff-summary"
+          ],
+          "errors": [],
+          "exit_code": 0,
+          "id": "local-handoff-summary",
+          "ok": true,
+          "profile": "safe",
+          "raw_output": null,
+          "requires_wps": false,
+          "response_ok": true,
+          "risk_level": "low",
+          "summary": "Local handoff summary is passed.",
+          "title": "Local handoff summary is ready"
+        },
+        {
+          "category": "project",
+          "checks": [
+            {
+              "details": {
+                "actual": "passed",
+                "expected": "passed"
+              },
+              "passed": true,
+              "path": "validation.status"
+            },
+            {
+              "details": {
+                "actual": "passed",
+                "expected": "passed"
+              },
+              "passed": true,
+              "path": "data.validation_runbook.runbook_status"
+            },
+            {
+              "details": {
+                "actual": false,
+                "expected": false
+              },
+              "passed": true,
+              "path": "data.validation_runbook.commands_executed"
+            }
+          ],
+          "command": [
+            "validation-runbook"
+          ],
+          "errors": [],
+          "exit_code": 0,
+          "id": "validation-runbook",
+          "ok": true,
+          "profile": "safe",
+          "raw_output": null,
+          "requires_wps": false,
+          "response_ok": true,
+          "risk_level": "low",
+          "summary": "Validation runbook is passed.",
+          "title": "Validation runbook is ready"
+        },
+        {
+          "category": "project",
+          "checks": [
+            {
+              "details": {
+                "actual": "passed",
+                "expected": "passed"
+              },
+              "passed": true,
+              "path": "validation.status"
+            },
+            {
+              "details": {
+                "actual": "passed",
+                "expected": "passed"
+              },
+              "passed": true,
+              "path": "data.documentation_freshness.freshness_status"
+            },
+            {
+              "details": {
+                "actual": false,
+                "expected": false
+              },
+              "passed": true,
+              "path": "data.documentation_freshness.deletion_performed"
+            }
+          ],
+          "command": [
+            "documentation-freshness"
+          ],
+          "errors": [],
+          "exit_code": 0,
+          "id": "documentation-freshness",
+          "ok": true,
+          "profile": "safe",
+          "raw_output": null,
+          "requires_wps": false,
+          "response_ok": true,
+          "risk_level": "low",
+          "summary": "Documentation freshness is passed.",
+          "title": "Documentation freshness guard is ready"
+        },
+        {
+          "category": "regression",
+          "checks": [
+            {
+              "details": {
+                "actual": "passed",
+                "expected": "passed"
+              },
+              "passed": true,
+              "path": "validation.status"
+            },
+            {
+              "details": {
+                "actual": "passed",
+                "expected": "passed"
+              },
+              "passed": true,
+              "path": "data.regression_evidence.evidence_status"
+            }
+          ],
+          "command": [
+            "regression-evidence"
+          ],
+          "errors": [],
+          "exit_code": 0,
+          "id": "regression-evidence",
+          "ok": true,
+          "profile": "safe",
+          "raw_output": null,
+          "requires_wps": false,
+          "response_ok": true,
+          "risk_level": "low",
+          "summary": "Regression evidence is passed.",
+          "title": "Latest regression evidence is summarized"
+        },
+        {
+          "category": "regression",
+          "checks": [
+            {
+              "details": {
+                "actual": "passed",
+                "expected": "passed"
+              },
+              "passed": true,
+              "path": "validation.status"
+            },
+            {
+              "details": {
+                "actual": "passed",
+                "expected": "passed"
+              },
+              "passed": true,
+              "path": "data.regression_history.history_status"
+            },
+            {
+              "details": {
+                "actual": false,
+                "expected": false
+              },
+              "passed": true,
+              "path": "data.regression_history.deletion_performed"
+            }
+          ],
+          "command": [
+            "regression-history"
+          ],
+          "errors": [],
+          "exit_code": 0,
+          "id": "regression-history",
+          "ok": true,
+          "profile": "safe",
+          "raw_output": null,
+          "requires_wps": false,
+          "response_ok": true,
+          "risk_level": "low",
+          "summary": "Regression history is passed.",
+          "title": "Recent regression history is summarized"
+        },
+        {
+          "category": "mcp",
+          "checks": [
+            {
+              "details": {
+                "actual": "passed",
+                "expected": "passed"
+              },
+              "passed": true,
+              "path": "validation.status"
+            },
+            {
+              "details": {
+                "actual": 0,
+                "expected": 0
+              },
+              "passed": true,
+              "path": "data.mcp_catalog_drift.drift_count"
+            }
+          ],
+          "command": [
+            "mcp-catalog-drift"
+          ],
+          "errors": [],
+          "exit_code": 0,
+          "id": "mcp-catalog-drift",
+          "ok": true,
+          "profile": "safe",
+          "raw_output": null,
+          "requires_wps": false,
+          "response_ok": true,
+          "risk_level": "low",
+          "summary": "MCP catalog matches guard baseline.",
+          "title": "MCP catalog matches reviewed baseline"
+        },
+        {
+          "category": "sync",
+          "checks": [
+            {
+              "details": {
+                "actual": "passed",
+                "expected": "passed"
+              },
+              "passed": true,
+              "path": "validation.status"
+            },
+            {
+              "details": {
+                "actual": "passed",
+                "expected": "passed"
+              },
+              "passed": true,
+              "path": "data.sync_package_inspect.inspection_status"
+            },
+            {
+              "details": {
+                "actual": false,
+                "expected": false
+              },
+              "passed": true,
+              "path": "data.sync_package_inspect.deletion_performed"
+            }
+          ],
+          "command": [
+            "sync-package-inspect"
+          ],
+          "errors": [],
+          "exit_code": 0,
+          "id": "sync-package-inspect",
+          "ok": true,
+          "profile": "safe",
+          "raw_output": null,
+          "requires_wps": false,
+          "response_ok": true,
+          "risk_level": "low",
+          "summary": "Sync package inspection passed.",
+          "title": "Existing local sync package is inspectable"
+        },
+        {
+          "category": "mcp",
+          "checks": [
+            {
+              "details": {
+                "actual": "passed",
+                "expected": "passed"
+              },
+              "passed": true,
+              "path": "validation.status"
+            }
+          ],
+          "command": [
+            "mcp-smoke",
+            "--expected-min-tools",
+            "55",
+            "--tool-name",
+            "wps_agent_tasks"
+          ],
+          "errors": [],
+          "exit_code": 0,
+          "id": "mcp-smoke",
+          "ok": true,
+          "profile": "safe",
+          "raw_output": null,
+          "requires_wps": false,
+          "response_ok": true,
+          "risk_level": "low",
+          "summary": "MCP server smoke checks passed.",
+          "title": "MCP server initialize, tools/list, and tools/call smoke"
+        },
+        {
+          "category": "mcp",
+          "checks": [
+            {
+              "details": {
+                "actual": "passed",
+                "expected": "passed"
+              },
+              "passed": true,
+              "path": "validation.status"
+            }
+          ],
+          "command": [
+            "mcp-config-audit",
+            "--config",
+            "config/mcp_client_config.example.json",
+            "--server-name",
+            "wps-ai-agent-cli",
+            "--expected-min-tools",
+            "55"
+          ],
+          "errors": [],
+          "exit_code": 0,
+          "id": "mcp-config-audit",
+          "ok": true,
+          "profile": "safe",
+          "raw_output": null,
+          "requires_wps": false,
+          "response_ok": true,
+          "risk_level": "medium",
+          "summary": "MCP client config audit passed.",
+          "title": "MCP desktop client config audit"
+        },
+        {
+          "category": "security",
+          "checks": [
+            {
+              "details": {
+                "actual": "passed",
+                "expected": "passed"
+              },
+              "passed": true,
+              "path": "validation.status"
+            },
+            {
+              "details": {
+                "actual": 8,
+                "expected_min": 8
+              },
+              "passed": true,
+              "path": "data.security_audit.tools"
+            }
+          ],
+          "command": [
+            "security-audit"
+          ],
+          "errors": [],
+          "exit_code": 0,
+          "id": "security-boundary-audit",
+          "ok": true,
+          "profile": "safe",
+          "raw_output": null,
+          "requires_wps": false,
+          "response_ok": true,
+          "risk_level": "medium",
+          "summary": "Security boundary audit passed.",
+          "title": "Mutating tool security boundary audit"
+        }
+      ],
+      "scenario_count": 14,
+      "version": "phase3-regression-2026-10-03"
+    }
+  },
+  "errors": [],
+  "ok": true,
+  "request_id": "regression-p3-057-sync-package-inspect-safe",
+  "summary": "Regression scenarios passed.",
+  "validation": {
+    "checks": [
+      {
+        "details": {
+          "failed_count": 0,
+          "passed_count": 14,
+          "scenario_count": 14
+        },
+        "name": "regression_scenarios_passed",
+        "passed": true
+      }
+    ],
+    "status": "passed"
+  }
+}

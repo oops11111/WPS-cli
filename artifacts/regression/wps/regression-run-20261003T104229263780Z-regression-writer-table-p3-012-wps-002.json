@@ -1,0 +1,223 @@
+{
+  "backend": "local-python",
+  "command": "regression-run",
+  "data": {
+    "regression": {
+      "failed_count": 1,
+      "include_wps": true,
+      "manifest_path": "config/regression_manifest.json",
+      "passed_count": 3,
+      "profile": "wps",
+      "results": [
+        {
+          "category": "wps",
+          "checks": [
+            {
+              "details": {
+                "actual": "passed",
+                "expected": "passed"
+              },
+              "passed": true,
+              "path": "validation.status"
+            }
+          ],
+          "command": [
+            "com-smoke",
+            "--component",
+            "writer",
+            "--input",
+            "smoke_writer_copy.docx",
+            "--output",
+            "fixtures/phase3/writer_smoke_copy.docx"
+          ],
+          "errors": [],
+          "exit_code": 0,
+          "id": "writer-com-smoke",
+          "ok": true,
+          "profile": "wps",
+          "raw_output": null,
+          "requires_wps": true,
+          "response_ok": true,
+          "risk_level": "medium",
+          "summary": "Minimal COM smoke run completed.",
+          "title": "WPS Writer open/save/close smoke"
+        },
+        {
+          "category": "wps",
+          "checks": [
+            {
+              "details": {
+                "actual": null,
+                "expected": "passed"
+              },
+              "passed": false,
+              "path": "validation.status"
+            }
+          ],
+          "command": [
+            "calc-smoke",
+            "--input",
+            "fixtures/phase0/phase0_calculation_fixture.xlsx",
+            "--output",
+            "fixtures/phase3/phase0_calculation_smoke.xlsx"
+          ],
+          "errors": [
+            {
+              "code": "REGRESSION_SCENARIO_EXCEPTION",
+              "exception_type": "TimeoutExpired",
+              "message": "Command '['C:\\\\Program Files\\\\PowerShell\\\\7\\\\pwsh.EXE', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Temp\\\\tmpznx85jmj.ps1']' timed out after 120 seconds"
+            }
+          ],
+          "exit_code": 1,
+          "id": "spreadsheet-calc-smoke",
+          "ok": false,
+          "profile": "wps",
+          "raw_output": null,
+          "requires_wps": true,
+          "response_ok": false,
+          "risk_level": "medium",
+          "summary": "Regression scenario raised an exception.",
+          "title": "WPS spreadsheet calculation smoke"
+        },
+        {
+          "category": "wps",
+          "checks": [
+            {
+              "details": {
+                "actual": "passed",
+                "expected": "passed"
+              },
+              "passed": true,
+              "path": "validation.status"
+            }
+          ],
+          "command": [
+            "convert-smoke",
+            "--component",
+            "writer",
+            "--input",
+            "smoke_writer_copy.docx",
+            "--output",
+            "fixtures/phase3/writer_smoke.pdf",
+            "--format",
+            "pdf"
+          ],
+          "errors": [],
+          "exit_code": 0,
+          "id": "writer-convert-smoke",
+          "ok": true,
+          "profile": "wps",
+          "raw_output": null,
+          "requires_wps": true,
+          "response_ok": true,
+          "risk_level": "medium",
+          "summary": "Conversion smoke run completed.",
+          "title": "WPS Writer PDF conversion smoke"
+        },
+        {
+          "category": "wps",
+          "checks": [
+            {
+              "details": {
+                "actual": "passed",
+                "expected": "passed"
+              },
+              "passed": true,
+              "path": "validation.status"
+            },
+            {
+              "details": {
+                "actual": true,
+                "expected": true
+              },
+              "passed": true,
+              "path": "data.writer_table.validation_passed"
+            },
+            {
+              "details": {
+                "actual": true,
+                "expected": true
+              },
+              "passed": true,
+              "path": "data.restore_check.ok"
+            }
+          ],
+          "command": [
+            "writer-table-smoke",
+            "--input",
+            "fixtures/phase3/writer_table_fixture.docx",
+            "--output",
+            "fixtures/phase3/writer_table_regression_smoke.docx",
+            "--table-index",
+            "1",
+            "--row",
+            "2",
+            "--column",
+            "3",
+            "--text",
+            "REGRESSION_STATUS"
+          ],
+          "errors": [],
+          "exit_code": 0,
+          "id": "writer-table-smoke",
+          "ok": true,
+          "profile": "wps",
+          "raw_output": null,
+          "requires_wps": true,
+          "response_ok": true,
+          "risk_level": "medium",
+          "summary": "Writer table smoke run completed.",
+          "title": "WPS Writer table cell update smoke"
+        }
+      ],
+      "scenario_count": 4,
+      "version": "phase3-regression-2026-10-03"
+    }
+  },
+  "errors": [
+    {
+      "code": "REGRESSION_RUN_FAILED",
+      "details": [
+        {
+          "checks": [
+            {
+              "details": {
+                "actual": null,
+                "expected": "passed"
+              },
+              "passed": false,
+              "path": "validation.status"
+            }
+          ],
+          "errors": [
+            {
+              "code": "REGRESSION_SCENARIO_EXCEPTION",
+              "exception_type": "TimeoutExpired",
+              "message": "Command '['C:\\\\Program Files\\\\PowerShell\\\\7\\\\pwsh.EXE', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Temp\\\\tmpznx85jmj.ps1']' timed out after 120 seconds"
+            }
+          ],
+          "id": "spreadsheet-calc-smoke",
+          "summary": "Regression scenario raised an exception."
+        }
+      ],
+      "message": "One or more regression scenarios failed."
+    }
+  ],
+  "ok": false,
+  "request_id": "regression-writer-table-p3-012-wps-002",
+  "summary": "Regression scenarios failed.",
+  "validation": {
+    "checks": [
+      {
+        "details": {
+          "failed_count": 1,
+          "passed_count": 3,
+          "scenario_count": 4
+        },
+        "name": "regression_scenarios_passed",
+        "passed": false
+      }
+    ],
+    "status": "failed"
+  }
+}

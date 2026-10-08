@@ -1,0 +1,25 @@
+{
+  "version": "isolated-contract-test-v1",
+  "default_profile": "safe",
+  "scenarios": [
+    {
+      "id": "tasks-contract",
+      "profile": "safe",
+      "requires_wps": false,
+      "command": ["tasks", "--phase", "phase2"],
+      "expected_ok": true,
+      "required_checks": [
+        {"path": "command", "equals": "tasks"},
+        {"path": "data.tasks", "min_length": 1}
+      ]
+    },
+    {
+      "id": "catalog-contract",
+      "profile": "safe",
+      "requires_wps": false,
+      "command": ["mcp-tools"],
+      "expected_ok": true,
+      "required_checks": [{"path": "command", "equals": "mcp-tools"}]
+    }
+  ]
+}

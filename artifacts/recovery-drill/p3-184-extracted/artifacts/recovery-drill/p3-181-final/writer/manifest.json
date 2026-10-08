@@ -1,0 +1,10 @@
+{
+  "component": "writer",
+  "request_id": "drill-writer",
+  "status": "ambiguous",
+  "current_path": "artifacts\\recovery-drill\\p3-181-final\\writer\\current.docx",
+  "backup_path": "artifacts\\recovery-drill\\p3-181-final\\writer\\backup.docx",
+  "current_sha256": "0E17658CE1E56FE27795FBD0F232B452E7D0B9BDEE6E4A14242A7FE3D832AD71",
+  "backup_sha256": "B0FD9330BC8D5C003EABCF8DE288DCF52F9957A6C134F18716979AEAC820FB63",
+  "main_operation_recorded": false
+}

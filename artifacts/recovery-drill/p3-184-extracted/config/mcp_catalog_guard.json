@@ -1,0 +1,30 @@
+{
+  "schema_version": "mcp-catalog-guard-2026-10-04",
+  "expected_tool_count": 81,
+  "expected_mutating_tool_count": 21,
+  "expected_requires_wps_tool_count": 18,
+  "expected_read_only_tool_count": 60,
+  "expected_safety_notes_missing_count": 0,
+  "expected_category_counts": {
+    "batch": 3,
+    "conversion": 8,
+    "documents": 2,
+    "environment": 2,
+    "maintenance": 3,
+    "mcp": 8,
+    "operations": 3,
+    "performance": 1,
+    "presentation": 1,
+    "project": 7,
+    "recovery": 2,
+    "regression": 5,
+    "safety": 3,
+    "security": 1,
+    "smoke": 4,
+    "spreadsheet": 11,
+    "sync": 6,
+    "tasks": 4,
+    "validation": 2,
+    "writer": 5
+  }
+}

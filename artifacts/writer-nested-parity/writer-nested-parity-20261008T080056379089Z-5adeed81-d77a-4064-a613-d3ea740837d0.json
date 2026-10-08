@@ -1,0 +1,215 @@
+{
+  "backend": "local-python",
+  "command": "writer-structure-parity",
+  "data": {
+    "writer_structure_parity": {
+      "audit_script_sha256": "3C9263D496B9B4B7A9971EE719475BA75C46B2A4CD60F09D26198D6D49419FD3",
+      "checks": [
+        {
+          "actual": true,
+          "expected": true,
+          "name": "read_only_open",
+          "passed": true
+        },
+        {
+          "actual": {
+            "BodyMark": "BodyValue",
+            "CellMark": "CellValue",
+            "FooterMark": "FooterValue",
+            "HeaderMark": "HeaderValue"
+          },
+          "expected": {
+            "BodyMark": "BodyValue",
+            "CellMark": "CellValue",
+            "FooterMark": "FooterValue",
+            "HeaderMark": "HeaderValue"
+          },
+          "name": "bookmark_names_and_text",
+          "passed": true
+        },
+        {
+          "actual": {
+            "python_after": "74817DAEEFBC846F37731E331B3F22E03BE9864416A7B68BACF6E2E9D95B7309",
+            "wps_after": "74817DAEEFBC846F37731E331B3F22E03BE9864416A7B68BACF6E2E9D95B7309",
+            "wps_before": "74817DAEEFBC846F37731E331B3F22E03BE9864416A7B68BACF6E2E9D95B7309"
+          },
+          "expected": "74817DAEEFBC846F37731E331B3F22E03BE9864416A7B68BACF6E2E9D95B7309",
+          "name": "source_unchanged",
+          "passed": true
+        },
+        {
+          "actual": {
+            "src/wps_ai_agent_cli/document_text.py": "CFE7D1C86B579BC7FCA58D215CC311E347272E2C751A177E5070E2966420C744",
+            "src/wps_ai_agent_cli/writer_inspect.py": "95C95523C0903D95D010EBCD673E37125B7BDC013CEF84AA36DE5D3080D59147",
+            "src/wps_ai_agent_cli/writer_structure.py": "D780785EEBDBFC300A63DD4D216BF0DFFC9C4FEEC14D8AFF859AAF5E5F2E4A4E",
+            "src/wps_ai_agent_cli/writer_structure_parity.py": "49F41114F55BAE020EF7F8EB00FF0F6DD660476FD83889D93EF032B987039089"
+          },
+          "expected": {
+            "src/wps_ai_agent_cli/document_text.py": "CFE7D1C86B579BC7FCA58D215CC311E347272E2C751A177E5070E2966420C744",
+            "src/wps_ai_agent_cli/writer_inspect.py": "95C95523C0903D95D010EBCD673E37125B7BDC013CEF84AA36DE5D3080D59147",
+            "src/wps_ai_agent_cli/writer_structure.py": "D780785EEBDBFC300A63DD4D216BF0DFFC9C4FEEC14D8AFF859AAF5E5F2E4A4E",
+            "src/wps_ai_agent_cli/writer_structure_parity.py": "49F41114F55BAE020EF7F8EB00FF0F6DD660476FD83889D93EF032B987039089"
+          },
+          "name": "implementation_unchanged",
+          "passed": true
+        }
+      ],
+      "failed_count": 0,
+      "fixture": "C:\\Users\\admin\\Documents\\wps cli\\fixtures\\phase3\\writer_nested_scope_wps_fixture.docx",
+      "implementation_sha256": {
+        "src/wps_ai_agent_cli/document_text.py": "CFE7D1C86B579BC7FCA58D215CC311E347272E2C751A177E5070E2966420C744",
+        "src/wps_ai_agent_cli/writer_inspect.py": "95C95523C0903D95D010EBCD673E37125B7BDC013CEF84AA36DE5D3080D59147",
+        "src/wps_ai_agent_cli/writer_structure.py": "D780785EEBDBFC300A63DD4D216BF0DFFC9C4FEEC14D8AFF859AAF5E5F2E4A4E",
+        "src/wps_ai_agent_cli/writer_structure_parity.py": "49F41114F55BAE020EF7F8EB00FF0F6DD660476FD83889D93EF032B987039089"
+      },
+      "implementation_sha256_after": {
+        "src/wps_ai_agent_cli/document_text.py": "CFE7D1C86B579BC7FCA58D215CC311E347272E2C751A177E5070E2966420C744",
+        "src/wps_ai_agent_cli/writer_inspect.py": "95C95523C0903D95D010EBCD673E37125B7BDC013CEF84AA36DE5D3080D59147",
+        "src/wps_ai_agent_cli/writer_structure.py": "D780785EEBDBFC300A63DD4D216BF0DFFC9C4FEEC14D8AFF859AAF5E5F2E4A4E",
+        "src/wps_ai_agent_cli/writer_structure_parity.py": "49F41114F55BAE020EF7F8EB00FF0F6DD660476FD83889D93EF032B987039089"
+      },
+      "offline": {
+        "bookmarks": {
+          "BodyMark": "BodyValue",
+          "CellMark": "CellValue",
+          "FooterMark": "FooterValue",
+          "HeaderMark": "HeaderValue"
+        },
+        "scopes": {
+          "BodyMark": "body_paragraph",
+          "CellMark": "table",
+          "FooterMark": "header_footer",
+          "HeaderMark": "header_footer"
+        }
+      },
+      "parity_status": "passed",
+      "passed_count": 4,
+      "remote_git_used": false,
+      "scope": "nested",
+      "script": "C:\\Users\\admin\\Documents\\wps cli\\scripts\\audit_writer_structure_wps.ps1",
+      "source_sha256": "74817DAEEFBC846F37731E331B3F22E03BE9864416A7B68BACF6E2E9D95B7309",
+      "source_sha256_after": "74817DAEEFBC846F37731E331B3F22E03BE9864416A7B68BACF6E2E9D95B7309",
+      "wps": {
+        "backend": "wps-powershell-com",
+        "bookmark_count": 4,
+        "bookmarks": [
+          {
+            "name": "BodyMark",
+            "text": "BodyValue"
+          },
+          {
+            "name": "CellMark",
+            "text": "CellValue"
+          },
+          {
+            "name": "FooterMark",
+            "text": "FooterValue"
+          },
+          {
+            "name": "HeaderMark",
+            "text": "HeaderValue"
+          }
+        ],
+        "file_unchanged": true,
+        "input_path": "C:\\Users\\admin\\Documents\\wps cli\\fixtures\\phase3\\writer_nested_scope_wps_fixture.docx",
+        "ok": true,
+        "paragraph_count": 5,
+        "paragraphs": [
+          {
+            "index": 1,
+            "outline_level": 1,
+            "style": "标题 1",
+            "text": "Nested Scope Audit"
+          },
+          {
+            "index": 2,
+            "outline_level": 10,
+            "style": "正文",
+            "text": "Body: BodyValue"
+          },
+          {
+            "index": 3,
+            "outline_level": 10,
+            "style": "正文",
+            "text": "Cell: CellValue"
+          },
+          {
+            "index": 4,
+            "outline_level": 10,
+            "style": "",
+            "text": ""
+          },
+          {
+            "index": 5,
+            "outline_level": 10,
+            "style": "正文",
+            "text": ""
+          }
+        ],
+        "read_only": true,
+        "sha256_after": "74817DAEEFBC846F37731E331B3F22E03BE9864416A7B68BACF6E2E9D95B7309",
+        "sha256_before": "74817DAEEFBC846F37731E331B3F22E03BE9864416A7B68BACF6E2E9D95B7309"
+      },
+      "wps_exit_code": 0,
+      "wps_launched": true,
+      "wps_stderr": ""
+    }
+  },
+  "errors": [],
+  "ok": true,
+  "request_id": "5adeed81-d77a-4064-a613-d3ea740837d0",
+  "summary": "Writer structure parity passed.",
+  "validation": {
+    "checks": [
+      {
+        "actual": true,
+        "expected": true,
+        "name": "read_only_open",
+        "passed": true
+      },
+      {
+        "actual": {
+          "BodyMark": "BodyValue",
+          "CellMark": "CellValue",
+          "FooterMark": "FooterValue",
+          "HeaderMark": "HeaderValue"
+        },
+        "expected": {
+          "BodyMark": "BodyValue",
+          "CellMark": "CellValue",
+          "FooterMark": "FooterValue",
+          "HeaderMark": "HeaderValue"
+        },
+        "name": "bookmark_names_and_text",
+        "passed": true
+      },
+      {
+        "actual": {
+          "python_after": "74817DAEEFBC846F37731E331B3F22E03BE9864416A7B68BACF6E2E9D95B7309",
+          "wps_after": "74817DAEEFBC846F37731E331B3F22E03BE9864416A7B68BACF6E2E9D95B7309",
+          "wps_before": "74817DAEEFBC846F37731E331B3F22E03BE9864416A7B68BACF6E2E9D95B7309"
+        },
+        "expected": "74817DAEEFBC846F37731E331B3F22E03BE9864416A7B68BACF6E2E9D95B7309",
+        "name": "source_unchanged",
+        "passed": true
+      },
+      {
+        "actual": {
+          "src/wps_ai_agent_cli/document_text.py": "CFE7D1C86B579BC7FCA58D215CC311E347272E2C751A177E5070E2966420C744",
+          "src/wps_ai_agent_cli/writer_inspect.py": "95C95523C0903D95D010EBCD673E37125B7BDC013CEF84AA36DE5D3080D59147",
+          "src/wps_ai_agent_cli/writer_structure.py": "D780785EEBDBFC300A63DD4D216BF0DFFC9C4FEEC14D8AFF859AAF5E5F2E4A4E",
+          "src/wps_ai_agent_cli/writer_structure_parity.py": "49F41114F55BAE020EF7F8EB00FF0F6DD660476FD83889D93EF032B987039089"
+        },
+        "expected": {
+          "src/wps_ai_agent_cli/document_text.py": "CFE7D1C86B579BC7FCA58D215CC311E347272E2C751A177E5070E2966420C744",
+          "src/wps_ai_agent_cli/writer_inspect.py": "95C95523C0903D95D010EBCD673E37125B7BDC013CEF84AA36DE5D3080D59147",
+          "src/wps_ai_agent_cli/writer_structure.py": "D780785EEBDBFC300A63DD4D216BF0DFFC9C4FEEC14D8AFF859AAF5E5F2E4A4E",
+          "src/wps_ai_agent_cli/writer_structure_parity.py": "49F41114F55BAE020EF7F8EB00FF0F6DD660476FD83889D93EF032B987039089"
+        },
+        "name": "implementation_unchanged",
+        "passed": true
+      }
+    ],
+    "status": "passed"
+  }
+}

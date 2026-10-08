@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "wps-ai-agent-cli": {
+      "command": "C:\\Users\\admin\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+      "args": [
+        "-m",
+        "wps_ai_agent_cli",
+        "mcp-server"
+      ],
+      "cwd": "C:\\Users\\admin\\Documents\\wps cli",
+      "env": {
+        "PYTHONPATH": "src"
+      }
+    }
+  }
+}

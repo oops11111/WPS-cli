@@ -1,0 +1,36 @@
+{
+  "run_id": "p3-020-local-repro-001",
+  "workspace": "C:\\Users\\admin\\Documents\\wps cli",
+  "python": "C:\\Users\\admin\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+  "sync_output": "artifacts\\cloud-sync\\wps-ai-agent-cli-phase3-sync-cli.zip",
+  "steps": [
+    {
+      "name": "unit-tests",
+      "exit_code": 0,
+      "started_at": "2026-10-03T23:45:48.6296419+08:00",
+      "finished_at": "2026-10-03T23:45:59.9392581+08:00",
+      "duration_seconds": 11.31
+    },
+    {
+      "name": "cleanup-plan",
+      "exit_code": 0,
+      "started_at": "2026-10-03T23:45:59.9519540+08:00",
+      "finished_at": "2026-10-03T23:46:00.8833611+08:00",
+      "duration_seconds": 0.931
+    },
+    {
+      "name": "safe-regression",
+      "exit_code": 0,
+      "started_at": "2026-10-03T23:46:00.8840854+08:00",
+      "finished_at": "2026-10-03T23:46:02.9221298+08:00",
+      "duration_seconds": 2.038
+    },
+    {
+      "name": "sync-package",
+      "exit_code": 0,
+      "started_at": "2026-10-03T23:46:02.9225483+08:00",
+      "finished_at": "2026-10-03T23:46:04.7265503+08:00",
+      "duration_seconds": 1.804
+    }
+  ]
+}

@@ -1,0 +1,325 @@
+{
+  "backend": "local-python",
+  "command": "writer-structure-parity",
+  "data": {
+    "writer_structure_parity": {
+      "audit_script_sha256": "3C9263D496B9B4B7A9971EE719475BA75C46B2A4CD60F09D26198D6D49419FD3",
+      "checks": [
+        {
+          "actual": true,
+          "expected": true,
+          "name": "read_only_open",
+          "passed": true
+        },
+        {
+          "actual": [
+            "Structure Audit",
+            "Evidence Section",
+            "Before Alpha after.",
+            "Plain body text."
+          ],
+          "expected": [
+            "Structure Audit",
+            "Evidence Section",
+            "Before Alpha after.",
+            "Plain body text."
+          ],
+          "name": "paragraph_text_and_order",
+          "passed": true
+        },
+        {
+          "actual": [
+            1,
+            2,
+            10,
+            10
+          ],
+          "expected": [
+            1,
+            2,
+            10,
+            10
+          ],
+          "name": "heading_levels",
+          "passed": true
+        },
+        {
+          "actual": [
+            0,
+            1,
+            2,
+            2
+          ],
+          "expected": [
+            0,
+            1,
+            2,
+            2
+          ],
+          "name": "style_grouping",
+          "passed": true,
+          "representations": [
+            {
+              "ooxml_style_id": "Heading1",
+              "wps_display_name": "标题 1"
+            },
+            {
+              "ooxml_style_id": "Heading2",
+              "wps_display_name": "标题 2"
+            },
+            {
+              "ooxml_style_id": "Normal",
+              "wps_display_name": "正文"
+            },
+            {
+              "ooxml_style_id": "Normal",
+              "wps_display_name": "正文"
+            }
+          ]
+        },
+        {
+          "actual": {
+            "AuditMark": "Alpha"
+          },
+          "expected": {
+            "AuditMark": "Alpha"
+          },
+          "name": "bookmark_names_and_text",
+          "passed": true
+        },
+        {
+          "actual": {
+            "python_after": "0781FE99B8CC2AF5903A580C19EF69772F0BBC6DC1E277BAD71FEEAF69C35761",
+            "wps_after": "0781FE99B8CC2AF5903A580C19EF69772F0BBC6DC1E277BAD71FEEAF69C35761",
+            "wps_before": "0781FE99B8CC2AF5903A580C19EF69772F0BBC6DC1E277BAD71FEEAF69C35761"
+          },
+          "expected": "0781FE99B8CC2AF5903A580C19EF69772F0BBC6DC1E277BAD71FEEAF69C35761",
+          "name": "source_unchanged",
+          "passed": true
+        },
+        {
+          "actual": {
+            "src/wps_ai_agent_cli/document_text.py": "1E1706BC4B03552486FCCF71C727292CCCCA00A8D8CD298DA8986635C8677822",
+            "src/wps_ai_agent_cli/writer_inspect.py": "95C95523C0903D95D010EBCD673E37125B7BDC013CEF84AA36DE5D3080D59147",
+            "src/wps_ai_agent_cli/writer_structure.py": "D780785EEBDBFC300A63DD4D216BF0DFFC9C4FEEC14D8AFF859AAF5E5F2E4A4E",
+            "src/wps_ai_agent_cli/writer_structure_parity.py": "49F41114F55BAE020EF7F8EB00FF0F6DD660476FD83889D93EF032B987039089"
+          },
+          "expected": {
+            "src/wps_ai_agent_cli/document_text.py": "1E1706BC4B03552486FCCF71C727292CCCCA00A8D8CD298DA8986635C8677822",
+            "src/wps_ai_agent_cli/writer_inspect.py": "95C95523C0903D95D010EBCD673E37125B7BDC013CEF84AA36DE5D3080D59147",
+            "src/wps_ai_agent_cli/writer_structure.py": "D780785EEBDBFC300A63DD4D216BF0DFFC9C4FEEC14D8AFF859AAF5E5F2E4A4E",
+            "src/wps_ai_agent_cli/writer_structure_parity.py": "49F41114F55BAE020EF7F8EB00FF0F6DD660476FD83889D93EF032B987039089"
+          },
+          "name": "implementation_unchanged",
+          "passed": true
+        }
+      ],
+      "failed_count": 0,
+      "fixture": "C:\\Users\\admin\\Documents\\wps cli\\fixtures\\phase3\\writer_structure_wps_fixture.docx",
+      "implementation_sha256": {
+        "src/wps_ai_agent_cli/document_text.py": "1E1706BC4B03552486FCCF71C727292CCCCA00A8D8CD298DA8986635C8677822",
+        "src/wps_ai_agent_cli/writer_inspect.py": "95C95523C0903D95D010EBCD673E37125B7BDC013CEF84AA36DE5D3080D59147",
+        "src/wps_ai_agent_cli/writer_structure.py": "D780785EEBDBFC300A63DD4D216BF0DFFC9C4FEEC14D8AFF859AAF5E5F2E4A4E",
+        "src/wps_ai_agent_cli/writer_structure_parity.py": "49F41114F55BAE020EF7F8EB00FF0F6DD660476FD83889D93EF032B987039089"
+      },
+      "implementation_sha256_after": {
+        "src/wps_ai_agent_cli/document_text.py": "1E1706BC4B03552486FCCF71C727292CCCCA00A8D8CD298DA8986635C8677822",
+        "src/wps_ai_agent_cli/writer_inspect.py": "95C95523C0903D95D010EBCD673E37125B7BDC013CEF84AA36DE5D3080D59147",
+        "src/wps_ai_agent_cli/writer_structure.py": "D780785EEBDBFC300A63DD4D216BF0DFFC9C4FEEC14D8AFF859AAF5E5F2E4A4E",
+        "src/wps_ai_agent_cli/writer_structure_parity.py": "49F41114F55BAE020EF7F8EB00FF0F6DD660476FD83889D93EF032B987039089"
+      },
+      "offline": {
+        "bookmarks": {
+          "AuditMark": "Alpha"
+        },
+        "heading_levels": [
+          1,
+          2,
+          null,
+          null
+        ],
+        "paragraph_texts": [
+          "Structure Audit",
+          "Evidence Section",
+          "Before Alpha after.",
+          "Plain body text."
+        ],
+        "style_ids": [
+          "Heading1",
+          "Heading2",
+          "Normal",
+          "Normal"
+        ]
+      },
+      "parity_status": "passed",
+      "passed_count": 7,
+      "remote_git_used": false,
+      "script": "C:\\Users\\admin\\Documents\\wps cli\\scripts\\audit_writer_structure_wps.ps1",
+      "source_sha256": "0781FE99B8CC2AF5903A580C19EF69772F0BBC6DC1E277BAD71FEEAF69C35761",
+      "source_sha256_after": "0781FE99B8CC2AF5903A580C19EF69772F0BBC6DC1E277BAD71FEEAF69C35761",
+      "wps": {
+        "backend": "wps-powershell-com",
+        "bookmark_count": 1,
+        "bookmarks": [
+          {
+            "name": "AuditMark",
+            "text": "Alpha"
+          }
+        ],
+        "file_unchanged": true,
+        "input_path": "C:\\Users\\admin\\Documents\\wps cli\\fixtures\\phase3\\writer_structure_wps_fixture.docx",
+        "ok": true,
+        "paragraph_count": 4,
+        "paragraphs": [
+          {
+            "index": 1,
+            "outline_level": 1,
+            "style": "标题 1",
+            "text": "Structure Audit"
+          },
+          {
+            "index": 2,
+            "outline_level": 2,
+            "style": "标题 2",
+            "text": "Evidence Section"
+          },
+          {
+            "index": 3,
+            "outline_level": 10,
+            "style": "正文",
+            "text": "Before Alpha after."
+          },
+          {
+            "index": 4,
+            "outline_level": 10,
+            "style": "正文",
+            "text": "Plain body text."
+          }
+        ],
+        "read_only": true,
+        "sha256_after": "0781FE99B8CC2AF5903A580C19EF69772F0BBC6DC1E277BAD71FEEAF69C35761",
+        "sha256_before": "0781FE99B8CC2AF5903A580C19EF69772F0BBC6DC1E277BAD71FEEAF69C35761"
+      },
+      "wps_exit_code": 0,
+      "wps_launched": true,
+      "wps_stderr": ""
+    }
+  },
+  "errors": [],
+  "ok": true,
+  "request_id": "459f2727-fb0d-41ac-91af-eb6ed467a2bc",
+  "summary": "Writer structure parity passed.",
+  "validation": {
+    "checks": [
+      {
+        "actual": true,
+        "expected": true,
+        "name": "read_only_open",
+        "passed": true
+      },
+      {
+        "actual": [
+          "Structure Audit",
+          "Evidence Section",
+          "Before Alpha after.",
+          "Plain body text."
+        ],
+        "expected": [
+          "Structure Audit",
+          "Evidence Section",
+          "Before Alpha after.",
+          "Plain body text."
+        ],
+        "name": "paragraph_text_and_order",
+        "passed": true
+      },
+      {
+        "actual": [
+          1,
+          2,
+          10,
+          10
+        ],
+        "expected": [
+          1,
+          2,
+          10,
+          10
+        ],
+        "name": "heading_levels",
+        "passed": true
+      },
+      {
+        "actual": [
+          0,
+          1,
+          2,
+          2
+        ],
+        "expected": [
+          0,
+          1,
+          2,
+          2
+        ],
+        "name": "style_grouping",
+        "passed": true,
+        "representations": [
+          {
+            "ooxml_style_id": "Heading1",
+            "wps_display_name": "标题 1"
+          },
+          {
+            "ooxml_style_id": "Heading2",
+            "wps_display_name": "标题 2"
+          },
+          {
+            "ooxml_style_id": "Normal",
+            "wps_display_name": "正文"
+          },
+          {
+            "ooxml_style_id": "Normal",
+            "wps_display_name": "正文"
+          }
+        ]
+      },
+      {
+        "actual": {
+          "AuditMark": "Alpha"
+        },
+        "expected": {
+          "AuditMark": "Alpha"
+        },
+        "name": "bookmark_names_and_text",
+        "passed": true
+      },
+      {
+        "actual": {
+          "python_after": "0781FE99B8CC2AF5903A580C19EF69772F0BBC6DC1E277BAD71FEEAF69C35761",
+          "wps_after": "0781FE99B8CC2AF5903A580C19EF69772F0BBC6DC1E277BAD71FEEAF69C35761",
+          "wps_before": "0781FE99B8CC2AF5903A580C19EF69772F0BBC6DC1E277BAD71FEEAF69C35761"
+        },
+        "expected": "0781FE99B8CC2AF5903A580C19EF69772F0BBC6DC1E277BAD71FEEAF69C35761",
+        "name": "source_unchanged",
+        "passed": true
+      },
+      {
+        "actual": {
+          "src/wps_ai_agent_cli/document_text.py": "1E1706BC4B03552486FCCF71C727292CCCCA00A8D8CD298DA8986635C8677822",
+          "src/wps_ai_agent_cli/writer_inspect.py": "95C95523C0903D95D010EBCD673E37125B7BDC013CEF84AA36DE5D3080D59147",
+          "src/wps_ai_agent_cli/writer_structure.py": "D780785EEBDBFC300A63DD4D216BF0DFFC9C4FEEC14D8AFF859AAF5E5F2E4A4E",
+          "src/wps_ai_agent_cli/writer_structure_parity.py": "49F41114F55BAE020EF7F8EB00FF0F6DD660476FD83889D93EF032B987039089"
+        },
+        "expected": {
+          "src/wps_ai_agent_cli/document_text.py": "1E1706BC4B03552486FCCF71C727292CCCCA00A8D8CD298DA8986635C8677822",
+          "src/wps_ai_agent_cli/writer_inspect.py": "95C95523C0903D95D010EBCD673E37125B7BDC013CEF84AA36DE5D3080D59147",
+          "src/wps_ai_agent_cli/writer_structure.py": "D780785EEBDBFC300A63DD4D216BF0DFFC9C4FEEC14D8AFF859AAF5E5F2E4A4E",
+          "src/wps_ai_agent_cli/writer_structure_parity.py": "49F41114F55BAE020EF7F8EB00FF0F6DD660476FD83889D93EF032B987039089"
+        },
+        "name": "implementation_unchanged",
+        "passed": true
+      }
+    ],
+    "status": "passed"
+  }
+}
