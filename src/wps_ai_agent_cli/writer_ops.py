@@ -31,6 +31,7 @@ from .mutation_lock import coordinated_mutation
 from .operations import record_operation, replay_operation
 from .sessions import get_document
 from .writer_structure import W, read_body_bookmark_text, read_supported_bookmark_text, read_writer_structure
+from .wps_script_snippets import QUIT_IF_IDLE
 
 
 BODY_PARTS = ("word/document.xml",)
@@ -164,7 +165,7 @@ try {{
     try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($document) }} catch {{ }}
   }}
   if ($app -ne $null) {{
-    try {{ $app.Quit() }} catch {{ }}
+    try {{ {QUIT_IF_IDLE} }} catch {{ }}
     try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) }} catch {{ }}
   }}
   [GC]::Collect()
@@ -261,7 +262,7 @@ try {{
   exit 2
 }} finally {{
   if ($document -ne $null) {{ try {{ $document.Close($false) }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($document) }} catch {{ }} }}
-  if ($app -ne $null) {{ try {{ $app.Quit() }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) }} catch {{ }} }}
+  if ($app -ne $null) {{ try {{ {QUIT_IF_IDLE} }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) }} catch {{ }} }}
   [GC]::Collect(); [GC]::WaitForPendingFinalizers()
 }}
 """
@@ -514,7 +515,7 @@ try {{
     try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($document) }} catch {{ }}
   }}
   if ($app -ne $null) {{
-    try {{ $app.Quit() }} catch {{ }}
+    try {{ {QUIT_IF_IDLE} }} catch {{ }}
     try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) }} catch {{ }}
   }}
   [GC]::Collect()

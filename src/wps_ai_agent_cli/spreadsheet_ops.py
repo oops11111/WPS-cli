@@ -20,6 +20,7 @@ from .mutation_lock import coordinated_mutation
 from .operations import record_operation, replay_operation
 from .sessions import get_document
 from .spreadsheet_ranges import validate_spreadsheet_read_range
+from .wps_script_snippets import QUIT_IF_IDLE
 
 
 def _format_category(cell: Any) -> str:
@@ -307,7 +308,7 @@ try {{
   exit 2
 }} finally {{
   if ($workbook -ne $null) {{ try {{ $workbook.Close($false) }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($workbook) }} catch {{ }} }}
-  if ($app -ne $null) {{ try {{ $app.Quit() }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) }} catch {{ }} }}
+  if ($app -ne $null) {{ try {{ {QUIT_IF_IDLE} }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) }} catch {{ }} }}
   [GC]::Collect(); [GC]::WaitForPendingFinalizers()
 }}
 """
@@ -455,7 +456,7 @@ try {{
   exit 2
 }} finally {{
   if ($workbook -ne $null) {{ try {{ $workbook.Close($false) }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($workbook) }} catch {{ }} }}
-  if ($app -ne $null) {{ try {{ $app.Quit() }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) }} catch {{ }} }}
+  if ($app -ne $null) {{ try {{ {QUIT_IF_IDLE} }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) }} catch {{ }} }}
   [GC]::Collect(); [GC]::WaitForPendingFinalizers()
 }}
 """
@@ -595,7 +596,7 @@ try {{
   exit 2
 }} finally {{
   if ($workbook -ne $null) {{ try {{ $workbook.Close($false) }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($workbook) }} catch {{ }} }}
-  if ($app -ne $null) {{ try {{ $app.Quit() }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) }} catch {{ }} }}
+  if ($app -ne $null) {{ try {{ {QUIT_IF_IDLE} }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) }} catch {{ }} }}
   [GC]::Collect(); [GC]::WaitForPendingFinalizers()
 }}
 """
@@ -714,7 +715,7 @@ try {{
   exit 2
 }} finally {{
   if ($workbook -ne $null) {{ try {{ $workbook.Close($false) }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($workbook) }} catch {{ }} }}
-  if ($app -ne $null) {{ try {{ $app.Quit() }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) }} catch {{ }} }}
+  if ($app -ne $null) {{ try {{ {QUIT_IF_IDLE} }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) }} catch {{ }} }}
   [GC]::Collect(); [GC]::WaitForPendingFinalizers()
 }}
 """
@@ -833,7 +834,7 @@ try {{
   exit 2
 }} finally {{
   if ($workbook -ne $null) {{ try {{ $workbook.Close($false) }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($workbook) }} catch {{ }} }}
-  if ($app -ne $null) {{ try {{ $app.Quit() }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) }} catch {{ }} }}
+  if ($app -ne $null) {{ try {{ {QUIT_IF_IDLE} }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) }} catch {{ }} }}
   [GC]::Collect(); [GC]::WaitForPendingFinalizers()
 }}
 """
@@ -1017,7 +1018,7 @@ try {{
   exit 2
 }} finally {{
   if ($workbook -ne $null) {{ try {{ $workbook.Close($false) }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($workbook) }} catch {{ }} }}
-  if ($app -ne $null) {{ try {{ $app.Quit() }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) }} catch {{ }} }}
+  if ($app -ne $null) {{ try {{ {QUIT_IF_IDLE} }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) }} catch {{ }} }}
   [GC]::Collect(); [GC]::WaitForPendingFinalizers()
 }}
 """
@@ -1209,7 +1210,7 @@ try {{
     try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($workbook) }} catch {{ }}
   }}
   if ($app -ne $null) {{
-    try {{ $app.Quit() }} catch {{ }}
+    try {{ {QUIT_IF_IDLE} }} catch {{ }}
     try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) }} catch {{ }}
   }}
   [GC]::Collect()
@@ -1364,7 +1365,7 @@ try {{
     try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($workbook) }} catch {{ }}
   }}
   if ($app -ne $null) {{
-    try {{ $app.Quit() }} catch {{ }}
+    try {{ {QUIT_IF_IDLE} }} catch {{ }}
     try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) }} catch {{ }}
   }}
   [GC]::Collect()

@@ -15,6 +15,7 @@ from .capabilities import powershell_executable, probe_wps_capabilities
 from .errors import COM_BACKEND_UNAVAILABLE, COM_OPERATION_FAILED, INPUT_FILE_NOT_FOUND
 from .sessions import get_document
 from .spreadsheet_ranges import validate_spreadsheet_read_range
+from .wps_script_snippets import QUIT_IF_IDLE
 
 
 def _json_value(value: Any) -> Any:
@@ -135,7 +136,7 @@ try {{
   exit 2
 }} finally {{
   if ($workbook -ne $null) {{ try {{ $workbook.Close($false) }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($workbook) }} catch {{ }} }}
-  if ($app -ne $null) {{ try {{ $app.Quit() }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) }} catch {{ }} }}
+  if ($app -ne $null) {{ try {{ {QUIT_IF_IDLE} }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) }} catch {{ }} }}
   [GC]::Collect(); [GC]::WaitForPendingFinalizers()
 }}
 """

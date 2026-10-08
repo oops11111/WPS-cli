@@ -14,6 +14,7 @@ from .errors import (
     INPUT_FILE_NOT_FOUND,
     UNSUPPORTED_COMPONENT,
 )
+from .wps_script_snippets import QUIT_IF_IDLE
 
 
 def _load_win32com() -> Any | None:
@@ -130,7 +131,7 @@ try {{
     try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($document) }} catch {{ }}
   }}
   if ($app -ne $null) {{
-    try {{ $app.Quit() }} catch {{ }}
+    try {{ {QUIT_IF_IDLE} }} catch {{ }}
     try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) }} catch {{ }}
   }}
   [GC]::Collect()
@@ -306,7 +307,7 @@ try {{
     try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($workbook) }} catch {{ }}
   }}
   if ($app -ne $null) {{
-    try {{ $app.Quit() }} catch {{ }}
+    try {{ {QUIT_IF_IDLE} }} catch {{ }}
     try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) }} catch {{ }}
   }}
   [GC]::Collect()
@@ -497,7 +498,7 @@ try {{
     try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($document) }} catch {{ }}
   }}
   if ($app -ne $null) {{
-    try {{ $app.Quit() }} catch {{ }}
+    try {{ {QUIT_IF_IDLE} }} catch {{ }}
     try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) }} catch {{ }}
   }}
   [GC]::Collect()
