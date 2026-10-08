@@ -11,7 +11,7 @@ requires-python = ">=3.10"
 authors = [
   { name = "WPS AI Agent CLI maintainers" }
 ]
-dependencies = []
+dependencies = ["openpyxl>=3.1"]
 
 [project.optional-dependencies]
 wps = ["pywin32>=306; platform_system == 'Windows'"]
@@ -26,6 +26,3 @@ where = ["src"]
 
 [tool.setuptools.package-data]
 wps_ai_agent_cli = ["*.cjs"]
-
-[tool.unittest]
-start-directory = "tests"
