@@ -10,7 +10,7 @@
 | G-06 | 已完成 | 见下 |
 | G-05 | 部分完成 | 补全 `README.md`，未归档流水文档 |
 | G-04 | 只做盘点，未删除 | 见 `ARTIFACT_INVENTORY.md` |
-| G-02 | 两步完成，未拆模块 | 命令分发改为 `COMMAND_HANDLERS` 注册表，`build_parser` 按域拆成 9 个函数，见下 |
+| G-02 | 两步完成，未拆模块 | 命令分发改为 `COMMAND_HANDLERS` 注册表，`build_parser` 按域拆成 9 个函数并移到 `cli_parser.py`，处理函数仍在 `cli.py`，见下 |
 | G-03 | 未做 | 大型重构，需要单独的计划与确认 |
 | G-07 | 未做 | 需要先决定哪些命令对用户有价值 |
 
@@ -52,7 +52,9 @@
 
 这一步没有移动文件，也没有改变任何命令的行为，`cli.py` 行数反而略增（4244 行）。它的价值是把后续按域拆成 `cli/` 子模块变成纯搬运：处理函数可以整组移走，注册表按域合并。`build_parser` 也已拆分：公共部分（程序名、`--request-id`、子命令容器）留在 `build_parser`，其余按域拆成 9 个 `_add_<域>_commands(subparsers)` 函数（环境与状态、转换、文档、操作与任务、MCP、回归与发布、文件扫描、表格、演示）。拆分用脚本在语句边界切分，各域之间除 `parser` 与 `subparsers` 外没有共享变量（用 AST 检查过）。验证：拆分前后递归导出全部 85 个子解析器的参数（名称、默认值、类型、选项、帮助文本、顺序），哈希完全一致。
 
-剩下的是把这些函数与处理函数按域移到 `cli/` 子模块，现在只需要搬运。
+这 9 个函数和 `build_parser` 已移到独立模块 `cli_parser.py`（843 行），`cli.py` 通过 `from .cli_parser import build_parser` 继续导出，`security_audit` 等原有导入路径不变。解析器只依赖 `DEFAULT_MCP_CATALOG_GUARD` 与 `DEFAULT_SYNC_PACKAGE` 两个常量，所以搬运没有副作用；搬运后同一哈希校验仍然一致。`cli.py` 降为 3522 行。
+
+`_handle_*` 处理函数和 `*_response` 函数没有搬走。原因：`tests/test_cli.py` 等用例通过 `patch("wps_ai_agent_cli.cli.<名称>")` 打桩，名称解析发生在 `cli` 模块命名空间。把处理函数移到其他模块会让这些打桩失效，必须同步改写测试，这样"测试不变即无回归"的证据就没有了。要继续拆分，建议先让处理函数通过 `cli` 模块属性访问依赖，或者逐域改写打桩目标并分别评审。
 
 ## 未处理项说明
 
