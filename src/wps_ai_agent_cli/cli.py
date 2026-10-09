@@ -110,15 +110,7 @@ def _extract_request_id(argv: list[str]) -> tuple[list[str], str | None]:
     return cleaned, request_id
 
 
-def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(
-        prog="wps-agent",
-        description="Agent-friendly CLI for WPS feasibility validation and automation.",
-    )
-    parser.add_argument("--request-id", help="Stable request id for idempotent agent calls.")
-    parser.epilog = "Add --strict-exit anywhere to exit with status 1 when the response has ok=false (default exit status is 0)."
-    subparsers = parser.add_subparsers(dest="command", required=True)
-
+def _add_environment_and_status_commands(subparsers: argparse._SubParsersAction) -> None:
     subparsers.add_parser("inspect-env", help="Inspect OS, pywin32, and WPS ProgID registration.")
     process_audit_parser = subparsers.add_parser(
         "wps-process-audit",
@@ -218,6 +210,8 @@ def build_parser() -> argparse.ArgumentParser:
     tasks_parser.add_argument("--phase", help="Filter by phase id, for example phase0.")
     tasks_parser.add_argument("--status", help="Filter by task status, for example next.")
 
+
+def _add_conversion_commands(subparsers: argparse._SubParsersAction) -> None:
     smoke_parser = subparsers.add_parser(
         "com-smoke",
         help="Run the Phase 0 minimal COM open/save/close prototype.",
@@ -297,6 +291,8 @@ def build_parser() -> argparse.ArgumentParser:
     html_export_parser.add_argument("--output", required=True)
     html_export_parser.add_argument("--task-id")
 
+
+def _add_document_commands(subparsers: argparse._SubParsersAction) -> None:
     writer_table_smoke_parser = subparsers.add_parser(
         "writer-table-smoke",
         help="Run a repeatable WPS Writer table cell update smoke test against an output copy.",
@@ -455,6 +451,8 @@ def build_parser() -> argparse.ArgumentParser:
     writer_parity_parser.add_argument("--scope", choices=["structure", "nested"], default="structure", help="Controlled Writer fixture to compare.")
     writer_parity_parser.add_argument("--artifact-dir", help="Local JSON report directory.")
 
+
+def _add_operation_and_task_commands(subparsers: argparse._SubParsersAction) -> None:
     operation_parser = subparsers.add_parser(
         "operation",
         help="Return a recorded operation by request_id.",
@@ -529,6 +527,8 @@ def build_parser() -> argparse.ArgumentParser:
         help="List available long-running task recovery playbooks.",
     )
 
+
+def _add_mcp_commands(subparsers: argparse._SubParsersAction) -> None:
     mcp_tools_parser = subparsers.add_parser(
         "mcp-tools",
         help="List draft MCP tool schemas mapped from CLI commands.",
@@ -624,6 +624,8 @@ def build_parser() -> argparse.ArgumentParser:
         help="Timeout for the configured tools/list smoke.",
     )
 
+
+def _add_regression_and_release_commands(subparsers: argparse._SubParsersAction) -> None:
     regression_manifest_parser = subparsers.add_parser(
         "regression-manifest",
         help="List regression manifest scenarios and smoke matrix metadata.",
@@ -788,6 +790,8 @@ def build_parser() -> argparse.ArgumentParser:
         help="Capture runtime and output-size baselines for safe read-only commands.",
     )
 
+
+def _add_file_scan_commands(subparsers: argparse._SubParsersAction) -> None:
     scan_parser = subparsers.add_parser(
         "scan-dir",
         help="Scan a directory for supported WPS files and registration status.",
@@ -807,6 +811,8 @@ def build_parser() -> argparse.ArgumentParser:
         help="Skip validation snapshots and only return scan and registration status.",
     )
 
+
+def _add_spreadsheet_commands(subparsers: argparse._SubParsersAction) -> None:
     spreadsheet_read_parser = subparsers.add_parser(
         "spreadsheet-read",
         help="Read an A1 range from a registered spreadsheet document.",
@@ -903,6 +909,8 @@ def build_parser() -> argparse.ArgumentParser:
     spreadsheet_formula_parser.add_argument("--dry-run", action="store_true", help="Preview formula write shape without modifying the file.")
     spreadsheet_formula_parser.add_argument("--task-id", help="Optional long-running task status id to update.")
 
+
+def _add_presentation_commands(subparsers: argparse._SubParsersAction) -> None:
     presentation_replace_parser = subparsers.add_parser(
         "presentation-replace",
         help="Replace text in a registered presentation with backup, validation, and idempotency.",
@@ -918,6 +926,24 @@ def build_parser() -> argparse.ArgumentParser:
     )
     presentation_replace_parser.add_argument("--task-id", help="Optional long-running task status id to update.")
 
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        prog="wps-agent",
+        description="Agent-friendly CLI for WPS feasibility validation and automation.",
+    )
+    parser.add_argument("--request-id", help="Stable request id for idempotent agent calls.")
+    parser.epilog = "Add --strict-exit anywhere to exit with status 1 when the response has ok=false (default exit status is 0)."
+    subparsers = parser.add_subparsers(dest="command", required=True)
+    _add_environment_and_status_commands(subparsers)
+    _add_conversion_commands(subparsers)
+    _add_document_commands(subparsers)
+    _add_operation_and_task_commands(subparsers)
+    _add_mcp_commands(subparsers)
+    _add_regression_and_release_commands(subparsers)
+    _add_file_scan_commands(subparsers)
+    _add_spreadsheet_commands(subparsers)
+    _add_presentation_commands(subparsers)
     return parser
 
 
