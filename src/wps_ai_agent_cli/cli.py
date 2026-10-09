@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from collections.abc import Callable
 from typing import TextIO
 from uuid import uuid4
 
@@ -3406,6 +3407,879 @@ def presentation_replace_response(
     )
 
 
+def _handle_inspect_env(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = inspect_env_response(request_id)
+    return response
+
+
+def _handle_wps_process_audit(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = wps_process_audit_response(
+        request_id,
+        timeout_seconds=args.timeout_seconds,
+    )
+    return response
+
+
+def _handle_cleanup_plan(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = cleanup_plan_response(
+        request_id,
+        workspace=args.workspace,
+    )
+    return response
+
+
+def _handle_cleanup_approval_manifest(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = cleanup_approval_manifest_response(
+        request_id,
+        workspace=args.workspace,
+    )
+    return response
+
+
+def _handle_artifact_retention_summary(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = artifact_retention_summary_response(
+        request_id,
+        workspace=args.workspace,
+    )
+    return response
+
+
+def _handle_plan(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = plan_response(request_id)
+    return response
+
+
+def _handle_project_status(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = project_status_response(
+        request_id,
+        workspace=args.workspace,
+    )
+    return response
+
+
+def _handle_workspace_health(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = workspace_health_response(
+        request_id,
+        workspace=args.workspace,
+    )
+    return response
+
+
+def _handle_local_handoff_summary(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = local_handoff_summary_response(
+        request_id,
+        workspace=args.workspace,
+    )
+    return response
+
+
+def _handle_validation_runbook(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = validation_runbook_response(
+        request_id,
+        workspace=args.workspace,
+    )
+    return response
+
+
+def _handle_documentation_freshness(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = documentation_freshness_response(
+        request_id,
+        workspace=args.workspace,
+    )
+    return response
+
+
+def _handle_regression_history(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = regression_history_response(
+        request_id,
+        workspace=args.workspace,
+        limit=args.limit,
+    )
+    return response
+
+
+def _handle_tasks(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = tasks_response(request_id, phase=args.phase, status=args.status)
+    return response
+
+
+def _handle_com_smoke(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = com_smoke_response(
+        request_id,
+        component=args.component,
+        input_path=args.input,
+        output_path=args.output,
+        visible=args.visible,
+    )
+    return response
+
+
+def _handle_calc_smoke(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = calc_smoke_response(
+        request_id,
+        input_path=args.input,
+        output_path=args.output,
+        timeout_seconds=args.timeout_seconds,
+    )
+    return response
+
+
+def _handle_convert_smoke(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = convert_smoke_response(
+        request_id,
+        component=args.component,
+        input_path=args.input,
+        output_path=args.output,
+        output_format=args.format,
+    )
+    return response
+
+
+def _handle_html_render(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = _with_optional_task_status(
+        lambda: html_render_response(
+            request_id, args.input, args.output, args.format, args.page_size,
+            args.viewport_width, args.viewport_height, args.timeout_seconds, args.allow_javascript,
+        ),
+        task_id=args.task_id,
+        tracked_command="html-render",
+        operation_request_id=request_id,
+    )
+    return response
+
+
+def _handle_html_batch_convert(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    progress_callback = None
+    if args.task_id:
+        def progress_callback(completed: int, total: int, message: str) -> bool:
+            current = get_task_status(args.task_id)
+            if current and current.get("state") == "cancelled":
+                return False
+            percent = min(95, 10 + int(85 * completed / max(1, total)))
+            update_task_status(args.task_id, "running", progress_percent=percent, message=message)
+            current = get_task_status(args.task_id)
+            return not current or current.get("state") != "cancelled"
+    response = _with_optional_task_status(
+        lambda: html_batch_convert_response(request_id, args.input_dir, args.output_dir, args.mode, args.recursive, progress_callback),
+        task_id=args.task_id, tracked_command="html-batch-convert", operation_request_id=request_id,
+    )
+    return response
+
+
+def _handle_html_batch_request(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = html_batch_request_response(request_id, args.batch_request_id, args.verify)
+    return response
+
+
+def _handle_batch_template_report(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = _with_optional_task_status(
+        lambda: batch_template_report_response(request_id, args.manifest, args.template, args.output),
+        task_id=args.task_id, tracked_command="batch-template-report", operation_request_id=request_id,
+    )
+    return response
+
+
+def _handle_html_editable(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = _with_optional_task_status(
+        lambda: html_editable_response(request_id, args.input, args.output),
+        task_id=args.task_id, tracked_command="html-editable", operation_request_id=request_id,
+    )
+    return response
+
+
+def _handle_html_roundtrip_plan(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = html_roundtrip_plan_response(request_id, args.input)
+    return response
+
+
+def _handle_html_controlled_import(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = _with_optional_task_status(
+        lambda: html_controlled_import_response(request_id, args.input, args.output),
+        task_id=args.task_id, tracked_command="html-controlled-import", operation_request_id=request_id,
+    )
+    return response
+
+
+def _handle_html_roundtrip_verify(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = html_roundtrip_verify_response(request_id, args.docx, args.mapping)
+    return response
+
+
+def _handle_html_roundtrip_export(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = _with_optional_task_status(
+        lambda: html_roundtrip_export_response(request_id, args.docx, args.mapping, args.output),
+        task_id=args.task_id, tracked_command="html-roundtrip-export", operation_request_id=request_id,
+    )
+    return response
+
+
+def _handle_writer_table_smoke(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = _with_optional_task_status(
+        lambda: writer_table_smoke_response(
+            request_id,
+            input_path=args.input,
+            output_path=args.output,
+            table_index=args.table_index,
+            row=args.row,
+            column=args.column,
+            text=args.text,
+        ),
+        task_id=args.task_id,
+        tracked_command="writer-table-smoke",
+        operation_request_id=request_id,
+    )
+    return response
+
+
+def _handle_register_document(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = register_document_response(
+        request_id,
+        component=args.component,
+        path=args.path,
+    )
+    return response
+
+
+def _handle_documents(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = documents_response(request_id)
+    return response
+
+
+def _handle_backup_document(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = _with_optional_task_status(
+        lambda: backup_document_response(
+            request_id,
+            document_id=args.document_id,
+            dry_run=args.dry_run,
+        ),
+        task_id=args.task_id,
+        tracked_command="backup-document",
+        operation_request_id=request_id,
+        document_id=args.document_id,
+    )
+    return response
+
+
+def _handle_list_backups(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = list_backups_response(
+        request_id,
+        document_id=args.document_id,
+    )
+    return response
+
+
+def _handle_restore_backup(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = _with_optional_task_status(
+        lambda: restore_backup_response(
+            request_id,
+            document_id=args.document_id,
+            backup_name=args.backup_name,
+            backup_path=args.backup_path,
+            dry_run=args.dry_run,
+        ),
+        task_id=args.task_id,
+        tracked_command="restore-backup",
+        operation_request_id=request_id,
+        document_id=args.document_id,
+    )
+    return response
+
+
+def _handle_writer_replace(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = _with_optional_task_status(
+        lambda: writer_replace_response(
+            request_id,
+            document_id=args.document_id,
+            find_text=args.find,
+            replace_text=args.replace,
+            dry_run=args.dry_run,
+            paragraph_index=args.paragraph_index,
+        ),
+        task_id=args.task_id,
+        tracked_command="writer-replace",
+        operation_request_id=request_id,
+        document_id=args.document_id,
+    )
+    return response
+
+
+def _handle_writer_fill_bookmark(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = _with_optional_task_status(
+        lambda: writer_fill_bookmark_response(
+            request_id, document_id=args.document_id,
+            bookmark_name=args.bookmark_name, text=args.text, dry_run=args.dry_run,
+        ),
+        task_id=args.task_id,
+        tracked_command="writer-fill-bookmark",
+        operation_request_id=request_id,
+        document_id=args.document_id,
+    )
+    return response
+
+
+def _handle_writer_table_write(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = _with_optional_task_status(
+        lambda: writer_table_write_response(
+            request_id,
+            document_id=args.document_id,
+            table_index=args.table_index,
+            row=args.row,
+            column=args.column,
+            text=args.text,
+            dry_run=args.dry_run,
+        ),
+        task_id=args.task_id,
+        tracked_command="writer-table-write",
+        operation_request_id=request_id,
+        document_id=args.document_id,
+    )
+    return response
+
+
+def _handle_open_documents(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = open_documents_response(request_id, component=args.component, register=args.register)
+    return response
+
+
+def _handle_writer_selection_read(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = writer_selection_read_response(request_id, document_id=args.document_id)
+    return response
+
+
+def _handle_writer_selection_replace(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = _with_optional_task_status(
+        lambda: writer_selection_replace_response(
+            request_id,
+            document_id=args.document_id,
+            text=args.text,
+            expected_selection_text=args.expected_selection_text,
+            dry_run=args.dry_run,
+        ),
+        task_id=args.task_id,
+        tracked_command="writer-selection-replace",
+        operation_request_id=request_id,
+        document_id=args.document_id,
+    )
+    return response
+
+
+def _handle_export_open_document(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = export_open_document_response(request_id, document_id=args.document_id, output=args.output)
+    return response
+
+
+def _handle_validate_document(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = validate_document_response(
+        request_id,
+        document_id=args.document_id,
+        contains=args.contains,
+        cell=args.cell,
+        equals=args.equals,
+    )
+    return response
+
+
+def _handle_snapshot_document(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = snapshot_document_response(
+        request_id,
+        document_id=args.document_id,
+    )
+    return response
+
+
+def _handle_writer_structure(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = writer_structure_response(request_id, args.document_id, args.limit, args.section,
+                                         args.offset, args.bookmark_name, args.expected_sha256,
+                                         args.include_text, args.text_limit)
+    return response
+
+
+def _handle_writer_structure_parity(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = writer_structure_parity_response(request_id, args.run_wps, args.timeout_seconds,
+                                                args.artifact_dir, args.scope)
+    return response
+
+
+def _handle_operation(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = operation_response(
+        request_id,
+        operation_request_id=args.request,
+    )
+    return response
+
+
+def _handle_operations(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = operations_response(request_id)
+    return response
+
+
+def _handle_mutation_request_inspect(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = mutation_request_inspect_response(request_id, args.request)
+    return response
+
+
+def _handle_task_status_create(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = task_status_create_response(
+        request_id,
+        task_id=args.task_id,
+        command=args.tracked_command,
+        operation_request_id=args.operation_request_id,
+        document_id=args.document_id,
+        message=args.message,
+        recovery_guidance=args.recovery_guidance,
+    )
+    return response
+
+
+def _handle_task_status_update(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = task_status_update_response(
+        request_id,
+        task_id=args.task_id,
+        state=args.state,
+        progress_percent=args.progress_percent,
+        message=args.message,
+        recovery_guidance=args.recovery_guidance,
+        result_ref=args.result_ref,
+    )
+    return response
+
+
+def _handle_task_status(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = task_status_response(
+        request_id,
+        task_id=args.task_id,
+    )
+    return response
+
+
+def _handle_task_statuses(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = task_statuses_response(request_id)
+    return response
+
+
+def _handle_task_recovery(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = task_recovery_response(
+        request_id,
+        task_id=args.task_id,
+    )
+    return response
+
+
+def _handle_task_recovery_playbooks(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = task_recovery_playbooks_response(request_id)
+    return response
+
+
+def _handle_mcp_tools(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = mcp_tools_response(
+        request_id,
+        category=args.category,
+        mutates_document=args.mutates_document,
+    )
+    return response
+
+
+def _handle_mcp_catalog_snapshot(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = mcp_catalog_snapshot_response(request_id)
+    return response
+
+
+def _handle_mcp_catalog_drift(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = mcp_catalog_drift_response(
+        request_id,
+        guard_path=args.guard,
+    )
+    return response
+
+
+def _handle_mcp_tool_schema(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = mcp_tool_schema_response(
+        request_id,
+        name=args.name,
+    )
+    return response
+
+
+def _handle_mcp_call(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = mcp_call_response(
+        request_id,
+        name=args.name,
+        arguments_json=args.arguments_json,
+    )
+    return response
+
+
+def _handle_mcp_server(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse | int:
+    if args.once_json:
+        rpc_response = handle_mcp_json(args.once_json)
+        if rpc_response is not None:
+            print(dumps_json(rpc_response), file=output_stream or sys.stdout)
+        return 0
+    return serve_stdio()
+
+
+def _handle_mcp_smoke(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = mcp_smoke_response(
+        request_id,
+        expected_min_tools=args.expected_min_tools,
+        tool_name=args.tool_name,
+        arguments_json=args.arguments_json,
+    )
+    return response
+
+
+def _handle_mcp_config_audit(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = mcp_config_audit_response(
+        request_id,
+        config_path=args.config,
+        server_name=args.server_name,
+        expected_min_tools=args.expected_min_tools,
+        timeout_seconds=args.timeout_seconds,
+    )
+    return response
+
+
+def _handle_regression_manifest(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = regression_manifest_response(
+        request_id,
+        manifest_path=args.manifest,
+        profile=args.profile,
+        include_wps=args.include_wps,
+    )
+    return response
+
+
+def _handle_regression_run(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = regression_run_response(
+        request_id,
+        manifest_path=args.manifest,
+        profile=args.profile,
+        include_wps=args.include_wps,
+        artifact_dir=args.artifact_dir,
+    )
+    return response
+
+
+def _handle_local_release_gates(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = local_release_gates_response(request_id)
+    return response
+
+
+def _handle_regression_evidence(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = regression_evidence_response(
+        request_id,
+        workspace=args.workspace,
+    )
+    return response
+
+
+def _handle_cloud_sync_package(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = cloud_sync_package_response(
+        request_id,
+        output_path=args.output,
+        include_latest_artifacts=not args.no_latest_artifacts,
+    )
+    return response
+
+
+def _handle_sync_package_inspect(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = sync_package_inspect_response(
+        request_id,
+        workspace=args.workspace,
+        package_path=args.package,
+    )
+    return response
+
+
+def _handle_sync_package_summary(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = sync_package_summary_response(
+        request_id,
+        workspace=args.workspace,
+        package_path=args.package,
+        limit=args.limit,
+    )
+    return response
+
+
+def _handle_sync_package_manifest(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = sync_package_manifest_response(
+        request_id,
+        workspace=args.workspace,
+        package_path=args.package,
+        prefix=args.prefix,
+        limit=args.limit,
+    )
+    return response
+
+
+def _handle_sync_package_coverage(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = sync_package_coverage_response(
+        request_id,
+        workspace=args.workspace,
+        package_path=args.package,
+        limit=args.limit,
+    )
+    return response
+
+
+def _handle_sync_package_readiness(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = sync_package_readiness_response(
+        request_id,
+        workspace=args.workspace,
+        package_path=args.package,
+        limit=args.limit,
+    )
+    return response
+
+
+def _handle_security_audit(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = security_audit_response(request_id)
+    return response
+
+
+def _handle_performance_baseline(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = performance_baseline_response(request_id)
+    return response
+
+
+def _handle_scan_dir(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = scan_dir_response(
+        request_id,
+        path=args.path,
+        recursive=args.recursive,
+    )
+    return response
+
+
+def _handle_batch_report(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = batch_report_response(
+        request_id,
+        path=args.path,
+        recursive=args.recursive,
+        include_snapshots=not args.no_snapshots,
+    )
+    return response
+
+
+def _handle_spreadsheet_read(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = spreadsheet_read_response(
+        request_id,
+        document_id=args.document_id,
+        range_address=args.range,
+        sheet_name=args.sheet,
+    )
+    return response
+
+
+def _handle_spreadsheet_sheets(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = spreadsheet_sheets_response(request_id, document_id=args.document_id)
+    return response
+
+
+def _handle_spreadsheet_rename_sheet(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = _with_optional_task_status(
+        lambda: spreadsheet_rename_sheet_response(
+            request_id, document_id=args.document_id, old_name=args.old_name,
+            new_name=args.new_name, dry_run=args.dry_run,
+        ),
+        task_id=args.task_id,
+        tracked_command="spreadsheet-rename-sheet",
+    )
+    return response
+
+
+def _handle_spreadsheet_create_sheet(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = _with_optional_task_status(
+        lambda: spreadsheet_create_sheet_response(request_id, args.document_id, args.name, args.index, args.dry_run),
+        task_id=args.task_id, tracked_command="spreadsheet-create-sheet",
+    )
+    return response
+
+
+def _handle_spreadsheet_set_sheet_visibility(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = _with_optional_task_status(
+        lambda: spreadsheet_set_sheet_visibility_response(request_id, args.document_id, args.sheet_name, args.visible == "true", args.dry_run),
+        task_id=args.task_id, tracked_command="spreadsheet-set-sheet-visibility",
+    )
+    return response
+
+
+def _handle_spreadsheet_delete_sheet(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = _with_optional_task_status(
+        lambda: spreadsheet_delete_sheet_response(request_id, args.document_id, args.sheet_name, args.dry_run),
+        task_id=args.task_id, tracked_command="spreadsheet-delete-sheet",
+    )
+    return response
+
+
+def _handle_spreadsheet_copy_sheet(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = _with_optional_task_status(
+        lambda: spreadsheet_copy_sheet_response(request_id, args.document_id, args.source_name, args.new_name, args.index, args.dry_run),
+        task_id=args.task_id, tracked_command="spreadsheet-copy-sheet",
+    )
+    return response
+
+
+def _handle_spreadsheet_set_sheet_tab_color(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = _with_optional_task_status(
+        lambda: spreadsheet_set_sheet_tab_color_response(request_id, args.document_id, args.sheet_name, args.color, args.dry_run),
+        task_id=args.task_id, tracked_command="spreadsheet-set-sheet-tab-color",
+    )
+    return response
+
+
+def _handle_spreadsheet_inspect(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = spreadsheet_inspect_response(
+        request_id, document_id=args.document_id, range_address=args.range, sheet_name=args.sheet,
+    )
+    return response
+
+
+def _handle_spreadsheet_write(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = _with_optional_task_status(
+        lambda: spreadsheet_write_response(
+            request_id,
+            document_id=args.document_id,
+            range_address=args.range,
+            values_json=args.values_json,
+            sheet_name=args.sheet,
+            dry_run=args.dry_run,
+        ),
+        task_id=args.task_id,
+        tracked_command="spreadsheet-write",
+        operation_request_id=request_id,
+        document_id=args.document_id,
+    )
+    return response
+
+
+def _handle_spreadsheet_formula_write(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = _with_optional_task_status(
+        lambda: spreadsheet_formula_write_response(
+            request_id,
+            document_id=args.document_id,
+            range_address=args.range,
+            formulas_json=args.formulas_json,
+            expected_values_json=args.expected_values_json,
+            sheet_name=args.sheet,
+            dry_run=args.dry_run,
+        ),
+        task_id=args.task_id,
+        tracked_command="spreadsheet-formula-write",
+        operation_request_id=request_id,
+        document_id=args.document_id,
+    )
+    return response
+
+
+def _handle_presentation_replace(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+    response = _with_optional_task_status(
+        lambda: presentation_replace_response(
+            request_id,
+            document_id=args.document_id,
+            find_text=args.find,
+            replace_text=args.replace,
+            dry_run=args.dry_run,
+            slide_index=args.slide_index,
+        ),
+        task_id=args.task_id,
+        tracked_command="presentation-replace",
+        operation_request_id=request_id,
+        document_id=args.document_id,
+    )
+    return response
+
+
+COMMAND_HANDLERS: dict[str, Callable[[argparse.Namespace, str, TextIO | None], CommandResponse | int]] = {
+    "inspect-env": _handle_inspect_env,
+    "wps-process-audit": _handle_wps_process_audit,
+    "cleanup-plan": _handle_cleanup_plan,
+    "cleanup-approval-manifest": _handle_cleanup_approval_manifest,
+    "artifact-retention-summary": _handle_artifact_retention_summary,
+    "plan": _handle_plan,
+    "project-status": _handle_project_status,
+    "workspace-health": _handle_workspace_health,
+    "local-handoff-summary": _handle_local_handoff_summary,
+    "validation-runbook": _handle_validation_runbook,
+    "documentation-freshness": _handle_documentation_freshness,
+    "regression-history": _handle_regression_history,
+    "tasks": _handle_tasks,
+    "com-smoke": _handle_com_smoke,
+    "calc-smoke": _handle_calc_smoke,
+    "convert-smoke": _handle_convert_smoke,
+    "html-render": _handle_html_render,
+    "html-batch-convert": _handle_html_batch_convert,
+    "html-batch-request": _handle_html_batch_request,
+    "batch-template-report": _handle_batch_template_report,
+    "html-editable": _handle_html_editable,
+    "html-roundtrip-plan": _handle_html_roundtrip_plan,
+    "html-controlled-import": _handle_html_controlled_import,
+    "html-roundtrip-verify": _handle_html_roundtrip_verify,
+    "html-roundtrip-export": _handle_html_roundtrip_export,
+    "writer-table-smoke": _handle_writer_table_smoke,
+    "register-document": _handle_register_document,
+    "documents": _handle_documents,
+    "backup-document": _handle_backup_document,
+    "list-backups": _handle_list_backups,
+    "restore-backup": _handle_restore_backup,
+    "writer-replace": _handle_writer_replace,
+    "writer-fill-bookmark": _handle_writer_fill_bookmark,
+    "writer-table-write": _handle_writer_table_write,
+    "open-documents": _handle_open_documents,
+    "writer-selection-read": _handle_writer_selection_read,
+    "writer-selection-replace": _handle_writer_selection_replace,
+    "export-open-document": _handle_export_open_document,
+    "validate-document": _handle_validate_document,
+    "snapshot-document": _handle_snapshot_document,
+    "writer-structure": _handle_writer_structure,
+    "writer-structure-parity": _handle_writer_structure_parity,
+    "operation": _handle_operation,
+    "operations": _handle_operations,
+    "mutation-request-inspect": _handle_mutation_request_inspect,
+    "task-status-create": _handle_task_status_create,
+    "task-status-update": _handle_task_status_update,
+    "task-status": _handle_task_status,
+    "task-statuses": _handle_task_statuses,
+    "task-recovery": _handle_task_recovery,
+    "task-recovery-playbooks": _handle_task_recovery_playbooks,
+    "mcp-tools": _handle_mcp_tools,
+    "mcp-catalog-snapshot": _handle_mcp_catalog_snapshot,
+    "mcp-catalog-drift": _handle_mcp_catalog_drift,
+    "mcp-tool-schema": _handle_mcp_tool_schema,
+    "mcp-call": _handle_mcp_call,
+    "mcp-server": _handle_mcp_server,
+    "mcp-smoke": _handle_mcp_smoke,
+    "mcp-config-audit": _handle_mcp_config_audit,
+    "regression-manifest": _handle_regression_manifest,
+    "regression-run": _handle_regression_run,
+    "local-release-gates": _handle_local_release_gates,
+    "regression-evidence": _handle_regression_evidence,
+    "cloud-sync-package": _handle_cloud_sync_package,
+    "sync-package-inspect": _handle_sync_package_inspect,
+    "sync-package-summary": _handle_sync_package_summary,
+    "sync-package-manifest": _handle_sync_package_manifest,
+    "sync-package-coverage": _handle_sync_package_coverage,
+    "sync-package-readiness": _handle_sync_package_readiness,
+    "security-audit": _handle_security_audit,
+    "performance-baseline": _handle_performance_baseline,
+    "scan-dir": _handle_scan_dir,
+    "batch-report": _handle_batch_report,
+    "spreadsheet-read": _handle_spreadsheet_read,
+    "spreadsheet-sheets": _handle_spreadsheet_sheets,
+    "spreadsheet-rename-sheet": _handle_spreadsheet_rename_sheet,
+    "spreadsheet-create-sheet": _handle_spreadsheet_create_sheet,
+    "spreadsheet-set-sheet-visibility": _handle_spreadsheet_set_sheet_visibility,
+    "spreadsheet-delete-sheet": _handle_spreadsheet_delete_sheet,
+    "spreadsheet-copy-sheet": _handle_spreadsheet_copy_sheet,
+    "spreadsheet-set-sheet-tab-color": _handle_spreadsheet_set_sheet_tab_color,
+    "spreadsheet-inspect": _handle_spreadsheet_inspect,
+    "spreadsheet-write": _handle_spreadsheet_write,
+    "spreadsheet-formula-write": _handle_spreadsheet_formula_write,
+    "presentation-replace": _handle_presentation_replace,
+}
+
+
+
 def _run_command(argv: list[str], output_stream: TextIO | None = None, strict_exit: bool = False) -> int:
     if output_stream is None:
         _configure_stdout()
@@ -3414,537 +4288,12 @@ def _run_command(argv: list[str], output_stream: TextIO | None = None, strict_ex
     args = parser.parse_args(argv)
     request_id = _request_id(extracted_request_id or args.request_id)
 
-    if args.command == "inspect-env":
-        response = inspect_env_response(request_id)
-    elif args.command == "wps-process-audit":
-        response = wps_process_audit_response(
-            request_id,
-            timeout_seconds=args.timeout_seconds,
-        )
-    elif args.command == "cleanup-plan":
-        response = cleanup_plan_response(
-            request_id,
-            workspace=args.workspace,
-        )
-    elif args.command == "cleanup-approval-manifest":
-        response = cleanup_approval_manifest_response(
-            request_id,
-            workspace=args.workspace,
-        )
-    elif args.command == "artifact-retention-summary":
-        response = artifact_retention_summary_response(
-            request_id,
-            workspace=args.workspace,
-        )
-    elif args.command == "plan":
-        response = plan_response(request_id)
-    elif args.command == "project-status":
-        response = project_status_response(
-            request_id,
-            workspace=args.workspace,
-        )
-    elif args.command == "workspace-health":
-        response = workspace_health_response(
-            request_id,
-            workspace=args.workspace,
-        )
-    elif args.command == "local-handoff-summary":
-        response = local_handoff_summary_response(
-            request_id,
-            workspace=args.workspace,
-        )
-    elif args.command == "validation-runbook":
-        response = validation_runbook_response(
-            request_id,
-            workspace=args.workspace,
-        )
-    elif args.command == "documentation-freshness":
-        response = documentation_freshness_response(
-            request_id,
-            workspace=args.workspace,
-        )
-    elif args.command == "regression-history":
-        response = regression_history_response(
-            request_id,
-            workspace=args.workspace,
-            limit=args.limit,
-        )
-    elif args.command == "tasks":
-        response = tasks_response(request_id, phase=args.phase, status=args.status)
-    elif args.command == "com-smoke":
-        response = com_smoke_response(
-            request_id,
-            component=args.component,
-            input_path=args.input,
-            output_path=args.output,
-            visible=args.visible,
-        )
-    elif args.command == "calc-smoke":
-        response = calc_smoke_response(
-            request_id,
-            input_path=args.input,
-            output_path=args.output,
-            timeout_seconds=args.timeout_seconds,
-        )
-    elif args.command == "convert-smoke":
-        response = convert_smoke_response(
-            request_id,
-            component=args.component,
-            input_path=args.input,
-            output_path=args.output,
-            output_format=args.format,
-        )
-    elif args.command == "html-render":
-        response = _with_optional_task_status(
-            lambda: html_render_response(
-                request_id, args.input, args.output, args.format, args.page_size,
-                args.viewport_width, args.viewport_height, args.timeout_seconds, args.allow_javascript,
-            ),
-            task_id=args.task_id,
-            tracked_command="html-render",
-            operation_request_id=request_id,
-        )
-    elif args.command == "html-batch-convert":
-        progress_callback = None
-        if args.task_id:
-            def progress_callback(completed: int, total: int, message: str) -> bool:
-                current = get_task_status(args.task_id)
-                if current and current.get("state") == "cancelled":
-                    return False
-                percent = min(95, 10 + int(85 * completed / max(1, total)))
-                update_task_status(args.task_id, "running", progress_percent=percent, message=message)
-                current = get_task_status(args.task_id)
-                return not current or current.get("state") != "cancelled"
-        response = _with_optional_task_status(
-            lambda: html_batch_convert_response(request_id, args.input_dir, args.output_dir, args.mode, args.recursive, progress_callback),
-            task_id=args.task_id, tracked_command="html-batch-convert", operation_request_id=request_id,
-        )
-    elif args.command == "html-batch-request":
-        response = html_batch_request_response(request_id, args.batch_request_id, args.verify)
-    elif args.command == "batch-template-report":
-        response = _with_optional_task_status(
-            lambda: batch_template_report_response(request_id, args.manifest, args.template, args.output),
-            task_id=args.task_id, tracked_command="batch-template-report", operation_request_id=request_id,
-        )
-    elif args.command == "html-editable":
-        response = _with_optional_task_status(
-            lambda: html_editable_response(request_id, args.input, args.output),
-            task_id=args.task_id, tracked_command="html-editable", operation_request_id=request_id,
-        )
-    elif args.command == "html-roundtrip-plan":
-        response = html_roundtrip_plan_response(request_id, args.input)
-    elif args.command == "html-controlled-import":
-        response = _with_optional_task_status(
-            lambda: html_controlled_import_response(request_id, args.input, args.output),
-            task_id=args.task_id, tracked_command="html-controlled-import", operation_request_id=request_id,
-        )
-    elif args.command == "html-roundtrip-verify":
-        response = html_roundtrip_verify_response(request_id, args.docx, args.mapping)
-    elif args.command == "html-roundtrip-export":
-        response = _with_optional_task_status(
-            lambda: html_roundtrip_export_response(request_id, args.docx, args.mapping, args.output),
-            task_id=args.task_id, tracked_command="html-roundtrip-export", operation_request_id=request_id,
-        )
-    elif args.command == "writer-table-smoke":
-        response = _with_optional_task_status(
-            lambda: writer_table_smoke_response(
-                request_id,
-                input_path=args.input,
-                output_path=args.output,
-                table_index=args.table_index,
-                row=args.row,
-                column=args.column,
-                text=args.text,
-            ),
-            task_id=args.task_id,
-            tracked_command="writer-table-smoke",
-            operation_request_id=request_id,
-        )
-    elif args.command == "register-document":
-        response = register_document_response(
-            request_id,
-            component=args.component,
-            path=args.path,
-        )
-    elif args.command == "documents":
-        response = documents_response(request_id)
-    elif args.command == "backup-document":
-        response = _with_optional_task_status(
-            lambda: backup_document_response(
-                request_id,
-                document_id=args.document_id,
-                dry_run=args.dry_run,
-            ),
-            task_id=args.task_id,
-            tracked_command="backup-document",
-            operation_request_id=request_id,
-            document_id=args.document_id,
-        )
-    elif args.command == "list-backups":
-        response = list_backups_response(
-            request_id,
-            document_id=args.document_id,
-        )
-    elif args.command == "restore-backup":
-        response = _with_optional_task_status(
-            lambda: restore_backup_response(
-                request_id,
-                document_id=args.document_id,
-                backup_name=args.backup_name,
-                backup_path=args.backup_path,
-                dry_run=args.dry_run,
-            ),
-            task_id=args.task_id,
-            tracked_command="restore-backup",
-            operation_request_id=request_id,
-            document_id=args.document_id,
-        )
-    elif args.command == "writer-replace":
-        response = _with_optional_task_status(
-            lambda: writer_replace_response(
-                request_id,
-                document_id=args.document_id,
-                find_text=args.find,
-                replace_text=args.replace,
-                dry_run=args.dry_run,
-                paragraph_index=args.paragraph_index,
-            ),
-            task_id=args.task_id,
-            tracked_command="writer-replace",
-            operation_request_id=request_id,
-            document_id=args.document_id,
-        )
-    elif args.command == "writer-fill-bookmark":
-        response = _with_optional_task_status(
-            lambda: writer_fill_bookmark_response(
-                request_id, document_id=args.document_id,
-                bookmark_name=args.bookmark_name, text=args.text, dry_run=args.dry_run,
-            ),
-            task_id=args.task_id,
-            tracked_command="writer-fill-bookmark",
-            operation_request_id=request_id,
-            document_id=args.document_id,
-        )
-    elif args.command == "writer-table-write":
-        response = _with_optional_task_status(
-            lambda: writer_table_write_response(
-                request_id,
-                document_id=args.document_id,
-                table_index=args.table_index,
-                row=args.row,
-                column=args.column,
-                text=args.text,
-                dry_run=args.dry_run,
-            ),
-            task_id=args.task_id,
-            tracked_command="writer-table-write",
-            operation_request_id=request_id,
-            document_id=args.document_id,
-        )
-    elif args.command == "open-documents":
-        response = open_documents_response(request_id, component=args.component, register=args.register)
-    elif args.command == "writer-selection-read":
-        response = writer_selection_read_response(request_id, document_id=args.document_id)
-    elif args.command == "writer-selection-replace":
-        response = _with_optional_task_status(
-            lambda: writer_selection_replace_response(
-                request_id,
-                document_id=args.document_id,
-                text=args.text,
-                expected_selection_text=args.expected_selection_text,
-                dry_run=args.dry_run,
-            ),
-            task_id=args.task_id,
-            tracked_command="writer-selection-replace",
-            operation_request_id=request_id,
-            document_id=args.document_id,
-        )
-    elif args.command == "export-open-document":
-        response = export_open_document_response(request_id, document_id=args.document_id, output=args.output)
-    elif args.command == "validate-document":
-        response = validate_document_response(
-            request_id,
-            document_id=args.document_id,
-            contains=args.contains,
-            cell=args.cell,
-            equals=args.equals,
-        )
-    elif args.command == "snapshot-document":
-        response = snapshot_document_response(
-            request_id,
-            document_id=args.document_id,
-        )
-    elif args.command == "writer-structure":
-        response = writer_structure_response(request_id, args.document_id, args.limit, args.section,
-                                             args.offset, args.bookmark_name, args.expected_sha256,
-                                             args.include_text, args.text_limit)
-    elif args.command == "writer-structure-parity":
-        response = writer_structure_parity_response(request_id, args.run_wps, args.timeout_seconds,
-                                                    args.artifact_dir, args.scope)
-    elif args.command == "operation":
-        response = operation_response(
-            request_id,
-            operation_request_id=args.request,
-        )
-    elif args.command == "operations":
-        response = operations_response(request_id)
-    elif args.command == "mutation-request-inspect":
-        response = mutation_request_inspect_response(request_id, args.request)
-    elif args.command == "task-status-create":
-        response = task_status_create_response(
-            request_id,
-            task_id=args.task_id,
-            command=args.tracked_command,
-            operation_request_id=args.operation_request_id,
-            document_id=args.document_id,
-            message=args.message,
-            recovery_guidance=args.recovery_guidance,
-        )
-    elif args.command == "task-status-update":
-        response = task_status_update_response(
-            request_id,
-            task_id=args.task_id,
-            state=args.state,
-            progress_percent=args.progress_percent,
-            message=args.message,
-            recovery_guidance=args.recovery_guidance,
-            result_ref=args.result_ref,
-        )
-    elif args.command == "task-status":
-        response = task_status_response(
-            request_id,
-            task_id=args.task_id,
-        )
-    elif args.command == "task-statuses":
-        response = task_statuses_response(request_id)
-    elif args.command == "task-recovery":
-        response = task_recovery_response(
-            request_id,
-            task_id=args.task_id,
-        )
-    elif args.command == "task-recovery-playbooks":
-        response = task_recovery_playbooks_response(request_id)
-    elif args.command == "mcp-tools":
-        response = mcp_tools_response(
-            request_id,
-            category=args.category,
-            mutates_document=args.mutates_document,
-        )
-    elif args.command == "mcp-catalog-snapshot":
-        response = mcp_catalog_snapshot_response(request_id)
-    elif args.command == "mcp-catalog-drift":
-        response = mcp_catalog_drift_response(
-            request_id,
-            guard_path=args.guard,
-        )
-    elif args.command == "mcp-tool-schema":
-        response = mcp_tool_schema_response(
-            request_id,
-            name=args.name,
-        )
-    elif args.command == "mcp-call":
-        response = mcp_call_response(
-            request_id,
-            name=args.name,
-            arguments_json=args.arguments_json,
-        )
-    elif args.command == "mcp-server":
-        if args.once_json:
-            rpc_response = handle_mcp_json(args.once_json)
-            if rpc_response is not None:
-                print(dumps_json(rpc_response), file=output_stream or sys.stdout)
-            return 0
-        return serve_stdio()
-    elif args.command == "mcp-smoke":
-        response = mcp_smoke_response(
-            request_id,
-            expected_min_tools=args.expected_min_tools,
-            tool_name=args.tool_name,
-            arguments_json=args.arguments_json,
-        )
-    elif args.command == "mcp-config-audit":
-        response = mcp_config_audit_response(
-            request_id,
-            config_path=args.config,
-            server_name=args.server_name,
-            expected_min_tools=args.expected_min_tools,
-            timeout_seconds=args.timeout_seconds,
-        )
-    elif args.command == "regression-manifest":
-        response = regression_manifest_response(
-            request_id,
-            manifest_path=args.manifest,
-            profile=args.profile,
-            include_wps=args.include_wps,
-        )
-    elif args.command == "regression-run":
-        response = regression_run_response(
-            request_id,
-            manifest_path=args.manifest,
-            profile=args.profile,
-            include_wps=args.include_wps,
-            artifact_dir=args.artifact_dir,
-        )
-    elif args.command == "local-release-gates":
-        response = local_release_gates_response(request_id)
-    elif args.command == "regression-evidence":
-        response = regression_evidence_response(
-            request_id,
-            workspace=args.workspace,
-        )
-    elif args.command == "cloud-sync-package":
-        response = cloud_sync_package_response(
-            request_id,
-            output_path=args.output,
-            include_latest_artifacts=not args.no_latest_artifacts,
-        )
-    elif args.command == "sync-package-inspect":
-        response = sync_package_inspect_response(
-            request_id,
-            workspace=args.workspace,
-            package_path=args.package,
-        )
-    elif args.command == "sync-package-summary":
-        response = sync_package_summary_response(
-            request_id,
-            workspace=args.workspace,
-            package_path=args.package,
-            limit=args.limit,
-        )
-    elif args.command == "sync-package-manifest":
-        response = sync_package_manifest_response(
-            request_id,
-            workspace=args.workspace,
-            package_path=args.package,
-            prefix=args.prefix,
-            limit=args.limit,
-        )
-    elif args.command == "sync-package-coverage":
-        response = sync_package_coverage_response(
-            request_id,
-            workspace=args.workspace,
-            package_path=args.package,
-            limit=args.limit,
-        )
-    elif args.command == "sync-package-readiness":
-        response = sync_package_readiness_response(
-            request_id,
-            workspace=args.workspace,
-            package_path=args.package,
-            limit=args.limit,
-        )
-    elif args.command == "security-audit":
-        response = security_audit_response(request_id)
-    elif args.command == "performance-baseline":
-        response = performance_baseline_response(request_id)
-    elif args.command == "scan-dir":
-        response = scan_dir_response(
-            request_id,
-            path=args.path,
-            recursive=args.recursive,
-        )
-    elif args.command == "batch-report":
-        response = batch_report_response(
-            request_id,
-            path=args.path,
-            recursive=args.recursive,
-            include_snapshots=not args.no_snapshots,
-        )
-    elif args.command == "spreadsheet-read":
-        response = spreadsheet_read_response(
-            request_id,
-            document_id=args.document_id,
-            range_address=args.range,
-            sheet_name=args.sheet,
-        )
-    elif args.command == "spreadsheet-sheets":
-        response = spreadsheet_sheets_response(request_id, document_id=args.document_id)
-    elif args.command == "spreadsheet-rename-sheet":
-        response = _with_optional_task_status(
-            lambda: spreadsheet_rename_sheet_response(
-                request_id, document_id=args.document_id, old_name=args.old_name,
-                new_name=args.new_name, dry_run=args.dry_run,
-            ),
-            task_id=args.task_id,
-            tracked_command="spreadsheet-rename-sheet",
-        )
-    elif args.command == "spreadsheet-create-sheet":
-        response = _with_optional_task_status(
-            lambda: spreadsheet_create_sheet_response(request_id, args.document_id, args.name, args.index, args.dry_run),
-            task_id=args.task_id, tracked_command="spreadsheet-create-sheet",
-        )
-    elif args.command == "spreadsheet-set-sheet-visibility":
-        response = _with_optional_task_status(
-            lambda: spreadsheet_set_sheet_visibility_response(request_id, args.document_id, args.sheet_name, args.visible == "true", args.dry_run),
-            task_id=args.task_id, tracked_command="spreadsheet-set-sheet-visibility",
-        )
-    elif args.command == "spreadsheet-delete-sheet":
-        response = _with_optional_task_status(
-            lambda: spreadsheet_delete_sheet_response(request_id, args.document_id, args.sheet_name, args.dry_run),
-            task_id=args.task_id, tracked_command="spreadsheet-delete-sheet",
-        )
-    elif args.command == "spreadsheet-copy-sheet":
-        response = _with_optional_task_status(
-            lambda: spreadsheet_copy_sheet_response(request_id, args.document_id, args.source_name, args.new_name, args.index, args.dry_run),
-            task_id=args.task_id, tracked_command="spreadsheet-copy-sheet",
-        )
-    elif args.command == "spreadsheet-set-sheet-tab-color":
-        response = _with_optional_task_status(
-            lambda: spreadsheet_set_sheet_tab_color_response(request_id, args.document_id, args.sheet_name, args.color, args.dry_run),
-            task_id=args.task_id, tracked_command="spreadsheet-set-sheet-tab-color",
-        )
-    elif args.command == "spreadsheet-inspect":
-        response = spreadsheet_inspect_response(
-            request_id, document_id=args.document_id, range_address=args.range, sheet_name=args.sheet,
-        )
-    elif args.command == "spreadsheet-write":
-        response = _with_optional_task_status(
-            lambda: spreadsheet_write_response(
-                request_id,
-                document_id=args.document_id,
-                range_address=args.range,
-                values_json=args.values_json,
-                sheet_name=args.sheet,
-                dry_run=args.dry_run,
-            ),
-            task_id=args.task_id,
-            tracked_command="spreadsheet-write",
-            operation_request_id=request_id,
-            document_id=args.document_id,
-        )
-    elif args.command == "spreadsheet-formula-write":
-        response = _with_optional_task_status(
-            lambda: spreadsheet_formula_write_response(
-                request_id,
-                document_id=args.document_id,
-                range_address=args.range,
-                formulas_json=args.formulas_json,
-                expected_values_json=args.expected_values_json,
-                sheet_name=args.sheet,
-                dry_run=args.dry_run,
-            ),
-            task_id=args.task_id,
-            tracked_command="spreadsheet-formula-write",
-            operation_request_id=request_id,
-            document_id=args.document_id,
-        )
-    elif args.command == "presentation-replace":
-        response = _with_optional_task_status(
-            lambda: presentation_replace_response(
-                request_id,
-                document_id=args.document_id,
-                find_text=args.find,
-                replace_text=args.replace,
-                dry_run=args.dry_run,
-                slide_index=args.slide_index,
-            ),
-            task_id=args.task_id,
-            tracked_command="presentation-replace",
-            operation_request_id=request_id,
-            document_id=args.document_id,
-        )
-    else:  # pragma: no cover - argparse enforces valid commands
+    handler = COMMAND_HANDLERS.get(args.command)
+    if handler is None:  # pragma: no cover - argparse enforces valid commands
         parser.error(f"Unsupported command: {args.command}")
+    response = handler(args, request_id, output_stream)
+    if isinstance(response, int):
+        return response
 
     print(dumps_json(response.to_dict()), file=output_stream or sys.stdout)
     return 0 if response.ok or not strict_exit else 1
