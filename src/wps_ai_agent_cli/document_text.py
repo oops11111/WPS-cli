@@ -7,6 +7,7 @@ import shlex
 import xml.etree.ElementTree as ET
 from pathlib import Path
 from zipfile import ZipFile
+from .ooxml import parse_xml_part, read_zip_part
 
 
 W = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
@@ -158,13 +159,13 @@ def _story_paragraphs(node: ET.Element) -> Iterable[str]:
 
 def docx_body_story_paragraphs(path: str | Path) -> list[str]:
     with ZipFile(path) as archive:
-        root = ET.fromstring(archive.read("word/document.xml"))
+        root = parse_xml_part(archive, "word/document.xml")
     return list(_story_paragraphs(root))
 
 
 def docx_document_paragraphs(path: str | Path) -> list[str]:
     with ZipFile(path) as archive:
-        root = ET.fromstring(archive.read("word/document.xml"))
+        root = parse_xml_part(archive, "word/document.xml")
     return [_paragraph_text(paragraph) for paragraph in root.iter(f"{W}p")]
 
 
@@ -182,7 +183,7 @@ def count_text_in_docx(
             if part_filter is not None and name not in part_filter:
                 continue
             if name.startswith("word/") and name.endswith(".xml"):
-                root = ET.fromstring(archive.read(name))
+                root = parse_xml_part(archive, name)
                 if root.tag in {f"{W}{tag}" for tag in ("document", "hdr", "ftr", "footnotes", "endnotes", "comments")}:
                     # Never join different paragraphs, cells or stories into a match.
                     total += sum(paragraph.count(text) for paragraph in _story_paragraphs(root))
@@ -191,7 +192,7 @@ def count_text_in_docx(
 
 def docx_body_paragraphs(path: str | Path) -> list[str]:
     with ZipFile(path) as archive:
-        payload = archive.read("word/document.xml")
+        payload = read_zip_part(archive, "word/document.xml")
     root = ET.fromstring(payload)
     namespace = {"w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main"}
     paragraphs = []
@@ -221,7 +222,7 @@ def count_text_in_docx_paragraph(path: str | Path, paragraph_index: int, text: s
 
 def docx_body_tables(path: str | Path) -> list[list[list[str]]]:
     with ZipFile(path) as archive:
-        payload = archive.read("word/document.xml")
+        payload = read_zip_part(archive, "word/document.xml")
     root = ET.fromstring(payload)
     namespace = {"w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main"}
     tables = []
@@ -242,7 +243,7 @@ def docx_body_tables(path: str | Path) -> list[list[list[str]]]:
 
 def docx_body_table_topology(path: str | Path) -> list[dict[str, object]]:
     with ZipFile(path) as archive:
-        root = ET.fromstring(archive.read("word/document.xml"))
+        root = parse_xml_part(archive, "word/document.xml")
     body = root.find(f"{W}body")
     if body is None:
         return []
@@ -279,9 +280,9 @@ def docx_body_table_topology(path: str | Path) -> list[dict[str, object]]:
 
 def docx_body_link_field_semantics(path: str | Path) -> dict[str, list[dict[str, object]]]:
     with ZipFile(path) as archive:
-        root = ET.fromstring(archive.read("word/document.xml"))
+        root = parse_xml_part(archive, "word/document.xml")
         rels = (
-            ET.fromstring(archive.read("word/_rels/document.xml.rels"))
+            parse_xml_part(archive, "word/_rels/document.xml.rels")
             if "word/_rels/document.xml.rels" in archive.namelist() else None
         )
     relationships = {
@@ -372,9 +373,9 @@ def docx_body_link_field_semantics(path: str | Path) -> dict[str, list[dict[str,
 def docx_body_drawing_semantics(path: str | Path) -> dict[str, list[dict[str, object]]]:
     with ZipFile(path) as archive:
         names = set(archive.namelist())
-        root = ET.fromstring(archive.read("word/document.xml"))
+        root = parse_xml_part(archive, "word/document.xml")
         rels = (
-            ET.fromstring(archive.read("word/_rels/document.xml.rels"))
+            parse_xml_part(archive, "word/_rels/document.xml.rels")
             if "word/_rels/document.xml.rels" in names else None
         )
         relationships = {
@@ -554,7 +555,7 @@ def docx_body_drawing_semantics(path: str | Path) -> dict[str, list[dict[str, ob
                                 reason="target_outside_package",
                             ))
                         elif part_name in names:
-                            part_hash = hashlib.sha256(archive.read(part_name)).hexdigest()
+                            part_hash = hashlib.sha256(read_zip_part(archive, part_name)).hexdigest()
                         else:
                             unresolved.append(_drawing_relationship_issue(
                                 rel_id, target, current_drawing_index,
@@ -602,7 +603,7 @@ def docx_bookmark_overlaps_link_or_field(
     start_offset: int, end_offset: int,
 ) -> bool:
     with ZipFile(path) as archive:
-        root = ET.fromstring(archive.read("word/document.xml"))
+        root = parse_xml_part(archive, "word/document.xml")
     paragraphs = list(root.iter(f"{W}p"))
     if not 1 <= story_paragraph_index <= len(paragraphs):
         return True
@@ -663,7 +664,7 @@ def docx_bookmark_precedes_character_anchor(
     path: str | Path, bookmark_name: str, story_paragraph_index: int,
 ) -> bool:
     with ZipFile(path) as archive:
-        root = ET.fromstring(archive.read("word/document.xml"))
+        root = parse_xml_part(archive, "word/document.xml")
     paragraphs = list(root.iter(f"{W}p"))
     if not 1 <= story_paragraph_index <= len(paragraphs):
         return True
@@ -699,3 +700,47 @@ def docx_table_cell_text(path: str | Path, table_index: int, row: int, column: i
     if column < 1 or column > len(selected_row):
         return None
     return selected_row[column - 1]
+
+
+_RICH_CELL_LOCAL_NAMES = ("drawing", "pict", "object", "hyperlink", "fldChar", "tbl", "sdt")
+
+
+def _table_cell_element(
+    path: str | Path, table_index: int, row: int, column: int,
+) -> ET.Element | None:
+    with ZipFile(path) as archive:
+        payload = read_zip_part(archive, "word/document.xml")
+    root = ET.fromstring(payload)
+    tables = root.findall(f".//{W}body/{W}tbl")
+    if table_index < 1 or table_index > len(tables):
+        return None
+    rows = tables[table_index - 1].findall(f"{W}tr")
+    if row < 1 or row > len(rows):
+        return None
+    cells = rows[row - 1].findall(f"{W}tc")
+    if column < 1 or column > len(cells):
+        return None
+    return cells[column - 1]
+
+
+def docx_table_cell_rich_content(
+    path: str | Path, table_index: int, row: int, column: int,
+) -> list[str] | None:
+    """Return rich-content kinds in a body table cell, or None if the cell is missing.
+
+    An empty list means the cell is plain text (runs and paragraphs only). Nested
+    tables, drawings, fields, hyperlinks, ActiveX/objects, and content controls
+    are listed by local name so callers can refuse a destructive text write.
+    """
+    cell = _table_cell_element(path, table_index, row, column)
+    if cell is None:
+        return None
+    found: list[str] = []
+    for element in cell.iter():
+        local = element.tag.rsplit("}", 1)[-1] if isinstance(element.tag, str) else ""
+        if local in _RICH_CELL_LOCAL_NAMES and local not in found:
+            # The cell element itself is w:tc, not w:tbl; nested tables appear as descendants.
+            if local == "tbl" and element is cell:
+                continue
+            found.append(local)
+    return found

@@ -12,6 +12,8 @@ import tempfile
 from typing import Any
 from urllib.parse import urlsplit
 
+from .html_text import decode_html_bytes
+
 
 _VOID = {"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr"}
 _SKIP = {"script", "style", "noscript", "template", "svg", "iframe", "object", "canvas"}
@@ -24,7 +26,10 @@ _MAX_IMAGES = 100
 
 
 def _safe_link_target(value: str) -> bool:
-    parsed = urlsplit(value.strip())
+    stripped = value.strip()
+    if "\\" in stripped or any(ord(char) < 32 for char in stripped):
+        return False
+    parsed = urlsplit(stripped)
     return parsed.scheme.casefold() in {"http", "https", "mailto", "tel"} or (
         not parsed.scheme and not value.strip().startswith("//")
     )
@@ -124,21 +129,29 @@ def _walk(node: _Node):
             yield from _walk(child)
 
 
-def convert_html_editable(input_path: str | Path, output_path: str | Path) -> tuple[bool, dict[str, Any], list[dict[str, str]]]:
+def _validate_editable_paths(input_path: str | Path, output_path: str | Path) -> tuple[Path, Path, list[dict[str, str]]]:
     source = Path(input_path).expanduser().resolve()
     destination = Path(output_path).expanduser().resolve()
     if source.suffix.casefold() not in {".html", ".htm"}:
-        return False, {}, [{"code": "INVALID_INPUT", "message": "Input must be an .html or .htm file."}]
+        return source, destination, [{"code": "INVALID_INPUT", "message": "Input must be an .html or .htm file."}]
     if not source.is_file():
-        return False, {}, [{"code": "INPUT_FILE_NOT_FOUND", "message": f"HTML input not found: {source}"}]
+        return source, destination, [{"code": "INPUT_FILE_NOT_FOUND", "message": f"HTML input not found: {source}"}]
     if source.stat().st_size > _MAX_HTML_BYTES:
-        return False, {}, [{"code": "INPUT_TOO_LARGE", "message": "HTML input exceeds the 10 MiB limit."}]
+        return source, destination, [{"code": "INPUT_TOO_LARGE", "message": "HTML input exceeds the 10 MiB limit."}]
     if destination.suffix.casefold() != ".docx" or destination == source:
-        return False, {}, [{"code": "INVALID_OUTPUT", "message": "Output must be a separate .docx file."}]
+        return source, destination, [{"code": "INVALID_OUTPUT", "message": "Output must be a separate .docx file."}]
     if destination.exists():
-        return False, {}, [{"code": "OUTPUT_ALREADY_EXISTS", "message": f"Refusing to overwrite existing output: {destination}"}]
+        return source, destination, [{"code": "OUTPUT_ALREADY_EXISTS", "message": f"Refusing to overwrite existing output: {destination}"}]
     if not destination.parent.is_dir():
-        return False, {}, [{"code": "OUTPUT_DIRECTORY_NOT_FOUND", "message": f"Output directory does not exist: {destination.parent}"}]
+        return source, destination, [{"code": "OUTPUT_DIRECTORY_NOT_FOUND", "message": f"Output directory does not exist: {destination.parent}"}]
+    return source, destination, []
+
+
+
+def convert_html_editable(input_path: str | Path, output_path: str | Path) -> tuple[bool, dict[str, Any], list[dict[str, str]]]:
+    source, destination, path_errors = _validate_editable_paths(input_path, output_path)
+    if path_errors:
+        return False, {}, path_errors
     try:
         from docx import Document
         from docx.shared import Inches
@@ -146,7 +159,8 @@ def convert_html_editable(input_path: str | Path, output_path: str | Path) -> tu
         return False, {}, [{"code": "CONVERTER_UNAVAILABLE", "message": "Install the html optional dependency: python-docx."}]
 
     parser = _TreeParser()
-    parser.feed(source.read_text(encoding="utf-8-sig", errors="replace"))
+    html_text, source_encoding, decode_warning = decode_html_bytes(source.read_bytes())
+    parser.feed(html_text)
     nodes = list(_walk(parser.root))
     html_root = next((node for node in nodes if node.tag == "html"), None)
     meta = next((node for node in nodes if node.tag == "meta" and node.attrs.get("name", "").casefold() == "wps-agent-schema"), None)
@@ -172,12 +186,16 @@ def convert_html_editable(input_path: str | Path, output_path: str | Path) -> tu
         "thead", "tbody", "tfoot", "tr", "td", "th", "figure", "figcaption",
     }
     warnings = sorted(parser.warnings | {
-        f"Unsupported element <{node.tag}> omitted or flattened to text." for node in nodes if node.tag not in supported_tags
+        f"Unsupported element <{node.tag}> omitted or flattened to text."
+        for node in nodes
+        if node is not parser.root and node.tag not in supported_tags
     } | {
         f"Unsupported element <{tag}> omitted." for tag in parser.unsupported_elements
     } | {
         "Scripts and executable content were omitted." for node in nodes if node.tag == "script"
     })
+    if decode_warning:
+        warnings.append(decode_warning)
     document = Document()
     bookmark_counter = 0
     bookmark_count = 0
@@ -377,6 +395,7 @@ def convert_html_editable(input_path: str | Path, output_path: str | Path) -> tu
         "backend": "python-docx-semantic-mapping", "editable": True,
         "mapped_objects": counts, "unsupported_css": unsupported_css,
         "warnings": warnings, "fidelity": "semantic-content; CSS layout is not preserved",
+        "source_encoding": source_encoding,
         "javascript_executed": False, "remote_resources_fetched": False,
         "roundtrip_bookmarks": bookmark_count,
     }, []

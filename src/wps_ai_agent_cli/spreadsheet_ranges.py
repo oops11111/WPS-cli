@@ -16,10 +16,29 @@ def validate_spreadsheet_read_range(
 ) -> tuple[tuple[int, int, int, int] | None, dict[str, str] | None]:
     if not isinstance(range_address, str) or not range_address.strip():
         return None, {"code": "INVALID_RANGE", "message": "A finite A1 cell range is required."}
+    address = range_address.strip()
+    if "!" in address:
+        return None, {
+            "code": "INVALID_RANGE",
+            "message": "Sheet-qualified ranges such as Sheet1!A1:B2 are not supported; pass the sheet separately when the command allows it, and use a finite A1 range like A1:B2.",
+        }
+    if ":" in address:
+        start, _, end = address.partition(":")
+        if start and end and (
+            (start.isalpha() and end.isalpha())
+            or (start.isdigit() and end.isdigit())
+        ):
+            return None, {
+                "code": "INVALID_RANGE",
+                "message": "Whole-column and whole-row ranges such as A:A or 1:1 are not supported; use a finite A1 range like A1:A100.",
+            }
     try:
-        min_col, min_row, max_col, max_row = range_boundaries(range_address.strip())
+        min_col, min_row, max_col, max_row = range_boundaries(address)
     except (TypeError, ValueError) as exc:
-        return None, {"code": "INVALID_RANGE", "message": str(exc)}
+        message = str(exc)
+        if "!" in address or message.lower().startswith("invalid"):
+            message = f"{message}; a finite A1 cell range without a sheet qualifier is required."
+        return None, {"code": "INVALID_RANGE", "message": message}
     if not min_col or not min_row or not max_col or not max_row:
         return None, {"code": "INVALID_RANGE", "message": "A finite A1 cell range is required."}
     if max_col > MAX_EXCEL_COLUMNS or max_row > MAX_EXCEL_ROWS:

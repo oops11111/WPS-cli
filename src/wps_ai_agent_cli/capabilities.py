@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import copy
 import platform
 import shutil
 import subprocess
 import sys
+import time
 from collections.abc import Callable
 from typing import Any
 
@@ -28,36 +30,46 @@ def _load_pythoncom() -> Any | None:
 
 
 def _resolve_with_powershell(prog_id: str) -> bool:
+    from .powershell_runner import run_powershell_command
+
     command = (
         "$t = [type]::GetTypeFromProgID("
         + repr(prog_id)
         + "); if ($null -ne $t) { 'true' } else { 'false' }"
     )
-    completed = subprocess.run(
-        [
-            powershell_executable(),
-            "-NoProfile",
-            "-NonInteractive",
-            "-Command",
-            command,
-        ],
-        check=False,
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-        text=True,
-        timeout=10,
-    )
+    completed = run_powershell_command(command, timeout_seconds=10)
     return completed.returncode == 0 and completed.stdout.strip().lower() == "true"
+
+
+CAPABILITY_CACHE_SECONDS = 300.0
+_capability_cache: dict[str, Any] = {"expires": 0.0, "value": None}
+
+
+def clear_capabilities_cache() -> None:
+    _capability_cache["expires"] = 0.0
+    _capability_cache["value"] = None
 
 
 def probe_wps_capabilities(
     clsid_resolver: Callable[[str], object] | None = None,
 ) -> dict[str, Any]:
+    """Probe WPS ProgIDs; results are cached in-process because each probe may start PowerShell."""
+    if clsid_resolver is not None:
+        return _probe_wps_capabilities(clsid_resolver)
+    now = time.monotonic()
+    if _capability_cache["value"] is None or now >= _capability_cache["expires"]:
+        _capability_cache["value"] = _probe_wps_capabilities(None)
+        _capability_cache["expires"] = now + CAPABILITY_CACHE_SECONDS
+    return copy.deepcopy(_capability_cache["value"])
+
+
+def _probe_wps_capabilities(
+    clsid_resolver: Callable[[str], object] | None = None,
+) -> dict[str, Any]:
     system = platform.system()
     pythoncom = None if clsid_resolver else _load_pythoncom()
     pywin32_available = bool(clsid_resolver or pythoncom)
-    is_windows = system == "Windows"
+    is_windows = system == "Windows" or clsid_resolver is not None
     probe_backend = {"powershell_available": False}
 
     def resolve(prog_id: str) -> tuple[bool, str | None]:
@@ -104,7 +116,7 @@ def probe_wps_capabilities(
             "system": system,
             "release": platform.release(),
             "python": sys.version.split()[0],
-            "is_windows": is_windows,
+            "is_windows": system == "Windows",
         },
         "dependencies": {
             "pywin32_available": pywin32_available,

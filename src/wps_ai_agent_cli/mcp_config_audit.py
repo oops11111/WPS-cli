@@ -3,11 +3,13 @@ from __future__ import annotations
 import json
 import math
 import os
+import re
 import shutil
 import subprocess
 import time
 from urllib.parse import urlsplit
 from queue import Empty, Full, Queue
+from contextvars import ContextVar
 from pathlib import Path
 from threading import Event, Thread
 from typing import Any
@@ -27,6 +29,36 @@ MCP_CONFIG_AUDIT_TIMEOUT_MAX_SECONDS = 120
 MCP_CONFIG_AUDIT_MIN_EXPECTED_TOOLS = 1
 MCP_CONFIG_AUDIT_MAX_EXPECTED_TOOLS = 10000
 MCP_CONFIG_AUDIT_MAX_SERVER_NAME_CHARS = 256
+
+
+# Set by the MCP adapter while a tool call is being served. The audit launches the configured server, so a
+# caller that is itself an MCP client must not be able to turn it into arbitrary command execution.
+LAUNCH_RESTRICTED: ContextVar[bool] = ContextVar("mcp_config_audit_launch_restricted", default=False)
+
+EXPECTED_ARGS = ["-m", "wps_ai_agent_cli", "mcp-server"]
+ALLOWED_ENV_KEYS = {"PYTHONPATH"}
+_PACKAGE_INIT = Path(__file__).with_name("__init__.py").resolve()
+
+
+def _is_python_interpreter(command: str) -> bool:
+    name = Path(command).name.casefold()
+    name = name[:-4] if name.endswith(".exe") else name
+    return re.fullmatch(r"python(\d+(\.\d+)*)?", name) is not None
+
+
+def _pythonpath_serves_this_package(pythonpath: Any, cwd: Path | None) -> bool:
+    if not isinstance(pythonpath, str) or cwd is None:
+        return False
+    for entry in pythonpath.split(os.pathsep):
+        if not entry:
+            continue
+        base = Path(entry) if Path(entry).is_absolute() else cwd / entry
+        try:
+            if (base / "wps_ai_agent_cli" / "__init__.py").resolve() == _PACKAGE_INIT:
+                return True
+        except OSError:
+            continue
+    return False
 
 
 def _check(name: str, passed: bool, details: Any) -> dict[str, Any]:
@@ -369,7 +401,9 @@ def audit_mcp_client_config(
     server_name: str = DEFAULT_SERVER_NAME,
     expected_min_tools: int = 1,
     timeout_seconds: int = 15,
+    restrict_launch: bool | None = None,
 ) -> tuple[bool, dict[str, Any], list[dict[str, Any]]]:
+    restricted = LAUNCH_RESTRICTED.get() if restrict_launch is None else restrict_launch
     path = Path(config_path)
     server_name_valid = (
         isinstance(server_name, str)
@@ -476,7 +510,10 @@ def audit_mcp_client_config(
         for key, value in env_overrides.items()
     )
     cwd_path = Path(cwd) if isinstance(cwd, str) and cwd.strip() else None
-    cwd_ok = bool(cwd_path and cwd_path.exists())
+    try:
+        cwd_ok = bool(cwd_path and cwd_path.exists())
+    except OSError:
+        cwd_ok = False
     checks.append(_check(
         "cwd_exists", cwd_ok,
         cwd[:256] if isinstance(cwd, str) else None,
@@ -504,8 +541,33 @@ def audit_mcp_client_config(
         )
     )
 
+    # When the audit is reached through an MCP tool call only this package's own
+    # `python -m wps_ai_agent_cli mcp-server` launch line may be executed; anything else in a config
+    # written by the caller would be arbitrary code execution. Direct CLI use audits any launch line.
+    safe_launch = not restricted or (
+        isinstance(command, str)
+        and _is_python_interpreter(command)
+        and args == EXPECTED_ARGS
+        and isinstance(env_overrides, dict)
+        and set(env_overrides) <= ALLOWED_ENV_KEYS
+        and _pythonpath_serves_this_package(env_overrides.get("PYTHONPATH"), cwd_path)
+    )
+    checks.append(
+        _check(
+            "launch_line_is_this_package",
+            safe_launch,
+            {
+                "enforced": restricted,
+                "requires": "a python interpreter, args exactly -m wps_ai_agent_cli mcp-server, env limited to PYTHONPATH that resolves to this package",
+                "command": command,
+                "argument_count": len(args) if isinstance(args, list) else None,
+                "env_keys": sorted(env_overrides) if isinstance(env_overrides, dict) else None,
+            },
+        )
+    )
+
     smoke: dict[str, Any] | None = None
-    if cwd_ok and command_resolved and args_valid and env_valid:
+    if cwd_ok and command_resolved and args_valid and env_valid and safe_launch:
         base_command = [command_resolved, *args]
         env = os.environ.copy()
         env.update(env_overrides)
@@ -731,7 +793,7 @@ def audit_mcp_client_config(
     else:
         checks.append(_check(
             "configured_tools_list_smoke", False,
-            "Skipped because command, cwd, args, or env validation failed.",
+            "Skipped because command, cwd, args, env or launch-line checks failed; nothing was executed.",
         ))
 
     ok = all(check["passed"] for check in checks)

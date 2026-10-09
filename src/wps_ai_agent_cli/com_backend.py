@@ -2,11 +2,10 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-import subprocess
-import tempfile
+import subprocess  # noqa: F401  (patched by tests)
 from typing import Any
 
-from .capabilities import WPS_COMPONENTS, powershell_executable, probe_wps_capabilities
+from .capabilities import WPS_COMPONENTS, probe_wps_capabilities
 from .errors import (
     COM_BACKEND_UNAVAILABLE,
     COM_OPERATION_FAILED,
@@ -14,6 +13,8 @@ from .errors import (
     INPUT_FILE_NOT_FOUND,
     UNSUPPORTED_COMPONENT,
 )
+from .powershell_runner import run_powershell_script
+from .wps_script_snippets import QUIT_IF_IDLE
 
 
 def _load_win32com() -> Any | None:
@@ -45,6 +46,13 @@ def validate_smoke_inputs(component: str, input_path: str, output_path: str) -> 
             {
                 "code": INPUT_FILE_NOT_FOUND,
                 "message": "Output file path is required.",
+            }
+        )
+    elif input_path and Path(input_path).resolve() == Path(output_path).resolve():
+        errors.append(
+            {
+                "code": COM_OPERATION_FAILED,
+                "message": "output_path must differ from input_path; refusing to overwrite the source document.",
             }
         )
     return errors
@@ -123,79 +131,19 @@ try {{
     try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($document) }} catch {{ }}
   }}
   if ($app -ne $null) {{
-    try {{ $app.Quit() }} catch {{ }}
+    try {{ {QUIT_IF_IDLE} }} catch {{ }}
     try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) }} catch {{ }}
   }}
   [GC]::Collect()
   [GC]::WaitForPendingFinalizers()
 }}
 """
-    script_path = None
-    try:
-        with tempfile.NamedTemporaryFile(
-            "w",
-            suffix=".ps1",
-            delete=False,
-            encoding="utf-8-sig",
-        ) as script_file:
-            script_file.write(script)
-            script_path = script_file.name
-        completed = subprocess.run(
-            [
-                powershell_executable(),
-                "-NoProfile",
-                "-ExecutionPolicy",
-                "Bypass",
-                "-File",
-                script_path,
-            ],
-            check=False,
-            capture_output=True,
-            encoding="utf-8",
-            errors="replace",
-            text=True,
-            timeout=120,
-        )
-    finally:
-        if script_path:
-            try:
-                Path(script_path).unlink(missing_ok=True)
-            except OSError:
-                pass
-    if completed.returncode != 0:
-        parsed_error = None
-        try:
-            parsed_error = json.loads(completed.stdout)
-        except json.JSONDecodeError:
-            parsed_error = None
-        message = (completed.stderr or completed.stdout).strip()
-        if isinstance(parsed_error, dict):
-            message = parsed_error.get("error_message") or message
-        return {
-            "ok": False,
-            "errors": [
-                {
-                    "code": COM_OPERATION_FAILED,
-                    "message": message,
-                }
-            ],
-            "data": {
-                "component": component,
-                "prog_id": prog_id,
-                "backend": "powershell-com",
-                "diagnostic": parsed_error,
-            },
-        }
-    try:
-        payload = json.loads(completed.stdout)
-    except json.JSONDecodeError:
-        payload = {
-            "ok": True,
-            "component": component,
-            "prog_id": prog_id,
-            "backend": "powershell-com",
-            "raw_output": completed.stdout.strip(),
-        }
+    payload, failure = run_powershell_script(
+        script, 120,
+        failure_data={"component": component, "prog_id": prog_id},
+    )
+    if failure is not None:
+        return failure
     return {"ok": True, "errors": [], "data": payload}
 
 
@@ -293,97 +241,31 @@ try {{
     try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($workbook) }} catch {{ }}
   }}
   if ($app -ne $null) {{
-    try {{ $app.Quit() }} catch {{ }}
+    try {{ {QUIT_IF_IDLE} }} catch {{ }}
     try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) }} catch {{ }}
   }}
   [GC]::Collect()
   [GC]::WaitForPendingFinalizers()
 }}
 """
-    script_path = None
-    try:
-        with tempfile.NamedTemporaryFile(
-            "w",
-            suffix=".ps1",
-            delete=False,
-            encoding="utf-8-sig",
-        ) as script_file:
-            script_file.write(script)
-            script_path = script_file.name
-        try:
-            completed = subprocess.run(
-                [
-                    powershell_executable(),
-                    "-NoProfile",
-                    "-ExecutionPolicy",
-                    "Bypass",
-                    "-File",
-                    script_path,
-                ],
-                check=False,
-                capture_output=True,
-                encoding="utf-8",
-                errors="replace",
-                text=True,
-                timeout=timeout_seconds,
-            )
-        except subprocess.TimeoutExpired as exc:
-            return {
-                "ok": False,
-                "errors": [
-                    {
-                        "code": COM_OPERATION_TIMEOUT,
-                        "message": f"Spreadsheet calculation smoke timed out after {timeout_seconds} seconds.",
-                    }
-                ],
-                "data": {
-                    "backend": "powershell-com",
-                    "component": "spreadsheets",
-                    "prog_id": selected_prog_id,
-                    "input_path": params["input_path"],
-                    "output_path": params["output_path"],
-                    "timeout_seconds": timeout_seconds,
-                    "stdout": exc.stdout if isinstance(exc.stdout, str) else "",
-                    "stderr": exc.stderr if isinstance(exc.stderr, str) else "",
-                },
-            }
-    finally:
-        if script_path:
-            try:
-                Path(script_path).unlink(missing_ok=True)
-            except OSError:
-                pass
-
-    try:
-        payload = json.loads(completed.stdout)
-    except json.JSONDecodeError:
-        payload = None
-
-    if completed.returncode != 0 or not isinstance(payload, dict):
-        return {
-            "ok": False,
-            "errors": [
-                {
-                    "code": COM_OPERATION_FAILED,
-                    "message": (
-                        payload.get("error_message")
-                        if isinstance(payload, dict)
-                        else (completed.stderr or completed.stdout).strip()
-                    ),
-                }
-            ],
-            "data": {"diagnostic": payload, "backend": "powershell-com"},
-        }
+    payload, failure = run_powershell_script(
+        script, timeout_seconds,
+        timeout_message=f"Spreadsheet calculation smoke timed out after {timeout_seconds} seconds.",
+        timeout_data={
+            "component": "spreadsheets",
+            "prog_id": selected_prog_id,
+            "input_path": params["input_path"],
+            "output_path": params["output_path"],
+            "timeout_seconds": timeout_seconds,
+        },
+    )
+    if failure is not None:
+        return failure
 
     if not payload.get("ok"):
         return {
             "ok": False,
-            "errors": [
-                {
-                    "code": COM_OPERATION_FAILED,
-                    "message": "Calculated raw/display values did not match expected result.",
-                }
-            ],
+            "errors": [{"code": COM_OPERATION_FAILED, "message": "Calculated raw/display values did not match expected result."}],
             "data": payload,
         }
 
@@ -484,76 +366,21 @@ try {{
     try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($document) }} catch {{ }}
   }}
   if ($app -ne $null) {{
-    try {{ $app.Quit() }} catch {{ }}
+    try {{ {QUIT_IF_IDLE} }} catch {{ }}
     try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) }} catch {{ }}
   }}
   [GC]::Collect()
   [GC]::WaitForPendingFinalizers()
 }}
 """
-    script_path = None
-    try:
-        with tempfile.NamedTemporaryFile(
-            "w",
-            suffix=".ps1",
-            delete=False,
-            encoding="utf-8-sig",
-        ) as script_file:
-            script_file.write(script)
-            script_path = script_file.name
-        completed = subprocess.run(
-            [
-                powershell_executable(),
-                "-NoProfile",
-                "-ExecutionPolicy",
-                "Bypass",
-                "-File",
-                script_path,
-            ],
-            check=False,
-            capture_output=True,
-            encoding="utf-8",
-            errors="replace",
-            text=True,
-            timeout=120,
-        )
-    finally:
-        if script_path:
-            try:
-                Path(script_path).unlink(missing_ok=True)
-            except OSError:
-                pass
-
-    try:
-        payload = json.loads(completed.stdout)
-    except json.JSONDecodeError:
-        payload = None
-
-    if completed.returncode != 0 or not isinstance(payload, dict):
-        return {
-            "ok": False,
-            "errors": [
-                {
-                    "code": COM_OPERATION_FAILED,
-                    "message": (
-                        payload.get("error_message")
-                        if isinstance(payload, dict)
-                        else (completed.stderr or completed.stdout).strip()
-                    ),
-                }
-            ],
-            "data": {"diagnostic": payload, "backend": "powershell-com"},
-        }
+    payload, failure = run_powershell_script(script, 120, failure_data={"component": "writer"})
+    if failure is not None:
+        return failure
 
     if not payload.get("ok"):
         return {
             "ok": False,
-            "errors": [
-                {
-                    "code": COM_OPERATION_FAILED,
-                    "message": "Conversion did not create a non-empty output file.",
-                }
-            ],
+            "errors": [{"code": COM_OPERATION_FAILED, "message": "Conversion did not create a non-empty output file."}],
             "data": payload,
         }
 

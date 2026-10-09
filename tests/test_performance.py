@@ -40,7 +40,7 @@ class PerformanceBaselineTests(unittest.TestCase):
     def test_mcp_scenarios_require_the_current_catalog_size(self):
         scenarios = {item["id"]: item["command"] for item in PERFORMANCE_BASELINE_COMMANDS}
         expected = str(MCP_BASELINE_EXPECTED_TOOL_COUNT)
-        self.assertEqual(MCP_BASELINE_EXPECTED_TOOL_COUNT, 81)
+        self.assertEqual(MCP_BASELINE_EXPECTED_TOOL_COUNT, 70)
         self.assertEqual(
             scenarios["mcp-smoke"][scenarios["mcp-smoke"].index("--expected-min-tools") + 1],
             expected,

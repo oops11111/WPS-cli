@@ -7,6 +7,24 @@ from wps_ai_agent_cli.mcp_schema import (
 )
 
 
+REMOVED_REPORTING_COMMANDS = frozenset({
+    "artifact-retention-summary",
+    "project-status",
+    "workspace-health",
+    "local-handoff-summary",
+    "validation-runbook",
+    "documentation-freshness",
+    "regression-evidence",
+    "regression-history",
+    "cloud-sync-package",
+    "sync-package-inspect",
+    "sync-package-summary",
+    "sync-package-manifest",
+    "sync-package-coverage",
+    "sync-package-readiness",
+})
+
+
 class McpSchemaTests(unittest.TestCase):
     def test_schema_names_are_unique_and_cover_current_cli_surface(self):
         schemas = list_mcp_tool_schemas()
@@ -25,25 +43,13 @@ class McpSchemaTests(unittest.TestCase):
         self.assertIn("wps-process-audit", commands)
         self.assertIn("cleanup-plan", commands)
         self.assertIn("cleanup-approval-manifest", commands)
-        self.assertIn("artifact-retention-summary", commands)
-        self.assertIn("project-status", commands)
-        self.assertIn("workspace-health", commands)
-        self.assertIn("local-handoff-summary", commands)
-        self.assertIn("validation-runbook", commands)
-        self.assertIn("documentation-freshness", commands)
         self.assertIn("mcp-smoke", commands)
         self.assertIn("mcp-config-audit", commands)
         self.assertIn("regression-manifest", commands)
         self.assertIn("regression-run", commands)
-        self.assertIn("regression-evidence", commands)
-        self.assertIn("regression-history", commands)
-        self.assertIn("cloud-sync-package", commands)
-        self.assertIn("sync-package-inspect", commands)
-        self.assertIn("sync-package-summary", commands)
-        self.assertIn("sync-package-manifest", commands)
-        self.assertIn("sync-package-coverage", commands)
-        self.assertIn("sync-package-readiness", commands)
         self.assertIn("security-audit", commands)
+        for removed in REMOVED_REPORTING_COMMANDS | {"local-release-gates"}:
+            self.assertNotIn(removed, commands)
         self.assertIn("performance-baseline", commands)
         self.assertIn("writer-table-write", commands)
         self.assertIn("writer-table-smoke", commands)

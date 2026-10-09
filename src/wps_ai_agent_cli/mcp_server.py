@@ -255,7 +255,10 @@ def handle_mcp_request(message: dict[str, Any]) -> dict[str, Any] | None:
         argument_errors = validate_mcp_tool_arguments(name, arguments)
         if argument_errors:
             return _error_response(request_id, -32602, "Invalid tool arguments.", argument_errors)
-        return _response(request_id, _tools_call_result(name, arguments))
+        try:
+            return _response(request_id, _tools_call_result(name, arguments))
+        except Exception as exc:  # noqa: BLE001
+            return _error_response(request_id, -32603, f"Tool call failed unexpectedly: {type(exc).__name__}")
 
     return _error_response(request_id, -32601, f"Method not found: {method}")
 

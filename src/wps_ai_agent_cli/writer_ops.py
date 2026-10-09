@@ -3,14 +3,13 @@ from __future__ import annotations
 import json
 import hashlib
 from pathlib import Path
-import subprocess
-import tempfile
 from typing import Any
 import xml.etree.ElementTree as ET
 from zipfile import ZipFile
 
 from .backups import create_backup, guarded_com_mutation, verify_post_com_source
-from .capabilities import powershell_executable, probe_wps_capabilities
+from .capabilities import probe_wps_capabilities
+from .powershell_runner import run_powershell_script
 from .document_text import (
     count_text_in_docx,
     count_text_in_docx_paragraph,
@@ -24,13 +23,18 @@ from .document_text import (
     docx_body_drawing_semantics,
     docx_bookmark_overlaps_link_or_field,
     docx_bookmark_precedes_character_anchor,
+    docx_table_cell_rich_content,
     docx_table_cell_text,
 )
-from .errors import COM_BACKEND_UNAVAILABLE, COM_OPERATION_FAILED, INPUT_FILE_NOT_FOUND
+
+WORD_FIND_TEXT_MAX_CHARS = 255
+from .errors import COM_BACKEND_UNAVAILABLE, INPUT_FILE_NOT_FOUND
 from .mutation_lock import coordinated_mutation
 from .operations import record_operation, replay_operation
 from .sessions import get_document
 from .writer_structure import W, read_body_bookmark_text, read_supported_bookmark_text, read_writer_structure
+from .wps_script_snippets import QUIT_IF_IDLE
+from .ooxml import parse_xml_part, read_zip_part
 
 
 BODY_PARTS = ("word/document.xml",)
@@ -38,7 +42,7 @@ BODY_PARTS = ("word/document.xml",)
 
 def _body_ends_with_table(path: Path) -> bool:
     with ZipFile(path) as archive:
-        root = ET.fromstring(archive.read("word/document.xml"))
+        root = parse_xml_part(archive, "word/document.xml")
     body = root.find(f"{W}body")
     content = [child for child in body if child.tag != f"{W}sectPr"] if body is not None else []
     return bool(content and content[-1].tag == f"{W}tbl")
@@ -164,67 +168,18 @@ try {{
     try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($document) }} catch {{ }}
   }}
   if ($app -ne $null) {{
-    try {{ $app.Quit() }} catch {{ }}
+    try {{ {QUIT_IF_IDLE} }} catch {{ }}
     try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) }} catch {{ }}
   }}
   [GC]::Collect()
   [GC]::WaitForPendingFinalizers()
 }}
 """
-    script_path = None
-    try:
-        with tempfile.NamedTemporaryFile(
-            "w",
-            suffix=".ps1",
-            delete=False,
-            encoding="utf-8-sig",
-        ) as script_file:
-            script_file.write(script)
-            script_path = script_file.name
-        completed = subprocess.run(
-            [
-                powershell_executable(),
-                "-NoProfile",
-                "-ExecutionPolicy",
-                "Bypass",
-                "-File",
-                script_path,
-            ],
-            check=False,
-            capture_output=True,
-            encoding="utf-8",
-            errors="replace",
-            text=True,
-            timeout=120,
-        )
-    finally:
-        if script_path:
-            try:
-                Path(script_path).unlink(missing_ok=True)
-            except OSError:
-                pass
-
-    try:
-        payload = json.loads(completed.stdout)
-    except json.JSONDecodeError:
-        payload = None
-
-    if completed.returncode != 0 or not isinstance(payload, dict):
-        return {
-            "ok": False,
-            "errors": [
-                {
-                    "code": COM_OPERATION_FAILED,
-                    "message": (
-                        payload.get("error_message")
-                        if isinstance(payload, dict)
-                        else (completed.stderr or completed.stdout).strip()
-                    ),
-                }
-            ],
-            "data": {"diagnostic": payload, "backend": "powershell-com"},
-        }
+    payload, failure = run_powershell_script(script, raise_process_errors=True)
+    if failure is not None:
+        return failure
     return {"ok": True, "errors": [], "data": payload}
+
 
 
 def _run_writer_bookmark_fill_com(path: str, name: str, value: str, expected_text: str) -> dict[str, Any]:
@@ -261,29 +216,15 @@ try {{
   exit 2
 }} finally {{
   if ($document -ne $null) {{ try {{ $document.Close($false) }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($document) }} catch {{ }} }}
-  if ($app -ne $null) {{ try {{ $app.Quit() }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) }} catch {{ }} }}
+  if ($app -ne $null) {{ try {{ {QUIT_IF_IDLE} }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) }} catch {{ }} }}
   [GC]::Collect(); [GC]::WaitForPendingFinalizers()
 }}
 """
-    script_path = None
-    try:
-        with tempfile.NamedTemporaryFile("w", suffix=".ps1", delete=False, encoding="utf-8-sig") as script_file:
-            script_file.write(script)
-            script_path = script_file.name
-        completed = subprocess.run(
-            [powershell_executable(), "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", script_path],
-            check=False, capture_output=True, encoding="utf-8", errors="replace", text=True, timeout=120,
-        )
-    finally:
-        if script_path:
-            Path(script_path).unlink(missing_ok=True)
-    try:
-        payload = json.loads(completed.stdout)
-    except json.JSONDecodeError:
-        payload = None
-    if completed.returncode != 0 or not isinstance(payload, dict):
-        return {"ok": False, "errors": [{"code": COM_OPERATION_FAILED, "message": payload.get("error_message") if isinstance(payload, dict) else (completed.stderr or completed.stdout).strip()}], "data": {"diagnostic": payload, "backend": "powershell-com"}}
+    payload, failure = run_powershell_script(script, raise_process_errors=True)
+    if failure is not None:
+        return failure
     return {"ok": True, "errors": [], "data": payload}
+
 
 
 @coordinated_mutation
@@ -514,67 +455,18 @@ try {{
     try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($document) }} catch {{ }}
   }}
   if ($app -ne $null) {{
-    try {{ $app.Quit() }} catch {{ }}
+    try {{ {QUIT_IF_IDLE} }} catch {{ }}
     try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) }} catch {{ }}
   }}
   [GC]::Collect()
   [GC]::WaitForPendingFinalizers()
 }}
 """
-    script_path = None
-    try:
-        with tempfile.NamedTemporaryFile(
-            "w",
-            suffix=".ps1",
-            delete=False,
-            encoding="utf-8-sig",
-        ) as script_file:
-            script_file.write(script)
-            script_path = script_file.name
-        completed = subprocess.run(
-            [
-                powershell_executable(),
-                "-NoProfile",
-                "-ExecutionPolicy",
-                "Bypass",
-                "-File",
-                script_path,
-            ],
-            check=False,
-            capture_output=True,
-            encoding="utf-8",
-            errors="replace",
-            text=True,
-            timeout=120,
-        )
-    finally:
-        if script_path:
-            try:
-                Path(script_path).unlink(missing_ok=True)
-            except OSError:
-                pass
-
-    try:
-        payload = json.loads(completed.stdout)
-    except json.JSONDecodeError:
-        payload = None
-
-    if completed.returncode != 0 or not isinstance(payload, dict):
-        return {
-            "ok": False,
-            "errors": [
-                {
-                    "code": COM_OPERATION_FAILED,
-                    "message": (
-                        payload.get("error_message")
-                        if isinstance(payload, dict)
-                        else (completed.stderr or completed.stdout).strip()
-                    ),
-                }
-            ],
-            "data": {"diagnostic": payload, "backend": "powershell-com"},
-        }
+    payload, failure = run_powershell_script(script, raise_process_errors=True)
+    if failure is not None:
+        return failure
     return {"ok": True, "errors": [], "data": payload}
+
 
 
 @coordinated_mutation
@@ -600,6 +492,19 @@ def writer_replace(
             False,
             {},
             [{"code": "INVALID_ARGUMENT", "message": "find_text must not be empty."}],
+            False,
+        )
+    if len(find_text) > WORD_FIND_TEXT_MAX_CHARS:
+        return (
+            False,
+            {},
+            [{
+                "code": "FIND_TEXT_TOO_LONG",
+                "message": (
+                    f"find_text is {len(find_text)} characters; Word Find.Text accepts at most "
+                    f"{WORD_FIND_TEXT_MAX_CHARS}. Shorten the search text or split the replace."
+                ),
+            }],
             False,
         )
     if paragraph_index is not None and paragraph_index < 1:
@@ -765,11 +670,20 @@ def writer_table_write(
     text: str,
     request_id: str,
     dry_run: bool = False,
+    allow_rich_content: bool = False,
     workspace: str | Path = ".",
 ) -> tuple[bool, dict[str, Any], list[dict[str, str]], bool]:
     replay = replay_operation(
         request_id, "writer-table-write",
-        {"document_id": document_id, "table_index": table_index, "row": row, "column": column, "replacement_text": text, "dry_run": dry_run},
+        {
+            "document_id": document_id,
+            "table_index": table_index,
+            "row": row,
+            "column": column,
+            "replacement_text": text,
+            "dry_run": dry_run,
+            "allow_rich_content": allow_rich_content,
+        },
         workspace,
     )
     if replay is not None:
@@ -780,6 +694,14 @@ def writer_table_write(
             False,
             {},
             [{"code": "INVALID_ARGUMENT", "message": "table_index, row, and column must be 1 or greater."}],
+            False,
+        )
+
+    if len(text) > 4096 or any(ord(char) < 32 or ord(char) == 127 for char in text):
+        return (
+            False,
+            {},
+            [{"code": "INVALID_ARGUMENT", "message": "Table-cell text must be at most 4096 characters on one line without control characters."}],
             False,
         )
 
@@ -843,6 +765,7 @@ def writer_table_write(
             False,
         )
 
+    rich_kinds = docx_table_cell_rich_content(path, table_index, row, column) or []
     preview = {
         "document_id": document_id,
         "component": "writer",
@@ -855,7 +778,23 @@ def writer_table_write(
         "replacement_text": text,
         "would_modify": current_text != text,
         "dry_run": dry_run,
+        "rich_content": rich_kinds,
+        "allow_rich_content": allow_rich_content,
     }
+    if rich_kinds and not allow_rich_content:
+        return (
+            False,
+            preview,
+            [{
+                "code": "CELL_HAS_RICH_CONTENT",
+                "message": (
+                    "Target cell contains rich content that a text write would discard: "
+                    + ", ".join(rich_kinds)
+                    + ". Re-run with --allow-rich-content if discarding it is intentional."
+                ),
+            }],
+            False,
+        )
     if dry_run:
         return True, preview, [], False
 

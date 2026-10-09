@@ -58,9 +58,9 @@ class RegressionTests(unittest.TestCase):
         self.assertTrue(ok, errors)
         safe = {item["id"] for item in list_regression_scenarios(manifest, profile="safe")}
         release = {item["id"] for item in list_regression_scenarios(manifest, profile="release")}
-        self.assertEqual(release, {"local-handoff-summary", "regression-evidence", "regression-history"})
+        self.assertEqual(release, set())
         self.assertFalse(safe & release)
-        self.assertIn("sync-package-readiness", safe)
+        self.assertIn("mcp-catalog-drift", safe)
 
     def test_run_safe_regression_manifest(self):
         fixture = Path(__file__).parent / "fixtures" / "regression_contract.json"

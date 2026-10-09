@@ -28,13 +28,13 @@ class CleanupPlanTests(unittest.TestCase):
 
             plan = build_cleanup_plan(workspace)
 
-            candidate_paths = {item["path"] for item in plan["candidates"]}
+            candidate_paths = {item["path"].replace("\\", "/") for item in plan["candidates"]}
             self.assertTrue(plan["read_only"])
             self.assertFalse(plan["deletion_performed"])
             self.assertTrue(plan["approval_required"])
-            self.assertIn("fixtures\\phase3\\phase0_calculation_smoke_timeout_probe.xlsx", candidate_paths)
-            self.assertIn("artifacts\\regression\\safe\\regression-run-20261003T000000Z-old.json", candidate_paths)
-            self.assertIn("artifacts\\cloud-sync\\wps-ai-agent-cli-phase3-sync-20261003.zip", candidate_paths)
+            self.assertIn("fixtures/phase3/phase0_calculation_smoke_timeout_probe.xlsx", candidate_paths)
+            self.assertIn("artifacts/regression/safe/regression-run-20261003T000000Z-old.json", candidate_paths)
+            self.assertIn("artifacts/cloud-sync/wps-ai-agent-cli-phase3-sync-20261003.zip", candidate_paths)
             self.assertIn(".wps-agent/backups", candidate_paths)
             self.assertTrue(probe.exists())
 

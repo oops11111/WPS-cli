@@ -1,25 +1,27 @@
 from __future__ import annotations
 
 import json
+import math
 import posixpath
 from pathlib import Path
-import subprocess
-import tempfile
 from typing import Any
 from xml.etree import ElementTree as ET
 from zipfile import ZipFile
 
-from openpyxl import load_workbook
+from .ooxml import load_workbook_guarded as load_workbook
 from openpyxl.utils.cell import get_column_letter, range_boundaries
 from openpyxl.styles.numbers import is_date_format
 
 from .backups import create_backup, guarded_com_mutation, verify_post_com_source
-from .capabilities import powershell_executable, probe_wps_capabilities
+from .capabilities import probe_wps_capabilities
+from .powershell_runner import run_powershell_script
 from .errors import COM_BACKEND_UNAVAILABLE, COM_OPERATION_FAILED, INPUT_FILE_NOT_FOUND
 from .mutation_lock import coordinated_mutation
 from .operations import record_operation, replay_operation
 from .sessions import get_document
 from .spreadsheet_ranges import validate_spreadsheet_read_range
+from .wps_script_snippets import QUIT_IF_IDLE
+from .ooxml import parse_xml_part, read_zip_part
 
 
 def _format_category(cell: Any) -> str:
@@ -307,32 +309,14 @@ try {{
   exit 2
 }} finally {{
   if ($workbook -ne $null) {{ try {{ $workbook.Close($false) }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($workbook) }} catch {{ }} }}
-  if ($app -ne $null) {{ try {{ $app.Quit() }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) }} catch {{ }} }}
+  if ($app -ne $null) {{ try {{ {QUIT_IF_IDLE} }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) }} catch {{ }} }}
   [GC]::Collect(); [GC]::WaitForPendingFinalizers()
 }}
 """
-    script_path = None
-    try:
-        with tempfile.NamedTemporaryFile("w", suffix=".ps1", delete=False, encoding="utf-8-sig") as stream:
-            stream.write(script)
-            script_path = stream.name
-        completed = subprocess.run(
-            [powershell_executable(), "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", script_path],
-            check=False, capture_output=True, encoding="utf-8", errors="replace", text=True, timeout=120,
-        )
-    except (OSError, subprocess.TimeoutExpired) as exc:
-        return {"ok": False, "errors": [{"code": COM_OPERATION_FAILED, "message": str(exc)}], "data": {}}
-    finally:
-        if script_path:
-            try:
-                Path(script_path).unlink(missing_ok=True)
-            except OSError:
-                pass
-    try:
-        payload = json.loads(completed.stdout)
-    except json.JSONDecodeError as exc:
-        return {"ok": False, "errors": [{"code": COM_OPERATION_FAILED, "message": f"WPS returned invalid JSON: {exc}"}], "data": {}}
-    if completed.returncode != 0 or not payload.get("ok"):
+    payload, failure = run_powershell_script(script)
+    if failure is not None:
+        return failure
+    if not payload.get("ok"):
         return {"ok": False, "errors": [{"code": COM_OPERATION_FAILED, "message": payload.get("error_message", "WPS worksheet rename failed.")}], "data": {"diagnostic": payload}}
     if isinstance(payload.get("sheet_names"), str):
         payload["sheet_names"] = [payload["sheet_names"]]
@@ -455,32 +439,14 @@ try {{
   exit 2
 }} finally {{
   if ($workbook -ne $null) {{ try {{ $workbook.Close($false) }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($workbook) }} catch {{ }} }}
-  if ($app -ne $null) {{ try {{ $app.Quit() }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) }} catch {{ }} }}
+  if ($app -ne $null) {{ try {{ {QUIT_IF_IDLE} }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) }} catch {{ }} }}
   [GC]::Collect(); [GC]::WaitForPendingFinalizers()
 }}
 """
-    script_path = None
-    try:
-        with tempfile.NamedTemporaryFile("w", suffix=".ps1", delete=False, encoding="utf-8-sig") as stream:
-            stream.write(script)
-            script_path = stream.name
-        completed = subprocess.run(
-            [powershell_executable(), "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", script_path],
-            check=False, capture_output=True, encoding="utf-8", errors="replace", text=True, timeout=120,
-        )
-    except (OSError, subprocess.TimeoutExpired) as exc:
-        return {"ok": False, "errors": [{"code": COM_OPERATION_FAILED, "message": str(exc)}], "data": {}}
-    finally:
-        if script_path:
-            try:
-                Path(script_path).unlink(missing_ok=True)
-            except OSError:
-                pass
-    try:
-        payload = json.loads(completed.stdout)
-    except json.JSONDecodeError as exc:
-        return {"ok": False, "errors": [{"code": COM_OPERATION_FAILED, "message": f"WPS returned invalid JSON: {exc}"}], "data": {}}
-    if completed.returncode != 0 or not payload.get("ok"):
+    payload, failure = run_powershell_script(script)
+    if failure is not None:
+        return failure
+    if not payload.get("ok"):
         return {"ok": False, "errors": [{"code": COM_OPERATION_FAILED, "message": payload.get("error_message", "WPS worksheet creation failed.")}], "data": {"diagnostic": payload}}
     if isinstance(payload.get("sheet_names"), str):
         payload["sheet_names"] = [payload["sheet_names"]]
@@ -595,29 +561,14 @@ try {{
   exit 2
 }} finally {{
   if ($workbook -ne $null) {{ try {{ $workbook.Close($false) }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($workbook) }} catch {{ }} }}
-  if ($app -ne $null) {{ try {{ $app.Quit() }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) }} catch {{ }} }}
+  if ($app -ne $null) {{ try {{ {QUIT_IF_IDLE} }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) }} catch {{ }} }}
   [GC]::Collect(); [GC]::WaitForPendingFinalizers()
 }}
 """
-    script_path = None
-    try:
-        with tempfile.NamedTemporaryFile("w", suffix=".ps1", delete=False, encoding="utf-8-sig") as stream:
-            stream.write(script)
-            script_path = stream.name
-        completed = subprocess.run([powershell_executable(), "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", script_path], check=False, capture_output=True, encoding="utf-8", errors="replace", text=True, timeout=120)
-    except (OSError, subprocess.TimeoutExpired) as exc:
-        return {"ok": False, "errors": [{"code": COM_OPERATION_FAILED, "message": str(exc)}], "data": {}}
-    finally:
-        if script_path:
-            try:
-                Path(script_path).unlink(missing_ok=True)
-            except OSError:
-                pass
-    try:
-        payload = json.loads(completed.stdout)
-    except json.JSONDecodeError as exc:
-        return {"ok": False, "errors": [{"code": COM_OPERATION_FAILED, "message": f"WPS returned invalid JSON: {exc}"}], "data": {}}
-    if completed.returncode != 0 or not payload.get("ok"):
+    payload, failure = run_powershell_script(script)
+    if failure is not None:
+        return failure
+    if not payload.get("ok"):
         return {"ok": False, "errors": [{"code": COM_OPERATION_FAILED, "message": payload.get("error_message", "WPS worksheet visibility update failed.")}], "data": {"diagnostic": payload}}
     if isinstance(payload.get("sheet_states"), dict):
         payload["sheet_states"] = [payload["sheet_states"]]
@@ -714,29 +665,14 @@ try {{
   exit 2
 }} finally {{
   if ($workbook -ne $null) {{ try {{ $workbook.Close($false) }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($workbook) }} catch {{ }} }}
-  if ($app -ne $null) {{ try {{ $app.Quit() }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) }} catch {{ }} }}
+  if ($app -ne $null) {{ try {{ {QUIT_IF_IDLE} }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) }} catch {{ }} }}
   [GC]::Collect(); [GC]::WaitForPendingFinalizers()
 }}
 """
-    script_path = None
-    try:
-        with tempfile.NamedTemporaryFile("w", suffix=".ps1", delete=False, encoding="utf-8-sig") as stream:
-            stream.write(script)
-            script_path = stream.name
-        completed = subprocess.run([powershell_executable(), "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", script_path], check=False, capture_output=True, encoding="utf-8", errors="replace", text=True, timeout=120)
-    except (OSError, subprocess.TimeoutExpired) as exc:
-        return {"ok": False, "errors": [{"code": COM_OPERATION_FAILED, "message": str(exc)}], "data": {}}
-    finally:
-        if script_path:
-            try:
-                Path(script_path).unlink(missing_ok=True)
-            except OSError:
-                pass
-    try:
-        payload = json.loads(completed.stdout)
-    except json.JSONDecodeError as exc:
-        return {"ok": False, "errors": [{"code": COM_OPERATION_FAILED, "message": f"WPS returned invalid JSON: {exc}"}], "data": {}}
-    if completed.returncode != 0 or not payload.get("ok"):
+    payload, failure = run_powershell_script(script)
+    if failure is not None:
+        return failure
+    if not payload.get("ok"):
         return {"ok": False, "errors": [{"code": COM_OPERATION_FAILED, "message": payload.get("error_message", "WPS worksheet deletion failed.")}], "data": {"diagnostic": payload}}
     if isinstance(payload.get("sheet_names"), str):
         payload["sheet_names"] = [payload["sheet_names"]]
@@ -833,29 +769,14 @@ try {{
   exit 2
 }} finally {{
   if ($workbook -ne $null) {{ try {{ $workbook.Close($false) }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($workbook) }} catch {{ }} }}
-  if ($app -ne $null) {{ try {{ $app.Quit() }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) }} catch {{ }} }}
+  if ($app -ne $null) {{ try {{ {QUIT_IF_IDLE} }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) }} catch {{ }} }}
   [GC]::Collect(); [GC]::WaitForPendingFinalizers()
 }}
 """
-    script_path = None
-    try:
-        with tempfile.NamedTemporaryFile("w", suffix=".ps1", delete=False, encoding="utf-8-sig") as stream:
-            stream.write(script)
-            script_path = stream.name
-        completed = subprocess.run([powershell_executable(), "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", script_path], check=False, capture_output=True, encoding="utf-8", errors="replace", text=True, timeout=120)
-    except (OSError, subprocess.TimeoutExpired) as exc:
-        return {"ok": False, "errors": [{"code": COM_OPERATION_FAILED, "message": str(exc)}], "data": {}}
-    finally:
-        if script_path:
-            try:
-                Path(script_path).unlink(missing_ok=True)
-            except OSError:
-                pass
-    try:
-        payload = json.loads(completed.stdout)
-    except json.JSONDecodeError as exc:
-        return {"ok": False, "errors": [{"code": COM_OPERATION_FAILED, "message": f"WPS returned invalid JSON: {exc}"}], "data": {}}
-    if completed.returncode != 0 or not payload.get("ok"):
+    payload, failure = run_powershell_script(script)
+    if failure is not None:
+        return failure
+    if not payload.get("ok"):
         return {"ok": False, "errors": [{"code": COM_OPERATION_FAILED, "message": payload.get("error_message", "WPS worksheet copy failed.")}], "data": {"diagnostic": payload}}
     if isinstance(payload.get("sheet_names"), str):
         payload["sheet_names"] = [payload["sheet_names"]]
@@ -949,8 +870,8 @@ def _read_ignored_errors(path: Path) -> dict[str, dict[str, Any]]:
     relationship_namespace = "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}"
     package_relationship_namespace = "{http://schemas.openxmlformats.org/package/2006/relationships}"
     with ZipFile(path) as archive:
-        workbook_root = ET.fromstring(archive.read("xl/workbook.xml"))
-        relationships_root = ET.fromstring(archive.read("xl/_rels/workbook.xml.rels"))
+        workbook_root = parse_xml_part(archive, "xl/workbook.xml")
+        relationships_root = parse_xml_part(archive, "xl/_rels/workbook.xml.rels")
         relationships = {
             item.attrib["Id"]: item.attrib["Target"]
             for item in relationships_root.findall(f"{package_relationship_namespace}Relationship")
@@ -1017,29 +938,14 @@ try {{
   exit 2
 }} finally {{
   if ($workbook -ne $null) {{ try {{ $workbook.Close($false) }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($workbook) }} catch {{ }} }}
-  if ($app -ne $null) {{ try {{ $app.Quit() }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) }} catch {{ }} }}
+  if ($app -ne $null) {{ try {{ {QUIT_IF_IDLE} }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) }} catch {{ }} }}
   [GC]::Collect(); [GC]::WaitForPendingFinalizers()
 }}
 """
-    script_path = None
-    try:
-        with tempfile.NamedTemporaryFile("w", suffix=".ps1", delete=False, encoding="utf-8-sig") as stream:
-            stream.write(script)
-            script_path = stream.name
-        completed = subprocess.run([powershell_executable(), "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", script_path], check=False, capture_output=True, encoding="utf-8", errors="replace", text=True, timeout=120)
-    except (OSError, subprocess.TimeoutExpired) as exc:
-        return {"ok": False, "errors": [{"code": COM_OPERATION_FAILED, "message": str(exc)}], "data": {}}
-    finally:
-        if script_path:
-            try:
-                Path(script_path).unlink(missing_ok=True)
-            except OSError:
-                pass
-    try:
-        payload = json.loads(completed.stdout)
-    except json.JSONDecodeError as exc:
-        return {"ok": False, "errors": [{"code": COM_OPERATION_FAILED, "message": f"WPS returned invalid JSON: {exc}"}], "data": {}}
-    if completed.returncode != 0 or not payload.get("ok"):
+    payload, failure = run_powershell_script(script)
+    if failure is not None:
+        return failure
+    if not payload.get("ok"):
         return {"ok": False, "errors": [{"code": COM_OPERATION_FAILED, "message": payload.get("error_message", "WPS tab color update failed.")}], "data": {"diagnostic": payload}}
     return {"ok": True, "errors": [], "data": payload}
 
@@ -1116,6 +1022,37 @@ def _matrix_shape(values: list[list[Any]]) -> tuple[int, int]:
     return len(values), width
 
 
+FORMULA_PREFIXES = ("=", "+", "-", "@")
+
+
+def _validate_write_values(values: list[list[Any]]) -> dict[str, Any] | None:
+    for row_index, row in enumerate(values):
+        for column_index, value in enumerate(row):
+            position = {"row": row_index + 1, "column": column_index + 1}
+            if value is not None and not isinstance(value, (str, int, float, bool)):
+                return {
+                    "code": "INVALID_ARGUMENT",
+                    "message": f"values_json cell ({position['row']},{position['column']}) must be null, string, number or boolean.",
+                    "details": position,
+                }
+            if isinstance(value, float) and not math.isfinite(value):
+                return {
+                    "code": "INVALID_ARGUMENT",
+                    "message": f"values_json cell ({position['row']},{position['column']}) must be a finite number.",
+                    "details": position,
+                }
+            if isinstance(value, str) and value.startswith(FORMULA_PREFIXES):
+                return {
+                    "code": "FORMULA_PREFIX_REJECTED",
+                    "message": (
+                        f"values_json cell ({position['row']},{position['column']}) starts with {value[0]!r}; "
+                        "WPS would evaluate it as a formula. Use spreadsheet-formula-write for formulas."
+                    ),
+                    "details": position,
+                }
+    return None
+
+
 def _run_spreadsheet_write_com(
     path: str,
     sheet_name: str | None,
@@ -1173,6 +1110,8 @@ try {{
       $value = $row[$c]
       if ($null -eq $value) {{
         $cell.Value2 = $null
+      }} elseif ($value -is [bool]) {{
+        $cell.Value2 = [bool]$value
       }} elseif ($value -is [int] -or $value -is [long] -or $value -is [double] -or $value -is [decimal]) {{
         $cell.Value2 = [double]$value
       }} else {{
@@ -1209,67 +1148,18 @@ try {{
     try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($workbook) }} catch {{ }}
   }}
   if ($app -ne $null) {{
-    try {{ $app.Quit() }} catch {{ }}
+    try {{ {QUIT_IF_IDLE} }} catch {{ }}
     try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) }} catch {{ }}
   }}
   [GC]::Collect()
   [GC]::WaitForPendingFinalizers()
 }}
 """
-    script_path = None
-    try:
-        with tempfile.NamedTemporaryFile(
-            "w",
-            suffix=".ps1",
-            delete=False,
-            encoding="utf-8-sig",
-        ) as script_file:
-            script_file.write(script)
-            script_path = script_file.name
-        completed = subprocess.run(
-            [
-                powershell_executable(),
-                "-NoProfile",
-                "-ExecutionPolicy",
-                "Bypass",
-                "-File",
-                script_path,
-            ],
-            check=False,
-            capture_output=True,
-            encoding="utf-8",
-            errors="replace",
-            text=True,
-            timeout=120,
-        )
-    finally:
-        if script_path:
-            try:
-                Path(script_path).unlink(missing_ok=True)
-            except OSError:
-                pass
-
-    try:
-        payload = json.loads(completed.stdout)
-    except json.JSONDecodeError:
-        payload = None
-
-    if completed.returncode != 0 or not isinstance(payload, dict):
-        return {
-            "ok": False,
-            "errors": [
-                {
-                    "code": COM_OPERATION_FAILED,
-                    "message": (
-                        payload.get("error_message")
-                        if isinstance(payload, dict)
-                        else (completed.stderr or completed.stdout).strip()
-                    ),
-                }
-            ],
-            "data": {"diagnostic": payload, "backend": "powershell-com"},
-        }
+    payload, failure = run_powershell_script(script, raise_process_errors=True)
+    if failure is not None:
+        return failure
     return {"ok": True, "errors": [], "data": payload}
+
 
 
 def _run_spreadsheet_formula_write_com(
@@ -1364,67 +1254,18 @@ try {{
     try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($workbook) }} catch {{ }}
   }}
   if ($app -ne $null) {{
-    try {{ $app.Quit() }} catch {{ }}
+    try {{ {QUIT_IF_IDLE} }} catch {{ }}
     try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) }} catch {{ }}
   }}
   [GC]::Collect()
   [GC]::WaitForPendingFinalizers()
 }}
 """
-    script_path = None
-    try:
-        with tempfile.NamedTemporaryFile(
-            "w",
-            suffix=".ps1",
-            delete=False,
-            encoding="utf-8-sig",
-        ) as script_file:
-            script_file.write(script)
-            script_path = script_file.name
-        completed = subprocess.run(
-            [
-                powershell_executable(),
-                "-NoProfile",
-                "-ExecutionPolicy",
-                "Bypass",
-                "-File",
-                script_path,
-            ],
-            check=False,
-            capture_output=True,
-            encoding="utf-8",
-            errors="replace",
-            text=True,
-            timeout=120,
-        )
-    finally:
-        if script_path:
-            try:
-                Path(script_path).unlink(missing_ok=True)
-            except OSError:
-                pass
-
-    try:
-        payload = json.loads(completed.stdout)
-    except json.JSONDecodeError:
-        payload = None
-
-    if completed.returncode != 0 or not isinstance(payload, dict):
-        return {
-            "ok": False,
-            "errors": [
-                {
-                    "code": COM_OPERATION_FAILED,
-                    "message": (
-                        payload.get("error_message")
-                        if isinstance(payload, dict)
-                        else (completed.stderr or completed.stdout).strip()
-                    ),
-                }
-            ],
-            "data": {"diagnostic": payload, "backend": "powershell-com"},
-        }
+    payload, failure = run_powershell_script(script, raise_process_errors=True)
+    if failure is not None:
+        return failure
     return {"ok": True, "errors": [], "data": payload}
+
 
 
 @coordinated_mutation
@@ -1451,6 +1292,9 @@ def write_spreadsheet_range(
         return False, {}, [{"code": "INVALID_ARGUMENT", "message": str(exc)}], False
     if row_count == 0 or column_count == 0:
         return False, {}, [{"code": "INVALID_ARGUMENT", "message": "values_json must not be empty."}], False
+    value_error = _validate_write_values(values)
+    if value_error is not None:
+        return False, {}, [value_error], False
 
     bounds, range_error = validate_spreadsheet_read_range(range_address)
     if range_error:

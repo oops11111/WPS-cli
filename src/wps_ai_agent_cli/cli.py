@@ -3,37 +3,28 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from collections.abc import Callable
 from typing import TextIO
 from uuid import uuid4
 
 from .artifacts import write_json_artifact
-from .artifact_retention import build_artifact_retention_summary
+from .cli_parser import build_parser
 from .backups import create_backup, list_backups, restore_backup
 from .batch_report import build_batch_report
 from .batch_conversion import convert_html_batch, inspect_batch_request
 from .capabilities import probe_wps_capabilities
 from .cleanup_approval import build_cleanup_approval_manifest
 from .cleanup_plan import build_cleanup_plan
-from .cloud_sync import build_cloud_sync_package
 from .com_backend import run_com_smoke, run_conversion_smoke, run_spreadsheet_calc_smoke
-from .documentation_freshness import build_documentation_freshness_report
 from .file_scan import scan_directory
 from .jsonio import dumps_json
-from .local_handoff import build_local_handoff_summary
 from .html_render import render_html
 from .html_editable import convert_html_editable
 from .html_roundtrip import build_html_roundtrip_mapping, export_controlled_html, import_controlled_html, verify_controlled_document
 from .mcp_adapter import call_mcp_tool
 from .mcp_catalog_drift import DEFAULT_MCP_CATALOG_GUARD, build_mcp_catalog_drift_report
 from .mcp_catalog import build_mcp_catalog_snapshot
-from .mcp_config_audit import (
-    MCP_CONFIG_AUDIT_TIMEOUT_MAX_SECONDS,
-    MCP_CONFIG_AUDIT_TIMEOUT_MIN_SECONDS,
-    MCP_CONFIG_AUDIT_MAX_EXPECTED_TOOLS,
-    MCP_CONFIG_AUDIT_MAX_SERVER_NAME_CHARS,
-    MCP_CONFIG_AUDIT_MIN_EXPECTED_TOOLS,
-    audit_mcp_client_config,
-)
+from .mcp_config_audit import audit_mcp_client_config
 from .mcp_schema import get_mcp_tool_schema, list_mcp_tool_categories, list_mcp_tool_schemas
 from .mcp_server import handle_mcp_json, serve_stdio
 from .mcp_smoke import run_mcp_server_smoke
@@ -42,21 +33,15 @@ from .operations import get_operation, inspect_mutation_request, list_operations
 from .phases import list_phases
 from .performance import capture_performance_baseline
 from .process_audit import audit_wps_processes
-from .project_status import build_project_status
 from .presentation_ops import presentation_replace
 from .regression import load_regression_manifest, list_regression_scenarios, run_regression_manifest
-from .regression_evidence import build_regression_evidence
-from .regression_history import build_regression_history
 from .security_audit import build_security_boundary_audit
 from .sessions import list_documents, register_document
+from .ooxml import OoxmlTooLargeError
+from .state_store import StateCorruptError
 from .snapshots import snapshot_document
 from .spreadsheet_ops import copy_spreadsheet_sheet, create_spreadsheet_sheet, delete_spreadsheet_sheet, list_spreadsheet_sheets, read_spreadsheet_range, rename_spreadsheet_sheet, set_spreadsheet_sheet_tab_color, set_spreadsheet_sheet_visibility, write_spreadsheet_formulas, write_spreadsheet_range
 from .spreadsheet_inspect import inspect_spreadsheet_range
-from .sync_package_coverage import build_sync_package_coverage
-from .sync_package_inspect import DEFAULT_SYNC_PACKAGE, inspect_sync_package
-from .sync_package_manifest import build_sync_package_manifest
-from .sync_package_readiness import build_sync_package_readiness
-from .sync_package_summary import summarize_sync_package
 from .task_status import (
     build_recovery_playbook,
     create_task_status,
@@ -68,8 +53,12 @@ from .task_status import (
 from .template_report import render_batch_template_report
 from .tasks import list_tasks
 from .validators import validate_document
-from .validation_runbook import build_validation_runbook
-from .workspace_health import build_workspace_health
+from .open_documents import (
+    export_open_document_html,
+    list_open_documents,
+    read_writer_selection,
+    replace_writer_selection,
+)
 from .writer_ops import writer_fill_bookmark, writer_replace, writer_table_write
 from .writer_inspect import inspect_writer_structure
 from .writer_structure_parity import run_writer_structure_parity
@@ -86,36 +75,6 @@ def _configure_stdout() -> None:
 
 def _request_id(value: str | None) -> str:
     return value or str(uuid4())
-
-
-def _mcp_config_audit_timeout(value: str) -> int:
-    try:
-        timeout = int(value)
-    except ValueError as exc:
-        raise argparse.ArgumentTypeError("must be an integer") from exc
-    if not MCP_CONFIG_AUDIT_TIMEOUT_MIN_SECONDS <= timeout <= MCP_CONFIG_AUDIT_TIMEOUT_MAX_SECONDS:
-        raise argparse.ArgumentTypeError(
-            f"must be between {MCP_CONFIG_AUDIT_TIMEOUT_MIN_SECONDS} and {MCP_CONFIG_AUDIT_TIMEOUT_MAX_SECONDS} seconds"
-        )
-    return timeout
-
-
-def _mcp_config_audit_expected_tools(value: str) -> int:
-    try:
-        count = int(value)
-    except ValueError as exc:
-        raise argparse.ArgumentTypeError("must be an integer") from exc
-    if not MCP_CONFIG_AUDIT_MIN_EXPECTED_TOOLS <= count <= MCP_CONFIG_AUDIT_MAX_EXPECTED_TOOLS:
-        raise argparse.ArgumentTypeError(
-            f"must be between {MCP_CONFIG_AUDIT_MIN_EXPECTED_TOOLS} and {MCP_CONFIG_AUDIT_MAX_EXPECTED_TOOLS}"
-        )
-    return count
-
-
-def _mcp_config_audit_server_name(value: str) -> str:
-    if not value.strip() or len(value) > MCP_CONFIG_AUDIT_MAX_SERVER_NAME_CHARS:
-        raise argparse.ArgumentTypeError("must be nonempty and at most 256 characters")
-    return value
 
 
 def _extract_request_id(argv: list[str]) -> tuple[list[str], str | None]:
@@ -136,781 +95,6 @@ def _extract_request_id(argv: list[str]) -> tuple[list[str], str | None]:
             cleaned.append(item)
         index += 1
     return cleaned, request_id
-
-
-def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(
-        prog="wps-agent",
-        description="Agent-friendly CLI for WPS feasibility validation and automation.",
-    )
-    parser.add_argument("--request-id", help="Stable request id for idempotent agent calls.")
-    subparsers = parser.add_subparsers(dest="command", required=True)
-
-    subparsers.add_parser("inspect-env", help="Inspect OS, pywin32, and WPS ProgID registration.")
-    process_audit_parser = subparsers.add_parser(
-        "wps-process-audit",
-        help="List WPS-related processes and safe cleanup guidance without terminating anything.",
-    )
-    process_audit_parser.add_argument("--timeout-seconds", type=int, default=10, help="Timeout for process inspection.")
-    cleanup_plan_parser = subparsers.add_parser(
-        "cleanup-plan",
-        help="Build a read-only local cleanup plan with approval-required candidates.",
-    )
-    cleanup_plan_parser.add_argument(
-        "--workspace",
-        default=".",
-        help="Workspace root to inspect. Defaults to the current directory.",
-    )
-    cleanup_approval_parser = subparsers.add_parser(
-        "cleanup-approval-manifest",
-        help="Build a read-only cleanup approval manifest grouped by category.",
-    )
-    cleanup_approval_parser.add_argument(
-        "--workspace",
-        default=".",
-        help="Workspace root to inspect. Defaults to the current directory.",
-    )
-    artifact_retention_parser = subparsers.add_parser(
-        "artifact-retention-summary",
-        help="Summarize retained local artifacts and approval-required cleanup candidates without deleting anything.",
-    )
-    artifact_retention_parser.add_argument(
-        "--workspace",
-        default=".",
-        help="Workspace root to inspect. Defaults to the current directory.",
-    )
-    subparsers.add_parser("plan", help="Return the staged development roadmap.")
-    project_status_parser = subparsers.add_parser(
-        "project-status",
-        help="Summarize local project state, next task, artifacts, and cleanup posture.",
-    )
-    project_status_parser.add_argument(
-        "--workspace",
-        default=".",
-        help="Workspace root to inspect. Defaults to the current directory.",
-    )
-    workspace_health_parser = subparsers.add_parser(
-        "workspace-health",
-        help="Summarize local workspace health across project status, cleanup posture, regression evidence, and sync package state.",
-    )
-    workspace_health_parser.add_argument(
-        "--workspace",
-        default=".",
-        help="Workspace root to inspect. Defaults to the current directory.",
-    )
-    local_handoff_parser = subparsers.add_parser(
-        "local-handoff-summary",
-        help="Summarize local handoff readiness across status, health, regression, drift, and package evidence.",
-    )
-    local_handoff_parser.add_argument(
-        "--workspace",
-        default=".",
-        help="Workspace root to inspect. Defaults to the current directory.",
-    )
-    validation_runbook_parser = subparsers.add_parser(
-        "validation-runbook",
-        help="Return a read-only local validation runbook without executing the steps.",
-    )
-    validation_runbook_parser.add_argument(
-        "--workspace",
-        default=".",
-        help="Workspace root to inspect. Defaults to the current directory.",
-    )
-    documentation_freshness_parser = subparsers.add_parser(
-        "documentation-freshness",
-        help="Check current documentation and config references for stale tool counts or next tasks.",
-    )
-    documentation_freshness_parser.add_argument(
-        "--workspace",
-        default=".",
-        help="Workspace root to inspect. Defaults to the current directory.",
-    )
-    regression_history_parser = subparsers.add_parser(
-        "regression-history",
-        help="Summarize recent safe and WPS regression artifacts without running regression.",
-    )
-    regression_history_parser.add_argument(
-        "--workspace",
-        default=".",
-        help="Workspace root to inspect. Defaults to the current directory.",
-    )
-    regression_history_parser.add_argument(
-        "--limit",
-        type=int,
-        default=5,
-        help="Maximum artifacts per profile to include. Defaults to 5.",
-    )
-
-    tasks_parser = subparsers.add_parser("tasks", help="Return staged development tasks.")
-    tasks_parser.add_argument("--phase", help="Filter by phase id, for example phase0.")
-    tasks_parser.add_argument("--status", help="Filter by task status, for example next.")
-
-    smoke_parser = subparsers.add_parser(
-        "com-smoke",
-        help="Run the Phase 0 minimal COM open/save/close prototype.",
-    )
-    smoke_parser.add_argument(
-        "--component",
-        choices=["writer", "spreadsheets", "presentation"],
-        required=True,
-        help="WPS component to exercise.",
-    )
-    smoke_parser.add_argument("--input", required=True, help="Input document path.")
-    smoke_parser.add_argument("--output", required=True, help="Output copy path.")
-    smoke_parser.add_argument("--visible", action="store_true", help="Show WPS during the smoke run.")
-
-    calc_parser = subparsers.add_parser(
-        "calc-smoke",
-        help="Run the Phase 0 WPS spreadsheet formula calculation verification.",
-    )
-    calc_parser.add_argument("--input", required=True, help="Input workbook path.")
-    calc_parser.add_argument("--output", required=True, help="Output workbook copy path.")
-    calc_parser.add_argument("--timeout-seconds", type=int, default=120, help="Timeout for the WPS spreadsheet COM smoke.")
-
-    convert_parser = subparsers.add_parser(
-        "convert-smoke",
-        help="Run a Phase 0 WPS conversion smoke test.",
-    )
-    convert_parser.add_argument("--component", choices=["writer"], required=True)
-    convert_parser.add_argument("--input", required=True, help="Input file path.")
-    convert_parser.add_argument("--output", required=True, help="Output file path.")
-    convert_parser.add_argument("--format", choices=["pdf"], required=True, help="Output format.")
-
-    html_render_parser = subparsers.add_parser("html-render", help="Render local HTML to PDF or PNG with a sandboxed browser.")
-    html_render_parser.add_argument("--input", required=True, help="Local HTML or HTM input path.")
-    html_render_parser.add_argument("--output", required=True, help="New PDF or PNG output path; existing files are never overwritten.")
-    html_render_parser.add_argument("--format", choices=["pdf", "png"], required=True)
-    html_render_parser.add_argument("--page-size", choices=["A4", "Letter", "Legal", "Tabloid"], default="A4")
-    html_render_parser.add_argument("--viewport-width", type=int, default=1280)
-    html_render_parser.add_argument("--viewport-height", type=int, default=900)
-    html_render_parser.add_argument("--timeout-seconds", type=int, default=30)
-    html_render_parser.add_argument("--allow-javascript", action="store_true", help="Enable page scripts explicitly; scripts remain network-isolated.")
-    html_render_parser.add_argument("--task-id", help="Optional long-running task status id.")
-
-    html_batch_parser = subparsers.add_parser("html-batch-convert", help="Convert a bounded directory of HTML files with per-file results.")
-    html_batch_parser.add_argument("--input-dir", required=True)
-    html_batch_parser.add_argument("--output-dir", required=True)
-    html_batch_parser.add_argument("--mode", choices=["pdf", "png", "docx"], required=True)
-    html_batch_parser.add_argument("--recursive", action="store_true")
-    html_batch_parser.add_argument("--task-id")
-
-    batch_request_parser = subparsers.add_parser("html-batch-request", help="Inspect a recorded HTML batch request without changing files.")
-    batch_request_parser.add_argument("--batch-request-id", required=True, help="Original batch conversion request_id to inspect.")
-    batch_request_parser.add_argument("--verify", action="store_true", help="Verify current manifest and source/output hashes without modifying state.")
-
-    template_report_parser = subparsers.add_parser("batch-template-report", help="Render a local text or DOCX template from a verified batch conversion manifest.")
-    template_report_parser.add_argument("--manifest", required=True)
-    template_report_parser.add_argument("--template", required=True)
-    template_report_parser.add_argument("--output", required=True)
-    template_report_parser.add_argument("--task-id")
-
-    html_editable_parser = subparsers.add_parser("html-editable", help="Map semantic local HTML to an editable Writer DOCX.")
-    html_editable_parser.add_argument("--input", required=True, help="Local HTML or HTM source path.")
-    html_editable_parser.add_argument("--output", required=True, help="New DOCX output path; existing files are never overwritten.")
-    html_editable_parser.add_argument("--task-id", help="Optional long-running task status id.")
-
-    html_roundtrip_parser = subparsers.add_parser("html-roundtrip-plan", help="Validate owned HTML schema and build a read-only object identity map.")
-    html_roundtrip_parser.add_argument("--input", required=True, help="Owned HTML v1 source path.")
-    html_import_parser = subparsers.add_parser("html-controlled-import", help="Import owned HTML to DOCX with stable object bookmarks and a mapping sidecar.")
-    html_import_parser.add_argument("--input", required=True)
-    html_import_parser.add_argument("--output", required=True)
-    html_import_parser.add_argument("--task-id")
-    html_verify_parser = subparsers.add_parser("html-roundtrip-verify", help="Verify mapped object bookmark identity in an edited DOCX.")
-    html_verify_parser.add_argument("--docx", required=True)
-    html_verify_parser.add_argument("--mapping", required=True)
-    html_export_parser = subparsers.add_parser("html-roundtrip-export", help="Serialize a verified controlled DOCX back to owned HTML v1.")
-    html_export_parser.add_argument("--docx", required=True)
-    html_export_parser.add_argument("--mapping", required=True)
-    html_export_parser.add_argument("--output", required=True)
-    html_export_parser.add_argument("--task-id")
-
-    writer_table_smoke_parser = subparsers.add_parser(
-        "writer-table-smoke",
-        help="Run a repeatable WPS Writer table cell update smoke test against an output copy.",
-    )
-    writer_table_smoke_parser.add_argument("--input", required=True, help="Input Writer fixture path.")
-    writer_table_smoke_parser.add_argument("--output", required=True, help="Output copy path.")
-    writer_table_smoke_parser.add_argument("--table-index", type=int, required=True, help="1-based table index.")
-    writer_table_smoke_parser.add_argument("--row", type=int, required=True, help="1-based row index.")
-    writer_table_smoke_parser.add_argument("--column", type=int, required=True, help="1-based column index.")
-    writer_table_smoke_parser.add_argument("--text", required=True, help="Replacement cell text.")
-    writer_table_smoke_parser.add_argument("--task-id", help="Optional long-running task status id to update.")
-
-    register_parser = subparsers.add_parser(
-        "register-document",
-        help="Register a file and return a stable document_id for later commands.",
-    )
-    register_parser.add_argument(
-        "--component",
-        choices=["writer", "spreadsheets", "presentation"],
-        required=True,
-    )
-    register_parser.add_argument("--path", required=True, help="Document path to register.")
-
-    subparsers.add_parser("documents", help="List registered documents.")
-
-    backup_parser = subparsers.add_parser(
-        "backup-document",
-        help="Create a recoverable backup for a registered document_id.",
-    )
-    backup_parser.add_argument("--document-id", required=True, help="Registered document_id.")
-    backup_parser.add_argument("--dry-run", action="store_true", help="Preview backup path without copying.")
-    backup_parser.add_argument("--task-id", help="Optional long-running task status id to update.")
-
-    list_backups_parser = subparsers.add_parser(
-        "list-backups",
-        help="List recoverable backups, optionally scoped to one document_id.",
-    )
-    list_backups_parser.add_argument("--document-id", help="Optional registered document_id.")
-
-    restore_backup_parser = subparsers.add_parser(
-        "restore-backup",
-        help="Restore a selected backup after first protecting the current file.",
-    )
-    restore_backup_parser.add_argument("--document-id", required=True, help="Registered document_id.")
-    backup_selector = restore_backup_parser.add_mutually_exclusive_group(required=True)
-    backup_selector.add_argument("--backup-name", help="Backup filename from list-backups.")
-    backup_selector.add_argument("--backup-path", help="Backup path from list-backups.")
-    restore_backup_parser.add_argument("--dry-run", action="store_true", help="Preview restore without copying.")
-    restore_backup_parser.add_argument("--task-id", help="Optional long-running task status id to update.")
-
-    replace_parser = subparsers.add_parser(
-        "writer-replace",
-        help="Replace text in a registered WPS Writer document with backup, dry-run, and validation.",
-    )
-    replace_parser.add_argument("--document-id", required=True, help="Registered writer document_id.")
-    replace_parser.add_argument("--find", required=True, help="Text to find.")
-    replace_parser.add_argument("--replace", required=True, help="Replacement text.")
-    replace_parser.add_argument("--dry-run", action="store_true", help="Preview matches without modifying the file.")
-    replace_parser.add_argument(
-        "--paragraph-index",
-        type=int,
-        help="Optional 1-based body paragraph index to limit replacement scope.",
-    )
-    replace_parser.add_argument("--task-id", help="Optional long-running task status id to update.")
-
-    bookmark_fill_parser = subparsers.add_parser(
-        "writer-fill-bookmark",
-        help="Fill a unique supported body or direct table-cell bookmark with backup and read-back validation.",
-    )
-    bookmark_fill_parser.add_argument("--document-id", required=True, help="Registered writer document_id.")
-    bookmark_fill_parser.add_argument("--bookmark-name", required=True, help="Unique, non-reserved supported bookmark name.")
-    bookmark_fill_parser.add_argument("--text", required=True, help="Text to write into the bookmark range.")
-    bookmark_fill_parser.add_argument("--dry-run", action="store_true", help="Preview the bookmark target without modifying the file.")
-    bookmark_fill_parser.add_argument("--task-id", help="Optional long-running task status id to update.")
-
-    writer_table_parser = subparsers.add_parser(
-        "writer-table-write",
-        help="Write text to a table cell in a registered WPS Writer document.",
-    )
-    writer_table_parser.add_argument("--document-id", required=True, help="Registered writer document_id.")
-    writer_table_parser.add_argument("--table-index", type=int, required=True, help="1-based table index.")
-    writer_table_parser.add_argument("--row", type=int, required=True, help="1-based row index.")
-    writer_table_parser.add_argument("--column", type=int, required=True, help="1-based column index.")
-    writer_table_parser.add_argument("--text", required=True, help="Replacement cell text.")
-    writer_table_parser.add_argument("--dry-run", action="store_true", help="Preview target cell without modifying the file.")
-    writer_table_parser.add_argument("--task-id", help="Optional long-running task status id to update.")
-
-    validate_parser = subparsers.add_parser(
-        "validate-document",
-        help="Run basic validation checks against a registered document.",
-    )
-    validate_parser.add_argument("--document-id", required=True, help="Registered document_id.")
-    validate_parser.add_argument("--contains", help="Expected body text for writer documents.")
-    validate_parser.add_argument("--cell", help="Cell address for spreadsheet validation.")
-    validate_parser.add_argument("--equals", help="Expected cell value for spreadsheet validation.")
-
-    snapshot_parser = subparsers.add_parser(
-        "snapshot-document",
-        help="Return a structural validation snapshot for a registered document.",
-    )
-    snapshot_parser.add_argument("--document-id", required=True, help="Registered document_id.")
-
-    writer_structure_parser = subparsers.add_parser(
-        "writer-structure", help="Inspect bounded Writer headings, styles, and bookmarks from OOXML.",
-    )
-    writer_structure_parser.add_argument("--document-id", required=True, help="Registered Writer document_id.")
-    writer_structure_parser.add_argument("--limit", type=int, default=50, help="Maximum items per section, from 1 to 200.")
-    writer_structure_parser.add_argument("--section", choices=["all", "headings", "styles", "bookmarks", "warnings"], default="all", help="Structure list to inspect.")
-    writer_structure_parser.add_argument("--offset", type=int, default=0, help="Zero-based offset for a selected section.")
-    writer_structure_parser.add_argument("--bookmark-name", help="Exact bookmark name; requires --section bookmarks.")
-    writer_structure_parser.add_argument("--expected-sha256", help="Require the DOCX hash from the preceding page.")
-    writer_structure_parser.add_argument("--include-text", action="store_true", help="Read bounded text from a unique supported bookmark.")
-    writer_structure_parser.add_argument("--text-limit", type=int, default=200, help="Maximum returned bookmark text characters, from 1 to 4096.")
-
-    writer_parity_parser = subparsers.add_parser(
-        "writer-structure-parity", help="Compare a controlled Writer fixture with read-only WPS desktop observations.",
-    )
-    writer_parity_parser.add_argument("--run-wps", action="store_true", help="Explicitly launch WPS Writer for this local audit.")
-    writer_parity_parser.add_argument("--timeout-seconds", type=int, default=90, help="WPS audit timeout, from 1 to 300 seconds.")
-    writer_parity_parser.add_argument("--scope", choices=["structure", "nested"], default="structure", help="Controlled Writer fixture to compare.")
-    writer_parity_parser.add_argument("--artifact-dir", help="Local JSON report directory.")
-
-    operation_parser = subparsers.add_parser(
-        "operation",
-        help="Return a recorded operation by request_id.",
-    )
-    operation_parser.add_argument("--request", required=True, help="Recorded operation request_id.")
-
-    inspect_parser = subparsers.add_parser(
-        "mutation-request-inspect",
-        help="Read operation and derived backup evidence for a mutation request.",
-    )
-    inspect_parser.add_argument("--request", required=True, help="Mutation request_id to inspect.")
-
-    subparsers.add_parser("operations", help="List recorded operations.")
-
-    task_status_create_parser = subparsers.add_parser(
-        "task-status-create",
-        help="Create a reusable status record for a long-running task.",
-    )
-    task_status_create_parser.add_argument("--task-id", help="Optional stable task id.")
-    task_status_create_parser.add_argument(
-        "--command",
-        dest="tracked_command",
-        required=True,
-        help="Command or workflow being tracked.",
-    )
-    task_status_create_parser.add_argument("--operation-request-id", required=True, help="Request id for the tracked operation.")
-    task_status_create_parser.add_argument("--document-id", help="Optional related document_id.")
-    task_status_create_parser.add_argument("--message", help="Initial status message.")
-    task_status_create_parser.add_argument(
-        "--recovery-guidance",
-        action="append",
-        default=[],
-        help="Recovery guidance item. May be provided more than once.",
-    )
-
-    task_status_update_parser = subparsers.add_parser(
-        "task-status-update",
-        help="Update a long-running task status record.",
-    )
-    task_status_update_parser.add_argument("--task-id", required=True, help="Task id to update.")
-    task_status_update_parser.add_argument(
-        "--state",
-        choices=["pending", "running", "succeeded", "failed", "cancelled"],
-        required=True,
-        help="New task state.",
-    )
-    task_status_update_parser.add_argument("--progress-percent", type=int, help="Progress percentage, 0 through 100.")
-    task_status_update_parser.add_argument("--message", help="Updated status message.")
-    task_status_update_parser.add_argument(
-        "--recovery-guidance",
-        action="append",
-        help="Recovery guidance item. May be provided more than once.",
-    )
-    task_status_update_parser.add_argument("--result-ref", help="Optional operation request id or output reference.")
-
-    task_status_parser = subparsers.add_parser(
-        "task-status",
-        help="Return one long-running task status record.",
-    )
-    task_status_parser.add_argument("--task-id", required=True, help="Task id to return.")
-
-    subparsers.add_parser("task-statuses", help="List long-running task status records.")
-
-    task_recovery_parser = subparsers.add_parser(
-        "task-recovery",
-        help="Return a recovery playbook for a long-running task status.",
-    )
-    task_recovery_parser.add_argument("--task-id", required=True, help="Task id to recover or inspect.")
-
-    subparsers.add_parser(
-        "task-recovery-playbooks",
-        help="List available long-running task recovery playbooks.",
-    )
-
-    mcp_tools_parser = subparsers.add_parser(
-        "mcp-tools",
-        help="List draft MCP tool schemas mapped from CLI commands.",
-    )
-    mcp_tools_parser.add_argument("--category", help="Optional tool category filter.")
-    mcp_tools_parser.add_argument(
-        "--mutates-document",
-        choices=["true", "false"],
-        help="Optional filter for document-mutating tools.",
-    )
-
-    subparsers.add_parser(
-        "mcp-catalog-snapshot",
-        help="Summarize MCP tool catalog counts, categories, WPS requirements, and safety-note coverage.",
-    )
-    mcp_catalog_drift_parser = subparsers.add_parser(
-        "mcp-catalog-drift",
-        help="Compare the current MCP catalog against a read-only baseline guard.",
-    )
-    mcp_catalog_drift_parser.add_argument(
-        "--guard",
-        default=DEFAULT_MCP_CATALOG_GUARD,
-        help="Path to MCP catalog guard baseline JSON.",
-    )
-
-    mcp_tool_schema_parser = subparsers.add_parser(
-        "mcp-tool-schema",
-        help="Return one draft MCP tool schema by MCP tool name or CLI command.",
-    )
-    mcp_tool_schema_parser.add_argument("--name", required=True, help="MCP tool name or CLI command.")
-
-    mcp_call_parser = subparsers.add_parser(
-        "mcp-call",
-        help="Invoke a draft MCP tool through the local adapter layer.",
-    )
-    mcp_call_parser.add_argument("--name", required=True, help="MCP tool name or CLI command.")
-    mcp_call_parser.add_argument(
-        "--arguments-json",
-        default="{}",
-        help="JSON object of tool arguments.",
-    )
-
-    mcp_server_parser = subparsers.add_parser(
-        "mcp-server",
-        help="Run the local MCP-compatible JSON-RPC server prototype over stdio.",
-    )
-    mcp_server_parser.add_argument(
-        "--once-json",
-        help="Handle one JSON-RPC request and exit; useful for tests and smoke checks.",
-    )
-
-    mcp_smoke_parser = subparsers.add_parser(
-        "mcp-smoke",
-        help="Run repeatable MCP server smoke checks for initialize, tools/list, and tools/call.",
-    )
-    mcp_smoke_parser.add_argument(
-        "--expected-min-tools",
-        type=int,
-        default=1,
-        help="Minimum number of tools expected from tools/list.",
-    )
-    mcp_smoke_parser.add_argument(
-        "--tool-name",
-        default="wps_agent_tasks",
-        help="Tool name to exercise through tools/call.",
-    )
-    mcp_smoke_parser.add_argument("--arguments-json", help="JSON object of arguments for a local read-only tool call.")
-
-    mcp_config_audit_parser = subparsers.add_parser(
-        "mcp-config-audit",
-        help="Audit a local MCP client config and run a configured tools/list smoke check.",
-    )
-    mcp_config_audit_parser.add_argument(
-        "--config",
-        default="config/mcp_client_config.example.json",
-        help="Path to MCP client config JSON.",
-    )
-    mcp_config_audit_parser.add_argument(
-        "--server-name",
-        type=_mcp_config_audit_server_name,
-        default="wps-ai-agent-cli",
-        help="Server key under mcpServers (1-256 non-whitespace characters).",
-    )
-    mcp_config_audit_parser.add_argument(
-        "--expected-min-tools",
-        type=_mcp_config_audit_expected_tools,
-        default=33,
-        help="Minimum expected tools (1-10000).",
-    )
-    mcp_config_audit_parser.add_argument(
-        "--timeout-seconds",
-        type=_mcp_config_audit_timeout,
-        default=15,
-        help="Timeout for configured tools/list smoke (1-120 seconds).",
-    )
-
-    regression_manifest_parser = subparsers.add_parser(
-        "regression-manifest",
-        help="List regression manifest scenarios and smoke matrix metadata.",
-    )
-    regression_manifest_parser.add_argument(
-        "--manifest",
-        default="config/regression_manifest.json",
-        help="Path to regression manifest JSON.",
-    )
-    regression_manifest_parser.add_argument("--profile", help="Optional scenario profile filter, for example safe or wps.")
-    regression_manifest_parser.add_argument("--include-wps", action="store_true", help="Include scenarios that require WPS.")
-
-    regression_run_parser = subparsers.add_parser(
-        "regression-run",
-        help="Run regression scenarios from the manifest.",
-    )
-    regression_run_parser.add_argument(
-        "--manifest",
-        default="config/regression_manifest.json",
-        help="Path to regression manifest JSON.",
-    )
-    regression_run_parser.add_argument("--profile", help="Optional scenario profile filter. Defaults to manifest default_profile.")
-    regression_run_parser.add_argument("--include-wps", action="store_true", help="Include scenarios that require WPS.")
-    regression_run_parser.add_argument(
-        "--artifact-dir",
-        help="Optional directory where a timestamped regression-run JSON artifact will be written.",
-    )
-    subparsers.add_parser(
-        "local-release-gates",
-        help="Run the local package, safe regression, package refresh, and release gates in order.",
-    )
-    regression_evidence_parser = subparsers.add_parser(
-        "regression-evidence",
-        help="Summarize latest safe and WPS regression evidence artifacts without running WPS.",
-    )
-    regression_evidence_parser.add_argument(
-        "--workspace",
-        default=".",
-        help="Workspace root to inspect. Defaults to the current directory.",
-    )
-
-    cloud_sync_parser = subparsers.add_parser(
-        "cloud-sync-package",
-        help="Create a portable local project package for handoff or optional synchronization.",
-    )
-    cloud_sync_parser.add_argument(
-        "--output",
-        default="artifacts/cloud-sync/wps-ai-agent-cli-phase3-sync.zip",
-        help="Output zip path.",
-    )
-    cloud_sync_parser.add_argument(
-        "--no-latest-artifacts",
-        action="store_true",
-        help="Do not include the latest safe/WPS regression artifacts.",
-    )
-    sync_package_inspect_parser = subparsers.add_parser(
-        "sync-package-inspect",
-        help="Inspect an existing cloud sync package without creating or modifying it.",
-    )
-    sync_package_inspect_parser.add_argument(
-        "--workspace",
-        default=".",
-        help="Workspace root to inspect. Defaults to the current directory.",
-    )
-    sync_package_inspect_parser.add_argument(
-        "--package",
-        default=DEFAULT_SYNC_PACKAGE,
-        help="Package zip path to inspect.",
-    )
-    sync_package_summary_parser = subparsers.add_parser(
-        "sync-package-summary",
-        help="Summarize an existing cloud sync package by top-level directory without modifying it.",
-    )
-    sync_package_summary_parser.add_argument(
-        "--workspace",
-        default=".",
-        help="Workspace root to inspect. Defaults to the current directory.",
-    )
-    sync_package_summary_parser.add_argument(
-        "--package",
-        default=DEFAULT_SYNC_PACKAGE,
-        help="Package zip path to summarize.",
-    )
-    sync_package_summary_parser.add_argument(
-        "--limit",
-        type=int,
-        default=10,
-        help="Maximum sample, artifact, and largest-entry rows to include.",
-    )
-    sync_package_manifest_parser = subparsers.add_parser(
-        "sync-package-manifest",
-        help="List entries from an existing cloud sync package without modifying it.",
-    )
-    sync_package_manifest_parser.add_argument(
-        "--workspace",
-        default=".",
-        help="Workspace root to inspect. Defaults to the current directory.",
-    )
-    sync_package_manifest_parser.add_argument(
-        "--package",
-        default=DEFAULT_SYNC_PACKAGE,
-        help="Package zip path to list.",
-    )
-    sync_package_manifest_parser.add_argument(
-        "--prefix",
-        help="Optional zip path prefix to filter, for example docs or src/wps_ai_agent_cli.",
-    )
-    sync_package_manifest_parser.add_argument(
-        "--limit",
-        type=int,
-        default=50,
-        help="Maximum manifest entries to return.",
-    )
-    sync_package_coverage_parser = subparsers.add_parser(
-        "sync-package-coverage",
-        help="Compare package entries with workspace sync roots without modifying files.",
-    )
-    sync_package_coverage_parser.add_argument(
-        "--workspace",
-        default=".",
-        help="Workspace root to compare. Defaults to the current directory.",
-    )
-    sync_package_coverage_parser.add_argument(
-        "--package",
-        default=DEFAULT_SYNC_PACKAGE,
-        help="Package zip path to compare.",
-    )
-    sync_package_coverage_parser.add_argument(
-        "--limit",
-        type=int,
-        default=20,
-        help="Maximum missing, extra, and newer-than-package rows to include.",
-    )
-    sync_package_readiness_parser = subparsers.add_parser(
-        "sync-package-readiness",
-        help="Summarize whether an existing cloud sync package is ready for local handoff.",
-    )
-    sync_package_readiness_parser.add_argument(
-        "--workspace",
-        default=".",
-        help="Workspace root to inspect. Defaults to the current directory.",
-    )
-    sync_package_readiness_parser.add_argument(
-        "--package",
-        default=DEFAULT_SYNC_PACKAGE,
-        help="Package zip path to inspect.",
-    )
-    sync_package_readiness_parser.add_argument(
-        "--limit",
-        type=int,
-        default=10,
-        help="Maximum sample and coverage rows to include.",
-    )
-
-    subparsers.add_parser(
-        "security-audit",
-        help="Audit mutating CLI and MCP tool safety boundaries.",
-    )
-
-    subparsers.add_parser(
-        "performance-baseline",
-        help="Capture runtime and output-size baselines for safe read-only commands.",
-    )
-
-    scan_parser = subparsers.add_parser(
-        "scan-dir",
-        help="Scan a directory for supported WPS files and registration status.",
-    )
-    scan_parser.add_argument("--path", required=True, help="Directory to scan.")
-    scan_parser.add_argument("--recursive", action="store_true", help="Scan recursively.")
-
-    batch_report_parser = subparsers.add_parser(
-        "batch-report",
-        help="Combine directory scan, registration status, and validation snapshots.",
-    )
-    batch_report_parser.add_argument("--path", required=True, help="Directory to report on.")
-    batch_report_parser.add_argument("--recursive", action="store_true", help="Report recursively.")
-    batch_report_parser.add_argument(
-        "--no-snapshots",
-        action="store_true",
-        help="Skip validation snapshots and only return scan and registration status.",
-    )
-
-    spreadsheet_read_parser = subparsers.add_parser(
-        "spreadsheet-read",
-        help="Read an A1 range from a registered spreadsheet document.",
-    )
-    spreadsheet_read_parser.add_argument("--document-id", required=True, help="Registered spreadsheet document_id.")
-    spreadsheet_read_parser.add_argument("--range", required=True, help="A1 range to read, for example A1:D6.")
-    spreadsheet_read_parser.add_argument("--sheet", help="Optional sheet name. Defaults to first sheet.")
-
-    spreadsheet_sheets_parser = subparsers.add_parser(
-        "spreadsheet-sheets",
-        help="List worksheet order, visibility, and used dimensions without launching WPS.",
-    )
-    spreadsheet_sheets_parser.add_argument("--document-id", required=True, help="Registered spreadsheet document_id.")
-
-    spreadsheet_rename_parser = subparsers.add_parser(
-        "spreadsheet-rename-sheet",
-        help="Rename a worksheet with backup and ordered read-back validation.",
-    )
-    spreadsheet_rename_parser.add_argument("--document-id", required=True, help="Registered spreadsheet document_id.")
-    spreadsheet_rename_parser.add_argument("--old-name", required=True, help="Current worksheet name.")
-    spreadsheet_rename_parser.add_argument("--new-name", required=True, help="New worksheet name.")
-    spreadsheet_rename_parser.add_argument("--dry-run", action="store_true", help="Validate and preview without backup or WPS.")
-    spreadsheet_rename_parser.add_argument("--task-id", help="Optional long-running task status id to update.")
-
-    spreadsheet_create_parser = subparsers.add_parser(
-        "spreadsheet-create-sheet",
-        help="Create a worksheet with backup and ordered read-back validation.",
-    )
-    spreadsheet_create_parser.add_argument("--document-id", required=True, help="Registered spreadsheet document_id.")
-    spreadsheet_create_parser.add_argument("--name", required=True, help="New worksheet name.")
-    spreadsheet_create_parser.add_argument("--index", type=int, help="1-based insertion index; defaults to the end.")
-    spreadsheet_create_parser.add_argument("--dry-run", action="store_true", help="Validate and preview without backup or WPS.")
-    spreadsheet_create_parser.add_argument("--task-id", help="Optional long-running task status id to update.")
-
-    spreadsheet_visibility_parser = subparsers.add_parser(
-        "spreadsheet-set-sheet-visibility",
-        help="Set worksheet visibility with backup and ordered state read-back.",
-    )
-    spreadsheet_visibility_parser.add_argument("--document-id", required=True, help="Registered spreadsheet document_id.")
-    spreadsheet_visibility_parser.add_argument("--sheet-name", required=True, help="Worksheet to show or hide.")
-    spreadsheet_visibility_parser.add_argument("--visible", required=True, choices=("true", "false"), help="Set worksheet visible or hidden.")
-    spreadsheet_visibility_parser.add_argument("--dry-run", action="store_true", help="Validate and preview without backup or WPS.")
-    spreadsheet_visibility_parser.add_argument("--task-id", help="Optional long-running task status id to update.")
-
-    spreadsheet_delete_parser = subparsers.add_parser("spreadsheet-delete-sheet", help="Delete a worksheet with backup and ordered read-back validation.")
-    spreadsheet_delete_parser.add_argument("--document-id", required=True, help="Registered spreadsheet document_id.")
-    spreadsheet_delete_parser.add_argument("--sheet-name", required=True, help="Worksheet to delete.")
-    spreadsheet_delete_parser.add_argument("--dry-run", action="store_true", help="Validate and preview without backup or WPS.")
-    spreadsheet_delete_parser.add_argument("--task-id", help="Optional long-running task status id to update.")
-
-    spreadsheet_copy_parser = subparsers.add_parser("spreadsheet-copy-sheet", help="Copy a worksheet with backup and ordered read-back validation.")
-    spreadsheet_copy_parser.add_argument("--document-id", required=True, help="Registered spreadsheet document_id.")
-    spreadsheet_copy_parser.add_argument("--source-name", required=True, help="Worksheet to copy.")
-    spreadsheet_copy_parser.add_argument("--new-name", required=True, help="Name for the copied worksheet.")
-    spreadsheet_copy_parser.add_argument("--index", type=int, help="1-based insertion index; defaults to the end.")
-    spreadsheet_copy_parser.add_argument("--dry-run", action="store_true", help="Validate and preview without backup or WPS.")
-    spreadsheet_copy_parser.add_argument("--task-id", help="Optional long-running task status id to update.")
-
-    spreadsheet_tab_color_parser = subparsers.add_parser("spreadsheet-set-sheet-tab-color", help="Set worksheet tab color with backup and read-back validation.")
-    spreadsheet_tab_color_parser.add_argument("--document-id", required=True, help="Registered spreadsheet document_id.")
-    spreadsheet_tab_color_parser.add_argument("--sheet-name", required=True, help="Worksheet whose tab color will change.")
-    spreadsheet_tab_color_parser.add_argument("--color", required=True, help="Hex color in #RRGGBB form, or 'none' to clear it.")
-    spreadsheet_tab_color_parser.add_argument("--dry-run", action="store_true", help="Validate and preview without backup or WPS.")
-    spreadsheet_tab_color_parser.add_argument("--task-id", help="Optional long-running task status id to update.")
-
-    spreadsheet_inspect_parser = subparsers.add_parser(
-        "spreadsheet-inspect",
-        help="Inspect formulas, saved cached values, recalculated values, and WPS display text without saving.",
-    )
-    spreadsheet_inspect_parser.add_argument("--document-id", required=True, help="Registered spreadsheet document_id.")
-    spreadsheet_inspect_parser.add_argument("--range", required=True, help="Finite A1 range to inspect, for example A1:D6.")
-    spreadsheet_inspect_parser.add_argument("--sheet", help="Optional sheet name. Defaults to first sheet.")
-
-    spreadsheet_write_parser = subparsers.add_parser(
-        "spreadsheet-write",
-        help="Write a JSON matrix to an A1 range in a registered spreadsheet document.",
-    )
-    spreadsheet_write_parser.add_argument("--document-id", required=True, help="Registered spreadsheet document_id.")
-    spreadsheet_write_parser.add_argument("--range", required=True, help="A1 range to write, for example A1:B2.")
-    spreadsheet_write_parser.add_argument("--values-json", required=True, help="Rectangular JSON matrix, for example [[1,2],[3,4]].")
-    spreadsheet_write_parser.add_argument("--sheet", help="Optional sheet name. Defaults to first sheet.")
-    spreadsheet_write_parser.add_argument("--dry-run", action="store_true", help="Preview write shape without modifying the file.")
-    spreadsheet_write_parser.add_argument("--task-id", help="Optional long-running task status id to update.")
-
-    spreadsheet_formula_parser = subparsers.add_parser(
-        "spreadsheet-formula-write",
-        help="Write formulas to an A1 range, recalculate with WPS, and validate cached values.",
-    )
-    spreadsheet_formula_parser.add_argument("--document-id", required=True, help="Registered spreadsheet document_id.")
-    spreadsheet_formula_parser.add_argument("--range", required=True, help="A1 range to write, for example D4:D6.")
-    spreadsheet_formula_parser.add_argument("--formulas-json", required=True, help="Rectangular JSON matrix of formulas, for example [[\"=A1+B1\"]].")
-    spreadsheet_formula_parser.add_argument("--expected-values-json", required=True, help="Rectangular JSON matrix of expected cached values.")
-    spreadsheet_formula_parser.add_argument("--sheet", help="Optional sheet name. Defaults to first sheet.")
-    spreadsheet_formula_parser.add_argument("--dry-run", action="store_true", help="Preview formula write shape without modifying the file.")
-    spreadsheet_formula_parser.add_argument("--task-id", help="Optional long-running task status id to update.")
-
-    presentation_replace_parser = subparsers.add_parser(
-        "presentation-replace",
-        help="Replace text in a registered presentation with backup, validation, and idempotency.",
-    )
-    presentation_replace_parser.add_argument("--document-id", required=True, help="Registered presentation document_id.")
-    presentation_replace_parser.add_argument("--find", required=True, help="Text to find.")
-    presentation_replace_parser.add_argument("--replace", required=True, help="Replacement text.")
-    presentation_replace_parser.add_argument("--dry-run", action="store_true", help="Preview matches without modifying the file.")
-    presentation_replace_parser.add_argument(
-        "--slide-index",
-        type=int,
-        help="Optional 1-based slide index to limit replacement scope.",
-    )
-    presentation_replace_parser.add_argument("--task-id", help="Optional long-running task status id to update.")
-
-    return parser
 
 
 def inspect_env_response(request_id: str) -> CommandResponse:
@@ -1031,20 +215,6 @@ def cleanup_approval_manifest_response(request_id: str, workspace: str) -> Comma
     )
 
 
-def artifact_retention_summary_response(request_id: str, workspace: str) -> CommandResponse:
-    summary = build_artifact_retention_summary(workspace=workspace)
-    ok = summary["retention_status"] == "passed"
-    return CommandResponse(
-        ok=ok,
-        command="artifact-retention-summary",
-        request_id=request_id,
-        backend=BACKEND,
-        summary="Artifact retention summary is passed." if ok else "Artifact retention summary needs review.",
-        data={"artifact_retention_summary": summary},
-        validation=ValidationResult(status=summary["retention_status"], checks=summary["checks"]),
-    )
-
-
 def plan_response(request_id: str) -> CommandResponse:
     return CommandResponse(
         ok=True,
@@ -1054,111 +224,6 @@ def plan_response(request_id: str) -> CommandResponse:
         summary="Development roadmap loaded from PRD v1.1 phase goals.",
         data={"phases": list_phases()},
         validation=ValidationResult(status="not_applicable"),
-    )
-
-
-def project_status_response(request_id: str, workspace: str) -> CommandResponse:
-    status = build_project_status(workspace=workspace)
-    next_count = len(status["next_tasks"])
-    return CommandResponse(
-        ok=True,
-        command="project-status",
-        request_id=request_id,
-        backend=BACKEND,
-        summary=f"Local project status returned with {next_count} next task(s).",
-        data={"project_status": status},
-        validation=ValidationResult(
-            status="passed",
-            checks=[
-                {
-                    "name": "next_task_available",
-                    "passed": next_count >= 1,
-                    "details": [task["id"] for task in status["next_tasks"]],
-                },
-                {
-                    "name": "cleanup_is_read_only",
-                    "passed": status["cleanup"]["read_only"] and not status["cleanup"]["deletion_performed"],
-                    "details": status["cleanup"],
-                },
-                {
-                    "name": "remote_git_not_required",
-                    "passed": status["remote_git_required"] is False,
-                    "details": "Local-only continuation mode.",
-                },
-            ],
-        ),
-    )
-
-
-def workspace_health_response(request_id: str, workspace: str) -> CommandResponse:
-    health = build_workspace_health(workspace=workspace)
-    return CommandResponse(
-        ok=health["health_status"] == "passed",
-        command="workspace-health",
-        request_id=request_id,
-        backend=BACKEND,
-        summary=f"Local workspace health is {health['health_status']}.",
-        data={"workspace_health": health},
-        validation=ValidationResult(
-            status=health["health_status"],
-            checks=health["checks"],
-        ),
-    )
-
-
-def local_handoff_summary_response(request_id: str, workspace: str) -> CommandResponse:
-    ok, handoff, errors = build_local_handoff_summary(workspace)
-    return CommandResponse(
-        ok=ok,
-        command="local-handoff-summary",
-        request_id=request_id,
-        backend=BACKEND,
-        summary="Local handoff summary is passed." if ok else "Local handoff summary needs review.",
-        data={"local_handoff_summary": handoff},
-        validation=ValidationResult(status="passed" if ok else "warning", checks=handoff.get("checks", [])),
-        errors=errors,
-    )
-
-
-def validation_runbook_response(request_id: str, workspace: str) -> CommandResponse:
-    runbook = build_validation_runbook(workspace=workspace)
-    ok = runbook["runbook_status"] == "passed"
-    return CommandResponse(
-        ok=ok,
-        command="validation-runbook",
-        request_id=request_id,
-        backend=BACKEND,
-        summary="Validation runbook is passed." if ok else "Validation runbook needs review.",
-        data={"validation_runbook": runbook},
-        validation=ValidationResult(status=runbook["runbook_status"], checks=runbook["checks"]),
-    )
-
-
-def documentation_freshness_response(request_id: str, workspace: str) -> CommandResponse:
-    report = build_documentation_freshness_report(workspace=workspace)
-    ok = report["freshness_status"] == "passed"
-    return CommandResponse(
-        ok=ok,
-        command="documentation-freshness",
-        request_id=request_id,
-        backend=BACKEND,
-        summary="Documentation freshness is passed." if ok else "Documentation freshness needs review.",
-        data={"documentation_freshness": report},
-        validation=ValidationResult(status=report["freshness_status"], checks=report["checks"]),
-    )
-
-
-def regression_history_response(request_id: str, workspace: str, limit: int) -> CommandResponse:
-    history = build_regression_history(workspace=workspace, limit=limit)
-    ok = history["history_status"] == "passed"
-    return CommandResponse(
-        ok=ok,
-        command="regression-history",
-        request_id=request_id,
-        backend=BACKEND,
-        summary="Regression history is passed." if ok else "Regression history needs review.",
-        data={"regression_history": history},
-        validation=ValidationResult(status=history["history_status"], checks=history["checks"]),
     )
 
 
@@ -1514,6 +579,118 @@ def documents_response(request_id: str) -> CommandResponse:
     )
 
 
+def open_documents_response(request_id: str, component: str | None, register: bool) -> CommandResponse:
+    ok, result, errors = list_open_documents(component=component, register=register)
+    documents = result.get("documents", [])
+    return CommandResponse(
+        ok=ok,
+        command="open-documents",
+        request_id=request_id,
+        backend="wps-com",
+        summary=(
+            f"Attached to running WPS and found {len(documents)} open documents."
+            if ok
+            else "Could not list open WPS documents."
+        ),
+        data=result,
+        validation=ValidationResult(status="not_applicable"),
+        errors=errors,
+    )
+
+
+def writer_selection_read_response(request_id: str, document_id: str) -> CommandResponse:
+    ok, result, errors = read_writer_selection(document_id)
+    return CommandResponse(
+        ok=ok,
+        command="writer-selection-read",
+        request_id=request_id,
+        backend="wps-com",
+        summary="Writer selection read." if ok else "Writer selection could not be read.",
+        data=result,
+        validation=ValidationResult(status="not_applicable"),
+        errors=errors,
+    )
+
+
+def writer_selection_replace_response(
+    request_id: str,
+    document_id: str,
+    text: str,
+    expected_selection_text: str | None,
+    dry_run: bool,
+) -> CommandResponse:
+    ok, result, errors, replayed = replace_writer_selection(
+        document_id=document_id,
+        text=text,
+        request_id=request_id,
+        expected_selection_text=expected_selection_text,
+        dry_run=dry_run,
+    )
+    return CommandResponse(
+        ok=ok,
+        command="writer-selection-replace",
+        request_id=request_id,
+        backend="wps-com",
+        summary=(
+            "Writer selection replace request replayed from idempotency record."
+            if replayed
+            else "Writer selection replace dry-run completed."
+            if dry_run and ok
+            else "Writer selection replace completed."
+            if ok
+            else "Writer selection replace could not complete."
+        ),
+        data=result,
+        validation=ValidationResult(
+            status="passed" if ok else "failed",
+            checks=[
+                {
+                    "name": "backup_created",
+                    "passed": bool(dry_run or result.get("backup", {}).get("created") or replayed),
+                    "details": result.get("backup", {}).get("backup_path"),
+                },
+                {
+                    "name": "selection_write_validated",
+                    "passed": bool(dry_run or result.get("validation_passed") or replayed),
+                    "details": {
+                        "read_back_text": result.get("read_back_text"),
+                        "replacement_text": result.get("replacement_text"),
+                    },
+                },
+            ],
+        ),
+        errors=errors,
+    )
+
+
+def export_open_document_response(request_id: str, document_id: str, output: str) -> CommandResponse:
+    ok, result, errors, replayed = export_open_document_html(
+        document_id=document_id, output=output, request_id=request_id,
+    )
+    return CommandResponse(
+        ok=ok,
+        command="export-open-document",
+        request_id=request_id,
+        backend="wps-com",
+        summary=(
+            "Open document export request replayed from idempotency record."
+            if replayed
+            else "Open document exported to HTML."
+            if ok
+            else "Open document could not be exported."
+        ),
+        data=result,
+        validation=ValidationResult(
+            status="passed" if ok else "failed",
+            checks=[
+                {"name": "output_created", "passed": bool(ok), "details": result.get("output")},
+                {"name": "source_unchanged", "passed": bool(result.get("source_unchanged")), "details": result.get("source_path")},
+            ],
+        ),
+        errors=errors,
+    )
+
+
 def backup_document_response(request_id: str, document_id: str, dry_run: bool) -> CommandResponse:
     ok, result, errors, replayed = create_backup(
         document_id=document_id,
@@ -1729,6 +906,7 @@ def writer_table_write_response(
     column: int,
     text: str,
     dry_run: bool,
+    allow_rich_content: bool = False,
 ) -> CommandResponse:
     ok, result, errors, replayed = writer_table_write(
         document_id=document_id,
@@ -1738,6 +916,7 @@ def writer_table_write_response(
         text=text,
         request_id=request_id,
         dry_run=dry_run,
+        allow_rich_content=allow_rich_content,
     )
     return CommandResponse(
         ok=ok,
@@ -2462,260 +1641,6 @@ def regression_run_response(
     return response
 
 
-def regression_evidence_response(request_id: str, workspace: str = ".") -> CommandResponse:
-    ok, evidence, errors = build_regression_evidence(workspace)
-    return CommandResponse(
-        ok=ok,
-        command="regression-evidence",
-        request_id=request_id,
-        backend=BACKEND,
-        summary="Regression evidence is passed." if ok else "Regression evidence needs review.",
-        data={"regression_evidence": evidence},
-        validation=ValidationResult(
-            status="passed" if ok else "failed",
-            checks=[
-                {
-                    "name": "safe_regression_artifact_available",
-                    "passed": evidence.get("profiles", {}).get("safe", {}).get("available", False),
-                    "details": evidence.get("profiles", {}).get("safe", {}).get("artifact"),
-                },
-                {
-                    "name": "wps_regression_artifact_available",
-                    "passed": evidence.get("profiles", {}).get("wps", {}).get("available", False),
-                    "details": evidence.get("profiles", {}).get("wps", {}).get("artifact"),
-                },
-                {
-                    "name": "regression_profiles_passed",
-                    "passed": ok,
-                    "details": {
-                        "missing_profiles": evidence.get("missing_profiles", []),
-                        "failed_profiles": evidence.get("failed_profiles", []),
-                    },
-                },
-            ],
-        ),
-        errors=errors,
-    )
-
-
-def local_release_gates_response(request_id: str) -> CommandResponse:
-    steps: list[dict] = []
-    manifest_ok, manifest, manifest_errors = load_regression_manifest()
-    safe = list_regression_scenarios(manifest, profile="safe", include_wps=True) if manifest_ok else []
-    release = list_regression_scenarios(manifest, profile="release", include_wps=True) if manifest_ok else []
-    expected_release = {"local-handoff-summary", "regression-evidence", "regression-history"}
-    profiles_valid = (
-        manifest_ok and bool(safe) and {item.get("id") for item in release} == expected_release
-        and not any(item.get("requires_wps") for item in safe + release)
-        and not ({item.get("id") for item in safe} & expected_release)
-    )
-    if not profiles_valid:
-        return CommandResponse(
-            ok=False, command="local-release-gates", request_id=request_id, backend=BACKEND,
-            summary="Local release profile preflight failed; no gates were run.",
-            data={"local_release_gates": {"steps": [], "completed_count": 0, "total_count": 5}},
-            validation=ValidationResult(status="failed"),
-            errors=manifest_errors or [{"code": "LOCAL_RELEASE_PROFILE_INVALID", "message": "Expected non-WPS safe baseline and three release gates."}],
-        )
-    sequence = (
-        ("initial_package", lambda: cloud_sync_package_response(f"{request_id}-package-initial", DEFAULT_SYNC_PACKAGE, True)),
-        ("safe_baseline", lambda: regression_run_response(f"{request_id}-safe", "config/regression_manifest.json", "safe", False, "artifacts/regression/safe")),
-        ("refreshed_package", lambda: cloud_sync_package_response(f"{request_id}-package-refreshed", DEFAULT_SYNC_PACKAGE, True)),
-        ("package_readiness", lambda: sync_package_readiness_response(f"{request_id}-readiness", ".", DEFAULT_SYNC_PACKAGE, 10)),
-        ("release_gates", lambda: regression_run_response(f"{request_id}-release", "config/regression_manifest.json", "release", False, "artifacts/regression/release")),
-    )
-    errors: list[dict] = []
-    for name, action in sequence:
-        try:
-            response = action()
-        except Exception as exc:
-            errors = [{"code": "LOCAL_RELEASE_GATE_EXCEPTION", "message": f"{name}: {exc}"}]
-            steps.append({"name": name, "ok": False, "errors": errors})
-            break
-        steps.append({
-            "name": name,
-            "ok": response.ok,
-            "validation_status": response.validation.status,
-            "artifact": response.data.get("artifact"),
-            "package": response.data.get("cloud_sync_package", {}).get("output_path"),
-            "errors": response.errors,
-        })
-        if not response.ok or response.validation.status != "passed":
-            errors = response.errors or [{"code": "LOCAL_RELEASE_GATE_FAILED", "message": f"{name} did not pass."}]
-            break
-    ok = len(steps) == len(sequence) and not errors
-    return CommandResponse(
-        ok=ok,
-        command="local-release-gates",
-        request_id=request_id,
-        backend=BACKEND,
-        summary="Local release gates passed." if ok else "Local release gates stopped at a failed step.",
-        data={"local_release_gates": {"steps": steps, "completed_count": len(steps), "total_count": len(sequence), "wps_launched": False, "remote_git_used": False}},
-        validation=ValidationResult(status="passed" if ok else "failed", checks=[{"name": "all_gates_passed", "passed": ok, "details": {"completed_count": len(steps), "total_count": len(sequence)}}]),
-        errors=errors,
-    )
-
-
-def cloud_sync_package_response(
-    request_id: str,
-    output_path: str,
-    include_latest_artifacts: bool,
-) -> CommandResponse:
-    ok, result, errors = build_cloud_sync_package(
-        output_path=output_path,
-        include_latest_artifacts=include_latest_artifacts,
-    )
-    return CommandResponse(
-        ok=ok,
-        command="cloud-sync-package",
-        request_id=request_id,
-        backend=BACKEND,
-        summary="Cloud sync package created." if ok else "Cloud sync package could not be created.",
-        data={"cloud_sync_package": result},
-        validation=ValidationResult(
-            status="passed" if ok else "failed",
-            checks=[
-                {
-                    "name": "package_created",
-                    "passed": bool(result.get("created")),
-                    "details": result.get("output_path"),
-                },
-                {
-                    "name": "package_has_entries",
-                    "passed": bool(result.get("entry_count")),
-                    "details": result.get("entry_count"),
-                },
-                {
-                    "name": "package_hash_available",
-                    "passed": bool(result.get("sha256")),
-                    "details": result.get("sha256"),
-                },
-                {
-                    "name": "all_files_added",
-                    "passed": not bool(result.get("failed")),
-                    "details": result.get("failed"),
-                },
-            ],
-        ),
-        errors=errors,
-    )
-
-
-def sync_package_inspect_response(
-    request_id: str,
-    workspace: str,
-    package_path: str,
-) -> CommandResponse:
-    ok, result, errors = inspect_sync_package(workspace=workspace, package_path=package_path)
-    return CommandResponse(
-        ok=ok,
-        command="sync-package-inspect",
-        request_id=request_id,
-        backend=BACKEND,
-        summary="Sync package inspection passed." if ok else "Sync package inspection needs review.",
-        data={"sync_package_inspect": result},
-        validation=ValidationResult(
-            status="passed" if ok else "warning",
-            checks=result.get("checks", []),
-        ),
-        errors=errors,
-    )
-
-
-def sync_package_summary_response(
-    request_id: str,
-    workspace: str,
-    package_path: str,
-    limit: int,
-) -> CommandResponse:
-    ok, result, errors = summarize_sync_package(workspace=workspace, package_path=package_path, limit=limit)
-    return CommandResponse(
-        ok=ok,
-        command="sync-package-summary",
-        request_id=request_id,
-        backend=BACKEND,
-        summary="Sync package summary passed." if ok else "Sync package summary needs review.",
-        data={"sync_package_summary": result},
-        validation=ValidationResult(
-            status="passed" if ok else "warning",
-            checks=result.get("checks", []),
-        ),
-        errors=errors,
-    )
-
-
-def sync_package_manifest_response(
-    request_id: str,
-    workspace: str,
-    package_path: str,
-    prefix: str | None,
-    limit: int,
-) -> CommandResponse:
-    ok, result, errors = build_sync_package_manifest(
-        workspace=workspace,
-        package_path=package_path,
-        prefix=prefix,
-        limit=limit,
-    )
-    return CommandResponse(
-        ok=ok,
-        command="sync-package-manifest",
-        request_id=request_id,
-        backend=BACKEND,
-        summary="Sync package manifest passed." if ok else "Sync package manifest needs review.",
-        data={"sync_package_manifest": result},
-        validation=ValidationResult(
-            status="passed" if ok else "warning",
-            checks=result.get("checks", []),
-        ),
-        errors=errors,
-    )
-
-
-def sync_package_coverage_response(
-    request_id: str,
-    workspace: str,
-    package_path: str,
-    limit: int,
-) -> CommandResponse:
-    ok, result, errors = build_sync_package_coverage(workspace=workspace, package_path=package_path, limit=limit)
-    return CommandResponse(
-        ok=ok,
-        command="sync-package-coverage",
-        request_id=request_id,
-        backend=BACKEND,
-        summary="Sync package coverage passed." if ok else "Sync package coverage needs review.",
-        data={"sync_package_coverage": result},
-        validation=ValidationResult(
-            status="passed" if ok else "warning",
-            checks=result.get("checks", []),
-        ),
-        errors=errors,
-    )
-
-
-def sync_package_readiness_response(
-    request_id: str,
-    workspace: str,
-    package_path: str,
-    limit: int,
-) -> CommandResponse:
-    ok, result, errors = build_sync_package_readiness(workspace=workspace, package_path=package_path, limit=limit)
-    return CommandResponse(
-        ok=ok,
-        command="sync-package-readiness",
-        request_id=request_id,
-        backend=BACKEND,
-        summary="Sync package readiness passed." if ok else "Sync package readiness needs review.",
-        data={"sync_package_readiness": result},
-        validation=ValidationResult(
-            status="passed" if ok else "warning",
-            checks=result.get("checks", []),
-        ),
-        errors=errors,
-    )
-
-
 def security_audit_response(request_id: str) -> CommandResponse:
     ok, result, errors = build_security_boundary_audit()
     return CommandResponse(
@@ -2723,7 +1648,7 @@ def security_audit_response(request_id: str) -> CommandResponse:
         command="security-audit",
         request_id=request_id,
         backend=BACKEND,
-        summary="Security boundary audit passed." if ok else "Security boundary audit failed.",
+        summary="Schema text and parser consistency audit passed (not a behavioral security test)." if ok else "Schema text and parser consistency audit failed.",
         data={"security_audit": result},
         validation=ValidationResult(
             status="passed" if ok else "failed",
@@ -2817,7 +1742,21 @@ def _with_optional_task_status(
             validation=ValidationResult(status="failed"),
             errors=_errors,
         )
-    response = response_factory()
+    try:
+        response = response_factory()
+    except BaseException as exc:
+        current_status = get_task_status(task_id)
+        if current_status and not current_status.get("terminal"):
+            update_task_status(
+                task_id,
+                "failed",
+                message=f"{tracked_command} raised {type(exc).__name__}: {exc}",
+                recovery_guidance=[
+                    "The operation raised an unexpected exception; run mutation-request-inspect with the request_id before retrying.",
+                ],
+                result_ref=operation_request_id,
+            )
+        raise
     current_status = get_task_status(task_id)
     if current_status and not current_status.get("terminal"):
         update_task_status(
@@ -3273,529 +2212,57 @@ def presentation_replace_response(
     )
 
 
-def run(argv: list[str] | None = None, output_stream: TextIO | None = None) -> int:
+
+from .cli_handlers import build_command_handlers
+
+COMMAND_HANDLERS = build_command_handlers(sys.modules[__name__])
+
+
+
+def _run_command(argv: list[str], output_stream: TextIO | None = None, strict_exit: bool = False) -> int:
     if output_stream is None:
         _configure_stdout()
-    argv = list(sys.argv[1:] if argv is None else argv)
-    argv, extracted_request_id = _extract_request_id(argv)
+    argv, extracted_request_id = _extract_request_id(list(argv))
     parser = build_parser()
     args = parser.parse_args(argv)
     request_id = _request_id(extracted_request_id or args.request_id)
 
-    if args.command == "inspect-env":
-        response = inspect_env_response(request_id)
-    elif args.command == "wps-process-audit":
-        response = wps_process_audit_response(
-            request_id,
-            timeout_seconds=args.timeout_seconds,
-        )
-    elif args.command == "cleanup-plan":
-        response = cleanup_plan_response(
-            request_id,
-            workspace=args.workspace,
-        )
-    elif args.command == "cleanup-approval-manifest":
-        response = cleanup_approval_manifest_response(
-            request_id,
-            workspace=args.workspace,
-        )
-    elif args.command == "artifact-retention-summary":
-        response = artifact_retention_summary_response(
-            request_id,
-            workspace=args.workspace,
-        )
-    elif args.command == "plan":
-        response = plan_response(request_id)
-    elif args.command == "project-status":
-        response = project_status_response(
-            request_id,
-            workspace=args.workspace,
-        )
-    elif args.command == "workspace-health":
-        response = workspace_health_response(
-            request_id,
-            workspace=args.workspace,
-        )
-    elif args.command == "local-handoff-summary":
-        response = local_handoff_summary_response(
-            request_id,
-            workspace=args.workspace,
-        )
-    elif args.command == "validation-runbook":
-        response = validation_runbook_response(
-            request_id,
-            workspace=args.workspace,
-        )
-    elif args.command == "documentation-freshness":
-        response = documentation_freshness_response(
-            request_id,
-            workspace=args.workspace,
-        )
-    elif args.command == "regression-history":
-        response = regression_history_response(
-            request_id,
-            workspace=args.workspace,
-            limit=args.limit,
-        )
-    elif args.command == "tasks":
-        response = tasks_response(request_id, phase=args.phase, status=args.status)
-    elif args.command == "com-smoke":
-        response = com_smoke_response(
-            request_id,
-            component=args.component,
-            input_path=args.input,
-            output_path=args.output,
-            visible=args.visible,
-        )
-    elif args.command == "calc-smoke":
-        response = calc_smoke_response(
-            request_id,
-            input_path=args.input,
-            output_path=args.output,
-            timeout_seconds=args.timeout_seconds,
-        )
-    elif args.command == "convert-smoke":
-        response = convert_smoke_response(
-            request_id,
-            component=args.component,
-            input_path=args.input,
-            output_path=args.output,
-            output_format=args.format,
-        )
-    elif args.command == "html-render":
-        response = _with_optional_task_status(
-            lambda: html_render_response(
-                request_id, args.input, args.output, args.format, args.page_size,
-                args.viewport_width, args.viewport_height, args.timeout_seconds, args.allow_javascript,
-            ),
-            task_id=args.task_id,
-            tracked_command="html-render",
-            operation_request_id=request_id,
-        )
-    elif args.command == "html-batch-convert":
-        progress_callback = None
-        if args.task_id:
-            def progress_callback(completed: int, total: int, message: str) -> bool:
-                current = get_task_status(args.task_id)
-                if current and current.get("state") == "cancelled":
-                    return False
-                percent = min(95, 10 + int(85 * completed / max(1, total)))
-                update_task_status(args.task_id, "running", progress_percent=percent, message=message)
-                current = get_task_status(args.task_id)
-                return not current or current.get("state") != "cancelled"
-        response = _with_optional_task_status(
-            lambda: html_batch_convert_response(request_id, args.input_dir, args.output_dir, args.mode, args.recursive, progress_callback),
-            task_id=args.task_id, tracked_command="html-batch-convert", operation_request_id=request_id,
-        )
-    elif args.command == "html-batch-request":
-        response = html_batch_request_response(request_id, args.batch_request_id, args.verify)
-    elif args.command == "batch-template-report":
-        response = _with_optional_task_status(
-            lambda: batch_template_report_response(request_id, args.manifest, args.template, args.output),
-            task_id=args.task_id, tracked_command="batch-template-report", operation_request_id=request_id,
-        )
-    elif args.command == "html-editable":
-        response = _with_optional_task_status(
-            lambda: html_editable_response(request_id, args.input, args.output),
-            task_id=args.task_id, tracked_command="html-editable", operation_request_id=request_id,
-        )
-    elif args.command == "html-roundtrip-plan":
-        response = html_roundtrip_plan_response(request_id, args.input)
-    elif args.command == "html-controlled-import":
-        response = _with_optional_task_status(
-            lambda: html_controlled_import_response(request_id, args.input, args.output),
-            task_id=args.task_id, tracked_command="html-controlled-import", operation_request_id=request_id,
-        )
-    elif args.command == "html-roundtrip-verify":
-        response = html_roundtrip_verify_response(request_id, args.docx, args.mapping)
-    elif args.command == "html-roundtrip-export":
-        response = _with_optional_task_status(
-            lambda: html_roundtrip_export_response(request_id, args.docx, args.mapping, args.output),
-            task_id=args.task_id, tracked_command="html-roundtrip-export", operation_request_id=request_id,
-        )
-    elif args.command == "writer-table-smoke":
-        response = _with_optional_task_status(
-            lambda: writer_table_smoke_response(
-                request_id,
-                input_path=args.input,
-                output_path=args.output,
-                table_index=args.table_index,
-                row=args.row,
-                column=args.column,
-                text=args.text,
-            ),
-            task_id=args.task_id,
-            tracked_command="writer-table-smoke",
-            operation_request_id=request_id,
-        )
-    elif args.command == "register-document":
-        response = register_document_response(
-            request_id,
-            component=args.component,
-            path=args.path,
-        )
-    elif args.command == "documents":
-        response = documents_response(request_id)
-    elif args.command == "backup-document":
-        response = _with_optional_task_status(
-            lambda: backup_document_response(
-                request_id,
-                document_id=args.document_id,
-                dry_run=args.dry_run,
-            ),
-            task_id=args.task_id,
-            tracked_command="backup-document",
-            operation_request_id=request_id,
-            document_id=args.document_id,
-        )
-    elif args.command == "list-backups":
-        response = list_backups_response(
-            request_id,
-            document_id=args.document_id,
-        )
-    elif args.command == "restore-backup":
-        response = _with_optional_task_status(
-            lambda: restore_backup_response(
-                request_id,
-                document_id=args.document_id,
-                backup_name=args.backup_name,
-                backup_path=args.backup_path,
-                dry_run=args.dry_run,
-            ),
-            task_id=args.task_id,
-            tracked_command="restore-backup",
-            operation_request_id=request_id,
-            document_id=args.document_id,
-        )
-    elif args.command == "writer-replace":
-        response = _with_optional_task_status(
-            lambda: writer_replace_response(
-                request_id,
-                document_id=args.document_id,
-                find_text=args.find,
-                replace_text=args.replace,
-                dry_run=args.dry_run,
-                paragraph_index=args.paragraph_index,
-            ),
-            task_id=args.task_id,
-            tracked_command="writer-replace",
-            operation_request_id=request_id,
-            document_id=args.document_id,
-        )
-    elif args.command == "writer-fill-bookmark":
-        response = _with_optional_task_status(
-            lambda: writer_fill_bookmark_response(
-                request_id, document_id=args.document_id,
-                bookmark_name=args.bookmark_name, text=args.text, dry_run=args.dry_run,
-            ),
-            task_id=args.task_id,
-            tracked_command="writer-fill-bookmark",
-            operation_request_id=request_id,
-            document_id=args.document_id,
-        )
-    elif args.command == "writer-table-write":
-        response = _with_optional_task_status(
-            lambda: writer_table_write_response(
-                request_id,
-                document_id=args.document_id,
-                table_index=args.table_index,
-                row=args.row,
-                column=args.column,
-                text=args.text,
-                dry_run=args.dry_run,
-            ),
-            task_id=args.task_id,
-            tracked_command="writer-table-write",
-            operation_request_id=request_id,
-            document_id=args.document_id,
-        )
-    elif args.command == "validate-document":
-        response = validate_document_response(
-            request_id,
-            document_id=args.document_id,
-            contains=args.contains,
-            cell=args.cell,
-            equals=args.equals,
-        )
-    elif args.command == "snapshot-document":
-        response = snapshot_document_response(
-            request_id,
-            document_id=args.document_id,
-        )
-    elif args.command == "writer-structure":
-        response = writer_structure_response(request_id, args.document_id, args.limit, args.section,
-                                             args.offset, args.bookmark_name, args.expected_sha256,
-                                             args.include_text, args.text_limit)
-    elif args.command == "writer-structure-parity":
-        response = writer_structure_parity_response(request_id, args.run_wps, args.timeout_seconds,
-                                                    args.artifact_dir, args.scope)
-    elif args.command == "operation":
-        response = operation_response(
-            request_id,
-            operation_request_id=args.request,
-        )
-    elif args.command == "operations":
-        response = operations_response(request_id)
-    elif args.command == "mutation-request-inspect":
-        response = mutation_request_inspect_response(request_id, args.request)
-    elif args.command == "task-status-create":
-        response = task_status_create_response(
-            request_id,
-            task_id=args.task_id,
-            command=args.tracked_command,
-            operation_request_id=args.operation_request_id,
-            document_id=args.document_id,
-            message=args.message,
-            recovery_guidance=args.recovery_guidance,
-        )
-    elif args.command == "task-status-update":
-        response = task_status_update_response(
-            request_id,
-            task_id=args.task_id,
-            state=args.state,
-            progress_percent=args.progress_percent,
-            message=args.message,
-            recovery_guidance=args.recovery_guidance,
-            result_ref=args.result_ref,
-        )
-    elif args.command == "task-status":
-        response = task_status_response(
-            request_id,
-            task_id=args.task_id,
-        )
-    elif args.command == "task-statuses":
-        response = task_statuses_response(request_id)
-    elif args.command == "task-recovery":
-        response = task_recovery_response(
-            request_id,
-            task_id=args.task_id,
-        )
-    elif args.command == "task-recovery-playbooks":
-        response = task_recovery_playbooks_response(request_id)
-    elif args.command == "mcp-tools":
-        response = mcp_tools_response(
-            request_id,
-            category=args.category,
-            mutates_document=args.mutates_document,
-        )
-    elif args.command == "mcp-catalog-snapshot":
-        response = mcp_catalog_snapshot_response(request_id)
-    elif args.command == "mcp-catalog-drift":
-        response = mcp_catalog_drift_response(
-            request_id,
-            guard_path=args.guard,
-        )
-    elif args.command == "mcp-tool-schema":
-        response = mcp_tool_schema_response(
-            request_id,
-            name=args.name,
-        )
-    elif args.command == "mcp-call":
-        response = mcp_call_response(
-            request_id,
-            name=args.name,
-            arguments_json=args.arguments_json,
-        )
-    elif args.command == "mcp-server":
-        if args.once_json:
-            rpc_response = handle_mcp_json(args.once_json)
-            if rpc_response is not None:
-                print(dumps_json(rpc_response), file=output_stream or sys.stdout)
-            return 0
-        return serve_stdio()
-    elif args.command == "mcp-smoke":
-        response = mcp_smoke_response(
-            request_id,
-            expected_min_tools=args.expected_min_tools,
-            tool_name=args.tool_name,
-            arguments_json=args.arguments_json,
-        )
-    elif args.command == "mcp-config-audit":
-        response = mcp_config_audit_response(
-            request_id,
-            config_path=args.config,
-            server_name=args.server_name,
-            expected_min_tools=args.expected_min_tools,
-            timeout_seconds=args.timeout_seconds,
-        )
-    elif args.command == "regression-manifest":
-        response = regression_manifest_response(
-            request_id,
-            manifest_path=args.manifest,
-            profile=args.profile,
-            include_wps=args.include_wps,
-        )
-    elif args.command == "regression-run":
-        response = regression_run_response(
-            request_id,
-            manifest_path=args.manifest,
-            profile=args.profile,
-            include_wps=args.include_wps,
-            artifact_dir=args.artifact_dir,
-        )
-    elif args.command == "local-release-gates":
-        response = local_release_gates_response(request_id)
-    elif args.command == "regression-evidence":
-        response = regression_evidence_response(
-            request_id,
-            workspace=args.workspace,
-        )
-    elif args.command == "cloud-sync-package":
-        response = cloud_sync_package_response(
-            request_id,
-            output_path=args.output,
-            include_latest_artifacts=not args.no_latest_artifacts,
-        )
-    elif args.command == "sync-package-inspect":
-        response = sync_package_inspect_response(
-            request_id,
-            workspace=args.workspace,
-            package_path=args.package,
-        )
-    elif args.command == "sync-package-summary":
-        response = sync_package_summary_response(
-            request_id,
-            workspace=args.workspace,
-            package_path=args.package,
-            limit=args.limit,
-        )
-    elif args.command == "sync-package-manifest":
-        response = sync_package_manifest_response(
-            request_id,
-            workspace=args.workspace,
-            package_path=args.package,
-            prefix=args.prefix,
-            limit=args.limit,
-        )
-    elif args.command == "sync-package-coverage":
-        response = sync_package_coverage_response(
-            request_id,
-            workspace=args.workspace,
-            package_path=args.package,
-            limit=args.limit,
-        )
-    elif args.command == "sync-package-readiness":
-        response = sync_package_readiness_response(
-            request_id,
-            workspace=args.workspace,
-            package_path=args.package,
-            limit=args.limit,
-        )
-    elif args.command == "security-audit":
-        response = security_audit_response(request_id)
-    elif args.command == "performance-baseline":
-        response = performance_baseline_response(request_id)
-    elif args.command == "scan-dir":
-        response = scan_dir_response(
-            request_id,
-            path=args.path,
-            recursive=args.recursive,
-        )
-    elif args.command == "batch-report":
-        response = batch_report_response(
-            request_id,
-            path=args.path,
-            recursive=args.recursive,
-            include_snapshots=not args.no_snapshots,
-        )
-    elif args.command == "spreadsheet-read":
-        response = spreadsheet_read_response(
-            request_id,
-            document_id=args.document_id,
-            range_address=args.range,
-            sheet_name=args.sheet,
-        )
-    elif args.command == "spreadsheet-sheets":
-        response = spreadsheet_sheets_response(request_id, document_id=args.document_id)
-    elif args.command == "spreadsheet-rename-sheet":
-        response = _with_optional_task_status(
-            lambda: spreadsheet_rename_sheet_response(
-                request_id, document_id=args.document_id, old_name=args.old_name,
-                new_name=args.new_name, dry_run=args.dry_run,
-            ),
-            task_id=args.task_id,
-            tracked_command="spreadsheet-rename-sheet",
-        )
-    elif args.command == "spreadsheet-create-sheet":
-        response = _with_optional_task_status(
-            lambda: spreadsheet_create_sheet_response(request_id, args.document_id, args.name, args.index, args.dry_run),
-            task_id=args.task_id, tracked_command="spreadsheet-create-sheet",
-        )
-    elif args.command == "spreadsheet-set-sheet-visibility":
-        response = _with_optional_task_status(
-            lambda: spreadsheet_set_sheet_visibility_response(request_id, args.document_id, args.sheet_name, args.visible == "true", args.dry_run),
-            task_id=args.task_id, tracked_command="spreadsheet-set-sheet-visibility",
-        )
-    elif args.command == "spreadsheet-delete-sheet":
-        response = _with_optional_task_status(
-            lambda: spreadsheet_delete_sheet_response(request_id, args.document_id, args.sheet_name, args.dry_run),
-            task_id=args.task_id, tracked_command="spreadsheet-delete-sheet",
-        )
-    elif args.command == "spreadsheet-copy-sheet":
-        response = _with_optional_task_status(
-            lambda: spreadsheet_copy_sheet_response(request_id, args.document_id, args.source_name, args.new_name, args.index, args.dry_run),
-            task_id=args.task_id, tracked_command="spreadsheet-copy-sheet",
-        )
-    elif args.command == "spreadsheet-set-sheet-tab-color":
-        response = _with_optional_task_status(
-            lambda: spreadsheet_set_sheet_tab_color_response(request_id, args.document_id, args.sheet_name, args.color, args.dry_run),
-            task_id=args.task_id, tracked_command="spreadsheet-set-sheet-tab-color",
-        )
-    elif args.command == "spreadsheet-inspect":
-        response = spreadsheet_inspect_response(
-            request_id, document_id=args.document_id, range_address=args.range, sheet_name=args.sheet,
-        )
-    elif args.command == "spreadsheet-write":
-        response = _with_optional_task_status(
-            lambda: spreadsheet_write_response(
-                request_id,
-                document_id=args.document_id,
-                range_address=args.range,
-                values_json=args.values_json,
-                sheet_name=args.sheet,
-                dry_run=args.dry_run,
-            ),
-            task_id=args.task_id,
-            tracked_command="spreadsheet-write",
-            operation_request_id=request_id,
-            document_id=args.document_id,
-        )
-    elif args.command == "spreadsheet-formula-write":
-        response = _with_optional_task_status(
-            lambda: spreadsheet_formula_write_response(
-                request_id,
-                document_id=args.document_id,
-                range_address=args.range,
-                formulas_json=args.formulas_json,
-                expected_values_json=args.expected_values_json,
-                sheet_name=args.sheet,
-                dry_run=args.dry_run,
-            ),
-            task_id=args.task_id,
-            tracked_command="spreadsheet-formula-write",
-            operation_request_id=request_id,
-            document_id=args.document_id,
-        )
-    elif args.command == "presentation-replace":
-        response = _with_optional_task_status(
-            lambda: presentation_replace_response(
-                request_id,
-                document_id=args.document_id,
-                find_text=args.find,
-                replace_text=args.replace,
-                dry_run=args.dry_run,
-                slide_index=args.slide_index,
-            ),
-            task_id=args.task_id,
-            tracked_command="presentation-replace",
-            operation_request_id=request_id,
-            document_id=args.document_id,
-        )
-    else:  # pragma: no cover - argparse enforces valid commands
+    handler = COMMAND_HANDLERS.get(args.command)
+    if handler is None:  # pragma: no cover - argparse enforces valid commands
         parser.error(f"Unsupported command: {args.command}")
+    response = handler(args, request_id, output_stream)
+    if isinstance(response, int):
+        return response
 
     print(dumps_json(response.to_dict()), file=output_stream or sys.stdout)
-    return 0
+    return 0 if response.ok or not strict_exit else 1
+
+
+def run(argv: list[str] | None = None, output_stream: TextIO | None = None) -> int:
+    argv = list(sys.argv[1:] if argv is None else argv)
+    strict_exit = "--strict-exit" in argv
+    argv = [item for item in argv if item != "--strict-exit"]
+    try:
+        return _run_command(argv, output_stream, strict_exit)
+    except (StateCorruptError, OoxmlTooLargeError) as exc:
+        command = next((item for item in argv if not item.startswith("-")), "unknown")
+        _, request_id = _extract_request_id(argv)
+        response = CommandResponse(
+            ok=False,
+            command=command,
+            request_id=request_id or "unknown",
+            backend=BACKEND,
+            summary=(
+                "Workspace state file is corrupt; the command was not executed."
+                if isinstance(exc, StateCorruptError)
+                else "Input document exceeds the supported size limits; the command was not executed."
+            ),
+            data=dict(exc.details),
+            validation=ValidationResult(status="failed"),
+            errors=[{"code": exc.code, "message": str(exc)}],
+        )
+        print(dumps_json(response.to_dict()), file=output_stream or sys.stdout)
+        return 1 if strict_exit else 0
 
 
 def main() -> int:

@@ -32,15 +32,7 @@ Artifact retention:
 
 ## Release Profile
 
-After a passing safe artifact exists, refresh the local package and run the release profile. This checks the latest safe/WPS evidence, history, and local handoff without making the safe profile depend on its own prior result.
-
-For a local all-in-one run, `python -m wps_ai_agent_cli local-release-gates` performs the initial package, safe artifact, package refresh, readiness, and release artifact sequence.
-
-```powershell
-python -m wps_ai_agent_cli regression-run --profile release --artifact-dir artifacts\regression\release
-```
-
-Require exit code `0`, top-level `ok=true`, `validation.status=passed`, and `data.regression.failed_count=0`. Retain failed release artifacts for triage; do not remove failed historical safe artifacts to satisfy the gate.
+The shipped manifest has no `release` scenarios. The profile name is kept so a custom manifest can define its own gates; `regression-run --profile release` on the shipped manifest reports zero scenarios. The former `local-release-gates` command and its package-readiness steps were removed (see `docs/CODE_REVIEW_BATCH_6.md`, G-07).
 
 ## WPS Profile
 

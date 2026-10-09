@@ -226,10 +226,16 @@ def build_cli_argv(tool_name: str, arguments: dict[str, Any]) -> tuple[bool, lis
             for item in value:
                 argv.extend([_flag_name(name), str(item)])
             continue
-        argv.extend([_flag_name(name), str(value)])
+        if str(value).startswith("-"):
+            argv.append(f"{_flag_name(name)}={value}")
+        else:
+            argv.extend([_flag_name(name), str(value)])
 
     if request_id:
-        argv.extend(["--request-id", str(request_id)])
+        if str(request_id).startswith("-"):
+            argv.append(f"--request-id={request_id}")
+        else:
+            argv.extend(["--request-id", str(request_id)])
     return True, argv, schema, []
 
 
@@ -249,8 +255,37 @@ def call_mcp_tool(tool_name: str, arguments: dict[str, Any]) -> tuple[bool, dict
 
     from .cli import run
 
+    from .mcp_config_audit import LAUNCH_RESTRICTED
+
     output = io.StringIO()
-    exit_code = run(argv, output_stream=output)
+    restriction = LAUNCH_RESTRICTED.set(True)
+    try:
+        exit_code = run(argv, output_stream=output)
+    except SystemExit as exc:
+        return (
+            False,
+            {
+                "tool_name": schema["name"] if schema else tool_name,
+                "cli_command": schema["cli_command"] if schema else None,
+                "cli_argv": argv,
+                "response": None,
+                "exit_code": exc.code,
+            },
+            [_error("MCP_CLI_ARGUMENTS_REJECTED", "The CLI parser rejected the arguments; see the server's stderr for the usage message.", {"exit_code": exc.code})],
+        )
+    except Exception as exc:  # noqa: BLE001
+        return (
+            False,
+            {
+                "tool_name": schema["name"] if schema else tool_name,
+                "cli_command": schema["cli_command"] if schema else None,
+                "cli_argv": argv,
+                "response": None,
+            },
+            [_error("MCP_TOOL_EXECUTION_FAILED", f"{type(exc).__name__}: {exc}"[:500])],
+        )
+    finally:
+        LAUNCH_RESTRICTED.reset(restriction)
     raw_output = output.getvalue().strip()
     try:
         response = json.loads(raw_output) if raw_output else {}
