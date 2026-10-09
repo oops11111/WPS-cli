@@ -239,7 +239,9 @@ MCP_TOOL_SCHEMAS: tuple[dict[str, Any], ...] = (
         cli_example="python -m wps_ai_agent_cli html-render --input page.html --output page.pdf --format pdf",
         safety_notes=[
             "Only local resources under the input HTML directory are allowed; network and other protocols are blocked.",
-            "JavaScript is disabled by default. Input is limited to 10 MiB; individual resources to 20 MiB and total local resources to 100 MiB.",
+            "JavaScript is disabled by default. When enabled, WebSocket connections are still aborted so network_access remains false.",
+            "Render timeouts kill the Node process tree (including Edge children on Windows via taskkill /T).",
+            "Input is limited to 10 MiB; individual resources to 20 MiB and total local resources to 100 MiB.",
             "Creates a new PDF or PNG and never modifies the source HTML or overwrites an existing output.",
         ],
     ),
