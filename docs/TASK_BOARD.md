@@ -331,9 +331,72 @@
 | P3-258 | Writer 诊断总 payload 上限审计 | done | 150 条超长关系异常稳定压缩为 127 条明细加 1 条 omitted_count 摘要，总数 128、JSON <120 KB、索引顺序稳定；422 项通过/65 项跳过，WPS parity 7/7 与 4/4 |
 | P3-259 | Writer 诊断截断摘要传递审计 | done | 150 错误生成的 128 条 details 与 omission summary 经 direct/CLI/MCP 完整保留，CLI/MCP validation=failed，backup/COM 未触发；423 项通过/65 项跳过 |
 | P3-260 | Writer 诊断条数边界审计 | done | 127/128 条完整保留；129 条保留 127 明细并以 omitted_count=2 摘要占第 128 项，无 off-by-one；424 项通过/65 项跳过 |
-| P3-261 | Writer 序列化诊断字节上限审计 | next | 最坏关系诊断经 CLI/MCP 的 JSON 字节数低于约定上限，摘要和失败状态保留 |
+| P3-261 | Writer 序列化诊断字节上限审计 | done | 每个关系字段限制为 UTF-8 96 字节（含截断标记）；150 个含引号/反斜线的最大 JSON 转义输入经 CLI/MCP JSON 均不超过 120,000 字节，保留 127 条明细、omitted_count=23 和 failed 状态；Unicode 码点边界测试通过；全量 426 项通过/65 项跳过 |
+| P3-262 | MCP tools/list 游标分页 | done | 81 个工具按目录顺序稳定遍历为 2 页（50+31），无重无漏；无效/过期游标返回 JSON-RPC -32602；每页保留 cache 元数据；smoke/config-audit 遍历全页且无重复；MCP 定向测试 19 项通过，全量 428 项通过/65 项跳过；project-status 通过 |
+| P3-263 | 桌面 MCP 客户端联调审计 | done | 只读检查 Claude Desktop 进程存在；Claude Code 2.1.293 的 `claude mcp list` 显示未配置 server，Claude Desktop 配置文件未发现；电脑 UI 检查接口两次初始化失败；未修改配置/文档；真实客户端 initialize/tools/list/tools/call 门槛明确保持未验证 |
+| P3-264 | MCP 分页性能基线 | done | Python 3.12.14 / Windows 10，200 次完整遍历均为 81 工具、50+31 两页，目录顺序精确且无重复；整轮 p50 5.078ms/p95 6.726ms，逐页 wire JSON 65,054/41,965 UTF-8 字节；报告 `docs/P3_MCP_PAGINATION_PERFORMANCE_BASELINE_20261009.md`；不设跨机器门槛 |
+| P3-265 | 刷新 MCP 性能基线目录守卫 | done | `mcp-smoke` 与 `mcp-config-audit` 性能场景均由 47 提升至 81 工具最小值；4 项 performance 定向测试通过；safe regression 15/15、sync-package-coverage/readiness 通过；实际 performance-baseline 6/6、未启动 WPS |
+| P3-266 | MCP stdio 分页端到端契约 | done | 真实子进程 stdio 验证 initialize、50+31 全量目录顺序和 cache 元数据；无效游标通过 wire 返回 -32602 且服务继续；只读 wps_agent_tasks 成功；请求 ID 对齐、EOF 后退出码 0；完整测试 430 项通过/65 项跳过 |
+| P3-267 | 限制 MCP tools/list 游标长度 | done | 长度超过 128 字符的游标在 base64 解码前返回 -32602；测试确认 oversized 输入未触发 decoder；有效全页遍历和现有错误路径保留；全量 431 项通过/65 项跳过 |
+| P3-268 | 文档化 MCP tools/list 游标分页 | done | 客户端配置与工具 schema 文档现说明总目录 81、单页最多 50、nextCursor 不透明且必须原样迭代至缺省；澄清 --once-json 一次一页、smoke/config-audit 聚合全页；文档新鲜度通过 |
+| P3-269 | MCP 配置审计分页失败路径测试 | done | 隔离 fake server 验证跨页重复工具使审计失败并保留 count=2/pages=2/duplicate=1；重复 nextCursor 在第 2 页后失败并给出错误，不会请求第 3 页；配置审计测试 4 项通过；全量 433/65 |
+| P3-270 | 加固 MCP smoke 畸形响应处理 | done | initialize/tools/list/tools/call 的 null 或非对象 result 安全降级为结构化失败；畸形列表页摘要不抛异常；null-result 回归测试通过，MCP server/smoke 定向 20 项通过，全量 434/65 |
+| P3-271 | 刷新 MCP 分页加固后的本地同步包 | done | Safe regression 15/15 的 artifact `regression-run-20261008T173106394967Z-p3-271-passing-safe.json` 已包含；本地包 315 项、无失败，coverage/readiness 通过；project-status、workspace-health、documentation-freshness 均通过；package SHA256 `0E049F7E478AAE76D77755D87CE4FC0D2F54E02361A364D5853006E9D51DCCBC` |
+| P3-272 | MCP 目录审计拒绝空白工具名 | done | `mcp-smoke` 与 `mcp-config-audit` 均拒绝空名称与纯空白名称，即使目录数量达标也失败；两组定向审计覆盖通过；全量 436/65 |
+| P3-273 | 校验 MCP 工具命名建议 | done | 共用校验器限制 1-128 ASCII 字符集合 `[A-Za-z0-9_.-]`，非法名与重复名独立计数；空格、斜杠、非 ASCII、超长和有效长度边界定向测试通过；全量 438/65 |
+| P3-274 | 验证 MCP stdio 畸形请求后恢复 | done | 真实 mcp-server 子进程依次接收畸形 JSON 与数组/标量 JSON，返回 `-32700`/`-32600` 且 null ID；同进程随后成功 initialize 并在 EOF 正常退出；定向 29 项通过，全量 439/65 |
+| P3-275 | 加固 MCP JSON-RPC 请求信封校验 | done | 按 MCP 基础协议校验 `jsonrpc`、method、string/integer 非 null ID 和 object params；notification 不响应；无 ID 的 tools/call 不执行；handler/真实 stdio 均覆盖，MCP 定向 33 项通过，全量 443/65 |
+| P3-276 | 校验 MCP initialize 版本协商 | done | Legacy stdio 明确支持 `2025-11-25`；initialize 校验 protocolVersion/capabilities/clientInfo，未知版本协商回退至支持版本，缺失/畸形参数返回 `-32602` 并保留 ID；MCP 定向 35 项通过，全量 445/65 |
+| P3-277 | 强制 MCP initialize 生命周期顺序 | done | 持久 stdio 在 initialize 和 initialized notification 前拒绝常规请求，拒绝重复 initialize，合法顺序可继续；one-shot 明确为诊断入口；MCP 定向 36 项通过，全量 446/65 |
+| P3-278 | 拒绝 MCP stdio JSON 重复对象键 | done | 专用 JSON parser 在任意对象深度拒绝重复 member；handler 和真实 stdio 验证 null-ID `-32600`、不触发 HTML 输出副作用，后续 tools/list 成功；MCP 定向 38 项通过，全量 448/65 |
+| P3-279 | 限制 MCP stdio 输入行长度 | done | 单行最多 1,048,576 字符；TextIO 使用限量 `readline` 并以 8,192 字符块 drain 超长记录；精确边界和超限后恢复测试通过，MCP 定向 40 项通过，全量 450/65 |
+| P3-280 | 拒绝 MCP 非标准 JSON 数值常量 | done | 专用 parser 在顶层及嵌套值拒绝 NaN/Infinity/-Infinity，返回 null-ID `-32700`；真实 stdio 随后 tools/list 成功；MCP 定向 42 项通过，全量 452/65 |
+| P3-281 | 强制 MCP stdio 会话请求 ID 唯一 | done | 持久会话记录所有合法 string/integer ID（含方法校验失败请求）；重用 ID 在 dispatch 前返回 `-32600`，重复 HTML 转换无副作用，后续唯一 ID 可继续；MCP 定向 43 项通过，全量 453/65 |
+| P3-282 | 对齐 MCP 输出 schema 与结构化结果 | done | 全部 81 个工具的 output contract 描述实际 `{mcp_call, errors}` 结构化 envelope；成功与工具执行错误的字段/JSON 类型测试通过；MCP 相关 54 项通过，全量 455/65 |
+| P3-283 | 对未知 MCP 工具返回协议错误 | done | 未知工具名在 adapter 前返回 JSON-RPC `-32602`，adapter 不调用；已知工具的执行失败仍为 `isError` tool result；handler/子进程覆盖通过，MCP/server/schema/adapter 定向 64 项通过，全量 457/65 |
+| P3-284 | 按 inputSchema 校验 MCP 工具参数 | done | adapter 与 MCP boundary 按 81 个 catalog schema 校验 JSON 类型、required/unknown、enum、数值范围和数组元素；无效参数在 adapter 前返回 `-32602`；MCP/schema/adapter 定向 67 项通过，全量 460/65 |
+| P3-285 | 配置 MCP 客户端审计使用持久 stdio | done | 单个服务进程内完成 initialize、initialized、全部分页 tools/list；核对 ID、deadline、EOF exit 和 stderr，不再借助 one-shot 跳过生命周期；MCP 配置审计定向 8 项通过，全量 462/65 |
+| P3-286 | 实现 MCP ping utility request | done | legacy 协议 ping 对无 params/空 params 返回空 result，非空 params 返回 `-32602`；覆盖 handler 和初始化后持久 stdio；MCP server/config audit 定向 43 项通过，全量 464/65 |
+| P3-287 | 校验配置审计返回的工具描述与 schema | done | persistent tools/list 分页审计校验每个 descriptor 的工具名、input/output object schema 及可选字段形状；跨页畸形数据返回最多 20 条字段级诊断；配置审计定向 10 项通过，全量 466/65 |
+| P3-288 | 限制配置 MCP 审计输出缓冲 | done | stdout 单行上限 1 MiB、响应队列容量 8，stderr 分 8,192 字符块持续 drain 且仅保留 8,192 字符；超限错误有界并回收子进程；审计定向 12 项通过，全量 468/65 |
+| P3-289 | 规范化异常 MCP 审计响应 | done | 畸形 JSON、深层 JSON、无效 UTF-8 均返回有界审计失败；UTF-8 在 reader thread 内转换为诊断，子进程均被回收，随后独立正常审计通过；定向审计 13 项通过，全量 469/65 |
+| P3-290 | 校验 MCP descriptor 的嵌套 schema | done | 递归检查 properties、patternProperties、$defs/definitions、items/prefixItems、组合 schema、required/dependentRequired、类型/数值/字符串/布尔关键字；每页最多 20 条 page/index/schema-path 诊断；审计定向 14 项通过，全量 470/65 |
+| P3-291 | 校验配置审计的 MCP initialize 元数据 | done | initialize 要求非空 serverInfo.name/version，检查 capabilities/tools 元数据及 listChanged 布尔类型；5 类坏握手有界失败，后续有效审计继续通过；配置审计定向 15 项通过，全量 471/65 |
+| P3-292 | 要求 initialize 声明 tools capability | done | tools/list 前必须确认 capabilities.tools 存在且为 object；缺失能力在 handshake 阶段有界失败；合法服务审计通过；定向 15 项、全量 471/65 |
+| P3-293 | 校验可选 MCP implementation 元数据 | done | title/description/websiteUrl/icons 均为可选；存在时校验类型、HTTP(S)/data icon URI、mimeType/sizes/theme，不联网；有效完整元数据和 7 类畸形值覆盖通过；定向 16 项，全量 472/65 |
+| P3-294 | 校验配置 MCP 进程参数类型 | done | spawn 前要求 command 非空字符串、args 为字符串列表、env 为字符串到字符串映射；5 类畸形配置均通过 mock 证明不会启动命令；审计定向 17 项通过，全量 473/65 |
+| P3-295 | 拒绝 MCP 进程配置中的无效字符 | done | spawn 前拒绝 command/args/env NUL、空/含 `=` 的环境变量名；配置验证不回显环境值、args 仅报告数量；secret marker 不出现在序列化结果；审计定向 17 项，全量 473/65 |
+| P3-296 | 确认有界 MCP 配置错误不泄露进程设置 | done | env 值/完整 args 不回显，command/cwd 摘要最多 256 字符；secret marker 不在结果中，所有错误路径均不 spawn；审计定向 18 项，全量 474/65 |
+| P3-297 | 限制 MCP 客户端配置文件读取 | done | JSON parse 前最多读取 1 MiB + 1 字节；超限不 spawn，边界恰好 1 MiB 的有效 UTF-8 JSON 配置通过；审计定向 20 项，全量 476/65 |
+| P3-298 | 校验 MCP 配置 JSON 结构 | done | 顶层必须为 object，mcpServers 必须为 object；6 种畸形结构均有界失败且不 spawn；审计定向 21 项，全量 477/65 |
+| P3-299 | 拒绝 MCP 配置 JSON 歧义值 | done | 递归拒绝重复成员名和 NaN/Infinity 等非标准数值常量；6 种原始 JSON 输入均有界失败、不泄露原文且不 spawn；审计定向 22 项，全量 478/65 |
+| P3-300 | 限制 MCP 配置 JSON 嵌套深度 | done | 在递归解码前限制 64 层容器；65 层被拒且 json.loads/Popen 均未调用，恰好 64 层通过；字符串内括号和转义不误判；定向 23 项，全量 479/65 |
+| P3-301 | 拒绝 MCP 配置中的孤立 Unicode surrogate | done | 检查嵌套值和对象键；孤立高/低 surrogate 有界失败、不泄露值且不 spawn，合法代理对与 BMP Unicode 通过；定向 24 项，全量 480/65 |
+| P3-302 | 限制配置 MCP 审计子进程超时 | done | CLI、MCP schema、直接 API 共用 1–120 秒边界，默认 15 秒；非法值在配置读取和 spawn 前拒绝；保留子进程超时回收测试；全量 482/65 |
+| P3-303 | 限制配置 MCP 审计预期工具数 | done | CLI、MCP schema、直接 API 共用 1–10,000 边界；非法值在配置读取/spawn 前拒绝，默认值不变；全量 483/65 |
+| P3-304 | 限制配置 MCP server 名称 | done | CLI、MCP schema、API 共用非空及 256 字符边界；非法值在配置读取/spawn 前拒绝且不回显；adapter 同时落实 minLength/maxLength/pattern；全量 484/65 |
+| P3-305 | 对齐 MCP adapter 字符串 schema 校验 | done | adapter 执行 minLength/maxLength/pattern；空白/边界/超长值行为通过测试，三类畸形 pattern 均有界失败且不泄露参数；全量 486/65 |
+| P3-306 | 拒绝畸形 MCP schema 约束元数据 | done | 预检 enum/numeric/string/items 元数据类型与上下界关系；异常元数据在参数比较前结构化失败且不泄露值；catalog 检查和全量 487/65 通过 |
+| P3-307 | 校验 MCP enum 唯一性语义 | next | 用区分 JSON 类型的相等规则拒绝空 enum/重复项，保留合法混合类型枚举并给出有界诊断 |
 
 进展记录：
+- 2026-10-09: P3-298 已完成 MCP 配置根节点与 `mcpServers` 对象形状校验；6 种畸形结构均有界失败且不启动子进程，全量测试 477 passed/65 skipped，safe regression 15/15；实现和下一项范围见 `docs\P3_NEXT_MCP_CONFIG_JSON_AMBIGUITY_SCOPE.md`。
+- 2026-10-09: P3-299 已拒绝 MCP 配置中的递归重复成员与 NaN/Infinity 非标准常量；6 种原始 JSON 变体均不 spawn、诊断不泄露配置内容；当前 next 为 P3-300 嵌套深度限制。
+- P3-299 release: 全量 478 passed/65 skipped，local-release-gates 5/5，safe regression passed；package readiness passed，未启动 WPS。
+- 2026-10-09: P3-300 已在 json.loads 前限制 JSON 容器深度为 64 层；65 层输入在解析及 spawn 前失败，64 层边界与字符串转义测试通过；全量 479 passed/65 skipped。当前 next 为 P3-301。
+- P3-300 release: local-release-gates 5/5 passed，package readiness passed，WPS 未启动。
+- 2026-10-09: P3-301 已拒绝配置 JSON 字符串和对象键中的孤立 UTF-16 surrogate；有效代理对与非 ASCII Unicode 保持可用，定向 24 项、全量 480/65。当前 next 为 P3-302 子进程超时上限。
+- P3-301 release: local-release-gates 5/5 passed，package readiness passed，WPS 未启动。
+- 2026-10-09: P3-302 已统一配置审计超时范围为 1–120 秒、默认 15 秒，CLI/MCP schema/API 均覆盖边界并在 spawn 前拒绝非法输入；全量测试 482 passed/65 skipped，当前 next 为 P3-303。
+- P3-302 release: local-release-gates 5/5 passed，package readiness passed，WPS 未启动。
+- 2026-10-09: P3-303 已统一 `expected_min_tools` 为 1–10,000，非法值在读取配置前失败；全量 483 passed/65 skipped，当前 next 为 P3-304 server 名称边界。
+- P3-303 release: local-release-gates 5/5 passed，package readiness passed，WPS 未启动。
+- 2026-10-09: P3-304 已统一 server 名称非空/最多 256 字符约束，schema 的 pattern/长度约束由 adapter 实际执行；空白和超长值不读取配置、不 spawn、不回显；全量 484 passed/65 skipped。当前 next 为 P3-305。
+- 2026-10-09: P3-305 已补齐 adapter 的 minLength/maxLength/pattern 验证；catalog 关键字扫描通过，空/空白/精确上限/超限及无效 pattern 用例通过；全量 486 passed/65 skipped。当前 next 为 P3-306。
+- 2026-10-09: P3-306 已在比较调用参数前预检 enum、数值上下界、字符串长度/pattern、数组 items 的元数据类型与关系；畸形 schema 不抛异常、不泄露值；全量 487 passed/65 skipped。当前 next 为 P3-307。
+- P3-306 release: local-release-gates 5/5 passed，package readiness passed，WPS 未启动。
+- P3-305 release: local-release-gates 5/5 passed，package readiness passed，WPS 未启动。
+- P3-304 release: local-release-gates 5/5 passed，package readiness passed，WPS 未启动。
 - 2026-10-03: P3-004 已为 `regression-run` 增加 `--artifact-dir`，safe profile 生成 `artifacts\regression\regression-run-20261003T063513662051Z-regression-artifact-p3-004-001.json`，报告见 `docs\P3_REGRESSION_ARTIFACT_EXPORT_REPORT.md`。
 - 2026-10-03: P3-005 已形成 CI 交接文档，覆盖 safe/WPS 调用命令、artifact 留存路径、通过门槛和失败分诊，见 `docs\REGRESSION_CI_HANDOFF.md`。
 - 2026-10-03: P3-006 已执行失败恢复演练，构造 `p3_006_failed_writer_replace` 终态失败任务，验证 `task-recovery`、备份清单和 Writer snapshot 证据，报告见 `docs\P3_RECOVERY_HARDENING_DRILL.md`。

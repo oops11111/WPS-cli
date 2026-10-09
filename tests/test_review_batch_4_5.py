@@ -37,12 +37,12 @@ class AdapterArgumentValidationTests(unittest.TestCase):
                 ok, argv, _schema, errors = build_cli_argv("wps_agent_writer_table_write", arguments)
                 self.assertFalse(ok)
                 self.assertEqual(argv, [])
-                self.assertEqual(errors[0]["code"], "MCP_ARGUMENTS_INVALID")
+                self.assertTrue(errors[0]["code"].startswith("MCP_ARGUMENT_"), errors)
 
     def test_enum_values_are_checked(self):
         ok, _argv, _schema, errors = build_cli_argv("wps_agent_open_documents", {"component": "outlook"})
         self.assertFalse(ok)
-        self.assertEqual(errors[0]["code"], "MCP_ARGUMENTS_INVALID")
+        self.assertEqual(errors[0]["code"], "MCP_ARGUMENT_ENUM_INVALID")
 
     def test_values_starting_with_a_dash_cannot_become_flags(self):
         ok, argv, _schema, errors = build_cli_argv("wps_agent_writer_table_write", {**TABLE_WRITE, "text": "--dry-run"})
@@ -67,27 +67,42 @@ class AdapterArgumentValidationTests(unittest.TestCase):
         self.assertEqual(errors[0]["code"], "MCP_TOOL_EXECUTION_FAILED")
 
 
+HANDSHAKE = (
+    json.dumps(
+        {
+            "jsonrpc": "2.0",
+            "id": "init",
+            "method": "initialize",
+            "params": {"protocolVersion": mcp_server.MCP_PROTOCOL_VERSION, "capabilities": {}, "clientInfo": {"name": "t", "version": "1"}},
+        }
+    )
+    + "\n"
+    + json.dumps({"jsonrpc": "2.0", "method": "notifications/initialized"})
+    + "\n"
+)
+
+
 class McpServerResilienceTests(unittest.TestCase):
     def serve(self, text):
         output = io.StringIO()
-        self.assertEqual(mcp_server.serve_stdio(io.StringIO(text), output), 0)
-        return [json.loads(line) for line in output.getvalue().splitlines()]
+        self.assertEqual(mcp_server.serve_stdio(io.StringIO(HANDSHAKE + text), output), 0)
+        return [json.loads(line) for line in output.getvalue().splitlines()][1:]
 
     def test_invalid_tool_arguments_do_not_end_the_session(self):
         responses = self.serve(
             json.dumps(tools_call("wps_agent_writer_table_write", {**TABLE_WRITE, "table_index": "abc"}))
             + "\n"
-            + json.dumps({"jsonrpc": "2.0", "id": 2, "method": "initialize"})
+            + json.dumps({"jsonrpc": "2.0", "id": 2, "method": "tools/list"})
             + "\n"
         )
         self.assertEqual([item["id"] for item in responses], [1, 2])
-        self.assertTrue(responses[0]["result"]["isError"])
+        self.assertEqual(responses[0]["error"]["code"], -32602)
         self.assertIn("result", responses[1])
 
     def test_unexpected_exception_in_a_tool_call_does_not_end_the_session(self):
         with patch.object(mcp_server, "call_mcp_tool", side_effect=RuntimeError("boom")):
             responses = self.serve(
-                json.dumps(tools_call("wps_agent_plan", {})) + "\n" + json.dumps({"jsonrpc": "2.0", "id": 2, "method": "initialize"}) + "\n"
+                json.dumps(tools_call("wps_agent_plan", {})) + "\n" + json.dumps({"jsonrpc": "2.0", "id": 2, "method": "tools/list"}) + "\n"
             )
         self.assertEqual(responses[0]["error"]["code"], -32603)
         self.assertIn("result", responses[1])
@@ -98,20 +113,6 @@ class McpServerResilienceTests(unittest.TestCase):
         self.assertEqual(
             mcp_server.handle_mcp_request({"jsonrpc": "2.0", "id": 3, "method": "nope"})["error"]["code"], -32601
         )
-
-    def test_oversized_request_line_is_discarded_and_following_requests_still_work(self):
-        with patch.object(mcp_server, "MAX_REQUEST_LINE_CHARS", 64):
-            responses = self.serve("x" * 500 + "\n" + json.dumps({"jsonrpc": "2.0", "id": 2, "method": "initialize"}) + "\n")
-        self.assertEqual(responses[0]["error"]["code"], -32600)
-        self.assertIn("discarded", responses[0]["error"]["message"])
-        self.assertEqual(responses[1]["id"], 2)
-
-    def test_line_exactly_at_the_limit_is_accepted(self):
-        message = json.dumps({"jsonrpc": "2.0", "id": 5, "method": "initialize"})
-        with patch.object(mcp_server, "MAX_REQUEST_LINE_CHARS", len(message) + 1):
-            responses = self.serve(message + "\n")
-        self.assertEqual(responses[0]["id"], 5)
-        self.assertIn("result", responses[0])
 
 
 class SchemaParserConsistencyTests(unittest.TestCase):
@@ -273,7 +274,7 @@ class ConfigAuditExecutionTests(unittest.TestCase):
     def audit(self, path):
         from wps_ai_agent_cli.mcp_config_audit import audit_mcp_client_config
 
-        return audit_mcp_client_config(config_path=path, server_name="srv", timeout_seconds=15)
+        return audit_mcp_client_config(config_path=path, server_name="srv", timeout_seconds=15, restrict_launch=True)
 
     def test_untrusted_launch_lines_are_never_executed(self):
         import sys

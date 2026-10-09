@@ -13,6 +13,13 @@ SCOPE_NOTE = (
 )
 
 
+def _parses_integer(parser_type: Any) -> bool:
+    if parser_type is int:
+        return True
+    returns = getattr(parser_type, "__annotations__", {}).get("return")
+    return returns in (int, "int")
+
+
 def cli_parser_options() -> dict[str, dict[str, dict[str, Any]]]:
     from .cli import build_parser
 
@@ -27,7 +34,7 @@ def cli_parser_options() -> dict[str, dict[str, dict[str, Any]]]:
                     options[flag] = {
                         "required": bool(action.required),
                         "flag": isinstance(action, argparse._StoreTrueAction),
-                        "integer": action.type is int,
+                        "integer": _parses_integer(action.type),
                         "append": isinstance(action, argparse._AppendAction),
                     }
         commands[name] = options

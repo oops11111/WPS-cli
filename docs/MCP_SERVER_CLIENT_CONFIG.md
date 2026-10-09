@@ -52,15 +52,26 @@ python -m wps_ai_agent_cli mcp-config-audit --config config/mcp_client_config.ex
 也可以逐条检查 JSON-RPC：
 
 ```powershell
-python -m wps_ai_agent_cli mcp-server --once-json "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"initialize\",\"params\":{}}"
+python -m wps_ai_agent_cli mcp-server --once-json "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"initialize\",\"params\":{\"protocolVersion\":\"2025-11-25\",\"capabilities\":{},\"clientInfo\":{\"name\":\"wps-cli-client\",\"version\":\"1\"}}}"
 python -m wps_ai_agent_cli mcp-server --once-json "{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"tools/list\",\"params\":{}}"
 python -m wps_ai_agent_cli mcp-server --once-json "{\"jsonrpc\":\"2.0\",\"id\":3,\"method\":\"tools/call\",\"params\":{\"name\":\"wps_agent_tasks\",\"arguments\":{\"phase\":\"phase2\"}}}"
 ```
 
+## `tools/list` 分页
+
+当前目录共 70 个工具，每个响应最多包含 50 个工具，因此完整目录通常是 50 + 31 两页。客户端把响应中的 `nextCursor` 作为后续请求 `params.cursor` 原样传回；游标是不透明值，不要解析或改写。继续请求直到响应中不再包含 `nextCursor`。每页都会保留 `resultType`、`ttlMs` 和 `cacheScope`。
+
+`mcp-server --once-json` 只处理一个请求，所以无 cursor 的示例只返回第一页（最多 50 个），带 cursor 的调用才会返回后续页。`mcp-smoke` 与 `mcp-config-audit` 会跟随所有 cursor 并统计完整目录。
+
+`mcp-server` 持久 stdio 会话遵循 legacy lifecycle：先完成 `initialize`，再发送无 ID 的 `notifications/initialized`，之后调用常规方法。`--once-json` 是单消息诊断入口，不建立或验证跨消息生命周期状态，不能代替 MCP 客户端会话。
+
+stdio 每条 newline-delimited JSON 消息最大为 1,048,576 个字符（含换行符）；超长记录会被有界读取并丢弃，服务器返回 invalid-request 错误后继续读取下一条消息。MCP JSON parser 拒绝重复对象键以及标准 JSON 未定义的 `NaN`/`Infinity` 数值常量。
+
 ## Expected Results
 
 - `initialize` 返回 `protocolVersion`、`serverInfo` 和 `capabilities.tools`。
-- `tools/list` 当前返回 70 个工具。
+- Legacy stdio handshake 支持 `2025-11-25`；initialize 必须包含 `protocolVersion`、object `capabilities` 和带 `name`/`version` 的 `clientInfo`。服务器按协议选择双方可用版本；当前仅支持 `2025-11-25`。
+- `tools/list` 当前目录有 70 个工具，单页最多返回 50 个；客户端需按 `nextCursor` 取完所有页。
 - `mcp-catalog-snapshot` 返回当前 MCP 工具目录摘要，包含分类计数、修改类工具数、WPS-required 工具数和 safety-note 覆盖情况。
 - `mcp-catalog-drift` 会对比当前 MCP 工具目录和 `config\mcp_catalog_guard.json` baseline；无 drift 时返回 passed。
 - `tools/call` 返回 `isError = false`，并在 `structuredContent.mcp_call.response` 中包含原始 CLI `CommandResponse`。

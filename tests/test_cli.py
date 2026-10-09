@@ -452,6 +452,27 @@ class CliParsingTests(unittest.TestCase):
         self.assertEqual(calc_args.timeout_seconds, 3)
         self.assertEqual(audit_args.command, "mcp-config-audit")
         self.assertEqual(audit_args.config, "config/mcp_client_config.example.json")
+        self.assertEqual(audit_args.timeout_seconds, 15)
+        for timeout in (1, 120):
+            self.assertEqual(parser.parse_args([
+                "mcp-config-audit", "--timeout-seconds", str(timeout),
+            ]).timeout_seconds, timeout)
+        for timeout in (0, -1, 121):
+            with self.subTest(timeout=timeout), self.assertRaises(SystemExit):
+                parser.parse_args(["mcp-config-audit", "--timeout-seconds", str(timeout)])
+        for count in (1, 10000):
+            self.assertEqual(parser.parse_args([
+                "mcp-config-audit", "--expected-min-tools", str(count),
+            ]).expected_min_tools, count)
+        for count in (0, -1, 10001):
+            with self.subTest(expected_min_tools=count), self.assertRaises(SystemExit):
+                parser.parse_args(["mcp-config-audit", "--expected-min-tools", str(count)])
+        self.assertEqual(parser.parse_args([
+            "mcp-config-audit", "--server-name", "n" * 256,
+        ]).server_name, "n" * 256)
+        for name in ("", "   ", "n" * 257):
+            with self.subTest(server_name=repr(name)), self.assertRaises(SystemExit):
+                parser.parse_args(["mcp-config-audit", "--server-name", name])
         self.assertEqual(manifest_args.command, "regression-manifest")
         self.assertEqual(manifest_args.profile, "safe")
         self.assertEqual(run_args.command, "regression-run")

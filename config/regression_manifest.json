@@ -39,13 +39,7 @@
       ],
       "expected_ok": true,
       "required_checks": [
-        {
-          "path": "data.tasks",
-          "contains_item": {
-            "id": "P3-261",
-            "status": "next"
-          }
-        }
+        {"path": "data.tasks", "contains_item": {"id": "P3-307", "status": "next"}}
       ]
     },
     {

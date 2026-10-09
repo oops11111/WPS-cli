@@ -3,6 +3,43 @@ from __future__ import annotations
 import argparse
 
 from .mcp_catalog_drift import DEFAULT_MCP_CATALOG_GUARD
+from .mcp_config_audit import (
+    MCP_CONFIG_AUDIT_MAX_EXPECTED_TOOLS,
+    MCP_CONFIG_AUDIT_MAX_SERVER_NAME_CHARS,
+    MCP_CONFIG_AUDIT_MIN_EXPECTED_TOOLS,
+    MCP_CONFIG_AUDIT_TIMEOUT_MAX_SECONDS,
+    MCP_CONFIG_AUDIT_TIMEOUT_MIN_SECONDS,
+)
+
+
+def _mcp_config_audit_timeout(value: str) -> int:
+    try:
+        timeout = int(value)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError("must be an integer") from exc
+    if not MCP_CONFIG_AUDIT_TIMEOUT_MIN_SECONDS <= timeout <= MCP_CONFIG_AUDIT_TIMEOUT_MAX_SECONDS:
+        raise argparse.ArgumentTypeError(
+            f"must be between {MCP_CONFIG_AUDIT_TIMEOUT_MIN_SECONDS} and {MCP_CONFIG_AUDIT_TIMEOUT_MAX_SECONDS} seconds"
+        )
+    return timeout
+
+
+def _mcp_config_audit_expected_tools(value: str) -> int:
+    try:
+        count = int(value)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError("must be an integer") from exc
+    if not MCP_CONFIG_AUDIT_MIN_EXPECTED_TOOLS <= count <= MCP_CONFIG_AUDIT_MAX_EXPECTED_TOOLS:
+        raise argparse.ArgumentTypeError(
+            f"must be between {MCP_CONFIG_AUDIT_MIN_EXPECTED_TOOLS} and {MCP_CONFIG_AUDIT_MAX_EXPECTED_TOOLS}"
+        )
+    return count
+
+
+def _mcp_config_audit_server_name(value: str) -> str:
+    if not value.strip() or len(value) > MCP_CONFIG_AUDIT_MAX_SERVER_NAME_CHARS:
+        raise argparse.ArgumentTypeError("must be nonempty and at most 256 characters")
+    return value
 
 
 def _add_environment_and_status_commands(subparsers: argparse._SubParsersAction) -> None:
@@ -434,20 +471,21 @@ def _add_mcp_commands(subparsers: argparse._SubParsersAction) -> None:
     )
     mcp_config_audit_parser.add_argument(
         "--server-name",
+        type=_mcp_config_audit_server_name,
         default="wps-ai-agent-cli",
-        help="Server key under mcpServers.",
+        help="Server key under mcpServers (1-256 non-whitespace characters).",
     )
     mcp_config_audit_parser.add_argument(
         "--expected-min-tools",
-        type=int,
+        type=_mcp_config_audit_expected_tools,
         default=33,
-        help="Minimum number of tools expected from configured tools/list smoke.",
+        help="Minimum expected tools (1-10000).",
     )
     mcp_config_audit_parser.add_argument(
         "--timeout-seconds",
-        type=int,
+        type=_mcp_config_audit_timeout,
         default=15,
-        help="Timeout for the configured tools/list smoke.",
+        help="Timeout for configured tools/list smoke (1-120 seconds).",
     )
 
 

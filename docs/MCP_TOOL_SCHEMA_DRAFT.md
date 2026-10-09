@@ -55,7 +55,7 @@ python -m wps_ai_agent_cli performance-baseline
 - `requires_wps`: 是否需要真实 WPS COM 能力。
 - `idempotency`: request_id 与幂等策略说明。
 - `input_schema`: JSON Schema 风格的输入草案。
-- `output_contract`: 统一 `CommandResponse` 输出契约。
+- `output_contract`: 与 MCP `tools/call` `structuredContent` 一致的 `{mcp_call, errors}` JSON Schema；底层 CLI `CommandResponse` 位于 `mcp_call.response`。
 - `cli_example`: 等价 CLI 示例。
 - `safety_notes`: 安全注意事项。
 
@@ -126,9 +126,10 @@ Large collections have explicit total counts and truncation flags.
 
 `mcp-server` 是本地 JSON-RPC/stdin/stdout 原型入口：
 
-- `initialize`: 返回 `protocolVersion = 2026-07-28`、server info 和 tools capability。
+- `initialize`: legacy stdio handshake 返回协商后的 `protocolVersion = 2025-11-25`、server info 和 tools capability。未知但合法的客户端版本回退到服务器支持版本；畸形或缺失必需参数返回 `-32602`。
 - `notifications/initialized`: 作为 notification 处理，不返回响应。
-- `tools/list`: 返回 70 个工具，包含 `name`、`title`、`description`、`inputSchema`、`outputSchema`、`annotations` 和 `_meta`。
+- `tools/list`: 当前目录包含 70 个工具；每页最多返回 50 个，字段包含 `name`、`title`、`description`、`inputSchema`、`outputSchema`、`annotations` 和 `_meta`，有后续页时返回 `nextCursor`。
+- Cursor is opaque: clients pass `nextCursor` unchanged as `params.cursor` until `nextCursor` is absent. Do not infer total catalog size from one response.
 - `tools/call`: 调用 `mcp_adapter.call_mcp_tool`，并返回 `content` 与 `structuredContent`。
 - `--once-json`: 处理一个 JSON-RPC 请求后退出，便于 CLI smoke 与单元测试。
 
@@ -151,7 +152,8 @@ Large collections have explicit total counts and truncation flags.
 - `mcp-server --once-json "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"initialize\",\"params\":{}}"` 可返回 server capabilities。
 - `mcp-catalog-snapshot` 可返回当前 70-tool MCP 目录摘要，包含分类计数、修改类工具、WPS-required 工具和 safety-note 覆盖情况。
 - `mcp-catalog-drift` 可对比当前目录和 `config\mcp_catalog_guard.json` baseline，输出结构化 drift 清单。
-- `mcp-server --once-json "{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"tools/list\",\"params\":{}}"` 当前返回 70 个工具。
+- `mcp-server --once-json "{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"tools/list\",\"params\":{}}"` 只处理一个请求并返回第一页（最多 50 个），含后续页时带上返回的 opaque `nextCursor` 再请求。
+- `mcp-smoke` 与 `mcp-config-audit` 会追随所有 `nextCursor` 并验证/统计完整目录；当前完整目录为 70 个工具。
 - `mcp-server --once-json "{\"jsonrpc\":\"2.0\",\"id\":3,\"method\":\"tools/call\",\"params\":{\"name\":\"wps_agent_tasks\",\"arguments\":{\"phase\":\"phase2\"}}}"` 可通过 server 调用 adapter。
 - `mcp-smoke --expected-min-tools 70 --tool-name wps_agent_tasks` 可重复验证 initialize、tools/list 和 tools/call。
 - `mcp-config-audit --config config/mcp_client_config.example.json --server-name wps-ai-agent-cli --expected-min-tools 70` 可验证 client 配置并通过配置启动 `tools/list` smoke。

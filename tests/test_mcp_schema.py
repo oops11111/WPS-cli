@@ -100,6 +100,17 @@ class McpSchemaTests(unittest.TestCase):
         self.assertIn("task_id", schema["input_schema"]["properties"])
         self.assertIn("output_contract", schema)
 
+    def test_every_tool_output_contract_matches_tools_call_structured_content(self):
+        schemas = list_mcp_tool_schemas()
+        for schema in schemas:
+            with self.subTest(tool=schema["name"]):
+                contract = schema["output_contract"]
+                self.assertEqual(contract["type"], "object")
+                self.assertEqual(contract["required"], ["mcp_call", "errors"])
+                self.assertEqual(contract["properties"]["mcp_call"]["type"], "object")
+                self.assertEqual(contract["properties"]["errors"]["type"], "array")
+                self.assertFalse(contract["additionalProperties"])
+
     def test_schema_lookup_accepts_cli_command_name(self):
         schema = get_mcp_tool_schema("writer-replace")
 
@@ -135,6 +146,19 @@ class McpSchemaTests(unittest.TestCase):
             self.assertIn("request_id", schema["idempotency"])
             self.assertIn("task_id", properties)
             self.assertTrue(schema["safety_notes"])
+
+    def test_mcp_config_audit_timeout_schema_has_shared_bounds(self):
+        properties = get_mcp_tool_schema("wps_agent_mcp_config_audit")["input_schema"]["properties"]
+        timeout = properties["timeout_seconds"]
+        self.assertEqual(timeout["minimum"], 1)
+        self.assertEqual(timeout["maximum"], 120)
+        expected = properties["expected_min_tools"]
+        self.assertEqual(expected["minimum"], 1)
+        self.assertEqual(expected["maximum"], 10000)
+        server_name = properties["server_name"]
+        self.assertEqual(server_name["minLength"], 1)
+        self.assertEqual(server_name["maxLength"], 256)
+        self.assertIn(r"\S", server_name["pattern"])
 
 
 if __name__ == "__main__":

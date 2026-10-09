@@ -18,6 +18,15 @@ from wps_ai_agent_cli.writer_ops import writer_fill_bookmark
 
 
 class WriterParagraphMappingTests(unittest.TestCase):
+    def test_drawing_diagnostic_byte_bound_preserves_utf8_codepoints(self):
+        from wps_ai_agent_cli.document_text import _bound_drawing_diagnostic_value
+
+        value, truncated = _bound_drawing_diagnostic_value("😀" * 100)
+        self.assertTrue(truncated)
+        self.assertTrue(value.endswith("..."))
+        self.assertLessEqual(len(value.encode("utf-8")), 96)
+        self.assertEqual(value.encode("utf-8").decode("utf-8"), value)
+
     def test_direct_body_target_excludes_table_paragraphs(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "mapping.docx"
@@ -1546,8 +1555,8 @@ class WriterParagraphMappingTests(unittest.TestCase):
             for field, original in (
                 ("relationship_id", long_id), ("target", long_target), ("mode", long_mode),
             ):
-                self.assertEqual(len(issue[field]), 256)
-                self.assertEqual(issue[field], original[:253] + "...")
+                self.assertLessEqual(len(issue[field].encode("utf-8")), 96)
+                self.assertEqual(issue[field], original[:93] + "...")
                 self.assertTrue(issue[f"{field}_truncated"])
             self.assertEqual(issue["drawing_index"], 0)
             self.assertEqual(issue["reason"], "invalid_relationship_target_mode")
@@ -1585,11 +1594,11 @@ class WriterParagraphMappingTests(unittest.TestCase):
                     target.writestr(name, content)
 
             expected = {
-                "relationship_id": long_id[:253] + "...",
+                "relationship_id": long_id[:93] + "...",
                 "relationship_id_truncated": True,
-                "target": long_target[:253] + "...",
+                "target": long_target[:93] + "...",
                 "target_truncated": True,
-                "mode": long_mode[:253] + "...",
+                "mode": long_mode[:93] + "...",
                 "mode_truncated": True,
                 "drawing_index": 0,
                 "reason": "invalid_relationship_target_mode",
@@ -1670,11 +1679,11 @@ class WriterParagraphMappingTests(unittest.TestCase):
 
             expected = [
                 {
-                    "relationship_id": long_id[:253] + "...",
+                    "relationship_id": long_id[:93] + "...",
                     "relationship_id_truncated": True,
-                    "target": long_target[:253] + "...",
+                    "target": long_target[:93] + "...",
                     "target_truncated": True,
-                    "mode": long_mode[:253] + "...",
+                    "mode": long_mode[:93] + "...",
                     "mode_truncated": True,
                     "drawing_index": 0,
                     "reason": "invalid_relationship_target_mode",
@@ -1821,6 +1830,102 @@ class WriterParagraphMappingTests(unittest.TestCase):
             self.assertEqual(mcp_result["response"]["validation"]["status"], "failed")
             self.assertEqual(mcp_result["response"]["errors"][0]["details"], expected)
             self.assertEqual(path.read_bytes(), before_bytes)
+
+    def test_worst_case_relationship_diagnostics_stay_under_wire_byte_limit(self):
+        import xml.etree.ElementTree as ET
+        from docx.oxml.ns import qn
+        from zipfile import ZipFile
+        from tests.test_writer_table_bookmark_feasibility import write_image_bookmark_document
+        from wps_ai_agent_cli.mcp_server import handle_mcp_request
+
+        byte_limit = 120_000
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "worst-case-relationship-diagnostics.docx"
+            write_image_bookmark_document(path, anchored=True, image_count=150)
+            with ZipFile(path) as source:
+                parts = {name: source.read(name) for name in source.namelist()}
+            rels_path = "word/_rels/document.xml.rels"
+            rels = ET.fromstring(parts[rels_path])
+            relationships = [
+                item for item in rels
+                if item.get("Type", "").endswith("/image")
+            ]
+            root = ET.fromstring(parts["word/document.xml"])
+            blips = list(root.iter(qn("a:blip")))
+            self.assertEqual(len(blips), 150)
+            rewritten_ids = {}
+            for index, relationship in enumerate(relationships):
+                hostile_suffix = '"\\' * 200
+                old_id = relationship.get("Id")
+                relationship_id = f"rId{hostile_suffix}{index}"
+                rewritten_ids[old_id] = relationship_id
+                relationship.set("Id", relationship_id)
+                relationship.set("Target", f"media/{hostile_suffix}{index}.png")
+                relationship.set("TargetMode", f"Unknown{hostile_suffix}{index}")
+            for blip in blips:
+                blip.set(qn("r:embed"), rewritten_ids[blip.get(qn("r:embed"))])
+            parts[rels_path] = ET.tostring(rels, encoding="utf-8", xml_declaration=True)
+            parts["word/document.xml"] = ET.tostring(root, encoding="utf-8", xml_declaration=True)
+            with ZipFile(path, "w") as target:
+                for name, content in parts.items():
+                    target.writestr(name, content)
+
+            ok, record, errors = register_document("writer", str(path), tmp)
+            self.assertTrue(ok, errors)
+            cli_output = io.StringIO()
+            mcp_arguments = {
+                "document_id": record["document_id"],
+                "bookmark_name": "CellMark",
+                "text": "New",
+                "dry_run": True,
+                "request_id": "worst-case-mcp",
+            }
+            with patch("wps_ai_agent_cli.writer_ops.create_backup") as backup, \
+                    patch("wps_ai_agent_cli.writer_ops._run_writer_bookmark_fill_com") as com, \
+                    chdir(tmp):
+                run([
+                    "writer-fill-bookmark", "--document-id", record["document_id"],
+                    "--bookmark-name", "CellMark", "--text", "New", "--dry-run",
+                    "--request-id", "worst-case-cli",
+                ], output_stream=cli_output)
+                mcp_response = handle_mcp_request({
+                    "jsonrpc": "2.0",
+                    "id": "worst-case-mcp",
+                    "method": "tools/call",
+                    "params": {
+                        "name": "wps_agent_writer_fill_bookmark",
+                        "arguments": mcp_arguments,
+                    },
+                })
+
+            cli_raw = cli_output.getvalue()
+            cli_result = json.loads(cli_raw)
+            mcp_raw = json.dumps(mcp_response, ensure_ascii=False, sort_keys=True) + "\n"
+            mcp_call = mcp_response["result"]["structuredContent"]["mcp_call"]
+            cli_details = cli_result["errors"][0]["details"]
+            mcp_details = mcp_call["response"]["errors"][0]["details"]
+            self.assertLessEqual(len(cli_raw.encode("utf-8")), byte_limit)
+            self.assertLessEqual(len(mcp_raw.encode("utf-8")), byte_limit)
+            self.assertFalse(cli_result["ok"])
+            self.assertEqual(cli_result["validation"]["status"], "failed")
+            self.assertEqual(len(cli_details), 128)
+            self.assertEqual(
+                cli_details[-1]["omitted_count"], 23,
+            )
+            self.assertTrue(mcp_response["result"]["isError"])
+            self.assertFalse(mcp_call["response"]["ok"])
+            self.assertEqual(mcp_call["response"]["validation"]["status"], "failed")
+            self.assertEqual(mcp_details, cli_details)
+            self.assertEqual(len(mcp_details), 128)
+            self.assertEqual(
+                mcp_details[-1]["omitted_count"], 23,
+            )
+            for issue in cli_details[:127]:
+                for field in ("relationship_id", "target", "mode"):
+                    self.assertLessEqual(len(issue[field].encode("utf-8")), 96)
+                    self.assertTrue(issue[f"{field}_truncated"])
+            backup.assert_not_called()
+            com.assert_not_called()
 
     def test_drawing_diagnostic_count_cap_boundary(self):
         import xml.etree.ElementTree as ET

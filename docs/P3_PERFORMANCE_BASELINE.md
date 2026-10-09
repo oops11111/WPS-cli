@@ -59,3 +59,13 @@ Summary:
 ## Follow-up
 
 The next production-readiness task should refresh desktop MCP integration evidence against the 38-tool surface, including config audit, tools/list, tools/call, and any remaining real-client gap.
+
+## 2026-10-09 Refresh
+
+P3-264 added a 200-sample in-process pagination baseline against the current 81-tool catalog. See `docs/P3_MCP_PAGINATION_PERFORMANCE_BASELINE_20261009.md` for environment, p50/p95, response sizes, and measurement limitations.
+
+P3-265 refreshes the safe `mcp-smoke` and `mcp-config-audit` minimum from the historical 47-tool threshold to the current 81-tool catalog. A focused unit test asserts both scenarios retain the current threshold; this makes an incomplete MCP catalog fail the performance baseline instead of silently passing.
+
+The refreshed run (`p3-265-final-baseline`) passed all 6 scenarios with no WPS launch: total 8,114.620 ms and 316,393 output bytes. The nested safe regression scenario passed after the current next-task expectation, parity evidence, and sync package were refreshed. Timings are environment-specific.
+
+P3-263's real-client audit remains environment-limited: Claude Code reports no MCP servers configured and Claude Desktop UI inspection was unavailable. The local in-process metrics above are not desktop integration evidence.
