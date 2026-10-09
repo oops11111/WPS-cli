@@ -28,7 +28,7 @@ def capture_scripts(module, call):
         return FakeCompleted()
 
     with patch.object(module, "probe_wps_capabilities", return_value=CAPABILITIES), \
-            patch.object(module.subprocess, "run", side_effect=fake_run):
+            patch("subprocess.run", side_effect=fake_run):
         try:
             call()
         except Exception:

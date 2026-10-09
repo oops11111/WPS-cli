@@ -87,7 +87,7 @@ class SpreadsheetWriteGuardTests(unittest.TestCase):
 
         caps = {"components": {"spreadsheets": {"selected_prog_id": "ket.Application"}}}
         with patch.object(spreadsheet_ops, "probe_wps_capabilities", return_value=caps), \
-                patch.object(spreadsheet_ops.subprocess, "run", side_effect=fake_run):
+                patch("wps_ai_agent_cli.powershell_runner.subprocess.run", side_effect=fake_run):
             spreadsheet_ops._run_spreadsheet_write_com(str(Path(self.tmp.name) / "book.xlsx"), None, "A1", [[True]])
         self.assertIn("$value -is [bool]", scripts[0])
         self.assertLess(scripts[0].index("$value -is [bool]"), scripts[0].index("$value -is [int]"))

@@ -11,7 +11,7 @@
 | G-05 | 部分完成 | 补全 `README.md`，未归档流水文档 |
 | G-04 | 只做盘点，未删除 | 见 `ARTIFACT_INVENTORY.md` |
 | G-02 | 两步完成，未拆模块 | 命令分发改为 `COMMAND_HANDLERS` 注册表，`build_parser` 按域拆成 9 个函数并移到 `cli_parser.py`，处理函数仍在 `cli.py`，见下 |
-| G-03 | 未做 | 大型重构，需要单独的计划与确认 |
+| G-03 | 部分完成，未在真实 WPS 验证 | 12 处内联 PowerShell 样板改用共享运行器，超长业务函数未拆 |
 | G-07 | 未做 | 需要先决定哪些命令对用户有价值 |
 
 ## G-06：依赖声明
@@ -56,9 +56,22 @@
 
 `_handle_*` 处理函数和 `*_response` 函数没有搬走。原因：`tests/test_cli.py` 等用例通过 `patch("wps_ai_agent_cli.cli.<名称>")` 打桩，名称解析发生在 `cli` 模块命名空间。把处理函数移到其他模块会让这些打桩失效，必须同步改写测试，这样"测试不变即无回归"的证据就没有了。要继续拆分，建议先让处理函数通过 `cli` 模块属性访问依赖，或者逐域改写打桩目标并分别评审。
 
+## G-03：PowerShell 运行样板去重
+
+`writer_ops`、`presentation_ops`、`spreadsheet_ops` 中 12 个 `_run_*_com` 函数各自复制了约 25 行"写临时脚本、`subprocess.run`、清理、解析 JSON、拼错误"的样板，三种写法互不相同。现在全部走 `powershell_runner.run_powershell_script`，净减少约 345 行。
+
+两种调用方式，分别保持原有契约：
+
+1. 经 `guarded_com_mutation` 且原来让 `TimeoutExpired`/`OSError` 向上抛出的函数（Writer 三个、演示一个、表格写入与公式写入）：运行器新增 `raise_process_errors=True`，超时与启动失败仍然抛给 `guarded_com_mutation`，由它统一生成带 `timed_out` 的结果和 `mutation-request-inspect` 提示。
+2. 原来自己捕获异常的六个表格工作表函数（重命名、新建、显隐、删除、复制、标签颜色）：用运行器默认行为。行为变化只有一处：超时原来返回通用的 `COM_OPERATION_FAILED` 且 `data` 为空，现在返回 `COM_OPERATION_TIMEOUT` 并带 `timed_out: true`，与其他命令一致。
+
+保护这次改动的测试：`tests/test_wps_quit_guard.py` 会对这 12 个函数加上 `com_backend` 的 3 个函数逐个捕获生成的脚本，断言每个函数恰好运行一次脚本且只在 WPS 空闲时 `Quit()`；`tests/test_powershell_runner.py` 新增 `raise_process_errors` 与两种超时契约用例。因为这些函数不再自己导入 `subprocess`，两个测试的打桩目标改为全局 `subprocess.run`（作用相同）。
+
+没有改的：`spreadsheet_inspect`、`writer_structure_parity`（8 个用例按其模块打桩）、`process_audit`、`capabilities` 的内联调用。它们是只读命令，错误处理方式各不相同，改动收益小。真实 WPS 上的行为未验证，包括 `-File` 参数与临时文件清理在 Windows 上与之前一致这一点；运行器与此前的实现完全相同，之前已在 `com_backend` 的三个函数上使用。
+
 ## 未处理项说明
 
-- G-03（8 个超过 150 行的函数）：`_run_*_com` 系列的 PowerShell 样板重复，需要逐个确认 COM 行为不变，没有真实 WPS 无法验证。
+- G-03 中超长的业务函数（`convert_html_editable` 262 行、`export_controlled_html` 244 行等）：没有拆分，纯结构调整收益小。重复的 PowerShell 样板见下。
 - G-07（约 20 个自我汇报型模块）：把它们从 MCP 目录移出会改变工具数量，牵动 `config/mcp_catalog_guard.json`、回归清单和多份文档，且对使用者是否可见是产品决策。
 
 ## 验证

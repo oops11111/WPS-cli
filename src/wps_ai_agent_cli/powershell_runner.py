@@ -16,11 +16,14 @@ def run_powershell_script(
     timeout_message: str | None = None,
     timeout_data: dict[str, Any] | None = None,
     failure_data: dict[str, Any] | None = None,
+    raise_process_errors: bool = False,
 ) -> tuple[dict[str, Any] | None, dict[str, Any] | None]:
     """Run a script file in PowerShell and parse its JSON stdout.
 
     Returns ``(payload, None)`` on success or ``(None, failure)`` where
-    ``failure`` is a ready-to-return ``{ok, errors, data}`` result.
+    ``failure`` is a ready-to-return ``{ok, errors, data}`` result. With
+    ``raise_process_errors`` a timeout or start failure is re-raised so a caller
+    such as ``guarded_com_mutation`` can report it in one place.
     """
     script_path = None
     try:
@@ -33,6 +36,8 @@ def run_powershell_script(
             timeout=timeout_seconds,
         )
     except subprocess.TimeoutExpired as exc:
+        if raise_process_errors:
+            raise
         data = {"backend": "powershell-com", "timed_out": True, **(timeout_data or {})}
         if isinstance(exc.stdout, str):
             data.setdefault("stdout", exc.stdout)
@@ -48,6 +53,8 @@ def run_powershell_script(
             "data": data,
         }
     except OSError as exc:
+        if raise_process_errors:
+            raise
         return None, {
             "ok": False,
             "errors": [{"code": COM_OPERATION_FAILED, "message": f"PowerShell could not be started: {exc}"}],

@@ -1,6 +1,6 @@
 # 代码审查报告：批次 3 到 6
 
-处理状态：批次 3 见 `CODE_REVIEW_BATCH_3.md`，批次 4 与 5 见 `CODE_REVIEW_BATCH_4_5.md`，批次 6 见 `CODE_REVIEW_BATCH_6.md`。G-01、G-06、G-08 已修复，G-02（命令注册表与解析器按域拆分，解析器已移到 cli_parser.py，处理函数尚未拆分）、G-04、G-05 部分处理，G-03、G-07 未处理。
+处理状态：批次 3 见 `CODE_REVIEW_BATCH_3.md`，批次 4 与 5 见 `CODE_REVIEW_BATCH_4_5.md`，批次 6 见 `CODE_REVIEW_BATCH_6.md`。G-01、G-06、G-08 已修复，G-02（命令注册表与解析器按域拆分，解析器已移到 cli_parser.py，处理函数尚未拆分）、G-04、G-05 部分处理，G-03 部分处理（PowerShell 样板去重），G-07 未处理。
 
 范围：文档读写核心、CLI 与 MCP 层、HTML 转换与批处理、工程化与仓库卫生。
 

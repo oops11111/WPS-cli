@@ -56,6 +56,26 @@ class RunnerTests(unittest.TestCase):
         self.assertEqual(failure["errors"][0]["code"], "COM_OPERATION_FAILED")
         self.assertIn("warning text", failure["errors"][0]["message"])
 
+    def test_raise_process_errors_reraises_timeout_and_start_failure(self):
+        with self.assertRaises(subprocess.TimeoutExpired):
+            self.run_with(error=subprocess.TimeoutExpired("ps", 5), raise_process_errors=True)
+        with self.assertRaises(FileNotFoundError):
+            self.run_with(error=FileNotFoundError("powershell"), raise_process_errors=True)
+
+    def test_converted_com_helpers_keep_their_timeout_contracts(self):
+        from wps_ai_agent_cli import spreadsheet_ops, writer_ops
+
+        caps = {"components": {"spreadsheets": {"selected_prog_id": "ket.Application"}, "writer": {"selected_prog_id": "kwps.Application"}}}
+        timeout = subprocess.TimeoutExpired("ps", 120)
+        with patch.object(spreadsheet_ops, "probe_wps_capabilities", return_value=caps), \
+                patch.object(writer_ops, "probe_wps_capabilities", return_value=caps), \
+                patch("wps_ai_agent_cli.powershell_runner.subprocess.run", side_effect=timeout):
+            result = spreadsheet_ops._run_spreadsheet_rename_sheet_com("book.xlsx", "a", "b")
+            self.assertEqual(result["errors"][0]["code"], "COM_OPERATION_TIMEOUT")
+            self.assertTrue(result["data"]["timed_out"])
+            with self.assertRaises(subprocess.TimeoutExpired):
+                writer_ops._run_writer_replace_com("doc.docx", "a", "b")
+
 
 if __name__ == "__main__":
     unittest.main()

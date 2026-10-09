@@ -2,13 +2,12 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-import subprocess
-import tempfile
 from typing import Any
 
 from .backups import create_backup, guarded_com_mutation, verify_post_com_source
-from .capabilities import powershell_executable, probe_wps_capabilities
-from .errors import COM_BACKEND_UNAVAILABLE, COM_OPERATION_FAILED, INPUT_FILE_NOT_FOUND
+from .capabilities import probe_wps_capabilities
+from .powershell_runner import run_powershell_script
+from .errors import COM_BACKEND_UNAVAILABLE, INPUT_FILE_NOT_FOUND
 from .mutation_lock import coordinated_mutation
 from .operations import record_operation, replay_operation
 from .presentation_text import PresentationStructureError, count_text_in_pptx, pptx_slide_texts, pptx_text_objects
@@ -178,60 +177,11 @@ try {{
   [GC]::WaitForPendingFinalizers()
 }}
 """
-    script_path = None
-    try:
-        with tempfile.NamedTemporaryFile(
-            "w",
-            suffix=".ps1",
-            delete=False,
-            encoding="utf-8-sig",
-        ) as script_file:
-            script_file.write(script)
-            script_path = script_file.name
-        completed = subprocess.run(
-            [
-                powershell_executable(),
-                "-NoProfile",
-                "-ExecutionPolicy",
-                "Bypass",
-                "-File",
-                script_path,
-            ],
-            check=False,
-            capture_output=True,
-            encoding="utf-8",
-            errors="replace",
-            text=True,
-            timeout=120,
-        )
-    finally:
-        if script_path:
-            try:
-                Path(script_path).unlink(missing_ok=True)
-            except OSError:
-                pass
-
-    try:
-        payload = json.loads(completed.stdout)
-    except json.JSONDecodeError:
-        payload = None
-
-    if completed.returncode != 0 or not isinstance(payload, dict):
-        return {
-            "ok": False,
-            "errors": [
-                {
-                    "code": COM_OPERATION_FAILED,
-                    "message": (
-                        payload.get("error_message")
-                        if isinstance(payload, dict)
-                        else (completed.stderr or completed.stdout).strip()
-                    ),
-                }
-            ],
-            "data": {"diagnostic": payload, "backend": "powershell-com"},
-        }
+    payload, failure = run_powershell_script(script, raise_process_errors=True)
+    if failure is not None:
+        return failure
     return {"ok": True, "errors": [], "data": payload}
+
 
 
 @coordinated_mutation
