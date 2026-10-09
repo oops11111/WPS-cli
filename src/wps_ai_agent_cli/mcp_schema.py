@@ -493,6 +493,9 @@ MCP_TOOL_SCHEMAS: tuple[dict[str, Any], ...] = (
             "column": _integer("1-based column index.", minimum=1),
             "text": _string("Replacement cell text."),
             "dry_run": _boolean("Preview target cell without modifying the file."),
+            "allow_rich_content": _boolean(
+                "Allow replacing a cell that contains drawings, fields, hyperlinks, nested tables, or content controls; those contents are discarded."
+            ),
             "task_id": _string("Optional long-running task status id."),
         },
         mutates_document=True,
@@ -501,6 +504,7 @@ MCP_TOOL_SCHEMAS: tuple[dict[str, Any], ...] = (
         safety_notes=[
             "Uses WPS to mutate a registered Writer table cell and creates a backup before mutation.",
             "Use dry_run before mutation; table, row, and column are 1-based and validated before write.",
+            "Cells with rich content are refused unless allow_rich_content is set; a text write discards that content.",
         ],
     ),
     _tool(

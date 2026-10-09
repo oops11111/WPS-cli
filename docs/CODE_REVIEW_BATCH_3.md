@@ -76,3 +76,5 @@ Word 的 `Find.Text` 有 255 字符上限，超出时 COM 会报错。`writer_re
 ## 验证
 
 `PYTHONPATH=src python3 -m unittest discover -s tests`：479 个用例通过，67 个跳过（主要是 Windows 或 PowerShell 专用用例）。
+
+> 更新：原「未改动」项中除 H-03（有意保留）外，已在后续提交中处理，见 `CODE_REVIEW_BATCH_6.md` 的「后续补完」一节。

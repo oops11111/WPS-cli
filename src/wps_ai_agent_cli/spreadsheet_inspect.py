@@ -3,16 +3,15 @@ from __future__ import annotations
 from datetime import date, datetime, time
 import json
 from pathlib import Path
-import subprocess
-import tempfile
 from typing import Any
 
 from .ooxml import load_workbook_guarded as load_workbook
 from openpyxl.utils.cell import get_column_letter
 from openpyxl.utils.datetime import to_excel
 
-from .capabilities import powershell_executable, probe_wps_capabilities
+from .capabilities import probe_wps_capabilities
 from .errors import COM_BACKEND_UNAVAILABLE, COM_OPERATION_FAILED, INPUT_FILE_NOT_FOUND
+from .powershell_runner import run_powershell_script
 from .sessions import get_document
 from .spreadsheet_ranges import validate_spreadsheet_read_range
 from .wps_script_snippets import QUIT_IF_IDLE
@@ -140,26 +139,13 @@ try {{
   [GC]::Collect(); [GC]::WaitForPendingFinalizers()
 }}
 """
-    script_path = None
-    try:
-        with tempfile.NamedTemporaryFile("w", suffix=".ps1", delete=False, encoding="utf-8-sig") as script_file:
-            script_file.write(script)
-            script_path = script_file.name
-        completed = subprocess.run(
-            [powershell_executable(), "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", script_path],
-            check=False, capture_output=True, encoding="utf-8", errors="replace", text=True, timeout=120,
-        )
-    except (OSError, subprocess.TimeoutExpired) as exc:
-        return False, {"document_id": document_id, "path": str(path)}, [{"code": COM_OPERATION_FAILED, "message": str(exc)}]
-    finally:
-        if script_path:
-            Path(script_path).unlink(missing_ok=True)
-    try:
-        payload = json.loads(completed.stdout)
-    except json.JSONDecodeError as exc:
-        return False, {"document_id": document_id, "path": str(path)}, [{"code": COM_OPERATION_FAILED, "message": f"WPS returned invalid JSON: {exc}"}]
-    if completed.returncode != 0 or not payload.get("ok"):
-        return False, {"document_id": document_id, "path": str(path), "diagnostic": payload}, [{"code": COM_OPERATION_FAILED, "message": payload.get("error_message", "WPS spreadsheet inspection failed.")}]
+    payload, failure = run_powershell_script(
+        script,
+        timeout_seconds=120,
+        failure_data={"document_id": document_id, "path": str(path)},
+    )
+    if failure is not None:
+        return False, failure.get("data") or {"document_id": document_id, "path": str(path)}, failure["errors"]
 
     raw_live_cells = payload.get("cells", [])
     if isinstance(raw_live_cells, dict):

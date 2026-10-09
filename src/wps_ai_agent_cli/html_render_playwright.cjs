@@ -38,6 +38,16 @@ async function main() {
         return route.continue();
       } catch { return route.abort('blockedbyclient'); }
     });
+    // page.route only covers HTTP(S)/file fetches. When JavaScript is enabled, close
+    // WebSocket attempts so network_access:false still holds for that channel.
+    page.on('websocket', ws => {
+      try { ws.close(); } catch { /* ignore */ }
+    });
+    if (typeof page.routeWebSocket === 'function') {
+      await page.routeWebSocket(/.*/, route => {
+        try { route.abort(); } catch { try { route.close(); } catch { /* ignore */ } }
+      });
+    }
     await page.goto(pathToFileURL(mainFile).href, { waitUntil: 'load', timeout: request.timeout_seconds * 1000 });
     await page.evaluate(() => document.fonts.ready);
     const details = await page.evaluate(() => ({

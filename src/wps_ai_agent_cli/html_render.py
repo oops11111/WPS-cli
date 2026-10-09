@@ -3,10 +3,12 @@ from __future__ import annotations
 import json
 import hashlib
 import os
+import signal
+import subprocess
+import sys
+import tempfile
 from pathlib import Path
 import shutil
-import subprocess
-import tempfile
 from typing import Any
 
 
@@ -24,6 +26,72 @@ def _resolve_browser_runtime() -> tuple[str | None, str | None]:
     if not browser:
         browser = next((str(path) for path in _EDGE_CANDIDATES if path.is_file()), None)
     return node, browser
+
+
+def _kill_process_tree(process: subprocess.Popen[str]) -> None:
+    """Kill Node and any Edge children left behind after a render timeout."""
+    if process.poll() is not None:
+        return
+    if sys.platform == "win32":
+        subprocess.run(
+            ["taskkill", "/F", "/T", "/PID", str(process.pid)],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        return
+    try:
+        os.killpg(process.pid, signal.SIGKILL)
+    except (ProcessLookupError, PermissionError, OSError):
+        try:
+            process.kill()
+        except OSError:
+            pass
+
+
+def _run_renderer(
+    node: str,
+    request: dict[str, Any],
+    timeout_seconds: int,
+) -> subprocess.CompletedProcess[str]:
+    creationflags = 0
+    start_new_session = False
+    if sys.platform == "win32":
+        creationflags = getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)
+    else:
+        start_new_session = True
+    process = subprocess.Popen(
+        [node, str(_RENDERER)],
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        encoding="utf-8",
+        errors="replace",
+        text=True,
+        env={**os.environ, "WPS_AGENT_RENDER_FORMAT": request["format"]},
+        start_new_session=start_new_session,
+        creationflags=creationflags,
+    )
+    try:
+        stdout, stderr = process.communicate(
+            input=json.dumps(request),
+            timeout=timeout_seconds + 15,
+        )
+    except subprocess.TimeoutExpired as exc:
+        _kill_process_tree(process)
+        try:
+            stdout, stderr = process.communicate(timeout=5)
+        except (subprocess.TimeoutExpired, ValueError):
+            stdout = getattr(exc, "stdout", None) or ""
+            stderr = getattr(exc, "stderr", None) or ""
+            try:
+                process.kill()
+            except OSError:
+                pass
+        raise subprocess.TimeoutExpired(
+            process.args, timeout_seconds + 15, output=stdout, stderr=stderr,
+        ) from None
+    return subprocess.CompletedProcess(process.args, process.returncode or 0, stdout or "", stderr or "")
 
 
 def render_html(
@@ -83,12 +151,7 @@ def render_html(
         "browser_executable": browser,
     }
     try:
-        completed = subprocess.run(
-            [node, str(_RENDERER)], input=json.dumps(request), capture_output=True,
-            encoding="utf-8", errors="replace", text=True,
-            timeout=timeout_seconds + 15,
-            env={**os.environ, "WPS_AGENT_RENDER_FORMAT": output_format},
-        )
+        completed = _run_renderer(node, request, timeout_seconds)
     except subprocess.TimeoutExpired:
         temporary_output.unlink(missing_ok=True)
         return False, {}, [{"code": "RENDER_TIMEOUT", "message": f"HTML rendering exceeded {timeout_seconds} seconds."}]
@@ -129,7 +192,9 @@ def render_html(
         "backend": "playwright-edge", "page_size": page_size if output_format == "pdf" else None,
         "viewport": {"width": viewport_width, "height": viewport_height},
         "javascript_enabled": allow_javascript,
-        "network_access": False, "resource_root": str(source.parent),
+        "network_access": False,
+        "websocket_blocked": True,
+        "resource_root": str(source.parent),
         "browser": payload.get("browser"),
         "page_title": payload.get("page_title"),
         "document_height": payload.get("document_height"),

@@ -4,7 +4,7 @@ import json
 import subprocess
 from typing import Any
 
-from .capabilities import powershell_executable
+from .powershell_runner import run_powershell_command
 
 
 WPS_PROCESS_NAMES = ("et", "wps", "wpp", "ket", "kwps", "ksolaunch", "wpscloudsvr")
@@ -22,21 +22,7 @@ Get-Process |
   ConvertTo-Json -Depth 4
 """
     try:
-        completed = subprocess.run(
-            [
-                powershell_executable(),
-                "-NoProfile",
-                "-NonInteractive",
-                "-Command",
-                script,
-            ],
-            check=False,
-            capture_output=True,
-            encoding="utf-8",
-            errors="replace",
-            text=True,
-            timeout=timeout_seconds,
-        )
+        completed = run_powershell_command(script, timeout_seconds=timeout_seconds)
     except subprocess.TimeoutExpired:
         return (
             False,

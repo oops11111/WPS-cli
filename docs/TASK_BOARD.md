@@ -140,26 +140,26 @@
 | P3-068 | 下一项非破坏性能力选择 | done | 在 sync package coverage 与本地包刷新后选择下一项非破坏性本地开发目标，并在实现前记录范围、验证和安全约束 |
 | P3-069 | 同步包交接就绪摘要 | done | 新增只读 `sync-package-readiness` / `wps_agent_sync_package_readiness`，汇总 inspect、summary 和 coverage，判断现有同步包是否适合本地交接，不创建包、不删除文件、不启动 WPS、不使用远程 Git |
 | P3-070 | sync-package-readiness 后的本地包刷新 | done | 在 sync-package-readiness 后重新生成本地同步包，并验证测试、safe regression、包 readiness、project status、workspace health、catalog drift 和 documentation freshness |
-| P3-071 | 下一项非破坏性能力选择 | done | 选定现有同步包内容完整性修复，范围见 P3_PACKAGE_CONTENT_INTEGRITY.md |
+| P3-071 | 下一项非破坏性能力选择 | done | 选定现有同步包内容完整性修复，范围见 archive/P3_PACKAGE_CONTENT_INTEGRITY.md |
 | P3-072 | 同步包内容完整性 | done | SHA-256 检查内容，识别重复及过期条目，保留时间戳修改回归验证 |
-| P3-073 | 产品需求证据审计 | done | 已记录原始 PRD 与实现差距，见 P3_PRODUCT_REQUIREMENTS_AUDIT.md |
+| P3-073 | 产品需求证据审计 | done | 已记录原始 PRD 与实现差距，见 archive/P3_PRODUCT_REQUIREMENTS_AUDIT.md |
 | P3-074 | 演示逻辑页序与空白页 | done | 按 presentation relationships 解析页序，保留空白页，验证重排演示的定向读取与替换预检 |
 | P3-075 | Writer 标题、样式与书签快照 | done | 保留段落索引，补充大纲级别、样式与书签位置，明确不支持范围并验证文件未修改 |
 | P3-076 | Writer 逻辑文本验证 | done | 修复跨文本运行、XML 转义与属性误匹配，验证正文及段落范围的读取与替换预检 |
-| P3-077 | Writer 替换范围与段落定位 | done | 四种替换已通过本机 WPS 实测，范围外段落与表格未变化，见 P3_WRITER_REPLACE_SCOPE.md |
-| P3-078 | Writer 替换精确读回验证 | done | 比较保存后的完整逻辑段落，覆盖同词替换和范围外变化，见 P3_WRITER_EXACT_READBACK.md |
-| P3-079 | Writer 书签填充 | done | 完成同正文段落的具名书签预览、WPS 填充、备份、精确读回及本机实测，边界见 P3_WRITER_BOOKMARK_FILL.md |
-| P3-080 | 表格公式、缓存与显示值读回 | done | 新增 spreadsheet-inspect 与 MCP 只读工具；公式/缓存/WPS 重算/显示文本分层，并完成数字、日期、错误、空值及文件不变性实测，见 P3_SPREADSHEET_INSPECT.md |
-| P3-081 | 表格读取显示格式契约 | done | 保留 values 矩阵兼容，新增并行 cell_metadata 矩阵；离线及 WPS 对照覆盖日期、百分比、货币和空值，见 P3_SPREADSHEET_READ_FORMATS.md |
-| P3-082 | 表格范围读取防护 | done | spreadsheet-read/inspect 共用 A1 校验；拒绝畸形、无界、越界和超过 10,000 格范围，拒绝时不打开文件或探测 WPS，见 P3_SPREADSHEET_RANGE_GUARDRAILS.md |
-| P3-083 | 演示文稿文本对象覆盖 | done | 快照识别表格为单一文本对象、组合形状内文本框按 XML 顺序保留且不重复，新增 object_type，见 P3_PRESENTATION_TEXT_OBJECT_COVERAGE.md |
-| P3-084 | 演示文稿嵌套文本替换契约 | done | WPS 递归处理组合形状并逐格处理表格；替换数精确匹配且逐页文本读回一致，真实 WPS 覆盖 2 个组合文本框和 2x2 表格，见 P3_PRESENTATION_NESTED_REPLACE.md |
-| P3-085 | 演示文稿替换格式保留 | done | 原位替换命中区间并继承首字符格式，WPS/OOXML 验证前缀、替换文本和后缀 run 样式，见 P3_PRESENTATION_FORMAT_PRESERVATION.md |
-| P3-086 | 演示文稿对象级替换读回 | done | 按段落/单元格统计命中并逐对象精确对比有序读回，拒绝跨对象边界假命中，见 P3_PRESENTATION_OBJECT_READBACK.md |
-| P3-087 | 文档变更幂等参数绑定 | done | 统一 operation replay 校验命令和全部绑定参数；冲突在备份/WPS 前返回 IDEMPOTENCY_CONFLICT，书签内容以 SHA-256 绑定，见 P3_MUTATION_IDEMPOTENCY.md |
-| P3-088 | 表格写入范围防护 | done | spreadsheet-write/formula-write 复用有限 A1 校验及 10,000 格上限；错误在备份/WPS 前返回，矩阵形状规则保留，见 P3_SPREADSHEET_WRITE_GUARDRAILS.md |
-| P3-089 | 表格工作表清单 | done | 新增 spreadsheet-sheets 及只读 MCP 工具；返回工作表顺序、名称、visibility 和 used dimensions，文件哈希保持不变，见 P3_SPREADSHEET_SHEETS.md |
-| P3-090 | 表格工作表重命名事务 | done | 新增 spreadsheet-rename-sheet/MCP；Excel 名称校验、dry-run、备份、WPS 重命名、完整顺序读回与幂等冲突处理均验证通过，见 P3_SPREADSHEET_RENAME_SHEET.md |
+| P3-077 | Writer 替换范围与段落定位 | done | 四种替换已通过本机 WPS 实测，范围外段落与表格未变化，见 archive/P3_WRITER_REPLACE_SCOPE.md |
+| P3-078 | Writer 替换精确读回验证 | done | 比较保存后的完整逻辑段落，覆盖同词替换和范围外变化，见 archive/P3_WRITER_EXACT_READBACK.md |
+| P3-079 | Writer 书签填充 | done | 完成同正文段落的具名书签预览、WPS 填充、备份、精确读回及本机实测，边界见 archive/P3_WRITER_BOOKMARK_FILL.md |
+| P3-080 | 表格公式、缓存与显示值读回 | done | 新增 spreadsheet-inspect 与 MCP 只读工具；公式/缓存/WPS 重算/显示文本分层，并完成数字、日期、错误、空值及文件不变性实测，见 archive/P3_SPREADSHEET_INSPECT.md |
+| P3-081 | 表格读取显示格式契约 | done | 保留 values 矩阵兼容，新增并行 cell_metadata 矩阵；离线及 WPS 对照覆盖日期、百分比、货币和空值，见 archive/P3_SPREADSHEET_READ_FORMATS.md |
+| P3-082 | 表格范围读取防护 | done | spreadsheet-read/inspect 共用 A1 校验；拒绝畸形、无界、越界和超过 10,000 格范围，拒绝时不打开文件或探测 WPS，见 archive/P3_SPREADSHEET_RANGE_GUARDRAILS.md |
+| P3-083 | 演示文稿文本对象覆盖 | done | 快照识别表格为单一文本对象、组合形状内文本框按 XML 顺序保留且不重复，新增 object_type，见 archive/P3_PRESENTATION_TEXT_OBJECT_COVERAGE.md |
+| P3-084 | 演示文稿嵌套文本替换契约 | done | WPS 递归处理组合形状并逐格处理表格；替换数精确匹配且逐页文本读回一致，真实 WPS 覆盖 2 个组合文本框和 2x2 表格，见 archive/P3_PRESENTATION_NESTED_REPLACE.md |
+| P3-085 | 演示文稿替换格式保留 | done | 原位替换命中区间并继承首字符格式，WPS/OOXML 验证前缀、替换文本和后缀 run 样式，见 archive/P3_PRESENTATION_FORMAT_PRESERVATION.md |
+| P3-086 | 演示文稿对象级替换读回 | done | 按段落/单元格统计命中并逐对象精确对比有序读回，拒绝跨对象边界假命中，见 archive/P3_PRESENTATION_OBJECT_READBACK.md |
+| P3-087 | 文档变更幂等参数绑定 | done | 统一 operation replay 校验命令和全部绑定参数；冲突在备份/WPS 前返回 IDEMPOTENCY_CONFLICT，书签内容以 SHA-256 绑定，见 archive/P3_MUTATION_IDEMPOTENCY.md |
+| P3-088 | 表格写入范围防护 | done | spreadsheet-write/formula-write 复用有限 A1 校验及 10,000 格上限；错误在备份/WPS 前返回，矩阵形状规则保留，见 archive/P3_SPREADSHEET_WRITE_GUARDRAILS.md |
+| P3-089 | 表格工作表清单 | done | 新增 spreadsheet-sheets 及只读 MCP 工具；返回工作表顺序、名称、visibility 和 used dimensions，文件哈希保持不变，见 archive/P3_SPREADSHEET_SHEETS.md |
+| P3-090 | 表格工作表重命名事务 | done | 新增 spreadsheet-rename-sheet/MCP；Excel 名称校验、dry-run、备份、WPS 重命名、完整顺序读回与幂等冲突处理均验证通过，见 archive/P3_SPREADSHEET_RENAME_SHEET.md |
 | P3-091 | 表格工作表创建事务 | done | spreadsheet-create-sheet/MCP 已支持 dry-run、名称与位置校验、备份、WPS 创建、顺序读回和 request_id 参数绑定；模拟与本机 WPS 集成验证通过 |
 | P3-092 | 表格工作表可见性事务 | done | 新增 spreadsheet-set-sheet-visibility CLI/MCP；隐藏最后一个可见工作表前拒绝，提交前备份，WPS 保存后验证有序可见状态并绑定 request_id |
 | P3-093 | 表格工作表删除事务 | done | 新增 spreadsheet-delete-sheet CLI/MCP；dry-run 展示删除后的顺序，阻止删除最后工作表，提交前备份并验证 WPS 有序读回和 request_id |
@@ -168,7 +168,7 @@
 | P3-096 | 表格工作表标签颜色清单 | done | spreadsheet-sheets 新增 none/#RRGGBB 规范化颜色字段；既有哈希不变、WPS 不启动的断言覆盖该字段 |
 | P3-097 | 表格工作表保护状态清单 | next | 扩展只读工作表清单，返回工作表保护状态与受保护单元格计数，不暴露密码、不改写文件且不启动 WPS |
 | P3-097 | 表格工作表保护状态清单 | done | spreadsheet-sheets 返回 protection_enabled、最多扫描 100,000 格的 protected_cell_count 及 protection_scan_truncated；不返回保护密码、不启动 WPS，哈希不变测试覆盖普通与超限工作表 |
-| P3-098 | 表格清单有界扫描契约 | done | 更新 P3_SPREADSHEET_SHEETS.md 说明元数据和 100,000 格扫描限制；单测覆盖超限截断字段及文件哈希不变 |
+| P3-098 | 表格清单有界扫描契约 | done | 更新 archive/P3_SPREADSHEET_SHEETS.md 说明元数据和 100,000 格扫描限制；单测覆盖超限截断字段及文件哈希不变 |
 | P3-099 | 表格清单公式元数据 | done | spreadsheet-sheets 新增 populated_cell_count/formula_count，并复用 100,000 格边界；超限明确返回 null 和 inventory_scan_truncated，单测覆盖公式及哈希不变 |
 | P3-100 | 表格清单视图元数据 | done | spreadsheet-sheets 返回 freeze_panes 和 autofilter_range；单测验证值、WPS 未启动及文件哈希不变 |
 | P3-101 | 表格清单合并区域元数据 | done | 返回稳定排序的合并区域清单，最多 1,000 项并报告完整数量/截断标志；测试覆盖 1,002 区域与哈希不变 |
@@ -183,7 +183,7 @@
 | P3-110 | 表格清单错误忽略规则 | done | 流式解析 OOXML ignoredErrors，输出最多 1,000 条范围/标记、完整计数和截断；xlsm 测试覆盖 1,002 项且哈希不变、无 WPS |
 | P3-111 | 表格清单结构集成验证 | done | 新增 CLI 端到端 xlsx/xlsm 双次读取测试，完整元数据输出稳定、公式计数正确、源文件哈希不变 |
 | P3-112 | 表格清单契约文档 | done | 补充 MCP 工具说明的完整清单能力与只读边界，并校正 PRD 审计中已完成的表格工作表管理项 |
-| P3-113 | 表格日期与区域兼容性 | done | 覆盖 1900/1904 日期系统、区域标签格式、公式和 WPS 实际显示；当前 WPS 遵循主机区域显示，哈希不变，证据见 P3_SPREADSHEET_DATE_LOCALE_COMPAT.md |
+| P3-113 | 表格日期与区域兼容性 | done | 覆盖 1900/1904 日期系统、区域标签格式、公式和 WPS 实际显示；当前 WPS 遵循主机区域显示，哈希不变，证据见 archive/P3_SPREADSHEET_DATE_LOCALE_COMPAT.md |
 | P3-114 | HTML 视觉优先转换 | done | 本地 Edge/Playwright PDF 与 PNG 渲染，默认禁用 JS、阻断网络并限制本地资源；真实浏览器集成与非空图像检查通过 |
 | P3-115 | HTML 可编辑优先语义转换 | done | 新增 `html-editable`/`wps_agent_html_editable`，将语义结构映射到原生可编辑 DOCX 对象并回报 CSS/资源降级 |
 | P3-116 | HTML 受控往返对象身份模型 | done | 新增 `html-roundtrip-plan`/MCP 只读校验，要求 schema v1、稳定且唯一对象 ID，生成确定性 native-index/parent/hash 映射并拒绝 CSS/脚本/不支持特性 |
@@ -334,7 +334,7 @@
 | P3-261 | Writer 序列化诊断字节上限审计 | done | 每个关系字段限制为 UTF-8 96 字节（含截断标记）；150 个含引号/反斜线的最大 JSON 转义输入经 CLI/MCP JSON 均不超过 120,000 字节，保留 127 条明细、omitted_count=23 和 failed 状态；Unicode 码点边界测试通过；全量 426 项通过/65 项跳过 |
 | P3-262 | MCP tools/list 游标分页 | done | 81 个工具按目录顺序稳定遍历为 2 页（50+31），无重无漏；无效/过期游标返回 JSON-RPC -32602；每页保留 cache 元数据；smoke/config-audit 遍历全页且无重复；MCP 定向测试 19 项通过，全量 428 项通过/65 项跳过；project-status 通过 |
 | P3-263 | 桌面 MCP 客户端联调审计 | done | 只读检查 Claude Desktop 进程存在；Claude Code 2.1.293 的 `claude mcp list` 显示未配置 server，Claude Desktop 配置文件未发现；电脑 UI 检查接口两次初始化失败；未修改配置/文档；真实客户端 initialize/tools/list/tools/call 门槛明确保持未验证 |
-| P3-264 | MCP 分页性能基线 | done | Python 3.12.14 / Windows 10，200 次完整遍历均为 81 工具、50+31 两页，目录顺序精确且无重复；整轮 p50 5.078ms/p95 6.726ms，逐页 wire JSON 65,054/41,965 UTF-8 字节；报告 `docs/P3_MCP_PAGINATION_PERFORMANCE_BASELINE_20261009.md`；不设跨机器门槛 |
+| P3-264 | MCP 分页性能基线 | done | Python 3.12.14 / Windows 10，200 次完整遍历均为 81 工具、50+31 两页，目录顺序精确且无重复；整轮 p50 5.078ms/p95 6.726ms，逐页 wire JSON 65,054/41,965 UTF-8 字节；报告 `docs/archive/P3_MCP_PAGINATION_PERFORMANCE_BASELINE_20261009.md`；不设跨机器门槛 |
 | P3-265 | 刷新 MCP 性能基线目录守卫 | done | `mcp-smoke` 与 `mcp-config-audit` 性能场景均由 47 提升至 81 工具最小值；4 项 performance 定向测试通过；safe regression 15/15、sync-package-coverage/readiness 通过；实际 performance-baseline 6/6、未启动 WPS |
 | P3-266 | MCP stdio 分页端到端契约 | done | 真实子进程 stdio 验证 initialize、50+31 全量目录顺序和 cache 元数据；无效游标通过 wire 返回 -32602 且服务继续；只读 wps_agent_tasks 成功；请求 ID 对齐、EOF 后退出码 0；完整测试 430 项通过/65 项跳过 |
 | P3-267 | 限制 MCP tools/list 游标长度 | done | 长度超过 128 字符的游标在 base64 解码前返回 -32602；测试确认 oversized 输入未触发 decoder；有效全页遍历和现有错误路径保留；全量 431 项通过/65 项跳过 |
@@ -380,7 +380,7 @@
 | P3-307 | 校验 MCP enum 唯一性语义 | next | 用区分 JSON 类型的相等规则拒绝空 enum/重复项，保留合法混合类型枚举并给出有界诊断 |
 
 进展记录：
-- 2026-10-09: P3-298 已完成 MCP 配置根节点与 `mcpServers` 对象形状校验；6 种畸形结构均有界失败且不启动子进程，全量测试 477 passed/65 skipped，safe regression 15/15；实现和下一项范围见 `docs\P3_NEXT_MCP_CONFIG_JSON_AMBIGUITY_SCOPE.md`。
+- 2026-10-09: P3-298 已完成 MCP 配置根节点与 `mcpServers` 对象形状校验；6 种畸形结构均有界失败且不启动子进程，全量测试 477 passed/65 skipped，safe regression 15/15；实现和下一项范围见 `docs\archive\archive/P3_NEXT_MCP_CONFIG_JSON_AMBIGUITY_SCOPE.md`。
 - 2026-10-09: P3-299 已拒绝 MCP 配置中的递归重复成员与 NaN/Infinity 非标准常量；6 种原始 JSON 变体均不 spawn、诊断不泄露配置内容；当前 next 为 P3-300 嵌套深度限制。
 - P3-299 release: 全量 478 passed/65 skipped，local-release-gates 5/5，safe regression passed；package readiness passed，未启动 WPS。
 - 2026-10-09: P3-300 已在 json.loads 前限制 JSON 容器深度为 64 层；65 层输入在解析及 spawn 前失败，64 层边界与字符串转义测试通过；全量 479 passed/65 skipped。当前 next 为 P3-301。
@@ -397,75 +397,75 @@
 - P3-306 release: local-release-gates 5/5 passed，package readiness passed，WPS 未启动。
 - P3-305 release: local-release-gates 5/5 passed，package readiness passed，WPS 未启动。
 - P3-304 release: local-release-gates 5/5 passed，package readiness passed，WPS 未启动。
-- 2026-10-03: P3-004 已为 `regression-run` 增加 `--artifact-dir`，safe profile 生成 `artifacts\regression\regression-run-20261003T063513662051Z-regression-artifact-p3-004-001.json`，报告见 `docs\P3_REGRESSION_ARTIFACT_EXPORT_REPORT.md`。
+- 2026-10-03: P3-004 已为 `regression-run` 增加 `--artifact-dir`，safe profile 生成 `artifacts\regression\regression-run-20261003T063513662051Z-regression-artifact-p3-004-001.json`，报告见 `docs\archive\archive/P3_REGRESSION_ARTIFACT_EXPORT_REPORT.md`。
 - 2026-10-03: P3-005 已形成 CI 交接文档，覆盖 safe/WPS 调用命令、artifact 留存路径、通过门槛和失败分诊，见 `docs\REGRESSION_CI_HANDOFF.md`。
-- 2026-10-03: P3-006 已执行失败恢复演练，构造 `p3_006_failed_writer_replace` 终态失败任务，验证 `task-recovery`、备份清单和 Writer snapshot 证据，报告见 `docs\P3_RECOVERY_HARDENING_DRILL.md`。
-- 2026-10-03: P3-007 已新增 `security-audit`，审计 6 个修改类 MCP/CLI 工具的 request_id、task_id、dry-run、备份和 WPS/文件系统边界，报告见 `docs\P3_SECURITY_BOUNDARY_AUDIT.md`。
-- 2026-10-03: P3-008 已新增 `performance-baseline`，采集 6 个不启动 WPS 的核心命令基线，总耗时约 2176ms、总输出约 245KB，报告见 `docs\P3_PERFORMANCE_BASELINE.md`。
-- 2026-10-03: P3-009 已刷新 MCP desktop/config 集成证据，`mcp-config-audit` 与 `mcp-smoke --tool-name wps_agent_security_audit` 均通过 38-tool 工具面；同时修复 smoke harness 对无参工具的参数假设，报告见 `docs\P3_DESKTOP_MCP_INTEGRATION_REFRESH.md`。
-- 2026-10-03: P3-010 已选择 Writer 表格单元格更新作为下一个高级能力，并定义 fixture、dry-run、backup、validation、MCP 和 WPS smoke 要求，见 `docs\P3_ADVANCED_WPS_CAPABILITY_SCOPE.md`。
-- 2026-10-03: P3-011 已实现 `writer-table-write` 与 `wps_agent_writer_table_write`，真实 WPS 写入 `FINAL_STATUS` 通过备份、COM 写入、读回验证和幂等重放；报告见 `docs\P3_WRITER_TABLE_WRITE_REPORT.md`。
-- 2026-10-03: P3-012 已新增 `writer-table-smoke` 与 `wps_agent_writer_table_smoke`，并将 Writer 表格更新纳入 WPS regression profile；safe profile 仍不启动 WPS，完整 WPS profile 结构化记录了既有 `spreadsheet-calc-smoke` timeout，报告见 `docs\P3_WRITER_TABLE_REGRESSION_INTEGRATION_REPORT.md`。
-- 2026-10-03: P3-013 已定位 `spreadsheet-calc-smoke` timeout 与固定输出文件覆盖/提示等待有关；已增加结构化 COM timeout、`--timeout-seconds`、同路径保护、保存前关闭 alerts 并删除既有输出，完整 WPS profile 4/4 通过，报告见 `docs\P3_SPREADSHEET_CALC_TIMEOUT_HARDENING_REPORT.md`。
-- 2026-10-03: P3-014 已新增只读 `wps-process-audit` / `wps_agent_wps_process_audit`，采集当前 WPS 相关进程并给出不自动 kill 用户进程的安全清理建议；报告见 `docs\P3_WPS_PROCESS_LIFECYCLE_AUDIT_REPORT.md`。
+- 2026-10-03: P3-006 已执行失败恢复演练，构造 `p3_006_failed_writer_replace` 终态失败任务，验证 `task-recovery`、备份清单和 Writer snapshot 证据，报告见 `docs\archive\archive/P3_RECOVERY_HARDENING_DRILL.md`。
+- 2026-10-03: P3-007 已新增 `security-audit`，审计 6 个修改类 MCP/CLI 工具的 request_id、task_id、dry-run、备份和 WPS/文件系统边界，报告见 `docs\archive\archive/P3_SECURITY_BOUNDARY_AUDIT.md`。
+- 2026-10-03: P3-008 已新增 `performance-baseline`，采集 6 个不启动 WPS 的核心命令基线，总耗时约 2176ms、总输出约 245KB，报告见 `docs\archive\archive/P3_PERFORMANCE_BASELINE.md`。
+- 2026-10-03: P3-009 已刷新 MCP desktop/config 集成证据，`mcp-config-audit` 与 `mcp-smoke --tool-name wps_agent_security_audit` 均通过 38-tool 工具面；同时修复 smoke harness 对无参工具的参数假设，报告见 `docs\archive\archive/P3_DESKTOP_MCP_INTEGRATION_REFRESH.md`。
+- 2026-10-03: P3-010 已选择 Writer 表格单元格更新作为下一个高级能力，并定义 fixture、dry-run、backup、validation、MCP 和 WPS smoke 要求，见 `docs\archive\archive/P3_ADVANCED_WPS_CAPABILITY_SCOPE.md`。
+- 2026-10-03: P3-011 已实现 `writer-table-write` 与 `wps_agent_writer_table_write`，真实 WPS 写入 `FINAL_STATUS` 通过备份、COM 写入、读回验证和幂等重放；报告见 `docs\archive\archive/P3_WRITER_TABLE_WRITE_REPORT.md`。
+- 2026-10-03: P3-012 已新增 `writer-table-smoke` 与 `wps_agent_writer_table_smoke`，并将 Writer 表格更新纳入 WPS regression profile；safe profile 仍不启动 WPS，完整 WPS profile 结构化记录了既有 `spreadsheet-calc-smoke` timeout，报告见 `docs\archive\archive/P3_WRITER_TABLE_REGRESSION_INTEGRATION_REPORT.md`。
+- 2026-10-03: P3-013 已定位 `spreadsheet-calc-smoke` timeout 与固定输出文件覆盖/提示等待有关；已增加结构化 COM timeout、`--timeout-seconds`、同路径保护、保存前关闭 alerts 并删除既有输出，完整 WPS profile 4/4 通过，报告见 `docs\archive\archive/P3_SPREADSHEET_CALC_TIMEOUT_HARDENING_REPORT.md`。
+- 2026-10-03: P3-014 已新增只读 `wps-process-audit` / `wps_agent_wps_process_audit`，采集当前 WPS 相关进程并给出不自动 kill 用户进程的安全清理建议；报告见 `docs\archive\archive/P3_WPS_PROCESS_LIFECYCLE_AUDIT_REPORT.md`。
 - 2026-10-03: P3-015 已刷新 Phase 3 release readiness；后续 P3-022 已将当前证据推进到 96 个单元测试、safe regression 6/6、WPS regression 4/4、44-tool MCP 工具面；报告见 `docs\PHASE3_RELEASE_READINESS_REFRESH.md`。
 - 2026-10-03: P3-016 已完成同步就绪交接；P3-023 已将其刷新为本地打包交接，远程目标仅保留为可选未来路径，报告见 `docs\CLOUD_SYNC_READINESS_HANDOFF.md`。
-- 2026-10-03: P3-017 已生成本地 cloud-sync zip 包 `artifacts\cloud-sync\wps-ai-agent-cli-phase3-sync-20261003.zip`，SHA256 为 `8F679FC6C5F64D22F5F0DDF12B2420750AE7783FF02A702DFE7FE215ABA4B18F`；用户随后确认不需要远程上传/推送，见 `docs\P3_REMOTE_CLOUD_TARGET_SELECTION_REPORT.md`。
+- 2026-10-03: P3-017 已生成本地 cloud-sync zip 包 `artifacts\cloud-sync\wps-ai-agent-cli-phase3-sync-20261003.zip`，SHA256 为 `8F679FC6C5F64D22F5F0DDF12B2420750AE7783FF02A702DFE7FE215ABA4B18F`；用户随后确认不需要远程上传/推送，见 `docs\archive\archive/P3_REMOTE_CLOUD_TARGET_SELECTION_REPORT.md`。
 - 2026-10-03: P3-017 已产品化同步打包命令 `cloud-sync-package`，可复现生成 `artifacts\cloud-sync\wps-ai-agent-cli-phase3-sync-cli.zip`，117 个条目，SHA256 为 `476690E1450A894F3E6CA9C96EAC628C0AC56C1CF0DC6A8B549993EFB5D01B2C`。
 - 2026-10-03: 用户确认不必远程 Git，仅在当前工作区继续工作；P3-017 已按本地工作区模式收口，远程上传不再作为阻塞项。
-- 2026-10-03: P3-018 已完成本地工作区连续性审计，盘点 artifacts 25 个约 2.6MB、fixtures 21 个约 1.1MB、`.wps-agent` 备份 20 个约 435KB，并列出保留项与需授权清理候选，见 `docs\P3_LOCAL_WORKSPACE_CONTINUITY_AUDIT.md`。
-- 2026-10-03: P3-019 已新增只读 `cleanup-plan` / `wps_agent_cleanup_plan`，输出保守清理策略、受保护路径、最新证据和需授权候选；未执行任何删除，见 `docs\P3_LOCAL_CLEANUP_POLICY.md`。
-- 2026-10-03: P3-020 已新增 `scripts\local_repro_bundle.ps1`，可本地连续运行单元测试、`cleanup-plan`、safe regression 和 `cloud-sync-package`，不使用远程 Git 或云端服务；说明见 `docs\P3_LOCAL_REPRODUCIBILITY_BUNDLE.md`。
-- 2026-10-03: P3-021 已形成清理审批检查点，当前 27 组候选、约 1.81MB；未获得明确授权，因此未删除任何文件，见 `docs\P3_CLEANUP_APPROVAL_CHECKPOINT.md`。
-- 2026-10-03: P3-022 已新增只读 `project-status` / `wps_agent_project_status`，汇总本地 next 任务、当前 MCP 工具面、cleanup 姿态、最新 artifact 与同步包 hash，见 `docs\P3_LOCAL_PROJECT_STATUS_SUMMARY.md`。
-- 2026-10-03: P3-023 已刷新 README、MCP 文档、cloud handoff 和 release readiness 中的旧工具数、旧 next 任务和远程同步假设，见 `docs\P3_DOCUMENTATION_FRESHNESS_SWEEP.md`。
-- 2026-10-03: P3-024 已在文档扫尾后刷新本地同步包，`artifacts\cloud-sync\wps-ai-agent-cli-phase3-sync-cli.zip` 验证时为 127 个条目且无失败文件；当前 hash 可通过 `project-status` 查看，见 `docs\P3_LOCAL_PACKAGE_REFRESH.md`。
-- 2026-10-03: P3-025 已执行授权闸门检查；未获得明确类别或路径授权，因此未删除任何文件，见 `docs\P3_APPROVED_CLEANUP_EXECUTION_GATE.md`。
-- 2026-10-03: P3-026 已新增只读 `cleanup-approval-manifest` / `wps_agent_cleanup_approval_manifest`，按清理类别导出候选路径和审批短语，见 `docs\P3_CLEANUP_APPROVAL_MANIFEST_EXPORT.md`。
-- 2026-10-04: P3-027 已新增只读 `workspace-health` / `wps_agent_workspace_health`，组合 next 任务、回归证据、同步包状态、清理授权姿态和本地-only 状态，见 `docs\P3_LOCAL_WORKSPACE_HEALTH_SUMMARY.md`。
-- 2026-10-04: P3-028 已在 workspace-health 新增后刷新本地同步包，验证时 135 个条目且无失败文件，见 `docs\P3_POST_HEALTH_LOCAL_PACKAGE_REFRESH.md`。
-- 2026-10-04: P3-029 已汇总 Phase 3 本地-only 状态、health、清理闸门、回归证据和同步包证据，见 `docs\P3_LOCAL_ONLY_STATUS_CONSOLIDATION.md`。
-- 2026-10-04: P3-030 已选择下一项非破坏性能力为 MCP tool catalog snapshot，并定义范围、验证和安全约束，见 `docs\P3_NEXT_ADVANCED_CAPABILITY_SCOPE.md`。
-- 2026-10-04: P3-031 已新增只读 `mcp-catalog-snapshot` / `wps_agent_mcp_catalog_snapshot`，汇总 47 个 MCP 工具、分类、WPS 要求、修改类工具和 safety-note 覆盖情况，见 `docs\P3_MCP_CATALOG_SNAPSHOT.md`。
-- 2026-10-04: P3-032 已在 MCP 工具目录快照后刷新本地同步包，验证时 141 个条目且无失败文件，见 `docs\P3_POST_CATALOG_LOCAL_PACKAGE_REFRESH.md`。
-- 2026-10-04: P3-033 已刷新 README、MCP client 配置、MCP schema 草案、回归 manifest 和 release readiness 中的当前 47-tool 工具面与 `mcp-catalog-snapshot` 说明，见 `docs\P3_CATALOG_SNAPSHOT_DOCUMENTATION_REFRESH.md`。
-- 2026-10-04: P3-034 已在工具目录文档刷新后重新生成本地同步包，并用 project-status、workspace-health 和 MCP catalog snapshot 验证 47-tool、本地-only、无清理删除状态，见 `docs\P3_POST_CATALOG_DOCUMENTATION_PACKAGE_REFRESH.md`。
-- 2026-10-04: P3-035 已定义 MCP catalog drift guard 范围：只读、基于显式 baseline、比较工具数/分类/WPS 要求/修改类工具/safety-note 覆盖，并作为 safe regression gate，见 `docs\P3_MCP_CATALOG_DRIFT_GUARD_SCOPE.md`。
-- 2026-10-04: P3-036 已新增只读 `mcp-catalog-drift` / `wps_agent_mcp_catalog_drift` 和 `config\mcp_catalog_guard.json` baseline；safe regression 新增 catalog drift 场景，当前 48-tool baseline 无漂移，见 `docs\P3_MCP_CATALOG_DRIFT_GUARD_IMPLEMENTATION.md`。
-- 2026-10-04: P3-037 已在 MCP catalog drift guard 后刷新本地同步包，验证时 148 个条目且无失败文件，并确认 project-status、workspace-health 和 drift guard 均通过，见 `docs\P3_POST_DRIFT_GUARD_LOCAL_PACKAGE_REFRESH.md`。
-- 2026-10-04: P3-038 已选择下一项非破坏性能力为 regression evidence summary，用于只读汇总 safe/WPS 最新回归 artifact 和通过状态，见 `docs\P3_NEXT_NONDESTRUCTIVE_CAPABILITY_SCOPE.md`。
-- 2026-10-04: P3-039 已新增只读 `regression-evidence` / `wps_agent_regression_evidence`，汇总最新 safe/WPS 回归 artifact，通过状态、场景数和结果 ID，见 `docs\P3_REGRESSION_EVIDENCE_SUMMARY.md`。
-- 2026-10-04: P3-040 已在 regression-evidence 后刷新本地同步包，验证时 153 个条目且无失败文件，并确认 project-status、workspace-health、regression-evidence 和 catalog drift 均通过，见 `docs\P3_POST_REGRESSION_EVIDENCE_LOCAL_PACKAGE_REFRESH.md`。
-- 2026-10-04: P3-041 已选择下一项非破坏性能力为 local handoff summary，用于一次性只读汇总本地交接状态，见 `docs\P3_NEXT_LOCAL_HANDOFF_SUMMARY_SCOPE.md`。
-- 2026-10-04: P3-042 已新增只读 `local-handoff-summary` / `wps_agent_local_handoff_summary`，组合 project status、workspace health、regression evidence、catalog drift 和 sync package 证据，见 `docs\P3_LOCAL_HANDOFF_SUMMARY.md`。
-- 2026-10-04: P3-043 已在 local-handoff-summary 后刷新本地同步包，验证时 158 个条目且无失败文件，并确认 local handoff、project-status、workspace-health 和 catalog drift 均通过，见 `docs\P3_POST_LOCAL_HANDOFF_LOCAL_PACKAGE_REFRESH.md`。
-- 2026-10-04: P3-044 已选择下一项非破坏性能力为 artifact retention summary，用于只读汇总保留证据、清理候选、审批姿态和同步包状态，见 `docs\P3_NEXT_ARTIFACT_RETENTION_SUMMARY_SCOPE.md`。
-- 2026-10-04: P3-045 已新增只读 `artifact-retention-summary` / `wps_agent_artifact_retention_summary`，汇总保留证据、清理候选、审批姿态和同步包状态；未删除文件，见 `docs\P3_ARTIFACT_RETENTION_SUMMARY.md`。
-- 2026-10-04: P3-046 已在 artifact-retention-summary 后进入本地包刷新，当前 next 为 P3-047；最终包证据见 `docs\P3_POST_ARTIFACT_RETENTION_LOCAL_PACKAGE_REFRESH.md`。
-- 2026-10-04: P3-047 已选择下一项非破坏性能力为 validation runbook，用于只读输出本地验证、打包、可选 WPS 和清理复核步骤，见 `docs\P3_NEXT_VALIDATION_RUNBOOK_SCOPE.md`。
-- 2026-10-04: P3-048 已新增只读 `validation-runbook` / `wps_agent_validation_runbook`，输出本地验证步骤但不执行命令，见 `docs\P3_VALIDATION_RUNBOOK.md`。
-- 2026-10-04: P3-049 已在 validation-runbook 后进入本地包刷新，当前 next 为 P3-050；最终包证据见 `docs\P3_POST_VALIDATION_RUNBOOK_LOCAL_PACKAGE_REFRESH.md`。
-- 2026-10-04: P3-050 已选择下一项非破坏性能力为 documentation freshness guard，用于只读扫描当前文档和配置的新鲜度，见 `docs\P3_NEXT_DOCUMENTATION_FRESHNESS_SCOPE.md`。
-- 2026-10-04: P3-051 已新增只读 `documentation-freshness` / `wps_agent_documentation_freshness`，检查当前文档和配置中的旧工具数、旧 expected-min-tools 或旧 next 任务引用，见 `docs\P3_DOCUMENTATION_FRESHNESS_GUARD.md`。
-- 2026-10-04: P3-052 已在 documentation-freshness 后进入本地包刷新，当前 next 为 P3-053；最终包证据见 `docs\P3_POST_DOCUMENTATION_FRESHNESS_LOCAL_PACKAGE_REFRESH.md`。
-- 2026-10-04: P3-053 已选择下一项非破坏性能力为 regression history summary，用于只读汇总最近 safe/WPS 回归 artifact 和通过趋势，见 `docs\P3_NEXT_REGRESSION_HISTORY_SCOPE.md`。
-- 2026-10-04: P3-054 已新增只读 `regression-history` / `wps_agent_regression_history`，读取现有回归 artifact 并汇总最新状态和近期通过趋势，见 `docs\P3_REGRESSION_HISTORY_SUMMARY.md`。
-- 2026-10-04: P3-055 已在 regression-history 后进入本地包刷新，当前 next 为 P3-056；最终包证据见 `docs\P3_POST_REGRESSION_HISTORY_LOCAL_PACKAGE_REFRESH.md`。
-- 2026-10-04: P3-056 已选择下一项非破坏性能力为 sync package inspection，用于只读检查本地同步包内容、hash 和打包时最新回归 artifact 收录情况，见 `docs\P3_NEXT_SYNC_PACKAGE_INSPECT_SCOPE.md`。
-- 2026-10-04: P3-057 已新增只读 `sync-package-inspect` / `wps_agent_sync_package_inspect`，检查已有同步包而不重新打包、删除文件、启动 WPS 或使用远程 Git，见 `docs\P3_SYNC_PACKAGE_INSPECT.md`。
-- 2026-10-04: P3-058 已在 sync-package-inspect 后进入本地包刷新，当前 next 为 P3-059；最终包证据见 `docs\P3_POST_SYNC_PACKAGE_INSPECT_LOCAL_PACKAGE_REFRESH.md`。
-- 2026-10-04: P3-059 已选择下一项非破坏性能力为 sync package content summary，用于只读展开同步包内容分布和 artifact 条目，见 `docs\P3_NEXT_SYNC_PACKAGE_SUMMARY_SCOPE.md`。
-- 2026-10-04: P3-060 已新增只读 `sync-package-summary` / `wps_agent_sync_package_summary`，按顶层目录、artifact 条目和最大条目汇总已有同步包内容，见 `docs\P3_SYNC_PACKAGE_SUMMARY.md`。
-- 2026-10-04: P3-061 已在 sync-package-summary 后进入本地包刷新，当前 next 为 P3-062；最终包证据见 `docs\P3_POST_SYNC_PACKAGE_SUMMARY_LOCAL_PACKAGE_REFRESH.md`。
-- 2026-10-04: P3-062 已选择下一项非破坏性能力为 sync package manifest，用于只读列出同步包条目并支持 prefix 过滤，见 `docs\P3_NEXT_SYNC_PACKAGE_MANIFEST_SCOPE.md`。
-- 2026-10-04: P3-063 已新增只读 `sync-package-manifest` / `wps_agent_sync_package_manifest`，按路径列出已有同步包条目、大小和顶层目录，见 `docs\P3_SYNC_PACKAGE_MANIFEST.md`。
-- 2026-10-04: P3-064 已在 sync-package-manifest 后进入本地包刷新，当前 next 为 P3-065；最终包证据见 `docs\P3_POST_SYNC_PACKAGE_MANIFEST_LOCAL_PACKAGE_REFRESH.md`。
-- 2026-10-07: P3-065 已选择下一项非破坏性能力为 sync package coverage，用于只读比较包内条目和工作区同步根目录覆盖情况，见 `docs\P3_NEXT_SYNC_PACKAGE_COVERAGE_SCOPE.md`。
-- 2026-10-07: P3-066 已新增只读 `sync-package-coverage` / `wps_agent_sync_package_coverage`，按包创建时间作为截止点报告缺失条目、额外条目和包后新增文件，见 `docs\P3_SYNC_PACKAGE_COVERAGE.md`。
-- 2026-10-07: P3-067 已在 sync-package-coverage 后刷新本地同步包，当前 next 为 P3-068；最终验证与打包步骤见 `docs\P3_POST_SYNC_PACKAGE_COVERAGE_LOCAL_PACKAGE_REFRESH.md`。
-- 2026-10-07: P3-068 已选择下一项非破坏性能力为 sync package readiness，用于汇总同步包 inspect、summary 与 coverage 的本地交接状态，见 `docs\P3_NEXT_SYNC_PACKAGE_READINESS_SCOPE.md`。
-- 2026-10-07: P3-069 已新增只读 `sync-package-readiness` / `wps_agent_sync_package_readiness`，当前 next 为 P3-070；实现记录见 `docs\P3_SYNC_PACKAGE_READINESS.md`。
-- 2026-10-07: P3-070 已在 sync-package-readiness 后刷新本地同步包，当前 next 为 P3-071；最终验证与打包步骤见 `docs\P3_POST_SYNC_PACKAGE_READINESS_LOCAL_PACKAGE_REFRESH.md`。
+- 2026-10-03: P3-018 已完成本地工作区连续性审计，盘点 artifacts 25 个约 2.6MB、fixtures 21 个约 1.1MB、`.wps-agent` 备份 20 个约 435KB，并列出保留项与需授权清理候选，见 `docs\archive\archive/P3_LOCAL_WORKSPACE_CONTINUITY_AUDIT.md`。
+- 2026-10-03: P3-019 已新增只读 `cleanup-plan` / `wps_agent_cleanup_plan`，输出保守清理策略、受保护路径、最新证据和需授权候选；未执行任何删除，见 `docs\archive\archive/P3_LOCAL_CLEANUP_POLICY.md`。
+- 2026-10-03: P3-020 已新增 `scripts\local_repro_bundle.ps1`，可本地连续运行单元测试、`cleanup-plan`、safe regression 和 `cloud-sync-package`，不使用远程 Git 或云端服务；说明见 `docs\archive\archive/P3_LOCAL_REPRODUCIBILITY_BUNDLE.md`。
+- 2026-10-03: P3-021 已形成清理审批检查点，当前 27 组候选、约 1.81MB；未获得明确授权，因此未删除任何文件，见 `docs\archive\archive/P3_CLEANUP_APPROVAL_CHECKPOINT.md`。
+- 2026-10-03: P3-022 已新增只读 `project-status` / `wps_agent_project_status`，汇总本地 next 任务、当前 MCP 工具面、cleanup 姿态、最新 artifact 与同步包 hash，见 `docs\archive\archive/P3_LOCAL_PROJECT_STATUS_SUMMARY.md`。
+- 2026-10-03: P3-023 已刷新 README、MCP 文档、cloud handoff 和 release readiness 中的旧工具数、旧 next 任务和远程同步假设，见 `docs\archive\archive/P3_DOCUMENTATION_FRESHNESS_SWEEP.md`。
+- 2026-10-03: P3-024 已在文档扫尾后刷新本地同步包，`artifacts\cloud-sync\wps-ai-agent-cli-phase3-sync-cli.zip` 验证时为 127 个条目且无失败文件；当前 hash 可通过 `project-status` 查看，见 `docs\archive\archive/P3_LOCAL_PACKAGE_REFRESH.md`。
+- 2026-10-03: P3-025 已执行授权闸门检查；未获得明确类别或路径授权，因此未删除任何文件，见 `docs\archive\archive/P3_APPROVED_CLEANUP_EXECUTION_GATE.md`。
+- 2026-10-03: P3-026 已新增只读 `cleanup-approval-manifest` / `wps_agent_cleanup_approval_manifest`，按清理类别导出候选路径和审批短语，见 `docs\archive\archive/P3_CLEANUP_APPROVAL_MANIFEST_EXPORT.md`。
+- 2026-10-04: P3-027 已新增只读 `workspace-health` / `wps_agent_workspace_health`，组合 next 任务、回归证据、同步包状态、清理授权姿态和本地-only 状态，见 `docs\archive\archive/P3_LOCAL_WORKSPACE_HEALTH_SUMMARY.md`。
+- 2026-10-04: P3-028 已在 workspace-health 新增后刷新本地同步包，验证时 135 个条目且无失败文件，见 `docs\archive\archive/P3_POST_HEALTH_LOCAL_PACKAGE_REFRESH.md`。
+- 2026-10-04: P3-029 已汇总 Phase 3 本地-only 状态、health、清理闸门、回归证据和同步包证据，见 `docs\archive\archive/P3_LOCAL_ONLY_STATUS_CONSOLIDATION.md`。
+- 2026-10-04: P3-030 已选择下一项非破坏性能力为 MCP tool catalog snapshot，并定义范围、验证和安全约束，见 `docs\archive\archive/P3_NEXT_ADVANCED_CAPABILITY_SCOPE.md`。
+- 2026-10-04: P3-031 已新增只读 `mcp-catalog-snapshot` / `wps_agent_mcp_catalog_snapshot`，汇总 47 个 MCP 工具、分类、WPS 要求、修改类工具和 safety-note 覆盖情况，见 `docs\archive\archive/P3_MCP_CATALOG_SNAPSHOT.md`。
+- 2026-10-04: P3-032 已在 MCP 工具目录快照后刷新本地同步包，验证时 141 个条目且无失败文件，见 `docs\archive\archive/P3_POST_CATALOG_LOCAL_PACKAGE_REFRESH.md`。
+- 2026-10-04: P3-033 已刷新 README、MCP client 配置、MCP schema 草案、回归 manifest 和 release readiness 中的当前 47-tool 工具面与 `mcp-catalog-snapshot` 说明，见 `docs\archive\archive/P3_CATALOG_SNAPSHOT_DOCUMENTATION_REFRESH.md`。
+- 2026-10-04: P3-034 已在工具目录文档刷新后重新生成本地同步包，并用 project-status、workspace-health 和 MCP catalog snapshot 验证 47-tool、本地-only、无清理删除状态，见 `docs\archive\archive/P3_POST_CATALOG_DOCUMENTATION_PACKAGE_REFRESH.md`。
+- 2026-10-04: P3-035 已定义 MCP catalog drift guard 范围：只读、基于显式 baseline、比较工具数/分类/WPS 要求/修改类工具/safety-note 覆盖，并作为 safe regression gate，见 `docs\archive\archive/P3_MCP_CATALOG_DRIFT_GUARD_SCOPE.md`。
+- 2026-10-04: P3-036 已新增只读 `mcp-catalog-drift` / `wps_agent_mcp_catalog_drift` 和 `config\mcp_catalog_guard.json` baseline；safe regression 新增 catalog drift 场景，当前 48-tool baseline 无漂移，见 `docs\archive\archive/P3_MCP_CATALOG_DRIFT_GUARD_IMPLEMENTATION.md`。
+- 2026-10-04: P3-037 已在 MCP catalog drift guard 后刷新本地同步包，验证时 148 个条目且无失败文件，并确认 project-status、workspace-health 和 drift guard 均通过，见 `docs\archive\archive/P3_POST_DRIFT_GUARD_LOCAL_PACKAGE_REFRESH.md`。
+- 2026-10-04: P3-038 已选择下一项非破坏性能力为 regression evidence summary，用于只读汇总 safe/WPS 最新回归 artifact 和通过状态，见 `docs\archive\archive/P3_NEXT_NONDESTRUCTIVE_CAPABILITY_SCOPE.md`。
+- 2026-10-04: P3-039 已新增只读 `regression-evidence` / `wps_agent_regression_evidence`，汇总最新 safe/WPS 回归 artifact，通过状态、场景数和结果 ID，见 `docs\archive\archive/P3_REGRESSION_EVIDENCE_SUMMARY.md`。
+- 2026-10-04: P3-040 已在 regression-evidence 后刷新本地同步包，验证时 153 个条目且无失败文件，并确认 project-status、workspace-health、regression-evidence 和 catalog drift 均通过，见 `docs\archive\archive/P3_POST_REGRESSION_EVIDENCE_LOCAL_PACKAGE_REFRESH.md`。
+- 2026-10-04: P3-041 已选择下一项非破坏性能力为 local handoff summary，用于一次性只读汇总本地交接状态，见 `docs\archive\archive/P3_NEXT_LOCAL_HANDOFF_SUMMARY_SCOPE.md`。
+- 2026-10-04: P3-042 已新增只读 `local-handoff-summary` / `wps_agent_local_handoff_summary`，组合 project status、workspace health、regression evidence、catalog drift 和 sync package 证据，见 `docs\archive\archive/P3_LOCAL_HANDOFF_SUMMARY.md`。
+- 2026-10-04: P3-043 已在 local-handoff-summary 后刷新本地同步包，验证时 158 个条目且无失败文件，并确认 local handoff、project-status、workspace-health 和 catalog drift 均通过，见 `docs\archive\archive/P3_POST_LOCAL_HANDOFF_LOCAL_PACKAGE_REFRESH.md`。
+- 2026-10-04: P3-044 已选择下一项非破坏性能力为 artifact retention summary，用于只读汇总保留证据、清理候选、审批姿态和同步包状态，见 `docs\archive\archive/P3_NEXT_ARTIFACT_RETENTION_SUMMARY_SCOPE.md`。
+- 2026-10-04: P3-045 已新增只读 `artifact-retention-summary` / `wps_agent_artifact_retention_summary`，汇总保留证据、清理候选、审批姿态和同步包状态；未删除文件，见 `docs\archive\archive/P3_ARTIFACT_RETENTION_SUMMARY.md`。
+- 2026-10-04: P3-046 已在 artifact-retention-summary 后进入本地包刷新，当前 next 为 P3-047；最终包证据见 `docs\archive\archive/P3_POST_ARTIFACT_RETENTION_LOCAL_PACKAGE_REFRESH.md`。
+- 2026-10-04: P3-047 已选择下一项非破坏性能力为 validation runbook，用于只读输出本地验证、打包、可选 WPS 和清理复核步骤，见 `docs\archive\archive/P3_NEXT_VALIDATION_RUNBOOK_SCOPE.md`。
+- 2026-10-04: P3-048 已新增只读 `validation-runbook` / `wps_agent_validation_runbook`，输出本地验证步骤但不执行命令，见 `docs\archive\archive/P3_VALIDATION_RUNBOOK.md`。
+- 2026-10-04: P3-049 已在 validation-runbook 后进入本地包刷新，当前 next 为 P3-050；最终包证据见 `docs\archive\archive/P3_POST_VALIDATION_RUNBOOK_LOCAL_PACKAGE_REFRESH.md`。
+- 2026-10-04: P3-050 已选择下一项非破坏性能力为 documentation freshness guard，用于只读扫描当前文档和配置的新鲜度，见 `docs\archive\archive/P3_NEXT_DOCUMENTATION_FRESHNESS_SCOPE.md`。
+- 2026-10-04: P3-051 已新增只读 `documentation-freshness` / `wps_agent_documentation_freshness`，检查当前文档和配置中的旧工具数、旧 expected-min-tools 或旧 next 任务引用，见 `docs\archive\archive/P3_DOCUMENTATION_FRESHNESS_GUARD.md`。
+- 2026-10-04: P3-052 已在 documentation-freshness 后进入本地包刷新，当前 next 为 P3-053；最终包证据见 `docs\archive\archive/P3_POST_DOCUMENTATION_FRESHNESS_LOCAL_PACKAGE_REFRESH.md`。
+- 2026-10-04: P3-053 已选择下一项非破坏性能力为 regression history summary，用于只读汇总最近 safe/WPS 回归 artifact 和通过趋势，见 `docs\archive\archive/P3_NEXT_REGRESSION_HISTORY_SCOPE.md`。
+- 2026-10-04: P3-054 已新增只读 `regression-history` / `wps_agent_regression_history`，读取现有回归 artifact 并汇总最新状态和近期通过趋势，见 `docs\archive\archive/P3_REGRESSION_HISTORY_SUMMARY.md`。
+- 2026-10-04: P3-055 已在 regression-history 后进入本地包刷新，当前 next 为 P3-056；最终包证据见 `docs\archive\archive/P3_POST_REGRESSION_HISTORY_LOCAL_PACKAGE_REFRESH.md`。
+- 2026-10-04: P3-056 已选择下一项非破坏性能力为 sync package inspection，用于只读检查本地同步包内容、hash 和打包时最新回归 artifact 收录情况，见 `docs\archive\archive/P3_NEXT_SYNC_PACKAGE_INSPECT_SCOPE.md`。
+- 2026-10-04: P3-057 已新增只读 `sync-package-inspect` / `wps_agent_sync_package_inspect`，检查已有同步包而不重新打包、删除文件、启动 WPS 或使用远程 Git，见 `docs\archive\archive/P3_SYNC_PACKAGE_INSPECT.md`。
+- 2026-10-04: P3-058 已在 sync-package-inspect 后进入本地包刷新，当前 next 为 P3-059；最终包证据见 `docs\archive\archive/P3_POST_SYNC_PACKAGE_INSPECT_LOCAL_PACKAGE_REFRESH.md`。
+- 2026-10-04: P3-059 已选择下一项非破坏性能力为 sync package content summary，用于只读展开同步包内容分布和 artifact 条目，见 `docs\archive\archive/P3_NEXT_SYNC_PACKAGE_SUMMARY_SCOPE.md`。
+- 2026-10-04: P3-060 已新增只读 `sync-package-summary` / `wps_agent_sync_package_summary`，按顶层目录、artifact 条目和最大条目汇总已有同步包内容，见 `docs\archive\archive/P3_SYNC_PACKAGE_SUMMARY.md`。
+- 2026-10-04: P3-061 已在 sync-package-summary 后进入本地包刷新，当前 next 为 P3-062；最终包证据见 `docs\archive\archive/P3_POST_SYNC_PACKAGE_SUMMARY_LOCAL_PACKAGE_REFRESH.md`。
+- 2026-10-04: P3-062 已选择下一项非破坏性能力为 sync package manifest，用于只读列出同步包条目并支持 prefix 过滤，见 `docs\archive\archive/P3_NEXT_SYNC_PACKAGE_MANIFEST_SCOPE.md`。
+- 2026-10-04: P3-063 已新增只读 `sync-package-manifest` / `wps_agent_sync_package_manifest`，按路径列出已有同步包条目、大小和顶层目录，见 `docs\archive\archive/P3_SYNC_PACKAGE_MANIFEST.md`。
+- 2026-10-04: P3-064 已在 sync-package-manifest 后进入本地包刷新，当前 next 为 P3-065；最终包证据见 `docs\archive\archive/P3_POST_SYNC_PACKAGE_MANIFEST_LOCAL_PACKAGE_REFRESH.md`。
+- 2026-10-07: P3-065 已选择下一项非破坏性能力为 sync package coverage，用于只读比较包内条目和工作区同步根目录覆盖情况，见 `docs\archive\archive/P3_NEXT_SYNC_PACKAGE_COVERAGE_SCOPE.md`。
+- 2026-10-07: P3-066 已新增只读 `sync-package-coverage` / `wps_agent_sync_package_coverage`，按包创建时间作为截止点报告缺失条目、额外条目和包后新增文件，见 `docs\archive\archive/P3_SYNC_PACKAGE_COVERAGE.md`。
+- 2026-10-07: P3-067 已在 sync-package-coverage 后刷新本地同步包，当前 next 为 P3-068；最终验证与打包步骤见 `docs\archive\archive/P3_POST_SYNC_PACKAGE_COVERAGE_LOCAL_PACKAGE_REFRESH.md`。
+- 2026-10-07: P3-068 已选择下一项非破坏性能力为 sync package readiness，用于汇总同步包 inspect、summary 与 coverage 的本地交接状态，见 `docs\archive\archive/P3_NEXT_SYNC_PACKAGE_READINESS_SCOPE.md`。
+- 2026-10-07: P3-069 已新增只读 `sync-package-readiness` / `wps_agent_sync_package_readiness`，当前 next 为 P3-070；实现记录见 `docs\archive\archive/P3_SYNC_PACKAGE_READINESS.md`。
+- 2026-10-07: P3-070 已在 sync-package-readiness 后刷新本地同步包，当前 next 为 P3-071；最终验证与打包步骤见 `docs\archive\archive/P3_POST_SYNC_PACKAGE_READINESS_LOCAL_PACKAGE_REFRESH.md`。
 
 ## 每轮开发节奏
 
@@ -508,6 +508,6 @@
 - 2026-10-03: Phase 2 最终交付报告完成，详见 `docs/PHASE2_FINAL_HANDOFF_REPORT.md`。
 - 2026-10-03: Phase 3 已启动，`docs/PHASE3_PRODUCTION_READINESS_PLAN.md` 记录生产就绪 workstreams、风险清单、验收门槛和首个回归 manifest 任务。
 - 2026-10-03: Phase 3 已实现 `config/regression_manifest.json`、`regression-manifest` 与 `regression-run`，safe profile 覆盖 5 个 CLI/MCP/config smoke 场景并实测通过；WPS profile 已列入 manifest，默认不执行以避免意外启动桌面 WPS。
-- 2026-10-03: Phase 3 已运行 WPS-required regression profile，`writer-com-smoke`、`spreadsheet-calc-smoke`、`writer-convert-smoke` 均 passed；输出文件位于 `fixtures/phase3`，报告见 `docs/P3_WPS_REGRESSION_SMOKE_REPORT.md`。
+- 2026-10-03: Phase 3 已运行 WPS-required regression profile，`writer-com-smoke`、`spreadsheet-calc-smoke`、`writer-convert-smoke` 均 passed；输出文件位于 `fixtures/phase3`，报告见 `docs/archive/P3_WPS_REGRESSION_SMOKE_REPORT.md`。
 - 生成文件: `smoke_writer_copy.docx`、`fixtures/phase0/phase0_calculation_fixture_copy.xlsx`、`fixtures/phase0/phase0_presentation_fixture_copy.pptx`、`fixtures/phase0/phase0_calculation_verified.xlsx`
 - 详细记录: `docs/PHASE0_FINDINGS.md`、`docs/CONVERSION_MATRIX.md`、`docs/PHASE0_FEASIBILITY_REPORT.md`

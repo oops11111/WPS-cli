@@ -23,8 +23,11 @@ from .document_text import (
     docx_body_drawing_semantics,
     docx_bookmark_overlaps_link_or_field,
     docx_bookmark_precedes_character_anchor,
+    docx_table_cell_rich_content,
     docx_table_cell_text,
 )
+
+WORD_FIND_TEXT_MAX_CHARS = 255
 from .errors import COM_BACKEND_UNAVAILABLE, INPUT_FILE_NOT_FOUND
 from .mutation_lock import coordinated_mutation
 from .operations import record_operation, replay_operation
@@ -491,6 +494,19 @@ def writer_replace(
             [{"code": "INVALID_ARGUMENT", "message": "find_text must not be empty."}],
             False,
         )
+    if len(find_text) > WORD_FIND_TEXT_MAX_CHARS:
+        return (
+            False,
+            {},
+            [{
+                "code": "FIND_TEXT_TOO_LONG",
+                "message": (
+                    f"find_text is {len(find_text)} characters; Word Find.Text accepts at most "
+                    f"{WORD_FIND_TEXT_MAX_CHARS}. Shorten the search text or split the replace."
+                ),
+            }],
+            False,
+        )
     if paragraph_index is not None and paragraph_index < 1:
         return (
             False,
@@ -654,11 +670,20 @@ def writer_table_write(
     text: str,
     request_id: str,
     dry_run: bool = False,
+    allow_rich_content: bool = False,
     workspace: str | Path = ".",
 ) -> tuple[bool, dict[str, Any], list[dict[str, str]], bool]:
     replay = replay_operation(
         request_id, "writer-table-write",
-        {"document_id": document_id, "table_index": table_index, "row": row, "column": column, "replacement_text": text, "dry_run": dry_run},
+        {
+            "document_id": document_id,
+            "table_index": table_index,
+            "row": row,
+            "column": column,
+            "replacement_text": text,
+            "dry_run": dry_run,
+            "allow_rich_content": allow_rich_content,
+        },
         workspace,
     )
     if replay is not None:
@@ -740,6 +765,7 @@ def writer_table_write(
             False,
         )
 
+    rich_kinds = docx_table_cell_rich_content(path, table_index, row, column) or []
     preview = {
         "document_id": document_id,
         "component": "writer",
@@ -752,7 +778,23 @@ def writer_table_write(
         "replacement_text": text,
         "would_modify": current_text != text,
         "dry_run": dry_run,
+        "rich_content": rich_kinds,
+        "allow_rich_content": allow_rich_content,
     }
+    if rich_kinds and not allow_rich_content:
+        return (
+            False,
+            preview,
+            [{
+                "code": "CELL_HAS_RICH_CONTENT",
+                "message": (
+                    "Target cell contains rich content that a text write would discard: "
+                    + ", ".join(rich_kinds)
+                    + ". Re-run with --allow-rich-content if discarding it is intentional."
+                ),
+            }],
+            False,
+        )
     if dry_run:
         return True, preview, [], False
 

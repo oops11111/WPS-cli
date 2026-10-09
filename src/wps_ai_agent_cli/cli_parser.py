@@ -241,6 +241,11 @@ def _add_document_commands(subparsers: argparse._SubParsersAction) -> None:
     writer_table_parser.add_argument("--column", type=int, required=True, help="1-based column index.")
     writer_table_parser.add_argument("--text", required=True, help="Replacement cell text.")
     writer_table_parser.add_argument("--dry-run", action="store_true", help="Preview target cell without modifying the file.")
+    writer_table_parser.add_argument(
+        "--allow-rich-content",
+        action="store_true",
+        help="Allow replacing a cell that contains drawings, fields, hyperlinks, nested tables, or content controls (those contents are discarded).",
+    )
     writer_table_parser.add_argument("--task-id", help="Optional long-running task status id to update.")
 
     open_documents_parser = subparsers.add_parser(

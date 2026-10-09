@@ -12,7 +12,7 @@ class Completed:
 
 class ProcessAuditParsingTests(unittest.TestCase):
     def audit(self, stdout):
-        with patch.object(process_audit.subprocess, "run", return_value=Completed(stdout)):
+        with patch.object(process_audit, "run_powershell_command", return_value=Completed(stdout)):
             return process_audit.audit_wps_processes()
 
     def test_valid_list_output(self):

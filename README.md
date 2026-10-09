@@ -71,14 +71,14 @@ PYTHONPATH=src python3 -m unittest discover -s tests
 - 回归与 CI：[docs/REGRESSION_MANIFEST.md](docs/REGRESSION_MANIFEST.md)、[docs/REGRESSION_CI_HANDOFF.md](docs/REGRESSION_CI_HANDOFF.md)、[docs/TEST_STRATEGY.md](docs/TEST_STRATEGY.md)
 - 转换能力：[docs/CONVERSION_MATRIX.md](docs/CONVERSION_MATRIX.md)
 - 代码审查：[批次 1-2](docs/CODE_REVIEW_BATCH_1_2.md)、[批次 3](docs/CODE_REVIEW_BATCH_3.md)、[批次 4-5](docs/CODE_REVIEW_BATCH_4_5.md)、[批次 6](docs/CODE_REVIEW_BATCH_6.md)
-- 阶段报告：`docs/PHASE*.md`；迭代流水记录：`docs/P3_*.md`、`docs/TASK_BOARD.md`（按迭代追加，是历史记录，可能提到已删除的命令，见批次 6 报告 G-07）
+- 阶段报告：`docs/PHASE*.md`；迭代流水记录（已归档）：`docs/archive/P3_*.md`、`docs/TASK_BOARD.md`（按迭代追加，是历史记录，可能提到已删除的命令，见批次 6 报告 G-07）
 
 ## 当前阶段
 
 - Phase 0/1/2: 已完成可行性验证、核心 CLI、恢复能力和 MCP server 原型
 - 已实现: 环境探测、WPS ProgID 注册检测、结构化响应、任务清单、文档注册、备份/恢复、Writer/Spreadsheet/Presentation 修改命令、MCP adapter/server、回归套件和本地复现脚本
 - MCP: legacy `2025-11-25` initialize 生命周期、分页工具发现、ping、参数/schema 校验和配置客户端持久 stdio 审计；审计会校验工具描述/schema，并限制子进程输出，当前工具面 70 项
-- 最近验证: 默认测试套件共 566 项，Linux 无 WPS 环境全部通过（设置 WPS_TEST_PWSH 时 65 项跳过，否则 72 项跳过）；P3-306 adapter 会在参数比较前校验 schema 约束元数据
+- 最近验证: 默认测试套件共 573 项，Linux 无 WPS 环境全部通过（设置 WPS_TEST_PWSH 时 65 项跳过，否则 72 项跳过）；P3-306 adapter 会在参数比较前校验 schema 约束元数据
 - 当前实测: WPS Writer、Spreadsheets、Presentation 均已通过 PowerShell COM fallback 完成打开、保存副本和关闭；表格公式计算验证和 DOCX 到 PDF 转换验证已通过
 - Phase 1: 已完成 release candidate 审计，详见 `docs/PHASE1_RELEASE_CANDIDATE_REPORT.md`
 - 当前 Phase 3: 本地工作区持续开发，不依赖远程 Git 工作流；当前下一任务为校验 MCP enum 唯一性语义，可用 `tasks --phase phase3 --status next` 查看

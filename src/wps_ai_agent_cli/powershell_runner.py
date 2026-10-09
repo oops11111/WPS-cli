@@ -4,10 +4,61 @@ import json
 import subprocess
 import tempfile
 from pathlib import Path
-from typing import Any
+from typing import Any, Sequence
 
 from .capabilities import powershell_executable
 from .errors import COM_OPERATION_FAILED, COM_OPERATION_TIMEOUT
+
+
+def run_powershell_command(
+    script: str,
+    timeout_seconds: int = 10,
+    *,
+    non_interactive: bool = True,
+) -> subprocess.CompletedProcess[str]:
+    """Run an inline PowerShell ``-Command`` script and return the completed process."""
+    command = [powershell_executable(), "-NoProfile"]
+    if non_interactive:
+        command.append("-NonInteractive")
+    command.extend(["-Command", script])
+    return subprocess.run(
+        command,
+        check=False,
+        capture_output=True,
+        encoding="utf-8",
+        errors="replace",
+        text=True,
+        timeout=timeout_seconds,
+    )
+
+
+def run_powershell_file(
+    script_path: str | Path,
+    args: Sequence[str] | None = None,
+    timeout_seconds: int = 120,
+    *,
+    cwd: str | Path | None = None,
+) -> subprocess.CompletedProcess[str]:
+    """Run an existing ``.ps1`` file with optional arguments."""
+    command = [
+        powershell_executable(),
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        str(script_path),
+        *(args or ()),
+    ]
+    return subprocess.run(
+        command,
+        cwd=str(cwd) if cwd is not None else None,
+        check=False,
+        capture_output=True,
+        encoding="utf-8",
+        errors="replace",
+        text=True,
+        timeout=timeout_seconds,
+    )
 
 
 def run_powershell_script(

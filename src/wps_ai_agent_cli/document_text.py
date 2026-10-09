@@ -700,3 +700,47 @@ def docx_table_cell_text(path: str | Path, table_index: int, row: int, column: i
     if column < 1 or column > len(selected_row):
         return None
     return selected_row[column - 1]
+
+
+_RICH_CELL_LOCAL_NAMES = ("drawing", "pict", "object", "hyperlink", "fldChar", "tbl", "sdt")
+
+
+def _table_cell_element(
+    path: str | Path, table_index: int, row: int, column: int,
+) -> ET.Element | None:
+    with ZipFile(path) as archive:
+        payload = read_zip_part(archive, "word/document.xml")
+    root = ET.fromstring(payload)
+    tables = root.findall(f".//{W}body/{W}tbl")
+    if table_index < 1 or table_index > len(tables):
+        return None
+    rows = tables[table_index - 1].findall(f"{W}tr")
+    if row < 1 or row > len(rows):
+        return None
+    cells = rows[row - 1].findall(f"{W}tc")
+    if column < 1 or column > len(cells):
+        return None
+    return cells[column - 1]
+
+
+def docx_table_cell_rich_content(
+    path: str | Path, table_index: int, row: int, column: int,
+) -> list[str] | None:
+    """Return rich-content kinds in a body table cell, or None if the cell is missing.
+
+    An empty list means the cell is plain text (runs and paragraphs only). Nested
+    tables, drawings, fields, hyperlinks, ActiveX/objects, and content controls
+    are listed by local name so callers can refuse a destructive text write.
+    """
+    cell = _table_cell_element(path, table_index, row, column)
+    if cell is None:
+        return None
+    found: list[str] = []
+    for element in cell.iter():
+        local = element.tag.rsplit("}", 1)[-1] if isinstance(element.tag, str) else ""
+        if local in _RICH_CELL_LOCAL_NAMES and local not in found:
+            # The cell element itself is w:tc, not w:tbl; nested tables appear as descendants.
+            if local == "tbl" and element is cell:
+                continue
+            found.append(local)
+    return found

@@ -2,13 +2,14 @@ from __future__ import annotations
 
 import hashlib
 import json
-import subprocess
 from pathlib import Path
 from typing import Any
 from zipfile import BadZipFile
 import xml.etree.ElementTree as ET
 
-from .capabilities import powershell_executable
+import subprocess
+
+from .powershell_runner import run_powershell_file
 from .document_text import docx_body_paragraphs
 from .writer_structure import read_body_bookmark_text, read_supported_bookmark_text, read_writer_structure
 
@@ -122,10 +123,8 @@ def run_writer_structure_parity(
             {"code": "WRITER_PARITY_OFFLINE_FAILED", "message": "Supported bookmark text could not be read."}
         ]
     try:
-        completed = subprocess.run(
-            [powershell_executable(), "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(script), "-Path", str(fixture)],
-            cwd=root, capture_output=True, text=True, encoding="utf-8", errors="replace",
-            check=False, timeout=timeout_seconds,
+        completed = run_powershell_file(
+            script, args=["-Path", str(fixture)], timeout_seconds=timeout_seconds, cwd=root,
         )
     except (subprocess.TimeoutExpired, OSError) as exc:
         return False, {"wps_launched": True, "fixture": str(fixture), "source_sha256": source_hash,
@@ -209,10 +208,8 @@ def run_writer_nested_parity(
             {"code": "WRITER_PARITY_OFFLINE_FAILED", "message": str(exc)}
         ]
     try:
-        completed = subprocess.run(
-            [powershell_executable(), "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(script), "-Path", str(fixture)],
-            cwd=root, capture_output=True, text=True, encoding="utf-8", errors="replace",
-            check=False, timeout=timeout_seconds,
+        completed = run_powershell_file(
+            script, args=["-Path", str(fixture)], timeout_seconds=timeout_seconds, cwd=root,
         )
     except (subprocess.TimeoutExpired, OSError) as exc:
         return False, {"wps_launched": True, "fixture": str(fixture), "source_sha256": source_hash,

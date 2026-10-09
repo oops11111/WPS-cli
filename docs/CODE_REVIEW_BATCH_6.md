@@ -8,10 +8,10 @@
 | --- | --- | --- |
 | F-12、F-13 | 已在此前完成 | `--strict-exit` 与 resolver 注入，见 `CODE_REVIEW_BATCH_1_2.md` 修复状态 |
 | G-06 | 已完成 | 见下 |
-| G-05 | 部分完成 | 补全 `README.md`，未归档流水文档 |
+| G-05 | 已完成 | 补全 `README.md`；`docs/P3_*.md` 已移至 `docs/archive/` |
 | G-04 | 已完成 | 清理 631 个产物与根目录一个游离文件，`artifacts/` 从 653 个文件 13 MB 降到 22 个文件 404 KB，见 `ARTIFACT_INVENTORY.md` |
-| G-02 | 两步完成，未拆模块 | 命令分发改为 `COMMAND_HANDLERS` 注册表，`build_parser` 按域拆成 9 个函数并移到 `cli_parser.py`，处理函数仍在 `cli.py`，见下 |
-| G-03 | 部分完成，未在真实 WPS 验证 | 12 处内联 PowerShell 样板改用共享运行器，超长业务函数未拆 |
+| G-02 | 已完成 | 注册表 + `cli_parser.py`；`_handle_*` 已移到 `cli_handlers.py`（经 `build_command_handlers(cli)` 绑定，保留对 `cli` 命名空间的打桩） |
+| G-03 | 已完成（待真实 WPS 验证） | 操作路径 12 处 + inspect/parity/process-audit/capabilities 均走共享运行器；`convert_html_editable` / `export_controlled_html` 抽出路径校验辅助函数 |
 | G-07 | 已完成 | 删除 15 个自我汇报命令与对应模块，MCP 工具 85 个降到 70 个，见下 |
 
 ## G-06：依赖声明
@@ -94,3 +94,15 @@
 ## 验证
 
 `PYTHONPATH=src python3 -m unittest discover -s tests`：505 个用例通过（用例数从 542 降到 505，减少的是被删除模块的测试）；设置 `WPS_TEST_PWSH` 后同样通过。`mcp-catalog-drift` 与 `security-audit` 通过。`documentation-freshness` 已删除，不再运行。
+
+## 后续补完（原审查未改项）
+
+| 编号 | 状态 | 说明 |
+| --- | --- | --- |
+| H-03 | 有意保留 | `table_count_preserved: false` 仍成功返回（与现有 WPS 归一化契约一致） |
+| H-04 | 已完成 | `docx_table_cell_rich_content` 预检；默认拒绝，`--allow-rich-content` / `allow_rich_content` 可覆盖 |
+| H-05 | 已完成 | `find_text` 超过 255 字符返回 `FIND_TEXT_TOO_LONG` |
+| H-06 | 已完成 | 工作表限定与整列/整行范围给出明确 `INVALID_RANGE` 说明 |
+| 渲染超时残留进程 | 已完成 | `html_render` 用进程组/`taskkill /T` 清理 Node+Edge |
+| JS 下 WebSocket | 已完成 | Playwright 关闭/中止 WebSocket；结果带 `websocket_blocked: true` |
+

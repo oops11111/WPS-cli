@@ -30,26 +30,14 @@ def _load_pythoncom() -> Any | None:
 
 
 def _resolve_with_powershell(prog_id: str) -> bool:
+    from .powershell_runner import run_powershell_command
+
     command = (
         "$t = [type]::GetTypeFromProgID("
         + repr(prog_id)
         + "); if ($null -ne $t) { 'true' } else { 'false' }"
     )
-    completed = subprocess.run(
-        [
-            powershell_executable(),
-            "-NoProfile",
-            "-NonInteractive",
-            "-Command",
-            command,
-        ],
-        check=False,
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-        text=True,
-        timeout=10,
-    )
+    completed = run_powershell_command(command, timeout_seconds=10)
     return completed.returncode == 0 and completed.stdout.strip().lower() == "true"
 
 

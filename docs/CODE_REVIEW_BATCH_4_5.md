@@ -107,3 +107,5 @@
 - 真实 Windows 与 WPS：H-10 到 H-18 的修复都在 Linux 上验证。`os.link` 在 NTFS 上可用，但没有实测。
 - Playwright 和 Edge 的真实渲染没有运行（没有 Node 与 Edge）。`html_render` 的测试用打桩的子进程。
 - 批次 6 与 G-02、G-03、G-04、G-05、G-06、G-07 仍未处理。
+
+> 更新：原「未改动」项中除 H-03（有意保留）外，已在后续提交中处理，见 `CODE_REVIEW_BATCH_6.md` 的「后续补完」一节。

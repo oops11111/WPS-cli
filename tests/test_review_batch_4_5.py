@@ -1,9 +1,10 @@
 import io
 import json
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 from wps_ai_agent_cli import mcp_server
 from wps_ai_agent_cli.html_text import decode_html_bytes
@@ -220,14 +221,13 @@ class RenderPublishTests(unittest.TestCase):
             source.write_text("<html></html>", encoding="utf-8")
             destination = root / "page.pdf"
 
-            def fake_run(command, input, **_kwargs):
-                request = json.loads(input)
+            def fake_run(_node, request, _timeout_seconds):
                 Path(request["output_path"]).write_bytes(b"%PDF-1.7 fake")
                 destination.write_bytes(b"someone else's file")
                 return type("Completed", (), {"stdout": json.dumps({"ok": True}), "stderr": "", "returncode": 0})()
 
             with patch.object(html_render, "_resolve_browser_runtime", return_value=("node", "edge")), patch.object(
-                html_render.subprocess, "run", side_effect=fake_run
+                html_render, "_run_renderer", side_effect=fake_run
             ):
                 ok, _data, errors = html_render.render_html(source, destination, "pdf")
             self.assertFalse(ok)
@@ -244,18 +244,44 @@ class RenderPublishTests(unittest.TestCase):
             source.write_text("<html></html>", encoding="utf-8")
             destination = root / "page.pdf"
 
-            def fake_run(command, input, **_kwargs):
-                Path(json.loads(input)["output_path"]).write_bytes(b"%PDF-1.7 fake")
+            def fake_run(_node, request, _timeout_seconds):
+                Path(request["output_path"]).write_bytes(b"%PDF-1.7 fake")
                 return type("Completed", (), {"stdout": json.dumps({"ok": True}), "stderr": "", "returncode": 0})()
 
             with patch.object(html_render, "_resolve_browser_runtime", return_value=("node", "edge")), patch.object(
-                html_render.subprocess, "run", side_effect=fake_run
+                html_render, "_run_renderer", side_effect=fake_run
             ):
                 ok, data, errors = html_render.render_html(source, destination, "pdf")
             self.assertTrue(ok, errors)
             self.assertEqual(destination.read_bytes(), b"%PDF-1.7 fake")
             self.assertEqual(data["bytes"], 13)
+            self.assertEqual(data["websocket_blocked"], True)
             self.assertEqual(sorted(item.name for item in root.iterdir()), ["page.html", "page.pdf"])
+
+    def test_render_timeout_kills_the_process_tree(self):
+        from wps_ai_agent_cli import html_render
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = root / "page.html"
+            source.write_text("<html></html>", encoding="utf-8")
+            destination = root / "page.pdf"
+            process = MagicMock()
+            process.pid = 4242
+            process.poll.return_value = None
+            process.args = ["node", "render"]
+            process.communicate.side_effect = [
+                subprocess.TimeoutExpired(["node"], 1),
+                ("", ""),
+            ]
+
+            with patch.object(html_render, "_resolve_browser_runtime", return_value=("node", "edge")), patch.object(
+                html_render.subprocess, "Popen", return_value=process
+            ), patch.object(html_render, "_kill_process_tree") as kill_tree:
+                ok, _data, errors = html_render.render_html(source, destination, "pdf", timeout_seconds=1)
+            self.assertFalse(ok)
+            self.assertEqual(errors[0]["code"], "RENDER_TIMEOUT")
+            kill_tree.assert_called_once_with(process)
 
 
 class ConfigAuditExecutionTests(unittest.TestCase):
