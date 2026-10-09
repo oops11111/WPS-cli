@@ -3,7 +3,6 @@ from __future__ import annotations
 import argparse
 
 from .mcp_catalog_drift import DEFAULT_MCP_CATALOG_GUARD
-from .sync_package_inspect import DEFAULT_SYNC_PACKAGE
 
 
 def _add_environment_and_status_commands(subparsers: argparse._SubParsersAction) -> None:
@@ -31,76 +30,7 @@ def _add_environment_and_status_commands(subparsers: argparse._SubParsersAction)
         default=".",
         help="Workspace root to inspect. Defaults to the current directory.",
     )
-    artifact_retention_parser = subparsers.add_parser(
-        "artifact-retention-summary",
-        help="Summarize retained local artifacts and approval-required cleanup candidates without deleting anything.",
-    )
-    artifact_retention_parser.add_argument(
-        "--workspace",
-        default=".",
-        help="Workspace root to inspect. Defaults to the current directory.",
-    )
     subparsers.add_parser("plan", help="Return the staged development roadmap.")
-    project_status_parser = subparsers.add_parser(
-        "project-status",
-        help="Summarize local project state, next task, artifacts, and cleanup posture.",
-    )
-    project_status_parser.add_argument(
-        "--workspace",
-        default=".",
-        help="Workspace root to inspect. Defaults to the current directory.",
-    )
-    workspace_health_parser = subparsers.add_parser(
-        "workspace-health",
-        help="Summarize local workspace health across project status, cleanup posture, regression evidence, and sync package state.",
-    )
-    workspace_health_parser.add_argument(
-        "--workspace",
-        default=".",
-        help="Workspace root to inspect. Defaults to the current directory.",
-    )
-    local_handoff_parser = subparsers.add_parser(
-        "local-handoff-summary",
-        help="Summarize local handoff readiness across status, health, regression, drift, and package evidence.",
-    )
-    local_handoff_parser.add_argument(
-        "--workspace",
-        default=".",
-        help="Workspace root to inspect. Defaults to the current directory.",
-    )
-    validation_runbook_parser = subparsers.add_parser(
-        "validation-runbook",
-        help="Return a read-only local validation runbook without executing the steps.",
-    )
-    validation_runbook_parser.add_argument(
-        "--workspace",
-        default=".",
-        help="Workspace root to inspect. Defaults to the current directory.",
-    )
-    documentation_freshness_parser = subparsers.add_parser(
-        "documentation-freshness",
-        help="Check current documentation and config references for stale tool counts or next tasks.",
-    )
-    documentation_freshness_parser.add_argument(
-        "--workspace",
-        default=".",
-        help="Workspace root to inspect. Defaults to the current directory.",
-    )
-    regression_history_parser = subparsers.add_parser(
-        "regression-history",
-        help="Summarize recent safe and WPS regression artifacts without running regression.",
-    )
-    regression_history_parser.add_argument(
-        "--workspace",
-        default=".",
-        help="Workspace root to inspect. Defaults to the current directory.",
-    )
-    regression_history_parser.add_argument(
-        "--limit",
-        type=int,
-        default=5,
-        help="Maximum artifacts per profile to include. Defaults to 5.",
-    )
 
     tasks_parser = subparsers.add_parser("tasks", help="Return staged development tasks.")
     tasks_parser.add_argument("--phase", help="Filter by phase id, for example phase0.")
@@ -549,132 +479,7 @@ def _add_regression_and_release_commands(subparsers: argparse._SubParsersAction)
         "--artifact-dir",
         help="Optional directory where a timestamped regression-run JSON artifact will be written.",
     )
-    subparsers.add_parser(
-        "local-release-gates",
-        help="Run the local package, safe regression, package refresh, and release gates in order.",
-    )
-    regression_evidence_parser = subparsers.add_parser(
-        "regression-evidence",
-        help="Summarize latest safe and WPS regression evidence artifacts without running WPS.",
-    )
-    regression_evidence_parser.add_argument(
-        "--workspace",
-        default=".",
-        help="Workspace root to inspect. Defaults to the current directory.",
-    )
 
-    cloud_sync_parser = subparsers.add_parser(
-        "cloud-sync-package",
-        help="Create a portable local project package for handoff or optional synchronization.",
-    )
-    cloud_sync_parser.add_argument(
-        "--output",
-        default="artifacts/cloud-sync/wps-ai-agent-cli-phase3-sync.zip",
-        help="Output zip path.",
-    )
-    cloud_sync_parser.add_argument(
-        "--no-latest-artifacts",
-        action="store_true",
-        help="Do not include the latest safe/WPS regression artifacts.",
-    )
-    sync_package_inspect_parser = subparsers.add_parser(
-        "sync-package-inspect",
-        help="Inspect an existing cloud sync package without creating or modifying it.",
-    )
-    sync_package_inspect_parser.add_argument(
-        "--workspace",
-        default=".",
-        help="Workspace root to inspect. Defaults to the current directory.",
-    )
-    sync_package_inspect_parser.add_argument(
-        "--package",
-        default=DEFAULT_SYNC_PACKAGE,
-        help="Package zip path to inspect.",
-    )
-    sync_package_summary_parser = subparsers.add_parser(
-        "sync-package-summary",
-        help="Summarize an existing cloud sync package by top-level directory without modifying it.",
-    )
-    sync_package_summary_parser.add_argument(
-        "--workspace",
-        default=".",
-        help="Workspace root to inspect. Defaults to the current directory.",
-    )
-    sync_package_summary_parser.add_argument(
-        "--package",
-        default=DEFAULT_SYNC_PACKAGE,
-        help="Package zip path to summarize.",
-    )
-    sync_package_summary_parser.add_argument(
-        "--limit",
-        type=int,
-        default=10,
-        help="Maximum sample, artifact, and largest-entry rows to include.",
-    )
-    sync_package_manifest_parser = subparsers.add_parser(
-        "sync-package-manifest",
-        help="List entries from an existing cloud sync package without modifying it.",
-    )
-    sync_package_manifest_parser.add_argument(
-        "--workspace",
-        default=".",
-        help="Workspace root to inspect. Defaults to the current directory.",
-    )
-    sync_package_manifest_parser.add_argument(
-        "--package",
-        default=DEFAULT_SYNC_PACKAGE,
-        help="Package zip path to list.",
-    )
-    sync_package_manifest_parser.add_argument(
-        "--prefix",
-        help="Optional zip path prefix to filter, for example docs or src/wps_ai_agent_cli.",
-    )
-    sync_package_manifest_parser.add_argument(
-        "--limit",
-        type=int,
-        default=50,
-        help="Maximum manifest entries to return.",
-    )
-    sync_package_coverage_parser = subparsers.add_parser(
-        "sync-package-coverage",
-        help="Compare package entries with workspace sync roots without modifying files.",
-    )
-    sync_package_coverage_parser.add_argument(
-        "--workspace",
-        default=".",
-        help="Workspace root to compare. Defaults to the current directory.",
-    )
-    sync_package_coverage_parser.add_argument(
-        "--package",
-        default=DEFAULT_SYNC_PACKAGE,
-        help="Package zip path to compare.",
-    )
-    sync_package_coverage_parser.add_argument(
-        "--limit",
-        type=int,
-        default=20,
-        help="Maximum missing, extra, and newer-than-package rows to include.",
-    )
-    sync_package_readiness_parser = subparsers.add_parser(
-        "sync-package-readiness",
-        help="Summarize whether an existing cloud sync package is ready for local handoff.",
-    )
-    sync_package_readiness_parser.add_argument(
-        "--workspace",
-        default=".",
-        help="Workspace root to inspect. Defaults to the current directory.",
-    )
-    sync_package_readiness_parser.add_argument(
-        "--package",
-        default=DEFAULT_SYNC_PACKAGE,
-        help="Package zip path to inspect.",
-    )
-    sync_package_readiness_parser.add_argument(
-        "--limit",
-        type=int,
-        default=10,
-        help="Maximum sample and coverage rows to include.",
-    )
 
     subparsers.add_parser(
         "security-audit",

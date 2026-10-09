@@ -1,5 +1,7 @@
 # Phase 3 Release Readiness Refresh
 
+> 历史记录：本文提到的 `project-status`、`workspace-health`、`local-handoff-summary`、`validation-runbook`、`documentation-freshness`、`regression-history`、`regression-evidence`、`cloud-sync-package`、`sync-package-*`、`local-release-gates`、`artifact-retention-summary` 命令已在批次 6（G-07）中删除，见 `docs/CODE_REVIEW_BATCH_6.md`。
+
 ## Current Status
 
 This file records the earlier P3-094 checkpoint. P3-114 is now implemented locally; final regression and package evidence is regenerated during this task.

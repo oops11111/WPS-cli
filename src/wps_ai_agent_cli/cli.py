@@ -9,19 +9,15 @@ from uuid import uuid4
 
 from .artifacts import write_json_artifact
 from .cli_parser import build_parser
-from .artifact_retention import build_artifact_retention_summary
 from .backups import create_backup, list_backups, restore_backup
 from .batch_report import build_batch_report
 from .batch_conversion import convert_html_batch, inspect_batch_request
 from .capabilities import probe_wps_capabilities
 from .cleanup_approval import build_cleanup_approval_manifest
 from .cleanup_plan import build_cleanup_plan
-from .cloud_sync import build_cloud_sync_package
 from .com_backend import run_com_smoke, run_conversion_smoke, run_spreadsheet_calc_smoke
-from .documentation_freshness import build_documentation_freshness_report
 from .file_scan import scan_directory
 from .jsonio import dumps_json
-from .local_handoff import build_local_handoff_summary
 from .html_render import render_html
 from .html_editable import convert_html_editable
 from .html_roundtrip import build_html_roundtrip_mapping, export_controlled_html, import_controlled_html, verify_controlled_document
@@ -37,11 +33,8 @@ from .operations import get_operation, inspect_mutation_request, list_operations
 from .phases import list_phases
 from .performance import capture_performance_baseline
 from .process_audit import audit_wps_processes
-from .project_status import build_project_status
 from .presentation_ops import presentation_replace
 from .regression import load_regression_manifest, list_regression_scenarios, run_regression_manifest
-from .regression_evidence import build_regression_evidence
-from .regression_history import build_regression_history
 from .security_audit import build_security_boundary_audit
 from .sessions import list_documents, register_document
 from .ooxml import OoxmlTooLargeError
@@ -49,11 +42,6 @@ from .state_store import StateCorruptError
 from .snapshots import snapshot_document
 from .spreadsheet_ops import copy_spreadsheet_sheet, create_spreadsheet_sheet, delete_spreadsheet_sheet, list_spreadsheet_sheets, read_spreadsheet_range, rename_spreadsheet_sheet, set_spreadsheet_sheet_tab_color, set_spreadsheet_sheet_visibility, write_spreadsheet_formulas, write_spreadsheet_range
 from .spreadsheet_inspect import inspect_spreadsheet_range
-from .sync_package_coverage import build_sync_package_coverage
-from .sync_package_inspect import DEFAULT_SYNC_PACKAGE, inspect_sync_package
-from .sync_package_manifest import build_sync_package_manifest
-from .sync_package_readiness import build_sync_package_readiness
-from .sync_package_summary import summarize_sync_package
 from .task_status import (
     build_recovery_playbook,
     create_task_status,
@@ -65,8 +53,6 @@ from .task_status import (
 from .template_report import render_batch_template_report
 from .tasks import list_tasks
 from .validators import validate_document
-from .validation_runbook import build_validation_runbook
-from .workspace_health import build_workspace_health
 from .open_documents import (
     export_open_document_html,
     list_open_documents,
@@ -229,20 +215,6 @@ def cleanup_approval_manifest_response(request_id: str, workspace: str) -> Comma
     )
 
 
-def artifact_retention_summary_response(request_id: str, workspace: str) -> CommandResponse:
-    summary = build_artifact_retention_summary(workspace=workspace)
-    ok = summary["retention_status"] == "passed"
-    return CommandResponse(
-        ok=ok,
-        command="artifact-retention-summary",
-        request_id=request_id,
-        backend=BACKEND,
-        summary="Artifact retention summary is passed." if ok else "Artifact retention summary needs review.",
-        data={"artifact_retention_summary": summary},
-        validation=ValidationResult(status=summary["retention_status"], checks=summary["checks"]),
-    )
-
-
 def plan_response(request_id: str) -> CommandResponse:
     return CommandResponse(
         ok=True,
@@ -252,111 +224,6 @@ def plan_response(request_id: str) -> CommandResponse:
         summary="Development roadmap loaded from PRD v1.1 phase goals.",
         data={"phases": list_phases()},
         validation=ValidationResult(status="not_applicable"),
-    )
-
-
-def project_status_response(request_id: str, workspace: str) -> CommandResponse:
-    status = build_project_status(workspace=workspace)
-    next_count = len(status["next_tasks"])
-    return CommandResponse(
-        ok=True,
-        command="project-status",
-        request_id=request_id,
-        backend=BACKEND,
-        summary=f"Local project status returned with {next_count} next task(s).",
-        data={"project_status": status},
-        validation=ValidationResult(
-            status="passed",
-            checks=[
-                {
-                    "name": "next_task_available",
-                    "passed": next_count >= 1,
-                    "details": [task["id"] for task in status["next_tasks"]],
-                },
-                {
-                    "name": "cleanup_is_read_only",
-                    "passed": status["cleanup"]["read_only"] and not status["cleanup"]["deletion_performed"],
-                    "details": status["cleanup"],
-                },
-                {
-                    "name": "remote_git_not_required",
-                    "passed": status["remote_git_required"] is False,
-                    "details": "Local-only continuation mode.",
-                },
-            ],
-        ),
-    )
-
-
-def workspace_health_response(request_id: str, workspace: str) -> CommandResponse:
-    health = build_workspace_health(workspace=workspace)
-    return CommandResponse(
-        ok=health["health_status"] == "passed",
-        command="workspace-health",
-        request_id=request_id,
-        backend=BACKEND,
-        summary=f"Local workspace health is {health['health_status']}.",
-        data={"workspace_health": health},
-        validation=ValidationResult(
-            status=health["health_status"],
-            checks=health["checks"],
-        ),
-    )
-
-
-def local_handoff_summary_response(request_id: str, workspace: str) -> CommandResponse:
-    ok, handoff, errors = build_local_handoff_summary(workspace)
-    return CommandResponse(
-        ok=ok,
-        command="local-handoff-summary",
-        request_id=request_id,
-        backend=BACKEND,
-        summary="Local handoff summary is passed." if ok else "Local handoff summary needs review.",
-        data={"local_handoff_summary": handoff},
-        validation=ValidationResult(status="passed" if ok else "warning", checks=handoff.get("checks", [])),
-        errors=errors,
-    )
-
-
-def validation_runbook_response(request_id: str, workspace: str) -> CommandResponse:
-    runbook = build_validation_runbook(workspace=workspace)
-    ok = runbook["runbook_status"] == "passed"
-    return CommandResponse(
-        ok=ok,
-        command="validation-runbook",
-        request_id=request_id,
-        backend=BACKEND,
-        summary="Validation runbook is passed." if ok else "Validation runbook needs review.",
-        data={"validation_runbook": runbook},
-        validation=ValidationResult(status=runbook["runbook_status"], checks=runbook["checks"]),
-    )
-
-
-def documentation_freshness_response(request_id: str, workspace: str) -> CommandResponse:
-    report = build_documentation_freshness_report(workspace=workspace)
-    ok = report["freshness_status"] == "passed"
-    return CommandResponse(
-        ok=ok,
-        command="documentation-freshness",
-        request_id=request_id,
-        backend=BACKEND,
-        summary="Documentation freshness is passed." if ok else "Documentation freshness needs review.",
-        data={"documentation_freshness": report},
-        validation=ValidationResult(status=report["freshness_status"], checks=report["checks"]),
-    )
-
-
-def regression_history_response(request_id: str, workspace: str, limit: int) -> CommandResponse:
-    history = build_regression_history(workspace=workspace, limit=limit)
-    ok = history["history_status"] == "passed"
-    return CommandResponse(
-        ok=ok,
-        command="regression-history",
-        request_id=request_id,
-        backend=BACKEND,
-        summary="Regression history is passed." if ok else "Regression history needs review.",
-        data={"regression_history": history},
-        validation=ValidationResult(status=history["history_status"], checks=history["checks"]),
     )
 
 
@@ -1772,260 +1639,6 @@ def regression_run_response(
     return response
 
 
-def regression_evidence_response(request_id: str, workspace: str = ".") -> CommandResponse:
-    ok, evidence, errors = build_regression_evidence(workspace)
-    return CommandResponse(
-        ok=ok,
-        command="regression-evidence",
-        request_id=request_id,
-        backend=BACKEND,
-        summary="Regression evidence is passed." if ok else "Regression evidence needs review.",
-        data={"regression_evidence": evidence},
-        validation=ValidationResult(
-            status="passed" if ok else "failed",
-            checks=[
-                {
-                    "name": "safe_regression_artifact_available",
-                    "passed": evidence.get("profiles", {}).get("safe", {}).get("available", False),
-                    "details": evidence.get("profiles", {}).get("safe", {}).get("artifact"),
-                },
-                {
-                    "name": "wps_regression_artifact_available",
-                    "passed": evidence.get("profiles", {}).get("wps", {}).get("available", False),
-                    "details": evidence.get("profiles", {}).get("wps", {}).get("artifact"),
-                },
-                {
-                    "name": "regression_profiles_passed",
-                    "passed": ok,
-                    "details": {
-                        "missing_profiles": evidence.get("missing_profiles", []),
-                        "failed_profiles": evidence.get("failed_profiles", []),
-                    },
-                },
-            ],
-        ),
-        errors=errors,
-    )
-
-
-def local_release_gates_response(request_id: str) -> CommandResponse:
-    steps: list[dict] = []
-    manifest_ok, manifest, manifest_errors = load_regression_manifest()
-    safe = list_regression_scenarios(manifest, profile="safe", include_wps=True) if manifest_ok else []
-    release = list_regression_scenarios(manifest, profile="release", include_wps=True) if manifest_ok else []
-    expected_release = {"local-handoff-summary", "regression-evidence", "regression-history"}
-    profiles_valid = (
-        manifest_ok and bool(safe) and {item.get("id") for item in release} == expected_release
-        and not any(item.get("requires_wps") for item in safe + release)
-        and not ({item.get("id") for item in safe} & expected_release)
-    )
-    if not profiles_valid:
-        return CommandResponse(
-            ok=False, command="local-release-gates", request_id=request_id, backend=BACKEND,
-            summary="Local release profile preflight failed; no gates were run.",
-            data={"local_release_gates": {"steps": [], "completed_count": 0, "total_count": 5}},
-            validation=ValidationResult(status="failed"),
-            errors=manifest_errors or [{"code": "LOCAL_RELEASE_PROFILE_INVALID", "message": "Expected non-WPS safe baseline and three release gates."}],
-        )
-    sequence = (
-        ("initial_package", lambda: cloud_sync_package_response(f"{request_id}-package-initial", DEFAULT_SYNC_PACKAGE, True)),
-        ("safe_baseline", lambda: regression_run_response(f"{request_id}-safe", "config/regression_manifest.json", "safe", False, "artifacts/regression/safe")),
-        ("refreshed_package", lambda: cloud_sync_package_response(f"{request_id}-package-refreshed", DEFAULT_SYNC_PACKAGE, True)),
-        ("package_readiness", lambda: sync_package_readiness_response(f"{request_id}-readiness", ".", DEFAULT_SYNC_PACKAGE, 10)),
-        ("release_gates", lambda: regression_run_response(f"{request_id}-release", "config/regression_manifest.json", "release", False, "artifacts/regression/release")),
-    )
-    errors: list[dict] = []
-    for name, action in sequence:
-        try:
-            response = action()
-        except Exception as exc:
-            errors = [{"code": "LOCAL_RELEASE_GATE_EXCEPTION", "message": f"{name}: {exc}"}]
-            steps.append({"name": name, "ok": False, "errors": errors})
-            break
-        steps.append({
-            "name": name,
-            "ok": response.ok,
-            "validation_status": response.validation.status,
-            "artifact": response.data.get("artifact"),
-            "package": response.data.get("cloud_sync_package", {}).get("output_path"),
-            "errors": response.errors,
-        })
-        if not response.ok or response.validation.status != "passed":
-            errors = response.errors or [{"code": "LOCAL_RELEASE_GATE_FAILED", "message": f"{name} did not pass."}]
-            break
-    ok = len(steps) == len(sequence) and not errors
-    return CommandResponse(
-        ok=ok,
-        command="local-release-gates",
-        request_id=request_id,
-        backend=BACKEND,
-        summary="Local release gates passed." if ok else "Local release gates stopped at a failed step.",
-        data={"local_release_gates": {"steps": steps, "completed_count": len(steps), "total_count": len(sequence), "wps_launched": False, "remote_git_used": False}},
-        validation=ValidationResult(status="passed" if ok else "failed", checks=[{"name": "all_gates_passed", "passed": ok, "details": {"completed_count": len(steps), "total_count": len(sequence)}}]),
-        errors=errors,
-    )
-
-
-def cloud_sync_package_response(
-    request_id: str,
-    output_path: str,
-    include_latest_artifacts: bool,
-) -> CommandResponse:
-    ok, result, errors = build_cloud_sync_package(
-        output_path=output_path,
-        include_latest_artifacts=include_latest_artifacts,
-    )
-    return CommandResponse(
-        ok=ok,
-        command="cloud-sync-package",
-        request_id=request_id,
-        backend=BACKEND,
-        summary="Cloud sync package created." if ok else "Cloud sync package could not be created.",
-        data={"cloud_sync_package": result},
-        validation=ValidationResult(
-            status="passed" if ok else "failed",
-            checks=[
-                {
-                    "name": "package_created",
-                    "passed": bool(result.get("created")),
-                    "details": result.get("output_path"),
-                },
-                {
-                    "name": "package_has_entries",
-                    "passed": bool(result.get("entry_count")),
-                    "details": result.get("entry_count"),
-                },
-                {
-                    "name": "package_hash_available",
-                    "passed": bool(result.get("sha256")),
-                    "details": result.get("sha256"),
-                },
-                {
-                    "name": "all_files_added",
-                    "passed": not bool(result.get("failed")),
-                    "details": result.get("failed"),
-                },
-            ],
-        ),
-        errors=errors,
-    )
-
-
-def sync_package_inspect_response(
-    request_id: str,
-    workspace: str,
-    package_path: str,
-) -> CommandResponse:
-    ok, result, errors = inspect_sync_package(workspace=workspace, package_path=package_path)
-    return CommandResponse(
-        ok=ok,
-        command="sync-package-inspect",
-        request_id=request_id,
-        backend=BACKEND,
-        summary="Sync package inspection passed." if ok else "Sync package inspection needs review.",
-        data={"sync_package_inspect": result},
-        validation=ValidationResult(
-            status="passed" if ok else "warning",
-            checks=result.get("checks", []),
-        ),
-        errors=errors,
-    )
-
-
-def sync_package_summary_response(
-    request_id: str,
-    workspace: str,
-    package_path: str,
-    limit: int,
-) -> CommandResponse:
-    ok, result, errors = summarize_sync_package(workspace=workspace, package_path=package_path, limit=limit)
-    return CommandResponse(
-        ok=ok,
-        command="sync-package-summary",
-        request_id=request_id,
-        backend=BACKEND,
-        summary="Sync package summary passed." if ok else "Sync package summary needs review.",
-        data={"sync_package_summary": result},
-        validation=ValidationResult(
-            status="passed" if ok else "warning",
-            checks=result.get("checks", []),
-        ),
-        errors=errors,
-    )
-
-
-def sync_package_manifest_response(
-    request_id: str,
-    workspace: str,
-    package_path: str,
-    prefix: str | None,
-    limit: int,
-) -> CommandResponse:
-    ok, result, errors = build_sync_package_manifest(
-        workspace=workspace,
-        package_path=package_path,
-        prefix=prefix,
-        limit=limit,
-    )
-    return CommandResponse(
-        ok=ok,
-        command="sync-package-manifest",
-        request_id=request_id,
-        backend=BACKEND,
-        summary="Sync package manifest passed." if ok else "Sync package manifest needs review.",
-        data={"sync_package_manifest": result},
-        validation=ValidationResult(
-            status="passed" if ok else "warning",
-            checks=result.get("checks", []),
-        ),
-        errors=errors,
-    )
-
-
-def sync_package_coverage_response(
-    request_id: str,
-    workspace: str,
-    package_path: str,
-    limit: int,
-) -> CommandResponse:
-    ok, result, errors = build_sync_package_coverage(workspace=workspace, package_path=package_path, limit=limit)
-    return CommandResponse(
-        ok=ok,
-        command="sync-package-coverage",
-        request_id=request_id,
-        backend=BACKEND,
-        summary="Sync package coverage passed." if ok else "Sync package coverage needs review.",
-        data={"sync_package_coverage": result},
-        validation=ValidationResult(
-            status="passed" if ok else "warning",
-            checks=result.get("checks", []),
-        ),
-        errors=errors,
-    )
-
-
-def sync_package_readiness_response(
-    request_id: str,
-    workspace: str,
-    package_path: str,
-    limit: int,
-) -> CommandResponse:
-    ok, result, errors = build_sync_package_readiness(workspace=workspace, package_path=package_path, limit=limit)
-    return CommandResponse(
-        ok=ok,
-        command="sync-package-readiness",
-        request_id=request_id,
-        backend=BACKEND,
-        summary="Sync package readiness passed." if ok else "Sync package readiness needs review.",
-        data={"sync_package_readiness": result},
-        validation=ValidationResult(
-            status="passed" if ok else "warning",
-            checks=result.get("checks", []),
-        ),
-        errors=errors,
-    )
-
-
 def security_audit_response(request_id: str) -> CommandResponse:
     ok, result, errors = build_security_boundary_audit()
     return CommandResponse(
@@ -2626,65 +2239,8 @@ def _handle_cleanup_approval_manifest(args: argparse.Namespace, request_id: str,
     return response
 
 
-def _handle_artifact_retention_summary(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
-    response = artifact_retention_summary_response(
-        request_id,
-        workspace=args.workspace,
-    )
-    return response
-
-
 def _handle_plan(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
     response = plan_response(request_id)
-    return response
-
-
-def _handle_project_status(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
-    response = project_status_response(
-        request_id,
-        workspace=args.workspace,
-    )
-    return response
-
-
-def _handle_workspace_health(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
-    response = workspace_health_response(
-        request_id,
-        workspace=args.workspace,
-    )
-    return response
-
-
-def _handle_local_handoff_summary(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
-    response = local_handoff_summary_response(
-        request_id,
-        workspace=args.workspace,
-    )
-    return response
-
-
-def _handle_validation_runbook(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
-    response = validation_runbook_response(
-        request_id,
-        workspace=args.workspace,
-    )
-    return response
-
-
-def _handle_documentation_freshness(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
-    response = documentation_freshness_response(
-        request_id,
-        workspace=args.workspace,
-    )
-    return response
-
-
-def _handle_regression_history(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
-    response = regression_history_response(
-        request_id,
-        workspace=args.workspace,
-        limit=args.limit,
-    )
     return response
 
 
@@ -3150,78 +2706,6 @@ def _handle_regression_run(args: argparse.Namespace, request_id: str, output_str
     return response
 
 
-def _handle_local_release_gates(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
-    response = local_release_gates_response(request_id)
-    return response
-
-
-def _handle_regression_evidence(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
-    response = regression_evidence_response(
-        request_id,
-        workspace=args.workspace,
-    )
-    return response
-
-
-def _handle_cloud_sync_package(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
-    response = cloud_sync_package_response(
-        request_id,
-        output_path=args.output,
-        include_latest_artifacts=not args.no_latest_artifacts,
-    )
-    return response
-
-
-def _handle_sync_package_inspect(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
-    response = sync_package_inspect_response(
-        request_id,
-        workspace=args.workspace,
-        package_path=args.package,
-    )
-    return response
-
-
-def _handle_sync_package_summary(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
-    response = sync_package_summary_response(
-        request_id,
-        workspace=args.workspace,
-        package_path=args.package,
-        limit=args.limit,
-    )
-    return response
-
-
-def _handle_sync_package_manifest(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
-    response = sync_package_manifest_response(
-        request_id,
-        workspace=args.workspace,
-        package_path=args.package,
-        prefix=args.prefix,
-        limit=args.limit,
-    )
-    return response
-
-
-def _handle_sync_package_coverage(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
-    response = sync_package_coverage_response(
-        request_id,
-        workspace=args.workspace,
-        package_path=args.package,
-        limit=args.limit,
-    )
-    return response
-
-
-def _handle_sync_package_readiness(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
-    response = sync_package_readiness_response(
-        request_id,
-        workspace=args.workspace,
-        package_path=args.package,
-        limit=args.limit,
-    )
-    return response
-
-
 def _handle_security_audit(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
     response = security_audit_response(request_id)
     return response
@@ -3385,14 +2869,7 @@ COMMAND_HANDLERS: dict[str, Callable[[argparse.Namespace, str, TextIO | None], C
     "wps-process-audit": _handle_wps_process_audit,
     "cleanup-plan": _handle_cleanup_plan,
     "cleanup-approval-manifest": _handle_cleanup_approval_manifest,
-    "artifact-retention-summary": _handle_artifact_retention_summary,
     "plan": _handle_plan,
-    "project-status": _handle_project_status,
-    "workspace-health": _handle_workspace_health,
-    "local-handoff-summary": _handle_local_handoff_summary,
-    "validation-runbook": _handle_validation_runbook,
-    "documentation-freshness": _handle_documentation_freshness,
-    "regression-history": _handle_regression_history,
     "tasks": _handle_tasks,
     "com-smoke": _handle_com_smoke,
     "calc-smoke": _handle_calc_smoke,
@@ -3442,14 +2919,6 @@ COMMAND_HANDLERS: dict[str, Callable[[argparse.Namespace, str, TextIO | None], C
     "mcp-config-audit": _handle_mcp_config_audit,
     "regression-manifest": _handle_regression_manifest,
     "regression-run": _handle_regression_run,
-    "local-release-gates": _handle_local_release_gates,
-    "regression-evidence": _handle_regression_evidence,
-    "cloud-sync-package": _handle_cloud_sync_package,
-    "sync-package-inspect": _handle_sync_package_inspect,
-    "sync-package-summary": _handle_sync_package_summary,
-    "sync-package-manifest": _handle_sync_package_manifest,
-    "sync-package-coverage": _handle_sync_package_coverage,
-    "sync-package-readiness": _handle_sync_package_readiness,
     "security-audit": _handle_security_audit,
     "performance-baseline": _handle_performance_baseline,
     "scan-dir": _handle_scan_dir,
@@ -3467,7 +2936,6 @@ COMMAND_HANDLERS: dict[str, Callable[[argparse.Namespace, str, TextIO | None], C
     "spreadsheet-formula-write": _handle_spreadsheet_formula_write,
     "presentation-replace": _handle_presentation_replace,
 }
-
 
 
 def _run_command(argv: list[str], output_stream: TextIO | None = None, strict_exit: bool = False) -> int:

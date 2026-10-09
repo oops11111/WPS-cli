@@ -9,10 +9,10 @@
 | F-12、F-13 | 已在此前完成 | `--strict-exit` 与 resolver 注入，见 `CODE_REVIEW_BATCH_1_2.md` 修复状态 |
 | G-06 | 已完成 | 见下 |
 | G-05 | 部分完成 | 补全 `README.md`，未归档流水文档 |
-| G-04 | 只做盘点，未删除 | 见 `ARTIFACT_INVENTORY.md` |
+| G-04 | 已完成 | 清理 631 个产物与根目录一个游离文件，`artifacts/` 从 653 个文件 13 MB 降到 22 个文件 404 KB，见 `ARTIFACT_INVENTORY.md` |
 | G-02 | 两步完成，未拆模块 | 命令分发改为 `COMMAND_HANDLERS` 注册表，`build_parser` 按域拆成 9 个函数并移到 `cli_parser.py`，处理函数仍在 `cli.py`，见下 |
 | G-03 | 部分完成，未在真实 WPS 验证 | 12 处内联 PowerShell 样板改用共享运行器，超长业务函数未拆 |
-| G-07 | 未做 | 需要先决定哪些命令对用户有价值 |
+| G-07 | 已完成 | 删除 15 个自我汇报命令与对应模块，MCP 工具 85 个降到 70 个，见下 |
 
 ## G-06：依赖声明
 
@@ -34,12 +34,30 @@
 
 ## G-04：仓库产物
 
-盘点结果见 `docs/ARTIFACT_INVENTORY.md`。要点：
+清理已执行，结果与保留规则见 `docs/ARTIFACT_INVENTORY.md`。要点：删除 `p3-184-extracted` 解压副本、三个同步包 zip、被后续通过结果取代的回归运行、较早的一致性审计结果，以及根目录的 `smoke_writer_copy.docx`；保留真实 WPS 的回归证据、最新结果、失败运行（按 CI 交接文档的保留规定）和 `p3-181-final`。删除的文件都在 git 历史中。
 
-- `artifacts/recovery-drill/p3-184-extracted/` 是同步包的完整解压副本，302 个文件，只有一份文档提到它。
-- 回归结果按时间戳累积了 277 份（`safe` 与 `release`），命令只读最新一份。
-- `artifacts/regression/wps/` 是真实 WPS 的证据，不能重新生成，必须保留。
-- 没有删除任何文件。删除是不可逆的仓库历史变更，应由你确认候选清单后执行。
+## G-07：删除自我汇报模块
+
+范围按 `CODE_REVIEW_BATCH_3_6.md` 的 G-07 清单，并包含只为它们服务的下游：
+
+- 模块（15 个）：`project_status`、`workspace_health`、`local_handoff`、`validation_runbook`、`documentation_freshness`、`regression_history`、`regression_evidence`、`recovery_drill_evidence`、`sync_package_inspect`、`sync_package_summary`、`sync_package_manifest`、`sync_package_coverage`、`sync_package_readiness`、`cloud_sync`、`artifact_retention`。
+- 命令与 MCP 工具（15 个）：`project-status`、`workspace-health`、`local-handoff-summary`、`validation-runbook`、`documentation-freshness`、`regression-history`、`regression-evidence`、`cloud-sync-package`、`sync-package-inspect|summary|manifest|coverage|readiness`、`local-release-gates`、`artifact-retention-summary`。`local-release-gates` 是把同步包、回归和就绪检查串起来的编排命令，所有步骤都依赖被删除的模块，所以一并删除。
+- 配套修改：`cli.py` 的响应函数与处理函数、`cli_parser.py` 的子命令、`mcp_schema.py` 的工具、`regression.py` 的命令白名单、`config/regression_manifest.json`（删除 11 个场景，`release` 档现在为空）、`config/mcp_catalog_guard.json`（85 个工具降到 70 个，只读 63 降到 48，去掉 `sync` 分类，`project`、`maintenance`、`regression` 分类各自下调）、`scripts/local_repro_bundle.ps1`（去掉同步包步骤）、各文档中的工具数量，以及 15 个对应的测试文件。
+- 文档：`docs/CLOUD_SYNC_READINESS_HANDOFF.md` 整篇描述被删除功能，已删除。`TASK_BOARD.md`、`PHASE3_RELEASE_READINESS_REFRESH.md` 加了历史记录说明，`REGRESSION_MANIFEST.md` 与 `REGRESSION_CI_HANDOFF.md` 更新了 release 档的描述。其余 `docs/P3_*.md` 是迭代流水记录，保持原样，README 里写明了它们是历史记录。
+- 新增 `tests/test_mcp_schema.py` 中的断言：已删除的命令不得再出现在 MCP 目录里。
+
+保留、没有删除的"自报"类命令，以及原因：
+
+- `security-audit`、`mcp-catalog-drift`、`mcp-config-audit`、`mcp-smoke`：校验的是 MCP 目录与客户端配置，Agent 用户会用到，且 `security-audit` 在批次 4 已改为 schema 与解析器一致性检查。
+- `regression-manifest`、`regression-run`、`performance-baseline`：回归与性能基线。
+- `plan`、`tasks`：路线图与任务清单，是回归清单中的场景，`tasks.py` 是纯数据。
+- `cleanup-plan`、`cleanup-approval-manifest`：产物清理的"先计划再批准"流程。
+
+影响：
+
+- `regression-run --profile release` 对随仓库发布的清单现在没有场景，会直接通过。这是空档位的自然结果，已在文档里写明；如果以后用它做发布门槛，需要先在清单里补上场景。
+- 删除 `documentation_freshness` 后，文档里的工具数量不再有自动检查。本次已手动把 `MCP_SERVER_CLIENT_CONFIG.md`、`MCP_TOOL_SCHEMA_DRAFT.md`、`REGRESSION_MANIFEST.md` 与清单里的 85 改为 70，`mcp-catalog-drift` 仍然守护目录本身的数量。
+- `regression-run --profile safe` 在 Linux 上仍有 1 个场景失败（`mcp-config-audit`，示例配置里是 Windows 路径），这是此前就存在的，与本次无关。
 
 ## G-02：命令分发注册表与解析器拆分
 
@@ -71,9 +89,8 @@
 
 ## 未处理项说明
 
-- G-03 中超长的业务函数（`convert_html_editable` 262 行、`export_controlled_html` 244 行等）：没有拆分，纯结构调整收益小。重复的 PowerShell 样板见下。
-- G-07（约 20 个自我汇报型模块）：把它们从 MCP 目录移出会改变工具数量，牵动 `config/mcp_catalog_guard.json`、回归清单和多份文档，且对使用者是否可见是产品决策。
+- G-03 中超长的业务函数（`convert_html_editable` 262 行、`export_controlled_html` 244 行等）：没有拆分，纯结构调整收益小。重复的 PowerShell 样板已在上面的 G-03 一节处理。
 
 ## 验证
 
-见提交时的测试输出：`PYTHONPATH=src python3 -m unittest discover -s tests`，以及 `mcp-catalog-drift`、`documentation-freshness`、`security-audit`。
+`PYTHONPATH=src python3 -m unittest discover -s tests`：505 个用例通过（用例数从 542 降到 505，减少的是被删除模块的测试）；设置 `WPS_TEST_PWSH` 后同样通过。`mcp-catalog-drift` 与 `security-audit` 通过。`documentation-freshness` 已删除，不再运行。

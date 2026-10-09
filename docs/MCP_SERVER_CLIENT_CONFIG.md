@@ -45,8 +45,8 @@ C:\Users\admin\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\p
 $env:PYTHONPATH = "src"
 python -m wps_ai_agent_cli mcp-catalog-snapshot
 python -m wps_ai_agent_cli mcp-catalog-drift
-python -m wps_ai_agent_cli mcp-smoke --expected-min-tools 85 --tool-name wps_agent_tasks
-python -m wps_ai_agent_cli mcp-config-audit --config config/mcp_client_config.example.json --server-name wps-ai-agent-cli --expected-min-tools 85
+python -m wps_ai_agent_cli mcp-smoke --expected-min-tools 70 --tool-name wps_agent_tasks
+python -m wps_ai_agent_cli mcp-config-audit --config config/mcp_client_config.example.json --server-name wps-ai-agent-cli --expected-min-tools 70
 ```
 
 也可以逐条检查 JSON-RPC：
@@ -60,7 +60,7 @@ python -m wps_ai_agent_cli mcp-server --once-json "{\"jsonrpc\":\"2.0\",\"id\":3
 ## Expected Results
 
 - `initialize` 返回 `protocolVersion`、`serverInfo` 和 `capabilities.tools`。
-- `tools/list` 当前返回 85 个工具。
+- `tools/list` 当前返回 70 个工具。
 - `mcp-catalog-snapshot` 返回当前 MCP 工具目录摘要，包含分类计数、修改类工具数、WPS-required 工具数和 safety-note 覆盖情况。
 - `mcp-catalog-drift` 会对比当前 MCP 工具目录和 `config\mcp_catalog_guard.json` baseline；无 drift 时返回 passed。
 - `tools/call` 返回 `isError = false`，并在 `structuredContent.mcp_call.response` 中包含原始 CLI `CommandResponse`。
@@ -68,7 +68,7 @@ python -m wps_ai_agent_cli mcp-server --once-json "{\"jsonrpc\":\"2.0\",\"id\":3
 - `mcp-smoke --arguments-json` 接受 JSON 对象，可验证需要必填参数的本地只读查询工具；批转换和打包等写入命令会被拒绝。
 - `mcp-config-audit` 返回 `ok = true`，validation 中包含 config、cwd、command、env 和 configured tools/list smoke 检查。
 - 审计会真正执行配置里的启动命令，所以只接受本项目自己的启动行：命令必须是 Python 解释器，`args` 必须正好是 `-m wps_ai_agent_cli mcp-server`，`env` 只允许 `PYTHONPATH` 且必须解析到本项目的包。其他配置只报告 `launch_line_is_this_package` 失败，不会执行任何命令。
-- P3-009 额外验证 `mcp-smoke --expected-min-tools 38 --tool-name wps_agent_security_audit`，覆盖无参工具的 `tools/call` adapter 路径；当前工具面为 85 个工具。
+- P3-009 额外验证 `mcp-smoke --expected-min-tools 38 --tool-name wps_agent_security_audit`，覆盖无参工具的 `tools/call` adapter 路径；当前工具面为 70 个工具。
 
 ## Current Limits
 

@@ -15,6 +15,14 @@ class CliDispatchTests(unittest.TestCase):
     def test_every_parser_command_has_exactly_one_handler(self):
         self.assertEqual(_subcommands(), set(cli.COMMAND_HANDLERS))
 
+    def test_removed_reporting_commands_are_rejected_by_the_parser(self):
+        from tests.test_mcp_schema import REMOVED_REPORTING_COMMANDS
+
+        for command in sorted(REMOVED_REPORTING_COMMANDS | {"local-release-gates"}):
+            with self.subTest(command=command):
+                self.assertNotIn(command, _subcommands())
+                self.assertNotIn(command, cli.COMMAND_HANDLERS)
+
     def test_dispatch_emits_json_envelope(self):
         stream = io.StringIO()
         code = cli.run(["plan", "--request-id", "dispatch-1"], stream)

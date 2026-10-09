@@ -11,27 +11,16 @@ DEFAULT_REGRESSION_MANIFEST = "config/regression_manifest.json"
 # A manifest is data supplied by the caller (including over MCP, where regression-run is advertised as
 # non-mutating), so scenarios may only run the read-only and smoke commands the shipped manifest uses.
 REGRESSION_ALLOWED_COMMANDS = frozenset({
-    "artifact-retention-summary",
     "calc-smoke",
     "com-smoke",
     "convert-smoke",
-    "documentation-freshness",
-    "local-handoff-summary",
     "mcp-catalog-drift",
     "mcp-config-audit",
     "mcp-smoke",
     "mcp-tools",
     "plan",
-    "regression-evidence",
-    "regression-history",
     "security-audit",
-    "sync-package-coverage",
-    "sync-package-inspect",
-    "sync-package-manifest",
-    "sync-package-readiness",
-    "sync-package-summary",
     "tasks",
-    "validation-runbook",
     "writer-table-smoke",
 })
 

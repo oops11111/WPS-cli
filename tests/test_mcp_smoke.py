@@ -21,14 +21,14 @@ class McpSmokeTests(unittest.TestCase):
                     "request_id": "inspect", "state": "succeeded",
                     "arguments": {"output_directory": str(root / "output")},
                 }), encoding="utf-8")
-                response = mcp_smoke_response("smoke", 77, "wps_agent_html_batch_request",
+                response = mcp_smoke_response("smoke", 70, "wps_agent_html_batch_request",
                                               arguments_json='{"batch_request_id":"inspect"}')
                 self.assertTrue(response.ok, response.errors)
                 self.assertEqual(response.data["mcp_smoke"]["responses"]["tools_call"]["result"]
                                  ["structuredContent"]["mcp_call"]["response"]["data"]["batch_request"]["state"], "succeeded")
 
                 output = io.StringIO()
-                self.assertEqual(run(["mcp-smoke", "--expected-min-tools", "77",
+                self.assertEqual(run(["mcp-smoke", "--expected-min-tools", "70",
                                       "--tool-name", "wps_agent_html_batch_request",
                                       "--arguments-json", '{"batch_request_id":"inspect"}'], output_stream=output), 0)
                 self.assertTrue(json.loads(output.getvalue())["ok"])

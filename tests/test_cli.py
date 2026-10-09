@@ -13,57 +13,12 @@ from wps_ai_agent_cli.cli import (
     _with_optional_task_status,
     build_parser,
     regression_run_response,
-    local_release_gates_response,
     run,
 )
 from wps_ai_agent_cli.models import CommandResponse, ValidationResult
 
 
 class CliParsingTests(unittest.TestCase):
-    def test_local_release_gates_run_in_order(self):
-        def passed(command, data=None):
-            return CommandResponse(True, command, "step", "local-python", "passed", data or {}, ValidationResult("passed"))
-
-        with patch("wps_ai_agent_cli.cli.cloud_sync_package_response", side_effect=[passed("cloud-sync-package"), passed("cloud-sync-package")]) as package, \
-             patch("wps_ai_agent_cli.cli.regression_run_response", side_effect=[passed("regression-run", {"artifact": {"path": "safe.json"}}), passed("regression-run", {"artifact": {"path": "release.json"}})]) as regression, \
-             patch("wps_ai_agent_cli.cli.sync_package_readiness_response", return_value=passed("sync-package-readiness")) as readiness:
-            response = local_release_gates_response("run")
-        self.assertTrue(response.ok)
-        self.assertEqual([item["name"] for item in response.data["local_release_gates"]["steps"]],
-                         ["initial_package", "safe_baseline", "refreshed_package", "package_readiness", "release_gates"])
-        self.assertEqual(package.call_count, 2)
-        self.assertEqual(regression.call_count, 2)
-        readiness.assert_called_once()
-        self.assertEqual(regression.call_args_list[0].args[2:4], ("safe", False))
-        self.assertEqual(regression.call_args_list[1].args[2:4], ("release", False))
-
-    def test_local_release_gates_stop_and_retain_failed_safe_artifact(self):
-        package_response = CommandResponse(True, "cloud-sync-package", "step", "local-python", "passed", {}, ValidationResult("passed"))
-        failed_safe = CommandResponse(False, "regression-run", "step", "local-python", "failed",
-                                      {"artifact": {"path": "failed-safe.json"}}, ValidationResult("failed"),
-                                      [{"code": "REGRESSION_RUN_FAILED", "message": "failed"}])
-        with patch("wps_ai_agent_cli.cli.cloud_sync_package_response", return_value=package_response) as package, \
-             patch("wps_ai_agent_cli.cli.regression_run_response", return_value=failed_safe) as regression, \
-             patch("wps_ai_agent_cli.cli.sync_package_readiness_response") as readiness:
-            response = local_release_gates_response("run")
-        self.assertFalse(response.ok)
-        self.assertEqual(response.data["local_release_gates"]["completed_count"], 2)
-        self.assertEqual(response.data["local_release_gates"]["steps"][1]["artifact"]["path"], "failed-safe.json")
-        package.assert_called_once()
-        regression.assert_called_once()
-        readiness.assert_not_called()
-
-    def test_local_release_gates_reject_wps_profile_before_writing(self):
-        manifest = {"scenarios": [{"id": "unsafe", "profile": "safe", "requires_wps": True}] + [
-            {"id": name, "profile": "release", "requires_wps": False}
-            for name in ("local-handoff-summary", "regression-evidence", "regression-history")]}
-        with patch("wps_ai_agent_cli.cli.load_regression_manifest", return_value=(True, manifest, [])), \
-             patch("wps_ai_agent_cli.cli.cloud_sync_package_response") as package:
-            response = local_release_gates_response("run")
-        self.assertFalse(response.ok)
-        self.assertEqual(response.errors[0]["code"], "LOCAL_RELEASE_PROFILE_INVALID")
-        package.assert_not_called()
-
     def test_failed_or_cancelled_task_does_not_restart_operation(self):
         from wps_ai_agent_cli.task_status import create_task_status, update_task_status
 
@@ -424,65 +379,11 @@ class CliParsingTests(unittest.TestCase):
         manifest_args = parser.parse_args(["regression-manifest", "--profile", "safe"])
         run_args = parser.parse_args(["regression-run", "--profile", "safe"])
         run_artifact_args = parser.parse_args(["regression-run", "--profile", "safe", "--artifact-dir", "artifacts/regression"])
-        evidence_args = parser.parse_args(["regression-evidence", "--workspace", "."])
-        history_args = parser.parse_args(["regression-history", "--workspace", ".", "--limit", "3"])
-        cloud_sync_args = parser.parse_args(["cloud-sync-package", "--output", "artifacts/cloud-sync/test.zip", "--no-latest-artifacts"])
-        sync_package_inspect_args = parser.parse_args([
-            "sync-package-inspect",
-            "--workspace",
-            ".",
-            "--package",
-            "artifacts/cloud-sync/test.zip",
-        ])
-        sync_package_summary_args = parser.parse_args([
-            "sync-package-summary",
-            "--workspace",
-            ".",
-            "--package",
-            "artifacts/cloud-sync/test.zip",
-            "--limit",
-            "3",
-        ])
-        sync_package_manifest_args = parser.parse_args([
-            "sync-package-manifest",
-            "--workspace",
-            ".",
-            "--package",
-            "artifacts/cloud-sync/test.zip",
-            "--prefix",
-            "docs",
-            "--limit",
-            "4",
-        ])
-        sync_package_coverage_args = parser.parse_args([
-            "sync-package-coverage",
-            "--workspace",
-            ".",
-            "--package",
-            "artifacts/cloud-sync/test.zip",
-            "--limit",
-            "5",
-        ])
-        sync_package_readiness_args = parser.parse_args([
-            "sync-package-readiness",
-            "--workspace",
-            ".",
-            "--package",
-            "artifacts/cloud-sync/test.zip",
-            "--limit",
-            "6",
-        ])
         security_args = parser.parse_args(["security-audit"])
         performance_args = parser.parse_args(["performance-baseline"])
         process_audit_args = parser.parse_args(["wps-process-audit", "--timeout-seconds", "4"])
         cleanup_plan_args = parser.parse_args(["cleanup-plan", "--workspace", "."])
         cleanup_approval_args = parser.parse_args(["cleanup-approval-manifest", "--workspace", "."])
-        artifact_retention_args = parser.parse_args(["artifact-retention-summary", "--workspace", "."])
-        project_status_args = parser.parse_args(["project-status", "--workspace", "."])
-        workspace_health_args = parser.parse_args(["workspace-health", "--workspace", "."])
-        local_handoff_args = parser.parse_args(["local-handoff-summary", "--workspace", "."])
-        validation_runbook_args = parser.parse_args(["validation-runbook", "--workspace", "."])
-        documentation_freshness_args = parser.parse_args(["documentation-freshness", "--workspace", "."])
         writer_table_args = parser.parse_args([
             "writer-table-write",
             "--document-id",
@@ -556,33 +457,6 @@ class CliParsingTests(unittest.TestCase):
         self.assertEqual(run_args.command, "regression-run")
         self.assertEqual(run_args.profile, "safe")
         self.assertEqual(run_artifact_args.artifact_dir, "artifacts/regression")
-        self.assertEqual(evidence_args.command, "regression-evidence")
-        self.assertEqual(evidence_args.workspace, ".")
-        self.assertEqual(history_args.command, "regression-history")
-        self.assertEqual(history_args.limit, 3)
-        self.assertEqual(cloud_sync_args.command, "cloud-sync-package")
-        self.assertEqual(cloud_sync_args.output, "artifacts/cloud-sync/test.zip")
-        self.assertTrue(cloud_sync_args.no_latest_artifacts)
-        self.assertEqual(sync_package_inspect_args.command, "sync-package-inspect")
-        self.assertEqual(sync_package_inspect_args.workspace, ".")
-        self.assertEqual(sync_package_inspect_args.package, "artifacts/cloud-sync/test.zip")
-        self.assertEqual(sync_package_summary_args.command, "sync-package-summary")
-        self.assertEqual(sync_package_summary_args.workspace, ".")
-        self.assertEqual(sync_package_summary_args.package, "artifacts/cloud-sync/test.zip")
-        self.assertEqual(sync_package_summary_args.limit, 3)
-        self.assertEqual(sync_package_manifest_args.command, "sync-package-manifest")
-        self.assertEqual(sync_package_manifest_args.workspace, ".")
-        self.assertEqual(sync_package_manifest_args.package, "artifacts/cloud-sync/test.zip")
-        self.assertEqual(sync_package_manifest_args.prefix, "docs")
-        self.assertEqual(sync_package_manifest_args.limit, 4)
-        self.assertEqual(sync_package_coverage_args.command, "sync-package-coverage")
-        self.assertEqual(sync_package_coverage_args.workspace, ".")
-        self.assertEqual(sync_package_coverage_args.package, "artifacts/cloud-sync/test.zip")
-        self.assertEqual(sync_package_coverage_args.limit, 5)
-        self.assertEqual(sync_package_readiness_args.command, "sync-package-readiness")
-        self.assertEqual(sync_package_readiness_args.workspace, ".")
-        self.assertEqual(sync_package_readiness_args.package, "artifacts/cloud-sync/test.zip")
-        self.assertEqual(sync_package_readiness_args.limit, 6)
         self.assertEqual(security_args.command, "security-audit")
         self.assertEqual(performance_args.command, "performance-baseline")
         self.assertEqual(process_audit_args.command, "wps-process-audit")
@@ -591,18 +465,6 @@ class CliParsingTests(unittest.TestCase):
         self.assertEqual(cleanup_plan_args.workspace, ".")
         self.assertEqual(cleanup_approval_args.command, "cleanup-approval-manifest")
         self.assertEqual(cleanup_approval_args.workspace, ".")
-        self.assertEqual(artifact_retention_args.command, "artifact-retention-summary")
-        self.assertEqual(artifact_retention_args.workspace, ".")
-        self.assertEqual(project_status_args.command, "project-status")
-        self.assertEqual(project_status_args.workspace, ".")
-        self.assertEqual(workspace_health_args.command, "workspace-health")
-        self.assertEqual(workspace_health_args.workspace, ".")
-        self.assertEqual(local_handoff_args.command, "local-handoff-summary")
-        self.assertEqual(local_handoff_args.workspace, ".")
-        self.assertEqual(validation_runbook_args.command, "validation-runbook")
-        self.assertEqual(validation_runbook_args.workspace, ".")
-        self.assertEqual(documentation_freshness_args.command, "documentation-freshness")
-        self.assertEqual(documentation_freshness_args.workspace, ".")
         self.assertEqual(writer_table_args.command, "writer-table-write")
         self.assertEqual(writer_table_args.table_index, 1)
         self.assertEqual(writer_table_smoke_args.command, "writer-table-smoke")

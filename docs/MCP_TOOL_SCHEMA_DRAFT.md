@@ -18,8 +18,8 @@ python -m wps_ai_agent_cli mcp-catalog-drift
 python -m wps_ai_agent_cli mcp-call --name wps_agent_tasks --arguments-json "{\"phase\":\"phase2\"}"
 python -m wps_ai_agent_cli mcp-server --once-json "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"tools/list\",\"params\":{}}"
 python -m wps_ai_agent_cli mcp-server
-python -m wps_ai_agent_cli mcp-smoke --expected-min-tools 85 --tool-name wps_agent_tasks
-python -m wps_ai_agent_cli mcp-config-audit --config config/mcp_client_config.example.json --server-name wps-ai-agent-cli --expected-min-tools 85
+python -m wps_ai_agent_cli mcp-smoke --expected-min-tools 70 --tool-name wps_agent_tasks
+python -m wps_ai_agent_cli mcp-config-audit --config config/mcp_client_config.example.json --server-name wps-ai-agent-cli --expected-min-tools 70
 python -m wps_ai_agent_cli security-audit
 python -m wps_ai_agent_cli performance-baseline
 ```
@@ -128,7 +128,7 @@ Large collections have explicit total counts and truncation flags.
 
 - `initialize`: 返回 `protocolVersion = 2026-07-28`、server info 和 tools capability。
 - `notifications/initialized`: 作为 notification 处理，不返回响应。
-- `tools/list`: 返回 85 个工具，包含 `name`、`title`、`description`、`inputSchema`、`outputSchema`、`annotations` 和 `_meta`。
+- `tools/list`: 返回 70 个工具，包含 `name`、`title`、`description`、`inputSchema`、`outputSchema`、`annotations` 和 `_meta`。
 - `tools/call`: 调用 `mcp_adapter.call_mcp_tool`，并返回 `content` 与 `structuredContent`。
 - `--once-json`: 处理一个 JSON-RPC 请求后退出，便于 CLI smoke 与单元测试。
 
@@ -149,11 +149,11 @@ Large collections have explicit total counts and truncation flags.
 - `mcp-tool-schema --name wps_agent_spreadsheet_write` 可返回必填参数、WPS 依赖、修改属性和统一输出契约。
 - `mcp-call --name wps_agent_tasks --arguments-json "{\"phase\":\"phase2\"}"` 可通过 adapter 调用现有 `tasks` CLI response 层。
 - `mcp-server --once-json "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"initialize\",\"params\":{}}"` 可返回 server capabilities。
-- `mcp-catalog-snapshot` 可返回当前 85-tool MCP 目录摘要，包含分类计数、修改类工具、WPS-required 工具和 safety-note 覆盖情况。
+- `mcp-catalog-snapshot` 可返回当前 70-tool MCP 目录摘要，包含分类计数、修改类工具、WPS-required 工具和 safety-note 覆盖情况。
 - `mcp-catalog-drift` 可对比当前目录和 `config\mcp_catalog_guard.json` baseline，输出结构化 drift 清单。
-- `mcp-server --once-json "{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"tools/list\",\"params\":{}}"` 当前返回 85 个工具。
+- `mcp-server --once-json "{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"tools/list\",\"params\":{}}"` 当前返回 70 个工具。
 - `mcp-server --once-json "{\"jsonrpc\":\"2.0\",\"id\":3,\"method\":\"tools/call\",\"params\":{\"name\":\"wps_agent_tasks\",\"arguments\":{\"phase\":\"phase2\"}}}"` 可通过 server 调用 adapter。
-- `mcp-smoke --expected-min-tools 85 --tool-name wps_agent_tasks` 可重复验证 initialize、tools/list 和 tools/call。
-- `mcp-config-audit --config config/mcp_client_config.example.json --server-name wps-ai-agent-cli --expected-min-tools 85` 可验证 client 配置并通过配置启动 `tools/list` smoke。
+- `mcp-smoke --expected-min-tools 70 --tool-name wps_agent_tasks` 可重复验证 initialize、tools/list 和 tools/call。
+- `mcp-config-audit --config config/mcp_client_config.example.json --server-name wps-ai-agent-cli --expected-min-tools 70` 可验证 client 配置并通过配置启动 `tools/list` smoke。
 - `security-audit` 可审计 8 个修改类工具的 request_id、task_id、dry-run、备份和 WPS/文件系统边界。
 - `performance-baseline` 可采集 6 个不启动 WPS 的核心命令耗时和输出规模。
