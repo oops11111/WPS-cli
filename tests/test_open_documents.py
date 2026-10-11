@@ -339,6 +339,29 @@ class SelectionReplaceTests(unittest.TestCase):
         self.assertEqual(errors[0]["code"], "COM_OPERATION_TIMEOUT")
 
 
+class Utf16SelectionLengthTests(unittest.TestCase):
+    def selection(self, text, length):
+        return {
+            "selection_text": text, "selection_length": length, "collapsed": False,
+            "selection_text_truncated": False,
+        }
+
+    def test_astral_characters_count_as_two_utf16_units(self):
+        self.assertEqual(open_documents._utf16_length("a"), 1)
+        self.assertEqual(open_documents._utf16_length("\U0001F600"), 2)
+        self.assertEqual(open_documents._utf16_length("a\U0001F600b"), 4)
+
+    def test_emoji_selection_is_replaceable_when_wps_reports_utf16_length(self):
+        text = "ok \U0001F600"
+        self.assertIsNone(open_documents._check_replaceable_selection(self.selection(text, 5), None))
+
+    def test_length_mismatch_still_flags_non_text_objects(self):
+        problem = open_documents._check_replaceable_selection(self.selection("abc", 4), None)
+        self.assertEqual(problem["code"], "SELECTION_SPANS_STRUCTURE")
+        problem = open_documents._check_replaceable_selection(self.selection("\U0001F600", 1), None)
+        self.assertEqual(problem["code"], "SELECTION_SPANS_STRUCTURE")
+
+
 class ExportOpenDocumentTests(unittest.TestCase):
     def export(self, fixture, output, request_id="exp-1"):
         return export_open_document_html(

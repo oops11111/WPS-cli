@@ -3321,6 +3321,11 @@ def read_spreadsheet_selection(
     }, []
 
 
+def _utf16_length(text: str) -> int:
+    """WPS ranges count UTF-16 code units, so characters outside the BMP (emoji) count twice."""
+    return len(text.encode("utf-16-le")) // 2
+
+
 def _check_replaceable_selection(selection: dict[str, Any], expected: str | None) -> dict[str, str] | None:
     text = selection["selection_text"]
     if selection["collapsed"]:
@@ -3332,7 +3337,7 @@ def _check_replaceable_selection(selection: dict[str, Any], expected: str | None
             "code": SELECTION_SPANS_STRUCTURE,
             "message": "The selection includes paragraph, line, table-cell or other control marks; shrink it to plain text within one paragraph.",
         }
-    if selection["selection_length"] != len(text):
+    if selection["selection_length"] != _utf16_length(text):
         return {
             "code": SELECTION_SPANS_STRUCTURE,
             "message": "The selection contains non-text objects such as fields or drawings; shrink it to plain text.",
