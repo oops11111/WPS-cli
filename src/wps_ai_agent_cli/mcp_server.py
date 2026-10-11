@@ -298,8 +298,20 @@ def serve_stdio(input_stream: TextIO | None = None, output_stream: TextIO | None
         # Deliver completion even while the main thread is blocked reading stdin.
         write_response(response)
 
-    with ThreadPoolExecutor(max_workers=1, thread_name_prefix="mcp-html-batch") as executor:
+    def run_tool_call(raw_json: str, request_id: Any) -> None:
+        try:
+            response = handle_mcp_json(raw_json)
+        except Exception:
+            response = _error_response(request_id, -32603, "Tool call failed unexpectedly.")
+        write_response(response)
+
+    # Tool calls can block on WPS COM for minutes. They run on a worker so the reader keeps
+    # answering ping/tools/list; a single worker keeps tool calls in request order, and the
+    # separate batch executor lets task-status updates cancel a running batch.
+    with ThreadPoolExecutor(max_workers=1, thread_name_prefix="mcp-html-batch") as executor, \
+            ThreadPoolExecutor(max_workers=1, thread_name_prefix="mcp-tool-call") as tool_executor:
         pending: Future[None] | None = None
+        tool_futures: list[Future[None]] = []
         lifecycle = "awaiting_initialize"
         seen_request_ids: set[tuple[type, str | int]] = set()
         for line, oversized in _iter_bounded_mcp_lines(input_stream):
@@ -370,11 +382,18 @@ def serve_stdio(input_stream: TextIO | None = None, output_stream: TextIO | None
                     if pending is not None:
                         pending.result()
                     pending = executor.submit(run_batch, line, message.get("id"))
+            elif method == "tools/call":
+                tool_futures.append(tool_executor.submit(run_tool_call, line, message.get("id")))
             else:
                 write_response(handle_mcp_request(message) if isinstance(message, dict) else handle_mcp_json(line))
             if pending is not None and pending.done():
                 pending.result()
                 pending = None
+            for future in [item for item in tool_futures if item.done()]:
+                tool_futures.remove(future)
+                future.result()
         if pending is not None:
             pending.result()
+        for future in tool_futures:
+            future.result()
     return 0
