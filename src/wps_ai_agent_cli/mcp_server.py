@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import base64
+import functools
 import hashlib
 import json
 import sys
@@ -91,8 +92,6 @@ def _validate_mcp_envelope(message: Any) -> tuple[dict[str, Any] | None, bool]:
     is_notification = "id" not in message
     if is_notification:
         if method.startswith("notifications/"):
-            if "params" in message and not isinstance(message["params"], dict):
-                return None, True
             return None, True
         return _error_response(None, -32600, "MCP requests require a string or integer ID."), False
 
@@ -134,11 +133,24 @@ def _initialize_result(protocol_version: str = MCP_PROTOCOL_VERSION) -> dict[str
     }
 
 
-def _tools_list_result(cursor: Any = _CURSOR_OMITTED) -> dict[str, Any]:
-    tools = [_tool_from_schema(schema) for schema in list_mcp_tool_schemas()]
+@functools.lru_cache(maxsize=4)
+def _catalog_for_names(names: tuple[str, ...]) -> tuple[tuple[dict[str, Any], ...], str]:
+    """Build the tools/list payload and its pagination fingerprint once per catalog.
+
+    The catalog is static at runtime, so the tool-name tuple identifies it; callers pass the names
+    of the schemas they just listed and the schemas are re-listed here only on a cache miss.
+    """
+    tools = tuple(_tool_from_schema(schema) for schema in list_mcp_tool_schemas())
     fingerprint = hashlib.sha256(
-        json.dumps(tools, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+        json.dumps(list(tools), ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
     ).hexdigest()[:16]
+    return tools, fingerprint
+
+
+def _tools_list_result(cursor: Any = _CURSOR_OMITTED) -> dict[str, Any]:
+    names = tuple(schema["name"] for schema in list_mcp_tool_schemas())
+    cached_tools, fingerprint = _catalog_for_names(names)
+    tools = list(cached_tools)
     offset = 0
     if cursor is not _CURSOR_OMITTED:
         if (not isinstance(cursor, str) or not cursor
