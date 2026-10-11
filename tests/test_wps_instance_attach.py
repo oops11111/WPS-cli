@@ -8,7 +8,8 @@ from unittest.mock import patch
 
 from tests.test_wps_preopen_guard import FAKE_SPREADSHEET_PRELUDE, all_scripts
 from tests.test_wps_quit_guard import CAPABILITIES, capture_scripts
-from wps_ai_agent_cli import com_backend, presentation_ops, spreadsheet_ops
+from wps_ai_agent_cli import com_backend, presentation_ops, spreadsheet_inspect, spreadsheet_ops
+from wps_ai_agent_cli.sessions import register_document
 from wps_ai_agent_cli.wps_script_snippets import (
     ACQUIRE_WPS_APP,
     HIDE_LAUNCHED_APP,
@@ -159,6 +160,80 @@ $coll | Add-Member -MemberType ScriptMethod -Name Open -Value { param($p, $updat
     def test_already_open_document_is_returned_without_opening_again(self):
         lines = self.call(r"(Open-WpsDocument $coll 'c:\DATA\Open.xlsx' $true).Tag")
         self.assertEqual(lines, ["existing"])
+
+
+@unittest.skipUnless(PWSH, "PowerShell (pwsh) is required to execute the generated scripts against a fake COM object")
+class InspectRecalculationTests(unittest.TestCase):
+    def setUp(self):
+        from openpyxl import Workbook
+
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        self.dir = Path(tmp.name)
+        workspace = self.dir / "workspace"
+        workspace.mkdir()
+        self.workspace = workspace
+        self.document = self.dir / "book.xlsx"
+        workbook = Workbook()
+        workbook.active.title = "S"
+        workbook.active["A1"] = 1
+        workbook.active["B1"] = "=A1*2"
+        workbook.save(self.document)
+        workbook.close()
+        ok, record, errors = register_document("spreadsheets", str(self.document), workspace)
+        self.assertTrue(ok, errors)
+        self.document_id = record["document_id"]
+        self.log = self.dir / "fake.log"
+        self.log.write_text("", encoding="utf-8")
+        real_run = spreadsheet_inspect.run_powershell_script
+
+        def run_with_fake(script, *args, **kwargs):
+            return real_run(FAKE_SPREADSHEET_PRELUDE + script, *args, **kwargs)
+
+        for patcher in (
+            patch("wps_ai_agent_cli.powershell_runner.powershell_executable", return_value=PWSH),
+            patch.object(spreadsheet_inspect, "probe_wps_capabilities", return_value=CAPABILITIES),
+            patch.object(spreadsheet_inspect, "run_powershell_script", side_effect=run_with_fake),
+            patch.dict(os.environ, {"WPSFAKE_PATH": str(self.document), "WPSFAKE_LOG": str(self.log)}),
+        ):
+            patcher.start()
+            self.addCleanup(patcher.stop)
+
+    def inspect(self, **env):
+        with patch.dict(os.environ, env):
+            return spreadsheet_inspect.inspect_spreadsheet_range(self.document_id, "A1:B1", "S", self.workspace)
+
+    def log_lines(self):
+        return self.log.read_text(encoding="utf-8").split()
+
+    def test_attached_instance_is_not_fully_recalculated(self):
+        ok, result, errors = self.inspect(WPSFAKE_ATTACH="1", WPSFAKE_OPEN="1", WPSFAKE_SAVED="1")
+        self.assertTrue(ok, errors)
+        self.assertFalse([line for line in self.log_lines() if line.startswith("rebuild")])
+        self.assertFalse(result["calculation_performed_in_memory"])
+        self.assertIn("skipped", result["recalculation_skipped_reason"])
+        self.assertIsNone(result["cache_mismatch_count"])
+        self.assertTrue(all(cell["cache_matches_recalculated"] is None for cell in result["cells"]))
+        self.assertTrue(result["read_only"])
+        self.assertFalse(result["saved"])
+        self.assertNotIn("close", self.log_lines())
+
+    def test_attached_instance_is_not_recalculated_when_the_script_opens_the_document_itself(self):
+        ok, result, errors = self.inspect(WPSFAKE_ATTACH="1", WPSFAKE_OPEN="0", WPSFAKE_SAVED="1")
+        self.assertTrue(ok, errors)
+        self.assertFalse([line for line in self.log_lines() if line.startswith("rebuild")])
+        self.assertFalse(result["calculation_performed_in_memory"])
+        self.assertIn("close", self.log_lines())
+        self.assertNotIn("quit:attached", self.log_lines())
+
+    def test_instance_launched_by_the_script_is_still_fully_recalculated(self):
+        ok, result, errors = self.inspect(WPSFAKE_ATTACH="0", WPSFAKE_OPEN="0", WPSFAKE_SAVED="1")
+        self.assertTrue(ok, errors)
+        self.assertEqual([line for line in self.log_lines() if line.startswith("rebuild")], ["rebuild:new"])
+        self.assertTrue(result["calculation_performed_in_memory"])
+        self.assertNotIn("recalculation_skipped_reason", result)
+        self.assertIsInstance(result["cache_mismatch_count"], int)
+        self.assertIn("quit:new", self.log_lines())
 
 
 @unittest.skipUnless(PWSH, "PowerShell (pwsh) is required to execute the generated scripts against a fake COM object")

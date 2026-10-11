@@ -1202,7 +1202,8 @@ MCP_TOOL_SCHEMAS: tuple[dict[str, Any], ...] = (
         safety_notes=[
             "Works in the running WPS instance when there is one. A document that is not open yet is opened there only for the duration of the command (its window may briefly appear) and closed again afterwards; a document that was already open is never closed.",
             "Opens the registered workbook read-only and closes it without saving.",
-            "Recalculation occurs in memory; saved caches are reported separately from WPS values and display text.",
+            "Full recalculation (CalculateFullRebuild) runs only in a WPS instance this command launched itself. When attached to a running WPS it is skipped because it recalculates every open workbook and can mark user documents as modified; the result then reports calculation_performed_in_memory=false and does not compare saved caches.",
+            "Saved caches are reported separately from WPS values and display text.",
         ],
     ),
     _tool(

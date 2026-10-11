@@ -111,7 +111,10 @@ try {{
   $wpsPreOpen = Test-WpsPathOpen $app.Workbooks $params.path
   $workbook = Open-WpsDocument $app.Workbooks $params.path $wpsPreOpen $true
   $sheet = $workbook.Worksheets.Item($params.sheet)
-  try {{ $app.CalculateFullRebuild() }} catch {{ $app.CalculateFull() }}
+  $fullRecalculation = [bool]$weLaunched
+  if ($fullRecalculation) {{
+    try {{ $app.CalculateFullRebuild() }} catch {{ $app.CalculateFull() }}
+  }}
   $cells = @()
   for ($r = 0; $r -lt [int]$params.row_count; $r++) {{
     for ($c = 0; $c -lt [int]$params.column_count; $c++) {{
@@ -135,7 +138,7 @@ try {{
       }}
     }}
   }}
-  [pscustomobject]@{{ ok = $true; backend = 'powershell-com'; prog_id = $params.prog_id; sheet = $sheet.Name; cells = $cells }} | ConvertTo-Json -Depth 8 -Compress
+  [pscustomobject]@{{ ok = $true; backend = 'powershell-com'; prog_id = $params.prog_id; sheet = $sheet.Name; full_recalculation = $fullRecalculation; cells = $cells }} | ConvertTo-Json -Depth 8 -Compress
 }} catch {{
   [pscustomobject]@{{ ok = $false; backend = 'powershell-com'; error_type = $_.Exception.GetType().FullName; error_message = $_.Exception.Message; position = $_.InvocationInfo.PositionMessage }} | ConvertTo-Json -Depth 5 -Compress
   exit 2
@@ -157,6 +160,7 @@ try {{
     if isinstance(raw_live_cells, dict):
         raw_live_cells = [raw_live_cells]
     live_cells = {item["address"].replace("$", ""): item for item in raw_live_cells}
+    recalculated_in_memory = bool(payload.get("full_recalculation", True))
     result_cells = []
     for saved in cells:
         live = live_cells.get(saved["address"], {})
@@ -169,13 +173,22 @@ try {{
             "displayed_text": live.get("displayed_text"),
             "wps_formula": live.get("formula"),
             "formula_matches_file": live.get("formula") == saved["formula"],
-            "cache_matches_recalculated": _cache_matches(cached, recalculated, workbook_epoch) if saved["formula"] else None,
+            "cache_matches_recalculated": (
+                _cache_matches(cached, recalculated, workbook_epoch) if saved["formula"] and recalculated_in_memory else None
+            ),
         })
     result = {
         "document_id": document_id, "component": "spreadsheets", "path": str(path),
         "backend": payload.get("backend"), "sheet": selected_sheet, "range": range_address,
-        "read_only": True, "saved": False, "calculation_performed_in_memory": True,
+        "read_only": True, "saved": False, "calculation_performed_in_memory": recalculated_in_memory,
         "cells": result_cells,
-        "cache_mismatch_count": sum(item["cache_matches_recalculated"] is False for item in result_cells),
+        "cache_mismatch_count": (
+            sum(item["cache_matches_recalculated"] is False for item in result_cells) if recalculated_in_memory else None
+        ),
     }
+    if not recalculated_in_memory:
+        result["recalculation_skipped_reason"] = (
+            "Attached to a running WPS instance: a full rebuild recalculates every open workbook and can mark the user's "
+            "documents as modified, so it was skipped. Values are what WPS currently shows; the saved cache was not compared."
+        )
     return True, result, []

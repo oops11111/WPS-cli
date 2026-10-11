@@ -84,6 +84,14 @@ function Write-FakeLog([string]$line) { Add-Content -LiteralPath $env:WPSFAKE_LO
 function New-FakeApp([string]$label, [bool]$open, [bool]$saved) {
   $sheet = [pscustomobject]@{ Name = 'S' }
   $sheet | Add-Member -MemberType ScriptMethod -Name Delete -Value { Write-FakeLog 'delete' }
+  $cells = [pscustomobject]@{}
+  $cells | Add-Member -MemberType ScriptMethod -Name Item -Value {
+    param($row, $col)
+    $cell = [pscustomobject]@{ Row = $row; Col = $col; HasFormula = $false; Formula = ''; Value2 = ($row * 10 + $col); Text = [string]($row * 10 + $col); NumberFormat = 'General' }
+    $cell | Add-Member -MemberType ScriptMethod -Name Address -Value { param($rowAbsolute, $colAbsolute) return ([string][char](64 + $this.Col)) + $this.Row }
+    return $cell
+  }
+  $sheet | Add-Member -MemberType NoteProperty -Name Cells -Value $cells
   $sheets = [pscustomobject]@{ Count = 1; Sheet = $sheet }
   $sheets | Add-Member -MemberType ScriptMethod -Name Item -Value { param($key) return $this.Sheet }
   $raced = $env:WPSFAKE_RACE -eq '1'
@@ -117,6 +125,7 @@ function New-FakeApp([string]$label, [bool]$open, [bool]$saved) {
       -SecondValue ([scriptblock]::Create('param($value) $this.' + $field + ' = $value; Write-FakeLog ("' + $tag + '=" + $value + ":" + $this.Label)'))
   }
   $app | Add-Member -MemberType ScriptMethod -Name Quit -Value { Write-FakeLog ('quit:' + $this.Label) }
+  $app | Add-Member -MemberType ScriptMethod -Name CalculateFullRebuild -Value { Write-FakeLog ('rebuild:' + $this.Label) }
   return $app
 }
 $global:fakeLaunched = New-FakeApp 'new' ($env:WPSFAKE_OPEN -eq '1' -and $env:WPSFAKE_ATTACH -ne '1') ($env:WPSFAKE_SAVED -ne '0')
