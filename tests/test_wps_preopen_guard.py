@@ -49,12 +49,17 @@ class PreOpenGuardStaticTests(unittest.TestCase):
             with self.subTest(script=name):
                 self.assertIn("function Test-WpsPathOpen", script)
                 self.assertEqual(script.count("Test-WpsPathOpen $app."), 1)
-                self.assertEqual(script.count("Assert-WpsPreOpenSaved $wpsPreOpen"), 1)
                 closes = script.count(".Close(")
                 self.assertGreaterEqual(closes, 1)
                 self.assertEqual(script.count("if (-not $wpsPreOpen) {"), closes)
                 self.assertLess(script.index("Test-WpsPathOpen $app."), script.index(".Open($params.path"))
-                self.assertLess(script.index(".Open($params.path"), script.index("Assert-WpsPreOpenSaved $wpsPreOpen"))
+                if name == "presentation_replace":
+                    self.assertEqual(script.count("Assert-WpsPresentationNotOpen $wpsPreOpen"), 1)
+                    self.assertNotIn("Assert-WpsPreOpenSaved $wpsPreOpen", script)
+                    self.assertLess(script.index("Assert-WpsPresentationNotOpen $wpsPreOpen"), script.index(".Open($params.path"))
+                else:
+                    self.assertEqual(script.count("Assert-WpsPreOpenSaved $wpsPreOpen"), 1)
+                    self.assertLess(script.index(".Open($params.path"), script.index("Assert-WpsPreOpenSaved $wpsPreOpen"))
 
     def test_read_only_inspect_script_does_not_close_user_workbooks(self):
         source = Path(spreadsheet_inspect.__file__).read_text(encoding="utf-8")
@@ -67,19 +72,34 @@ class PreOpenGuardStaticTests(unittest.TestCase):
 
 
 FAKE_SPREADSHEET_PRELUDE = r'''
-$global:fakeSheet = [pscustomobject]@{ Name = 'S' }
-$global:fakeSheet | Add-Member -MemberType ScriptMethod -Name Delete -Value { Add-Content -LiteralPath $env:WPSFAKE_LOG -Value 'delete' }
-$global:fakeSheets = [pscustomobject]@{ Count = 1 }
-$global:fakeSheets | Add-Member -MemberType ScriptMethod -Name Item -Value { param($key) return $global:fakeSheet }
-$global:fakeBooks = [pscustomobject]@{ Count = $(if ($env:WPSFAKE_OPEN -eq '1') { 1 } else { 0 }) }
-$global:fakeBook = [pscustomobject]@{ FullName = $env:WPSFAKE_PATH; Saved = ($env:WPSFAKE_SAVED -ne '0'); Worksheets = $global:fakeSheets }
-$global:fakeBook | Add-Member -MemberType ScriptMethod -Name Save -Value { Add-Content -LiteralPath $env:WPSFAKE_LOG -Value 'save' }
-$global:fakeBook | Add-Member -MemberType ScriptMethod -Name Close -Value { param($save) Add-Content -LiteralPath $env:WPSFAKE_LOG -Value 'close'; $global:fakeBooks.Count = 0 }
-$global:fakeBooks | Add-Member -MemberType ScriptMethod -Name Item -Value { param($i) return $global:fakeBook }
-$global:fakeBooks | Add-Member -MemberType ScriptMethod -Name Open -Value { param($p) $global:fakeBooks.Count = 1; return $global:fakeBook }
-$global:fakeApp = [pscustomobject]@{ Workbooks = $global:fakeBooks; Visible = $true; DisplayAlerts = $true; Documents = $null; Presentations = $null }
-$global:fakeApp | Add-Member -MemberType ScriptMethod -Name Quit -Value { Add-Content -LiteralPath $env:WPSFAKE_LOG -Value 'quit' }
-function New-Object { param([string]$ComObject) return $global:fakeApp }
+Add-Type -TypeDefinition 'namespace WpsAgent { public static class Running { public static object Instance; public static object Get(string progId) { return Instance; } } }'
+function Write-FakeLog([string]$line) { Add-Content -LiteralPath $env:WPSFAKE_LOG -Value $line }
+function New-FakeApp([string]$label, [bool]$open, [bool]$saved) {
+  $sheet = [pscustomobject]@{ Name = 'S' }
+  $sheet | Add-Member -MemberType ScriptMethod -Name Delete -Value { Write-FakeLog 'delete' }
+  $sheets = [pscustomobject]@{ Count = 1; Sheet = $sheet }
+  $sheets | Add-Member -MemberType ScriptMethod -Name Item -Value { param($key) return $this.Sheet }
+  $books = [pscustomobject]@{ Count = $(if ($open) { 1 } else { 0 }); Book = $null }
+  $book = [pscustomobject]@{ FullName = $env:WPSFAKE_PATH; Saved = $saved; Worksheets = $sheets; Books = $books }
+  $book | Add-Member -MemberType ScriptMethod -Name Save -Value { Write-FakeLog 'save' }
+  $book | Add-Member -MemberType ScriptMethod -Name Close -Value { param($save) Write-FakeLog 'close'; $this.Books.Count = 0 }
+  $books.Book = $book
+  $books | Add-Member -MemberType ScriptMethod -Name Item -Value { param($i) return $this.Book }
+  $books | Add-Member -MemberType ScriptMethod -Name Open -Value { param($p) Write-FakeLog 'open'; $this.Count = 1; return $this.Book }
+  $app = [pscustomobject]@{ Workbooks = $books; Documents = $null; Presentations = $null; Label = $label; v = $true; a = $true; e = $true; l = $true }
+  foreach ($pair in @(@('Visible', 'v', 'visible'), @('DisplayAlerts', 'a', 'alerts'), @('EnableEvents', 'e', 'events'), @('AskToUpdateLinks', 'l', 'links'))) {
+    $field = $pair[1]; $tag = $pair[2]
+    $app | Add-Member -MemberType ScriptProperty -Name $pair[0] `
+      -Value ([scriptblock]::Create('$this.' + $field)) `
+      -SecondValue ([scriptblock]::Create('param($value) $this.' + $field + ' = $value; Write-FakeLog ("' + $tag + '=" + $value + ":" + $this.Label)'))
+  }
+  $app | Add-Member -MemberType ScriptMethod -Name Quit -Value { Write-FakeLog ('quit:' + $this.Label) }
+  return $app
+}
+$global:fakeLaunched = New-FakeApp 'new' ($env:WPSFAKE_OPEN -eq '1' -and $env:WPSFAKE_ATTACH -ne '1') ($env:WPSFAKE_SAVED -ne '0')
+$global:fakeAttached = New-FakeApp 'attached' ($env:WPSFAKE_OPEN -eq '1' -and $env:WPSFAKE_ATTACH -eq '1') ($env:WPSFAKE_SAVED -ne '0')
+if ($env:WPSFAKE_ATTACH -eq '1') { [WpsAgent.Running]::Instance = $global:fakeAttached }
+function New-Object { param([string]$ComObject) Write-FakeLog 'new-object'; return $global:fakeLaunched }
 '''
 
 
@@ -107,8 +127,17 @@ class PreOpenGuardBehaviourTests(unittest.TestCase):
             patcher.start()
             self.addCleanup(patcher.stop)
 
-    def events(self):
+    def log_lines(self):
         return self.log.read_text(encoding="utf-8").split()
+
+    def events(self):
+        return [
+            line for line in self.log_lines()
+            if not line.startswith(("visible=", "alerts=", "events=", "links=", "new-object", "open"))
+        ]
+
+    def settings(self):
+        return [line for line in self.log_lines() if line.startswith(("visible=", "alerts=", "events=", "links="))]
 
     def delete_sheet(self, **env):
         with patch.dict(os.environ, env):
@@ -122,7 +151,7 @@ class PreOpenGuardBehaviourTests(unittest.TestCase):
     def test_document_opened_by_the_script_is_still_closed(self):
         result = self.delete_sheet(WPSFAKE_OPEN="0", WPSFAKE_SAVED="1")
         self.assertTrue(result["ok"], result)
-        self.assertEqual(self.events(), ["delete", "save", "close", "quit"])
+        self.assertEqual(self.events(), ["delete", "save", "close", "quit:new"])
 
     def test_open_document_with_unsaved_changes_is_refused_untouched(self):
         result = self.delete_sheet(WPSFAKE_OPEN="1", WPSFAKE_SAVED="0")

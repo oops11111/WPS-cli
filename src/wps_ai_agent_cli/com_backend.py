@@ -14,7 +14,13 @@ from .errors import (
     UNSUPPORTED_COMPONENT,
 )
 from .powershell_runner import run_powershell_script
-from .wps_script_snippets import QUIT_IF_IDLE
+from .wps_script_snippets import (
+    ACQUIRE_WPS_APP,
+    HIDE_LAUNCHED_APP,
+    PRE_OPEN_GUARD,
+    QUIET_ALERTS,
+    RELEASE_WPS_APP,
+)
 
 
 def _load_win32com() -> Any | None:
@@ -78,26 +84,30 @@ $ErrorActionPreference = 'Stop'
 $params = @'
 {params_json}
 '@ | ConvertFrom-Json
+{PRE_OPEN_GUARD}
 $app = $null
 $document = $null
 try {{
-  $app = New-Object -ComObject $params.prog_id
-  if ($app.PSObject.Properties.Name -contains 'Visible') {{
+  {ACQUIRE_WPS_APP}
+  if ($weLaunched -and ($app.PSObject.Properties.Name -contains 'Visible')) {{
     try {{ $app.Visible = [bool]$params.visible }} catch {{ }}
   }}
 
   switch ($params.component) {{
     'writer' {{
+      Assert-WpsInputNotOpen (Test-WpsPathOpen $app.Documents $params.input_path)
       $document = $app.Documents.Open($params.input_path)
       $document.SaveAs($params.output_path)
       $document.Close($false)
     }}
     'spreadsheets' {{
+      Assert-WpsInputNotOpen (Test-WpsPathOpen $app.Workbooks $params.input_path)
       $document = $app.Workbooks.Open($params.input_path)
       $document.SaveAs($params.output_path)
       $document.Close($false)
     }}
     'presentation' {{
+      Assert-WpsInputNotOpen (Test-WpsPathOpen $app.Presentations $params.input_path)
       $document = $app.Presentations.Open($params.input_path, $false, $false, [bool]$params.visible)
       $document.SaveAs($params.output_path)
       $document.Close()
@@ -131,7 +141,7 @@ try {{
     try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($document) }} catch {{ }}
   }}
   if ($app -ne $null) {{
-    try {{ {QUIT_IF_IDLE} }} catch {{ }}
+    try {{ {RELEASE_WPS_APP} }} catch {{ }}
     try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) }} catch {{ }}
   }}
   [GC]::Collect()
@@ -192,12 +202,14 @@ $ErrorActionPreference = 'Stop'
 $params = @'
 {params_json}
 '@ | ConvertFrom-Json
+{PRE_OPEN_GUARD}
 $app = $null
 $workbook = $null
 try {{
-  $app = New-Object -ComObject $params.prog_id
-  try {{ $app.Visible = $false }} catch {{ }}
-  try {{ $app.DisplayAlerts = $false }} catch {{ }}
+  {ACQUIRE_WPS_APP}
+  {HIDE_LAUNCHED_APP}
+  {QUIET_ALERTS}
+  Assert-WpsInputNotOpen (Test-WpsPathOpen $app.Workbooks $params.input_path)
   $workbook = $app.Workbooks.Open($params.input_path)
   $sheet = $workbook.Worksheets.Item(1)
   $sheet.Range("B4").Value2 = 7
@@ -241,7 +253,7 @@ try {{
     try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($workbook) }} catch {{ }}
   }}
   if ($app -ne $null) {{
-    try {{ {QUIT_IF_IDLE} }} catch {{ }}
+    try {{ {RELEASE_WPS_APP} }} catch {{ }}
     try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) }} catch {{ }}
   }}
   [GC]::Collect()
@@ -274,6 +286,7 @@ try {{
 
 _CONVERSION_PDF_SPECS: dict[str, dict[str, Any]] = {
     "writer": {
+        "collection": "Documents",
         "direction": "docx_to_pdf",
         "open": "$document = $app.Documents.Open($params.input_path)",
         "export": """
@@ -298,6 +311,7 @@ _CONVERSION_PDF_SPECS: dict[str, dict[str, Any]] = {
         ],
     },
     "spreadsheets": {
+        "collection": "Workbooks",
         "direction": "xlsx_to_pdf",
         "open": "$document = $app.Workbooks.Open($params.input_path)",
         "export": """
@@ -321,6 +335,7 @@ _CONVERSION_PDF_SPECS: dict[str, dict[str, Any]] = {
         ],
     },
     "presentation": {
+        "collection": "Presentations",
         "direction": "pptx_to_pdf",
         "open": "$document = $app.Presentations.Open($params.input_path, $false, $false, $false)",
         "export": """
@@ -397,11 +412,13 @@ $ErrorActionPreference = 'Stop'
 $params = @'
 {params_json}
 '@ | ConvertFrom-Json
+{PRE_OPEN_GUARD}
 $app = $null
 $document = $null
 try {{
-  $app = New-Object -ComObject $params.prog_id
-  try {{ $app.Visible = $false }} catch {{ }}
+  {ACQUIRE_WPS_APP}
+  {HIDE_LAUNCHED_APP}
+  Assert-WpsInputNotOpen (Test-WpsPathOpen $app.{spec["collection"]} $params.input_path)
   {spec["open"]}
   {spec["export"]}
   $exists = Test-Path $params.output_path
@@ -441,7 +458,7 @@ try {{
     try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($document) }} catch {{ }}
   }}
   if ($app -ne $null) {{
-    try {{ {QUIT_IF_IDLE} }} catch {{ }}
+    try {{ {RELEASE_WPS_APP} }} catch {{ }}
     try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) }} catch {{ }}
   }}
   [GC]::Collect()

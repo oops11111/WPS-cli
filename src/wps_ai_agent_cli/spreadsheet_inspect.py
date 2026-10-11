@@ -14,7 +14,13 @@ from .errors import COM_BACKEND_UNAVAILABLE, COM_OPERATION_FAILED, INPUT_FILE_NO
 from .powershell_runner import run_powershell_script
 from .sessions import get_document
 from .spreadsheet_ranges import validate_spreadsheet_read_range
-from .wps_script_snippets import PRE_OPEN_GUARD, QUIT_IF_IDLE
+from .wps_script_snippets import (
+    ACQUIRE_WPS_APP,
+    HIDE_LAUNCHED_APP,
+    PRE_OPEN_GUARD,
+    QUIET_ALERTS,
+    RELEASE_WPS_APP,
+)
 
 
 def _json_value(value: Any) -> Any:
@@ -99,11 +105,9 @@ $params = @'
 $app = $null
 $workbook = $null
 try {{
-  $app = New-Object -ComObject $params.prog_id
-  try {{ $app.Visible = $false }} catch {{ }}
-  try {{ $app.DisplayAlerts = $false }} catch {{ }}
-  try {{ $app.AskToUpdateLinks = $false }} catch {{ }}
-  try {{ $app.EnableEvents = $false }} catch {{ }}
+  {ACQUIRE_WPS_APP}
+  {HIDE_LAUNCHED_APP}
+  Set-WpsAppQuiet $app @('DisplayAlerts', 'AskToUpdateLinks', 'EnableEvents')
   $wpsPreOpen = Test-WpsPathOpen $app.Workbooks $params.path
   $workbook = $app.Workbooks.Open($params.path, 0, $true)
   $sheet = $workbook.Worksheets.Item($params.sheet)
@@ -137,7 +141,7 @@ try {{
   exit 2
 }} finally {{
   if ($workbook -ne $null) {{ if (-not $wpsPreOpen) {{ try {{ $workbook.Close($false) }} catch {{ }} }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($workbook) }} catch {{ }} }}
-  if ($app -ne $null) {{ try {{ {QUIT_IF_IDLE} }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) }} catch {{ }} }}
+  if ($app -ne $null) {{ try {{ {RELEASE_WPS_APP} }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) }} catch {{ }} }}
   [GC]::Collect(); [GC]::WaitForPendingFinalizers()
 }}
 """
