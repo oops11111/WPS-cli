@@ -1,3 +1,4 @@
+import contextlib
 import os
 import sys
 import tempfile
@@ -21,3 +22,14 @@ def use_temporary_cwd():
         scratch.cleanup()
 
     return restore
+
+
+@contextlib.contextmanager
+def chdir(path):
+    """contextlib.chdir is only available on Python 3.11+; the package supports 3.10."""
+    previous = os.getcwd()
+    os.chdir(path)
+    try:
+        yield
+    finally:
+        os.chdir(previous)
