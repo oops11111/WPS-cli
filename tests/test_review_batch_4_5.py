@@ -105,8 +105,9 @@ class McpServerResilienceTests(unittest.TestCase):
             responses = self.serve(
                 json.dumps(tools_call("wps_agent_plan", {})) + "\n" + json.dumps({"jsonrpc": "2.0", "id": 2, "method": "tools/list"}) + "\n"
             )
-        self.assertEqual(responses[0]["error"]["code"], -32603)
-        self.assertIn("result", responses[1])
+        by_id = {item["id"]: item for item in responses}
+        self.assertEqual(by_id[1]["error"]["code"], -32603)
+        self.assertIn("result", by_id[2])
 
     def test_notifications_never_get_a_response(self):
         self.assertIsNone(mcp_server.handle_mcp_request({"jsonrpc": "2.0", "method": "notifications/cancelled", "params": {}}))
