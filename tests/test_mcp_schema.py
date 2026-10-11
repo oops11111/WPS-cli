@@ -210,6 +210,13 @@ class McpSchemaTests(unittest.TestCase):
         self.assertIn("--output", notes)
         self.assertIn("never overwritten", notes)
 
+    def test_series_values_notes_warn_that_cell_binding_is_lost(self):
+        for name in ("wps_agent_spreadsheet_selection_replace", "wps_agent_spreadsheet_selection_delete"):
+            with self.subTest(name=name):
+                notes = " ".join(get_mcp_tool_schema(name)["safety_notes"]).lower()
+                self.assertIn("detach", notes)
+                self.assertIn("source cells", notes)
+
     def test_open_document_export_and_mutation_notes_point_to_save_open_document(self):
         export_names = (
             "wps_agent_export_open_document",

@@ -1122,6 +1122,7 @@ MCP_TOOL_SCHEMAS: tuple[dict[str, Any], ...] = (
             "Attaches to a running Spreadsheet only: never launches WPS and never Quit()s the attached instance.",
             "Requires worksheet cells (at most 100), a shape with has_text_frame, a chart with has_chart_title/has_axis_title, or a series with has_series_values; constant fill and values_json allow multi-area cells (matrix flattens row-major); shape/title text and series Values support constant --text only (series: TAB-joined, same point count); rejects geometry, shapes without TextFrame, charts without editable title/series API, unsaved (use save-open-document first), read-only, oversized, shape-mismatched, and text-mismatched selections before backup.",
             "Provide exactly one of text (constant fill) or values_json (per-cell matrix). Formula prefixes in values are rejected.",
+            "Series Values replace writes a literal array into Series.Values: a series that was bound to worksheet cells is detached from them and no longer follows later cell edits; edit the source cells instead to keep the link.",
         ],
     ),
     _tool(
@@ -1144,6 +1145,7 @@ MCP_TOOL_SCHEMAS: tuple[dict[str, Any], ...] = (
             "Attaches to a running Spreadsheet only: never launches WPS and never Quit()s the attached instance.",
             "Requires worksheet cells (at most 100) with display text/formula, a shape TextFrame with text, a chart ChartTitle/AxisTitle with text, or a series with Values; rejects geometry, shapes without TextFrame, charts without editable title/series API, unsaved (use save-open-document first), read-only, empty, oversized, and text-mismatched selections before backup.",
             "Cell ClearContents removes values and formulas; series delete clears Values to empty points; number formats are left as WPS leaves them. The user's selection is not restored.",
+            "Series delete writes literal empty Values, which detaches a cell-bound series from its worksheet range; clear the source cells instead to keep the link.",
         ],
     ),
     _tool(
