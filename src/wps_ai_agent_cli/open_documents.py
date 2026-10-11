@@ -2961,6 +2961,19 @@ def _validate_text(text: str, label: str) -> dict[str, str] | None:
     return None
 
 
+FORMULA_PREFIXES = ("=", "+", "-", "@")
+
+
+def _formula_prefix_error(text: str, label: str) -> dict[str, str] | None:
+    """Cell text starting with a formula trigger would be evaluated by WPS; formulas need their own command."""
+    if text.startswith(FORMULA_PREFIXES):
+        return {
+            "code": "FORMULA_PREFIX_REJECTED",
+            "message": f"{label} starts with {text[0]!r}; use spreadsheet-formula-write for formulas.",
+        }
+    return None
+
+
 def _validate_spreadsheet_expected_text(text: str, label: str) -> dict[str, str] | None:
     """Like _validate_text, but TAB is allowed as the multi-cell sample delimiter."""
     if len(text) > MAX_SELECTION_CHARS:
@@ -3010,14 +3023,9 @@ def _parse_selection_values_matrix(values: Any) -> tuple[list[list[str | None]] 
             invalid = _validate_text(text, f"values_json cell ({row_index + 1},{column_index + 1})")
             if invalid:
                 return None, invalid
-            if text.startswith(("=", "+", "-", "@")):
-                return None, {
-                    "code": "FORMULA_PREFIX_REJECTED",
-                    "message": (
-                        f"values_json cell ({row_index + 1},{column_index + 1}) starts with {text[0]!r}; "
-                        "use spreadsheet-formula-write for formulas."
-                    ),
-                }
+            prefix_error = _formula_prefix_error(text, f"values_json cell ({row_index + 1},{column_index + 1})")
+            if prefix_error:
+                return None, prefix_error
             normalized_row.append(text)
         matrix.append(normalized_row)
     return matrix, None
@@ -4357,6 +4365,11 @@ def replace_spreadsheet_selection(
                 + "; values_json matrix fill is for worksheet cells."
             ),
         }], False
+
+    if fill_mode == "constant" and not (is_shape_text or is_chart_title or is_axis_title or is_series_values):
+        prefix_error = _formula_prefix_error(replacement_text, "Replacement text")
+        if prefix_error:
+            return False, {"selection": selection}, [prefix_error], False
 
     if is_series_values:
         assert replacement_text is not None
