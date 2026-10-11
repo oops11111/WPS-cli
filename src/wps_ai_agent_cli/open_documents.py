@@ -2990,6 +2990,32 @@ def _cell_text_matches(actual: str, expected: str) -> bool:
     return False
 
 
+_THOUSANDS_NUMBER = re.compile(r"[+-]?\d{1,3}(?:,\d{3})+(?:\.\d*)?")
+
+
+def _series_number(text: str) -> float | None:
+    if _PLAIN_NUMBER.fullmatch(text):
+        return float(text)
+    if _THOUSANDS_NUMBER.fullmatch(text):
+        return float(text.replace(",", ""))
+    return None
+
+
+def _series_values_match(actual: str, expected: str) -> bool:
+    """Point-wise match of TAB-joined series values; WPS stores numeric text such as "10.0" or "1,234" as numbers."""
+    actual_points = actual.split("\t")
+    expected_points = expected.split("\t")
+    if len(actual_points) != len(expected_points):
+        return False
+    for got, want in zip(actual_points, expected_points):
+        if got == want:
+            continue
+        got_number, want_number = _series_number(got), _series_number(want)
+        if got_number is None or want_number is None or got_number != want_number:
+            return False
+    return True
+
+
 def _formula_prefix_error(text: str, label: str) -> dict[str, str] | None:
     """Cell text starting with a formula trigger would be evaluated by WPS; formulas need their own command.
 
@@ -4566,7 +4592,9 @@ def replace_spreadsheet_selection(
         return False, {"preview": preview, "backup": backup_result, "write": payload}, [status_error], False
 
     read_back_text = str(payload.get("read_back_text") if payload.get("read_back_text") is not None else "")
-    if object_text_mode:
+    if is_series_values:
+        cells_matched = _series_values_match(read_back_text, replacement_text)
+    elif object_text_mode:
         cells_matched = read_back_text == replacement_text
     else:
         cells_matched = bool(payload.get("cells_matched")) if "cells_matched" in payload else (

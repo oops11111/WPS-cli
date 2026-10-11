@@ -1173,6 +1173,45 @@ class SpreadsheetSelectionReplaceTests(unittest.TestCase):
         self.assertEqual(data["read_back_text"], "30\t40")
         self.assertIn("Series.Values", data["note"])
 
+    def test_series_values_read_back_is_compared_numerically(self):
+        for current, text, read_back, expected_ok in (
+            ("10\t20", "10.0\t020", "10\t20", True),
+            ("10\t20", "1,234\t5", "1234\t5", True),
+            ("10\t20", "-1.50\t+2", "-1.5\t2", True),
+            ("a\tb", "x\ty", "x\ty", True),
+            ("10\t20", "30\t40", "30\t41", False),
+            ("10\t20", "30\tabc", "30\t0", False),
+            ("10\t20", "30\t40", "30", False),
+        ):
+            with self.subTest(text=text, read_back=read_back):
+                fixture = Fixture(self, component="spreadsheets")
+                payload = self._cell_selection(
+                    text=current, selection_kind="non_range", address=None, cell_count=0,
+                    area_count=0, object_kind="chart", object_name="Chart 1",
+                    has_series_values=True,
+                )
+
+                def fake(action, params, payload=payload, read_back=read_back):
+                    if action == "selection-read":
+                        return com_ok(payload)
+                    return com_ok({
+                        "ok": True, "status": "ok", "backend": "powershell-com",
+                        "object_kind": "chart", "object_name": "Chart 1",
+                        "cells_matched": False, "read_back_text": read_back,
+                    })
+
+                with patch.object(open_documents, "_run_spreadsheet_attached_com", side_effect=fake), \
+                        patch.object(open_documents, "create_backup",
+                                     return_value=(True, {"created": True, "backup_path": "b.xlsx"}, [], False)), \
+                        patch.object(open_documents, "guarded_com_mutation", side_effect=lambda path, backup, fn: fn()), \
+                        patch.object(open_documents, "verify_post_com_source", return_value=None):
+                    ok, data, errors, _replayed = replace_spreadsheet_selection(
+                        fixture.document_id, text, request_id="xlsx-series-num",
+                        workspace=fixture.workspace,
+                    )
+                self.assertEqual(ok, expected_ok, (data.get("validation_passed"), errors))
+                self.assertEqual(data["validation_passed"], expected_ok)
+
     def test_series_values_rejects_length_mismatch_before_backup(self):
         fixture = Fixture(self, component="spreadsheets")
         payload = self._cell_selection(
