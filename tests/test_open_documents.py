@@ -1437,6 +1437,51 @@ class SpreadsheetSelectionReplaceTests(unittest.TestCase):
         self.assertIn("save-open-document", errors[0]["message"])
         backup.assert_not_called()
 
+    def _single_cell_write(self, fixture, replacement, read_back, request_id):
+        def fake_com(action, params):
+            if action == "selection-read":
+                return com_ok(self._cell_selection())
+            return com_ok({
+                "ok": True, "status": "ok", "backend": "powershell-com", "address": "$A$1",
+                "cell_count": 1, "area_count": 1, "cells_matched": False, "read_back_text": read_back,
+            })
+
+        with patch.object(open_documents, "_run_spreadsheet_attached_com", side_effect=fake_com), \
+                patch.object(open_documents, "create_backup", return_value=(True, {"created": True, "backup_path": "keep/b.xlsx"}, [], False)), \
+                patch.object(open_documents, "guarded_com_mutation", side_effect=lambda path, backup, fn: fn()), \
+                patch.object(open_documents, "verify_post_com_source", return_value=None), \
+                patch.object(open_documents, "record_operation"):
+            return replace_spreadsheet_selection(
+                fixture.document_id, replacement, request_id=request_id, workspace=fixture.workspace,
+            )
+
+    def test_numeric_text_normalised_by_wps_still_validates(self):
+        for replacement, read_back in (("00123", "123"), ("1.0", "1"), ("+7", "7"), ("2.50", "2.5")):
+            with self.subTest(replacement=replacement):
+                fixture = Fixture(self, component="spreadsheets")
+                ok, data, errors, _replayed = self._single_cell_write(
+                    fixture, replacement, read_back, f"xlsx-num-{replacement}",
+                )
+                self.assertTrue(ok, errors)
+                self.assertTrue(data["validation_passed"])
+
+    def test_real_mismatch_still_fails_and_points_at_the_backup(self):
+        fixture = Fixture(self, component="spreadsheets")
+        ok, data, errors, _replayed = self._single_cell_write(fixture, "NEW", "OLD", "xlsx-mismatch")
+        self.assertFalse(ok)
+        self.assertEqual(errors[0]["code"], "VALIDATION_FAILED")
+        self.assertIn("keep/b.xlsx", errors[0]["message"])
+        self.assertIn("restore-backup", errors[0]["message"])
+        self.assertFalse(data["validation_passed"])
+
+    def test_cell_text_matches_only_equal_plain_numbers(self):
+        matches = open_documents._cell_text_matches
+        self.assertTrue(matches("x", "x"))
+        self.assertTrue(matches("1e3", "1000"))
+        self.assertFalse(matches("12", "13"))
+        self.assertFalse(matches("1,234", "1234"))
+        self.assertFalse(matches("abc", "abd"))
+
     def test_multi_area_constant_fill_validates_cells_matched(self):
         fixture = Fixture(self, component="spreadsheets")
         read_payload = self._cell_selection(

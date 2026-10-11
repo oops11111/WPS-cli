@@ -2463,6 +2463,17 @@ _SPREADSHEET_SERIES_VALUES_DELETE_BODY = """
 """
 
 _SPREADSHEET_SELECTION_REPLACE_BODY = """
+  function Test-CellTextMatch([string]$actual, [string]$expected) {
+    if ($actual -ceq $expected) { return $true }
+    $parsedActual = 0.0
+    $parsedExpected = 0.0
+    $culture = [System.Globalization.CultureInfo]::InvariantCulture
+    $styles = [System.Globalization.NumberStyles]::Float
+    if ([double]::TryParse($actual, $styles, $culture, [ref]$parsedActual) -and [double]::TryParse($expected, $styles, $culture, [ref]$parsedExpected)) {
+      return ($parsedActual -eq $parsedExpected)
+    }
+    return $false
+  }
   if (-not [bool]$doc.Saved) {
     [pscustomobject]@{ ok = $true; status = 'unsaved' } | ConvertTo-Json -Depth 5
     exit 0
@@ -2594,7 +2605,7 @@ _SPREADSHEET_SELECTION_REPLACE_BODY = """
         $expected = $flatValues[$index]
         $expectedText = if ($null -eq $expected) { '' } else { [string]$expected }
         $readParts.Add($cellText)
-        if ($cellText -cne $expectedText) { $allMatch = $false }
+        if (-not (Test-CellTextMatch $cellText $expectedText)) { $allMatch = $false }
         $index++
       }
     }
@@ -2607,7 +2618,7 @@ _SPREADSHEET_SELECTION_REPLACE_BODY = """
         try { $cellText = [string]$cell.Text } catch { }
         if ($index -eq 0) { $readBack = $cellText }
         $readParts.Add($cellText)
-        if ($cellText -cne $replacement) { $allMatch = $false }
+        if (-not (Test-CellTextMatch $cellText $replacement)) { $allMatch = $false }
         $index++
       }
     }
@@ -2965,6 +2976,15 @@ def _validate_text(text: str, label: str) -> dict[str, str] | None:
 
 FORMULA_PREFIXES = ("=", "+", "-", "@")
 _PLAIN_NUMBER = re.compile(r"[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?")
+
+
+def _cell_text_matches(actual: str, expected: str) -> bool:
+    """Exact match, or the same plain number: WPS stores "00123"/"1.0" as 123/1 and displays them normalised."""
+    if actual == expected:
+        return True
+    if _PLAIN_NUMBER.fullmatch(actual) and _PLAIN_NUMBER.fullmatch(expected):
+        return float(actual) == float(expected)
+    return False
 
 
 def _formula_prefix_error(text: str, label: str) -> dict[str, str] | None:
@@ -4542,10 +4562,10 @@ def replace_spreadsheet_selection(
         cells_matched = read_back_text == replacement_text
     else:
         cells_matched = bool(payload.get("cells_matched")) if "cells_matched" in payload else (
-            fill_mode == "constant" and cell_count == 1 and read_back_text == replacement_text
+            fill_mode == "constant" and cell_count == 1 and _cell_text_matches(read_back_text, replacement_text)
         )
         if fill_mode == "constant" and cell_count == 1:
-            cells_matched = read_back_text == replacement_text
+            cells_matched = _cell_text_matches(read_back_text, replacement_text)
     validation_passed = cells_matched
     if is_series_values:
         note = (
@@ -4597,7 +4617,14 @@ def replace_spreadsheet_selection(
         return False, result, [post_error], False
     if not validation_passed:
         return False, result, [
-            {"code": "VALIDATION_FAILED", "message": "Selection replacement read-back did not match the replacement values."}
+            {
+                "code": "VALIDATION_FAILED",
+                "message": (
+                    "Selection replacement read-back did not match the replacement values. "
+                    "The write was already saved by WPS; the pre-write backup is at "
+                    f"{backup_result.get('backup_path')} (restore it with restore-backup if the result is wrong)."
+                ),
+            }
         ], False
 
     record_operation(request_id, "spreadsheet-selection-replace", result, workspace)
