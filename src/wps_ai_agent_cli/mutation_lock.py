@@ -142,6 +142,13 @@ class document_mutation_lock:
                 self.stream = None
 
 
+def _operation_record_error(exc: OperationRecordError) -> dict[str, str]:
+    return {
+        "code": "OPERATION_RECORD_FAILED",
+        "message": f"{exc}. The change itself was already applied; run mutation-request-inspect for this request id and inspect the document and its backup before retrying.",
+    }
+
+
 def coordinated_mutation(operation: Callable[..., Any]) -> Callable[..., Any]:
     signature = inspect.signature(operation)
 
@@ -165,10 +172,7 @@ def coordinated_mutation(operation: Callable[..., Any]) -> Callable[..., Any]:
             data = {"document_id": document_id, "mutation_applied": True}
             if request_id is not None:
                 data["request_id"] = request_id
-            return False, data, [{
-                "code": "OPERATION_RECORD_FAILED",
-                "message": f"{exc}. The change itself was already applied; run mutation-request-inspect for this request id and inspect the document and its backup before retrying.",
-            }], False
+            return False, data, [_operation_record_error(exc)], False
 
     return wrapped
 
@@ -188,5 +192,7 @@ def coordinated_request(operation: Callable[..., Any]) -> Callable[..., Any]:
                 return operation(*args, **kwargs)
         except DocumentBusyError as exc:
             return False, {"request_id": request_id}, [{"code": "DOCUMENT_BUSY", "message": str(exc)}], False
+        except OperationRecordError as exc:
+            return False, {"request_id": request_id, "mutation_applied": True}, [_operation_record_error(exc)], False
 
     return wrapped
