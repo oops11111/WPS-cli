@@ -49,7 +49,11 @@ pip install -e ".[test]"
 PYTHONPATH=src python3 -m unittest discover -s tests
 ```
 
-在没有 WPS 的环境中，依赖 COM 的用例会被跳过。要运行 PowerShell 假 COM 对象用例，设置 `WPS_TEST_PWSH` 指向 `pwsh` 可执行文件。
+必须先安装 `test` extra（`python-docx`、`Pillow`、`pypdfium2`、`openpyxl`、`python-pptx`）；缺少这些依赖时，相关测试模块会在导入阶段报错，而不是被跳过。
+
+在没有 WPS 的环境中，依赖 COM 的用例会被跳过。要运行 PowerShell 假 COM 对象用例和生成脚本的语法检查，设置 `WPS_TEST_PWSH` 指向 `pwsh` 可执行文件（PowerShell 7 即可，Linux/macOS/Windows 均可）。
+
+持续集成见 `.github/workflows/tests.yml`：Python 3.10 与 3.12 各跑一遍完整单测，另有一个带 `pwsh` 的任务运行假 COM 用例；真实 WPS 回归需要交互式 Windows 运行器，见 [docs/REGRESSION_CI_HANDOFF.md](docs/REGRESSION_CI_HANDOFF.md)。
 
 ## 目录
 
