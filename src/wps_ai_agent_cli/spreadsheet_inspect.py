@@ -14,7 +14,13 @@ from .errors import COM_BACKEND_UNAVAILABLE, COM_OPERATION_FAILED, INPUT_FILE_NO
 from .powershell_runner import run_powershell_script
 from .sessions import get_document
 from .spreadsheet_ranges import validate_spreadsheet_read_range
-from .wps_script_snippets import PRE_OPEN_GUARD, QUIT_IF_IDLE
+from .wps_script_snippets import (
+    ACQUIRE_WPS_APP,
+    HIDE_LAUNCHED_APP,
+    PRE_OPEN_GUARD,
+    QUIET_ALERTS,
+    RELEASE_WPS_APP,
+)
 
 
 def _json_value(value: Any) -> Any:
@@ -99,15 +105,16 @@ $params = @'
 $app = $null
 $workbook = $null
 try {{
-  $app = New-Object -ComObject $params.prog_id
-  try {{ $app.Visible = $false }} catch {{ }}
-  try {{ $app.DisplayAlerts = $false }} catch {{ }}
-  try {{ $app.AskToUpdateLinks = $false }} catch {{ }}
-  try {{ $app.EnableEvents = $false }} catch {{ }}
+  {ACQUIRE_WPS_APP}
+  {HIDE_LAUNCHED_APP}
+  Set-WpsAppQuiet $app @('DisplayAlerts', 'AskToUpdateLinks', 'EnableEvents')
   $wpsPreOpen = Test-WpsPathOpen $app.Workbooks $params.path
-  $workbook = $app.Workbooks.Open($params.path, 0, $true)
+  $workbook = Open-WpsDocument $app.Workbooks $params.path $wpsPreOpen $true
   $sheet = $workbook.Worksheets.Item($params.sheet)
-  try {{ $app.CalculateFullRebuild() }} catch {{ $app.CalculateFull() }}
+  $fullRecalculation = [bool]$weLaunched
+  if ($fullRecalculation) {{
+    try {{ $app.CalculateFullRebuild() }} catch {{ $app.CalculateFull() }}
+  }}
   $cells = @()
   for ($r = 0; $r -lt [int]$params.row_count; $r++) {{
     for ($c = 0; $c -lt [int]$params.column_count; $c++) {{
@@ -131,13 +138,13 @@ try {{
       }}
     }}
   }}
-  [pscustomobject]@{{ ok = $true; backend = 'powershell-com'; prog_id = $params.prog_id; sheet = $sheet.Name; cells = $cells }} | ConvertTo-Json -Depth 8 -Compress
+  [pscustomobject]@{{ ok = $true; backend = 'powershell-com'; prog_id = $params.prog_id; sheet = $sheet.Name; full_recalculation = $fullRecalculation; cells = $cells }} | ConvertTo-Json -Depth 8 -Compress
 }} catch {{
   [pscustomobject]@{{ ok = $false; backend = 'powershell-com'; error_type = $_.Exception.GetType().FullName; error_message = $_.Exception.Message; position = $_.InvocationInfo.PositionMessage }} | ConvertTo-Json -Depth 5 -Compress
   exit 2
 }} finally {{
   if ($workbook -ne $null) {{ if (-not $wpsPreOpen) {{ try {{ $workbook.Close($false) }} catch {{ }} }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($workbook) }} catch {{ }} }}
-  if ($app -ne $null) {{ try {{ {QUIT_IF_IDLE} }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) }} catch {{ }} }}
+  if ($app -ne $null) {{ try {{ {RELEASE_WPS_APP} }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) }} catch {{ }} }}
   [GC]::Collect(); [GC]::WaitForPendingFinalizers()
 }}
 """
@@ -153,6 +160,7 @@ try {{
     if isinstance(raw_live_cells, dict):
         raw_live_cells = [raw_live_cells]
     live_cells = {item["address"].replace("$", ""): item for item in raw_live_cells}
+    recalculated_in_memory = bool(payload.get("full_recalculation", True))
     result_cells = []
     for saved in cells:
         live = live_cells.get(saved["address"], {})
@@ -165,13 +173,22 @@ try {{
             "displayed_text": live.get("displayed_text"),
             "wps_formula": live.get("formula"),
             "formula_matches_file": live.get("formula") == saved["formula"],
-            "cache_matches_recalculated": _cache_matches(cached, recalculated, workbook_epoch) if saved["formula"] else None,
+            "cache_matches_recalculated": (
+                _cache_matches(cached, recalculated, workbook_epoch) if saved["formula"] and recalculated_in_memory else None
+            ),
         })
     result = {
         "document_id": document_id, "component": "spreadsheets", "path": str(path),
         "backend": payload.get("backend"), "sheet": selected_sheet, "range": range_address,
-        "read_only": True, "saved": False, "calculation_performed_in_memory": True,
+        "read_only": True, "saved": False, "calculation_performed_in_memory": recalculated_in_memory,
         "cells": result_cells,
-        "cache_mismatch_count": sum(item["cache_matches_recalculated"] is False for item in result_cells),
+        "cache_mismatch_count": (
+            sum(item["cache_matches_recalculated"] is False for item in result_cells) if recalculated_in_memory else None
+        ),
     }
+    if not recalculated_in_memory:
+        result["recalculation_skipped_reason"] = (
+            "Attached to a running WPS instance: a full rebuild recalculates every open workbook and can mark the user's "
+            "documents as modified, so it was skipped. Values are what WPS currently shows; the saved cache was not compared."
+        )
     return True, result, []

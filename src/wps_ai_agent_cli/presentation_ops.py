@@ -12,7 +12,13 @@ from .mutation_lock import coordinated_mutation
 from .operations import record_operation, replay_operation
 from .presentation_text import PresentationStructureError, count_text_in_pptx, pptx_slide_texts, pptx_text_objects
 from .sessions import get_document
-from .wps_script_snippets import PRE_OPEN_GUARD, QUIT_IF_IDLE
+from .wps_script_snippets import (
+    ACQUIRE_WPS_APP,
+    HIDE_LAUNCHED_APP,
+    PRE_OPEN_GUARD,
+    QUIET_ALERTS,
+    RELEASE_WPS_APP,
+)
 
 
 def _run_presentation_replace_com(
@@ -52,11 +58,12 @@ $params = @'
 $app = $null
 $presentation = $null
 try {{
-  $app = New-Object -ComObject $params.prog_id
-  try {{ $app.Visible = $false }} catch {{ }}
+  {ACQUIRE_WPS_APP}
+  {HIDE_LAUNCHED_APP}
   $wpsPreOpen = Test-WpsPathOpen $app.Presentations $params.path
-  $presentation = $app.Presentations.Open($params.path, $false, $false, $false)
-  Assert-WpsPreOpenSaved $wpsPreOpen $presentation
+  Assert-WpsPresentationNotOpen $wpsPreOpen
+  Assert-WpsSingleInstance $params.prog_id
+  $presentation = $app.Presentations.Open((ConvertTo-WpsLocalPath $params.path), $false, $false, $false)
   $findText = [string]$params.find_text
   $replaceText = [string]$params.replace_text
   $script:replaceCount = 0
@@ -173,7 +180,7 @@ try {{
     try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($presentation) }} catch {{ }}
   }}
   if ($app -ne $null) {{
-    try {{ {QUIT_IF_IDLE} }} catch {{ }}
+    try {{ {RELEASE_WPS_APP} }} catch {{ }}
     try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) }} catch {{ }}
   }}
   [GC]::Collect()

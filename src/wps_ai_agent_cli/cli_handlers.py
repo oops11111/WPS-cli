@@ -342,27 +342,27 @@ def build_command_handlers(cli: Any) -> dict[str, Callable[[argparse.Namespace, 
         return response
 
     def _handle_spreadsheet_rename_sheet(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
-        response = cli._with_optional_task_status(lambda: cli.spreadsheet_rename_sheet_response(request_id, document_id=args.document_id, old_name=args.old_name, new_name=args.new_name, dry_run=args.dry_run), task_id=args.task_id, tracked_command='spreadsheet-rename-sheet')
+        response = cli._with_optional_task_status(lambda: cli.spreadsheet_rename_sheet_response(request_id, document_id=args.document_id, old_name=args.old_name, new_name=args.new_name, dry_run=args.dry_run), task_id=args.task_id, tracked_command='spreadsheet-rename-sheet', operation_request_id=request_id, document_id=args.document_id)
         return response
 
     def _handle_spreadsheet_create_sheet(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
-        response = cli._with_optional_task_status(lambda: cli.spreadsheet_create_sheet_response(request_id, args.document_id, args.name, args.index, args.dry_run), task_id=args.task_id, tracked_command='spreadsheet-create-sheet')
+        response = cli._with_optional_task_status(lambda: cli.spreadsheet_create_sheet_response(request_id, args.document_id, args.name, args.index, args.dry_run), task_id=args.task_id, tracked_command='spreadsheet-create-sheet', operation_request_id=request_id, document_id=args.document_id)
         return response
 
     def _handle_spreadsheet_set_sheet_visibility(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
-        response = cli._with_optional_task_status(lambda: cli.spreadsheet_set_sheet_visibility_response(request_id, args.document_id, args.sheet_name, args.visible == 'true', args.dry_run), task_id=args.task_id, tracked_command='spreadsheet-set-sheet-visibility')
+        response = cli._with_optional_task_status(lambda: cli.spreadsheet_set_sheet_visibility_response(request_id, args.document_id, args.sheet_name, args.visible == 'true', args.dry_run), task_id=args.task_id, tracked_command='spreadsheet-set-sheet-visibility', operation_request_id=request_id, document_id=args.document_id)
         return response
 
     def _handle_spreadsheet_delete_sheet(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
-        response = cli._with_optional_task_status(lambda: cli.spreadsheet_delete_sheet_response(request_id, args.document_id, args.sheet_name, args.dry_run), task_id=args.task_id, tracked_command='spreadsheet-delete-sheet')
+        response = cli._with_optional_task_status(lambda: cli.spreadsheet_delete_sheet_response(request_id, args.document_id, args.sheet_name, args.dry_run), task_id=args.task_id, tracked_command='spreadsheet-delete-sheet', operation_request_id=request_id, document_id=args.document_id)
         return response
 
     def _handle_spreadsheet_copy_sheet(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
-        response = cli._with_optional_task_status(lambda: cli.spreadsheet_copy_sheet_response(request_id, args.document_id, args.source_name, args.new_name, args.index, args.dry_run), task_id=args.task_id, tracked_command='spreadsheet-copy-sheet')
+        response = cli._with_optional_task_status(lambda: cli.spreadsheet_copy_sheet_response(request_id, args.document_id, args.source_name, args.new_name, args.index, args.dry_run), task_id=args.task_id, tracked_command='spreadsheet-copy-sheet', operation_request_id=request_id, document_id=args.document_id)
         return response
 
     def _handle_spreadsheet_set_sheet_tab_color(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
-        response = cli._with_optional_task_status(lambda: cli.spreadsheet_set_sheet_tab_color_response(request_id, args.document_id, args.sheet_name, args.color, args.dry_run), task_id=args.task_id, tracked_command='spreadsheet-set-sheet-tab-color')
+        response = cli._with_optional_task_status(lambda: cli.spreadsheet_set_sheet_tab_color_response(request_id, args.document_id, args.sheet_name, args.color, args.dry_run), task_id=args.task_id, tracked_command='spreadsheet-set-sheet-tab-color', operation_request_id=request_id, document_id=args.document_id)
         return response
 
     def _handle_spreadsheet_inspect(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:

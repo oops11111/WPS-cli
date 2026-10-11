@@ -61,6 +61,21 @@ def run_powershell_file(
     )
 
 
+SCRIPT_WARNING_PREFIX = "WPS_AGENT_WARNING:"
+
+
+def _script_warnings(stderr: str | None) -> list[str]:
+    """Collect non-fatal notices a script wrote to stderr; stdout stays a single JSON document."""
+    found: list[str] = []
+    for line in (stderr or "").splitlines():
+        line = line.strip()
+        if line.startswith(SCRIPT_WARNING_PREFIX):
+            message = line[len(SCRIPT_WARNING_PREFIX):].strip()
+            if message and message not in found:
+                found.append(message)
+    return found
+
+
 def run_powershell_script(
     script: str,
     timeout_seconds: int = 120,
@@ -131,4 +146,7 @@ def run_powershell_script(
             "errors": [{"code": COM_OPERATION_FAILED, "message": message}],
             "data": {"backend": "powershell-com", **(failure_data or {}), "diagnostic": payload},
         }
+    warnings = _script_warnings(completed.stderr)
+    if warnings:
+        payload["warnings"] = [*(payload.get("warnings") or []), *warnings]
     return payload, None
