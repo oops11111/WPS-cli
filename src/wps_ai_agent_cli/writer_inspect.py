@@ -11,6 +11,13 @@ from .sessions import get_document
 from .writer_structure import read_supported_bookmark_text, read_writer_structure
 
 
+def _file_sha256(stream) -> str:
+    digest = hashlib.sha256()
+    for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+        digest.update(chunk)
+    return digest.hexdigest()
+
+
 def inspect_writer_structure(
     document_id: str, limit: int = 50, workspace: str | Path = ".",
     section: str = "all", offset: int = 0, bookmark_name: str | None = None,
@@ -41,7 +48,7 @@ def inspect_writer_structure(
         return False, {}, [{"code": "INPUT_FILE_NOT_FOUND", "message": f"Input file not found: {path}"}]
     try:
         with path.open("rb") as stream:
-            digest = hashlib.file_digest(stream, "sha256").hexdigest()
+            digest = _file_sha256(stream)
         if expected_sha256 is not None and digest.lower() != expected_sha256.lower():
             return False, {}, [{"code": "WRITER_SOURCE_CHANGED", "message": "Document hash differs from the requested page source."}]
         structure = read_writer_structure(path)
@@ -51,7 +58,7 @@ def inspect_writer_structure(
         if len(value_matches) == 1 and value_matches[0]["text_range_supported"]:
             _, bookmark_text = read_supported_bookmark_text(path, bookmark_name)
         with path.open("rb") as stream:
-            after_digest = hashlib.file_digest(stream, "sha256").hexdigest()
+            after_digest = _file_sha256(stream)
         if digest != after_digest:
             return False, {}, [{"code": "WRITER_SOURCE_CHANGED", "message": "Document changed during structure inspection."}]
     except (BadZipFile, KeyError, ET.ParseError, ValueError, OSError) as exc:

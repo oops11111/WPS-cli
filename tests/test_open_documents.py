@@ -339,6 +339,29 @@ class SelectionReplaceTests(unittest.TestCase):
         self.assertEqual(errors[0]["code"], "COM_OPERATION_TIMEOUT")
 
 
+class Utf16SelectionLengthTests(unittest.TestCase):
+    def selection(self, text, length):
+        return {
+            "selection_text": text, "selection_length": length, "collapsed": False,
+            "selection_text_truncated": False,
+        }
+
+    def test_astral_characters_count_as_two_utf16_units(self):
+        self.assertEqual(open_documents._utf16_length("a"), 1)
+        self.assertEqual(open_documents._utf16_length("\U0001F600"), 2)
+        self.assertEqual(open_documents._utf16_length("a\U0001F600b"), 4)
+
+    def test_emoji_selection_is_replaceable_when_wps_reports_utf16_length(self):
+        text = "ok \U0001F600"
+        self.assertIsNone(open_documents._check_replaceable_selection(self.selection(text, 5), None))
+
+    def test_length_mismatch_still_flags_non_text_objects(self):
+        problem = open_documents._check_replaceable_selection(self.selection("abc", 4), None)
+        self.assertEqual(problem["code"], "SELECTION_SPANS_STRUCTURE")
+        problem = open_documents._check_replaceable_selection(self.selection("\U0001F600", 1), None)
+        self.assertEqual(problem["code"], "SELECTION_SPANS_STRUCTURE")
+
+
 class ExportOpenDocumentTests(unittest.TestCase):
     def export(self, fixture, output, request_id="exp-1"):
         return export_open_document_html(
@@ -374,6 +397,81 @@ class ExportOpenDocumentTests(unittest.TestCase):
             self.assertTrue(ok)
             self.assertTrue(replayed)
             self.assertEqual(again["output"], data["output"])
+
+    def test_companion_directories_are_found_for_output_names_with_glob_characters(self):
+        fixture = Fixture(self)
+        output = Path(fixture.tmp.name) / "report[1].html"
+        decoy = Path(fixture.tmp.name) / "report1-decoy"
+        decoy.mkdir()
+        with patch.object(open_documents, "_run_writer_attached_com", side_effect=self.fake_export(output)):
+            ok, data, errors, _replayed = self.export(fixture, output, request_id="exp-glob")
+        self.assertTrue(ok, errors)
+        self.assertEqual(
+            [Path(item).name for item in data["companion_directories"]],
+            ["report[1].files"],
+        )
+
+    def test_failed_export_removes_partial_output_and_allows_retry_with_same_request(self):
+        fixture = Fixture(self, component="presentation")
+        output = Path(fixture.tmp.name) / "deck.html"
+        unrelated = Path(fixture.tmp.name) / "other-notes.txt"
+        unrelated.write_text("keep", encoding="utf-8")
+        calls = []
+
+        def flaky(action, params):
+            calls.append(action)
+            Path(params["output"]).write_bytes(b"PK\x03\x04not-html" if len(calls) == 1 else b"<html></html>")
+            Path(params["output"]).with_name("deck.files").mkdir(exist_ok=True)
+            return com_ok({"ok": True, "status": "ok", "export_method": "SaveCopyAsHtml", "source_still_open": True})
+
+        with patch.object(open_documents, "_run_presentation_attached_com", side_effect=flaky):
+            ok, data, errors, _ = self.export(fixture, output, request_id="exp-retry")
+            self.assertFalse(ok)
+            self.assertEqual(errors[0]["code"], "EXPORT_OUTPUT_NOT_HTML")
+            self.assertFalse(output.exists())
+            self.assertFalse((output.parent / "deck.files").exists())
+            self.assertEqual(sorted(Path(item).name for item in data["partial_output_removed"]), ["deck.files", "deck.html"])
+            self.assertTrue(unrelated.exists())
+
+            ok, data, errors, _ = self.export(fixture, output, request_id="exp-retry")
+        self.assertTrue(ok, errors)
+        self.assertTrue(output.exists())
+
+    def test_existing_output_is_never_removed_by_failure_cleanup(self):
+        fixture = Fixture(self)
+        output = Path(fixture.tmp.name) / "precious.html"
+        output.write_text("<html>mine</html>", encoding="utf-8")
+        with patch.object(open_documents, "_run_writer_attached_com") as com:
+            ok, _data, errors, _ = self.export(fixture, output, request_id="exp-existing")
+        self.assertFalse(ok)
+        self.assertEqual(errors[0]["code"], "OUTPUT_EXISTS")
+        com.assert_not_called()
+        self.assertEqual(output.read_text(encoding="utf-8"), "<html>mine</html>")
+
+    def test_com_failure_removes_partial_output_for_every_export_kind(self):
+        exporters = (
+            (open_documents.export_open_document_html, "out.html"),
+            (open_documents.export_open_document_pdf, "out.pdf"),
+            (open_documents.export_open_document_copy, "out.docx"),
+            (open_documents.export_open_document_text, "out.txt"),
+        )
+        for exporter, name in exporters:
+            with self.subTest(exporter=exporter.__name__):
+                fixture = Fixture(self)
+                output = Path(fixture.tmp.name) / name
+
+                def broken(action, params):
+                    Path(params["output"]).write_bytes(b"half")
+                    return com_ok({"ok": False, "error_message": "boom"})
+
+                with patch.object(open_documents, "_run_writer_attached_com", side_effect=broken):
+                    ok, _data, errors, _ = exporter(
+                        document_id=fixture.document_id, output=str(output), request_id="exp-com-fail",
+                        workspace=fixture.workspace,
+                    )
+                self.assertFalse(ok)
+                self.assertEqual(errors[0]["code"], "COM_OPERATION_FAILED")
+                self.assertFalse(output.exists())
 
     def test_exports_open_presentation_via_save_copy_as(self):
         fixture = Fixture(self, component="presentation")
@@ -1075,6 +1173,45 @@ class SpreadsheetSelectionReplaceTests(unittest.TestCase):
         self.assertEqual(data["read_back_text"], "30\t40")
         self.assertIn("Series.Values", data["note"])
 
+    def test_series_values_read_back_is_compared_numerically(self):
+        for current, text, read_back, expected_ok in (
+            ("10\t20", "10.0\t020", "10\t20", True),
+            ("10\t20", "1,234\t5", "1234\t5", True),
+            ("10\t20", "-1.50\t+2", "-1.5\t2", True),
+            ("a\tb", "x\ty", "x\ty", True),
+            ("10\t20", "30\t40", "30\t41", False),
+            ("10\t20", "30\tabc", "30\t0", False),
+            ("10\t20", "30\t40", "30", False),
+        ):
+            with self.subTest(text=text, read_back=read_back):
+                fixture = Fixture(self, component="spreadsheets")
+                payload = self._cell_selection(
+                    text=current, selection_kind="non_range", address=None, cell_count=0,
+                    area_count=0, object_kind="chart", object_name="Chart 1",
+                    has_series_values=True,
+                )
+
+                def fake(action, params, payload=payload, read_back=read_back):
+                    if action == "selection-read":
+                        return com_ok(payload)
+                    return com_ok({
+                        "ok": True, "status": "ok", "backend": "powershell-com",
+                        "object_kind": "chart", "object_name": "Chart 1",
+                        "cells_matched": False, "read_back_text": read_back,
+                    })
+
+                with patch.object(open_documents, "_run_spreadsheet_attached_com", side_effect=fake), \
+                        patch.object(open_documents, "create_backup",
+                                     return_value=(True, {"created": True, "backup_path": "b.xlsx"}, [], False)), \
+                        patch.object(open_documents, "guarded_com_mutation", side_effect=lambda path, backup, fn: fn()), \
+                        patch.object(open_documents, "verify_post_com_source", return_value=None):
+                    ok, data, errors, _replayed = replace_spreadsheet_selection(
+                        fixture.document_id, text, request_id="xlsx-series-num",
+                        workspace=fixture.workspace,
+                    )
+                self.assertEqual(ok, expected_ok, (data.get("validation_passed"), errors))
+                self.assertEqual(data["validation_passed"], expected_ok)
+
     def test_series_values_rejects_length_mismatch_before_backup(self):
         fixture = Fixture(self, component="spreadsheets")
         payload = self._cell_selection(
@@ -1423,6 +1560,51 @@ class SpreadsheetSelectionReplaceTests(unittest.TestCase):
         self.assertFalse(data["selection"]["saved"])
         self.assertIn("save-open-document", errors[0]["message"])
         backup.assert_not_called()
+
+    def _single_cell_write(self, fixture, replacement, read_back, request_id):
+        def fake_com(action, params):
+            if action == "selection-read":
+                return com_ok(self._cell_selection())
+            return com_ok({
+                "ok": True, "status": "ok", "backend": "powershell-com", "address": "$A$1",
+                "cell_count": 1, "area_count": 1, "cells_matched": False, "read_back_text": read_back,
+            })
+
+        with patch.object(open_documents, "_run_spreadsheet_attached_com", side_effect=fake_com), \
+                patch.object(open_documents, "create_backup", return_value=(True, {"created": True, "backup_path": "keep/b.xlsx"}, [], False)), \
+                patch.object(open_documents, "guarded_com_mutation", side_effect=lambda path, backup, fn: fn()), \
+                patch.object(open_documents, "verify_post_com_source", return_value=None), \
+                patch.object(open_documents, "record_operation"):
+            return replace_spreadsheet_selection(
+                fixture.document_id, replacement, request_id=request_id, workspace=fixture.workspace,
+            )
+
+    def test_numeric_text_normalised_by_wps_still_validates(self):
+        for replacement, read_back in (("00123", "123"), ("1.0", "1"), ("+7", "7"), ("2.50", "2.5")):
+            with self.subTest(replacement=replacement):
+                fixture = Fixture(self, component="spreadsheets")
+                ok, data, errors, _replayed = self._single_cell_write(
+                    fixture, replacement, read_back, f"xlsx-num-{replacement}",
+                )
+                self.assertTrue(ok, errors)
+                self.assertTrue(data["validation_passed"])
+
+    def test_real_mismatch_still_fails_and_points_at_the_backup(self):
+        fixture = Fixture(self, component="spreadsheets")
+        ok, data, errors, _replayed = self._single_cell_write(fixture, "NEW", "OLD", "xlsx-mismatch")
+        self.assertFalse(ok)
+        self.assertEqual(errors[0]["code"], "VALIDATION_FAILED")
+        self.assertIn("keep/b.xlsx", errors[0]["message"])
+        self.assertIn("restore-backup", errors[0]["message"])
+        self.assertFalse(data["validation_passed"])
+
+    def test_cell_text_matches_only_equal_plain_numbers(self):
+        matches = open_documents._cell_text_matches
+        self.assertTrue(matches("x", "x"))
+        self.assertTrue(matches("1e3", "1000"))
+        self.assertFalse(matches("12", "13"))
+        self.assertFalse(matches("1,234", "1234"))
+        self.assertFalse(matches("abc", "abd"))
 
     def test_multi_area_constant_fill_validates_cells_matched(self):
         fixture = Fixture(self, component="spreadsheets")

@@ -660,7 +660,10 @@ def audit_mcp_client_config(
                     raise ValueError("Configured server closed stdout before replying.")
                 if isinstance(raw_response, BaseException):
                     raise raw_response
-                response = json.loads(raw_response)
+                try:
+                    response = json.loads(raw_response)
+                except RecursionError as exc:
+                    raise ValueError("Configured server returned an invalid JSON-RPC response (nesting too deep).") from exc
                 if (not isinstance(response, dict) or response.get("jsonrpc") != "2.0"
                         or response.get("id") != request_id):
                     raise ValueError("Configured server returned an invalid JSON-RPC response or request ID.")

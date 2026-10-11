@@ -181,5 +181,28 @@ class GeneratedScriptBehaviourTests(unittest.TestCase):
         self.assertEqual(self.document.read_bytes(), before)
 
 
+@unittest.skipUnless(PWSH, "PowerShell (pwsh) is required to execute the cell text matcher")
+class CellTextMatchTests(unittest.TestCase):
+    def test_powershell_matcher_agrees_with_the_python_matcher(self):
+        import re
+        import subprocess
+
+        body = open_documents._SPREADSHEET_SELECTION_REPLACE_BODY
+        function = re.search(r"  function Test-CellTextMatch.*?\n  }\n", body, re.S).group(0)
+        cases = [("x", "x"), ("123", "00123"), ("1", "1.0"), ("12", "13"), ("abc", "abd"), ("1,234", "1234"), ("7", "+7")]
+        calls = "\n".join(
+            f"Write-Output (Test-CellTextMatch '{actual}' '{expected}')" for actual, expected in cases
+        )
+        completed = subprocess.run(
+            [PWSH, "-NoProfile", "-Command", function + "\n" + calls],
+            capture_output=True, text=True, timeout=60,
+        )
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        self.assertEqual(
+            [line == "True" for line in completed.stdout.split()],
+            [open_documents._cell_text_matches(actual, expected) for actual, expected in cases],
+        )
+
+
 if __name__ == "__main__":
     unittest.main()

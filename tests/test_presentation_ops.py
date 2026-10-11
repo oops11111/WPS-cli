@@ -9,6 +9,21 @@ from wps_ai_agent_cli.presentation_text import count_text_in_pptx
 from wps_ai_agent_cli.sessions import register_document
 
 
+from tests.isolation import use_temporary_cwd
+
+_restore_cwd = None
+
+
+def setUpModule():
+    global _restore_cwd
+    _restore_cwd = use_temporary_cwd()
+
+
+def tearDownModule():
+    if _restore_cwd is not None:
+        _restore_cwd()
+
+
 def write_minimal_pptx(path: Path, slide_texts: list[str], order: list[int] | None = None) -> None:
     order = list(range(1, len(slide_texts) + 1)) if order is None else order
     slide_ids = "".join(f'<p:sldId id="{255 + index}" r:id="rId{index}"/>' for index in order)

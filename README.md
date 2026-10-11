@@ -25,6 +25,8 @@ npm install                 # 在仓库根目录安装 playwright
 
 脚本通过 `WPS_AGENT_NODE` 与 `WPS_AGENT_EDGE` 环境变量定位 `node` 和 `msedge`，未设置时从 `PATH` 查找。
 
+渲染脚本 `html_render_playwright.cjs` 通过 `require('playwright')` 解析依赖：从源码目录（`pip install -e .`）运行时会向上找到仓库根的 `node_modules`；如果以 wheel 方式安装，请把 `NODE_PATH` 指向安装了 `playwright` 的 `node_modules` 目录。
+
 ## 快速开始
 
 ```bash
@@ -41,6 +43,14 @@ PYTHONPATH=src python3 -m wps_ai_agent_cli inspect-env
 ```
 
 MCP 客户端配置见 [docs/MCP_SERVER_CLIENT_CONFIG.md](docs/MCP_SERVER_CLIENT_CONFIG.md)。
+
+## 退出码与失败检测
+
+命令失败时，默认仍然只在 stdout 输出 JSON 信封（`ok: false`、`errors`），进程退出码为 `0`；这是为了兼容已有调用方，**不要只靠退出码判断成败**，请解析信封里的 `ok`。需要用退出码表示失败的脚本，加上 `--strict-exit`（可放在子命令前或后）：失败时退出码为 `1`，成功仍为 `0`。MCP 工具调用不受影响，`isError` 与信封中的 `ok` 一致。参数解析错误由 argparse 以退出码 `2` 结束。
+
+```bash
+wps-agent --strict-exit backup-document --document-id doc_xxx --request-id r1 || echo "failed"
+```
 
 ## WPS 实例与已打开文档
 
@@ -62,7 +72,11 @@ pip install -e ".[test]"
 PYTHONPATH=src python3 -m unittest discover -s tests
 ```
 
-在没有 WPS 的环境中，依赖 COM 的用例会被跳过。要运行 PowerShell 假 COM 对象用例，设置 `WPS_TEST_PWSH` 指向 `pwsh` 可执行文件。
+必须先安装 `test` extra（`python-docx`、`Pillow`、`pypdfium2`、`openpyxl`、`python-pptx`）；缺少这些依赖时，相关测试模块会在导入阶段报错，而不是被跳过。
+
+在没有 WPS 的环境中，依赖 COM 的用例会被跳过。要运行 PowerShell 假 COM 对象用例和生成脚本的语法检查，设置 `WPS_TEST_PWSH` 指向 `pwsh` 可执行文件（PowerShell 7 即可，Linux/macOS/Windows 均可）。
+
+持续集成见 `.github/workflows/tests.yml`：Python 3.10 与 3.12 各跑一遍完整单测，另有一个带 `pwsh` 的任务运行假 COM 用例；真实 WPS 回归需要交互式 Windows 运行器，见 [docs/REGRESSION_CI_HANDOFF.md](docs/REGRESSION_CI_HANDOFF.md)。
 
 ## 目录
 

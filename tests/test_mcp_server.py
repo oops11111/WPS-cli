@@ -24,6 +24,21 @@ from wps_ai_agent_cli.mcp_server import (
 )
 
 
+from tests.isolation import use_temporary_cwd
+
+_restore_cwd = None
+
+
+def setUpModule():
+    global _restore_cwd
+    _restore_cwd = use_temporary_cwd()
+
+
+def tearDownModule():
+    if _restore_cwd is not None:
+        _restore_cwd()
+
+
 def initialize_params(protocol_version=MCP_PROTOCOL_VERSION):
     return {
         "protocolVersion": protocol_version,
@@ -1132,6 +1147,31 @@ class McpServerTests(unittest.TestCase):
             self.assertEqual(batch_response["data"]["summary"]["processed"], 1)
             self.assertEqual(batch_response["data"]["task_status"]["state"], "cancelled")
             self.assertTrue(Path(batch_response["data"]["manifest_path"]).is_file())
+
+    def test_tools_list_catalog_is_built_once_and_rebuilt_when_the_catalog_changes(self):
+        from wps_ai_agent_cli import mcp_server
+
+        mcp_server._catalog_for_names.cache_clear()
+        with patch.object(mcp_server, "_tool_from_schema", wraps=mcp_server._tool_from_schema) as build:
+            first = mcp_server._tools_list_result()
+            built_once = build.call_count
+            second = mcp_server._tools_list_result()
+            self.assertEqual(build.call_count, built_once)
+            self.assertEqual(first, second)
+            self.assertEqual(built_once, len(list_mcp_tool_schemas()))
+
+            shrunk = list_mcp_tool_schemas()[:-1]
+            with patch("wps_ai_agent_cli.mcp_server.list_mcp_tool_schemas", return_value=shrunk):
+                smaller = mcp_server._tools_list_result()
+            self.assertNotEqual(first["nextCursor"], smaller["nextCursor"])
+            self.assertGreater(build.call_count, built_once)
+        mcp_server._catalog_for_names.cache_clear()
+
+    def test_notifications_with_any_params_stay_silent(self):
+        for params in ({}, [], "text", None):
+            with self.subTest(params=params):
+                message = {"jsonrpc": "2.0", "method": "notifications/initialized", "params": params}
+                self.assertIsNone(handle_mcp_request(message))
 
     def _stdio_session_lines(self, *requests):
         yield json.dumps({"jsonrpc": "2.0", "id": "init", "method": "initialize", "params": initialize_params()})

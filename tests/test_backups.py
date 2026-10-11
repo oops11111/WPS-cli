@@ -11,6 +11,21 @@ from wps_ai_agent_cli.mcp_adapter import call_mcp_tool
 from wps_ai_agent_cli.sessions import register_document
 
 
+from tests.isolation import use_temporary_cwd
+
+_restore_cwd = None
+
+
+def setUpModule():
+    global _restore_cwd
+    _restore_cwd = use_temporary_cwd()
+
+
+def tearDownModule():
+    if _restore_cwd is not None:
+        _restore_cwd()
+
+
 class BackupTests(unittest.TestCase):
     def test_create_backup_copies_file_and_replays_same_request(self):
         with tempfile.TemporaryDirectory() as tmp:

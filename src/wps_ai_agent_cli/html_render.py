@@ -94,6 +94,29 @@ def _run_renderer(
     return subprocess.CompletedProcess(process.args, process.returncode or 0, stdout or "", stderr or "")
 
 
+def _publish_without_overwrite(temporary: Path, destination: Path, artifact: bytes) -> None:
+    """Move a finished render into place, failing with FileExistsError if destination appeared meanwhile."""
+    try:
+        # A hard link fails atomically if the destination exists.
+        os.link(temporary, destination)
+        return
+    except FileExistsError:
+        raise
+    except OSError:
+        pass
+    # FAT/exFAT and some network shares have no hard links; exclusive create keeps the no-overwrite guarantee.
+    try:
+        with destination.open("xb") as stream:
+            stream.write(artifact)
+            stream.flush()
+            os.fsync(stream.fileno())
+    except FileExistsError:
+        raise
+    except OSError:
+        destination.unlink(missing_ok=True)
+        raise
+
+
 def render_html(
     input_path: str | Path,
     output_path: str | Path,
@@ -160,6 +183,8 @@ def render_html(
         return False, {}, [{"code": "BROWSER_BACKEND_UNAVAILABLE", "message": str(exc)}]
     try:
         payload = json.loads(completed.stdout)
+        if not isinstance(payload, dict):
+            raise json.JSONDecodeError("renderer output is not a JSON object", completed.stdout, 0)
     except json.JSONDecodeError:
         temporary_output.unlink(missing_ok=True)
         detail = (completed.stderr or completed.stdout).strip()[:1_000]
@@ -177,8 +202,7 @@ def render_html(
         temporary_output.unlink(missing_ok=True)
         return False, {"diagnostic": payload}, [{"code": "RENDER_OUTPUT_INVALID", "message": "Browser output was empty or did not match the requested format."}]
     try:
-        # A hard link fails if the destination appeared after the earlier existence check.
-        os.link(temporary_output, destination)
+        _publish_without_overwrite(temporary_output, destination, artifact)
     except FileExistsError:
         return False, {}, [{"code": "OUTPUT_ALREADY_EXISTS", "message": f"Refusing to overwrite existing output: {destination}"}]
     except OSError as exc:

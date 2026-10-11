@@ -1,7 +1,11 @@
 from __future__ import annotations
 
+import functools
+import glob
+import inspect
 import json
 import re
+import shutil
 from pathlib import Path
 from typing import Any
 
@@ -2462,6 +2466,17 @@ _SPREADSHEET_SERIES_VALUES_DELETE_BODY = """
 """
 
 _SPREADSHEET_SELECTION_REPLACE_BODY = """
+  function Test-CellTextMatch([string]$actual, [string]$expected) {
+    if ($actual -ceq $expected) { return $true }
+    $parsedActual = 0.0
+    $parsedExpected = 0.0
+    $culture = [System.Globalization.CultureInfo]::InvariantCulture
+    $styles = [System.Globalization.NumberStyles]::Float
+    if ([double]::TryParse($actual, $styles, $culture, [ref]$parsedActual) -and [double]::TryParse($expected, $styles, $culture, [ref]$parsedExpected)) {
+      return ($parsedActual -eq $parsedExpected)
+    }
+    return $false
+  }
   if (-not [bool]$doc.Saved) {
     [pscustomobject]@{ ok = $true; status = 'unsaved' } | ConvertTo-Json -Depth 5
     exit 0
@@ -2593,7 +2608,7 @@ _SPREADSHEET_SELECTION_REPLACE_BODY = """
         $expected = $flatValues[$index]
         $expectedText = if ($null -eq $expected) { '' } else { [string]$expected }
         $readParts.Add($cellText)
-        if ($cellText -cne $expectedText) { $allMatch = $false }
+        if (-not (Test-CellTextMatch $cellText $expectedText)) { $allMatch = $false }
         $index++
       }
     }
@@ -2606,7 +2621,7 @@ _SPREADSHEET_SELECTION_REPLACE_BODY = """
         try { $cellText = [string]$cell.Text } catch { }
         if ($index -eq 0) { $readBack = $cellText }
         $readParts.Add($cellText)
-        if ($cellText -cne $replacement) { $allMatch = $false }
+        if (-not (Test-CellTextMatch $cellText $replacement)) { $allMatch = $false }
         $index++
       }
     }
@@ -2966,6 +2981,41 @@ FORMULA_PREFIXES = ("=", "+", "-", "@")
 _PLAIN_NUMBER = re.compile(r"[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?")
 
 
+def _cell_text_matches(actual: str, expected: str) -> bool:
+    """Exact match, or the same plain number: WPS stores "00123"/"1.0" as 123/1 and displays them normalised."""
+    if actual == expected:
+        return True
+    if _PLAIN_NUMBER.fullmatch(actual) and _PLAIN_NUMBER.fullmatch(expected):
+        return float(actual) == float(expected)
+    return False
+
+
+_THOUSANDS_NUMBER = re.compile(r"[+-]?\d{1,3}(?:,\d{3})+(?:\.\d*)?")
+
+
+def _series_number(text: str) -> float | None:
+    if _PLAIN_NUMBER.fullmatch(text):
+        return float(text)
+    if _THOUSANDS_NUMBER.fullmatch(text):
+        return float(text.replace(",", ""))
+    return None
+
+
+def _series_values_match(actual: str, expected: str) -> bool:
+    """Point-wise match of TAB-joined series values; WPS stores numeric text such as "10.0" or "1,234" as numbers."""
+    actual_points = actual.split("\t")
+    expected_points = expected.split("\t")
+    if len(actual_points) != len(expected_points):
+        return False
+    for got, want in zip(actual_points, expected_points):
+        if got == want:
+            continue
+        got_number, want_number = _series_number(got), _series_number(want)
+        if got_number is None or want_number is None or got_number != want_number:
+            return False
+    return True
+
+
 def _formula_prefix_error(text: str, label: str) -> dict[str, str] | None:
     """Cell text starting with a formula trigger would be evaluated by WPS; formulas need their own command.
 
@@ -3297,6 +3347,11 @@ def read_spreadsheet_selection(
     }, []
 
 
+def _utf16_length(text: str) -> int:
+    """WPS ranges count UTF-16 code units, so characters outside the BMP (emoji) count twice."""
+    return len(text.encode("utf-16-le")) // 2
+
+
 def _check_replaceable_selection(selection: dict[str, Any], expected: str | None) -> dict[str, str] | None:
     text = selection["selection_text"]
     if selection["collapsed"]:
@@ -3308,7 +3363,7 @@ def _check_replaceable_selection(selection: dict[str, Any], expected: str | None
             "code": SELECTION_SPANS_STRUCTURE,
             "message": "The selection includes paragraph, line, table-cell or other control marks; shrink it to plain text within one paragraph.",
         }
-    if selection["selection_length"] != len(text):
+    if selection["selection_length"] != _utf16_length(text):
         return {
             "code": SELECTION_SPANS_STRUCTURE,
             "message": "The selection contains non-text objects such as fields or drawings; shrink it to plain text.",
@@ -4537,14 +4592,16 @@ def replace_spreadsheet_selection(
         return False, {"preview": preview, "backup": backup_result, "write": payload}, [status_error], False
 
     read_back_text = str(payload.get("read_back_text") if payload.get("read_back_text") is not None else "")
-    if object_text_mode:
+    if is_series_values:
+        cells_matched = _series_values_match(read_back_text, replacement_text)
+    elif object_text_mode:
         cells_matched = read_back_text == replacement_text
     else:
         cells_matched = bool(payload.get("cells_matched")) if "cells_matched" in payload else (
-            fill_mode == "constant" and cell_count == 1 and read_back_text == replacement_text
+            fill_mode == "constant" and cell_count == 1 and _cell_text_matches(read_back_text, replacement_text)
         )
         if fill_mode == "constant" and cell_count == 1:
-            cells_matched = read_back_text == replacement_text
+            cells_matched = _cell_text_matches(read_back_text, replacement_text)
     validation_passed = cells_matched
     if is_series_values:
         note = (
@@ -4596,7 +4653,14 @@ def replace_spreadsheet_selection(
         return False, result, [post_error], False
     if not validation_passed:
         return False, result, [
-            {"code": "VALIDATION_FAILED", "message": "Selection replacement read-back did not match the replacement values."}
+            {
+                "code": "VALIDATION_FAILED",
+                "message": (
+                    "Selection replacement read-back did not match the replacement values. "
+                    "The write was already saved by WPS; the pre-write backup is at "
+                    f"{backup_result.get('backup_path')} (restore it with restore-backup if the result is wrong)."
+                ),
+            }
         ], False
 
     record_operation(request_id, "spreadsheet-selection-replace", result, workspace)
@@ -5277,7 +5341,67 @@ def _looks_like_pdf(path: Path) -> bool:
     return head.lstrip().startswith(b"%PDF")
 
 
+_EXPORT_CLEANUP_CODES = {
+    EXPORT_OUTPUT_MISSING,
+    EXPORT_OUTPUT_NOT_HTML,
+    EXPORT_OUTPUT_NOT_PDF,
+    EXPORT_OUTPUT_NOT_PACKAGE,
+    EXPORT_OUTPUT_NOT_TEXT,
+    "DOCUMENT_CHANGED_AFTER_COM",
+    COM_OPERATION_FAILED,
+}
+
+
+def _sibling_names(path: Path) -> set[str]:
+    try:
+        return {item.name for item in path.parent.iterdir()}
+    except OSError:
+        return set()
+
+
+def _discard_failed_export_output(export: Any) -> Any:
+    """Remove files a failed export left behind so the same request can be retried.
+
+    Only a path that did not exist before the call is ever touched, and only for failures that
+    happen after WPS was asked to write it (never OUTPUT_EXISTS, busy, or argument errors).
+    """
+    signature = inspect.signature(export)
+
+    @functools.wraps(export)
+    def wrapped(*args: Any, **kwargs: Any) -> Any:
+        bound = signature.bind_partial(*args, **kwargs)
+        output = bound.arguments.get("output")
+        if not isinstance(output, str):
+            return export(*args, **kwargs)
+        resolved = Path(output).resolve()
+        existed_before = resolved.exists()
+        names_before = _sibling_names(resolved)
+        outcome = export(*args, **kwargs)
+        ok, data, errors = outcome[0], outcome[1], outcome[2]
+        if ok or existed_before or not errors or errors[0].get("code") not in _EXPORT_CLEANUP_CODES:
+            return outcome
+        removed = []
+        for name in sorted(_sibling_names(resolved) - names_before):
+            target = resolved.parent / name
+            if name != resolved.name and not name.startswith(resolved.stem):
+                continue
+            try:
+                if target.is_dir() and not target.is_symlink():
+                    shutil.rmtree(target)
+                else:
+                    target.unlink()
+                removed.append(str(target))
+            except OSError:
+                continue
+        if removed and isinstance(data, dict):
+            data = {**data, "partial_output_removed": removed}
+        return (ok, data, errors, *outcome[3:])
+
+    return wrapped
+
+
 @coordinated_mutation
+@_discard_failed_export_output
 def export_open_document_html(
     document_id: str,
     output: str,
@@ -5343,7 +5467,7 @@ def export_open_document_html(
         source_unchanged = False
     companion = [
         str(item)
-        for item in resolved_output.parent.glob(f"{resolved_output.stem}*")
+        for item in resolved_output.parent.glob(f"{glob.escape(resolved_output.stem)}*")
         if item.is_dir()
     ]
     export_result = {
@@ -5375,6 +5499,7 @@ def export_open_document_html(
 
 
 @coordinated_mutation
+@_discard_failed_export_output
 def export_open_document_pdf(
     document_id: str,
     output: str,
@@ -5482,6 +5607,7 @@ def _looks_like_ooxml_package(path: Path) -> bool:
 
 
 @coordinated_mutation
+@_discard_failed_export_output
 def export_open_document_copy(
     document_id: str,
     output: str,
@@ -5608,6 +5734,7 @@ def _looks_like_text(path: Path) -> bool:
 
 
 @coordinated_mutation
+@_discard_failed_export_output
 def export_open_document_text(
     document_id: str,
     output: str,

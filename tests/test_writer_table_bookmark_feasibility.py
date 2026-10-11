@@ -3,7 +3,7 @@ import io
 import json
 import tempfile
 import unittest
-from contextlib import chdir
+from tests.isolation import chdir
 from pathlib import Path
 
 from docx import Document

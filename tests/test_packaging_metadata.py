@@ -47,5 +47,28 @@ class PackagingMetadataTests(unittest.TestCase):
         self.assertIn("require('playwright')", script)
 
 
+    def test_test_extra_covers_every_third_party_import_in_tests(self):
+        pyproject = (ROOT / "pyproject.toml").read_text(encoding="utf-8").lower()
+        match = re.search(r"^test\s*=\s*\[(.*?)\]", pyproject, re.M | re.S)
+        self.assertIsNotNone(match)
+        extra = match.group(1)
+        stdlib = set(sys.stdlib_module_names)
+        found = set()
+        for path in (ROOT / "tests").glob("*.py"):
+            found |= _module_level_imports(path)
+        module_to_distribution = {"PIL": "pillow", "docx": "python-docx", "pptx": "python-pptx", "pypdfium2": "pypdfium2", "openpyxl": "openpyxl"}
+        third_party = {name for name in found if name not in stdlib and name not in {"wps_ai_agent_cli", "tests"}}
+        self.assertLessEqual(third_party, set(module_to_distribution), "map new test dependencies and add them to the test extra")
+        for module in third_party:
+            self.assertIn(module_to_distribution[module], extra, module)
+
+    def test_ci_workflow_installs_test_extra_and_runs_the_suite(self):
+        workflow = (ROOT / ".github" / "workflows" / "tests.yml").read_text(encoding="utf-8")
+        self.assertIn('pip install -e ".[test]"', workflow)
+        self.assertIn("python -m unittest discover -s tests", workflow)
+        self.assertIn("WPS_TEST_PWSH", workflow)
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        self.assertIn(".github/workflows/tests.yml", readme)
+
 if __name__ == "__main__":
     unittest.main()
