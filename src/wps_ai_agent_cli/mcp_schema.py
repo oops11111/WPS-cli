@@ -205,6 +205,10 @@ MCP_TOOL_SCHEMAS: tuple[dict[str, Any], ...] = (
         },
         requires_wps=True,
         cli_example="python -m wps_ai_agent_cli com-smoke --component writer --input input.docx --output output.docx",
+        safety_notes=[
+            "Only one running WPS instance can be attached. When more than one WPS process of the component has a main window (in this user session) and the document is not already open in the attached instance, the command refuses and lists the pids and window titles; close the extra WPS windows, or set WPS_AGENT_ALLOW_MULTI_INSTANCE=1 to skip this check. Extra background processes without a window do not block the command; they add a warning to the result.",
+            "Works in the running WPS instance when there is one. A document that is not open yet is opened there only for the duration of the command (its window may briefly appear) and closed again afterwards; a document that was already open is never closed.",
+        ],
     ),
     _tool(
         "wps_agent_calc_smoke",
@@ -219,6 +223,10 @@ MCP_TOOL_SCHEMAS: tuple[dict[str, Any], ...] = (
             "timeout_seconds": _integer("Timeout for the WPS spreadsheet COM smoke.", minimum=1),
         },
         requires_wps=True,
+        safety_notes=[
+            "Only one running WPS instance can be attached. When more than one WPS process of the component has a main window (in this user session) and the document is not already open in the attached instance, the command refuses and lists the pids and window titles; close the extra WPS windows, or set WPS_AGENT_ALLOW_MULTI_INSTANCE=1 to skip this check. Extra background processes without a window do not block the command; they add a warning to the result.",
+            "Works in the running WPS instance when there is one. A document that is not open yet is opened there only for the duration of the command (its window may briefly appear) and closed again afterwards; a document that was already open is never closed.",
+        ],
     ),
     _tool(
         "wps_agent_convert_smoke",
@@ -239,9 +247,11 @@ MCP_TOOL_SCHEMAS: tuple[dict[str, Any], ...] = (
         requires_wps=True,
         cli_example="python -m wps_ai_agent_cli convert-smoke --component spreadsheets --input book.xlsx --output book.pdf --format pdf",
         safety_notes=[
-            "Launches WPS for the selected component, opens the input, writes a new PDF, then closes the document.",
+            "Only one running WPS instance can be attached. When more than one WPS process of the component has a main window (in this user session) and the document is not already open in the attached instance, the command refuses and lists the pids and window titles; close the extra WPS windows, or set WPS_AGENT_ALLOW_MULTI_INSTANCE=1 to skip this check. Extra background processes without a window do not block the command; they add a warning to the result.",
+            "Attaches to a running WPS instance of the selected component first and launches one only when none is running, opens the input, writes a new PDF, then closes the document.",
+            "Refuses an input that is already open in WPS, so a user's document is never closed or saved under another name.",
             "Never overwrites the input path; still prefer a disposable copy when validating on real desktop files.",
-            "Quit runs only when the launched instance has no remaining documents, workbooks, or presentations.",
+            "Quit runs only for an instance this command launched itself, and only when it has no remaining documents, workbooks, or presentations; an attached instance is never Quit().",
         ],
     ),
     _tool(
@@ -483,6 +493,8 @@ MCP_TOOL_SCHEMAS: tuple[dict[str, Any], ...] = (
         requires_wps=True,
         idempotency="Mutating command; request_id should be supplied and is replayed by the operation ledger.",
         safety_notes=[
+            "Only one running WPS instance can be attached. When more than one WPS process of the component has a main window (in this user session) and the document is not already open in the attached instance, the command refuses and lists the pids and window titles; close the extra WPS windows, or set WPS_AGENT_ALLOW_MULTI_INSTANCE=1 to skip this check. Extra background processes without a window do not block the command; they add a warning to the result.",
+            "Works in the running WPS instance when there is one. A document that is not open yet is opened there only for the duration of the command (its window may briefly appear) and closed again afterwards; a document that was already open is never closed.",
             "Uses WPS to mutate a registered Writer document and creates a backup before mutation.",
             "Use dry_run before mutation when possible.",
         ],
@@ -505,6 +517,8 @@ MCP_TOOL_SCHEMAS: tuple[dict[str, Any], ...] = (
         requires_wps=True,
         idempotency="Mutating command; request_id should be supplied and is replayed by the operation ledger.",
         safety_notes=[
+            "Only one running WPS instance can be attached. When more than one WPS process of the component has a main window (in this user session) and the document is not already open in the attached instance, the command refuses and lists the pids and window titles; close the extra WPS windows, or set WPS_AGENT_ALLOW_MULTI_INSTANCE=1 to skip this check. Extra background processes without a window do not block the command; they add a warning to the result.",
+            "Works in the running WPS instance when there is one. A document that is not open yet is opened there only for the duration of the command (its window may briefly appear) and closed again afterwards; a document that was already open is never closed.",
             "Uses WPS to fill a unique same-paragraph direct-body or direct table-cell bookmark and creates a backup before mutation.",
             "Rejects missing, ambiguous, cross-paragraph, nested-table, and header/footer write scopes; use dry_run to inspect the target.",
         ],
@@ -532,6 +546,8 @@ MCP_TOOL_SCHEMAS: tuple[dict[str, Any], ...] = (
         requires_wps=True,
         idempotency="Mutating command; request_id should be supplied and is replayed by the operation ledger.",
         safety_notes=[
+            "Only one running WPS instance can be attached. When more than one WPS process of the component has a main window (in this user session) and the document is not already open in the attached instance, the command refuses and lists the pids and window titles; close the extra WPS windows, or set WPS_AGENT_ALLOW_MULTI_INSTANCE=1 to skip this check. Extra background processes without a window do not block the command; they add a warning to the result.",
+            "Works in the running WPS instance when there is one. A document that is not open yet is opened there only for the duration of the command (its window may briefly appear) and closed again afterwards; a document that was already open is never closed.",
             "Uses WPS to mutate a registered Writer table cell and creates a backup before mutation.",
             "Use dry_run before mutation; table, row, and column are 1-based and validated before write.",
             "Cells with rich content are refused unless allow_rich_content is set; a text write discards that content.",
@@ -1190,8 +1206,10 @@ MCP_TOOL_SCHEMAS: tuple[dict[str, Any], ...] = (
         },
         requires_wps=True,
         safety_notes=[
+            "Works in the running WPS instance when there is one. A document that is not open yet is opened there only for the duration of the command (its window may briefly appear) and closed again afterwards; a document that was already open is never closed.",
             "Opens the registered workbook read-only and closes it without saving.",
-            "Recalculation occurs in memory; saved caches are reported separately from WPS values and display text.",
+            "Full recalculation (CalculateFullRebuild) runs only in a WPS instance this command launched itself. When attached to a running WPS it is skipped because it recalculates every open workbook and can mark user documents as modified; the result then reports calculation_performed_in_memory=false and does not compare saved caches.",
+            "Saved caches are reported separately from WPS values and display text.",
         ],
     ),
     _tool(
@@ -1212,6 +1230,8 @@ MCP_TOOL_SCHEMAS: tuple[dict[str, Any], ...] = (
         requires_wps=True,
         idempotency="Mutating command; request_id is bound to document, source and target worksheet names.",
         safety_notes=[
+            "Only one running WPS instance can be attached. When more than one WPS process of the component has a main window (in this user session) and the document is not already open in the attached instance, the command refuses and lists the pids and window titles; close the extra WPS windows, or set WPS_AGENT_ALLOW_MULTI_INSTANCE=1 to skip this check. Extra background processes without a window do not block the command; they add a warning to the result.",
+            "Works in the running WPS instance when there is one. A document that is not open yet is opened there only for the duration of the command (its window may briefly appear) and closed again afterwards; a document that was already open is never closed.",
             "Creates a backup before WPS mutation and verifies the complete ordered worksheet-name list after save.",
             "Rejects invalid or duplicate worksheet names before backup or WPS launch.",
         ],
@@ -1234,6 +1254,8 @@ MCP_TOOL_SCHEMAS: tuple[dict[str, Any], ...] = (
         requires_wps=True,
         idempotency="Mutating command; request_id is bound to document, worksheet name, insertion index and dry_run.",
         safety_notes=[
+            "Only one running WPS instance can be attached. When more than one WPS process of the component has a main window (in this user session) and the document is not already open in the attached instance, the command refuses and lists the pids and window titles; close the extra WPS windows, or set WPS_AGENT_ALLOW_MULTI_INSTANCE=1 to skip this check. Extra background processes without a window do not block the command; they add a warning to the result.",
+            "Works in the running WPS instance when there is one. A document that is not open yet is opened there only for the duration of the command (its window may briefly appear) and closed again afterwards; a document that was already open is never closed.",
             "Creates a backup before WPS mutation and verifies the complete ordered worksheet-name list after save.",
             "Rejects invalid or duplicate worksheet names and out-of-range positions before backup or WPS launch.",
         ],
@@ -1256,6 +1278,8 @@ MCP_TOOL_SCHEMAS: tuple[dict[str, Any], ...] = (
         requires_wps=True,
         idempotency="Mutating command; request_id is bound to document, worksheet name, visibility and dry_run.",
         safety_notes=[
+            "Only one running WPS instance can be attached. When more than one WPS process of the component has a main window (in this user session) and the document is not already open in the attached instance, the command refuses and lists the pids and window titles; close the extra WPS windows, or set WPS_AGENT_ALLOW_MULTI_INSTANCE=1 to skip this check. Extra background processes without a window do not block the command; they add a warning to the result.",
+            "Works in the running WPS instance when there is one. A document that is not open yet is opened there only for the duration of the command (its window may briefly appear) and closed again afterwards; a document that was already open is never closed.",
             "Creates a backup before WPS mutation and verifies the complete ordered worksheet visibility list after save.",
             "Refuses to hide the last visible worksheet before backup or WPS launch.",
         ],
@@ -1277,6 +1301,8 @@ MCP_TOOL_SCHEMAS: tuple[dict[str, Any], ...] = (
         requires_wps=True,
         idempotency="Mutating command; request_id is bound to document, worksheet name and dry_run.",
         safety_notes=[
+            "Only one running WPS instance can be attached. When more than one WPS process of the component has a main window (in this user session) and the document is not already open in the attached instance, the command refuses and lists the pids and window titles; close the extra WPS windows, or set WPS_AGENT_ALLOW_MULTI_INSTANCE=1 to skip this check. Extra background processes without a window do not block the command; they add a warning to the result.",
+            "Works in the running WPS instance when there is one. A document that is not open yet is opened there only for the duration of the command (its window may briefly appear) and closed again afterwards; a document that was already open is never closed.",
             "Creates a backup before WPS mutation and verifies the complete ordered worksheet-name list after save.",
             "Refuses to delete the final worksheet before backup or WPS launch; dry_run previews the exact resulting order.",
         ],
@@ -1300,6 +1326,8 @@ MCP_TOOL_SCHEMAS: tuple[dict[str, Any], ...] = (
         requires_wps=True,
         idempotency="Mutating command; request_id is bound to document, source and new worksheet, index and dry_run.",
         safety_notes=[
+            "Only one running WPS instance can be attached. When more than one WPS process of the component has a main window (in this user session) and the document is not already open in the attached instance, the command refuses and lists the pids and window titles; close the extra WPS windows, or set WPS_AGENT_ALLOW_MULTI_INSTANCE=1 to skip this check. Extra background processes without a window do not block the command; they add a warning to the result.",
+            "Works in the running WPS instance when there is one. A document that is not open yet is opened there only for the duration of the command (its window may briefly appear) and closed again afterwards; a document that was already open is never closed.",
             "Creates a backup before WPS mutation and verifies ordered names and a copied cell value after save.",
             "Rejects invalid/duplicate titles and out-of-range positions before backup or WPS launch.",
         ],
@@ -1322,6 +1350,8 @@ MCP_TOOL_SCHEMAS: tuple[dict[str, Any], ...] = (
         requires_wps=True,
         idempotency="Mutating command; request_id is bound to document, sheet name, normalized color and dry_run.",
         safety_notes=[
+            "Only one running WPS instance can be attached. When more than one WPS process of the component has a main window (in this user session) and the document is not already open in the attached instance, the command refuses and lists the pids and window titles; close the extra WPS windows, or set WPS_AGENT_ALLOW_MULTI_INSTANCE=1 to skip this check. Extra background processes without a window do not block the command; they add a warning to the result.",
+            "Works in the running WPS instance when there is one. A document that is not open yet is opened there only for the duration of the command (its window may briefly appear) and closed again afterwards; a document that was already open is never closed.",
             "Creates a backup before WPS mutation and checks the saved tab color through an independent workbook read-back.",
             "Accepts only #RRGGBB or the explicit 'none' reset value before backup or WPS launch.",
         ],
@@ -1345,6 +1375,8 @@ MCP_TOOL_SCHEMAS: tuple[dict[str, Any], ...] = (
         requires_wps=True,
         idempotency="Mutating command; request_id should be supplied and is replayed by the operation ledger.",
         safety_notes=[
+            "Only one running WPS instance can be attached. When more than one WPS process of the component has a main window (in this user session) and the document is not already open in the attached instance, the command refuses and lists the pids and window titles; close the extra WPS windows, or set WPS_AGENT_ALLOW_MULTI_INSTANCE=1 to skip this check. Extra background processes without a window do not block the command; they add a warning to the result.",
+            "Works in the running WPS instance when there is one. A document that is not open yet is opened there only for the duration of the command (its window may briefly appear) and closed again afterwards; a document that was already open is never closed.",
             "Uses WPS to mutate a registered spreadsheet and creates a backup before mutation.",
             "Creates a backup before mutation and validates read-back results.",
             "Rejects non-scalar or non-finite values and text starting with '=', '+', '-' or '@' before backup or WPS launch; use spreadsheet-formula-write for formulas.",
@@ -1370,6 +1402,8 @@ MCP_TOOL_SCHEMAS: tuple[dict[str, Any], ...] = (
         requires_wps=True,
         idempotency="Mutating command; request_id should be supplied and is replayed by the operation ledger.",
         safety_notes=[
+            "Only one running WPS instance can be attached. When more than one WPS process of the component has a main window (in this user session) and the document is not already open in the attached instance, the command refuses and lists the pids and window titles; close the extra WPS windows, or set WPS_AGENT_ALLOW_MULTI_INSTANCE=1 to skip this check. Extra background processes without a window do not block the command; they add a warning to the result.",
+            "Works in the running WPS instance when there is one. A document that is not open yet is opened there only for the duration of the command (its window may briefly appear) and closed again afterwards; a document that was already open is never closed.",
             "Uses WPS to mutate formulas in a registered spreadsheet and creates a backup before mutation.",
             "Use dry_run before mutation when possible and validate cached calculation results after write.",
         ],
@@ -1475,7 +1509,10 @@ MCP_TOOL_SCHEMAS: tuple[dict[str, Any], ...] = (
         requires_wps=True,
         idempotency="Mutating command; request_id should be supplied and is replayed by the operation ledger.",
         safety_notes=[
+            "Only one running WPS instance can be attached. When more than one WPS process of the component has a main window (in this user session) and the document is not already open in the attached instance, the command refuses and lists the pids and window titles; close the extra WPS windows, or set WPS_AGENT_ALLOW_MULTI_INSTANCE=1 to skip this check. Extra background processes without a window do not block the command; they add a warning to the result.",
+            "Works in the running WPS instance when there is one. A document that is not open yet is opened there only for the duration of the command (its window may briefly appear) and closed again afterwards; a document that was already open is never closed.",
             "Uses WPS to mutate a registered presentation and creates a backup before mutation.",
+            "Refused when the presentation is already open in WPS: WPS does not reliably report unsaved presentation changes, so edits in an open presentation cannot be protected. Close it first.",
             "Use dry_run before mutation when possible and validate replacement results after write.",
         ],
     ),

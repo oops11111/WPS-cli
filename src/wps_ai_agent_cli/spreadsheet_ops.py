@@ -20,7 +20,13 @@ from .mutation_lock import coordinated_mutation
 from .operations import record_operation, replay_operation
 from .sessions import get_document
 from .spreadsheet_ranges import validate_spreadsheet_read_range
-from .wps_script_snippets import PRE_OPEN_GUARD, QUIT_IF_IDLE
+from .wps_script_snippets import (
+    ACQUIRE_WPS_APP,
+    HIDE_LAUNCHED_APP,
+    PRE_OPEN_GUARD,
+    QUIET_ALERTS,
+    RELEASE_WPS_APP,
+)
 from .ooxml import parse_xml_part, read_zip_part
 
 
@@ -296,11 +302,11 @@ $params = @'
 {PRE_OPEN_GUARD}
 $app = $null; $workbook = $null
 try {{
-  $app = New-Object -ComObject $params.prog_id
-  try {{ $app.Visible = $false }} catch {{ }}
-  try {{ $app.DisplayAlerts = $false }} catch {{ }}
+  {ACQUIRE_WPS_APP}
+  {HIDE_LAUNCHED_APP}
+  {QUIET_ALERTS}
   $wpsPreOpen = Test-WpsPathOpen $app.Workbooks $params.path
-  $workbook = $app.Workbooks.Open($params.path)
+  $workbook = Open-WpsDocument $app.Workbooks $params.path $wpsPreOpen
   Assert-WpsPreOpenSaved $wpsPreOpen $workbook
   $sheet = $workbook.Worksheets.Item($params.old_name)
   $sheet.Name = $params.new_name
@@ -315,7 +321,7 @@ try {{
   exit 2
 }} finally {{
   if ($workbook -ne $null) {{ if (-not $wpsPreOpen) {{ try {{ $workbook.Close($false) }} catch {{ }} }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($workbook) }} catch {{ }} }}
-  if ($app -ne $null) {{ try {{ {QUIT_IF_IDLE} }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) }} catch {{ }} }}
+  if ($app -ne $null) {{ try {{ {RELEASE_WPS_APP} }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) }} catch {{ }} }}
   [GC]::Collect(); [GC]::WaitForPendingFinalizers()
 }}
 """
@@ -424,11 +430,11 @@ $params = @'
 {PRE_OPEN_GUARD}
 $app = $null; $workbook = $null
 try {{
-  $app = New-Object -ComObject $params.prog_id
-  try {{ $app.Visible = $false }} catch {{ }}
-  try {{ $app.DisplayAlerts = $false }} catch {{ }}
+  {ACQUIRE_WPS_APP}
+  {HIDE_LAUNCHED_APP}
+  {QUIET_ALERTS}
   $wpsPreOpen = Test-WpsPathOpen $app.Workbooks $params.path
-  $workbook = $app.Workbooks.Open($params.path)
+  $workbook = Open-WpsDocument $app.Workbooks $params.path $wpsPreOpen
   Assert-WpsPreOpenSaved $wpsPreOpen $workbook
   $count = $workbook.Worksheets.Count
   if ([int]$params.index -eq $count + 1) {{
@@ -448,7 +454,7 @@ try {{
   exit 2
 }} finally {{
   if ($workbook -ne $null) {{ if (-not $wpsPreOpen) {{ try {{ $workbook.Close($false) }} catch {{ }} }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($workbook) }} catch {{ }} }}
-  if ($app -ne $null) {{ try {{ {QUIT_IF_IDLE} }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) }} catch {{ }} }}
+  if ($app -ne $null) {{ try {{ {RELEASE_WPS_APP} }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) }} catch {{ }} }}
   [GC]::Collect(); [GC]::WaitForPendingFinalizers()
 }}
 """
@@ -553,11 +559,11 @@ $params = @'
 {PRE_OPEN_GUARD}
 $app = $null; $workbook = $null
 try {{
-  $app = New-Object -ComObject $params.prog_id
-  try {{ $app.Visible = $false }} catch {{ }}
-  try {{ $app.DisplayAlerts = $false }} catch {{ }}
+  {ACQUIRE_WPS_APP}
+  {HIDE_LAUNCHED_APP}
+  {QUIET_ALERTS}
   $wpsPreOpen = Test-WpsPathOpen $app.Workbooks $params.path
-  $workbook = $app.Workbooks.Open($params.path)
+  $workbook = Open-WpsDocument $app.Workbooks $params.path $wpsPreOpen
   Assert-WpsPreOpenSaved $wpsPreOpen $workbook
   $sheet = $workbook.Worksheets.Item($params.name)
   $sheet.Visible = if ([bool]$params.visible) {{ -1 }} else {{ 0 }}
@@ -573,7 +579,7 @@ try {{
   exit 2
 }} finally {{
   if ($workbook -ne $null) {{ if (-not $wpsPreOpen) {{ try {{ $workbook.Close($false) }} catch {{ }} }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($workbook) }} catch {{ }} }}
-  if ($app -ne $null) {{ try {{ {QUIT_IF_IDLE} }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) }} catch {{ }} }}
+  if ($app -ne $null) {{ try {{ {RELEASE_WPS_APP} }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) }} catch {{ }} }}
   [GC]::Collect(); [GC]::WaitForPendingFinalizers()
 }}
 """
@@ -664,11 +670,11 @@ $params = @'
 {PRE_OPEN_GUARD}
 $app = $null; $workbook = $null
 try {{
-  $app = New-Object -ComObject $params.prog_id
-  try {{ $app.Visible = $false }} catch {{ }}
-  $app.DisplayAlerts = $false
+  {ACQUIRE_WPS_APP}
+  {HIDE_LAUNCHED_APP}
+  {QUIET_ALERTS}
   $wpsPreOpen = Test-WpsPathOpen $app.Workbooks $params.path
-  $workbook = $app.Workbooks.Open($params.path)
+  $workbook = Open-WpsDocument $app.Workbooks $params.path $wpsPreOpen
   Assert-WpsPreOpenSaved $wpsPreOpen $workbook
   $workbook.Worksheets.Item($params.name).Delete()
   $workbook.Save()
@@ -680,7 +686,7 @@ try {{
   exit 2
 }} finally {{
   if ($workbook -ne $null) {{ if (-not $wpsPreOpen) {{ try {{ $workbook.Close($false) }} catch {{ }} }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($workbook) }} catch {{ }} }}
-  if ($app -ne $null) {{ try {{ {QUIT_IF_IDLE} }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) }} catch {{ }} }}
+  if ($app -ne $null) {{ try {{ {RELEASE_WPS_APP} }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) }} catch {{ }} }}
   [GC]::Collect(); [GC]::WaitForPendingFinalizers()
 }}
 """
@@ -763,11 +769,11 @@ $params = @'
 {PRE_OPEN_GUARD}
 $app = $null; $workbook = $null
 try {{
-  $app = New-Object -ComObject $params.prog_id
-  try {{ $app.Visible = $false }} catch {{ }}
-  try {{ $app.DisplayAlerts = $false }} catch {{ }}
+  {ACQUIRE_WPS_APP}
+  {HIDE_LAUNCHED_APP}
+  {QUIET_ALERTS}
   $wpsPreOpen = Test-WpsPathOpen $app.Workbooks $params.path
-  $workbook = $app.Workbooks.Open($params.path)
+  $workbook = Open-WpsDocument $app.Workbooks $params.path $wpsPreOpen
   Assert-WpsPreOpenSaved $wpsPreOpen $workbook
   $source = $workbook.Worksheets.Item($params.source_name)
   $count = $workbook.Worksheets.Count
@@ -787,7 +793,7 @@ try {{
   exit 2
 }} finally {{
   if ($workbook -ne $null) {{ if (-not $wpsPreOpen) {{ try {{ $workbook.Close($false) }} catch {{ }} }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($workbook) }} catch {{ }} }}
-  if ($app -ne $null) {{ try {{ {QUIT_IF_IDLE} }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) }} catch {{ }} }}
+  if ($app -ne $null) {{ try {{ {RELEASE_WPS_APP} }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) }} catch {{ }} }}
   [GC]::Collect(); [GC]::WaitForPendingFinalizers()
 }}
 """
@@ -938,11 +944,11 @@ $params = @'
 {PRE_OPEN_GUARD}
 $app = $null; $workbook = $null
 try {{
-  $app = New-Object -ComObject $params.prog_id
-  try {{ $app.Visible = $false }} catch {{ }}
-  try {{ $app.DisplayAlerts = $false }} catch {{ }}
+  {ACQUIRE_WPS_APP}
+  {HIDE_LAUNCHED_APP}
+  {QUIET_ALERTS}
   $wpsPreOpen = Test-WpsPathOpen $app.Workbooks $params.path
-  $workbook = $app.Workbooks.Open($params.path)
+  $workbook = Open-WpsDocument $app.Workbooks $params.path $wpsPreOpen
   Assert-WpsPreOpenSaved $wpsPreOpen $workbook
   $sheet = $workbook.Worksheets.Item($params.name)
   if ($params.color -eq 'none') {{ $sheet.Tab.ColorIndex = -4142 }} else {{ $sheet.Tab.Color = [int]$params.rgb }}
@@ -959,7 +965,7 @@ try {{
   exit 2
 }} finally {{
   if ($workbook -ne $null) {{ if (-not $wpsPreOpen) {{ try {{ $workbook.Close($false) }} catch {{ }} }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($workbook) }} catch {{ }} }}
-  if ($app -ne $null) {{ try {{ {QUIT_IF_IDLE} }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) }} catch {{ }} }}
+  if ($app -ne $null) {{ try {{ {RELEASE_WPS_APP} }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) }} catch {{ }} }}
   [GC]::Collect(); [GC]::WaitForPendingFinalizers()
 }}
 """
@@ -1116,10 +1122,11 @@ $params = @'
 $app = $null
 $workbook = $null
 try {{
-  $app = New-Object -ComObject $params.prog_id
-  try {{ $app.Visible = $false }} catch {{ }}
+  {ACQUIRE_WPS_APP}
+  {HIDE_LAUNCHED_APP}
+  {QUIET_ALERTS}
   $wpsPreOpen = Test-WpsPathOpen $app.Workbooks $params.path
-  $workbook = $app.Workbooks.Open($params.path)
+  $workbook = Open-WpsDocument $app.Workbooks $params.path $wpsPreOpen
   Assert-WpsPreOpenSaved $wpsPreOpen $workbook
   if ($null -ne $params.sheet_name -and $params.sheet_name -ne '') {{
     $sheet = $workbook.Worksheets.Item($params.sheet_name)
@@ -1172,7 +1179,7 @@ try {{
     try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($workbook) }} catch {{ }}
   }}
   if ($app -ne $null) {{
-    try {{ {QUIT_IF_IDLE} }} catch {{ }}
+    try {{ {RELEASE_WPS_APP} }} catch {{ }}
     try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) }} catch {{ }}
   }}
   [GC]::Collect()
@@ -1228,10 +1235,11 @@ $params = @'
 $app = $null
 $workbook = $null
 try {{
-  $app = New-Object -ComObject $params.prog_id
-  try {{ $app.Visible = $false }} catch {{ }}
+  {ACQUIRE_WPS_APP}
+  {HIDE_LAUNCHED_APP}
+  {QUIET_ALERTS}
   $wpsPreOpen = Test-WpsPathOpen $app.Workbooks $params.path
-  $workbook = $app.Workbooks.Open($params.path)
+  $workbook = Open-WpsDocument $app.Workbooks $params.path $wpsPreOpen
   Assert-WpsPreOpenSaved $wpsPreOpen $workbook
   if ($null -ne $params.sheet_name -and $params.sheet_name -ne '') {{
     $sheet = $workbook.Worksheets.Item($params.sheet_name)
@@ -1281,7 +1289,7 @@ try {{
     try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($workbook) }} catch {{ }}
   }}
   if ($app -ne $null) {{
-    try {{ {QUIT_IF_IDLE} }} catch {{ }}
+    try {{ {RELEASE_WPS_APP} }} catch {{ }}
     try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) }} catch {{ }}
   }}
   [GC]::Collect()

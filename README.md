@@ -42,6 +42,19 @@ PYTHONPATH=src python3 -m wps_ai_agent_cli inspect-env
 
 MCP 客户端配置见 [docs/MCP_SERVER_CLIENT_CONFIG.md](docs/MCP_SERVER_CLIENT_CONFIG.md)。
 
+## WPS 实例与已打开文档
+
+读写文件的 COM 命令（表格/文字/演示的变更与检查、冒烟与转换）取得 WPS 时**先附着到正在运行的实例**（GetActiveObject 语义），只有没有运行中的实例时才 `New-Object` 启动一个。
+
+- 只有脚本自己启动的实例才会隐藏窗口、`Quit()`（且仅在没有其他文档时）；附着到的实例永不 `Quit()`，不改窗口可见性，临时关闭的 `DisplayAlerts` 等设置会在结束时还原。
+- 目标文档已在该实例中打开时，不会被关闭；有未保存修改的表格/文字文档拒绝变更。**演示文稿**在已打开时一律拒绝变更（WPS 不能可靠报告演示的未保存状态），请先关闭。
+- 冒烟/转换命令的输入文档已在 WPS 中打开时同样拒绝，避免被另存为其他名称或关闭。
+- 路径比较会把 `\\localhost\C$\...`、`\\<本机名>\C$\...` 与 `\\?\` 前缀归一为本地路径，并在 Windows 上展开 8.3 短路径。
+- 文档**尚未打开**时，脚本必须在用户的 WPS 里打开它才能读写，因此附着模式下它会在用户的实例里短暂出现（窗口可能一闪），结束后只关闭**自己打开的**那份。这一点无法完全避免（COM 只能通过打开文档来读写）。如果脚本打开前一刻用户恰好打开了同一文档（集合数量没有增加），则按"已打开"处理，不会被关闭。
+- `spreadsheet-inspect` 的强制全量重算（`CalculateFullRebuild`）会重算该实例里**所有**已打开的工作簿，并可能让用户的文档变成"已修改"，所以只在脚本自己启动的实例里执行。附着到用户实例时跳过重算，返回 WPS 当前显示的值，结果里 `calculation_performed_in_memory=false`、附带 `recalculation_skipped_reason`，`cache_matches_recalculated` 与 `cache_mismatch_count` 为 `null`（没有比较已保存缓存）。
+- `GetActiveObject` 只能取到一个实例。同一组件有**多个带主窗口的 WPS 进程**（当前用户会话里 `wps`/`et`/`wpp` 进程且 `MainWindowHandle` 非 0 的个数大于 1）、且目标文档不在已附着的实例里时，无法判断文档是否在另一个实例中打开，因此变更命令（含演示和冒烟/转换）会拒绝，错误信息里列出被计入的进程 PID 和窗口标题；请先关闭多余的 WPS 窗口。只是多出**没有主窗口的后台/辅助进程**（`wps` 常见多个）时不拒绝，只在结果的 `warnings` 里提示（因为隐藏实例里的文档无法被排除）。确认安全时可设置环境变量 `WPS_AGENT_ALLOW_MULTI_INSTANCE=1` 完全跳过。文档已在附着实例里打开时不受影响，只读的 `spreadsheet-inspect` 也不检查。进程名按 ProgID 推断（Writer→`wps`、表格→`et`、演示→`wpp`）；没有遍历 ROT 去匹配其他实例（未经真实 WPS 验证，风险较大）。已知盲区：没有主窗口的隐藏实例不会被计入。
+- 这些行为只有 pwsh 假 COM 测试覆盖；真实 WPS 上的复测步骤见 PR 说明。
+
 ## 测试
 
 ```bash
