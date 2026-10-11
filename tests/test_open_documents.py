@@ -388,6 +388,68 @@ class ExportOpenDocumentTests(unittest.TestCase):
             ["report[1].files"],
         )
 
+    def test_failed_export_removes_partial_output_and_allows_retry_with_same_request(self):
+        fixture = Fixture(self, component="presentation")
+        output = Path(fixture.tmp.name) / "deck.html"
+        unrelated = Path(fixture.tmp.name) / "other-notes.txt"
+        unrelated.write_text("keep", encoding="utf-8")
+        calls = []
+
+        def flaky(action, params):
+            calls.append(action)
+            Path(params["output"]).write_bytes(b"PK\x03\x04not-html" if len(calls) == 1 else b"<html></html>")
+            Path(params["output"]).with_name("deck.files").mkdir(exist_ok=True)
+            return com_ok({"ok": True, "status": "ok", "export_method": "SaveCopyAsHtml", "source_still_open": True})
+
+        with patch.object(open_documents, "_run_presentation_attached_com", side_effect=flaky):
+            ok, data, errors, _ = self.export(fixture, output, request_id="exp-retry")
+            self.assertFalse(ok)
+            self.assertEqual(errors[0]["code"], "EXPORT_OUTPUT_NOT_HTML")
+            self.assertFalse(output.exists())
+            self.assertFalse((output.parent / "deck.files").exists())
+            self.assertEqual(sorted(Path(item).name for item in data["partial_output_removed"]), ["deck.files", "deck.html"])
+            self.assertTrue(unrelated.exists())
+
+            ok, data, errors, _ = self.export(fixture, output, request_id="exp-retry")
+        self.assertTrue(ok, errors)
+        self.assertTrue(output.exists())
+
+    def test_existing_output_is_never_removed_by_failure_cleanup(self):
+        fixture = Fixture(self)
+        output = Path(fixture.tmp.name) / "precious.html"
+        output.write_text("<html>mine</html>", encoding="utf-8")
+        with patch.object(open_documents, "_run_writer_attached_com") as com:
+            ok, _data, errors, _ = self.export(fixture, output, request_id="exp-existing")
+        self.assertFalse(ok)
+        self.assertEqual(errors[0]["code"], "OUTPUT_EXISTS")
+        com.assert_not_called()
+        self.assertEqual(output.read_text(encoding="utf-8"), "<html>mine</html>")
+
+    def test_com_failure_removes_partial_output_for_every_export_kind(self):
+        exporters = (
+            (open_documents.export_open_document_html, "out.html"),
+            (open_documents.export_open_document_pdf, "out.pdf"),
+            (open_documents.export_open_document_copy, "out.docx"),
+            (open_documents.export_open_document_text, "out.txt"),
+        )
+        for exporter, name in exporters:
+            with self.subTest(exporter=exporter.__name__):
+                fixture = Fixture(self)
+                output = Path(fixture.tmp.name) / name
+
+                def broken(action, params):
+                    Path(params["output"]).write_bytes(b"half")
+                    return com_ok({"ok": False, "error_message": "boom"})
+
+                with patch.object(open_documents, "_run_writer_attached_com", side_effect=broken):
+                    ok, _data, errors, _ = exporter(
+                        document_id=fixture.document_id, output=str(output), request_id="exp-com-fail",
+                        workspace=fixture.workspace,
+                    )
+                self.assertFalse(ok)
+                self.assertEqual(errors[0]["code"], "COM_OPERATION_FAILED")
+                self.assertFalse(output.exists())
+
     def test_exports_open_presentation_via_save_copy_as(self):
         fixture = Fixture(self, component="presentation")
         output = Path(fixture.tmp.name) / "deck.html"

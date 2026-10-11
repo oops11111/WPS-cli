@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import functools
 import glob
+import inspect
 import json
 import re
+import shutil
 from pathlib import Path
 from typing import Any
 
@@ -5305,7 +5308,67 @@ def _looks_like_pdf(path: Path) -> bool:
     return head.lstrip().startswith(b"%PDF")
 
 
+_EXPORT_CLEANUP_CODES = {
+    EXPORT_OUTPUT_MISSING,
+    EXPORT_OUTPUT_NOT_HTML,
+    EXPORT_OUTPUT_NOT_PDF,
+    EXPORT_OUTPUT_NOT_PACKAGE,
+    EXPORT_OUTPUT_NOT_TEXT,
+    "DOCUMENT_CHANGED_AFTER_COM",
+    COM_OPERATION_FAILED,
+}
+
+
+def _sibling_names(path: Path) -> set[str]:
+    try:
+        return {item.name for item in path.parent.iterdir()}
+    except OSError:
+        return set()
+
+
+def _discard_failed_export_output(export: Any) -> Any:
+    """Remove files a failed export left behind so the same request can be retried.
+
+    Only a path that did not exist before the call is ever touched, and only for failures that
+    happen after WPS was asked to write it (never OUTPUT_EXISTS, busy, or argument errors).
+    """
+    signature = inspect.signature(export)
+
+    @functools.wraps(export)
+    def wrapped(*args: Any, **kwargs: Any) -> Any:
+        bound = signature.bind_partial(*args, **kwargs)
+        output = bound.arguments.get("output")
+        if not isinstance(output, str):
+            return export(*args, **kwargs)
+        resolved = Path(output).resolve()
+        existed_before = resolved.exists()
+        names_before = _sibling_names(resolved)
+        outcome = export(*args, **kwargs)
+        ok, data, errors = outcome[0], outcome[1], outcome[2]
+        if ok or existed_before or not errors or errors[0].get("code") not in _EXPORT_CLEANUP_CODES:
+            return outcome
+        removed = []
+        for name in sorted(_sibling_names(resolved) - names_before):
+            target = resolved.parent / name
+            if name != resolved.name and not name.startswith(resolved.stem):
+                continue
+            try:
+                if target.is_dir() and not target.is_symlink():
+                    shutil.rmtree(target)
+                else:
+                    target.unlink()
+                removed.append(str(target))
+            except OSError:
+                continue
+        if removed and isinstance(data, dict):
+            data = {**data, "partial_output_removed": removed}
+        return (ok, data, errors, *outcome[3:])
+
+    return wrapped
+
+
 @coordinated_mutation
+@_discard_failed_export_output
 def export_open_document_html(
     document_id: str,
     output: str,
@@ -5403,6 +5466,7 @@ def export_open_document_html(
 
 
 @coordinated_mutation
+@_discard_failed_export_output
 def export_open_document_pdf(
     document_id: str,
     output: str,
@@ -5510,6 +5574,7 @@ def _looks_like_ooxml_package(path: Path) -> bool:
 
 
 @coordinated_mutation
+@_discard_failed_export_output
 def export_open_document_copy(
     document_id: str,
     output: str,
@@ -5636,6 +5701,7 @@ def _looks_like_text(path: Path) -> bool:
 
 
 @coordinated_mutation
+@_discard_failed_export_output
 def export_open_document_text(
     document_id: str,
     output: str,
