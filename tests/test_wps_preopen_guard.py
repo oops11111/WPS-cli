@@ -52,14 +52,21 @@ class PreOpenGuardStaticTests(unittest.TestCase):
                 closes = script.count(".Close(")
                 self.assertGreaterEqual(closes, 1)
                 self.assertEqual(script.count("if (-not $wpsPreOpen) {"), closes)
-                self.assertLess(script.index("Test-WpsPathOpen $app."), script.index(".Open($params.path"))
+                open_call = (
+                    ".Open((ConvertTo-WpsLocalPath $params.path)"
+                    if name == "presentation_replace"
+                    else "Open-WpsDocument $app."
+                )
+                self.assertEqual(script.count(open_call), 1)
+                self.assertNotIn(".Open($params.path", script)
+                self.assertLess(script.index("Test-WpsPathOpen $app."), script.index(open_call))
                 if name == "presentation_replace":
                     self.assertEqual(script.count("Assert-WpsPresentationNotOpen $wpsPreOpen"), 1)
                     self.assertNotIn("Assert-WpsPreOpenSaved $wpsPreOpen", script)
-                    self.assertLess(script.index("Assert-WpsPresentationNotOpen $wpsPreOpen"), script.index(".Open($params.path"))
+                    self.assertLess(script.index("Assert-WpsPresentationNotOpen $wpsPreOpen"), script.index(open_call))
                 else:
                     self.assertEqual(script.count("Assert-WpsPreOpenSaved $wpsPreOpen"), 1)
-                    self.assertLess(script.index(".Open($params.path"), script.index("Assert-WpsPreOpenSaved $wpsPreOpen"))
+                    self.assertLess(script.index(open_call), script.index("Assert-WpsPreOpenSaved $wpsPreOpen"))
 
     def test_read_only_inspect_script_does_not_close_user_workbooks(self):
         source = Path(spreadsheet_inspect.__file__).read_text(encoding="utf-8")
@@ -79,13 +86,24 @@ function New-FakeApp([string]$label, [bool]$open, [bool]$saved) {
   $sheet | Add-Member -MemberType ScriptMethod -Name Delete -Value { Write-FakeLog 'delete' }
   $sheets = [pscustomobject]@{ Count = 1; Sheet = $sheet }
   $sheets | Add-Member -MemberType ScriptMethod -Name Item -Value { param($key) return $this.Sheet }
-  $books = [pscustomobject]@{ Count = $(if ($open) { 1 } else { 0 }); Book = $null }
+  $books = [pscustomobject]@{ Count = $(if ($open) { 1 } else { 0 }); Book = $null; Other = $null }
   $book = [pscustomobject]@{ FullName = $env:WPSFAKE_PATH; Saved = $saved; Worksheets = $sheets; Books = $books }
   $book | Add-Member -MemberType ScriptMethod -Name Save -Value { Write-FakeLog 'save' }
   $book | Add-Member -MemberType ScriptMethod -Name Close -Value { param($save) Write-FakeLog 'close'; $this.Books.Count = 0 }
   $books.Book = $book
+  $other = [pscustomobject]@{ FullName = $env:WPSFAKE_PATH; Saved = $true; Worksheets = $sheets; Books = $books }
+  $other | Add-Member -MemberType ScriptMethod -Name Save -Value { Write-FakeLog 'save' }
+  $other | Add-Member -MemberType ScriptMethod -Name Close -Value { param($save) Write-FakeLog 'close' }
+  $books.Other = $other
   $books | Add-Member -MemberType ScriptMethod -Name Item -Value { param($i) return $this.Book }
-  $books | Add-Member -MemberType ScriptMethod -Name Open -Value { param($p) Write-FakeLog 'open'; $this.Count = 1; return $this.Book }
+  $books | Add-Member -MemberType ScriptMethod -Name Open -Value {
+    param($p)
+    Write-FakeLog ('open:' + $p)
+    # WPS hands back a second, clean-looking object when an already open workbook is opened again.
+    if ($env:WPSFAKE_OPEN_OTHER -eq '1' -and $this.Count -gt 0) { return $this.Other }
+    $this.Count = 1
+    return $this.Book
+  }
   $app = [pscustomobject]@{ Workbooks = $books; Documents = $null; Presentations = $null; Label = $label; v = $true; a = $true; e = $true; l = $true }
   foreach ($pair in @(@('Visible', 'v', 'visible'), @('DisplayAlerts', 'a', 'alerts'), @('EnableEvents', 'e', 'events'), @('AskToUpdateLinks', 'l', 'links'))) {
     $field = $pair[1]; $tag = $pair[2]
@@ -139,6 +157,9 @@ class PreOpenGuardBehaviourTests(unittest.TestCase):
     def settings(self):
         return [line for line in self.log_lines() if line.startswith(("visible=", "alerts=", "events=", "links="))]
 
+    def open_calls(self):
+        return [line for line in self.log_lines() if line.startswith("open:")]
+
     def delete_sheet(self, **env):
         with patch.dict(os.environ, env):
             return spreadsheet_ops._run_spreadsheet_delete_sheet_com(str(self.document), "S")
@@ -158,6 +179,40 @@ class PreOpenGuardBehaviourTests(unittest.TestCase):
         self.assertFalse(result["ok"], result)
         self.assertIn("unsaved changes", str(result))
         self.assertEqual(self.events(), [])
+
+    def test_reopening_an_unsaved_workbook_cannot_hide_its_dirty_state(self):
+        for attach in ("0", "1"):
+            with self.subTest(attach=attach):
+                self.log.write_text("", encoding="utf-8")
+                result = self.delete_sheet(
+                    WPSFAKE_OPEN="1", WPSFAKE_SAVED="0", WPSFAKE_OPEN_OTHER="1", WPSFAKE_ATTACH=attach,
+                )
+                self.assertFalse(result["ok"], result)
+                self.assertIn("unsaved changes", str(result))
+                self.assertEqual(self.events(), [])
+                self.assertEqual(self.open_calls(), [])
+
+    def test_open_workbook_is_used_directly_instead_of_being_opened_again(self):
+        self.log.write_text("", encoding="utf-8")
+        result = self.delete_sheet(WPSFAKE_OPEN="1", WPSFAKE_SAVED="1", WPSFAKE_OPEN_OTHER="1", WPSFAKE_ATTACH="1")
+        self.assertTrue(result["ok"], result)
+        self.assertEqual(self.open_calls(), [])
+        self.assertEqual(self.events(), ["delete", "save"])
+
+    def test_closed_workbook_is_opened_by_its_path(self):
+        result = self.delete_sheet(WPSFAKE_OPEN="0", WPSFAKE_SAVED="1")
+        self.assertTrue(result["ok"], result)
+        self.assertEqual(self.open_calls(), [f"open:{self.document}"])
+
+    def test_cell_write_keeps_alerts_quiet_and_restores_them(self):
+        with patch.dict(os.environ, {"WPSFAKE_OPEN": "1", "WPSFAKE_SAVED": "1", "WPSFAKE_ATTACH": "1"}):
+            result = spreadsheet_ops._run_spreadsheet_write_com(str(self.document), None, "A1", [[1]])
+        self.assertEqual(self.settings(), ["alerts=False:attached", "alerts=True:attached"], result)
+
+    def test_formula_write_keeps_alerts_quiet_and_restores_them(self):
+        with patch.dict(os.environ, {"WPSFAKE_OPEN": "1", "WPSFAKE_SAVED": "1", "WPSFAKE_ATTACH": "1"}):
+            result = spreadsheet_ops._run_spreadsheet_formula_write_com(str(self.document), None, "A1", [["=1"]])
+        self.assertEqual(self.settings(), ["alerts=False:attached", "alerts=True:attached"], result)
 
 
 @unittest.skipUnless(PWSH, "PowerShell (pwsh) is required to syntax-check the generated scripts")

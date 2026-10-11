@@ -95,7 +95,7 @@ try {{
   {ACQUIRE_WPS_APP}
   {HIDE_LAUNCHED_APP}
   $wpsPreOpen = Test-WpsPathOpen $app.Documents $params.path
-  $document = $app.Documents.Open($params.path)
+  $document = Open-WpsDocument $app.Documents $params.path $wpsPreOpen
   Assert-WpsPreOpenSaved $wpsPreOpen $document
   if ($null -ne $params.paragraph_index) {{
     $paragraphCount = $document.Paragraphs.Count
@@ -209,7 +209,7 @@ try {{
   {ACQUIRE_WPS_APP}
   {HIDE_LAUNCHED_APP}
   $wpsPreOpen = Test-WpsPathOpen $app.Documents $params.path
-  $document = $app.Documents.Open($params.path)
+  $document = Open-WpsDocument $app.Documents $params.path $wpsPreOpen
   Assert-WpsPreOpenSaved $wpsPreOpen $document
   if (-not $document.Bookmarks.Exists($params.name)) {{ throw "Bookmark not found in WPS: $($params.name)" }}
   $bookmark = $document.Bookmarks.Item($params.name)
@@ -427,7 +427,7 @@ try {{
   {ACQUIRE_WPS_APP}
   {HIDE_LAUNCHED_APP}
   $wpsPreOpen = Test-WpsPathOpen $app.Documents $params.path
-  $document = $app.Documents.Open($params.path)
+  $document = Open-WpsDocument $app.Documents $params.path $wpsPreOpen
   Assert-WpsPreOpenSaved $wpsPreOpen $document
   $tableCount = $document.Tables.Count
   if ([int]$params.table_index -lt 1 -or [int]$params.table_index -gt $tableCount) {{

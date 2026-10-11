@@ -109,7 +109,7 @@ try {{
   {HIDE_LAUNCHED_APP}
   Set-WpsAppQuiet $app @('DisplayAlerts', 'AskToUpdateLinks', 'EnableEvents')
   $wpsPreOpen = Test-WpsPathOpen $app.Workbooks $params.path
-  $workbook = $app.Workbooks.Open($params.path, 0, $true)
+  $workbook = Open-WpsDocument $app.Workbooks $params.path $wpsPreOpen $true
   $sheet = $workbook.Worksheets.Item($params.sheet)
   try {{ $app.CalculateFullRebuild() }} catch {{ $app.CalculateFull() }}
   $cells = @()

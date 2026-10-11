@@ -306,7 +306,7 @@ try {{
   {HIDE_LAUNCHED_APP}
   {QUIET_ALERTS}
   $wpsPreOpen = Test-WpsPathOpen $app.Workbooks $params.path
-  $workbook = $app.Workbooks.Open($params.path)
+  $workbook = Open-WpsDocument $app.Workbooks $params.path $wpsPreOpen
   Assert-WpsPreOpenSaved $wpsPreOpen $workbook
   $sheet = $workbook.Worksheets.Item($params.old_name)
   $sheet.Name = $params.new_name
@@ -434,7 +434,7 @@ try {{
   {HIDE_LAUNCHED_APP}
   {QUIET_ALERTS}
   $wpsPreOpen = Test-WpsPathOpen $app.Workbooks $params.path
-  $workbook = $app.Workbooks.Open($params.path)
+  $workbook = Open-WpsDocument $app.Workbooks $params.path $wpsPreOpen
   Assert-WpsPreOpenSaved $wpsPreOpen $workbook
   $count = $workbook.Worksheets.Count
   if ([int]$params.index -eq $count + 1) {{
@@ -563,7 +563,7 @@ try {{
   {HIDE_LAUNCHED_APP}
   {QUIET_ALERTS}
   $wpsPreOpen = Test-WpsPathOpen $app.Workbooks $params.path
-  $workbook = $app.Workbooks.Open($params.path)
+  $workbook = Open-WpsDocument $app.Workbooks $params.path $wpsPreOpen
   Assert-WpsPreOpenSaved $wpsPreOpen $workbook
   $sheet = $workbook.Worksheets.Item($params.name)
   $sheet.Visible = if ([bool]$params.visible) {{ -1 }} else {{ 0 }}
@@ -674,7 +674,7 @@ try {{
   {HIDE_LAUNCHED_APP}
   {QUIET_ALERTS}
   $wpsPreOpen = Test-WpsPathOpen $app.Workbooks $params.path
-  $workbook = $app.Workbooks.Open($params.path)
+  $workbook = Open-WpsDocument $app.Workbooks $params.path $wpsPreOpen
   Assert-WpsPreOpenSaved $wpsPreOpen $workbook
   $workbook.Worksheets.Item($params.name).Delete()
   $workbook.Save()
@@ -773,7 +773,7 @@ try {{
   {HIDE_LAUNCHED_APP}
   {QUIET_ALERTS}
   $wpsPreOpen = Test-WpsPathOpen $app.Workbooks $params.path
-  $workbook = $app.Workbooks.Open($params.path)
+  $workbook = Open-WpsDocument $app.Workbooks $params.path $wpsPreOpen
   Assert-WpsPreOpenSaved $wpsPreOpen $workbook
   $source = $workbook.Worksheets.Item($params.source_name)
   $count = $workbook.Worksheets.Count
@@ -948,7 +948,7 @@ try {{
   {HIDE_LAUNCHED_APP}
   {QUIET_ALERTS}
   $wpsPreOpen = Test-WpsPathOpen $app.Workbooks $params.path
-  $workbook = $app.Workbooks.Open($params.path)
+  $workbook = Open-WpsDocument $app.Workbooks $params.path $wpsPreOpen
   Assert-WpsPreOpenSaved $wpsPreOpen $workbook
   $sheet = $workbook.Worksheets.Item($params.name)
   if ($params.color -eq 'none') {{ $sheet.Tab.ColorIndex = -4142 }} else {{ $sheet.Tab.Color = [int]$params.rgb }}
@@ -1124,8 +1124,9 @@ $workbook = $null
 try {{
   {ACQUIRE_WPS_APP}
   {HIDE_LAUNCHED_APP}
+  {QUIET_ALERTS}
   $wpsPreOpen = Test-WpsPathOpen $app.Workbooks $params.path
-  $workbook = $app.Workbooks.Open($params.path)
+  $workbook = Open-WpsDocument $app.Workbooks $params.path $wpsPreOpen
   Assert-WpsPreOpenSaved $wpsPreOpen $workbook
   if ($null -ne $params.sheet_name -and $params.sheet_name -ne '') {{
     $sheet = $workbook.Worksheets.Item($params.sheet_name)
@@ -1236,8 +1237,9 @@ $workbook = $null
 try {{
   {ACQUIRE_WPS_APP}
   {HIDE_LAUNCHED_APP}
+  {QUIET_ALERTS}
   $wpsPreOpen = Test-WpsPathOpen $app.Workbooks $params.path
-  $workbook = $app.Workbooks.Open($params.path)
+  $workbook = Open-WpsDocument $app.Workbooks $params.path $wpsPreOpen
   Assert-WpsPreOpenSaved $wpsPreOpen $workbook
   if ($null -ne $params.sheet_name -and $params.sheet_name -ne '') {{
     $sheet = $workbook.Worksheets.Item($params.sheet_name)

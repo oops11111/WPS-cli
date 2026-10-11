@@ -96,19 +96,19 @@ try {{
   switch ($params.component) {{
     'writer' {{
       Assert-WpsInputNotOpen (Test-WpsPathOpen $app.Documents $params.input_path)
-      $document = $app.Documents.Open($params.input_path)
+      $document = $app.Documents.Open((ConvertTo-WpsLocalPath $params.input_path))
       $document.SaveAs($params.output_path)
       $document.Close($false)
     }}
     'spreadsheets' {{
       Assert-WpsInputNotOpen (Test-WpsPathOpen $app.Workbooks $params.input_path)
-      $document = $app.Workbooks.Open($params.input_path)
+      $document = $app.Workbooks.Open((ConvertTo-WpsLocalPath $params.input_path))
       $document.SaveAs($params.output_path)
       $document.Close($false)
     }}
     'presentation' {{
       Assert-WpsInputNotOpen (Test-WpsPathOpen $app.Presentations $params.input_path)
-      $document = $app.Presentations.Open($params.input_path, $false, $false, [bool]$params.visible)
+      $document = $app.Presentations.Open((ConvertTo-WpsLocalPath $params.input_path), $false, $false, [bool]$params.visible)
       $document.SaveAs($params.output_path)
       $document.Close()
     }}
@@ -210,7 +210,7 @@ try {{
   {HIDE_LAUNCHED_APP}
   {QUIET_ALERTS}
   Assert-WpsInputNotOpen (Test-WpsPathOpen $app.Workbooks $params.input_path)
-  $workbook = $app.Workbooks.Open($params.input_path)
+  $workbook = $app.Workbooks.Open((ConvertTo-WpsLocalPath $params.input_path))
   $sheet = $workbook.Worksheets.Item(1)
   $sheet.Range("B4").Value2 = 7
   $sheet.Range("C4").Value2 = 11
@@ -288,7 +288,7 @@ _CONVERSION_PDF_SPECS: dict[str, dict[str, Any]] = {
     "writer": {
         "collection": "Documents",
         "direction": "docx_to_pdf",
-        "open": "$document = $app.Documents.Open($params.input_path)",
+        "open": "$document = $app.Documents.Open((ConvertTo-WpsLocalPath $params.input_path))",
         "export": """
   try {
     $document.ExportAsFixedFormat($params.output_path, 17)
@@ -313,7 +313,7 @@ _CONVERSION_PDF_SPECS: dict[str, dict[str, Any]] = {
     "spreadsheets": {
         "collection": "Workbooks",
         "direction": "xlsx_to_pdf",
-        "open": "$document = $app.Workbooks.Open($params.input_path)",
+        "open": "$document = $app.Workbooks.Open((ConvertTo-WpsLocalPath $params.input_path))",
         "export": """
   try {
     $document.ExportAsFixedFormat(0, $params.output_path)
@@ -337,7 +337,7 @@ _CONVERSION_PDF_SPECS: dict[str, dict[str, Any]] = {
     "presentation": {
         "collection": "Presentations",
         "direction": "pptx_to_pdf",
-        "open": "$document = $app.Presentations.Open($params.input_path, $false, $false, $false)",
+        "open": "$document = $app.Presentations.Open((ConvertTo-WpsLocalPath $params.input_path), $false, $false, $false)",
         "export": """
   try {
     $document.ExportAsFixedFormat($params.output_path, 2)

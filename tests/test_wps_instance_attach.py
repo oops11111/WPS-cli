@@ -67,7 +67,7 @@ class AttachFirstStaticTests(unittest.TestCase):
             scripts = self.smoke_scripts(tmp)
         for script in scripts:
             self.assertIn("Assert-WpsInputNotOpen (Test-WpsPathOpen $app.", script)
-            self.assertLess(script.index("Assert-WpsInputNotOpen"), script.index(".Open($params.input_path"))
+            self.assertLess(script.index("Assert-WpsInputNotOpen"), script.index(".Open((ConvertTo-WpsLocalPath $params.input_path)"))
 
 
 def run_pwsh(body):
@@ -111,10 +111,11 @@ class LocalPathNormalisationTests(unittest.TestCase):
         self.assertEqual(self.convert(*paths), paths)
 
     def test_comparable_path_resolves_relative_segments(self):
-        self.assertEqual(
-            run_pwsh("ConvertTo-WpsComparablePath '/tmp/a/../b/book.xlsx'"),
-            ["/tmp/b/book.xlsx"],
-        )
+        base = os.path.join(os.path.abspath(os.sep), "wps_dir")
+        messy = os.path.join(base, "a", "..", "b", "book.xlsx")
+        expected = os.path.join(base, "b", "book.xlsx")
+        [actual] = run_pwsh(f"ConvertTo-WpsComparablePath '{messy}'")
+        self.assertEqual(os.path.normcase(actual), os.path.normcase(expected))
 
     def test_settings_changed_on_an_attached_app_are_restored(self):
         lines = run_pwsh(
@@ -125,6 +126,39 @@ class LocalPathNormalisationTests(unittest.TestCase):
             "\"after: $($app.DisplayAlerts) $($app.EnableEvents) $($app.AskToUpdateLinks) $($app.Untouched)\"\n"
         )
         self.assertEqual(lines, ["during: False False False", "after: True True False 1"])
+
+
+@unittest.skipUnless(PWSH, "PowerShell (pwsh) is required to execute the generated scripts")
+class OpenByLocalPathTests(unittest.TestCase):
+    FAKE_COLLECTION = r"""
+$env:COMPUTERNAME = 'BOX1'
+$global:opens = @()
+$coll = [pscustomobject]@{ Count = 1; Existing = [pscustomobject]@{ FullName = 'C:\data\open.xlsx'; Tag = 'existing' } }
+$coll | Add-Member -MemberType ScriptMethod -Name Item -Value { param($i) return $this.Existing }
+$coll | Add-Member -MemberType ScriptMethod -Name Open -Value { param($p, $update, $readOnly) $global:opens += "open:$p|$update|$readOnly"; return [pscustomobject]@{ Tag = 'opened' } }
+"""
+
+    def call(self, body):
+        return run_pwsh(self.FAKE_COLLECTION + body + "\n$global:opens\n")
+
+    def test_unc_spelling_of_a_local_drive_is_opened_by_its_local_path(self):
+        lines = self.call(r"[void](Open-WpsDocument $coll '\\localhost\C$\data\new.xlsx' $false)")
+        self.assertEqual(lines, [r"open:C:\data\new.xlsx||"])
+
+    def test_machine_name_and_extended_prefix_spellings_use_the_local_path(self):
+        lines = self.call(
+            r"[void](Open-WpsDocument $coll '\\box1\D$\x\a.xlsx' $false)" "\n"
+            r"[void](Open-WpsDocument $coll '\\?\E:\x\b.xlsx' $false)" "\n"
+        )
+        self.assertEqual(lines, [r"open:D:\x\a.xlsx||", r"open:E:\x\b.xlsx||"])
+
+    def test_read_only_open_passes_the_read_only_flag(self):
+        lines = self.call(r"[void](Open-WpsDocument $coll 'C:\data\new.xlsx' $false $true)")
+        self.assertEqual(lines, [r"open:C:\data\new.xlsx|0|True"])
+
+    def test_already_open_document_is_returned_without_opening_again(self):
+        lines = self.call(r"(Open-WpsDocument $coll 'c:\DATA\Open.xlsx' $true).Tag")
+        self.assertEqual(lines, ["existing"])
 
 
 @unittest.skipUnless(PWSH, "PowerShell (pwsh) is required to execute the generated scripts against a fake COM object")

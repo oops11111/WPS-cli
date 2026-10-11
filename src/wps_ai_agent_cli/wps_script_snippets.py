@@ -140,6 +140,23 @@ function Test-WpsPathOpen($collection, [string]$path) {
   } catch { }
   return $false
 }
+function Open-WpsDocument($collection, [string]$path, [bool]$wasOpen, [bool]$readOnly = $false) {
+  # A document that is already open must be used as is: Workbooks.Open() on an open, unsaved workbook
+  # can hand back a different object (Saved=true, without the in-memory edits), which hides the dirty
+  # state from Assert-WpsPreOpenSaved. Anything else is opened by its local path because WPS cannot
+  # open some UNC spellings (\\localhost\C$\...) that point at a local drive.
+  if ($wasOpen) {
+    $target = ConvertTo-WpsComparablePath $path
+    for ($i = 1; $i -le [int]$collection.Count; $i++) {
+      $candidate = $collection.Item($i)
+      try { $full = ConvertTo-WpsComparablePath ([string]$candidate.FullName) } catch { continue }
+      if ([string]::Equals($full, $target, [System.StringComparison]::OrdinalIgnoreCase)) { return $candidate }
+    }
+  }
+  $openPath = ConvertTo-WpsLocalPath $path
+  if ($readOnly) { return $collection.Open($openPath, 0, $true) }
+  return $collection.Open($openPath)
+}
 function Assert-WpsPreOpenSaved([bool]$wasOpen, $document) {
   if ($wasOpen -and -not [bool]$document.Saved) {
     throw 'The document is open in WPS with unsaved changes; save or close it before running this command.'
