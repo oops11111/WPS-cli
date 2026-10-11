@@ -131,6 +131,11 @@ function New-FakeApp([string]$label, [bool]$open, [bool]$saved) {
 $global:fakeLaunched = New-FakeApp 'new' ($env:WPSFAKE_OPEN -eq '1' -and $env:WPSFAKE_ATTACH -ne '1') ($env:WPSFAKE_SAVED -ne '0')
 $global:fakeAttached = New-FakeApp 'attached' ($env:WPSFAKE_OPEN -eq '1' -and $env:WPSFAKE_ATTACH -eq '1') ($env:WPSFAKE_SAVED -ne '0')
 if ($env:WPSFAKE_ATTACH -eq '1') { [WpsAgent.Running]::Instance = $global:fakeAttached }
+function Get-Process {
+  [CmdletBinding()] param([string]$Name)
+  $count = if ($env:WPSFAKE_PROCS) { [int]$env:WPSFAKE_PROCS } else { 1 }
+  1..$count | ForEach-Object { [pscustomobject]@{ Name = $Name; Id = $_ } }
+}
 function New-Object { param([string]$ComObject) Write-FakeLog 'new-object'; return $global:fakeLaunched }
 '''
 

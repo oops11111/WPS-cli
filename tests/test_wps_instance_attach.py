@@ -162,6 +162,22 @@ $coll | Add-Member -MemberType ScriptMethod -Name Open -Value { param($p, $updat
         self.assertEqual(lines, ["existing"])
 
 
+@unittest.skipUnless(PWSH, "PowerShell (pwsh) is required to execute the generated scripts")
+class ProcessNameTests(unittest.TestCase):
+    def test_progids_map_to_the_component_process(self):
+        progids = [
+            "kwps.Application", "wps.Application", "Kingsoft Writer.Application",
+            "ket.Application", "et.Application", "Kingsoft Spreadsheets.Application",
+            "kwpp.Application", "wpp.Application", "Kingsoft Presentation.Application",
+            "something.Else",
+        ]
+        calls = "\n".join(f"\"[$(Get-WpsProcessName '{progid}')]\"" for progid in progids)
+        self.assertEqual(
+            run_pwsh(calls),
+            ["[wps]", "[wps]", "[wps]", "[et]", "[et]", "[et]", "[wpp]", "[wpp]", "[wpp]", "[]"],
+        )
+
+
 @unittest.skipUnless(PWSH, "PowerShell (pwsh) is required to execute the generated scripts against a fake COM object")
 class InspectRecalculationTests(unittest.TestCase):
     def setUp(self):
@@ -225,6 +241,10 @@ class InspectRecalculationTests(unittest.TestCase):
         self.assertFalse(result["calculation_performed_in_memory"])
         self.assertIn("close", self.log_lines())
         self.assertNotIn("quit:attached", self.log_lines())
+
+    def test_read_only_inspect_is_not_blocked_by_several_processes(self):
+        ok, result, errors = self.inspect(WPSFAKE_ATTACH="1", WPSFAKE_OPEN="0", WPSFAKE_SAVED="1", WPSFAKE_PROCS="2")
+        self.assertTrue(ok, errors)
 
     def test_instance_launched_by_the_script_is_still_fully_recalculated(self):
         ok, result, errors = self.inspect(WPSFAKE_ATTACH="0", WPSFAKE_OPEN="0", WPSFAKE_SAVED="1")
@@ -325,6 +345,48 @@ class AttachBehaviourTests(unittest.TestCase):
                 result = spreadsheet_ops._run_spreadsheet_delete_sheet_com(str(self.document), "S")
         self.assertTrue(result["ok"], result)
         self.assertNotIn("quit:new", self.events())
+
+    def test_several_wps_processes_refuse_opening_a_closed_document(self):
+        for attach in ("1", "0"):
+            with self.subTest(attach=attach):
+                self.log.write_text("", encoding="utf-8")
+                result = self.delete_sheet(WPSFAKE_ATTACH=attach, WPSFAKE_OPEN="0", WPSFAKE_SAVED="1", WPSFAKE_PROCS="2")
+                self.assertFalse(result["ok"], result)
+                self.assertIn("Several WPS processes", str(result))
+                self.assertIn("WPS_AGENT_ALLOW_MULTI_INSTANCE", str(result))
+                self.assertFalse([line for line in self.log_lines() if line.startswith("open:")])
+                self.assertEqual([line for line in self.events() if line != "quit:new"], [])
+
+    def test_a_document_already_open_in_the_attached_instance_is_still_used_with_several_processes(self):
+        result = self.delete_sheet(WPSFAKE_ATTACH="1", WPSFAKE_OPEN="1", WPSFAKE_SAVED="1", WPSFAKE_PROCS="3")
+        self.assertTrue(result["ok"], result)
+        self.assertEqual(self.events(), ["delete", "save"])
+
+    def test_a_single_process_does_not_block_opening(self):
+        result = self.delete_sheet(WPSFAKE_ATTACH="1", WPSFAKE_OPEN="0", WPSFAKE_SAVED="1", WPSFAKE_PROCS="1")
+        self.assertTrue(result["ok"], result)
+        self.assertEqual(self.events(), ["delete", "save", "close"])
+
+    def test_the_multi_instance_check_can_be_switched_off(self):
+        result = self.delete_sheet(
+            WPSFAKE_ATTACH="1", WPSFAKE_OPEN="0", WPSFAKE_SAVED="1", WPSFAKE_PROCS="2", WPS_AGENT_ALLOW_MULTI_INSTANCE="1",
+        )
+        self.assertTrue(result["ok"], result)
+
+    def test_launched_instance_is_still_quit_after_the_refusal(self):
+        self.delete_sheet(WPSFAKE_ATTACH="0", WPSFAKE_OPEN="0", WPSFAKE_SAVED="1", WPSFAKE_PROCS="2")
+        self.assertEqual(self.events(), ["quit:new"])
+
+    def test_presentation_and_smoke_commands_refuse_with_several_processes(self):
+        with patch.dict(os.environ, {"WPSFAKE_ATTACH": "1", "WPSFAKE_OPEN": "0", "WPSFAKE_SAVED": "1", "WPSFAKE_PROCS": "2"}):
+            presentation = presentation_ops._run_presentation_replace_com(str(self.document), "a", "b")
+            calc = com_backend._run_powershell_com_smoke("spreadsheets", "ket.Application", str(self.document), str(self.dir / "out.xlsx"), False)
+            conversion = com_backend.run_conversion_smoke("writer", str(self.document), str(self.dir / "out.pdf"), "pdf")
+        for name, result in (("presentation", presentation), ("smoke", calc), ("conversion", conversion)):
+            with self.subTest(command=name):
+                self.assertFalse(result["ok"], result)
+                self.assertIn("Several WPS processes", str(result))
+        self.assertFalse([line for line in self.log_lines() if line.startswith("open:")])
 
     def test_open_presentation_is_refused_even_though_saved_is_always_true(self):
         for attach in ("1", "0"):

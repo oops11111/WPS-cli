@@ -140,6 +140,25 @@ function Test-WpsPathOpen($collection, [string]$path) {
   } catch { }
   return $false
 }
+function Get-WpsProcessName([string]$progId) {
+  $id = ([string]$progId).ToLowerInvariant()
+  if ($id.Contains('wpp') -or $id.Contains('presentation')) { return 'wpp' }
+  if ($id.Contains('ket') -or $id.StartsWith('et.') -or $id.Contains('spreadsheet')) { return 'et' }
+  if ($id.Contains('wps') -or $id.Contains('writer')) { return 'wps' }
+  return $null
+}
+function Assert-WpsSingleInstance([string]$progId) {
+  # GetActiveObject returns one instance. With several WPS processes of the same component a document
+  # the user has open can live in another one that this script cannot see, so opening it here could
+  # race with (or silently duplicate) the user's session. Refuse instead of guessing.
+  if ($env:WPS_AGENT_ALLOW_MULTI_INSTANCE -eq '1') { return }
+  $name = Get-WpsProcessName $progId
+  if ([string]::IsNullOrEmpty($name)) { return }
+  try { $count = @(Get-Process -Name $name -ErrorAction SilentlyContinue).Count } catch { return }
+  if ($count -gt 1) {
+    throw ('Several WPS processes are running (' + $name + ' x' + $count + '), so it cannot be determined whether this document is already open in another instance. Close the extra WPS windows and retry, or set WPS_AGENT_ALLOW_MULTI_INSTANCE=1 to skip this check.')
+  }
+}
 function Open-WpsDocument($collection, [string]$path, [bool]$wasOpen, [bool]$readOnly = $false) {
   # A document that is already open must be used as is: Workbooks.Open() on an open, unsaved workbook
   # can hand back a different object (Saved=true, without the in-memory edits), which hides the dirty
@@ -153,6 +172,7 @@ function Open-WpsDocument($collection, [string]$path, [bool]$wasOpen, [bool]$rea
       if ([string]::Equals($full, $target, [System.StringComparison]::OrdinalIgnoreCase)) { return $candidate }
     }
   }
+  if (-not $readOnly) { Assert-WpsSingleInstance $params.prog_id }
   $openPath = ConvertTo-WpsLocalPath $path
   $countBefore = [int]$collection.Count
   if ($readOnly) { $opened = $collection.Open($openPath, 0, $true) } else { $opened = $collection.Open($openPath) }

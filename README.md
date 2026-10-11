@@ -52,6 +52,7 @@ MCP 客户端配置见 [docs/MCP_SERVER_CLIENT_CONFIG.md](docs/MCP_SERVER_CLIENT
 - 路径比较会把 `\\localhost\C$\...`、`\\<本机名>\C$\...` 与 `\\?\` 前缀归一为本地路径，并在 Windows 上展开 8.3 短路径。
 - 文档**尚未打开**时，脚本必须在用户的 WPS 里打开它才能读写，因此附着模式下它会在用户的实例里短暂出现（窗口可能一闪），结束后只关闭**自己打开的**那份。这一点无法完全避免（COM 只能通过打开文档来读写）。如果脚本打开前一刻用户恰好打开了同一文档（集合数量没有增加），则按"已打开"处理，不会被关闭。
 - `spreadsheet-inspect` 的强制全量重算（`CalculateFullRebuild`）会重算该实例里**所有**已打开的工作簿，并可能让用户的文档变成"已修改"，所以只在脚本自己启动的实例里执行。附着到用户实例时跳过重算，返回 WPS 当前显示的值，结果里 `calculation_performed_in_memory=false`、附带 `recalculation_skipped_reason`，`cache_matches_recalculated` 与 `cache_mismatch_count` 为 `null`（没有比较已保存缓存）。
+- `GetActiveObject` 只能取到一个实例。同一组件有**多个 WPS 进程**（`wps`/`et`/`wpp` 进程数大于 1）、且目标文档不在已附着的实例里时，无法判断文档是否在另一个实例中打开，因此变更命令（含演示和冒烟/转换）会拒绝并给出明确错误；请先关闭多余的 WPS 窗口。确认安全时可设置环境变量 `WPS_AGENT_ALLOW_MULTI_INSTANCE=1` 跳过该检查。文档已在附着实例里打开时不受影响，只读的 `spreadsheet-inspect` 也不检查。进程名按 ProgID 推断（Writer→`wps`、表格→`et`、演示→`wpp`），没有遍历 ROT 去匹配其他实例（未经真实 WPS 验证，风险较大）。
 - 这些行为只有 pwsh 假 COM 测试覆盖；真实 WPS 上的复测步骤见 PR 说明。
 
 ## 测试

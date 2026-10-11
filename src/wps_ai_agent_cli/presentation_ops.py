@@ -62,6 +62,7 @@ try {{
   {HIDE_LAUNCHED_APP}
   $wpsPreOpen = Test-WpsPathOpen $app.Presentations $params.path
   Assert-WpsPresentationNotOpen $wpsPreOpen
+  Assert-WpsSingleInstance $params.prog_id
   $presentation = $app.Presentations.Open((ConvertTo-WpsLocalPath $params.path), $false, $false, $false)
   $findText = [string]$params.find_text
   $replaceText = [string]$params.replace_text

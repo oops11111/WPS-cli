@@ -96,18 +96,21 @@ try {{
   switch ($params.component) {{
     'writer' {{
       Assert-WpsInputNotOpen (Test-WpsPathOpen $app.Documents $params.input_path)
+      Assert-WpsSingleInstance $params.prog_id
       $document = $app.Documents.Open((ConvertTo-WpsLocalPath $params.input_path))
       $document.SaveAs($params.output_path)
       $document.Close($false)
     }}
     'spreadsheets' {{
       Assert-WpsInputNotOpen (Test-WpsPathOpen $app.Workbooks $params.input_path)
+      Assert-WpsSingleInstance $params.prog_id
       $document = $app.Workbooks.Open((ConvertTo-WpsLocalPath $params.input_path))
       $document.SaveAs($params.output_path)
       $document.Close($false)
     }}
     'presentation' {{
       Assert-WpsInputNotOpen (Test-WpsPathOpen $app.Presentations $params.input_path)
+      Assert-WpsSingleInstance $params.prog_id
       $document = $app.Presentations.Open((ConvertTo-WpsLocalPath $params.input_path), $false, $false, [bool]$params.visible)
       $document.SaveAs($params.output_path)
       $document.Close()
@@ -210,6 +213,7 @@ try {{
   {HIDE_LAUNCHED_APP}
   {QUIET_ALERTS}
   Assert-WpsInputNotOpen (Test-WpsPathOpen $app.Workbooks $params.input_path)
+  Assert-WpsSingleInstance $params.prog_id
   $workbook = $app.Workbooks.Open((ConvertTo-WpsLocalPath $params.input_path))
   $sheet = $workbook.Worksheets.Item(1)
   $sheet.Range("B4").Value2 = 7
@@ -419,6 +423,7 @@ try {{
   {ACQUIRE_WPS_APP}
   {HIDE_LAUNCHED_APP}
   Assert-WpsInputNotOpen (Test-WpsPathOpen $app.{spec["collection"]} $params.input_path)
+  Assert-WpsSingleInstance $params.prog_id
   {spec["open"]}
   {spec["export"]}
   $exists = Test-Path $params.output_path
