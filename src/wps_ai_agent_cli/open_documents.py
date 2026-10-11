@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -2962,11 +2963,15 @@ def _validate_text(text: str, label: str) -> dict[str, str] | None:
 
 
 FORMULA_PREFIXES = ("=", "+", "-", "@")
+_PLAIN_NUMBER = re.compile(r"[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?")
 
 
 def _formula_prefix_error(text: str, label: str) -> dict[str, str] | None:
-    """Cell text starting with a formula trigger would be evaluated by WPS; formulas need their own command."""
-    if text.startswith(FORMULA_PREFIXES):
+    """Cell text starting with a formula trigger would be evaluated by WPS; formulas need their own command.
+
+    Plain signed numbers such as -5 or +0.5 are data, not formulas.
+    """
+    if text.startswith(FORMULA_PREFIXES) and not _PLAIN_NUMBER.fullmatch(text):
         return {
             "code": "FORMULA_PREFIX_REJECTED",
             "message": f"{label} starts with {text[0]!r}; use spreadsheet-formula-write for formulas.",

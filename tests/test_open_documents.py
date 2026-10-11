@@ -1344,6 +1344,20 @@ class SpreadsheetSelectionReplaceTests(unittest.TestCase):
                 self.assertEqual(com.call_count, 1)
                 backup.assert_not_called()
 
+    def test_negative_and_signed_numbers_are_not_rejected(self):
+        matrix, error = open_documents._parse_selection_values_matrix([[-5, -0.5, "+3", "-1e3", 7]])
+        self.assertIsNone(error)
+        self.assertEqual(matrix, [["-5", "-0.5", "+3", "-1e3", "7"]])
+        self.assertIsNone(open_documents._formula_prefix_error("-5", "Replacement text"))
+
+    def test_signed_non_numbers_are_still_rejected(self):
+        for text in ("-", "+", "-5+A1", "-1e", "--5", "=5", "@5", "-cmd|x"):
+            with self.subTest(text=text):
+                self.assertEqual(
+                    open_documents._formula_prefix_error(text, "cell")["code"],
+                    "FORMULA_PREFIX_REJECTED",
+                )
+
     def test_constant_and_matrix_modes_share_one_prefix_check(self):
         constant = open_documents._formula_prefix_error("=A1", "Replacement text")
         _matrix, matrix_error = open_documents._parse_selection_values_matrix([["=A1"]])
