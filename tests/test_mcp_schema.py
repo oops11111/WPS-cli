@@ -7,6 +7,24 @@ from wps_ai_agent_cli.mcp_schema import (
 )
 
 
+REMOVED_REPORTING_COMMANDS = frozenset({
+    "artifact-retention-summary",
+    "project-status",
+    "workspace-health",
+    "local-handoff-summary",
+    "validation-runbook",
+    "documentation-freshness",
+    "regression-evidence",
+    "regression-history",
+    "cloud-sync-package",
+    "sync-package-inspect",
+    "sync-package-summary",
+    "sync-package-manifest",
+    "sync-package-coverage",
+    "sync-package-readiness",
+})
+
+
 class McpSchemaTests(unittest.TestCase):
     def test_schema_names_are_unique_and_cover_current_cli_surface(self):
         schemas = list_mcp_tool_schemas()
@@ -25,25 +43,13 @@ class McpSchemaTests(unittest.TestCase):
         self.assertIn("wps-process-audit", commands)
         self.assertIn("cleanup-plan", commands)
         self.assertIn("cleanup-approval-manifest", commands)
-        self.assertIn("artifact-retention-summary", commands)
-        self.assertIn("project-status", commands)
-        self.assertIn("workspace-health", commands)
-        self.assertIn("local-handoff-summary", commands)
-        self.assertIn("validation-runbook", commands)
-        self.assertIn("documentation-freshness", commands)
         self.assertIn("mcp-smoke", commands)
         self.assertIn("mcp-config-audit", commands)
         self.assertIn("regression-manifest", commands)
         self.assertIn("regression-run", commands)
-        self.assertIn("regression-evidence", commands)
-        self.assertIn("regression-history", commands)
-        self.assertIn("cloud-sync-package", commands)
-        self.assertIn("sync-package-inspect", commands)
-        self.assertIn("sync-package-summary", commands)
-        self.assertIn("sync-package-manifest", commands)
-        self.assertIn("sync-package-coverage", commands)
-        self.assertIn("sync-package-readiness", commands)
         self.assertIn("security-audit", commands)
+        for removed in REMOVED_REPORTING_COMMANDS | {"local-release-gates"}:
+            self.assertNotIn(removed, commands)
         self.assertIn("performance-baseline", commands)
         self.assertIn("writer-table-write", commands)
         self.assertIn("writer-table-smoke", commands)
@@ -153,6 +159,78 @@ class McpSchemaTests(unittest.TestCase):
         self.assertEqual(server_name["minLength"], 1)
         self.assertEqual(server_name["maxLength"], 256)
         self.assertIn(r"\S", server_name["pattern"])
+
+    def test_open_document_tools_do_not_accept_page_number_targeting(self):
+        """Page-N mutation is a deliberate non-goal; schemas must not grow page targeting inputs."""
+        forbidden = {
+            "page_number",
+            "page_index",
+            "page",
+            "target_page",
+            "page_start",
+            "page_end",
+        }
+        open_doc_prefixes = (
+            "wps_agent_writer_selection_",
+            "wps_agent_presentation_selection_",
+            "wps_agent_spreadsheet_selection_",
+            "wps_agent_export_open_document",
+            "wps_agent_save_open_document",
+            "wps_agent_save_as_open_document",
+            "wps_agent_open_documents",
+        )
+        matched = [
+            schema
+            for schema in list_mcp_tool_schemas()
+            if schema["name"].startswith(open_doc_prefixes) or schema["name"] in {
+                "wps_agent_export_open_document",
+                "wps_agent_export_open_document_pdf",
+                "wps_agent_export_open_document_copy",
+                "wps_agent_export_open_document_text",
+                "wps_agent_save_open_document",
+                "wps_agent_save_as_open_document",
+                "wps_agent_open_documents",
+            }
+        ]
+        self.assertGreaterEqual(len(matched), 15)
+        for schema in matched:
+            properties = set(schema["input_schema"].get("properties") or {})
+            overlap = properties & forbidden
+            self.assertFalse(
+                overlap,
+                f"{schema['name']} must not accept page targeting inputs; found {sorted(overlap)}",
+            )
+        writer_read = get_mcp_tool_schema("wps_agent_writer_selection_read")
+        self.assertIn("page_number", writer_read["description"] + " ".join(writer_read.get("safety_notes") or []))
+
+    def test_save_as_open_document_notes_state_backup_and_file_boundary(self):
+        notes = " ".join(get_mcp_tool_schema("wps_agent_save_as_open_document")["safety_notes"]).lower()
+        self.assertIn("no backup", notes)
+        self.assertIn("untitled has no source file", notes)
+        self.assertIn("--output", notes)
+        self.assertIn("never overwritten", notes)
+
+    def test_series_values_notes_warn_that_cell_binding_is_lost(self):
+        for name in ("wps_agent_spreadsheet_selection_replace", "wps_agent_spreadsheet_selection_delete"):
+            with self.subTest(name=name):
+                notes = " ".join(get_mcp_tool_schema(name)["safety_notes"]).lower()
+                self.assertIn("detach", notes)
+                self.assertIn("source cells", notes)
+
+    def test_open_document_export_and_mutation_notes_point_to_save_open_document(self):
+        export_names = (
+            "wps_agent_export_open_document",
+            "wps_agent_export_open_document_pdf",
+            "wps_agent_export_open_document_copy",
+            "wps_agent_export_open_document_text",
+        )
+        for name in export_names:
+            with self.subTest(name=name):
+                notes = " ".join(get_mcp_tool_schema(name).get("safety_notes") or [])
+                self.assertIn("save-open-document", notes)
+                self.assertIn("DOCUMENT_HAS_UNSAVED_CHANGES", notes)
+        replace = get_mcp_tool_schema("wps_agent_writer_selection_replace")
+        self.assertIn("save-open-document", " ".join(replace.get("safety_notes") or []))
 
 
 if __name__ == "__main__":

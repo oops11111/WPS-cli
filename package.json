@@ -1,0 +1,7 @@
+{
+  "name": "wps-ai-agent-cli-render",
+  "private": true,
+  "description": "Optional Node dependencies for the html-render command (src/wps_ai_agent_cli/html_render_playwright.cjs).",
+  "engines": { "node": ">=18" },
+  "dependencies": { "playwright": "^1.40.0" }
+}

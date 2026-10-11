@@ -23,6 +23,65 @@ def _flag_name(argument_name: str) -> str:
     return f"--{argument_name.replace('_', '-')}"
 
 
+_MAX_JSON_ENUM_DEPTH = 32
+_MAX_EXACT_JSON_INTEGER = 2**53
+
+
+def _json_canonical(value: Any, depth: int = 0) -> tuple[Any, ...] | None:
+    """Identity for JSON equality: booleans are not numbers, and object member order is irrelevant."""
+    if depth > _MAX_JSON_ENUM_DEPTH:
+        return None
+    if isinstance(value, bool):
+        return ("boolean", value)
+    if isinstance(value, str):
+        return ("string", value)
+    if isinstance(value, int):
+        return ("number", value)
+    if isinstance(value, float):
+        if not math.isfinite(value):
+            return None
+        if value.is_integer() and abs(value) <= _MAX_EXACT_JSON_INTEGER:
+            return ("number", int(value))
+        return ("number", value)
+    if isinstance(value, list):
+        items = []
+        for item in value:
+            canonical = _json_canonical(item, depth + 1)
+            if canonical is None:
+                return None
+            items.append(canonical)
+        return ("array", tuple(items))
+    if isinstance(value, dict):
+        pairs = []
+        for key, item in value.items():
+            if not isinstance(key, str):
+                return None
+            canonical = _json_canonical(item, depth + 1)
+            if canonical is None:
+                return None
+            pairs.append((key, canonical))
+        pairs.sort(key=lambda pair: pair[0])
+        return ("object", tuple(pairs))
+    return None
+
+
+def _enum_values_are_unique(values: list[Any]) -> bool:
+    seen: list[tuple[Any, ...]] = []
+    for value in values:
+        canonical = _json_canonical(value)
+        if canonical is None or canonical in seen:
+            return False
+        seen.append(canonical)
+    return True
+
+
+def _enum_contains(values: list[Any], candidate: Any) -> bool:
+    canonical = _json_canonical(candidate)
+    if canonical is None:
+        return False
+    return any(_json_canonical(item) == canonical for item in values)
+
+
 def _constraint_error(argument_name: str, constraint: str) -> dict[str, Any]:
     return _error(
         "MCP_SCHEMA_CONSTRAINT_INVALID",
@@ -91,7 +150,7 @@ def _validate_property_schema(argument_name: str, property_schema: Any) -> list[
                 "array": lambda item: isinstance(item, list),
                 "object": lambda item: isinstance(item, dict),
             }
-            if any(not enum_validators[expected](item) for item in values):
+            if any(not enum_validators[expected](item) for item in values) or not _enum_values_are_unique(values):
                 errors.append(_constraint_error(argument_name, "enum"))
     if "pattern" in property_schema:
         pattern = property_schema["pattern"]
@@ -152,7 +211,7 @@ def _validate_arguments(schema: dict[str, Any], arguments: dict[str, Any]) -> li
         if not valid_type(value):
             errors.append(_error("MCP_ARGUMENT_TYPE_INVALID", "Argument has an invalid JSON type.", name))
             continue
-        if "enum" in property_schema and value not in property_schema["enum"]:
+        if "enum" in property_schema and not _enum_contains(property_schema["enum"], value):
             errors.append(_error("MCP_ARGUMENT_ENUM_INVALID", "Argument is not one of the permitted values.", name))
         if expected == "string":
             if "minLength" in property_schema and len(value) < property_schema["minLength"]:
@@ -224,12 +283,18 @@ def build_cli_argv(tool_name: str, arguments: dict[str, Any]) -> tuple[bool, lis
             continue
         if property_schema.get("type") == "array":
             for item in value:
-                argv.extend([_flag_name(name), str(item)])
+                argv.append(f"{_flag_name(name)}={item}")
             continue
-        argv.extend([_flag_name(name), str(value)])
+        if str(value).startswith("-"):
+            argv.append(f"{_flag_name(name)}={value}")
+        else:
+            argv.extend([_flag_name(name), str(value)])
 
     if request_id:
-        argv.extend(["--request-id", str(request_id)])
+        if str(request_id).startswith("-"):
+            argv.append(f"--request-id={request_id}")
+        else:
+            argv.extend(["--request-id", str(request_id)])
     return True, argv, schema, []
 
 
@@ -249,8 +314,37 @@ def call_mcp_tool(tool_name: str, arguments: dict[str, Any]) -> tuple[bool, dict
 
     from .cli import run
 
+    from .mcp_config_audit import LAUNCH_RESTRICTED
+
     output = io.StringIO()
-    exit_code = run(argv, output_stream=output)
+    restriction = LAUNCH_RESTRICTED.set(True)
+    try:
+        exit_code = run(argv, output_stream=output)
+    except SystemExit as exc:
+        return (
+            False,
+            {
+                "tool_name": schema["name"] if schema else tool_name,
+                "cli_command": schema["cli_command"] if schema else None,
+                "cli_argv": argv,
+                "response": None,
+                "exit_code": exc.code,
+            },
+            [_error("MCP_CLI_ARGUMENTS_REJECTED", "The CLI parser rejected the arguments; see the server's stderr for the usage message.", {"exit_code": exc.code})],
+        )
+    except Exception as exc:  # noqa: BLE001
+        return (
+            False,
+            {
+                "tool_name": schema["name"] if schema else tool_name,
+                "cli_command": schema["cli_command"] if schema else None,
+                "cli_argv": argv,
+                "response": None,
+            },
+            [_error("MCP_TOOL_EXECUTION_FAILED", f"{type(exc).__name__}: {exc}"[:500])],
+        )
+    finally:
+        LAUNCH_RESTRICTED.reset(restriction)
     raw_output = output.getvalue().strip()
     try:
         response = json.loads(raw_output) if raw_output else {}

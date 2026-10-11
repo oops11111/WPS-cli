@@ -4,7 +4,7 @@ from collections import Counter
 from pathlib import Path
 from typing import Any
 
-from openpyxl import load_workbook
+from .ooxml import load_workbook_guarded as load_workbook
 
 from .document_text import docx_body_paragraphs
 from .errors import INPUT_FILE_NOT_FOUND

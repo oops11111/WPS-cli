@@ -2,7 +2,7 @@ import tempfile
 import unittest
 import io
 import json
-from contextlib import chdir
+from tests.isolation import chdir
 from pathlib import Path
 from unittest.mock import patch
 

@@ -6,7 +6,7 @@ import time
 from typing import Any
 
 
-MCP_BASELINE_EXPECTED_TOOL_COUNT = 81
+MCP_BASELINE_EXPECTED_TOOL_COUNT = 70
 
 
 PERFORMANCE_BASELINE_COMMANDS: tuple[dict[str, Any], ...] = (

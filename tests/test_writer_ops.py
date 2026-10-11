@@ -9,6 +9,21 @@ from wps_ai_agent_cli.sessions import register_document
 from wps_ai_agent_cli.writer_ops import writer_fill_bookmark, writer_replace, writer_table_write
 
 
+from tests.isolation import use_temporary_cwd
+
+_restore_cwd = None
+
+
+def setUpModule():
+    global _restore_cwd
+    _restore_cwd = use_temporary_cwd()
+
+
+def tearDownModule():
+    if _restore_cwd is not None:
+        _restore_cwd()
+
+
 def write_minimal_docx(path: Path, text: str) -> None:
     write_minimal_docx_paragraphs(path, [text])
 

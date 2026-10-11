@@ -7,6 +7,7 @@ import xml.etree.ElementTree as ET
 from zipfile import ZipFile
 
 from .document_text import _paragraph_text
+from .ooxml import parse_xml_part, read_zip_part
 
 
 W = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
@@ -19,15 +20,15 @@ def _value(element: ET.Element | None) -> str | None:
 
 def read_writer_structure(path: str | Path) -> dict[str, Any]:
     with ZipFile(path) as archive:
-        document = ET.fromstring(archive.read("word/document.xml"))
+        document = parse_xml_part(archive, "word/document.xml")
         styles_root = (
-            ET.fromstring(archive.read("word/styles.xml"))
+            parse_xml_part(archive, "word/styles.xml")
             if "word/styles.xml" in archive.namelist() else ET.Element(f"{W}styles")
         )
         stories = [("word/document.xml", document)]
         for name in sorted(archive.namelist()):
             if name.startswith(("word/header", "word/footer")) and name.endswith(".xml"):
-                stories.append((name, ET.fromstring(archive.read(name))))
+                stories.append((name, parse_xml_part(archive, name)))
 
     body = document.find(f"{W}body")
     if body is None:
@@ -256,7 +257,7 @@ def read_body_bookmark_text(path: str | Path, name: str) -> tuple[dict[str, Any]
     if not bookmark["body_paragraph_range_supported"]:
         return bookmark, None
     with ZipFile(path) as archive:
-        root = ET.fromstring(archive.read(bookmark["start"]["part"]))
+        root = parse_xml_part(archive, bookmark["start"]["part"])
     body = root.find(f"{W}body")
     paragraphs = list(body.findall(f"{W}p")) if body is not None else []
     paragraph_index = int(bookmark["start"]["paragraph_index"])
@@ -280,7 +281,7 @@ def read_supported_bookmark_text(path: str | Path, name: str) -> tuple[dict[str,
         return bookmark, None
     start_location, end_location = bookmark["start"], bookmark["end"]
     with ZipFile(path) as archive:
-        root = ET.fromstring(archive.read(bookmark["part"]))
+        root = parse_xml_part(archive, bookmark["part"])
     paragraphs = list(root.iter(f"{W}p"))
     paragraph_index = int(start_location["story_paragraph_index"])
     if not 1 <= paragraph_index <= len(paragraphs):

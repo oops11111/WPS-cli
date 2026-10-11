@@ -3,18 +3,24 @@ from __future__ import annotations
 from datetime import date, datetime, time
 import json
 from pathlib import Path
-import subprocess
-import tempfile
 from typing import Any
 
-from openpyxl import load_workbook
+from .ooxml import load_workbook_guarded as load_workbook
 from openpyxl.utils.cell import get_column_letter
 from openpyxl.utils.datetime import to_excel
 
-from .capabilities import powershell_executable, probe_wps_capabilities
+from .capabilities import probe_wps_capabilities
 from .errors import COM_BACKEND_UNAVAILABLE, COM_OPERATION_FAILED, INPUT_FILE_NOT_FOUND
+from .powershell_runner import run_powershell_script
 from .sessions import get_document
 from .spreadsheet_ranges import validate_spreadsheet_read_range
+from .wps_script_snippets import (
+    ACQUIRE_WPS_APP,
+    HIDE_LAUNCHED_APP,
+    PRE_OPEN_GUARD,
+    QUIET_ALERTS,
+    RELEASE_WPS_APP,
+)
 
 
 def _json_value(value: Any) -> Any:
@@ -95,17 +101,20 @@ $ErrorActionPreference = 'Stop'
 $params = @'
 {params_json}
 '@ | ConvertFrom-Json
+{PRE_OPEN_GUARD}
 $app = $null
 $workbook = $null
 try {{
-  $app = New-Object -ComObject $params.prog_id
-  try {{ $app.Visible = $false }} catch {{ }}
-  try {{ $app.DisplayAlerts = $false }} catch {{ }}
-  try {{ $app.AskToUpdateLinks = $false }} catch {{ }}
-  try {{ $app.EnableEvents = $false }} catch {{ }}
-  $workbook = $app.Workbooks.Open($params.path, 0, $true)
+  {ACQUIRE_WPS_APP}
+  {HIDE_LAUNCHED_APP}
+  Set-WpsAppQuiet $app @('DisplayAlerts', 'AskToUpdateLinks', 'EnableEvents')
+  $wpsPreOpen = Test-WpsPathOpen $app.Workbooks $params.path
+  $workbook = Open-WpsDocument $app.Workbooks $params.path $wpsPreOpen $true
   $sheet = $workbook.Worksheets.Item($params.sheet)
-  try {{ $app.CalculateFullRebuild() }} catch {{ $app.CalculateFull() }}
+  $fullRecalculation = [bool]$weLaunched
+  if ($fullRecalculation) {{
+    try {{ $app.CalculateFullRebuild() }} catch {{ $app.CalculateFull() }}
+  }}
   $cells = @()
   for ($r = 0; $r -lt [int]$params.row_count; $r++) {{
     for ($c = 0; $c -lt [int]$params.column_count; $c++) {{
@@ -129,41 +138,29 @@ try {{
       }}
     }}
   }}
-  [pscustomobject]@{{ ok = $true; backend = 'powershell-com'; prog_id = $params.prog_id; sheet = $sheet.Name; cells = $cells }} | ConvertTo-Json -Depth 8 -Compress
+  [pscustomobject]@{{ ok = $true; backend = 'powershell-com'; prog_id = $params.prog_id; sheet = $sheet.Name; full_recalculation = $fullRecalculation; cells = $cells }} | ConvertTo-Json -Depth 8 -Compress
 }} catch {{
   [pscustomobject]@{{ ok = $false; backend = 'powershell-com'; error_type = $_.Exception.GetType().FullName; error_message = $_.Exception.Message; position = $_.InvocationInfo.PositionMessage }} | ConvertTo-Json -Depth 5 -Compress
   exit 2
 }} finally {{
-  if ($workbook -ne $null) {{ try {{ $workbook.Close($false) }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($workbook) }} catch {{ }} }}
-  if ($app -ne $null) {{ try {{ $app.Quit() }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) }} catch {{ }} }}
+  if ($workbook -ne $null) {{ if (-not $wpsPreOpen) {{ try {{ $workbook.Close($false) }} catch {{ }} }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($workbook) }} catch {{ }} }}
+  if ($app -ne $null) {{ try {{ {RELEASE_WPS_APP} }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) }} catch {{ }} }}
   [GC]::Collect(); [GC]::WaitForPendingFinalizers()
 }}
 """
-    script_path = None
-    try:
-        with tempfile.NamedTemporaryFile("w", suffix=".ps1", delete=False, encoding="utf-8-sig") as script_file:
-            script_file.write(script)
-            script_path = script_file.name
-        completed = subprocess.run(
-            [powershell_executable(), "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", script_path],
-            check=False, capture_output=True, encoding="utf-8", errors="replace", text=True, timeout=120,
-        )
-    except (OSError, subprocess.TimeoutExpired) as exc:
-        return False, {"document_id": document_id, "path": str(path)}, [{"code": COM_OPERATION_FAILED, "message": str(exc)}]
-    finally:
-        if script_path:
-            Path(script_path).unlink(missing_ok=True)
-    try:
-        payload = json.loads(completed.stdout)
-    except json.JSONDecodeError as exc:
-        return False, {"document_id": document_id, "path": str(path)}, [{"code": COM_OPERATION_FAILED, "message": f"WPS returned invalid JSON: {exc}"}]
-    if completed.returncode != 0 or not payload.get("ok"):
-        return False, {"document_id": document_id, "path": str(path), "diagnostic": payload}, [{"code": COM_OPERATION_FAILED, "message": payload.get("error_message", "WPS spreadsheet inspection failed.")}]
+    payload, failure = run_powershell_script(
+        script,
+        timeout_seconds=120,
+        failure_data={"document_id": document_id, "path": str(path)},
+    )
+    if failure is not None:
+        return False, failure.get("data") or {"document_id": document_id, "path": str(path)}, failure["errors"]
 
     raw_live_cells = payload.get("cells", [])
     if isinstance(raw_live_cells, dict):
         raw_live_cells = [raw_live_cells]
     live_cells = {item["address"].replace("$", ""): item for item in raw_live_cells}
+    recalculated_in_memory = bool(payload.get("full_recalculation", True))
     result_cells = []
     for saved in cells:
         live = live_cells.get(saved["address"], {})
@@ -176,13 +173,22 @@ try {{
             "displayed_text": live.get("displayed_text"),
             "wps_formula": live.get("formula"),
             "formula_matches_file": live.get("formula") == saved["formula"],
-            "cache_matches_recalculated": _cache_matches(cached, recalculated, workbook_epoch) if saved["formula"] else None,
+            "cache_matches_recalculated": (
+                _cache_matches(cached, recalculated, workbook_epoch) if saved["formula"] and recalculated_in_memory else None
+            ),
         })
     result = {
         "document_id": document_id, "component": "spreadsheets", "path": str(path),
         "backend": payload.get("backend"), "sheet": selected_sheet, "range": range_address,
-        "read_only": True, "saved": False, "calculation_performed_in_memory": True,
+        "read_only": True, "saved": False, "calculation_performed_in_memory": recalculated_in_memory,
         "cells": result_cells,
-        "cache_mismatch_count": sum(item["cache_matches_recalculated"] is False for item in result_cells),
+        "cache_mismatch_count": (
+            sum(item["cache_matches_recalculated"] is False for item in result_cells) if recalculated_in_memory else None
+        ),
     }
+    if not recalculated_in_memory:
+        result["recalculation_skipped_reason"] = (
+            "Attached to a running WPS instance: a full rebuild recalculates every open workbook and can mark the user's "
+            "documents as modified, so it was skipped. Values are what WPS currently shows; the saved cache was not compared."
+        )
     return True, result, []

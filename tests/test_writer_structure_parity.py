@@ -29,7 +29,7 @@ class WriterStructureParityTests(unittest.TestCase):
         }
 
     def test_opt_in_is_required_before_subprocess_or_artifact(self):
-        with patch("wps_ai_agent_cli.writer_structure_parity.subprocess.run") as process:
+        with patch("wps_ai_agent_cli.powershell_runner.subprocess.run") as process:
             ok, report, errors = run_writer_structure_parity()
         self.assertFalse(ok)
         self.assertFalse(report["wps_launched"])
@@ -41,7 +41,7 @@ class WriterStructureParityTests(unittest.TestCase):
 
     def test_localized_style_names_pass_when_grouping_matches(self):
         observed = self._observation()
-        with patch("wps_ai_agent_cli.writer_structure_parity.subprocess.run",
+        with patch("wps_ai_agent_cli.powershell_runner.subprocess.run",
                    return_value=CompletedProcess([], 0, json.dumps(observed), "")) as process:
             ok, report, errors = run_writer_structure_parity(run_wps=True)
         self.assertTrue(ok, errors)
@@ -58,7 +58,7 @@ class WriterStructureParityTests(unittest.TestCase):
         observed["paragraphs"][3]["style"] = "Different"
         observed["bookmarks"][0]["text"] = "Wrong"
         observed["sha256_after"] = "0" * 64
-        with patch("wps_ai_agent_cli.writer_structure_parity.subprocess.run",
+        with patch("wps_ai_agent_cli.powershell_runner.subprocess.run",
                    return_value=CompletedProcess([], 0, json.dumps(observed), "")):
             ok, report, errors = run_writer_structure_parity(run_wps=True)
         self.assertFalse(ok)
@@ -69,7 +69,7 @@ class WriterStructureParityTests(unittest.TestCase):
         })
 
     def test_failed_wps_observation_keeps_diagnostics(self):
-        with patch("wps_ai_agent_cli.writer_structure_parity.subprocess.run",
+        with patch("wps_ai_agent_cli.powershell_runner.subprocess.run",
                    return_value=CompletedProcess([], 2, json.dumps({"ok": False, "error": "COM failed"}), "stderr detail")):
             ok, report, errors = run_writer_structure_parity(run_wps=True)
         self.assertFalse(ok)
@@ -78,7 +78,7 @@ class WriterStructureParityTests(unittest.TestCase):
         self.assertEqual(errors[0]["code"], "WRITER_PARITY_WPS_FAILED")
 
     def test_invalid_wps_json_keeps_bounded_diagnostics(self):
-        with patch("wps_ai_agent_cli.writer_structure_parity.subprocess.run",
+        with patch("wps_ai_agent_cli.powershell_runner.subprocess.run",
                    return_value=CompletedProcess([], 1, "not-json" * 500, "stderr detail")):
             ok, report, errors = run_writer_structure_parity(run_wps=True)
         self.assertFalse(ok)
@@ -88,7 +88,7 @@ class WriterStructureParityTests(unittest.TestCase):
 
     def test_cli_and_mcp_write_local_report_only_with_opt_in(self):
         observed = self._observation()
-        with TemporaryDirectory() as tmp, patch("wps_ai_agent_cli.writer_structure_parity.subprocess.run",
+        with TemporaryDirectory() as tmp, patch("wps_ai_agent_cli.powershell_runner.subprocess.run",
                                                return_value=CompletedProcess([], 0, json.dumps(observed), "")):
             output = io.StringIO()
             argv = ["writer-structure-parity", "--run-wps", "--artifact-dir", tmp, "--request-id", "parity-cli"]
@@ -115,7 +115,7 @@ class WriterStructureParityTests(unittest.TestCase):
                 {"name": "FooterMark", "text": "FooterValue"},
             ],
         }
-        with patch("wps_ai_agent_cli.writer_structure_parity.subprocess.run",
+        with patch("wps_ai_agent_cli.powershell_runner.subprocess.run",
                    return_value=CompletedProcess([], 0, json.dumps(observed), "")):
             ok, report, errors = run_writer_structure_parity(run_wps=True, scope="nested")
         self.assertFalse(ok)
@@ -135,7 +135,7 @@ class WriterStructureParityTests(unittest.TestCase):
                 {"name": "FooterMark", "text": "FooterValue"},
             ],
         }
-        with TemporaryDirectory() as tmp, patch("wps_ai_agent_cli.writer_structure_parity.subprocess.run",
+        with TemporaryDirectory() as tmp, patch("wps_ai_agent_cli.powershell_runner.subprocess.run",
                                                return_value=CompletedProcess([], 0, json.dumps(observed), "")):
             output = io.StringIO()
             self.assertEqual(run(["writer-structure-parity", "--scope", "nested", "--run-wps",

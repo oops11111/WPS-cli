@@ -44,6 +44,61 @@ class ComBackendTests(unittest.TestCase):
         self.assertFalse(result["ok"])
         self.assertEqual(result["errors"][0]["code"], INPUT_FILE_NOT_FOUND)
 
+    def test_conversion_smoke_scripts_cover_spreadsheet_and_presentation_pdf(self):
+        from tests.test_presentation_ops import write_minimal_pptx
+
+        cases = (
+            ("spreadsheets", "book.xlsx", "Workbooks.Open", "ExportAsFixedFormat(0,"),
+            ("presentation", "deck.pptx", "Presentations.Open", "ExportAsFixedFormat($params.output_path, 2)"),
+        )
+        for component, filename, open_marker, export_marker in cases:
+            with self.subTest(component=component), TemporaryDirectory() as tmp:
+                source = Path(tmp) / filename
+                if component == "presentation":
+                    write_minimal_pptx(source, ["convert smoke"])
+                else:
+                    source.write_bytes(b"placeholder")
+                before = source.read_bytes()
+                output = Path(tmp) / "out.pdf"
+                captured: dict[str, str] = {}
+
+                def fake_run(script, timeout_seconds=120, failure_data=None):
+                    captured["script"] = script
+                    captured["component"] = (failure_data or {}).get("component")
+                    output.write_bytes(b"%PDF-1.4")
+                    return {
+                        "ok": True,
+                        "component": component,
+                        "direction": f"{component}_to_pdf",
+                        "output_path": str(output),
+                        "output_bytes": output.stat().st_size,
+                    }, None
+
+                capabilities = {
+                    "components": {
+                        component: {"selected_prog_id": f"fake.{component}"},
+                    }
+                }
+                with patch("wps_ai_agent_cli.com_backend.probe_wps_capabilities", return_value=capabilities), \
+                        patch("wps_ai_agent_cli.com_backend.run_powershell_script", side_effect=fake_run):
+                    result = run_conversion_smoke(component, str(source), str(output), "pdf")
+                self.assertTrue(result["ok"], result)
+                self.assertEqual(captured["component"], component)
+                self.assertIn(open_marker, captured["script"])
+                self.assertIn(export_marker, captured["script"])
+                self.assertIn("'Documents', 'Workbooks', 'Presentations'", captured["script"])
+                self.assertIn("$app.Quit()", captured["script"])
+                self.assertIn("$document.Close()", captured["script"])
+                self.assertEqual(source.read_bytes(), before)
+
+    def test_conversion_smoke_rejects_non_pdf_format(self):
+        with TemporaryDirectory() as tmp:
+            source = Path(tmp) / "book.xlsx"
+            source.write_bytes(b"placeholder")
+            result = run_conversion_smoke("spreadsheets", str(source), str(Path(tmp) / "out.pdf"), "png")
+        self.assertFalse(result["ok"])
+        self.assertEqual(result["errors"][0]["code"], UNSUPPORTED_COMPONENT)
+
     def test_calc_smoke_rejects_same_input_and_output(self):
         with TemporaryDirectory() as tmp:
             workbook = Path(tmp) / "input.xlsx"

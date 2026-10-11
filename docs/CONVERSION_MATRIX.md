@@ -35,15 +35,19 @@
 - 页数: 5
 - 首页渲染: `fixtures/phase0/pdf_render/phase0_writer_export_page1.png`
 - 文本抽取: 首页可抽取到 `WPS AI Agent CLI` 和 PRD 文档内容。
+- 2026-10-10：已打开 Writer 经 `export-open-document-pdf`（副本 `ExportAsFixedFormat`）写出 243541 字节 PDF，源文件仍打开且哈希未变。单机 WPS 12.0，不作跨版本结论。
 
 ## 待验证转换方向
 
 | 方向 | 优先级 | 状态 | 说明 |
 | --- | --- | --- | --- |
-| XLSX 到 PDF | high | pending | 需要记录公式结果、分页和工作表选择行为 |
-| PPTX 到 PDF | high | pending | 需要记录幻灯片尺寸、字体和图片保真度 |
-| DOCX 到 HTML | medium | pending | 需要区分 WPS SaveAs HTML 和浏览器视觉优先模式 |
-| HTML 到 PDF | medium | pending | 属于 HTML 视觉优先基线，需要单独样例 |
+| XLSX 到 PDF | high | verified-local | 2026-10-09 本机 `convert-smoke --component spreadsheets` 对 disposable xlsx 走 `ExportAsFixedFormat`，输出 43219 字节 PDF。2026-10-10 已打开工作簿 `export-open-document-pdf` 写出 27913 字节 PDF，源未关闭、哈希未变。打印区域/隐藏表保真度未做矩阵 |
+| PPTX 到 PDF | high | verified-local | 2026-10-09 本机对 WPS 可打开的 disposable pptx 走 `SaveAs` 32（`ExportAsFixedFormat` 失败后回退），输出非空 PDF。2026-10-10 已打开演示 `export-open-document-pdf` 走 `SaveCopyAsThenSaveAsPdf` 写出 21554 字节 PDF，源未关闭、哈希未变。残缺 OOXML 最小 pptx 可能卡住 WPS，勿用作夹具；动画/字体保真度未做矩阵 |
+| DOCX 到 HTML | medium | verified-local | 已打开 Writer 文档可用 `export-open-document`（副本 `SaveAs2`/HTML）；2026-10-09 本机含只读打开验证。2026-10-10 P3-424：含标题/段落/表格标记的 disposable docx 写出 317844 字节 HTML（companion `.files`），四标记均保留，`source_unchanged`/`source_still_open`。与浏览器视觉优先 HTML→PDF 路径不同；布局/CSS/跨版本未做矩阵 |
+| XLSX 到 HTML | medium | verified-local | 2026-10-09 本机已打开表格经 `export-open-document`（临时 `SaveCopyAs` + 副本 `SaveAs` HTML）写出非空 HTML。2026-10-10 P3-434：含 `P3-434-PLAIN` 与公式 `=10+5`（显示 15）的 disposable xlsx 写出 19565 字节 HTML，`source_unchanged`/`source_still_open`；去标签后纯文本标记保留，显示值 `15` 与 `x:fmla="=10+5"` 保留（WPS 可能把长文本拆成带 `display:none` 的片段）。图表/宏/跨版本未做矩阵 |
+| PPTX 到 HTML | medium | verified-local | 2026-10-09 本机已打开演示经 `export-open-document` 的 `SaveCopyAs` HTML；动画保真度未做矩阵 |
+| HTML 到 PDF | medium | verified-local | 2026-10-10 本机 `npm install`（`playwright`）后 `html-render` 对 `fixtures/phase3/html_visual_smoke.html` 写出 PDF 37867 字节（Edge 154.0.4258.62，`network_access=false`）与 PNG 32159 字节；`WPS_AGENT_RUN_BROWSER_INTEGRATION=1` 下 `tests.test_html_render` 4/4 通过。字体/复杂 CSS 保真度未做跨主机矩阵 |
+| 已打开文档到 TXT | medium | verified-local | 2026-10-10 `export-open-document-text`：本机已打开 Writer 写出 10115 字节 txt，已打开表格写出 28 字节 txt，已打开演示 `ExtractShapeText` 写出 18 字节 txt（形状文本），源未关闭。跨版本未做矩阵 |
 
 The PRD defines three HTML fidelity modes: visual-first rendering to PDF/image,
 editable-first mapping to native objects, and controlled round-trip using an

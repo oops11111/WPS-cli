@@ -106,6 +106,80 @@ class McpAdapterTests(unittest.TestCase):
                 self.assertNotIn("DO_NOT_ECHO", str(errors))
                 self.assertLess(len(str(errors)), 300)
 
+    def test_enum_uniqueness_uses_json_equality(self):
+        duplicates = (
+            {"type": "string", "enum": ["a", "a"]},
+            {"type": "integer", "enum": [1, 1]},
+            {"type": "boolean", "enum": [True, True]},
+            {"type": "number", "enum": [1, 1.0]},
+            {"type": "array", "enum": [[1, {"k": True}], [1.0, {"k": True}]]},
+            {"type": "object", "enum": [{"a": 1, "b": [True]}, {"b": [True], "a": 1.0}]},
+        )
+        distinct = (
+            {"type": "number", "enum": [1, 2.5]},
+            {"type": "array", "enum": [[True], [1], [1, 2], [2, 1]]},
+            {"type": "object", "enum": [{"a": True}, {"a": 1}, {"b": 1, "a": 2}]},
+        )
+        for property_schema in duplicates:
+            with self.subTest(property_schema=property_schema):
+                errors = _validate_arguments(
+                    {"input_schema": {"properties": {"value": property_schema}, "required": []}},
+                    {"value": "DO_NOT_ECHO"},
+                )
+                self.assertEqual([error["code"] for error in errors], ["MCP_SCHEMA_CONSTRAINT_INVALID"])
+                self.assertEqual(errors[0]["details"], {"argument": "value", "constraint": "enum"})
+                self.assertNotIn("DO_NOT_ECHO", str(errors))
+                self.assertLess(len(str(errors)), 300)
+        for property_schema in distinct:
+            with self.subTest(property_schema=property_schema):
+                errors = _validate_arguments(
+                    {"input_schema": {"properties": {"value": property_schema}, "required": []}},
+                    {},
+                )
+                self.assertEqual(errors, [])
+
+    def test_enum_membership_does_not_collapse_json_types(self):
+        schema = {
+            "input_schema": {
+                "properties": {
+                    "value": {"type": "object", "enum": [{"a": True}, {"a": 1}, {"b": 2, "a": 1}]},
+                },
+                "required": [],
+            },
+        }
+        accepted = ({"a": True}, {"a": 1.0}, {"a": 1, "b": 2})
+        for value in accepted:
+            with self.subTest(value=value):
+                self.assertEqual(_validate_arguments(schema, {"value": value}), [])
+        errors = _validate_arguments(schema, {"value": {"a": "DO_NOT_ECHO"}})
+        self.assertEqual([error["code"] for error in errors], ["MCP_ARGUMENT_ENUM_INVALID"])
+        self.assertNotIn("DO_NOT_ECHO", str(errors))
+        self.assertLess(len(str(errors)), 300)
+        number_errors = _validate_arguments(
+            {"input_schema": {"properties": {"value": {"type": "number", "enum": [1.0]}}, "required": []}},
+            {"value": 1},
+        )
+        self.assertEqual(number_errors, [])
+        boolean_errors = _validate_arguments(
+            {"input_schema": {"properties": {"value": {"type": "array", "enum": [[1]]}}, "required": []}},
+            {"value": [True]},
+        )
+        self.assertEqual([error["code"] for error in boolean_errors], ["MCP_ARGUMENT_ENUM_INVALID"])
+
+    def test_catalog_enum_metadata_stays_valid(self):
+        for tool in list_mcp_tool_schemas():
+            errors = _validate_arguments(
+                {
+                    "input_schema": {
+                        "properties": tool["input_schema"]["properties"],
+                        "required": [],
+                        "additionalProperties": False,
+                    },
+                },
+                {},
+            )
+            self.assertEqual(errors, [], tool["name"])
+
     def test_batch_request_inspection_cli_and_mcp_share_read_only_record(self):
         from wps_ai_agent_cli.batch_conversion import _request_record_path
         from wps_ai_agent_cli.cli import run
@@ -412,6 +486,24 @@ class McpAdapterTests(unittest.TestCase):
         self.assertFalse(ok)
         self.assertIsNone(result["response"])
         self.assertEqual(errors[0]["code"], "MCP_ADAPTER_CALL_REJECTED")
+
+    def test_array_arguments_use_equals_form_so_dash_prefixed_items_survive(self):
+        from wps_ai_agent_cli.cli_parser import build_parser
+
+        items = ["-retry later", "--state", "plain"]
+        ok, argv, _, errors = build_cli_argv(
+            "wps_agent_task_status_create",
+            {"command": "x", "operation_request_id": "r", "recovery_guidance": items},
+        )
+
+        self.assertTrue(ok, errors)
+        self.assertEqual([arg for arg in argv if arg.startswith("--recovery-guidance")], [
+            "--recovery-guidance=-retry later",
+            "--recovery-guidance=--state",
+            "--recovery-guidance=plain",
+        ])
+        args = build_parser().parse_args(argv)
+        self.assertEqual(args.recovery_guidance, items)
 
 
 if __name__ == "__main__":

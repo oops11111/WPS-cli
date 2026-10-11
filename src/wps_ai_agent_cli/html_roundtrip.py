@@ -13,6 +13,8 @@ import zipfile
 import xml.etree.ElementTree as ET
 
 from .html_editable import _TreeParser, _bookmark_name, _safe_link_target, _text, _walk, convert_html_editable
+from .html_text import decode_html_bytes
+from .ooxml import parse_xml_part, read_zip_part
 
 
 SCHEMA_VERSION = "wps-agent-html/v1"
@@ -35,7 +37,7 @@ def build_html_roundtrip_mapping(input_path: str | Path) -> tuple[bool, dict[str
     if len(raw) > 10 * 1024 * 1024:
         return False, {}, [{"code": "INPUT_TOO_LARGE", "message": "HTML input exceeds the 10 MiB limit."}]
     parser = _TreeParser()
-    parser.feed(raw.decode("utf-8-sig", errors="replace"))
+    parser.feed(decode_html_bytes(raw)[0])
     nodes = list(_walk(parser.root))
     html_root = next((node for node in nodes if node.tag == "html"), None)
     meta = next((node for node in nodes if node.tag == "meta" and node.attrs.get("name", "").casefold() == "wps-agent-schema"), None)
@@ -127,7 +129,7 @@ def import_controlled_html(input_path: str | Path, output_path: str | Path) -> t
     document_identity = destination.stat()
     try:
         with zipfile.ZipFile(destination) as archive:
-            xml_root = ET.fromstring(archive.read("word/document.xml"))
+            xml_root = parse_xml_part(archive, "word/document.xml")
         bookmark_names = [element.get("{http://schemas.openxmlformats.org/wordprocessingml/2006/main}name") for element in xml_root.iter("{http://schemas.openxmlformats.org/wordprocessingml/2006/main}bookmarkStart")]
         expected = [item["bookmark_name"] for item in mapping["mappings"]]
         if sorted(bookmark_names.count(name) for name in expected) != [1] * len(expected):
@@ -172,7 +174,7 @@ def verify_controlled_document(document_path: str | Path, mapping_path: str | Pa
         if not all(isinstance(item, dict) and isinstance(item.get("bookmark_name"), str) and isinstance(item.get("object_type"), str) for item in mapping["mappings"]):
             raise ValueError("Mapping sidecar contains an invalid object entry.")
         with zipfile.ZipFile(document) as archive:
-            root = ET.fromstring(archive.read("word/document.xml"))
+            root = parse_xml_part(archive, "word/document.xml")
     except (OSError, ValueError, KeyError, TypeError, AttributeError, zipfile.BadZipFile, ET.ParseError) as exc:
         return False, {}, [{"code": "ROUNDTRIP_VERIFY_INPUT_INVALID", "message": str(exc)[:500]}]
     w_name = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}name"
@@ -212,20 +214,28 @@ def verify_controlled_document(document_path: str | Path, mapping_path: str | Pa
     return not errors, result, errors
 
 
+def _validate_controlled_export_paths(document_path: str | Path, mapping_path: str | Path, output_path: str | Path) -> tuple[Path, Path, Path, list[dict[str, Any]]]:
+    document = Path(document_path).expanduser().resolve()
+    mapping_file = Path(mapping_path).expanduser().resolve()
+    output = Path(output_path).expanduser().resolve()
+    if output.suffix.casefold() not in {".html", ".htm"}:
+        return document, mapping_file, output, [{"code": "INVALID_OUTPUT", "message": "Output must use .html or .htm."}]
+    if output.exists():
+        return document, mapping_file, output, [{"code": "OUTPUT_ALREADY_EXISTS", "message": f"Refusing to overwrite existing output: {output}"}]
+    if not output.parent.is_dir():
+        return document, mapping_file, output, [{"code": "OUTPUT_DIRECTORY_NOT_FOUND", "message": f"Output directory does not exist: {output.parent}"}]
+    return document, mapping_file, output, []
+
+
+
 def export_controlled_html(document_path: str | Path, mapping_path: str | Path, output_path: str | Path) -> tuple[bool, dict[str, Any], list[dict[str, Any]]]:
     from docx import Document
     from docx.table import Table
     from docx.text.paragraph import Paragraph
 
-    document = Path(document_path).expanduser().resolve()
-    mapping_file = Path(mapping_path).expanduser().resolve()
-    output = Path(output_path).expanduser().resolve()
-    if output.suffix.casefold() not in {".html", ".htm"}:
-        return False, {}, [{"code": "INVALID_OUTPUT", "message": "Output must use .html or .htm."}]
-    if output.exists():
-        return False, {}, [{"code": "OUTPUT_ALREADY_EXISTS", "message": f"Refusing to overwrite existing output: {output}"}]
-    if not output.parent.is_dir():
-        return False, {}, [{"code": "OUTPUT_DIRECTORY_NOT_FOUND", "message": f"Output directory does not exist: {output.parent}"}]
+    document, mapping_file, output, path_errors = _validate_controlled_export_paths(document_path, mapping_path, output_path)
+    if path_errors:
+        return False, {}, path_errors
     verified, identity, errors = verify_controlled_document(document, mapping_file)
     if not verified:
         return False, {"identity": identity}, errors

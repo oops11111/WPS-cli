@@ -70,7 +70,8 @@ def validate_document(
                 [{"code": "INVALID_ARGUMENT", "message": "spreadsheet validation requires --cell and --equals."}],
             )
         try:
-            from openpyxl import load_workbook
+            import openpyxl  # noqa: F401
+            from .ooxml import load_workbook_guarded as load_workbook
         except ImportError:
             return (
                 False,

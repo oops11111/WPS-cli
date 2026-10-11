@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>P3-410 HTML visual smoke</title>
+  <style>
+    body { font: 28px Arial, sans-serif; color: #123456; margin: 32px; }
+    h1 { margin: 0 0 16px; }
+    .mark { background: #ffe08a; padding: 4px 8px; }
+  </style>
+</head>
+<body>
+  <h1>P3-410 HTML to PDF smoke</h1>
+  <p>Local-only visual-first sample for conversion-matrix verification.</p>
+  <p class="mark">Marker: P3-410-VISIBLE</p>
+  <!-- Intentional remote resource: must remain blocked by html-render isolation. -->
+  <img src="https://example.invalid/blocked.png" alt="" width="1" height="1" />
+</body>
+</html>

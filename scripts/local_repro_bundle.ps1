@@ -1,7 +1,6 @@
 param(
     [string]$Python = "C:\Users\admin\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe",
-    [string]$RunId = (Get-Date -Format "yyyyMMddTHHmmss"),
-    [string]$SyncOutput = "artifacts\cloud-sync\wps-ai-agent-cli-phase3-sync-cli.zip"
+    [string]$RunId = (Get-Date -Format "yyyyMMddTHHmmss")
 )
 
 $ErrorActionPreference = "Stop"
@@ -21,10 +20,6 @@ $steps = @(
     @{
         Name = "safe-regression"
         Command = @($Python, "-m", "wps_ai_agent_cli", "regression-run", "--profile", "safe", "--artifact-dir", "artifacts\regression\safe", "--request-id", "local-repro-$RunId-safe")
-    },
-    @{
-        Name = "sync-package"
-        Command = @($Python, "-m", "wps_ai_agent_cli", "cloud-sync-package", "--output", $SyncOutput, "--request-id", "local-repro-$RunId-sync")
     }
 )
 
@@ -54,7 +49,6 @@ $summary = [ordered]@{
     run_id = $RunId
     workspace = (Get-Location).Path
     python = $Python
-    sync_output = $SyncOutput
     steps = $results
 }
 

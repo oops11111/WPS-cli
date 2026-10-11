@@ -5,6 +5,7 @@ from pathlib import Path
 import xml.etree.ElementTree as ET
 from urllib.parse import unquote, urlsplit
 from zipfile import ZipFile
+from .ooxml import parse_xml_part, read_zip_part
 
 
 DRAWING_TEXT = "{http://schemas.openxmlformats.org/drawingml/2006/main}t"
@@ -19,13 +20,13 @@ class PresentationStructureError(ValueError):
 
 def _slide_parts(archive: ZipFile) -> list[tuple[int, str]]:
     try:
-        root = ET.fromstring(archive.read("ppt/presentation.xml"))
+        root = parse_xml_part(archive, "ppt/presentation.xml")
         if root.tag != f"{{{PRESENTATION_NS}}}presentation":
             raise PresentationStructureError("Unsupported presentation XML namespace or root.")
         slides = root.findall(f"{{{PRESENTATION_NS}}}sldIdLst/{{{PRESENTATION_NS}}}sldId")
         if not slides:
             return []
-        rel_root = ET.fromstring(archive.read("ppt/_rels/presentation.xml.rels"))
+        rel_root = parse_xml_part(archive, "ppt/_rels/presentation.xml.rels")
         relationships = {}
         for rel in rel_root.findall(f"{{{PACKAGE_REL_NS}}}Relationship"):
             rel_id = rel.get("Id")
@@ -60,7 +61,7 @@ def pptx_slide_texts(path: str | Path) -> list[dict[str, object]]:
     slides = []
     with ZipFile(source) as archive:
         for slide_number, part_name in _slide_parts(archive):
-            root = ET.fromstring(archive.read(part_name))
+            root = parse_xml_part(archive, part_name)
             text = "".join(node.text or "" for node in root.iter(DRAWING_TEXT))
             slides.append(
                 {
@@ -83,7 +84,7 @@ def pptx_text_objects(path: str | Path) -> list[dict[str, object]]:
     graphic_frame_tag = f"{{{namespace['p']}}}graphicFrame"
     with ZipFile(source) as archive:
         for slide_number, part_name in _slide_parts(archive):
-            root = ET.fromstring(archive.read(part_name))
+            root = parse_xml_part(archive, part_name)
             object_index = 0
             for node in root.iter():
                 text = None
