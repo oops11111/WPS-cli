@@ -14,7 +14,7 @@ from .errors import COM_BACKEND_UNAVAILABLE, COM_OPERATION_FAILED, INPUT_FILE_NO
 from .powershell_runner import run_powershell_script
 from .sessions import get_document
 from .spreadsheet_ranges import validate_spreadsheet_read_range
-from .wps_script_snippets import QUIT_IF_IDLE
+from .wps_script_snippets import PRE_OPEN_GUARD, QUIT_IF_IDLE
 
 
 def _json_value(value: Any) -> Any:
@@ -95,6 +95,7 @@ $ErrorActionPreference = 'Stop'
 $params = @'
 {params_json}
 '@ | ConvertFrom-Json
+{PRE_OPEN_GUARD}
 $app = $null
 $workbook = $null
 try {{
@@ -103,6 +104,7 @@ try {{
   try {{ $app.DisplayAlerts = $false }} catch {{ }}
   try {{ $app.AskToUpdateLinks = $false }} catch {{ }}
   try {{ $app.EnableEvents = $false }} catch {{ }}
+  $wpsPreOpen = Test-WpsPathOpen $app.Workbooks $params.path
   $workbook = $app.Workbooks.Open($params.path, 0, $true)
   $sheet = $workbook.Worksheets.Item($params.sheet)
   try {{ $app.CalculateFullRebuild() }} catch {{ $app.CalculateFull() }}
@@ -134,7 +136,7 @@ try {{
   [pscustomobject]@{{ ok = $false; backend = 'powershell-com'; error_type = $_.Exception.GetType().FullName; error_message = $_.Exception.Message; position = $_.InvocationInfo.PositionMessage }} | ConvertTo-Json -Depth 5 -Compress
   exit 2
 }} finally {{
-  if ($workbook -ne $null) {{ try {{ $workbook.Close($false) }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($workbook) }} catch {{ }} }}
+  if ($workbook -ne $null) {{ if (-not $wpsPreOpen) {{ try {{ $workbook.Close($false) }} catch {{ }} }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($workbook) }} catch {{ }} }}
   if ($app -ne $null) {{ try {{ {QUIT_IF_IDLE} }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) }} catch {{ }} }}
   [GC]::Collect(); [GC]::WaitForPendingFinalizers()
 }}

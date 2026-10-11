@@ -283,7 +283,7 @@ def build_cli_argv(tool_name: str, arguments: dict[str, Any]) -> tuple[bool, lis
             continue
         if property_schema.get("type") == "array":
             for item in value:
-                argv.extend([_flag_name(name), str(item)])
+                argv.append(f"{_flag_name(name)}={item}")
             continue
         if str(value).startswith("-"):
             argv.append(f"{_flag_name(name)}={value}")

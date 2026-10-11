@@ -33,7 +33,7 @@ from .mutation_lock import coordinated_mutation
 from .operations import record_operation, replay_operation
 from .sessions import get_document
 from .writer_structure import W, read_body_bookmark_text, read_supported_bookmark_text, read_writer_structure
-from .wps_script_snippets import QUIT_IF_IDLE
+from .wps_script_snippets import PRE_OPEN_GUARD, QUIT_IF_IDLE
 from .ooxml import parse_xml_part, read_zip_part
 
 
@@ -82,12 +82,15 @@ $ErrorActionPreference = 'Stop'
 $params = @'
 {params_json}
 '@ | ConvertFrom-Json
+{PRE_OPEN_GUARD}
 $app = $null
 $document = $null
 try {{
   $app = New-Object -ComObject $params.prog_id
   try {{ $app.Visible = $false }} catch {{ }}
+  $wpsPreOpen = Test-WpsPathOpen $app.Documents $params.path
   $document = $app.Documents.Open($params.path)
+  Assert-WpsPreOpenSaved $wpsPreOpen $document
   if ($null -ne $params.paragraph_index) {{
     $paragraphCount = $document.Paragraphs.Count
     $target = $params.paragraph_target
@@ -164,7 +167,7 @@ try {{
   exit 2
 }} finally {{
   if ($document -ne $null) {{
-    try {{ $document.Close($false) }} catch {{ }}
+    if (-not $wpsPreOpen) {{ try {{ $document.Close($false) }} catch {{ }} }}
     try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($document) }} catch {{ }}
   }}
   if ($app -ne $null) {{
@@ -193,12 +196,15 @@ $ErrorActionPreference = 'Stop'
 $params = @'
 {params_json}
 '@ | ConvertFrom-Json
+{PRE_OPEN_GUARD}
 $app = $null
 $document = $null
 try {{
   $app = New-Object -ComObject $params.prog_id
   try {{ $app.Visible = $false }} catch {{ }}
+  $wpsPreOpen = Test-WpsPathOpen $app.Documents $params.path
   $document = $app.Documents.Open($params.path)
+  Assert-WpsPreOpenSaved $wpsPreOpen $document
   if (-not $document.Bookmarks.Exists($params.name)) {{ throw "Bookmark not found in WPS: $($params.name)" }}
   $bookmark = $document.Bookmarks.Item($params.name)
   $range = $bookmark.Range
@@ -215,7 +221,7 @@ try {{
   [pscustomobject]@{{ ok = $false; backend = 'powershell-com'; error_type = $_.Exception.GetType().FullName; error_message = $_.Exception.Message; position = $_.InvocationInfo.PositionMessage }} | ConvertTo-Json -Depth 5
   exit 2
 }} finally {{
-  if ($document -ne $null) {{ try {{ $document.Close($false) }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($document) }} catch {{ }} }}
+  if ($document -ne $null) {{ if (-not $wpsPreOpen) {{ try {{ $document.Close($false) }} catch {{ }} }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($document) }} catch {{ }} }}
   if ($app -ne $null) {{ try {{ {QUIT_IF_IDLE} }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) }} catch {{ }} }}
   [GC]::Collect(); [GC]::WaitForPendingFinalizers()
 }}
@@ -408,12 +414,15 @@ $ErrorActionPreference = 'Stop'
 $params = @'
 {params_json}
 '@ | ConvertFrom-Json
+{PRE_OPEN_GUARD}
 $app = $null
 $document = $null
 try {{
   $app = New-Object -ComObject $params.prog_id
   try {{ $app.Visible = $false }} catch {{ }}
+  $wpsPreOpen = Test-WpsPathOpen $app.Documents $params.path
   $document = $app.Documents.Open($params.path)
+  Assert-WpsPreOpenSaved $wpsPreOpen $document
   $tableCount = $document.Tables.Count
   if ([int]$params.table_index -lt 1 -or [int]$params.table_index -gt $tableCount) {{
     throw "Table index out of range: $($params.table_index)"
@@ -451,7 +460,7 @@ try {{
   exit 2
 }} finally {{
   if ($document -ne $null) {{
-    try {{ $document.Close($false) }} catch {{ }}
+    if (-not $wpsPreOpen) {{ try {{ $document.Close($false) }} catch {{ }} }}
     try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($document) }} catch {{ }}
   }}
   if ($app -ne $null) {{

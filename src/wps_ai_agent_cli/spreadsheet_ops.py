@@ -20,7 +20,7 @@ from .mutation_lock import coordinated_mutation
 from .operations import record_operation, replay_operation
 from .sessions import get_document
 from .spreadsheet_ranges import validate_spreadsheet_read_range
-from .wps_script_snippets import QUIT_IF_IDLE
+from .wps_script_snippets import PRE_OPEN_GUARD, QUIT_IF_IDLE
 from .ooxml import parse_xml_part, read_zip_part
 
 
@@ -293,12 +293,15 @@ $ErrorActionPreference = 'Stop'
 $params = @'
 {params_json}
 '@ | ConvertFrom-Json
+{PRE_OPEN_GUARD}
 $app = $null; $workbook = $null
 try {{
   $app = New-Object -ComObject $params.prog_id
   try {{ $app.Visible = $false }} catch {{ }}
   try {{ $app.DisplayAlerts = $false }} catch {{ }}
+  $wpsPreOpen = Test-WpsPathOpen $app.Workbooks $params.path
   $workbook = $app.Workbooks.Open($params.path)
+  Assert-WpsPreOpenSaved $wpsPreOpen $workbook
   $sheet = $workbook.Worksheets.Item($params.old_name)
   $sheet.Name = $params.new_name
   $workbook.Save()
@@ -311,7 +314,7 @@ try {{
   [pscustomobject]@{{ ok = $false; backend = 'powershell-com'; error_type = $_.Exception.GetType().FullName; error_message = $_.Exception.Message; position = $_.InvocationInfo.PositionMessage }} | ConvertTo-Json -Depth 5 -Compress
   exit 2
 }} finally {{
-  if ($workbook -ne $null) {{ try {{ $workbook.Close($false) }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($workbook) }} catch {{ }} }}
+  if ($workbook -ne $null) {{ if (-not $wpsPreOpen) {{ try {{ $workbook.Close($false) }} catch {{ }} }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($workbook) }} catch {{ }} }}
   if ($app -ne $null) {{ try {{ {QUIT_IF_IDLE} }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) }} catch {{ }} }}
   [GC]::Collect(); [GC]::WaitForPendingFinalizers()
 }}
@@ -418,12 +421,15 @@ $ErrorActionPreference = 'Stop'
 $params = @'
 {params_json}
 '@ | ConvertFrom-Json
+{PRE_OPEN_GUARD}
 $app = $null; $workbook = $null
 try {{
   $app = New-Object -ComObject $params.prog_id
   try {{ $app.Visible = $false }} catch {{ }}
   try {{ $app.DisplayAlerts = $false }} catch {{ }}
+  $wpsPreOpen = Test-WpsPathOpen $app.Workbooks $params.path
   $workbook = $app.Workbooks.Open($params.path)
+  Assert-WpsPreOpenSaved $wpsPreOpen $workbook
   $count = $workbook.Worksheets.Count
   if ([int]$params.index -eq $count + 1) {{
     $sheet = $workbook.Worksheets.Add($null, $workbook.Worksheets.Item($count))
@@ -441,7 +447,7 @@ try {{
   [pscustomobject]@{{ ok = $false; backend = 'powershell-com'; error_type = $_.Exception.GetType().FullName; error_message = $_.Exception.Message; position = $_.InvocationInfo.PositionMessage }} | ConvertTo-Json -Depth 5 -Compress
   exit 2
 }} finally {{
-  if ($workbook -ne $null) {{ try {{ $workbook.Close($false) }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($workbook) }} catch {{ }} }}
+  if ($workbook -ne $null) {{ if (-not $wpsPreOpen) {{ try {{ $workbook.Close($false) }} catch {{ }} }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($workbook) }} catch {{ }} }}
   if ($app -ne $null) {{ try {{ {QUIT_IF_IDLE} }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) }} catch {{ }} }}
   [GC]::Collect(); [GC]::WaitForPendingFinalizers()
 }}
@@ -544,12 +550,15 @@ $ErrorActionPreference = 'Stop'
 $params = @'
 {params_json}
 '@ | ConvertFrom-Json
+{PRE_OPEN_GUARD}
 $app = $null; $workbook = $null
 try {{
   $app = New-Object -ComObject $params.prog_id
   try {{ $app.Visible = $false }} catch {{ }}
   try {{ $app.DisplayAlerts = $false }} catch {{ }}
+  $wpsPreOpen = Test-WpsPathOpen $app.Workbooks $params.path
   $workbook = $app.Workbooks.Open($params.path)
+  Assert-WpsPreOpenSaved $wpsPreOpen $workbook
   $sheet = $workbook.Worksheets.Item($params.name)
   $sheet.Visible = if ([bool]$params.visible) {{ -1 }} else {{ 0 }}
   $workbook.Save()
@@ -563,7 +572,7 @@ try {{
   [pscustomobject]@{{ ok = $false; error_message = $_.Exception.Message }} | ConvertTo-Json -Depth 5 -Compress
   exit 2
 }} finally {{
-  if ($workbook -ne $null) {{ try {{ $workbook.Close($false) }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($workbook) }} catch {{ }} }}
+  if ($workbook -ne $null) {{ if (-not $wpsPreOpen) {{ try {{ $workbook.Close($false) }} catch {{ }} }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($workbook) }} catch {{ }} }}
   if ($app -ne $null) {{ try {{ {QUIT_IF_IDLE} }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) }} catch {{ }} }}
   [GC]::Collect(); [GC]::WaitForPendingFinalizers()
 }}
@@ -652,12 +661,15 @@ $ErrorActionPreference = 'Stop'
 $params = @'
 {params_json}
 '@ | ConvertFrom-Json
+{PRE_OPEN_GUARD}
 $app = $null; $workbook = $null
 try {{
   $app = New-Object -ComObject $params.prog_id
   try {{ $app.Visible = $false }} catch {{ }}
   $app.DisplayAlerts = $false
+  $wpsPreOpen = Test-WpsPathOpen $app.Workbooks $params.path
   $workbook = $app.Workbooks.Open($params.path)
+  Assert-WpsPreOpenSaved $wpsPreOpen $workbook
   $workbook.Worksheets.Item($params.name).Delete()
   $workbook.Save()
   $names = @()
@@ -667,7 +679,7 @@ try {{
   [pscustomobject]@{{ ok = $false; error_message = $_.Exception.Message }} | ConvertTo-Json -Depth 5 -Compress
   exit 2
 }} finally {{
-  if ($workbook -ne $null) {{ try {{ $workbook.Close($false) }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($workbook) }} catch {{ }} }}
+  if ($workbook -ne $null) {{ if (-not $wpsPreOpen) {{ try {{ $workbook.Close($false) }} catch {{ }} }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($workbook) }} catch {{ }} }}
   if ($app -ne $null) {{ try {{ {QUIT_IF_IDLE} }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) }} catch {{ }} }}
   [GC]::Collect(); [GC]::WaitForPendingFinalizers()
 }}
@@ -748,12 +760,15 @@ $ErrorActionPreference = 'Stop'
 $params = @'
 {params_json}
 '@ | ConvertFrom-Json
+{PRE_OPEN_GUARD}
 $app = $null; $workbook = $null
 try {{
   $app = New-Object -ComObject $params.prog_id
   try {{ $app.Visible = $false }} catch {{ }}
   try {{ $app.DisplayAlerts = $false }} catch {{ }}
+  $wpsPreOpen = Test-WpsPathOpen $app.Workbooks $params.path
   $workbook = $app.Workbooks.Open($params.path)
+  Assert-WpsPreOpenSaved $wpsPreOpen $workbook
   $source = $workbook.Worksheets.Item($params.source_name)
   $count = $workbook.Worksheets.Count
   if ([int]$params.index -eq $count + 1) {{
@@ -771,7 +786,7 @@ try {{
   [pscustomobject]@{{ ok = $false; error_message = $_.Exception.Message }} | ConvertTo-Json -Depth 5 -Compress
   exit 2
 }} finally {{
-  if ($workbook -ne $null) {{ try {{ $workbook.Close($false) }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($workbook) }} catch {{ }} }}
+  if ($workbook -ne $null) {{ if (-not $wpsPreOpen) {{ try {{ $workbook.Close($false) }} catch {{ }} }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($workbook) }} catch {{ }} }}
   if ($app -ne $null) {{ try {{ {QUIT_IF_IDLE} }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) }} catch {{ }} }}
   [GC]::Collect(); [GC]::WaitForPendingFinalizers()
 }}
@@ -920,12 +935,15 @@ $ErrorActionPreference = 'Stop'
 $params = @'
 {params_json}
 '@ | ConvertFrom-Json
+{PRE_OPEN_GUARD}
 $app = $null; $workbook = $null
 try {{
   $app = New-Object -ComObject $params.prog_id
   try {{ $app.Visible = $false }} catch {{ }}
   try {{ $app.DisplayAlerts = $false }} catch {{ }}
+  $wpsPreOpen = Test-WpsPathOpen $app.Workbooks $params.path
   $workbook = $app.Workbooks.Open($params.path)
+  Assert-WpsPreOpenSaved $wpsPreOpen $workbook
   $sheet = $workbook.Worksheets.Item($params.name)
   if ($params.color -eq 'none') {{ $sheet.Tab.ColorIndex = -4142 }} else {{ $sheet.Tab.Color = [int]$params.rgb }}
   $workbook.Save()
@@ -940,7 +958,7 @@ try {{
   [pscustomobject]@{{ ok = $false; error_message = $_.Exception.Message }} | ConvertTo-Json -Depth 5 -Compress
   exit 2
 }} finally {{
-  if ($workbook -ne $null) {{ try {{ $workbook.Close($false) }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($workbook) }} catch {{ }} }}
+  if ($workbook -ne $null) {{ if (-not $wpsPreOpen) {{ try {{ $workbook.Close($false) }} catch {{ }} }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($workbook) }} catch {{ }} }}
   if ($app -ne $null) {{ try {{ {QUIT_IF_IDLE} }} catch {{ }}; try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) }} catch {{ }} }}
   [GC]::Collect(); [GC]::WaitForPendingFinalizers()
 }}
@@ -1094,12 +1112,15 @@ $ErrorActionPreference = 'Stop'
 $params = @'
 {params_json}
 '@ | ConvertFrom-Json
+{PRE_OPEN_GUARD}
 $app = $null
 $workbook = $null
 try {{
   $app = New-Object -ComObject $params.prog_id
   try {{ $app.Visible = $false }} catch {{ }}
+  $wpsPreOpen = Test-WpsPathOpen $app.Workbooks $params.path
   $workbook = $app.Workbooks.Open($params.path)
+  Assert-WpsPreOpenSaved $wpsPreOpen $workbook
   if ($null -ne $params.sheet_name -and $params.sheet_name -ne '') {{
     $sheet = $workbook.Worksheets.Item($params.sheet_name)
   }} else {{
@@ -1147,7 +1168,7 @@ try {{
   exit 2
 }} finally {{
   if ($workbook -ne $null) {{
-    try {{ $workbook.Close($false) }} catch {{ }}
+    if (-not $wpsPreOpen) {{ try {{ $workbook.Close($false) }} catch {{ }} }}
     try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($workbook) }} catch {{ }}
   }}
   if ($app -ne $null) {{
@@ -1203,12 +1224,15 @@ $ErrorActionPreference = 'Stop'
 $params = @'
 {params_json}
 '@ | ConvertFrom-Json
+{PRE_OPEN_GUARD}
 $app = $null
 $workbook = $null
 try {{
   $app = New-Object -ComObject $params.prog_id
   try {{ $app.Visible = $false }} catch {{ }}
+  $wpsPreOpen = Test-WpsPathOpen $app.Workbooks $params.path
   $workbook = $app.Workbooks.Open($params.path)
+  Assert-WpsPreOpenSaved $wpsPreOpen $workbook
   if ($null -ne $params.sheet_name -and $params.sheet_name -ne '') {{
     $sheet = $workbook.Worksheets.Item($params.sheet_name)
   }} else {{
@@ -1253,7 +1277,7 @@ try {{
   exit 2
 }} finally {{
   if ($workbook -ne $null) {{
-    try {{ $workbook.Close($false) }} catch {{ }}
+    if (-not $wpsPreOpen) {{ try {{ $workbook.Close($false) }} catch {{ }} }}
     try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($workbook) }} catch {{ }}
   }}
   if ($app -ne $null) {{

@@ -487,6 +487,24 @@ class McpAdapterTests(unittest.TestCase):
         self.assertIsNone(result["response"])
         self.assertEqual(errors[0]["code"], "MCP_ADAPTER_CALL_REJECTED")
 
+    def test_array_arguments_use_equals_form_so_dash_prefixed_items_survive(self):
+        from wps_ai_agent_cli.cli_parser import build_parser
+
+        items = ["-retry later", "--state", "plain"]
+        ok, argv, _, errors = build_cli_argv(
+            "wps_agent_task_status_create",
+            {"command": "x", "operation_request_id": "r", "recovery_guidance": items},
+        )
+
+        self.assertTrue(ok, errors)
+        self.assertEqual([arg for arg in argv if arg.startswith("--recovery-guidance")], [
+            "--recovery-guidance=-retry later",
+            "--recovery-guidance=--state",
+            "--recovery-guidance=plain",
+        ])
+        args = build_parser().parse_args(argv)
+        self.assertEqual(args.recovery_guidance, items)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -1324,6 +1324,89 @@ class SpreadsheetSelectionReplaceTests(unittest.TestCase):
         self.assertIn("constant --text", errors[0]["message"])
         backup.assert_not_called()
 
+    def test_constant_fill_rejects_formula_prefix_like_matrix_mode(self):
+        for text in ("=1+1", "+SUM(A1)", "-cmd", "@SUM(A1)"):
+            with self.subTest(text=text):
+                fixture = Fixture(self, component="spreadsheets")
+                with patch.object(
+                    open_documents, "_run_spreadsheet_attached_com",
+                    return_value=com_ok(self._cell_selection()),
+                ) as com:
+                    with patch.object(open_documents, "create_backup") as backup:
+                        ok, _data, errors, _replayed = replace_spreadsheet_selection(
+                            fixture.document_id,
+                            text,
+                            request_id="xlsx-sel-formula",
+                            workspace=fixture.workspace,
+                        )
+                self.assertFalse(ok)
+                self.assertEqual(errors[0]["code"], "FORMULA_PREFIX_REJECTED")
+                self.assertEqual(com.call_count, 1)
+                backup.assert_not_called()
+
+    def test_negative_and_signed_numbers_are_not_rejected(self):
+        matrix, error = open_documents._parse_selection_values_matrix([[-5, -0.5, "+3", "-1e3", 7]])
+        self.assertIsNone(error)
+        self.assertEqual(matrix, [["-5", "-0.5", "+3", "-1e3", "7"]])
+        self.assertIsNone(open_documents._formula_prefix_error("-5", "Replacement text"))
+
+    def test_signed_non_numbers_are_still_rejected(self):
+        for text in ("-", "+", "-5+A1", "-1e", "--5", "=5", "@5", "-cmd|x"):
+            with self.subTest(text=text):
+                self.assertEqual(
+                    open_documents._formula_prefix_error(text, "cell")["code"],
+                    "FORMULA_PREFIX_REJECTED",
+                )
+
+    def test_constant_and_matrix_modes_share_one_prefix_check(self):
+        constant = open_documents._formula_prefix_error("=A1", "Replacement text")
+        _matrix, matrix_error = open_documents._parse_selection_values_matrix([["=A1"]])
+        self.assertEqual(constant["code"], matrix_error["code"])
+        self.assertIsNone(open_documents._formula_prefix_error("plain", "Replacement text"))
+
+    def test_shape_text_may_start_with_formula_characters(self):
+        fixture = Fixture(self, component="spreadsheets")
+        payload = self._cell_selection(
+            selection_kind="non_range", object_kind="shape", object_name="Box",
+            has_text_frame=True, cell_count=0, area_count=0, address=None,
+        )
+        with patch.object(open_documents, "_run_spreadsheet_attached_com", return_value=com_ok(payload)):
+            ok, _data, errors, _replayed = replace_spreadsheet_selection(
+                fixture.document_id,
+                "- bullet",
+                request_id="xlsx-shape-dash",
+                dry_run=True,
+                workspace=fixture.workspace,
+            )
+        self.assertTrue(ok, errors)
+
+    def test_series_values_and_axis_title_skip_formula_prefix_check(self):
+        cases = (
+            ("has_series_values", "-1\t-2", "-3\t-4", "series_values"),
+            ("has_series_values", "1\t2", "+1\t-2", "series_values"),
+            ("has_axis_title", "axis", "-axis", "axis_title"),
+        )
+        for flag, current, text, mode in cases:
+            with self.subTest(flag=flag, text=text):
+                fixture = Fixture(self, component="spreadsheets")
+                payload = self._cell_selection(
+                    text=current, selection_kind="non_range", object_kind="chart",
+                    object_name="Chart 1", cell_count=0, area_count=0, address=None,
+                    **{flag: True},
+                )
+                with patch.object(
+                    open_documents, "_run_spreadsheet_attached_com", return_value=com_ok(payload),
+                ):
+                    ok, data, errors, _replayed = replace_spreadsheet_selection(
+                        fixture.document_id,
+                        text,
+                        request_id="xlsx-object-sign",
+                        dry_run=True,
+                        workspace=fixture.workspace,
+                    )
+                self.assertTrue(ok, errors)
+                self.assertEqual(data["fill_mode"], mode)
+
     def test_rejects_unsaved_before_backup(self):
         fixture = Fixture(self, component="spreadsheets")
         payload = self._cell_selection(saved=False)

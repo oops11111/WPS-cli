@@ -5,6 +5,7 @@ import unittest
 import os
 import subprocess
 import sys
+import time
 from pathlib import Path
 from queue import Queue
 from tempfile import TemporaryDirectory
@@ -1099,6 +1100,9 @@ class McpServerTests(unittest.TestCase):
                     yield "{broken"
                     yield json.dumps({"jsonrpc": "1.0", "id": "invalid", "method": "tools/list"})
                     yield json.dumps(cancel_request)
+                    deadline = time.monotonic() + 5
+                    while '"id": "cancel"' not in output_stream.getvalue() and time.monotonic() < deadline:
+                        time.sleep(0.01)
                     release.set()
 
             def render(path, destination, output_format):
@@ -1128,6 +1132,83 @@ class McpServerTests(unittest.TestCase):
             self.assertEqual(batch_response["data"]["summary"]["processed"], 1)
             self.assertEqual(batch_response["data"]["task_status"]["state"], "cancelled")
             self.assertTrue(Path(batch_response["data"]["manifest_path"]).is_file())
+
+    def _stdio_session_lines(self, *requests):
+        yield json.dumps({"jsonrpc": "2.0", "id": "init", "method": "initialize", "params": initialize_params()})
+        yield json.dumps({"jsonrpc": "2.0", "method": "notifications/initialized"})
+        for request in requests:
+            yield request
+
+    def test_stdio_tool_calls_run_on_a_worker_so_ping_is_answered_while_a_call_blocks(self):
+        import threading
+        import time
+
+        started, release = Event(), Event()
+        call_threads = []
+        output_stream = io.StringIO()
+
+        def blocking_tool(name, arguments):
+            call_threads.append(threading.current_thread().name)
+            started.set()
+            if not release.wait(5):
+                raise AssertionError("tool call was not released")
+            return True, {"response": {"summary": "slow done"}}, []
+
+        tool_call = {
+            "jsonrpc": "2.0", "id": "slow", "method": "tools/call",
+            "params": {"name": "wps_agent_tasks", "arguments": {}},
+        }
+        ping = {"jsonrpc": "2.0", "id": "ping", "method": "ping"}
+
+        class Requests:
+            def __iter__(inner):
+                yield from self._stdio_session_lines(json.dumps(tool_call))
+                if not started.wait(5):
+                    raise AssertionError("tool call did not start")
+                yield json.dumps(ping)
+                deadline = time.monotonic() + 5
+                while '"id": "ping"' not in output_stream.getvalue() and time.monotonic() < deadline:
+                    time.sleep(0.01)
+                release.set()
+
+        with patch("wps_ai_agent_cli.mcp_server.call_mcp_tool", side_effect=blocking_tool):
+            self.assertEqual(serve_stdio(Requests(), output_stream), 0)
+
+        responses = [json.loads(line) for line in output_stream.getvalue().splitlines()]
+        order = [item["id"] for item in responses]
+        self.assertLess(order.index("ping"), order.index("slow"))
+        self.assertEqual(responses[order.index("ping")]["result"], {})
+        self.assertFalse(responses[order.index("slow")]["result"]["isError"])
+        self.assertEqual(len(call_threads), 1)
+        self.assertTrue(call_threads[0].startswith("mcp-tool-call"), call_threads)
+        self.assertNotEqual(call_threads[0], threading.main_thread().name)
+
+    def test_stdio_tool_calls_keep_request_order_and_are_drained_at_eof(self):
+        events = []
+        first_release = Event()
+
+        def tool(name, arguments):
+            label = arguments["task_id"]
+            events.append(f"start-{label}")
+            if label == "one":
+                first_release.wait(0.3)
+            events.append(f"end-{label}")
+            return True, {"response": {"summary": label}}, []
+
+        def call(request_id, label):
+            return json.dumps({
+                "jsonrpc": "2.0", "id": request_id, "method": "tools/call",
+                "params": {"name": "wps_agent_task_status", "arguments": {"task_id": label}},
+            })
+
+        output_stream = io.StringIO()
+        requests = list(self._stdio_session_lines(call("a", "one"), call("b", "two")))
+        with patch("wps_ai_agent_cli.mcp_server.call_mcp_tool", side_effect=tool):
+            self.assertEqual(serve_stdio(iter(requests), output_stream), 0)
+
+        self.assertEqual(events, ["start-one", "end-one", "start-two", "end-two"])
+        ids = [json.loads(line)["id"] for line in output_stream.getvalue().splitlines()]
+        self.assertEqual(ids, ["init", "a", "b"])
 
     def test_stdio_drains_completed_batch_once_at_eof(self):
         with TemporaryDirectory() as directory:

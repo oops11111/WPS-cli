@@ -199,6 +199,26 @@ def _tools_call_result(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _tools_call_precheck(message: dict[str, Any]) -> dict[str, Any] | None:
+    """Return the JSON-RPC error for a malformed tools/call, or None when it may run."""
+    request_id = message.get("id")
+    params = message.get("params", {})
+    if not isinstance(params, dict):
+        return _error_response(request_id, -32602, "tools/call params must be an object.")
+    name = params.get("name")
+    arguments = params.get("arguments", {})
+    if not isinstance(name, str) or not name:
+        return _error_response(request_id, -32602, "tools/call requires a tool name.")
+    if not isinstance(arguments, dict):
+        return _error_response(request_id, -32602, "tools/call arguments must be an object.")
+    if name not in {schema["name"] for schema in list_mcp_tool_schemas()}:
+        return _error_response(request_id, -32602, f"Unknown tool: {name}")
+    argument_errors = validate_mcp_tool_arguments(name, arguments)
+    if argument_errors:
+        return _error_response(request_id, -32602, "Invalid tool arguments.", argument_errors)
+    return None
+
+
 def handle_mcp_request(message: dict[str, Any]) -> dict[str, Any] | None:
     validation_error, is_notification = _validate_mcp_envelope(message)
     if validation_error is not None:
@@ -241,20 +261,11 @@ def handle_mcp_request(message: dict[str, Any]) -> dict[str, Any] | None:
         except ValueError:
             return _error_response(request_id, -32602, "Invalid tools/list cursor.")
     if method == "tools/call":
+        invalid = _tools_call_precheck(message)
+        if invalid is not None:
+            return invalid
         params = message.get("params", {})
-        if not isinstance(params, dict):
-            return _error_response(request_id, -32602, "tools/call params must be an object.")
-        name = params.get("name")
-        arguments = params.get("arguments", {})
-        if not isinstance(name, str) or not name:
-            return _error_response(request_id, -32602, "tools/call requires a tool name.")
-        if not isinstance(arguments, dict):
-            return _error_response(request_id, -32602, "tools/call arguments must be an object.")
-        if name not in {schema["name"] for schema in list_mcp_tool_schemas()}:
-            return _error_response(request_id, -32602, f"Unknown tool: {name}")
-        argument_errors = validate_mcp_tool_arguments(name, arguments)
-        if argument_errors:
-            return _error_response(request_id, -32602, "Invalid tool arguments.", argument_errors)
+        name, arguments = params["name"], params.get("arguments", {})
         try:
             return _response(request_id, _tools_call_result(name, arguments))
         except Exception as exc:  # noqa: BLE001
@@ -298,8 +309,20 @@ def serve_stdio(input_stream: TextIO | None = None, output_stream: TextIO | None
         # Deliver completion even while the main thread is blocked reading stdin.
         write_response(response)
 
-    with ThreadPoolExecutor(max_workers=1, thread_name_prefix="mcp-html-batch") as executor:
+    def run_tool_call(raw_json: str, request_id: Any) -> None:
+        try:
+            response = handle_mcp_json(raw_json)
+        except Exception:
+            response = _error_response(request_id, -32603, "Tool call failed unexpectedly.")
+        write_response(response)
+
+    # Tool calls can block on WPS COM for minutes. They run on a worker so the reader keeps
+    # answering ping/tools/list; a single worker keeps tool calls in request order, and the
+    # separate batch executor lets task-status updates cancel a running batch.
+    with ThreadPoolExecutor(max_workers=1, thread_name_prefix="mcp-html-batch") as executor, \
+            ThreadPoolExecutor(max_workers=1, thread_name_prefix="mcp-tool-call") as tool_executor:
         pending: Future[None] | None = None
+        tool_futures: list[Future[None]] = []
         lifecycle = "awaiting_initialize"
         seen_request_ids: set[tuple[type, str | int]] = set()
         for line, oversized in _iter_bounded_mcp_lines(input_stream):
@@ -370,11 +393,22 @@ def serve_stdio(input_stream: TextIO | None = None, output_stream: TextIO | None
                     if pending is not None:
                         pending.result()
                     pending = executor.submit(run_batch, line, message.get("id"))
+            elif method == "tools/call":
+                invalid_call = _tools_call_precheck(message)
+                if invalid_call is not None:
+                    write_response(invalid_call)
+                else:
+                    tool_futures.append(tool_executor.submit(run_tool_call, line, message.get("id")))
             else:
                 write_response(handle_mcp_request(message) if isinstance(message, dict) else handle_mcp_json(line))
             if pending is not None and pending.done():
                 pending.result()
                 pending = None
+            for future in [item for item in tool_futures if item.done()]:
+                tool_futures.remove(future)
+                future.result()
         if pending is not None:
             pending.result()
+        for future in tool_futures:
+            future.result()
     return 0

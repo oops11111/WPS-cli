@@ -12,7 +12,7 @@ from .mutation_lock import coordinated_mutation
 from .operations import record_operation, replay_operation
 from .presentation_text import PresentationStructureError, count_text_in_pptx, pptx_slide_texts, pptx_text_objects
 from .sessions import get_document
-from .wps_script_snippets import QUIT_IF_IDLE
+from .wps_script_snippets import PRE_OPEN_GUARD, QUIT_IF_IDLE
 
 
 def _run_presentation_replace_com(
@@ -48,12 +48,15 @@ $ErrorActionPreference = 'Stop'
 $params = @'
 {params_json}
 '@ | ConvertFrom-Json
+{PRE_OPEN_GUARD}
 $app = $null
 $presentation = $null
 try {{
   $app = New-Object -ComObject $params.prog_id
   try {{ $app.Visible = $false }} catch {{ }}
+  $wpsPreOpen = Test-WpsPathOpen $app.Presentations $params.path
   $presentation = $app.Presentations.Open($params.path, $false, $false, $false)
+  Assert-WpsPreOpenSaved $wpsPreOpen $presentation
   $findText = [string]$params.find_text
   $replaceText = [string]$params.replace_text
   $script:replaceCount = 0
@@ -166,7 +169,7 @@ try {{
   exit 2
 }} finally {{
   if ($presentation -ne $null) {{
-    try {{ $presentation.Close() }} catch {{ }}
+    if (-not $wpsPreOpen) {{ try {{ $presentation.Close() }} catch {{ }} }}
     try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($presentation) }} catch {{ }}
   }}
   if ($app -ne $null) {{
