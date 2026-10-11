@@ -2924,7 +2924,8 @@ def run(argv: list[str] | None = None, output_stream: TextIO | None = None) -> i
             request_id=request_id or "unknown",
             backend=BACKEND,
             summary=(
-                "Workspace state file is corrupt; the command was not executed."
+                "Workspace state file is corrupt and was quarantined; the command stopped. If it modifies documents, "
+                "it may already have been applied before the state was read again - run mutation-request-inspect before retrying."
                 if isinstance(exc, StateCorruptError)
                 else "Input document exceeds the supported size limits; the command was not executed."
             ),

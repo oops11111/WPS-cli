@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from .errors import OperationRecordError
 from .sessions import file_identity, get_document, refresh_document_identity
 from .mutation_lock import DocumentBusyError, document_mutation_lock
 from .state_store import atomic_write_json, read_json_state
@@ -226,5 +227,5 @@ def record_operation(
     if commit_identity is not None:
         refresh_document_identity(str(document_id), workspace, commit_identity)
     if capture_error is not None:
-        raise OSError(f"Operation recorded, but document identity could not be captured: {capture_error}")
+        raise OperationRecordError(f"Operation recorded, but document identity could not be captured: {capture_error}")
     return record

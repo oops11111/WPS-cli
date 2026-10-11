@@ -10,6 +10,8 @@ from pathlib import Path
 import time
 from typing import Any, Callable
 
+from .errors import OperationRecordError
+
 
 DEFAULT_TIMEOUT_SECONDS = 30.0
 STALE_LOCK_SECONDS = 7 * 24 * 3600
@@ -159,6 +161,14 @@ def coordinated_mutation(operation: Callable[..., Any]) -> Callable[..., Any]:
                 return operation(*args, **kwargs)
         except DocumentBusyError as exc:
             return False, {"document_id": document_id}, [{"code": "DOCUMENT_BUSY", "message": str(exc)}], False
+        except OperationRecordError as exc:
+            data = {"document_id": document_id, "mutation_applied": True}
+            if request_id is not None:
+                data["request_id"] = request_id
+            return False, data, [{
+                "code": "OPERATION_RECORD_FAILED",
+                "message": f"{exc}. The change itself was already applied; run mutation-request-inspect for this request id and inspect the document and its backup before retrying.",
+            }], False
 
     return wrapped
 
