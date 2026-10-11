@@ -82,5 +82,21 @@ class StrictExitTests(unittest.TestCase):
         self.assertEqual(code, 0)
 
 
+class ExitCodeDocumentationTests(unittest.TestCase):
+    def test_default_exit_code_stays_zero_on_failure_and_readme_says_so(self):
+        stream = io.StringIO()
+        code = run(["mcp-tool-schema", "--name", "does-not-exist"], output_stream=stream)
+        self.assertEqual(code, 0)
+        self.assertFalse(json.loads(stream.getvalue())["ok"])
+
+        strict_stream = io.StringIO()
+        strict_code = run(["--strict-exit", "mcp-tool-schema", "--name", "does-not-exist"], output_stream=strict_stream)
+        self.assertEqual(strict_code, 1)
+
+        readme = (Path(__file__).resolve().parents[1] / "README.md").read_text(encoding="utf-8")
+        self.assertIn("--strict-exit", readme)
+        self.assertIn("退出码", readme)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -44,6 +44,14 @@ PYTHONPATH=src python3 -m wps_ai_agent_cli inspect-env
 
 MCP 客户端配置见 [docs/MCP_SERVER_CLIENT_CONFIG.md](docs/MCP_SERVER_CLIENT_CONFIG.md)。
 
+## 退出码与失败检测
+
+命令失败时，默认仍然只在 stdout 输出 JSON 信封（`ok: false`、`errors`），进程退出码为 `0`；这是为了兼容已有调用方，**不要只靠退出码判断成败**，请解析信封里的 `ok`。需要用退出码表示失败的脚本，加上 `--strict-exit`（可放在子命令前或后）：失败时退出码为 `1`，成功仍为 `0`。MCP 工具调用不受影响，`isError` 与信封中的 `ok` 一致。参数解析错误由 argparse 以退出码 `2` 结束。
+
+```bash
+wps-agent --strict-exit backup-document --document-id doc_xxx --request-id r1 || echo "failed"
+```
+
 ## 测试
 
 ```bash
