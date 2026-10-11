@@ -375,6 +375,19 @@ class ExportOpenDocumentTests(unittest.TestCase):
             self.assertTrue(replayed)
             self.assertEqual(again["output"], data["output"])
 
+    def test_companion_directories_are_found_for_output_names_with_glob_characters(self):
+        fixture = Fixture(self)
+        output = Path(fixture.tmp.name) / "report[1].html"
+        decoy = Path(fixture.tmp.name) / "report1-decoy"
+        decoy.mkdir()
+        with patch.object(open_documents, "_run_writer_attached_com", side_effect=self.fake_export(output)):
+            ok, data, errors, _replayed = self.export(fixture, output, request_id="exp-glob")
+        self.assertTrue(ok, errors)
+        self.assertEqual(
+            [Path(item).name for item in data["companion_directories"]],
+            ["report[1].files"],
+        )
+
     def test_exports_open_presentation_via_save_copy_as(self):
         fixture = Fixture(self, component="presentation")
         output = Path(fixture.tmp.name) / "deck.html"

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import glob
 import json
 import re
 from pathlib import Path
@@ -5343,7 +5344,7 @@ def export_open_document_html(
         source_unchanged = False
     companion = [
         str(item)
-        for item in resolved_output.parent.glob(f"{resolved_output.stem}*")
+        for item in resolved_output.parent.glob(f"{glob.escape(resolved_output.stem)}*")
         if item.is_dir()
     ]
     export_result = {
