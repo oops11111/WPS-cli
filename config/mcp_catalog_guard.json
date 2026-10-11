@@ -1,14 +1,14 @@
 {
   "schema_version": "mcp-catalog-guard-2026-10-04",
-  "expected_tool_count": 84,
-  "expected_mutating_tool_count": 30,
-  "expected_requires_wps_tool_count": 35,
+  "expected_tool_count": 85,
+  "expected_mutating_tool_count": 31,
+  "expected_requires_wps_tool_count": 36,
   "expected_read_only_tool_count": 54,
   "expected_safety_notes_missing_count": 0,
   "expected_category_counts": {
     "batch": 3,
     "conversion": 12,
-    "documents": 4,
+    "documents": 5,
     "environment": 3,
     "maintenance": 2,
     "mcp": 8,

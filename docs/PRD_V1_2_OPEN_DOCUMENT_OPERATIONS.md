@@ -10,13 +10,13 @@ v1.2 相对 v1.1 的增量是：附着运行中实例、操作活动文档与当
 | --- | --- | --- |
 | 4.2 附着运行中实例，获取活动文档列表 | `open-documents`（MCP：`wps_agent_open_documents`） | 已实现。2026-10-09 本机附着到已打开的 Writer 12.0，列出 `open.docx` 并注册出稳定 `document_id`，没有启动第二个实例，也没有退出 |
 | 4.2 稳定 `document_id`，避免依赖活动窗口 | 列表按路径匹配已注册文档并返回 `document_id`；`--register` 注册已保存的打开文档；后续命令都只接受 `document_id`，按完整路径在运行实例中查找文档 | 已实现 |
-| 4.2 操作当前选区 | `writer-selection-read`、`writer-selection-replace`、`writer-selection-insert`、`writer-selection-delete`；`presentation-selection-read`、`presentation-selection-replace`、`presentation-selection-insert`、`presentation-selection-delete`；`spreadsheet-selection-read`、`spreadsheet-selection-replace`、`spreadsheet-selection-delete` | Writer/Presentation/Spreadsheet 活动选区读写均已实现；Writer/Presentation 支持折叠光标插入与选区删除（P3-413/414/416）。表格支持单区域或 `multi_area` 常量填充、`values_json` 矩阵写入（P3-417）、选区 `ClearContents`（P3-419；最多 100 格），带 TextFrame 的工作表形状纯文本写回（P3-442），以及图表 ChartTitle 纯文本写回（P3-443；系列/轴/几何仍拒绝） |
+| 4.2 操作当前选区 | `writer-selection-read`、`writer-selection-replace`、`writer-selection-insert`、`writer-selection-delete`；`presentation-selection-read`、`presentation-selection-replace`、`presentation-selection-insert`、`presentation-selection-delete`；`spreadsheet-selection-read`、`spreadsheet-selection-replace`、`spreadsheet-selection-delete` | Writer/Presentation/Spreadsheet 活动选区读写均已实现；Writer/Presentation 支持折叠光标插入与选区删除（P3-413/414/416），选区替换尽量保留统一字符格式（P3-445）。表格支持单区域或 `multi_area` 常量填充、`values_json` 矩阵写入（P3-417）、选区 `ClearContents`（P3-419；最多 100 格），形状 TextFrame（P3-442）、图表 ChartTitle（P3-443）、AxisTitle（P3-446）与 Series Values（P3-447，TAB 拼接、点数一致）写回；形状几何仍拒绝 |
 | 4.3「当前页面」边界 | 读选区时返回 `paragraph_index` 和尽力而为的 `page_number`，并固定标记 `page_info_verified: false`；没有任何按页码写入的命令 | 已实现。单页样例上读到 `paragraph_index` 1、`page_number` 1，字段仍标记为未验证，不作为页码准确性结论 |
 | 4.4 已打开文档直接导出 HTML | `export-open-document`（MCP：`wps_agent_export_open_document`） | Writer（`Documents.Add` + `SaveAs2`）、Presentation（`SaveCopyAs` 12/23）、Spreadsheet（P3-403：临时 `SaveCopyAs` + 副本 `SaveAs` 44/45）均已支持；均不改名不关闭源文件 |
 | 4.4b 已打开文档直接导出 PDF | `export-open-document-pdf`（MCP：`wps_agent_export_open_document_pdf`） | Writer 副本 `ExportAsFixedFormat`/`SaveAs` 17；Presentation 优先 `ExportAsFixedFormat`（失败退临时 `SaveCopyAs` + `SaveAs` 32）；Spreadsheet 对已打开工作簿 `ExportAsFixedFormat`。不改名不关闭源文件 |
 | 4.4c 已打开文档原生格式副本 | `export-open-document-copy`（MCP：`wps_agent_export_open_document_copy`） | 同扩展名 `SaveCopyAs`；Writer 失败时退 `Documents.Add` + `SaveAs`。不改名不关闭源文件；不对格式做转换 |
 | 4.4d 已打开文档导出纯文本 | `export-open-document-text`（MCP：`wps_agent_export_open_document_text`） | Writer 副本 Unicode/ANSI 文本 `SaveAs`；Presentation 按幻灯片抽取形状文本写 UTF-8；Spreadsheet 临时 `SaveCopyAs` + 副本文本 `SaveAs`。不改名不关闭源文件 |
-| 4.4e 已打开文档主动保存 | `save-open-document`（MCP：`wps_agent_save_open_document`） | 对已注册且有磁盘路径的打开文档显式 `Save()`；dirty 时先备份上次已保存文件；已保存则成功且不写；拒绝只读。其它命令仍拒绝未保存，不会隐式保存 |
+| 4.4e 已打开文档主动保存 | `save-open-document`（MCP：`wps_agent_save_open_document`）；`save-as-open-document`（MCP：`wps_agent_save_as_open_document`，P3-444） | 对已注册且有磁盘路径的打开文档显式 `Save()`；dirty 时先备份上次已保存文件；已保存则成功且不写；拒绝只读。无路径未命名文档用 `save-as-open-document`（按 component+Name `SaveAs` 到原生路径并注册）。其它命令仍拒绝未保存，不会隐式保存 |
 | 4.5 已打开文件的推荐流程 | 见下文「推荐调用流程」 | 已实现 |
 | 4.2 修改前强制备份、干跑、请求 ID | `writer-selection-replace` 复用 `create_backup`、`guarded_com_mutation`、`replay_operation`、文档锁与可选 `--task-id` | 已实现 |
 
@@ -110,7 +110,14 @@ v1.2 相对 v1.1 的增量是：附着运行中实例、操作活动文档与当
 - dry-run 只报告 `saved` / `would_modify`，不备份、不写入。
 - 已经 `Saved=true`：成功、`wrote=false`、不备份。
 - 有未保存修改：先备份磁盘上的上次已保存版本，再 `Save()`；校验 `saved=true` 且文档仍打开。
-- 只读拒绝为 `DOCUMENT_READ_ONLY`（备份前）。无路径的未命名文档没有 `document_id`，无法通过本命令另存。
+- 只读拒绝为 `DOCUMENT_READ_ONLY`（备份前）。无路径的未命名文档没有 `document_id`，应改用 `save-as-open-document`。
+
+### `save-as-open-document`
+对运行实例中**尚无磁盘路径**的打开文档执行 `SaveAs` 到新的原生路径（Writer `.docx` / Spreadsheet `.xlsx` / Presentation `.pptx`），成功后按路径注册 `document_id`。
+
+- 用 `--component` + `--name`（`open-documents` 返回的 `Name`）定位；重名未命名文档返回 `AMBIGUOUS_OPEN_DOCUMENT`；已有磁盘路径返回 `DOCUMENT_ALREADY_PATHED`（改用 `save-open-document` / `export-open-document-copy`）。
+- 拒绝已存在输出、错误扩展名、只读；无先前源文件可备份。
+- dry-run / 幂等齐全；不启动 WPS，不 `Quit()`。
 - 不启动 WPS，不 `Quit()`，不 `Close()`。
 
 ### `export-open-document`
@@ -193,7 +200,11 @@ v1.2 相对 v1.1 的增量是：附着运行中实例、操作活动文档与当
 - 2026-10-10 本机 Spreadsheets：`$A$1` 上 `P3-419 mark` 经 `spreadsheet-selection-delete` `ClearContents` 清空，`cells_matched=true`、`validation_passed=true`。单机结果，不作跨版本结论。
 - 2026-10-10 本机 Spreadsheets：多区域 `$A$1,$C$1` 常量填充 `P3-422 fill` 成功；对 `ChartObject`（`Chart 1`）选区，`spreadsheet-selection-read` 返回 `selection_kind=non_range`/`object_kind=chart`，`spreadsheet-selection-replace` 与 `spreadsheet-selection-delete` 均在备份前返回 `OBJECT_SELECTION_UNSUPPORTED`。单机结果，不作跨版本结论。
 - 2026-10-10 本机 Spreadsheets：多区域 `$A$1,$C$1`（`P3-427-A`/`P3-427-C`）经 `spreadsheet-selection-delete` `ClearContents` 清空，`cells_matched=true`、`read_back_values=["",""]`、`validation_passed=true`、有备份、同 request_id 幂等重放。单机结果，不作跨版本结论。
-- 2026-10-10 本机 Writer：`Documents.Add` 未命名文档经 `open-documents` 列出 `document_id=null`、`path_exists=false`；`save-open-document` 对虚构 id 返回 `DOCUMENT_NOT_FOUND`。未做 untitled SaveAs。单机结果，不作跨版本结论。
+- 2026-10-10 本机 Writer：`Documents.Add` 未命名文档经 `open-documents` 列出 `document_id=null`、`path_exists=false`；`save-open-document` 对虚构 id 返回 `DOCUMENT_NOT_FOUND`。单机结果，不作跨版本结论。
+- 2026-10-11 本机 Writer：未命名 `文字文稿1` 经 `save-as-open-document` SaveAs 到 disposable docx（9956 字节），`wrote=true`/`path_matched=true`/`validation_passed=true`，并注册 `document_id`（P3-444）。单机结果，不作跨版本结论。
+- 2026-10-11 本机 Writer：粗体 16pt 选区 `P3-445 mark` 经 `writer-selection-replace`→`P3-445 done`，`formatting_preserved=true`/`formatting_mode=uniform_character`，读回仍 Bold 且 Size=16（P3-445）。混排格式仍不支持。单机结果，不作跨版本结论。
+- 2026-10-11 本机 Spreadsheets：轴标题选区 `P3-446-Chart` 读回 `has_axis_title=true`/`P3-446 axis`；`spreadsheet-selection-replace`→`P3-446 done`，`fill_mode=axis_title`、`validation_passed=true`、有备份（P3-446）。单机结果，不作跨版本结论。
+- 2026-10-11 本机 Spreadsheets：系列选区 `P3-447-Chart`/`series_name=val` 读回 `has_series_values=true`（TAB 拼接 `10`/`20`）；`spreadsheet-selection-replace`→`30`/`40`，`fill_mode=series_values`、`validation_passed=true`、有备份（P3-447）。几何仍不支持。单机结果，不作跨版本结论。
 - 2026-10-10 本机 Spreadsheets：连续区域 `$A$1:$B$1`（`selection_kind=range`）经 `spreadsheet-selection-delete` 清空，`cells_matched=true`、`validation_passed=true`、有备份、同 request_id 幂等重放。单机结果，不作跨版本结论。
 - 2026-10-10 本机 Spreadsheets：`$A$1` 公式 `=1+2`（显示 `3`）经 `spreadsheet-selection-delete` 清空后 `read_back_text=""`、读回 `formula=null`、`validation_passed=true`、有备份、同 request_id 幂等重放。单机结果，不作跨版本结论。
 - 2026-10-10 本机 Spreadsheets：矩形形状 `P3-433-Rect` 选区读回 `selection_kind=non_range`/`object_kind=shape`；`spreadsheet-selection-replace` 与 `spreadsheet-selection-delete` 均在备份前返回 `OBJECT_SELECTION_UNSUPPORTED`（探测已避免把工作表形状误判为 chart）。单机结果，不作跨版本结论。
@@ -208,7 +219,7 @@ v1.2 相对 v1.1 的增量是：附着运行中实例、操作活动文档与当
 
 ## 未做项
 
-- 表格图表系列/轴与形状几何/样式编辑（P3-442/P3-443：已支持形状 TextFrame 与图表 ChartTitle 纯文本；系列/轴/几何仍为 `OBJECT_SELECTION_UNSUPPORTED`；单元格多区域常量/矩阵写入见 P3-407/P3-417）。
+- 表格图表形状**几何/样式**编辑（P3-442/P3-443/P3-446/P3-447：已支持形状 TextFrame、图表 ChartTitle/AxisTitle 纯文本与选中 Series Values TAB 写回；几何仍为 `OBJECT_SELECTION_UNSUPPORTED`；单元格多区域常量/矩阵写入见 P3-407/P3-417）。
 - 精确「第 N 页」操作，PRD 明确要求实测后再决定，不作首版承诺（读选区仅尽力返回 `page_number` 且 `page_info_verified=false`；P3-431 离线闸门禁止已打开文档 MCP/CLI 接受按页定位输入）。
-- 除 `save-open-document` 外，其它命令对未保存修改仍直接拒绝，不隐式保存或合并。无路径的未命名文档不能另存（P3-428：本机未命名 Writer 仅能列出且 `document_id=null`，无法经 `document_id` 定位或 SaveAs）。
-- 在选区内保留富文本格式的替换（P3-430：Writer/Presentation 选区替换结果 `note` 标明纯文本契约；字符格式沿用 WPS 范围赋值的默认行为，不作保留承诺）。
+- 除 `save-open-document` / `save-as-open-document` 外，其它命令对未保存修改仍直接拒绝，不隐式保存或合并。无路径未命名文档经 P3-444 `save-as-open-document` 可另存并注册；在此之前仅能列出且 `document_id=null`（P3-428）。
+- 选区内**混排**字符格式与段落格式的精确重建仍不支持（P3-445：已对 Writer/Presentation 选区替换做统一字符格式快照回写——font name/size/bold/italic/underline/color；混排 run 仍不重建）。

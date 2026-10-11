@@ -7,7 +7,7 @@ from typing import Any
 from .backups import create_backup, guarded_com_mutation, verify_post_com_source
 from .capabilities import WPS_COMPONENTS
 from .errors import COM_OPERATION_FAILED, INPUT_FILE_NOT_FOUND
-from .mutation_lock import coordinated_mutation
+from .mutation_lock import coordinated_mutation, coordinated_request
 from .operations import record_operation, replay_operation
 from .powershell_runner import run_powershell_script
 from .sessions import file_identity, get_document, register_document, stable_document_id
@@ -19,6 +19,11 @@ MAX_SPREADSHEET_SELECTION_SAMPLE_CELLS = 100
 HTML_EXPORT_SUFFIXES = {".html", ".htm"}
 PDF_EXPORT_SUFFIXES = {".pdf"}
 TEXT_EXPORT_SUFFIXES = {".txt"}
+SAVE_AS_NATIVE_SUFFIXES = {
+    "writer": {".docx"},
+    "spreadsheets": {".xlsx"},
+    "presentation": {".pptx"},
+}
 
 _COMPONENT_COLLECTIONS = {
     "writer": ("Documents", "ActiveDocument"),
@@ -37,6 +42,10 @@ SELECTION_MISMATCH = "SELECTION_MISMATCH"
 SELECTION_TOO_LARGE = "SELECTION_TOO_LARGE"
 SELECTION_SPANS_STRUCTURE = "SELECTION_SPANS_STRUCTURE"
 OBJECT_SELECTION_UNSUPPORTED = "OBJECT_SELECTION_UNSUPPORTED"
+UNTITLED_DOCUMENT_NOT_FOUND = "UNTITLED_DOCUMENT_NOT_FOUND"
+AMBIGUOUS_OPEN_DOCUMENT = "AMBIGUOUS_OPEN_DOCUMENT"
+DOCUMENT_ALREADY_PATHED = "DOCUMENT_ALREADY_PATHED"
+UNSUPPORTED_OUTPUT_EXTENSION = "UNSUPPORTED_OUTPUT_EXTENSION"
 OUTPUT_EXISTS = "OUTPUT_EXISTS"
 EXPORT_OUTPUT_MISSING = "EXPORT_OUTPUT_MISSING"
 EXPORT_OUTPUT_NOT_HTML = "EXPORT_OUTPUT_NOT_HTML"
@@ -127,6 +136,140 @@ foreach ($spec in $params.components) {
 """
 )
 
+_SAVE_AS_UNTITLED_SCRIPT = (
+    _SCRIPT_HEAD
+    + ATTACH_RUNNING_INSTANCE
+    + """
+$app = $null
+$doc = $null
+try {
+  $app = Get-RunningWpsApp @($params.prog_ids)
+  if ($null -eq $app) {
+    [pscustomobject]@{ ok = $true; status = 'no_instance' } | ConvertTo-Json -Depth 5
+    exit 0
+  }
+  $collection = $app.($params.collection)
+  $untitled = New-Object System.Collections.Generic.List[object]
+  $pathed = New-Object System.Collections.Generic.List[object]
+  $count = [int]$collection.Count
+  for ($i = 1; $i -le $count; $i++) {
+    $item = $collection.Item($i)
+    $itemName = ''
+    try { $itemName = [string]$item.Name } catch { continue }
+    if (-not [string]::Equals($itemName, [string]$params.name, [System.StringComparison]::OrdinalIgnoreCase)) {
+      continue
+    }
+    $fullName = ''
+    try { $fullName = [string]$item.FullName } catch { $fullName = '' }
+    $onDisk = $false
+    if (-not [string]::IsNullOrEmpty($fullName)) {
+      try {
+        $candidatePath = [System.IO.Path]::GetFullPath($fullName)
+        $onDisk = [System.IO.File]::Exists($candidatePath)
+      } catch { $onDisk = $false }
+    }
+    if ($onDisk) { [void]$pathed.Add($item) } else { [void]$untitled.Add($item) }
+  }
+  if ([int]$untitled.Count -eq 0 -and [int]$pathed.Count -ge 1) {
+    [pscustomobject]@{
+      ok = $true
+      status = 'already_pathed'
+      match_count = [int]$pathed.Count
+      name = [string]$params.name
+    } | ConvertTo-Json -Depth 5
+    exit 0
+  }
+  if ([int]$untitled.Count -eq 0) {
+    [pscustomobject]@{ ok = $true; status = 'not_found'; name = [string]$params.name } | ConvertTo-Json -Depth 5
+    exit 0
+  }
+  if ([int]$untitled.Count -gt 1) {
+    [pscustomobject]@{
+      ok = $true
+      status = 'ambiguous'
+      match_count = [int]$untitled.Count
+      name = [string]$params.name
+    } | ConvertTo-Json -Depth 5
+    exit 0
+  }
+  $doc = $untitled[0]
+  if ([bool]$doc.ReadOnly) {
+    [pscustomobject]@{
+      ok = $true
+      status = 'read_only'
+      name = [string]$doc.Name
+      saved = [bool]$doc.Saved
+      read_only = $true
+    } | ConvertTo-Json -Depth 5
+    exit 0
+  }
+  if (-not [bool]$params.do_save) {
+    [pscustomobject]@{
+      ok = $true
+      status = 'ok'
+      backend = 'powershell-com'
+      component = [string]$params.component
+      name = [string]$doc.Name
+      saved = [bool]$doc.Saved
+      read_only = $false
+      would_modify = $true
+      wrote = $false
+      source_still_open = $true
+    } | ConvertTo-Json -Depth 5
+    exit 0
+  }
+  try { $app.DisplayAlerts = $false } catch { }
+  $output = [string]$params.output
+  $component = [string]$params.component
+  if ($component -eq 'spreadsheets') {
+    try { $doc.SaveAs($output, 51) }
+    catch { $doc.SaveAs($output) }
+  } elseif ($component -eq 'presentation') {
+    try { $doc.SaveAs($output, 24) }
+    catch { $doc.SaveAs($output) }
+  } else {
+    try { $doc.SaveAs2($output) }
+    catch {
+      try { $doc.SaveAs($output) }
+      catch { $doc.SaveAs($output, 16) }
+    }
+  }
+  $fullAfter = ''
+  try { $fullAfter = [System.IO.Path]::GetFullPath([string]$doc.FullName) } catch { $fullAfter = [string]$doc.FullName }
+  $target = [System.IO.Path]::GetFullPath($output)
+  $pathMatched = [string]::Equals($fullAfter, $target, [System.StringComparison]::OrdinalIgnoreCase)
+  [pscustomobject]@{
+    ok = $true
+    status = 'ok'
+    backend = 'powershell-com'
+    component = $component
+    name = [string]$doc.Name
+    full_name = $fullAfter
+    saved = [bool]$doc.Saved
+    read_only = [bool]$doc.ReadOnly
+    wrote = $true
+    source_still_open = $true
+    path_matched = [bool]$pathMatched
+    output_exists = [bool]([System.IO.File]::Exists($target))
+  } | ConvertTo-Json -Depth 5
+} catch {
+  [pscustomobject]@{
+    ok = $false
+    backend = 'powershell-com'
+    error_type = $_.Exception.GetType().FullName
+    error_message = $_.Exception.Message
+    position = $_.InvocationInfo.PositionMessage
+  } | ConvertTo-Json -Depth 5
+  exit 2
+} finally {
+  if ($doc -ne $null) { try { [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($doc) } catch { } }
+  if ($app -ne $null) { try { [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) } catch { } }
+  [GC]::Collect()
+  [GC]::WaitForPendingFinalizers()
+}
+"""
+)
+
 _SELECTION_READ_BODY = """
   $window = $doc.ActiveWindow
   if ($null -eq $window) {
@@ -178,7 +321,45 @@ _SELECTION_REPLACE_BODY = """
     exit 0
   }
   $replacement = [string]$params.text
+  # Snapshot uniform character formatting before Text= (mixed runs report wdUndefined=9999999).
+  $wdUndefined = 9999999
+  $snapName = $null; $snapSize = $null; $snapBold = $null; $snapItalic = $null; $snapUnderline = $null; $snapColor = $null
+  try {
+    $f = $range.Font
+    try { $snapName = [string]$f.Name } catch { }
+    try { $snapSize = $f.Size } catch { }
+    try { $snapBold = $f.Bold } catch { }
+    try { $snapItalic = $f.Italic } catch { }
+    try { $snapUnderline = $f.Underline } catch { }
+    try { $snapColor = $f.Color } catch { }
+  } catch { }
   $range.Text = $replacement
+  $newRange = $doc.Range($start, $start + $replacement.Length)
+  $formattingApplied = $false
+  try {
+    $nf = $newRange.Font
+    if (-not [string]::IsNullOrEmpty($snapName)) {
+      try { $nf.Name = $snapName; $formattingApplied = $true } catch { }
+    }
+    if ($null -ne $snapSize) {
+      try {
+        $sz = [double]$snapSize
+        if ($sz -gt 0 -and $sz -lt 1000) { $nf.Size = $sz; $formattingApplied = $true }
+      } catch { }
+    }
+    if ($null -ne $snapBold) {
+      try { if ([int]$snapBold -ne $wdUndefined) { $nf.Bold = $snapBold; $formattingApplied = $true } } catch { }
+    }
+    if ($null -ne $snapItalic) {
+      try { if ([int]$snapItalic -ne $wdUndefined) { $nf.Italic = $snapItalic; $formattingApplied = $true } } catch { }
+    }
+    if ($null -ne $snapUnderline) {
+      try { if ([int]$snapUnderline -ne $wdUndefined) { $nf.Underline = $snapUnderline; $formattingApplied = $true } } catch { }
+    }
+    if ($null -ne $snapColor) {
+      try { $nf.Color = $snapColor; $formattingApplied = $true } catch { }
+    }
+  } catch { }
   $doc.Save()
   $readBack = [string]$doc.Range($start, $start + $replacement.Length).Text
   [pscustomobject]@{
@@ -189,6 +370,8 @@ _SELECTION_REPLACE_BODY = """
     start = $start
     end = $end
     read_back_text = $readBack
+    formatting_mode = 'uniform_character'
+    formatting_preserved = [bool]$formattingApplied
   } | ConvertTo-Json -Depth 5
 """
 
@@ -835,10 +1018,60 @@ _PRESENTATION_SELECTION_REPLACE_BODY = """
   $replacement = [string]$params.text
   $shape = $null
   try { $shape = $sel.ShapeRange.Item(1) } catch { }
+  $wdUndefined = 9999999
+  $snapName = $null; $snapSize = $null; $snapBold = $null; $snapItalic = $null; $snapUnderline = $null; $snapColor = $null
+  try {
+    $f = $tr.Font
+    try { $snapName = [string]$f.Name } catch { }
+    try { $snapSize = $f.Size } catch { }
+    try { $snapBold = $f.Bold } catch { }
+    try { $snapItalic = $f.Italic } catch { }
+    try { $snapUnderline = $f.Underline } catch { }
+    try { $snapColor = $f.Color.RGB } catch {
+      try { $snapColor = $f.Color } catch { }
+    }
+  } catch { }
   $tr.Text = $replacement
   # WPS may invalidate the original TextRange/selection after assignment or Save.
   $readBack = ''
-  try { $readBack = [string]$tr.Text } catch { }
+  $formattingApplied = $false
+  try {
+    $tr2 = $null
+    try { $tr2 = $sel.TextRange } catch { }
+    if ($null -eq $tr2 -and $null -ne $shape) {
+      try { $tr2 = $shape.TextFrame.TextRange } catch { }
+    }
+    if ($null -eq $tr2) { $tr2 = $tr }
+    try { $readBack = [string]$tr2.Text } catch { }
+    try {
+      $nf = $tr2.Font
+      if (-not [string]::IsNullOrEmpty($snapName)) {
+        try { $nf.Name = $snapName; $formattingApplied = $true } catch { }
+      }
+      if ($null -ne $snapSize) {
+        try {
+          $sz = [double]$snapSize
+          if ($sz -gt 0 -and $sz -lt 1000) { $nf.Size = $sz; $formattingApplied = $true }
+        } catch { }
+      }
+      if ($null -ne $snapBold) {
+        try { if ([int]$snapBold -ne $wdUndefined) { $nf.Bold = $snapBold; $formattingApplied = $true } } catch { }
+      }
+      if ($null -ne $snapItalic) {
+        try { if ([int]$snapItalic -ne $wdUndefined) { $nf.Italic = $snapItalic; $formattingApplied = $true } } catch { }
+      }
+      if ($null -ne $snapUnderline) {
+        try { if ([int]$snapUnderline -ne $wdUndefined) { $nf.Underline = $snapUnderline; $formattingApplied = $true } } catch { }
+      }
+      if ($null -ne $snapColor) {
+        try { $nf.Color.RGB = $snapColor; $formattingApplied = $true }
+        catch { try { $nf.Color = $snapColor; $formattingApplied = $true } catch { } }
+      }
+    } catch { }
+  } catch { }
+  if ([string]::IsNullOrEmpty($readBack)) {
+    try { $readBack = [string]$tr.Text } catch { }
+  }
   if ([string]::IsNullOrEmpty($readBack)) {
     try { $readBack = [string]$sel.TextRange.Text } catch { }
   }
@@ -858,6 +1091,8 @@ _PRESENTATION_SELECTION_REPLACE_BODY = """
     backend = 'powershell-com'
     component = 'presentation'
     read_back_text = $readBack
+    formatting_mode = 'uniform_character'
+    formatting_preserved = [bool]$formattingApplied
   } | ConvertTo-Json -Depth 5
 """
 
@@ -1079,6 +1314,9 @@ _SPREADSHEET_SELECTION_READ_BODY = """
   $objectName = $null
   $hasTextFrame = $false
   $hasChartTitle = $false
+  $hasAxisTitle = $false
+  $hasSeriesValues = $false
+  $seriesName = $null
   $shape = $null
   try {
     $address = [string]$sel.Address($true, $true)
@@ -1136,12 +1374,102 @@ _SPREADSHEET_SELECTION_READ_BODY = """
         } catch { }
       }
     } catch { }
+    # Series or SeriesPoint selection: Selection.Values or Parent.Values is readable.
+    if ($objectKind -ne 'chart') {
+      try {
+        $seriesCom = $null
+        try {
+          $null = $sel.Values
+          $seriesCom = $sel
+        } catch {
+          try {
+            $null = $sel.Parent.Values
+            $seriesCom = $sel.Parent
+          } catch { }
+        }
+        if ($null -ne $seriesCom) {
+          $chartCom = $null
+          try {
+            $null = $seriesCom.Parent.ChartType
+            $chartCom = $seriesCom.Parent
+          } catch {
+            try {
+              $null = $seriesCom.Parent.Parent.ChartType
+              $chartCom = $seriesCom.Parent.Parent
+            } catch { }
+          }
+          $chartObjectName = $null
+          if ($null -ne $chartCom) {
+            try { $chartObjectName = [string]$chartCom.Parent.Name } catch { }
+          }
+          if ([string]::IsNullOrEmpty($chartObjectName)) {
+            try { $chartObjectName = [string]$seriesCom.Parent.Parent.Name } catch {
+              try { $chartObjectName = [string]$seriesCom.Parent.Name } catch { }
+            }
+          }
+          if (-not [string]::IsNullOrEmpty($chartObjectName)) {
+            $objectKind = 'chart'
+            $objectName = $chartObjectName
+            $shape = $null
+            $hasSeriesValues = $true
+            try { $seriesName = [string]$seriesCom.Name } catch { $seriesName = $null }
+            $parts = New-Object System.Collections.Generic.List[string]
+            $valueIndex = 0
+            foreach ($value in @($seriesCom.Values)) {
+              $valueIndex++
+              if ($valueIndex -gt __MAX_SAMPLE_CELLS__) {
+                $sampleTruncated = $true
+                break
+              }
+              if ($null -eq $value) { [void]$parts.Add('') }
+              else { [void]$parts.Add([string]$value) }
+            }
+            $text = [string]::Join("`t", $parts)
+            try {
+              if ([string]::IsNullOrEmpty($sheetName) -and $null -ne $chartCom) {
+                $sheetName = [string]$chartCom.Parent.Parent.Name
+              }
+            } catch { }
+          }
+        }
+      } catch { }
+    }
+    # AxisTitle selection: Parent is Axis (HasTitle + AxisTitle; ChartType absent).
+    # WPS may expose a hollow ChartTitle on Axis, so do not use ChartTitle presence alone.
+    if ($objectKind -ne 'chart') {
+      try {
+        $maybeAxis = $sel.Parent
+        $null = [bool]$maybeAxis.HasTitle
+        $axisTitleText = [string]$maybeAxis.AxisTitle.Text
+        $axisChartType = $null
+        try { $axisChartType = $maybeAxis.ChartType } catch { }
+        if ($null -eq $axisChartType) {
+          $chartObjectName = $null
+          try { $chartObjectName = [string]$maybeAxis.Parent.Parent.Name } catch { }
+          if (-not [string]::IsNullOrEmpty($chartObjectName)) {
+            $objectKind = 'chart'
+            $objectName = $chartObjectName
+            $shape = $null
+            $hasAxisTitle = $true
+            $text = $axisTitleText
+            try {
+              if ([string]::IsNullOrEmpty($sheetName)) {
+                $sheetName = [string]$maybeAxis.Parent.Parent.Parent.Name
+              }
+            } catch { }
+          }
+        }
+      } catch { }
+    }
     # WPS ChartObject selection is often ChartArea/ChartTitle (Name=图表/标题),
-    # ShapeRange.Count=0, and Selection.Parent is the Chart (HasTitle readable).
+    # ShapeRange.Count=0, and Selection.Parent is the Chart (HasTitle + ChartType).
     if ($objectKind -ne 'chart') {
       try {
         $maybeChart = $sel.Parent
         $null = [bool]$maybeChart.HasTitle
+        $chartType = $null
+        try { $chartType = $maybeChart.ChartType } catch { }
+        if ($null -eq $chartType) { throw 'not a chart parent' }
         $chartObjectName = $null
         try { $chartObjectName = [string]$maybeChart.Parent.Name } catch { }
         if (-not [string]::IsNullOrEmpty($chartObjectName)) {
@@ -1213,7 +1541,7 @@ _SPREADSHEET_SELECTION_READ_BODY = """
         }
       } catch { }
     }
-    if ($objectKind -eq 'chart') {
+    if ($objectKind -eq 'chart' -and -not $hasAxisTitle -and -not $hasSeriesValues) {
       $chartCom = $null
       try {
         if ($null -ne $shape) { $chartCom = $shape.Chart }
@@ -1222,6 +1550,9 @@ _SPREADSHEET_SELECTION_READ_BODY = """
         try {
           $maybeChart = $sel.Parent
           $null = [bool]$maybeChart.HasTitle
+          $chartTypeProbe = $null
+          try { $chartTypeProbe = $maybeChart.ChartType } catch { }
+          if ($null -eq $chartTypeProbe) { throw 'not chart' }
           $chartCom = $maybeChart
         } catch {
           try {
@@ -1277,6 +1608,9 @@ _SPREADSHEET_SELECTION_READ_BODY = """
     object_name = $objectName
     has_text_frame = [bool]$hasTextFrame
     has_chart_title = [bool]$hasChartTitle
+    has_axis_title = [bool]$hasAxisTitle
+    has_series_values = [bool]$hasSeriesValues
+    series_name = $seriesName
   } | ConvertTo-Json -Depth 5
 """.replace("__MAX_SAMPLE_CELLS__", str(MAX_SPREADSHEET_SELECTION_SAMPLE_CELLS))
 
@@ -1723,6 +2057,409 @@ _SPREADSHEET_CHART_TITLE_DELETE_BODY = """
   } | ConvertTo-Json -Depth 5
 """
 
+_SPREADSHEET_AXIS_TITLE_REPLACE_BODY = """
+  if (-not [bool]$doc.Saved) {
+    [pscustomobject]@{ ok = $true; status = 'unsaved' } | ConvertTo-Json -Depth 5
+    exit 0
+  }
+  if ([bool]$doc.ReadOnly) {
+    [pscustomobject]@{ ok = $true; status = 'read_only' } | ConvertTo-Json -Depth 5
+    exit 0
+  }
+  $window = $null
+  try {
+    if ([int]$doc.Windows.Count -ge 1) { $window = $doc.Windows.Item(1) }
+  } catch { }
+  if ($null -eq $window) {
+    try {
+      $active = $app.ActiveWorkbook
+      if ($null -ne $active -and [string]::Equals(
+        [System.IO.Path]::GetFullPath([string]$active.FullName),
+        [System.IO.Path]::GetFullPath([string]$params.path),
+        [System.StringComparison]::OrdinalIgnoreCase
+      )) { $window = $app.ActiveWindow }
+    } catch { }
+  }
+  if ($null -eq $window) {
+    [pscustomobject]@{ ok = $true; status = 'no_window' } | ConvertTo-Json -Depth 5
+    exit 0
+  }
+  $sel = $null
+  try { $sel = $window.Selection } catch { }
+  $axis = $null
+  $objectName = $null
+  try {
+    $maybeAxis = $sel.Parent
+    $null = [bool]$maybeAxis.HasTitle
+    $null = [string]$maybeAxis.AxisTitle.Text
+    $axisChartType = $null
+    try { $axisChartType = $maybeAxis.ChartType } catch { }
+    if ($null -eq $axisChartType) {
+      $axis = $maybeAxis
+      try { $objectName = [string]$axis.Parent.Parent.Name } catch { }
+    }
+  } catch { }
+  if ($null -eq $axis) {
+    [pscustomobject]@{ ok = $true; status = 'not_axis_title_selection' } | ConvertTo-Json -Depth 5
+    exit 0
+  }
+  if ([string]::IsNullOrEmpty($objectName)) { $objectName = [string]$params.expected_object_name }
+  if ($objectName -cne [string]$params.expected_object_name) {
+    [pscustomobject]@{ ok = $true; status = 'selection_changed'; current_object_name = $objectName } | ConvertTo-Json -Depth 5
+    exit 0
+  }
+  $before = ''
+  try {
+    if ([bool]$axis.HasTitle) { $before = [string]$axis.AxisTitle.Text }
+  } catch {
+    [pscustomobject]@{ ok = $true; status = 'no_axis_title' } | ConvertTo-Json -Depth 5
+    exit 0
+  }
+  if ($before -cne [string]$params.expected_text) {
+    [pscustomobject]@{ ok = $true; status = 'selection_changed'; current_text = $before } | ConvertTo-Json -Depth 5
+    exit 0
+  }
+  try {
+    if (-not [bool]$axis.HasTitle) { $axis.HasTitle = $true }
+    $axis.AxisTitle.Text = [string]$params.text
+  } catch {
+    [pscustomobject]@{ ok = $true; status = 'no_axis_title' } | ConvertTo-Json -Depth 5
+    exit 0
+  }
+  $doc.Save()
+  $readBack = ''
+  try {
+    if ([bool]$axis.HasTitle) { $readBack = [string]$axis.AxisTitle.Text }
+  } catch { }
+  [pscustomobject]@{
+    ok = $true
+    status = 'ok'
+    backend = 'powershell-com'
+    component = 'spreadsheets'
+    object_kind = 'chart'
+    object_name = $objectName
+    cells_matched = ($readBack -ceq [string]$params.text)
+    read_back_text = [string]$readBack
+  } | ConvertTo-Json -Depth 5
+"""
+
+_SPREADSHEET_AXIS_TITLE_DELETE_BODY = """
+  if (-not [bool]$doc.Saved) {
+    [pscustomobject]@{ ok = $true; status = 'unsaved' } | ConvertTo-Json -Depth 5
+    exit 0
+  }
+  if ([bool]$doc.ReadOnly) {
+    [pscustomobject]@{ ok = $true; status = 'read_only' } | ConvertTo-Json -Depth 5
+    exit 0
+  }
+  $window = $null
+  try {
+    if ([int]$doc.Windows.Count -ge 1) { $window = $doc.Windows.Item(1) }
+  } catch { }
+  if ($null -eq $window) {
+    try {
+      $active = $app.ActiveWorkbook
+      if ($null -ne $active -and [string]::Equals(
+        [System.IO.Path]::GetFullPath([string]$active.FullName),
+        [System.IO.Path]::GetFullPath([string]$params.path),
+        [System.StringComparison]::OrdinalIgnoreCase
+      )) { $window = $app.ActiveWindow }
+    } catch { }
+  }
+  if ($null -eq $window) {
+    [pscustomobject]@{ ok = $true; status = 'no_window' } | ConvertTo-Json -Depth 5
+    exit 0
+  }
+  $sel = $null
+  try { $sel = $window.Selection } catch { }
+  $axis = $null
+  $objectName = $null
+  try {
+    $maybeAxis = $sel.Parent
+    $null = [bool]$maybeAxis.HasTitle
+    $null = [string]$maybeAxis.AxisTitle.Text
+    $axisChartType = $null
+    try { $axisChartType = $maybeAxis.ChartType } catch { }
+    if ($null -eq $axisChartType) {
+      $axis = $maybeAxis
+      try { $objectName = [string]$axis.Parent.Parent.Name } catch { }
+    }
+  } catch { }
+  if ($null -eq $axis) {
+    [pscustomobject]@{ ok = $true; status = 'not_axis_title_selection' } | ConvertTo-Json -Depth 5
+    exit 0
+  }
+  if ([string]::IsNullOrEmpty($objectName)) { $objectName = [string]$params.expected_object_name }
+  if ($objectName -cne [string]$params.expected_object_name) {
+    [pscustomobject]@{ ok = $true; status = 'selection_changed'; current_object_name = $objectName } | ConvertTo-Json -Depth 5
+    exit 0
+  }
+  $before = ''
+  try {
+    if ([bool]$axis.HasTitle) { $before = [string]$axis.AxisTitle.Text }
+  } catch {
+    [pscustomobject]@{ ok = $true; status = 'no_axis_title' } | ConvertTo-Json -Depth 5
+    exit 0
+  }
+  if ($before -cne [string]$params.expected_text) {
+    [pscustomobject]@{ ok = $true; status = 'selection_changed'; current_text = $before } | ConvertTo-Json -Depth 5
+    exit 0
+  }
+  try {
+    if ([bool]$axis.HasTitle) {
+      $axis.AxisTitle.Text = ''
+      $axis.HasTitle = $false
+    }
+  } catch {
+    [pscustomobject]@{ ok = $true; status = 'no_axis_title' } | ConvertTo-Json -Depth 5
+    exit 0
+  }
+  $doc.Save()
+  $readBack = ''
+  try {
+    if ([bool]$axis.HasTitle) { $readBack = [string]$axis.AxisTitle.Text }
+  } catch { }
+  [pscustomobject]@{
+    ok = $true
+    status = 'ok'
+    backend = 'powershell-com'
+    component = 'spreadsheets'
+    object_kind = 'chart'
+    object_name = $objectName
+    cells_matched = [string]::IsNullOrEmpty($readBack)
+    deleted_text = [string]$params.expected_text
+    read_back_text = [string]$readBack
+  } | ConvertTo-Json -Depth 5
+"""
+
+_SPREADSHEET_SERIES_VALUES_REPLACE_BODY = """
+  if (-not [bool]$doc.Saved) {
+    [pscustomobject]@{ ok = $true; status = 'unsaved' } | ConvertTo-Json -Depth 5
+    exit 0
+  }
+  if ([bool]$doc.ReadOnly) {
+    [pscustomobject]@{ ok = $true; status = 'read_only' } | ConvertTo-Json -Depth 5
+    exit 0
+  }
+  $window = $null
+  try {
+    if ([int]$doc.Windows.Count -ge 1) { $window = $doc.Windows.Item(1) }
+  } catch { }
+  if ($null -eq $window) {
+    try {
+      $active = $app.ActiveWorkbook
+      if ($null -ne $active -and [string]::Equals(
+        [System.IO.Path]::GetFullPath([string]$active.FullName),
+        [System.IO.Path]::GetFullPath([string]$params.path),
+        [System.StringComparison]::OrdinalIgnoreCase
+      )) { $window = $app.ActiveWindow }
+    } catch { }
+  }
+  if ($null -eq $window) {
+    [pscustomobject]@{ ok = $true; status = 'no_window' } | ConvertTo-Json -Depth 5
+    exit 0
+  }
+  $sel = $null
+  try { $sel = $window.Selection } catch { }
+  $series = $null
+  $objectName = $null
+  try {
+    try {
+      $null = $sel.Values
+      $series = $sel
+    } catch {
+      $null = $sel.Parent.Values
+      $series = $sel.Parent
+    }
+    $chartCom = $null
+    try {
+      $null = $series.Parent.ChartType
+      $chartCom = $series.Parent
+    } catch {
+      try {
+        $null = $series.Parent.Parent.ChartType
+        $chartCom = $series.Parent.Parent
+      } catch { }
+    }
+    if ($null -ne $chartCom) {
+      try { $objectName = [string]$chartCom.Parent.Name } catch { }
+    }
+    if ([string]::IsNullOrEmpty($objectName)) {
+      try { $objectName = [string]$series.Parent.Parent.Name } catch {
+        try { $objectName = [string]$series.Parent.Name } catch { }
+      }
+    }
+  } catch { }
+  if ($null -eq $series) {
+    [pscustomobject]@{ ok = $true; status = 'not_series_selection' } | ConvertTo-Json -Depth 5
+    exit 0
+  }
+  if ([string]::IsNullOrEmpty($objectName)) { $objectName = [string]$params.expected_object_name }
+  if ($objectName -cne [string]$params.expected_object_name) {
+    [pscustomobject]@{ ok = $true; status = 'selection_changed'; current_object_name = $objectName } | ConvertTo-Json -Depth 5
+    exit 0
+  }
+  $beforeParts = New-Object System.Collections.Generic.List[string]
+  foreach ($value in @($series.Values)) {
+    if ($null -eq $value) { [void]$beforeParts.Add('') } else { [void]$beforeParts.Add([string]$value) }
+  }
+  $before = [string]::Join([char]9, $beforeParts)
+  if ($before -cne [string]$params.expected_text) {
+    [pscustomobject]@{ ok = $true; status = 'selection_changed'; current_text = $before } | ConvertTo-Json -Depth 5
+    exit 0
+  }
+  $rawParts = @($params.values)
+  if ($rawParts.Count -ne $beforeParts.Count) {
+    [pscustomobject]@{
+      ok = $true
+      status = 'series_length_mismatch'
+      expected_count = [int]$beforeParts.Count
+      provided_count = [int]$rawParts.Count
+    } | ConvertTo-Json -Depth 5
+    exit 0
+  }
+  $outValues = New-Object object[] $rawParts.Count
+  for ($i = 0; $i -lt $rawParts.Count; $i++) {
+    $piece = if ($null -eq $rawParts[$i]) { '' } else { [string]$rawParts[$i] }
+    $num = 0.0
+    if ([string]::IsNullOrEmpty($piece)) { $outValues[$i] = $null }
+    elseif ([double]::TryParse($piece, [ref]$num)) { $outValues[$i] = $num }
+    else { $outValues[$i] = $piece }
+  }
+  try { $series.Values = $outValues }
+  catch {
+    [pscustomobject]@{ ok = $true; status = 'no_series_values' } | ConvertTo-Json -Depth 5
+    exit 0
+  }
+  $doc.Save()
+  $readParts = New-Object System.Collections.Generic.List[string]
+  foreach ($value in @($series.Values)) {
+    if ($null -eq $value) { [void]$readParts.Add('') } else { [void]$readParts.Add([string]$value) }
+  }
+  $readBack = [string]::Join([char]9, $readParts)
+  $expectedJoined = [string]::Join([char]9, @($params.values | ForEach-Object { if ($null -eq $_) { '' } else { [string]$_ } }))
+  [pscustomobject]@{
+    ok = $true
+    status = 'ok'
+    backend = 'powershell-com'
+    component = 'spreadsheets'
+    object_kind = 'chart'
+    object_name = $objectName
+    series_name = $(try { [string]$series.Name } catch { $null })
+    cells_matched = ($readBack -ceq $expectedJoined)
+    read_back_text = [string]$readBack
+  } | ConvertTo-Json -Depth 5
+"""
+
+_SPREADSHEET_SERIES_VALUES_DELETE_BODY = """
+  if (-not [bool]$doc.Saved) {
+    [pscustomobject]@{ ok = $true; status = 'unsaved' } | ConvertTo-Json -Depth 5
+    exit 0
+  }
+  if ([bool]$doc.ReadOnly) {
+    [pscustomobject]@{ ok = $true; status = 'read_only' } | ConvertTo-Json -Depth 5
+    exit 0
+  }
+  $window = $null
+  try {
+    if ([int]$doc.Windows.Count -ge 1) { $window = $doc.Windows.Item(1) }
+  } catch { }
+  if ($null -eq $window) {
+    try {
+      $active = $app.ActiveWorkbook
+      if ($null -ne $active -and [string]::Equals(
+        [System.IO.Path]::GetFullPath([string]$active.FullName),
+        [System.IO.Path]::GetFullPath([string]$params.path),
+        [System.StringComparison]::OrdinalIgnoreCase
+      )) { $window = $app.ActiveWindow }
+    } catch { }
+  }
+  if ($null -eq $window) {
+    [pscustomobject]@{ ok = $true; status = 'no_window' } | ConvertTo-Json -Depth 5
+    exit 0
+  }
+  $sel = $null
+  try { $sel = $window.Selection } catch { }
+  $series = $null
+  $objectName = $null
+  try {
+    try {
+      $null = $sel.Values
+      $series = $sel
+    } catch {
+      $null = $sel.Parent.Values
+      $series = $sel.Parent
+    }
+    $chartCom = $null
+    try {
+      $null = $series.Parent.ChartType
+      $chartCom = $series.Parent
+    } catch {
+      try {
+        $null = $series.Parent.Parent.ChartType
+        $chartCom = $series.Parent.Parent
+      } catch { }
+    }
+    if ($null -ne $chartCom) {
+      try { $objectName = [string]$chartCom.Parent.Name } catch { }
+    }
+    if ([string]::IsNullOrEmpty($objectName)) {
+      try { $objectName = [string]$series.Parent.Parent.Name } catch {
+        try { $objectName = [string]$series.Parent.Name } catch { }
+      }
+    }
+  } catch { }
+  if ($null -eq $series) {
+    [pscustomobject]@{ ok = $true; status = 'not_series_selection' } | ConvertTo-Json -Depth 5
+    exit 0
+  }
+  if ([string]::IsNullOrEmpty($objectName)) { $objectName = [string]$params.expected_object_name }
+  if ($objectName -cne [string]$params.expected_object_name) {
+    [pscustomobject]@{ ok = $true; status = 'selection_changed'; current_object_name = $objectName } | ConvertTo-Json -Depth 5
+    exit 0
+  }
+  $beforeParts = New-Object System.Collections.Generic.List[string]
+  foreach ($value in @($series.Values)) {
+    if ($null -eq $value) { [void]$beforeParts.Add('') } else { [void]$beforeParts.Add([string]$value) }
+  }
+  $before = [string]::Join("`t", $beforeParts)
+  if ($before -cne [string]$params.expected_text) {
+    [pscustomobject]@{ ok = $true; status = 'selection_changed'; current_text = $before } | ConvertTo-Json -Depth 5
+    exit 0
+  }
+  if ([string]::IsNullOrEmpty($before)) {
+    [pscustomobject]@{ ok = $true; status = 'no_series_values' } | ConvertTo-Json -Depth 5
+    exit 0
+  }
+  $cleared = New-Object object[] $beforeParts.Count
+  for ($i = 0; $i -lt $beforeParts.Count; $i++) { $cleared[$i] = $null }
+  try { $series.Values = $cleared }
+  catch {
+    [pscustomobject]@{ ok = $true; status = 'no_series_values' } | ConvertTo-Json -Depth 5
+    exit 0
+  }
+  $doc.Save()
+  $readParts = New-Object System.Collections.Generic.List[string]
+  foreach ($value in @($series.Values)) {
+    if ($null -eq $value) { [void]$readParts.Add('') } else { [void]$readParts.Add([string]$value) }
+  }
+  $readBack = [string]::Join("`t", $readParts)
+  $allEmpty = $true
+  foreach ($part in $readParts) { if (-not [string]::IsNullOrEmpty([string]$part)) { $allEmpty = $false; break } }
+  [pscustomobject]@{
+    ok = $true
+    status = 'ok'
+    backend = 'powershell-com'
+    component = 'spreadsheets'
+    object_kind = 'chart'
+    object_name = $objectName
+    series_name = $(try { [string]$series.Name } catch { $null })
+    cells_matched = [bool]$allEmpty
+    deleted_text = [string]$params.expected_text
+    read_back_text = [string]$readBack
+  } | ConvertTo-Json -Depth 5
+"""
+
 _SPREADSHEET_SELECTION_REPLACE_BODY = """
   if (-not [bool]$doc.Saved) {
     [pscustomobject]@{ ok = $true; status = 'unsaved' } | ConvertTo-Json -Depth 5
@@ -2022,6 +2759,23 @@ def _run_open_documents_com(components: list[str]) -> dict[str, Any]:
     return _run_script(_LIST_SCRIPT, {"components": specs}, timeout_seconds=60)
 
 
+def _run_save_as_untitled_com(component: str, name: str, output: str, *, do_save: bool) -> dict[str, Any]:
+    collection, _active = _COMPONENT_COLLECTIONS[component]
+    prog_ids = list(WPS_COMPONENTS[component])
+    return _run_script(
+        _SAVE_AS_UNTITLED_SCRIPT,
+        {
+            "prog_ids": prog_ids,
+            "collection": collection,
+            "component": component,
+            "name": name,
+            "output": output,
+            "do_save": do_save,
+        },
+        timeout_seconds=120,
+    )
+
+
 def _run_writer_attached_com(action: str, params: dict[str, Any]) -> dict[str, Any]:
     body = {
         "selection-read": _SELECTION_READ_BODY,
@@ -2071,6 +2825,10 @@ def _run_spreadsheet_attached_com(action: str, params: dict[str, Any]) -> dict[s
         "selection-shape-delete": _SPREADSHEET_SHAPE_TEXT_DELETE_BODY,
         "selection-chart-title-replace": _SPREADSHEET_CHART_TITLE_REPLACE_BODY,
         "selection-chart-title-delete": _SPREADSHEET_CHART_TITLE_DELETE_BODY,
+        "selection-axis-title-replace": _SPREADSHEET_AXIS_TITLE_REPLACE_BODY,
+        "selection-axis-title-delete": _SPREADSHEET_AXIS_TITLE_DELETE_BODY,
+        "selection-series-values-replace": _SPREADSHEET_SERIES_VALUES_REPLACE_BODY,
+        "selection-series-values-delete": _SPREADSHEET_SERIES_VALUES_DELETE_BODY,
         "export-html": _SPREADSHEET_EXPORT_HTML_BODY,
         "export-pdf": _SPREADSHEET_EXPORT_PDF_BODY,
         "export-copy": _SPREADSHEET_EXPORT_COPY_BODY,
@@ -2159,7 +2917,27 @@ def _status_error(
         ),
         "no_chart_title": (
             OBJECT_SELECTION_UNSUPPORTED,
-            "The selected chart has no editable ChartTitle; series/axis mutation is not supported.",
+            "The selected chart has no editable ChartTitle; series-value mutation is not supported.",
+        ),
+        "not_axis_title_selection": (
+            OBJECT_SELECTION_UNSUPPORTED,
+            "The active selection is not a chart AxisTitle; select an axis title, chart title, or worksheet cells.",
+        ),
+        "no_axis_title": (
+            OBJECT_SELECTION_UNSUPPORTED,
+            "The selected axis has no editable AxisTitle; select a title, series, or worksheet cells.",
+        ),
+        "not_series_selection": (
+            OBJECT_SELECTION_UNSUPPORTED,
+            "The active selection is not a chart Series; select a series, chart/axis title, or worksheet cells.",
+        ),
+        "no_series_values": (
+            OBJECT_SELECTION_UNSUPPORTED,
+            "The selected series has no editable Values; geometry mutation is not supported.",
+        ),
+        "series_length_mismatch": (
+            "RANGE_SHAPE_MISMATCH",
+            "Series replacement value count must match the selected series point count (TAB-joined).",
         ),
     }
     code, message = messages.get(str(status), (COM_OPERATION_FAILED, f"Unexpected attach status: {status}"))
@@ -2328,7 +3106,11 @@ def list_open_documents(
         "instances": instances,
         "documents": documents,
         "attached_without_launching": True,
-        "note": "Documents are matched by path; unsaved or untitled documents have no stable document_id. Use document_id, not the active window, to target a document.",
+        "note": (
+            "Documents are matched by path; unsaved or untitled documents have no stable document_id "
+            "until saved with save-as-open-document. Use document_id for pathed documents; "
+            "use save-as-open-document with --component/--name/--output for untitled documents."
+        ),
     }
     if not instances:
         return False, data, [
@@ -2488,11 +3270,14 @@ def read_spreadsheet_selection(
         "object_name": object_name,
         "has_text_frame": bool(payload.get("has_text_frame")),
         "has_chart_title": bool(payload.get("has_chart_title")),
+        "has_axis_title": bool(payload.get("has_axis_title")),
+        "has_series_values": bool(payload.get("has_series_values")),
+        "series_name": (str(payload.get("series_name")) or None) if payload.get("series_name") is not None else None,
         "object_info_verified": False,
         "object_note": (
-            "object_kind/object_name/has_text_frame/has_chart_title are best-effort for non-range selections. "
-            "Worksheet shape TextFrame text and chart ChartTitle text may be replaced or cleared when those flags are true; "
-            "series/axis/geometry mutation remain unsupported. Unverified across WPS versions."
+            "object_kind/object_name/has_text_frame/has_chart_title/has_axis_title/has_series_values are best-effort for non-range selections. "
+            "Worksheet shape TextFrame, chart ChartTitle, AxisTitle, and selected Series Values may be replaced or cleared when those flags are true; "
+            "shape geometry mutation remains unsupported. Unverified across WPS versions."
         ),
         "sample_cell_limit": MAX_SPREADSHEET_SELECTION_SAMPLE_CELLS,
         "note": "selection_text samples at most 100 cells for multi-cell ranges; prefer address + spreadsheet-read for full values.",
@@ -2585,25 +3370,50 @@ def _check_replaceable_spreadsheet_selection(
         verb_ing = "replacing"
         verb_inf = "replace"
     if kind == "non_range" and object_kind == "chart":
-        if not selection.get("has_chart_title"):
+        has_chart_title = bool(selection.get("has_chart_title"))
+        has_axis_title = bool(selection.get("has_axis_title"))
+        has_series_values = bool(selection.get("has_series_values"))
+        if not has_chart_title and not has_axis_title and not has_series_values:
             label = f"chart: {object_name}" if object_name else "chart"
             return {
                 "code": OBJECT_SELECTION_UNSUPPORTED,
                 "message": (
-                    f"Chart selections ({label}) without an editable ChartTitle cannot be {verb_past}; "
-                    "select a chart title-capable chart, a text-bearing shape, or worksheet cells. "
-                    "Series/axis mutation is not supported."
+                    f"Chart selections ({label}) without editable Series Values, ChartTitle, or AxisTitle cannot be {verb_past}; "
+                    "select a series, chart/axis title, a text-bearing shape, or worksheet cells. "
+                    "Geometry mutation is not supported."
                 ),
             }
+        if has_series_values:
+            point_count = len(text.split("\t")) if text else 0
+            if selection.get("selection_text_truncated") or point_count > MAX_SPREADSHEET_SELECTION_SAMPLE_CELLS:
+                return {
+                    "code": SELECTION_TOO_LARGE,
+                    "message": (
+                        f"The series has more than {MAX_SPREADSHEET_SELECTION_SAMPLE_CELLS} values; "
+                        f"shrink the series or edit source cells instead."
+                    ),
+                }
+            if len(text) > MAX_SELECTION_CHARS:
+                return {
+                    "code": SELECTION_TOO_LARGE,
+                    "message": f"The series values sample is longer than {MAX_SELECTION_CHARS} characters.",
+                }
+            if expected is not None and expected != text:
+                return {
+                    "code": SELECTION_MISMATCH,
+                    "message": "The current series values do not match expected_selection_text.",
+                }
+            return None
+        title_label = "axis title" if has_axis_title else "chart title"
         if selection.get("selection_text_truncated") or len(text) > MAX_SELECTION_CHARS:
             return {
                 "code": SELECTION_TOO_LARGE,
-                "message": f"The chart title is longer than {MAX_SELECTION_CHARS} characters.",
+                "message": f"The {title_label} is longer than {MAX_SELECTION_CHARS} characters.",
             }
         if expected is not None and expected != text:
             return {
                 "code": SELECTION_MISMATCH,
-                "message": "The current chart title does not match expected_selection_text.",
+                "message": f"The current {title_label} does not match expected_selection_text.",
             }
         return None
     if kind == "non_range" and object_kind == "shape":
@@ -2786,7 +3596,14 @@ def replace_writer_selection(
         "read_back_text": read_back_text,
         "validation_passed": validation_passed,
         "selection_preserved": False,
-        "note": "Plain-text range replace by position; retention of rich character/paragraph formatting is not a supported contract. The user's selection in WPS is not restored.",
+        "formatting_mode": payload.get("formatting_mode") or "uniform_character",
+        "formatting_preserved": bool(payload.get("formatting_preserved")),
+        "note": (
+            "Selection text is replaced in place; uniform character formatting (font name/size/bold/italic/"
+            "underline/color) is snapshotted and reapplied when WPS reports defined values. "
+            "Mixed runs within the selection and paragraph-level formatting are not reconstructed. "
+            "The user's selection in WPS is not restored."
+        ),
     }
     post_error = verify_post_com_source(path, write_result)
     if post_error is not None:
@@ -3140,7 +3957,14 @@ def replace_presentation_selection(
         "read_back_text": read_back_text,
         "validation_passed": validation_passed,
         "selection_preserved": False,
-        "note": "Plain-text TextRange replace in place; retention of rich character formatting is not a supported contract. The user's selection in WPS is not restored.",
+        "formatting_mode": payload.get("formatting_mode") or "uniform_character",
+        "formatting_preserved": bool(payload.get("formatting_preserved")),
+        "note": (
+            "Selection text is replaced in place; uniform character formatting (font name/size/bold/italic/"
+            "underline/color) is snapshotted and reapplied when WPS reports defined values. "
+            "Mixed runs within the selection are not reconstructed. "
+            "The user's selection in WPS is not restored."
+        ),
     }
     post_error = verify_post_com_source(path, write_result)
     if post_error is not None:
@@ -3449,7 +4273,7 @@ def replace_spreadsheet_selection(
         replacement_text = None
     else:
         assert text is not None
-        invalid = _validate_text(text, "Replacement text")
+        invalid = _validate_spreadsheet_expected_text(text, "Replacement text")
         if invalid:
             return False, {}, [invalid], False
         fill_mode = "constant"
@@ -3497,20 +4321,59 @@ def replace_spreadsheet_selection(
         and selection.get("object_kind") == "shape"
         and bool(selection.get("has_text_frame"))
     )
+    is_series_values = (
+        selection.get("selection_kind") == "non_range"
+        and selection.get("object_kind") == "chart"
+        and bool(selection.get("has_series_values"))
+    )
+    is_axis_title = (
+        selection.get("selection_kind") == "non_range"
+        and selection.get("object_kind") == "chart"
+        and bool(selection.get("has_axis_title"))
+        and not is_series_values
+    )
     is_chart_title = (
         selection.get("selection_kind") == "non_range"
         and selection.get("object_kind") == "chart"
         and bool(selection.get("has_chart_title"))
+        and not is_axis_title
+        and not is_series_values
     )
-    if (is_shape_text or is_chart_title) and fill_mode == "matrix":
-        target = "ChartTitle" if is_chart_title else "Shape TextFrame"
+    if (is_shape_text or is_chart_title or is_axis_title or is_series_values) and fill_mode == "matrix":
+        target = (
+            "Series Values"
+            if is_series_values
+            else "AxisTitle"
+            if is_axis_title
+            else "ChartTitle"
+            if is_chart_title
+            else "Shape TextFrame"
+        )
         return False, {"selection": selection}, [{
             "code": OBJECT_SELECTION_UNSUPPORTED,
             "message": (
-                f"{target} write supports only constant --text; "
-                "values_json matrix fill is for worksheet cells."
+                f"{target} write supports only constant --text"
+                + (" (TAB-joined values)" if is_series_values else "")
+                + "; values_json matrix fill is for worksheet cells."
             ),
         }], False
+
+    if is_series_values:
+        assert replacement_text is not None
+        expected_points = selection["selection_text"].split("\t")
+        provided_points = replacement_text.split("\t")
+        if len(provided_points) != len(expected_points):
+            return False, {
+                "selection": selection,
+                "expected_count": len(expected_points),
+                "provided_count": len(provided_points),
+            }, [{
+                "code": "RANGE_SHAPE_MISMATCH",
+                "message": (
+                    "Series replacement value count must match the selected series point count "
+                    f"({len(expected_points)} TAB-joined values)."
+                ),
+            }], False
 
     cell_count = int(selection.get("cell_count") or 0)
     selection_rows = int(selection.get("row_count") or 0)
@@ -3537,6 +4400,7 @@ def replace_spreadsheet_selection(
                 "message": "values_json shape must match the selected range rows and columns.",
             }], False
 
+    object_text_mode = is_shape_text or is_chart_title or is_axis_title or is_series_values
     preview = {
         "document_id": document_id,
         "component": "spreadsheets",
@@ -3554,17 +4418,28 @@ def replace_spreadsheet_selection(
         "object_name": selection.get("object_name"),
         "has_text_frame": bool(selection.get("has_text_frame")),
         "has_chart_title": bool(selection.get("has_chart_title")),
+        "has_axis_title": bool(selection.get("has_axis_title")),
+        "has_series_values": bool(selection.get("has_series_values")),
+        "series_name": selection.get("series_name"),
         "replacement_text": replacement_text,
         "values": matrix,
         "expected_selection_text": expected_selection_text,
         "would_modify": (
             selection["selection_text"] != replacement_text
-            if fill_mode == "constant" and (cell_count == 1 or is_shape_text or is_chart_title)
+            if fill_mode == "constant" and (cell_count == 1 or object_text_mode)
             else True
         ),
         "dry_run": dry_run,
         "fill_mode": (
-            "chart_title" if is_chart_title else "shape_text" if is_shape_text else fill_mode
+            "series_values"
+            if is_series_values
+            else "axis_title"
+            if is_axis_title
+            else "chart_title"
+            if is_chart_title
+            else "shape_text"
+            if is_shape_text
+            else fill_mode
         ),
     }
     if dry_run:
@@ -3580,7 +4455,23 @@ def replace_spreadsheet_selection(
         return False, {"preview": preview, "backup": backup_result}, backup_errors, False
 
     path = Path(selection["path"])
-    if is_chart_title:
+    if is_series_values:
+        com_params = {
+            "path": str(path),
+            "values": replacement_text.split("\t"),
+            "expected_text": selection["selection_text"],
+            "expected_object_name": selection.get("object_name") or "",
+        }
+        com_action = "selection-series-values-replace"
+    elif is_axis_title:
+        com_params = {
+            "path": str(path),
+            "text": replacement_text,
+            "expected_text": selection["selection_text"],
+            "expected_object_name": selection.get("object_name") or "",
+        }
+        com_action = "selection-axis-title-replace"
+    elif is_chart_title:
         com_params = {
             "path": str(path),
             "text": replacement_text,
@@ -3628,7 +4519,7 @@ def replace_spreadsheet_selection(
         return False, {"preview": preview, "backup": backup_result, "write": payload}, [status_error], False
 
     read_back_text = str(payload.get("read_back_text") if payload.get("read_back_text") is not None else "")
-    if is_shape_text or is_chart_title:
+    if object_text_mode:
         cells_matched = read_back_text == replacement_text
     else:
         cells_matched = bool(payload.get("cells_matched")) if "cells_matched" in payload else (
@@ -3637,10 +4528,21 @@ def replace_spreadsheet_selection(
         if fill_mode == "constant" and cell_count == 1:
             cells_matched = read_back_text == replacement_text
     validation_passed = cells_matched
-    if is_chart_title:
+    if is_series_values:
+        note = (
+            "Selected worksheet chart Series.Values are overwritten from TAB-joined --text "
+            "(point count must match); geometry mutation is not supported; "
+            "the user's selection in WPS is not restored."
+        )
+    elif is_axis_title:
+        note = (
+            "Selected worksheet chart AxisTitle text is overwritten as plain text; "
+            "geometry mutation is not supported; the user's selection in WPS is not restored."
+        )
+    elif is_chart_title:
         note = (
             "Selected worksheet chart ChartTitle text is overwritten as plain text; "
-            "series/axis/geometry mutation is not supported; the user's selection in WPS is not restored."
+            "geometry mutation is not supported; the user's selection in WPS is not restored."
         )
     elif is_shape_text:
         note = (
@@ -3746,13 +4648,30 @@ def delete_spreadsheet_selection(
         and selection.get("object_kind") == "shape"
         and bool(selection.get("has_text_frame"))
     )
+    is_series_values = (
+        selection.get("selection_kind") == "non_range"
+        and selection.get("object_kind") == "chart"
+        and bool(selection.get("has_series_values"))
+    )
+    is_axis_title = (
+        selection.get("selection_kind") == "non_range"
+        and selection.get("object_kind") == "chart"
+        and bool(selection.get("has_axis_title"))
+        and not is_series_values
+    )
     is_chart_title = (
         selection.get("selection_kind") == "non_range"
         and selection.get("object_kind") == "chart"
         and bool(selection.get("has_chart_title"))
+        and not is_axis_title
+        and not is_series_values
     )
     if not _spreadsheet_selection_has_content(selection):
-        if is_chart_title:
+        if is_series_values:
+            empty_message = "The series has no values to clear; select a series with Values first."
+        elif is_axis_title:
+            empty_message = "The axis has no title text to clear; select an axis title first."
+        elif is_chart_title:
             empty_message = "The chart has no title text to clear; select a chart with a title first."
         elif is_shape_text:
             empty_message = "The selection has no shape text to clear; select a text-bearing shape first."
@@ -3780,11 +4699,22 @@ def delete_spreadsheet_selection(
         "object_name": selection.get("object_name"),
         "has_text_frame": bool(selection.get("has_text_frame")),
         "has_chart_title": bool(selection.get("has_chart_title")),
+        "has_axis_title": bool(selection.get("has_axis_title")),
+        "has_series_values": bool(selection.get("has_series_values")),
+        "series_name": selection.get("series_name"),
         "expected_selection_text": expected_selection_text,
         "would_modify": True,
         "dry_run": dry_run,
         "fill_mode": (
-            "chart_title" if is_chart_title else "shape_text" if is_shape_text else "clear_cells"
+            "series_values"
+            if is_series_values
+            else "axis_title"
+            if is_axis_title
+            else "chart_title"
+            if is_chart_title
+            else "shape_text"
+            if is_shape_text
+            else "clear_cells"
         ),
     }
     if dry_run:
@@ -3800,7 +4730,33 @@ def delete_spreadsheet_selection(
         return False, {"preview": preview, "backup": backup_result}, backup_errors, False
 
     path = Path(selection["path"])
-    if is_chart_title:
+    if is_series_values:
+        write_result = guarded_com_mutation(
+            path,
+            backup_result,
+            lambda: _run_spreadsheet_attached_com(
+                "selection-series-values-delete",
+                {
+                    "path": str(path),
+                    "expected_text": selection["selection_text"],
+                    "expected_object_name": selection.get("object_name") or "",
+                },
+            ),
+        )
+    elif is_axis_title:
+        write_result = guarded_com_mutation(
+            path,
+            backup_result,
+            lambda: _run_spreadsheet_attached_com(
+                "selection-axis-title-delete",
+                {
+                    "path": str(path),
+                    "expected_text": selection["selection_text"],
+                    "expected_object_name": selection.get("object_name") or "",
+                },
+            ),
+        )
+    elif is_chart_title:
         write_result = guarded_com_mutation(
             path,
             backup_result,
@@ -3853,12 +4809,26 @@ def delete_spreadsheet_selection(
     cells_matched = bool(payload.get("cells_matched")) if "cells_matched" in payload else (
         not read_back_text and (not read_back_values or all(not str(value or "") for value in read_back_values))
     )
-    if is_shape_text or is_chart_title:
+    if is_shape_text or is_chart_title or is_axis_title:
         cells_matched = not read_back_text
+    elif is_series_values:
+        cells_matched = bool(payload.get("cells_matched")) if "cells_matched" in payload else (
+            not any(part for part in read_back_text.split("\t"))
+        )
     validation_passed = cells_matched
-    if is_chart_title:
+    if is_series_values:
         clear_note = (
-            "Selected worksheet chart ChartTitle is cleared; series/axis/geometry mutation is not supported; "
+            "Selected worksheet chart Series.Values are cleared to empty points; "
+            "geometry mutation is not supported; the user's selection in WPS is not restored."
+        )
+    elif is_axis_title:
+        clear_note = (
+            "Selected worksheet chart AxisTitle is cleared; geometry mutation is not supported; "
+            "the user's selection in WPS is not restored."
+        )
+    elif is_chart_title:
+        clear_note = (
+            "Selected worksheet chart ChartTitle is cleared; geometry mutation is not supported; "
             "the user's selection in WPS is not restored."
         )
     elif is_shape_text:
@@ -4011,6 +4981,225 @@ def save_open_document(
         ], False
 
     record_operation(request_id, "save-open-document", result, workspace)
+    return True, result, [], False
+
+
+@coordinated_request
+def save_as_open_document(
+    component: str,
+    name: str,
+    output: str,
+    request_id: str,
+    dry_run: bool = False,
+    workspace: str | Path = ".",
+) -> tuple[bool, dict[str, Any], list[dict[str, str]], bool]:
+    """Save an untitled open document to a new native path via SaveAs, then register it."""
+    replay = replay_operation(
+        request_id,
+        "save-as-open-document",
+        {"component": component, "name": name, "output": output, "dry_run": dry_run},
+        workspace,
+    )
+    if replay is not None:
+        return replay
+
+    if component not in WPS_COMPONENTS:
+        return False, {}, [{"code": "UNSUPPORTED_COMPONENT", "message": f"Unsupported component: {component}"}], False
+    display_name = (name or "").strip()
+    if not display_name:
+        return False, {}, [{"code": "INVALID_ARGUMENT", "message": "Untitled document --name must be non-empty."}], False
+
+    output_path = Path(output)
+    try:
+        resolved_output = output_path.resolve()
+    except OSError as exc:
+        return False, {}, [{"code": "INVALID_ARGUMENT", "message": f"Invalid output path: {exc}"}], False
+    suffix = resolved_output.suffix.lower()
+    allowed = SAVE_AS_NATIVE_SUFFIXES[component]
+    if suffix not in allowed:
+        allowed_list = ", ".join(sorted(allowed))
+        return False, {"component": component, "output": str(resolved_output)}, [{
+            "code": UNSUPPORTED_OUTPUT_EXTENSION,
+            "message": f"save-as-open-document for {component} requires a native extension ({allowed_list}).",
+        }], False
+    if resolved_output.exists():
+        return False, {"component": component, "name": display_name, "output": str(resolved_output)}, [{
+            "code": OUTPUT_EXISTS,
+            "message": f"Output already exists and will not be overwritten: {resolved_output}",
+        }], False
+    if not resolved_output.parent.is_dir():
+        return False, {"component": component, "output": str(resolved_output)}, [{
+            "code": "OUTPUT_DIRECTORY_MISSING",
+            "message": f"Output directory does not exist: {resolved_output.parent}",
+        }], False
+
+    inspect = _run_save_as_untitled_com(component, display_name, str(resolved_output), do_save=False)
+    if not inspect["ok"]:
+        return False, {
+            "component": component,
+            "name": display_name,
+            "output": str(resolved_output),
+            **inspect["data"],
+        }, inspect["errors"], False
+    payload = inspect["data"] or {}
+    if payload.get("ok") is False:
+        return False, {
+            "component": component,
+            "name": display_name,
+            "output": str(resolved_output),
+            "diagnostic": payload,
+        }, [{
+            "code": COM_OPERATION_FAILED,
+            "message": str(payload.get("error_message") or "Untitled SaveAs inspect failed."),
+        }], False
+
+    status = payload.get("status")
+    if status == "no_instance":
+        return False, {"component": component, "name": display_name, "output": str(resolved_output)}, [{
+            "code": NO_RUNNING_WPS_INSTANCE,
+            "message": f"No running WPS {component} instance was found; nothing was launched.",
+        }], False
+    if status == "not_found":
+        return False, {"component": component, "name": display_name, "output": str(resolved_output)}, [{
+            "code": UNTITLED_DOCUMENT_NOT_FOUND,
+            "message": (
+                f"No untitled open {component} document named {display_name!r} was found. "
+                "List candidates with open-documents."
+            ),
+        }], False
+    if status == "ambiguous":
+        return False, {
+            "component": component,
+            "name": display_name,
+            "output": str(resolved_output),
+            "match_count": payload.get("match_count"),
+        }, [{
+            "code": AMBIGUOUS_OPEN_DOCUMENT,
+            "message": (
+                f"Multiple untitled open {component} documents are named {display_name!r}; "
+                "rename one in WPS or close extras before save-as-open-document."
+            ),
+        }], False
+    if status == "already_pathed":
+        return False, {
+            "component": component,
+            "name": display_name,
+            "output": str(resolved_output),
+            "match_count": payload.get("match_count"),
+        }, [{
+            "code": DOCUMENT_ALREADY_PATHED,
+            "message": (
+                f"Open {component} document {display_name!r} already has a disk path; "
+                "use save-open-document or export-open-document-copy instead."
+            ),
+        }], False
+    if status == "read_only" or payload.get("read_only"):
+        return False, {
+            "component": component,
+            "name": display_name,
+            "output": str(resolved_output),
+            "read_only": True,
+        }, [{
+            "code": DOCUMENT_READ_ONLY,
+            "message": "The open untitled document is read-only, so it cannot be saved to a new path.",
+        }], False
+    if status not in (None, "ok"):
+        status_error = _status_error(status, str(resolved_output), component=component, action="saved")
+        if status_error:
+            return False, {"component": component, "name": display_name, "output": str(resolved_output)}, [status_error], False
+
+    preview = {
+        "component": component,
+        "name": display_name,
+        "output": str(resolved_output),
+        "saved": bool(payload.get("saved")),
+        "read_only": False,
+        "would_modify": True,
+        "dry_run": dry_run,
+        "backup": None,
+        "note": (
+            "SaveAs of an untitled open document to a new native path; there is no prior on-disk "
+            "source to back up. After success the document is registered under a path-based document_id."
+        ),
+    }
+    if dry_run:
+        return True, preview, [], False
+
+    write_result = _run_save_as_untitled_com(component, display_name, str(resolved_output), do_save=True)
+    if not write_result["ok"]:
+        return False, {"preview": preview, "write": write_result["data"]}, write_result["errors"], False
+    write_payload = write_result["data"] or {}
+    if write_payload.get("ok") is False:
+        return False, {"preview": preview, "diagnostic": write_payload}, [{
+            "code": COM_OPERATION_FAILED,
+            "message": str(write_payload.get("error_message") or "Untitled SaveAs failed."),
+        }], False
+    write_status = write_payload.get("status")
+    if write_status == "read_only" or write_payload.get("read_only"):
+        return False, {"preview": preview, "write": write_payload}, [{
+            "code": DOCUMENT_READ_ONLY,
+            "message": "The open untitled document is read-only, so it cannot be saved to a new path.",
+        }], False
+    if write_status in {"not_found", "ambiguous", "already_pathed", "no_instance"}:
+        # Race: selection changed between inspect and write.
+        code = {
+            "not_found": UNTITLED_DOCUMENT_NOT_FOUND,
+            "ambiguous": AMBIGUOUS_OPEN_DOCUMENT,
+            "already_pathed": DOCUMENT_ALREADY_PATHED,
+            "no_instance": NO_RUNNING_WPS_INSTANCE,
+        }[write_status]
+        return False, {"preview": preview, "write": write_payload}, [{
+            "code": code,
+            "message": f"Untitled SaveAs aborted because open-document state became {write_status}.",
+        }], False
+    if write_status not in (None, "ok"):
+        status_error = _status_error(write_status, str(resolved_output), component=component, action="saved")
+        if status_error:
+            return False, {"preview": preview, "write": write_payload}, [status_error], False
+
+    output_exists = resolved_output.is_file() and resolved_output.stat().st_size > 0
+    saved_after = bool(write_payload.get("saved"))
+    source_still_open = bool(write_payload.get("source_still_open"))
+    path_matched = bool(write_payload.get("path_matched"))
+    validation_passed = output_exists and saved_after and source_still_open and path_matched
+
+    document_id = None
+    register_errors: list[dict[str, str]] = []
+    if output_exists:
+        ok_reg, record, register_errors = register_document(component, str(resolved_output), workspace)
+        if ok_reg:
+            document_id = record["document_id"]
+
+    result = {
+        **preview,
+        "dry_run": False,
+        "saved": saved_after,
+        "wrote": bool(write_payload.get("wrote")),
+        "full_name": write_payload.get("full_name"),
+        "path_matched": path_matched,
+        "output_exists": output_exists,
+        "source_still_open": source_still_open,
+        "document_id": document_id,
+        "registered": document_id is not None,
+        "register_errors": register_errors,
+        "write_backend": write_payload.get("backend"),
+        "validation_passed": validation_passed,
+    }
+    if not validation_passed:
+        return False, result, [{
+            "code": "VALIDATION_FAILED",
+            "message": (
+                "Untitled SaveAs did not leave a nonempty output file with the document saved, "
+                "still open, and path-matched."
+            ),
+        }], False
+    if document_id is None:
+        return False, result, register_errors or [{
+            "code": "DOCUMENT_REGISTER_FAILED",
+            "message": "SaveAs wrote the file but registration of the new path failed.",
+        }], False
+
+    record_operation(request_id, "save-as-open-document", result, workspace)
     return True, result, [], False
 
 

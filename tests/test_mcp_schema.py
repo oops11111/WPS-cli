@@ -176,6 +176,7 @@ class McpSchemaTests(unittest.TestCase):
             "wps_agent_spreadsheet_selection_",
             "wps_agent_export_open_document",
             "wps_agent_save_open_document",
+            "wps_agent_save_as_open_document",
             "wps_agent_open_documents",
         )
         matched = [
@@ -187,6 +188,7 @@ class McpSchemaTests(unittest.TestCase):
                 "wps_agent_export_open_document_copy",
                 "wps_agent_export_open_document_text",
                 "wps_agent_save_open_document",
+                "wps_agent_save_as_open_document",
                 "wps_agent_open_documents",
             }
         ]

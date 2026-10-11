@@ -190,6 +190,21 @@ def build_command_handlers(cli: Any) -> dict[str, Callable[[argparse.Namespace, 
         response = cli._with_optional_task_status(lambda: cli.save_open_document_response(request_id, document_id=args.document_id, dry_run=args.dry_run), task_id=args.task_id, tracked_command='save-open-document', operation_request_id=request_id, document_id=args.document_id)
         return response
 
+    def _handle_save_as_open_document(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+        response = cli._with_optional_task_status(
+            lambda: cli.save_as_open_document_response(
+                request_id,
+                component=args.component,
+                name=args.name,
+                output=args.output,
+                dry_run=args.dry_run,
+            ),
+            task_id=args.task_id,
+            tracked_command='save-as-open-document',
+            operation_request_id=request_id,
+        )
+        return response
+
     def _handle_export_open_document(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
         response = cli.export_open_document_response(request_id, document_id=args.document_id, output=args.output)
         return response
@@ -408,6 +423,7 @@ def build_command_handlers(cli: Any) -> dict[str, Callable[[argparse.Namespace, 
         'writer-selection-insert': _handle_writer_selection_insert,
         'writer-selection-delete': _handle_writer_selection_delete,
         'save-open-document': _handle_save_open_document,
+        'save-as-open-document': _handle_save_as_open_document,
         'export-open-document': _handle_export_open_document,
         'export-open-document-pdf': _handle_export_open_document_pdf,
         'export-open-document-copy': _handle_export_open_document_copy,

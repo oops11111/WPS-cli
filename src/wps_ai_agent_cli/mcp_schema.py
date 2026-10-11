@@ -570,8 +570,34 @@ MCP_TOOL_SCHEMAS: tuple[dict[str, Any], ...] = (
         idempotency="Mutating command; request_id should be supplied and is replayed by the operation ledger.",
         safety_notes=[
             "Attaches only: never launches WPS and never Quit()s the attached instance.",
-            "Requires a registered on-disk path; untitled documents without a path are rejected. Read-only documents are refused before backup.",
+            "Requires a registered on-disk path; untitled documents without a path should use save-as-open-document instead. Read-only documents are refused before backup.",
             "When Saved is already true, no backup and no write occur. Dirty documents are backed up from the last saved file, then Save() is called. Other commands still refuse unsaved documents instead of saving implicitly.",
+        ],
+    ),
+    _tool(
+        "wps_agent_save_as_open_document",
+        "save-as-open-document",
+        "SaveAs untitled open document",
+        "SaveAs an untitled open Writer, Presentation, or Spreadsheet document that has no disk path yet to a new native path, then register a stable document_id.",
+        "documents",
+        required=["component", "name", "output"],
+        properties={
+            "component": _string(
+                "WPS component hosting the untitled document.",
+                enum=["writer", "spreadsheets", "presentation"],
+            ),
+            "name": _string("Exact open-document Name from open-documents (for example Document1)."),
+            "output": _string("New native path (.docx / .xlsx / .pptx); existing files are never overwritten."),
+            "dry_run": _boolean("Preview whether SaveAs would write the untitled document."),
+            "task_id": _string("Optional long-running task status id."),
+        },
+        mutates_document=True,
+        requires_wps=True,
+        idempotency="Mutating command; request_id should be supplied and is replayed by the operation ledger.",
+        safety_notes=[
+            "Attaches only: never launches WPS and never Quit()s the attached instance.",
+            "Targets untitled documents by component+Name; ambiguous duplicate names and already-pathed documents are refused before write.",
+            "There is no prior on-disk source to back up. Existing outputs are never overwritten. After success the document is registered under a path-based document_id for later commands.",
         ],
     ),
     _tool(
@@ -1064,25 +1090,28 @@ MCP_TOOL_SCHEMAS: tuple[dict[str, Any], ...] = (
         safety_notes=[
             "Read-only: does not change the workbook or the selection, never launches WPS, and never Quit()s an attached instance.",
             "Multi-cell selection_text is sampled (at most 100 cells); use address with spreadsheet-read for full values.",
-            "For non-range selections, object_kind/object_name/has_text_frame/has_chart_title are best-effort and unverified; shape TextFrame and chart ChartTitle text may be replaced or cleared when those flags are true; series/axis/geometry mutation is not supported.",
+            "For non-range selections, object_kind/object_name/has_text_frame/has_chart_title/has_axis_title/has_series_values are best-effort and unverified; shape TextFrame, chart ChartTitle/AxisTitle, and Series Values may be replaced or cleared when those flags are true; geometry mutation is not supported.",
         ],
     ),
     _tool(
         "wps_agent_spreadsheet_selection_replace",
         "spreadsheet-selection-replace",
         "Replace Spreadsheet selection",
-        "Replace the current cell, range, or multi-area selection of a registered Spreadsheet open in a running WPS instance using a constant fill or a per-cell values_json matrix, with backup, dry-run, and read-back validation.",
+        "Replace the current cell, range, multi-area, shape TextFrame, chart title, or series Values selection of a registered Spreadsheet open in a running WPS instance using a constant fill or a per-cell values_json matrix, with backup, dry-run, and read-back validation.",
         "spreadsheet",
         required=["document_id"],
         properties={
             "document_id": _string("Registered spreadsheet document_id."),
-            "text": _string("Constant replacement text written to every selected cell (including multi-area). Mutually exclusive with values_json."),
+            "text": _string(
+                "Constant replacement text written to every selected cell (including multi-area), "
+                "or TAB-joined Series Values / plain ChartTitle/AxisTitle/shape text. Mutually exclusive with values_json."
+            ),
             "values_json": _string(
                 'Rectangular JSON matrix of cell values. Single-area: shape must match rows×columns. '
                 'Multi-area: row-major flatten onto Areas→Cells order (for example [["a","b"]] for two singleton areas). '
                 "Mutually exclusive with text."
             ),
-            "expected_selection_text": _string("Refuse to write unless the current selection display text equals this value (multi-cell values are TAB-joined)."),
+            "expected_selection_text": _string("Refuse to write unless the current selection display text equals this value (multi-cell/series values are TAB-joined)."),
             "dry_run": _boolean("Preview the selection replacement without modifying the file."),
             "task_id": _string("Optional long-running task status id."),
         },
@@ -1091,8 +1120,7 @@ MCP_TOOL_SCHEMAS: tuple[dict[str, Any], ...] = (
         idempotency="Mutating command; request_id should be supplied and is replayed by the operation ledger.",
         safety_notes=[
             "Attaches to a running Spreadsheet only: never launches WPS and never Quit()s the attached instance.",
-            "Requires worksheet cells (at most 100), a shape with has_text_frame, or a chart with has_chart_title; constant fill and values_json allow multi-area cells (matrix flattens row-major); shape/chart title text supports constant --text only; rejects series/axis/geometry, shapes without TextFrame, charts without ChartTitle API, unsaved (use save-open-document first), read-only, oversized, shape-mismatched, and text-mismatched selections before backup.",
-            "Chart/shape (non-range) selections return OBJECT_SELECTION_UNSUPPORTED before backup; object mutation is not supported.",
+            "Requires worksheet cells (at most 100), a shape with has_text_frame, a chart with has_chart_title/has_axis_title, or a series with has_series_values; constant fill and values_json allow multi-area cells (matrix flattens row-major); shape/title text and series Values support constant --text only (series: TAB-joined, same point count); rejects geometry, shapes without TextFrame, charts without editable title/series API, unsaved (use save-open-document first), read-only, oversized, shape-mismatched, and text-mismatched selections before backup.",
             "Provide exactly one of text (constant fill) or values_json (per-cell matrix). Formula prefixes in values are rejected.",
         ],
     ),
@@ -1100,12 +1128,12 @@ MCP_TOOL_SCHEMAS: tuple[dict[str, Any], ...] = (
         "wps_agent_spreadsheet_selection_delete",
         "spreadsheet-selection-delete",
         "Delete Spreadsheet selection",
-        "Clear the current cell, range, or multi-area selection of a registered Spreadsheet open in a running WPS instance using ClearContents, with backup, dry-run, and read-back validation.",
+        "Clear the current cell, range, multi-area, shape TextFrame, chart title, or series Values selection of a registered Spreadsheet open in a running WPS instance, with backup, dry-run, and read-back validation.",
         "spreadsheet",
         required=["document_id"],
         properties={
             "document_id": _string("Registered spreadsheet document_id."),
-            "expected_selection_text": _string("Refuse to clear unless the current selection display text equals this value (multi-cell values are TAB-joined)."),
+            "expected_selection_text": _string("Refuse to clear unless the current selection display text equals this value (multi-cell/series values are TAB-joined)."),
             "dry_run": _boolean("Preview the selection deletion without modifying the file."),
             "task_id": _string("Optional long-running task status id."),
         },
@@ -1114,8 +1142,8 @@ MCP_TOOL_SCHEMAS: tuple[dict[str, Any], ...] = (
         idempotency="Mutating command; request_id should be supplied and is replayed by the operation ledger.",
         safety_notes=[
             "Attaches to a running Spreadsheet only: never launches WPS and never Quit()s the attached instance.",
-            "Requires worksheet cells (at most 100) with display text/formula, a shape TextFrame with text, or a chart ChartTitle with text; rejects series/axis/geometry, shapes without TextFrame, charts without ChartTitle API, unsaved (use save-open-document first), read-only, empty, oversized, and text-mismatched selections before backup.",
-            "ClearContents removes values and formulas in the selected cells; number formats are left as WPS leaves them. The user's selection is not restored.",
+            "Requires worksheet cells (at most 100) with display text/formula, a shape TextFrame with text, a chart ChartTitle/AxisTitle with text, or a series with Values; rejects geometry, shapes without TextFrame, charts without editable title/series API, unsaved (use save-open-document first), read-only, empty, oversized, and text-mismatched selections before backup.",
+            "Cell ClearContents removes values and formulas; series delete clears Values to empty points; number formats are left as WPS leaves them. The user's selection is not restored.",
         ],
     ),
     _tool(

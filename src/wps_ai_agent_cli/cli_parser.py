@@ -487,6 +487,33 @@ def _add_document_commands(subparsers: argparse._SubParsersAction) -> None:
     save_open_parser.add_argument("--dry-run", action="store_true", help="Preview whether Save() would write the open document.")
     save_open_parser.add_argument("--task-id", help="Optional long-running task status id to update.")
 
+    save_as_open_parser = subparsers.add_parser(
+        "save-as-open-document",
+        help="SaveAs an untitled open Writer/Presentation/Spreadsheet document (no disk path yet) to a new native path, then register its document_id.",
+    )
+    save_as_open_parser.add_argument(
+        "--component",
+        required=True,
+        choices=["writer", "spreadsheets", "presentation"],
+        help="WPS component hosting the untitled document.",
+    )
+    save_as_open_parser.add_argument(
+        "--name",
+        required=True,
+        help="Exact open-document Name from open-documents (for example Document1).",
+    )
+    save_as_open_parser.add_argument(
+        "--output",
+        required=True,
+        help="New native path (.docx / .xlsx / .pptx); existing files are never overwritten.",
+    )
+    save_as_open_parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Preview whether SaveAs would write the untitled document to --output.",
+    )
+    save_as_open_parser.add_argument("--task-id", help="Optional long-running task status id to update.")
+
     export_open_parser = subparsers.add_parser(
         "export-open-document",
         help="Export an open, saved Writer, Presentation, or Spreadsheet document to HTML without closing it or changing the source.",

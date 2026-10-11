@@ -2722,6 +2722,34 @@ TASKS: tuple[ProjectTask, ...] = (
         status="done",
         acceptance="spreadsheet-selection-read reports has_chart_title and ChartTitle text; replace/delete allow object_kind=chart with has_chart_title (constant --text / clear title) with backup and read-back; charts without ChartTitle API and series/axis mutation stay unsupported; offline tests + optional real-WPS; tool count unchanged.",
     ),
+    ProjectTask(
+        id="P3-444",
+        phase="phase3",
+        title="未命名已打开文档 SaveAs 并注册",
+        status="done",
+        acceptance="New save-as-open-document (MCP wps_agent_save_as_open_document) SaveAs-es an untitled open writer/presentation/spreadsheet document matched by --component/--name to a new native --output path, registers document_id, rejects already-pathed/ambiguous/existing-output/wrong-extension/read-only; dry-run + idempotency; no source backup (none exists); never Quit(); offline tests + optional real-WPS Writer evidence; tool count 85.",
+    ),
+    ProjectTask(
+        id="P3-445",
+        phase="phase3",
+        title="选区替换保留统一字符格式",
+        status="done",
+        acceptance="writer-selection-replace and presentation-selection-replace snapshot uniform Font (name/size/bold/italic/underline/color) before Text= and reapply when WPS reports defined values; result exposes formatting_mode=uniform_character and formatting_preserved; mixed runs/paragraph formatting remain unsupported; offline script/result tests + optional real-WPS bold evidence; tool count unchanged at 85.",
+    ),
+    ProjectTask(
+        id="P3-446",
+        phase="phase3",
+        title="表格图表 AxisTitle 纯文本选区写回",
+        status="done",
+        acceptance="spreadsheet-selection-read reports has_axis_title when AxisTitle is selected; replace/delete use selection-axis-title-* (fill_mode=axis_title); Axis vs Chart distinguished by ChartType; series-value/geometry stay unsupported; offline tests + optional real-WPS; tool count unchanged at 85.",
+    ),
+    ProjectTask(
+        id="P3-447",
+        phase="phase3",
+        title="表格图表 Series Values 选区写回",
+        status="done",
+        acceptance="spreadsheet-selection-read reports has_series_values/series_name and TAB-joined Values (≤100); replace/delete use selection-series-values-* (fill_mode=series_values) with same point count; matrix rejected; geometry stays unsupported; offline tests + optional real-WPS; tool count unchanged at 85.",
+    ),
 )
 
 

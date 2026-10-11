@@ -59,6 +59,7 @@ from .open_documents import (
     export_open_document_pdf,
     export_open_document_copy,
     export_open_document_text,
+    save_as_open_document,
     save_open_document,
     list_open_documents,
     read_presentation_selection,
@@ -1170,6 +1171,60 @@ def save_open_document_response(
                         "saved": result.get("saved"),
                         "wrote": result.get("wrote"),
                         "source_still_open": result.get("source_still_open"),
+                    },
+                },
+            ],
+        ),
+        errors=errors,
+    )
+
+
+def save_as_open_document_response(
+    request_id: str,
+    component: str,
+    name: str,
+    output: str,
+    dry_run: bool,
+) -> CommandResponse:
+    ok, result, errors, replayed = save_as_open_document(
+        component=component,
+        name=name,
+        output=output,
+        request_id=request_id,
+        dry_run=dry_run,
+    )
+    return CommandResponse(
+        ok=ok,
+        command="save-as-open-document",
+        request_id=request_id,
+        backend="wps-com",
+        summary=(
+            "Untitled open-document SaveAs request replayed from idempotency record."
+            if replayed
+            else "Untitled open-document SaveAs dry-run completed."
+            if dry_run and ok
+            else "Untitled open document saved to a new path and registered."
+            if ok
+            else "Untitled open document could not be saved to a new path."
+        ),
+        data=result,
+        validation=ValidationResult(
+            status="passed" if ok else "failed",
+            checks=[
+                {
+                    "name": "no_source_backup",
+                    "passed": True,
+                    "details": "Untitled SaveAs has no prior on-disk source to back up.",
+                },
+                {
+                    "name": "save_as_validated",
+                    "passed": bool(dry_run or result.get("validation_passed") or replayed),
+                    "details": {
+                        "saved": result.get("saved"),
+                        "wrote": result.get("wrote"),
+                        "path_matched": result.get("path_matched"),
+                        "source_still_open": result.get("source_still_open"),
+                        "document_id": result.get("document_id"),
                     },
                 },
             ],

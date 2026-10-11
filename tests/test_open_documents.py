@@ -18,6 +18,7 @@ from wps_ai_agent_cli.open_documents import (
     export_open_document_text,
     insert_presentation_selection,
     insert_writer_selection,
+    save_as_open_document,
     save_open_document,
     list_open_documents,
     read_presentation_selection,
@@ -210,7 +211,14 @@ class SelectionReplaceTests(unittest.TestCase):
             fixture.document.write_bytes(fixture.document.read_bytes() + b"\0")
             if write_status != "ok":
                 return com_ok({"ok": True, "status": write_status})
-            return com_ok({"ok": True, "status": "ok", "backend": "fake-wps", "read_back_text": params["text"] if read_back is None else read_back})
+            return com_ok({
+                "ok": True,
+                "status": "ok",
+                "backend": "fake-wps",
+                "read_back_text": params["text"] if read_back is None else read_back,
+                "formatting_mode": "uniform_character",
+                "formatting_preserved": True,
+            })
         return fake
 
     def test_dry_run_previews_without_backup_or_write(self):
@@ -237,12 +245,33 @@ class SelectionReplaceTests(unittest.TestCase):
             self.assertEqual(Path(data["backup"]["backup_path"]).read_bytes(), original)
             self.assertEqual(data["write_backend"], "fake-wps")
             self.assertFalse(data["selection_preserved"])
+            self.assertEqual(data["formatting_mode"], "uniform_character")
+            self.assertTrue(data["formatting_preserved"])
+            self.assertIn("uniform character formatting", data["note"])
 
             ok, again, errors, replayed = self.replace(fixture, expected_selection_text="PENDING_STATUS")
             self.assertTrue(ok, errors)
             self.assertTrue(replayed)
             self.assertEqual(again["read_back_text"], "APPROVED")
         self.assertEqual(calls.count("selection-replace"), 1)
+
+    def test_selection_replace_script_snapshots_font(self):
+        captured = {}
+
+        def fake_run(script, timeout_seconds=120, **_kwargs):
+            captured["script"] = script
+            return {"ok": True, "status": "no_instance"}, None
+
+        with patch.object(open_documents, "run_powershell_script", side_effect=fake_run):
+            open_documents._run_writer_attached_com(
+                "selection-replace",
+                {"path": "C:\\docs\\a.docx", "text": "NEW", "expected_text": "OLD", "expected_start": 0, "expected_end": 3},
+            )
+        script = captured["script"]
+        self.assertIn("$range.Font", script)
+        self.assertIn("formatting_preserved", script)
+        self.assertIn("wdUndefined", script)
+        self.assertNotIn(".Quit()", script)
 
     def test_rejections_happen_before_backup_and_write(self):
         fixture = Fixture(self)
@@ -692,8 +721,13 @@ class SpreadsheetSelectionReadTests(unittest.TestCase):
         self.assertEqual(data["sheet_name"], "Sheet1")
         self.assertFalse(data["has_text_frame"])
         self.assertFalse(data["has_chart_title"])
+        self.assertFalse(data["has_axis_title"])
+        self.assertFalse(data["has_series_values"])
+        self.assertIsNone(data["series_name"])
         self.assertFalse(data["object_info_verified"])
         self.assertIn("ChartTitle", data["object_note"])
+        self.assertIn("AxisTitle", data["object_note"])
+        self.assertIn("Series Values", data["object_note"])
 
     def test_reads_chart_title_metadata(self):
         fixture = Fixture(self, component="spreadsheets")
@@ -718,7 +752,64 @@ class SpreadsheetSelectionReadTests(unittest.TestCase):
             ok, data, errors = read_spreadsheet_selection(fixture.document_id, fixture.workspace)
         self.assertTrue(ok, errors)
         self.assertTrue(data["has_chart_title"])
+        self.assertFalse(data["has_axis_title"])
         self.assertEqual(data["selection_text"], "P3-443 title")
+
+    def test_reads_axis_title_metadata(self):
+        fixture = Fixture(self, component="spreadsheets")
+        payload = {
+            "ok": True,
+            "status": "ok",
+            "saved": True,
+            "read_only": False,
+            "selection_kind": "non_range",
+            "address": None,
+            "sheet_name": "Sheet1",
+            "cell_count": 0,
+            "area_count": 0,
+            "selection_text": "P3-446 axis",
+            "sample_truncated": False,
+            "formula": None,
+            "object_kind": "chart",
+            "object_name": "Chart 1",
+            "has_axis_title": True,
+        }
+        with patch.object(open_documents, "_run_spreadsheet_attached_com", return_value=com_ok(payload)):
+            ok, data, errors = read_spreadsheet_selection(fixture.document_id, fixture.workspace)
+        self.assertTrue(ok, errors)
+        self.assertTrue(data["has_axis_title"])
+        self.assertFalse(data["has_chart_title"])
+        self.assertFalse(data["has_series_values"])
+        self.assertEqual(data["selection_text"], "P3-446 axis")
+
+    def test_reads_series_values_metadata(self):
+        fixture = Fixture(self, component="spreadsheets")
+        payload = {
+            "ok": True,
+            "status": "ok",
+            "saved": True,
+            "read_only": False,
+            "selection_kind": "non_range",
+            "address": None,
+            "sheet_name": "Sheet1",
+            "cell_count": 0,
+            "area_count": 0,
+            "selection_text": "10\t20",
+            "sample_truncated": False,
+            "formula": None,
+            "object_kind": "chart",
+            "object_name": "P3-447-Chart",
+            "has_series_values": True,
+            "series_name": "系列 1",
+        }
+        with patch.object(open_documents, "_run_spreadsheet_attached_com", return_value=com_ok(payload)):
+            ok, data, errors = read_spreadsheet_selection(fixture.document_id, fixture.workspace)
+        self.assertTrue(ok, errors)
+        self.assertTrue(data["has_series_values"])
+        self.assertEqual(data["series_name"], "系列 1")
+        self.assertFalse(data["has_chart_title"])
+        self.assertFalse(data["has_axis_title"])
+        self.assertEqual(data["selection_text"], "10\t20")
 
     def test_reads_shape_text_frame_metadata(self):
         fixture = Fixture(self, component="spreadsheets")
@@ -927,9 +1018,137 @@ class SpreadsheetSelectionReplaceTests(unittest.TestCase):
         self.assertEqual(errors[0]["code"], "OBJECT_SELECTION_UNSUPPORTED")
         self.assertIn("Chart 1", errors[0]["message"])
         self.assertIn("ChartTitle", errors[0]["message"])
+        self.assertIn("Series Values", errors[0]["message"])
         self.assertIn("cannot be replaced", errors[0]["message"])
         self.assertEqual(data["selection"]["object_kind"], "chart")
         backup.assert_not_called()
+
+    def test_series_values_replace_dry_run_and_write(self):
+        fixture = Fixture(self, component="spreadsheets")
+        read_payload = self._cell_selection(
+            text="10\t20",
+            selection_kind="non_range",
+            address=None,
+            cell_count=0,
+            area_count=0,
+            object_kind="chart",
+            object_name="P3-447-Chart",
+            sheet_name="Sheet1",
+            has_series_values=True,
+            series_name="系列 1",
+        )
+
+        def fake(action, params):
+            if action == "selection-read":
+                return com_ok(read_payload)
+            self.assertEqual(action, "selection-series-values-replace")
+            self.assertEqual(params["values"], ["30", "40"])
+            self.assertEqual(params["expected_object_name"], "P3-447-Chart")
+            return com_ok({
+                "ok": True,
+                "status": "ok",
+                "backend": "powershell-com",
+                "object_kind": "chart",
+                "object_name": "P3-447-Chart",
+                "series_name": "系列 1",
+                "cells_matched": True,
+                "read_back_text": "30\t40",
+            })
+
+        with patch.object(open_documents, "_run_spreadsheet_attached_com", side_effect=fake):
+            with patch.object(
+                open_documents,
+                "create_backup",
+                return_value=(True, {"created": True, "backup_path": "b.xlsx"}, [], False),
+            ):
+                with patch.object(open_documents, "guarded_com_mutation", side_effect=lambda path, backup, fn: fn()):
+                    with patch.object(open_documents, "verify_post_com_source", return_value=None):
+                        ok, data, errors, _replayed = replace_spreadsheet_selection(
+                            fixture.document_id,
+                            "30\t40",
+                            request_id="xlsx-series-values",
+                            expected_selection_text="10\t20",
+                            workspace=fixture.workspace,
+                        )
+        self.assertTrue(ok, errors)
+        self.assertEqual(data["fill_mode"], "series_values")
+        self.assertEqual(data["read_back_text"], "30\t40")
+        self.assertIn("Series.Values", data["note"])
+
+    def test_series_values_rejects_length_mismatch_before_backup(self):
+        fixture = Fixture(self, component="spreadsheets")
+        payload = self._cell_selection(
+            text="10\t20",
+            selection_kind="non_range",
+            address=None,
+            cell_count=0,
+            area_count=0,
+            object_kind="chart",
+            object_name="P3-447-Chart",
+            has_series_values=True,
+        )
+        with patch.object(open_documents, "_run_spreadsheet_attached_com", return_value=com_ok(payload)):
+            with patch.object(open_documents, "create_backup") as backup:
+                ok, data, errors, _replayed = replace_spreadsheet_selection(
+                    fixture.document_id,
+                    "30\t40\t50",
+                    request_id="xlsx-series-len",
+                    workspace=fixture.workspace,
+                )
+        self.assertFalse(ok)
+        self.assertEqual(errors[0]["code"], "RANGE_SHAPE_MISMATCH")
+        self.assertEqual(data["expected_count"], 2)
+        self.assertEqual(data["provided_count"], 3)
+        backup.assert_not_called()
+
+    def test_axis_title_replace_dry_run_and_write(self):
+        fixture = Fixture(self, component="spreadsheets")
+        read_payload = self._cell_selection(
+            text="P3-446 axis",
+            selection_kind="non_range",
+            address=None,
+            cell_count=0,
+            area_count=0,
+            object_kind="chart",
+            object_name="Chart 1",
+            sheet_name="Sheet1",
+            has_axis_title=True,
+        )
+
+        def fake(action, params):
+            if action == "selection-read":
+                return com_ok(read_payload)
+            self.assertEqual(action, "selection-axis-title-replace")
+            self.assertEqual(params["text"], "P3-446 done")
+            return com_ok({
+                "ok": True,
+                "status": "ok",
+                "backend": "powershell-com",
+                "object_kind": "chart",
+                "object_name": "Chart 1",
+                "cells_matched": True,
+                "read_back_text": "P3-446 done",
+            })
+
+        with patch.object(open_documents, "_run_spreadsheet_attached_com", side_effect=fake):
+            with patch.object(
+                open_documents,
+                "create_backup",
+                return_value=(True, {"created": True, "backup_path": "b.xlsx"}, [], False),
+            ):
+                with patch.object(open_documents, "guarded_com_mutation", side_effect=lambda path, backup, fn: fn()):
+                    with patch.object(open_documents, "verify_post_com_source", return_value=None):
+                        ok, data, errors, _replayed = replace_spreadsheet_selection(
+                            fixture.document_id,
+                            "P3-446 done",
+                            request_id="xlsx-axis-title",
+                            expected_selection_text="P3-446 axis",
+                            workspace=fixture.workspace,
+                        )
+        self.assertTrue(ok, errors)
+        self.assertEqual(data["fill_mode"], "axis_title")
+        self.assertEqual(data["read_back_text"], "P3-446 done")
+        self.assertIn("AxisTitle", data["note"])
 
     def test_chart_title_replace_dry_run_and_write(self):
         fixture = Fixture(self, component="spreadsheets")
@@ -1611,6 +1830,48 @@ class SpreadsheetSelectionDeleteTests(unittest.TestCase):
         self.assertTrue(data["validation_passed"])
         self.assertEqual(calls.count("selection-chart-title-delete"), 1)
 
+    def test_series_values_delete_with_backup(self):
+        fixture = Fixture(self, component="spreadsheets")
+        calls = []
+
+        def fake(action, params):
+            calls.append(action)
+            if action == "selection-read":
+                return com_ok(self._cell_selection(
+                    text="10\t20",
+                    selection_kind="non_range",
+                    address=None,
+                    cell_count=0,
+                    area_count=0,
+                    object_kind="chart",
+                    object_name="P3-447-Chart",
+                    has_series_values=True,
+                    series_name="系列 1",
+                ))
+            self.assertEqual(action, "selection-series-values-delete")
+            self.assertEqual(params["expected_object_name"], "P3-447-Chart")
+            fixture.document.write_bytes(fixture.document.read_bytes() + b"\0")
+            return com_ok({
+                "ok": True,
+                "status": "ok",
+                "backend": "fake-wps",
+                "deleted_text": "10\t20",
+                "read_back_text": "\t",
+                "cells_matched": True,
+            })
+
+        with patch.object(open_documents, "_run_spreadsheet_attached_com", side_effect=fake):
+            ok, data, errors, _replayed = delete_spreadsheet_selection(
+                fixture.document_id,
+                request_id="xlsx-series-del",
+                expected_selection_text="10\t20",
+                workspace=fixture.workspace,
+            )
+        self.assertTrue(ok, errors)
+        self.assertEqual(data["fill_mode"], "series_values")
+        self.assertTrue(data["validation_passed"])
+        self.assertEqual(calls.count("selection-series-values-delete"), 1)
+
     def test_delete_script_never_quits(self):
         captured = {}
 
@@ -1662,6 +1923,8 @@ class PresentationSelectionReplaceTests(unittest.TestCase):
         self.assertTrue(result["ok"])
         self.assertIn("TextRange", script)
         self.assertIn("Find-OpenPresentation", script)
+        self.assertIn("$tr.Font", script)
+        self.assertIn("formatting_preserved", script)
         self.assertNotIn(".Quit()", script)
 
     def test_dry_run_does_not_write(self):
@@ -1750,6 +2013,8 @@ class PresentationSelectionReplaceTests(unittest.TestCase):
             "status": "ok",
             "backend": "powershell-com",
             "read_back_text": "P3-401 done",
+            "formatting_mode": "uniform_character",
+            "formatting_preserved": True,
         }
 
         def fake_com(action, params):
@@ -1780,6 +2045,9 @@ class PresentationSelectionReplaceTests(unittest.TestCase):
         self.assertFalse(replayed)
         self.assertTrue(data["validation_passed"])
         self.assertEqual(data["read_back_text"], "P3-401 done")
+        self.assertEqual(data["formatting_mode"], "uniform_character")
+        self.assertTrue(data["formatting_preserved"])
+        self.assertIn("uniform character formatting", data["note"])
         record.assert_called_once()
 
 
@@ -2569,6 +2837,158 @@ class SaveOpenDocumentTests(unittest.TestCase):
         self.assertNotIn(".Quit()", script)
 
 
+class SaveAsOpenDocumentTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.workspace = Path(self.tmp.name) / "workspace"
+        self.workspace.mkdir()
+        self.output = Path(self.tmp.name) / "untitled-saved.docx"
+
+    def fake_com(self, *, status="ok", do_save_effect=None, **fields):
+        def fake(component, name, output, *, do_save):
+            self.assertEqual(component, "writer")
+            self.assertEqual(name, "Document1")
+            base = {
+                "ok": True,
+                "status": status,
+                "backend": "fake-wps",
+                "component": "writer",
+                "name": name,
+                "saved": False,
+                "read_only": False,
+                "would_modify": True,
+                "wrote": False,
+                "source_still_open": True,
+            }
+            base.update(fields)
+            if status != "ok":
+                return com_ok(base)
+            if not do_save:
+                return com_ok(base)
+            if do_save_effect is not None:
+                do_save_effect(output)
+            return com_ok({
+                **base,
+                "wrote": True,
+                "saved": True,
+                "full_name": str(Path(output).resolve()),
+                "path_matched": True,
+                "output_exists": True,
+                "source_still_open": True,
+            })
+        return fake
+
+    def test_dry_run_write_register_and_replay(self):
+        calls = []
+
+        def effect(output):
+            Path(output).write_bytes(b"PK\x03\x04untitled")
+
+        def tracking(component, name, output, *, do_save):
+            calls.append(do_save)
+            return self.fake_com(do_save_effect=effect)(component, name, output, do_save=do_save)
+
+        with patch.object(open_documents, "_run_save_as_untitled_com", side_effect=tracking):
+            ok, data, errors, replayed = save_as_open_document(
+                "writer",
+                "Document1",
+                str(self.output),
+                request_id="save-as-1",
+                dry_run=True,
+                workspace=self.workspace,
+            )
+            self.assertTrue(ok, errors)
+            self.assertFalse(replayed)
+            self.assertTrue(data["would_modify"])
+            self.assertIsNone(data["backup"])
+            self.assertEqual(calls, [False])
+            self.assertFalse(self.output.exists())
+
+            ok, data, errors, _replayed = save_as_open_document(
+                "writer",
+                "Document1",
+                str(self.output),
+                request_id="save-as-1",
+                workspace=self.workspace,
+            )
+            self.assertTrue(ok, errors)
+            self.assertTrue(data["validation_passed"])
+            self.assertTrue(data["registered"])
+            self.assertTrue(data["document_id"])
+            self.assertTrue(self.output.is_file())
+            self.assertEqual(calls, [False, False, True])
+
+            ok, again, errors, replayed = save_as_open_document(
+                "writer",
+                "Document1",
+                str(self.output),
+                request_id="save-as-1",
+                workspace=self.workspace,
+            )
+            self.assertTrue(ok, errors)
+            self.assertTrue(replayed)
+            self.assertEqual(again["document_id"], data["document_id"])
+        self.assertEqual(calls.count(True), 1)
+
+    def test_rejects_existing_output_and_wrong_extension(self):
+        self.output.write_bytes(b"exists")
+        with patch.object(open_documents, "_run_save_as_untitled_com") as com:
+            ok, _data, errors, _replayed = save_as_open_document(
+                "writer", "Document1", str(self.output), request_id="save-as-exists", workspace=self.workspace,
+            )
+        self.assertFalse(ok)
+        self.assertEqual(errors[0]["code"], "OUTPUT_EXISTS")
+        com.assert_not_called()
+
+        missing = Path(self.tmp.name) / "bad.txt"
+        with patch.object(open_documents, "_run_save_as_untitled_com") as com:
+            ok, _data, errors, _replayed = save_as_open_document(
+                "writer", "Document1", str(missing), request_id="save-as-ext", workspace=self.workspace,
+            )
+        self.assertFalse(ok)
+        self.assertEqual(errors[0]["code"], "UNSUPPORTED_OUTPUT_EXTENSION")
+        com.assert_not_called()
+
+    def test_rejects_already_pathed_and_ambiguous(self):
+        with patch.object(
+            open_documents,
+            "_run_save_as_untitled_com",
+            return_value=com_ok({"ok": True, "status": "already_pathed", "match_count": 1, "name": "Document1"}),
+        ):
+            ok, _data, errors, _replayed = save_as_open_document(
+                "writer", "Document1", str(self.output), request_id="save-as-pathed", workspace=self.workspace,
+            )
+        self.assertFalse(ok)
+        self.assertEqual(errors[0]["code"], "DOCUMENT_ALREADY_PATHED")
+
+        with patch.object(
+            open_documents,
+            "_run_save_as_untitled_com",
+            return_value=com_ok({"ok": True, "status": "ambiguous", "match_count": 2, "name": "Document1"}),
+        ):
+            ok, _data, errors, _replayed = save_as_open_document(
+                "writer", "Document1", str(self.output), request_id="save-as-amb", workspace=self.workspace,
+            )
+        self.assertFalse(ok)
+        self.assertEqual(errors[0]["code"], "AMBIGUOUS_OPEN_DOCUMENT")
+
+    def test_save_as_script_never_quits(self):
+        captured = {}
+
+        def fake_run(script, timeout_seconds=120, **_kwargs):
+            captured["script"] = script
+            return {"ok": True, "status": "no_instance"}, None
+
+        with patch.object(open_documents, "run_powershell_script", side_effect=fake_run):
+            open_documents._run_save_as_untitled_com("writer", "Document1", "C:\\out\\a.docx", do_save=True)
+        script = captured["script"]
+        self.assertIn("SaveAs", script)
+        self.assertIn("already_pathed", script)
+        self.assertIn("ambiguous", script)
+        self.assertNotIn(".Quit()", script)
+
+
 class CliWiringTests(unittest.TestCase):
     def run_cli(self, argv):
         output = io.StringIO()
@@ -2600,6 +3020,7 @@ class CliWiringTests(unittest.TestCase):
             "writer-selection-delete": True,
             "presentation-selection-delete": True,
             "save-open-document": True,
+            "save-as-open-document": True,
             "export-open-document": False,
             "export-open-document-pdf": False,
             "export-open-document-copy": False,
