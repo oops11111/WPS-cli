@@ -86,7 +86,12 @@ function New-FakeApp([string]$label, [bool]$open, [bool]$saved) {
   $sheet | Add-Member -MemberType ScriptMethod -Name Delete -Value { Write-FakeLog 'delete' }
   $sheets = [pscustomobject]@{ Count = 1; Sheet = $sheet }
   $sheets | Add-Member -MemberType ScriptMethod -Name Item -Value { param($key) return $this.Sheet }
-  $books = [pscustomobject]@{ Count = $(if ($open) { 1 } else { 0 }); Book = $null; Other = $null }
+  $raced = $env:WPSFAKE_RACE -eq '1'
+  $books = [pscustomobject]@{ Stored = $(if ($open -or $raced) { 1 } else { 0 }); Reads = 0; Book = $null; Other = $null }
+  # With WPSFAKE_RACE the user opens the document right after the script's first look at the collection.
+  $books | Add-Member -MemberType ScriptProperty -Name Count `
+    -Value { $this.Reads++; if ($env:WPSFAKE_RACE -eq '1' -and $this.Reads -eq 1) { return 0 }; return $this.Stored } `
+    -SecondValue { param($value) $this.Stored = $value }
   $book = [pscustomobject]@{ FullName = $env:WPSFAKE_PATH; Saved = $saved; Worksheets = $sheets; Books = $books }
   $book | Add-Member -MemberType ScriptMethod -Name Save -Value { Write-FakeLog 'save' }
   $book | Add-Member -MemberType ScriptMethod -Name Close -Value { param($save) Write-FakeLog 'close'; $this.Books.Count = 0 }
@@ -191,6 +196,17 @@ class PreOpenGuardBehaviourTests(unittest.TestCase):
                 self.assertIn("unsaved changes", str(result))
                 self.assertEqual(self.events(), [])
                 self.assertEqual(self.open_calls(), [])
+
+    def test_document_opened_by_the_user_after_the_check_is_not_closed(self):
+        result = self.delete_sheet(WPSFAKE_RACE="1", WPSFAKE_SAVED="1", WPSFAKE_ATTACH="1")
+        self.assertTrue(result["ok"], result)
+        self.assertEqual(self.events(), ["delete", "save"])
+
+    def test_document_opened_by_the_user_after_the_check_still_has_unsaved_changes_refused(self):
+        result = self.delete_sheet(WPSFAKE_RACE="1", WPSFAKE_SAVED="0", WPSFAKE_ATTACH="1")
+        self.assertFalse(result["ok"], result)
+        self.assertIn("unsaved changes", str(result))
+        self.assertEqual(self.events(), [])
 
     def test_open_workbook_is_used_directly_instead_of_being_opened_again(self):
         self.log.write_text("", encoding="utf-8")

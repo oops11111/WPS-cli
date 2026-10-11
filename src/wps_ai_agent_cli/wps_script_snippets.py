@@ -154,8 +154,14 @@ function Open-WpsDocument($collection, [string]$path, [bool]$wasOpen, [bool]$rea
     }
   }
   $openPath = ConvertTo-WpsLocalPath $path
-  if ($readOnly) { return $collection.Open($openPath, 0, $true) }
-  return $collection.Open($openPath)
+  $countBefore = [int]$collection.Count
+  if ($readOnly) { $opened = $collection.Open($openPath, 0, $true) } else { $opened = $collection.Open($openPath) }
+  if ([int]$collection.Count -le $countBefore) {
+    # Nothing new appeared in the collection, so the document was opened by someone else between the
+    # check and this call (or WPS reused it). It is not ours to close.
+    $script:wpsPreOpen = $true
+  }
+  return $opened
 }
 function Assert-WpsPreOpenSaved([bool]$wasOpen, $document) {
   if ($wasOpen -and -not [bool]$document.Saved) {
