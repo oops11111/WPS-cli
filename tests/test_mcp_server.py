@@ -24,6 +24,21 @@ from wps_ai_agent_cli.mcp_server import (
 )
 
 
+from tests.isolation import use_temporary_cwd
+
+_restore_cwd = None
+
+
+def setUpModule():
+    global _restore_cwd
+    _restore_cwd = use_temporary_cwd()
+
+
+def tearDownModule():
+    if _restore_cwd is not None:
+        _restore_cwd()
+
+
 def initialize_params(protocol_version=MCP_PROTOCOL_VERSION):
     return {
         "protocolVersion": protocol_version,

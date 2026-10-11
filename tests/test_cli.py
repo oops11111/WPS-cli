@@ -18,6 +18,21 @@ from wps_ai_agent_cli.cli import (
 from wps_ai_agent_cli.models import CommandResponse, ValidationResult
 
 
+from tests.isolation import use_temporary_cwd
+
+_restore_cwd = None
+
+
+def setUpModule():
+    global _restore_cwd
+    _restore_cwd = use_temporary_cwd()
+
+
+def tearDownModule():
+    if _restore_cwd is not None:
+        _restore_cwd()
+
+
 class CliParsingTests(unittest.TestCase):
     def test_failed_or_cancelled_task_does_not_restart_operation(self):
         from wps_ai_agent_cli.task_status import create_task_status, update_task_status

@@ -30,6 +30,21 @@ from wps_ai_agent_cli.spreadsheet_ops import (
 )
 
 
+from tests.isolation import use_temporary_cwd
+
+_restore_cwd = None
+
+
+def setUpModule():
+    global _restore_cwd
+    _restore_cwd = use_temporary_cwd()
+
+
+def tearDownModule():
+    if _restore_cwd is not None:
+        _restore_cwd()
+
+
 class SpreadsheetOpsTests(unittest.TestCase):
     def test_read_range_preserves_1904_dates_and_locale_tagged_formats(self):
         with tempfile.TemporaryDirectory() as tmp:
