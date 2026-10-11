@@ -239,9 +239,10 @@ MCP_TOOL_SCHEMAS: tuple[dict[str, Any], ...] = (
         requires_wps=True,
         cli_example="python -m wps_ai_agent_cli convert-smoke --component spreadsheets --input book.xlsx --output book.pdf --format pdf",
         safety_notes=[
-            "Launches WPS for the selected component, opens the input, writes a new PDF, then closes the document.",
+            "Attaches to a running WPS instance of the selected component first and launches one only when none is running, opens the input, writes a new PDF, then closes the document.",
+            "Refuses an input that is already open in WPS, so a user's document is never closed or saved under another name.",
             "Never overwrites the input path; still prefer a disposable copy when validating on real desktop files.",
-            "Quit runs only when the launched instance has no remaining documents, workbooks, or presentations.",
+            "Quit runs only for an instance this command launched itself, and only when it has no remaining documents, workbooks, or presentations; an attached instance is never Quit().",
         ],
     ),
     _tool(
@@ -1476,6 +1477,7 @@ MCP_TOOL_SCHEMAS: tuple[dict[str, Any], ...] = (
         idempotency="Mutating command; request_id should be supplied and is replayed by the operation ledger.",
         safety_notes=[
             "Uses WPS to mutate a registered presentation and creates a backup before mutation.",
+            "Refused when the presentation is already open in WPS: WPS does not reliably report unsaved presentation changes, so edits in an open presentation cannot be protected. Close it first.",
             "Use dry_run before mutation when possible and validate replacement results after write.",
         ],
     ),

@@ -42,6 +42,16 @@ PYTHONPATH=src python3 -m wps_ai_agent_cli inspect-env
 
 MCP 客户端配置见 [docs/MCP_SERVER_CLIENT_CONFIG.md](docs/MCP_SERVER_CLIENT_CONFIG.md)。
 
+## WPS 实例与已打开文档
+
+读写文件的 COM 命令（表格/文字/演示的变更与检查、冒烟与转换）取得 WPS 时**先附着到正在运行的实例**（GetActiveObject 语义），只有没有运行中的实例时才 `New-Object` 启动一个。
+
+- 只有脚本自己启动的实例才会隐藏窗口、`Quit()`（且仅在没有其他文档时）；附着到的实例永不 `Quit()`，不改窗口可见性，临时关闭的 `DisplayAlerts` 等设置会在结束时还原。
+- 目标文档已在该实例中打开时，不会被关闭；有未保存修改的表格/文字文档拒绝变更。**演示文稿**在已打开时一律拒绝变更（WPS 不能可靠报告演示的未保存状态），请先关闭。
+- 冒烟/转换命令的输入文档已在 WPS 中打开时同样拒绝，避免被另存为其他名称或关闭。
+- 路径比较会把 `\\localhost\C$\...`、`\\<本机名>\C$\...` 与 `\\?\` 前缀归一为本地路径，并在 Windows 上展开 8.3 短路径。
+- 这些行为只有 pwsh 假 COM 测试覆盖；真实 WPS 上的复测步骤见 PR 说明。
+
 ## 测试
 
 ```bash
