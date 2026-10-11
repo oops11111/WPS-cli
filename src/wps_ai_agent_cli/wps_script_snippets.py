@@ -72,3 +72,26 @@ function Find-OpenWorkbook($app, [string]$path) {
   return $null
 }
 '''
+
+
+# File-based scripts start their own COM session, but WPS may hand back the instance a user is
+# working in, and Open() of an already-open path returns that same document. These helpers let a
+# script remember whether the document was open before it touched it, so it never closes (or
+# silently saves over) a user's interactive document.
+PRE_OPEN_GUARD = r'''
+function Test-WpsPathOpen($collection, [string]$path) {
+  try {
+    $target = [System.IO.Path]::GetFullPath($path)
+    for ($i = 1; $i -le [int]$collection.Count; $i++) {
+      try { $full = [System.IO.Path]::GetFullPath([string]$collection.Item($i).FullName) } catch { continue }
+      if ([string]::Equals($full, $target, [System.StringComparison]::OrdinalIgnoreCase)) { return $true }
+    }
+  } catch { }
+  return $false
+}
+function Assert-WpsPreOpenSaved([bool]$wasOpen, $document) {
+  if ($wasOpen -and -not [bool]$document.Saved) {
+    throw 'The document is open in WPS with unsaved changes; save or close it before running this command.'
+  }
+}
+'''
