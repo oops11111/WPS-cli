@@ -597,7 +597,7 @@ MCP_TOOL_SCHEMAS: tuple[dict[str, Any], ...] = (
         safety_notes=[
             "Attaches only: never launches WPS and never Quit()s the attached instance.",
             "Targets untitled documents by component+Name; ambiguous duplicate names and already-pathed documents are refused before write.",
-            "There is no prior on-disk source to back up. Existing outputs are never overwritten. After success the document is registered under a path-based document_id for later commands.",
+            "No backup is created (untitled has no source file to back up). The only file written is the new --output path: it must not already exist, its parent directory must exist, and the extension must match the component (.docx/.xlsx/.pptx); existing files are never overwritten. After success the document is registered under a path-based document_id for later commands.",
         ],
     ),
     _tool(

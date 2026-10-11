@@ -203,6 +203,13 @@ class McpSchemaTests(unittest.TestCase):
         writer_read = get_mcp_tool_schema("wps_agent_writer_selection_read")
         self.assertIn("page_number", writer_read["description"] + " ".join(writer_read.get("safety_notes") or []))
 
+    def test_save_as_open_document_notes_state_backup_and_file_boundary(self):
+        notes = " ".join(get_mcp_tool_schema("wps_agent_save_as_open_document")["safety_notes"]).lower()
+        self.assertIn("no backup", notes)
+        self.assertIn("untitled has no source file", notes)
+        self.assertIn("--output", notes)
+        self.assertIn("never overwritten", notes)
+
     def test_open_document_export_and_mutation_notes_point_to_save_open_document(self):
         export_names = (
             "wps_agent_export_open_document",
