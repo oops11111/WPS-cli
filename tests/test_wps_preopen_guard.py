@@ -133,8 +133,17 @@ $global:fakeAttached = New-FakeApp 'attached' ($env:WPSFAKE_OPEN -eq '1' -and $e
 if ($env:WPSFAKE_ATTACH -eq '1') { [WpsAgent.Running]::Instance = $global:fakeAttached }
 function Get-Process {
   [CmdletBinding()] param([string]$Name)
-  $count = if ($env:WPSFAKE_PROCS) { [int]$env:WPSFAKE_PROCS } else { 1 }
-  1..$count | ForEach-Object { [pscustomobject]@{ Name = $Name; Id = $_ } }
+  $total = if ($env:WPSFAKE_PROCS) { [int]$env:WPSFAKE_PROCS } else { 1 }
+  $windowed = if ($env:WPSFAKE_WINDOWED) { [int]$env:WPSFAKE_WINDOWED } else { [Math]::Min($total, 1) }
+  $session = [System.Diagnostics.Process]::GetCurrentProcess().SessionId
+  1..$total | ForEach-Object {
+    $hasWindow = $_ -le $windowed
+    [pscustomobject]@{
+      Name = $Name; Id = 1000 + $_; SessionId = $session
+      MainWindowHandle = $(if ($hasWindow) { [IntPtr]($_ * 100) } else { [IntPtr]::Zero })
+      MainWindowTitle = $(if ($hasWindow) { "Doc$_ - WPS Office" } else { '' })
+    }
+  }
 }
 function New-Object { param([string]$ComObject) Write-FakeLog 'new-object'; return $global:fakeLaunched }
 '''

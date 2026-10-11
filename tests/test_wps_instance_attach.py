@@ -162,6 +162,28 @@ $coll | Add-Member -MemberType ScriptMethod -Name Open -Value { param($p, $updat
         self.assertEqual(lines, ["existing"])
 
 
+class ScriptWarningTests(unittest.TestCase):
+    def run_with(self, stdout, stderr, returncode=0):
+        from wps_ai_agent_cli import powershell_runner
+
+        completed = subprocess.CompletedProcess([], returncode, stdout=stdout, stderr=stderr)
+        with patch.object(powershell_runner.subprocess, "run", return_value=completed), \
+                patch.object(powershell_runner, "powershell_executable", return_value="pwsh"):
+            return powershell_runner.run_powershell_script("exit 0")
+
+    def test_stderr_notices_are_returned_as_warnings_without_touching_stdout_json(self):
+        payload, failure = self.run_with(
+            '{"ok": true}',
+            "noise\nWPS_AGENT_WARNING: 3 wps processes\nWPS_AGENT_WARNING: 3 wps processes\nWPS_AGENT_WARNING: other\n",
+        )
+        self.assertIsNone(failure)
+        self.assertEqual(payload, {"ok": True, "warnings": ["3 wps processes", "other"]})
+
+    def test_no_warnings_key_without_notices(self):
+        payload, failure = self.run_with('{"ok": true}', "some unrelated stderr")
+        self.assertEqual(payload, {"ok": True})
+
+
 @unittest.skipUnless(PWSH, "PowerShell (pwsh) is required to execute the generated scripts")
 class ProcessNameTests(unittest.TestCase):
     def test_progids_map_to_the_component_process(self):
@@ -176,6 +198,65 @@ class ProcessNameTests(unittest.TestCase):
             run_pwsh(calls),
             ["[wps]", "[wps]", "[wps]", "[et]", "[et]", "[et]", "[wpp]", "[wpp]", "[wpp]", "[]"],
         )
+
+
+@unittest.skipUnless(PWSH, "PowerShell (pwsh) is required to execute the generated scripts")
+class ProcessSnapshotTests(unittest.TestCase):
+    FAKE_PROCESSES = r"""
+function Get-Process {
+  [CmdletBinding()] param([string]$Name)
+  $session = [System.Diagnostics.Process]::GetCurrentProcess().SessionId
+  [Console]::Error.WriteLine('queried:' + $Name)
+  $specs = @(
+    @{ Id = 11; Window = 100; Session = $session; Title = 'Main' },
+    @{ Id = 12; Window = 0; Session = $session; Title = '' },
+    @{ Id = 13; Window = 0; Session = $session; Title = '' },
+    @{ Id = 14; Window = 400; Session = ($session + 1); Title = 'Other user' }
+  ) | Select-Object -First ([int]$env:FAKE_TOTAL)
+  foreach ($spec in $specs) {
+    [pscustomobject]@{ Name = $Name; Id = $spec.Id; SessionId = $spec.Session; MainWindowHandle = [IntPtr]$spec.Window; MainWindowTitle = $spec.Title }
+  }
+}
+"""
+
+    def run_script(self, body, total):
+        with tempfile.TemporaryDirectory() as tmp:
+            script = Path(tmp) / "t.ps1"
+            script.write_text(
+                PRE_OPEN_GUARD + "\n$ErrorActionPreference = 'Stop'\n" + self.FAKE_PROCESSES + body,
+                encoding="utf-8-sig",
+            )
+            env = {key: value for key, value in os.environ.items() if key != "WPS_AGENT_ALLOW_MULTI_INSTANCE"}
+            env["FAKE_TOTAL"] = str(total)
+            return subprocess.run(
+                [PWSH, "-NoProfile", "-File", str(script)], capture_output=True, text=True, timeout=60, env=env,
+            )
+
+    def test_progids_query_the_matching_process_name(self):
+        for progid, name in (("kwps.Application", "wps"), ("ket.Application", "et"), ("kwpp.Application", "wpp")):
+            with self.subTest(progid=progid):
+                completed = self.run_script(f"Assert-WpsSingleInstance '{progid}'", 1)
+                self.assertEqual(completed.returncode, 0, completed.stdout + completed.stderr)
+                self.assertIn(f"queried:{name}", completed.stderr)
+
+    def test_one_windowed_process_among_background_ones_is_allowed_with_a_warning(self):
+        for progid, name in (("kwps.Application", "wps"), ("ket.Application", "et"), ("kwpp.Application", "wpp")):
+            with self.subTest(progid=progid):
+                completed = self.run_script(f"Assert-WpsSingleInstance '{progid}'", 3)
+                self.assertEqual(completed.returncode, 0, completed.stdout + completed.stderr)
+                self.assertIn(f"WPS_AGENT_WARNING: 3 {name} processes", completed.stderr)
+
+    def test_a_windowed_process_in_another_session_is_not_counted(self):
+        completed = self.run_script("Assert-WpsSingleInstance 'kwps.Application'", 4)
+        self.assertEqual(completed.returncode, 0, completed.stdout + completed.stderr)
+        self.assertIn("only 1 has a window", completed.stderr)
+
+    def test_snapshot_reports_windowed_processes_with_titles(self):
+        completed = self.run_script(
+            "$s = Get-WpsProcessSnapshot 'wps'\n\"windowed=$(@($s.Windowed).Count) all=$(@($s.All).Count)\"\nFormat-WpsProcessList $s.Windowed\n",
+            3,
+        )
+        self.assertEqual(completed.stdout.strip().splitlines(), ["windowed=1 all=3", 'pid 11 "Main"'])
 
 
 @unittest.skipUnless(PWSH, "PowerShell (pwsh) is required to execute the generated scripts against a fake COM object")
@@ -243,7 +324,7 @@ class InspectRecalculationTests(unittest.TestCase):
         self.assertNotIn("quit:attached", self.log_lines())
 
     def test_read_only_inspect_is_not_blocked_by_several_processes(self):
-        ok, result, errors = self.inspect(WPSFAKE_ATTACH="1", WPSFAKE_OPEN="0", WPSFAKE_SAVED="1", WPSFAKE_PROCS="2")
+        ok, result, errors = self.inspect(WPSFAKE_ATTACH="1", WPSFAKE_OPEN="0", WPSFAKE_SAVED="1", WPSFAKE_PROCS="2", WPSFAKE_WINDOWED="2")
         self.assertTrue(ok, errors)
 
     def test_instance_launched_by_the_script_is_still_fully_recalculated(self):
@@ -346,46 +427,82 @@ class AttachBehaviourTests(unittest.TestCase):
         self.assertTrue(result["ok"], result)
         self.assertNotIn("quit:new", self.events())
 
-    def test_several_wps_processes_refuse_opening_a_closed_document(self):
+    def test_several_windowed_wps_instances_refuse_opening_a_closed_document(self):
         for attach in ("1", "0"):
             with self.subTest(attach=attach):
                 self.log.write_text("", encoding="utf-8")
-                result = self.delete_sheet(WPSFAKE_ATTACH=attach, WPSFAKE_OPEN="0", WPSFAKE_SAVED="1", WPSFAKE_PROCS="2")
+                result = self.delete_sheet(
+                    WPSFAKE_ATTACH=attach, WPSFAKE_OPEN="0", WPSFAKE_SAVED="1", WPSFAKE_PROCS="3", WPSFAKE_WINDOWED="2",
+                )
                 self.assertFalse(result["ok"], result)
-                self.assertIn("Several WPS processes", str(result))
-                self.assertIn("WPS_AGENT_ALLOW_MULTI_INSTANCE", str(result))
+                text = str(result)
+                self.assertIn("Several WPS instances with a window", text)
+                self.assertIn("et x2", text)
+                self.assertIn("pid 1001", text)
+                self.assertIn("Doc1 - WPS Office", text)
+                self.assertIn("pid 1002", text)
+                self.assertNotIn("pid 1003", text)
+                self.assertIn("WPS_AGENT_ALLOW_MULTI_INSTANCE", text)
                 self.assertFalse([line for line in self.log_lines() if line.startswith("open:")])
                 self.assertEqual([line for line in self.events() if line != "quit:new"], [])
 
-    def test_a_document_already_open_in_the_attached_instance_is_still_used_with_several_processes(self):
-        result = self.delete_sheet(WPSFAKE_ATTACH="1", WPSFAKE_OPEN="1", WPSFAKE_SAVED="1", WPSFAKE_PROCS="3")
+    def test_background_processes_without_a_window_do_not_block_but_are_reported(self):
+        for attach in ("1", "0"):
+            with self.subTest(attach=attach):
+                self.log.write_text("", encoding="utf-8")
+                result = self.delete_sheet(
+                    WPSFAKE_ATTACH=attach, WPSFAKE_OPEN="0", WPSFAKE_SAVED="1", WPSFAKE_PROCS="3", WPSFAKE_WINDOWED="1",
+                )
+                self.assertTrue(result["ok"], result)
+                [warning] = result["data"]["warnings"]
+                self.assertIn("3 et processes", warning)
+                self.assertIn("only 1 has a window", warning)
+                self.assertTrue([line for line in self.log_lines() if line.startswith("open:")])
+
+    def test_only_background_processes_are_allowed_with_a_warning(self):
+        result = self.delete_sheet(
+            WPSFAKE_ATTACH="1", WPSFAKE_OPEN="0", WPSFAKE_SAVED="1", WPSFAKE_PROCS="3", WPSFAKE_WINDOWED="0",
+        )
+        self.assertTrue(result["ok"], result)
+        self.assertIn("only 0 has a window", result["data"]["warnings"][0])
+
+    def test_a_single_process_has_no_warning(self):
+        result = self.delete_sheet(WPSFAKE_ATTACH="1", WPSFAKE_OPEN="0", WPSFAKE_SAVED="1", WPSFAKE_PROCS="1")
+        self.assertTrue(result["ok"], result)
+        self.assertNotIn("warnings", result["data"])
+        self.assertEqual(self.events(), ["delete", "save", "close"])
+
+    def test_a_document_already_open_in_the_attached_instance_is_still_used_with_several_windows(self):
+        result = self.delete_sheet(
+            WPSFAKE_ATTACH="1", WPSFAKE_OPEN="1", WPSFAKE_SAVED="1", WPSFAKE_PROCS="3", WPSFAKE_WINDOWED="3",
+        )
         self.assertTrue(result["ok"], result)
         self.assertEqual(self.events(), ["delete", "save"])
 
-    def test_a_single_process_does_not_block_opening(self):
-        result = self.delete_sheet(WPSFAKE_ATTACH="1", WPSFAKE_OPEN="0", WPSFAKE_SAVED="1", WPSFAKE_PROCS="1")
-        self.assertTrue(result["ok"], result)
-        self.assertEqual(self.events(), ["delete", "save", "close"])
-
     def test_the_multi_instance_check_can_be_switched_off(self):
         result = self.delete_sheet(
-            WPSFAKE_ATTACH="1", WPSFAKE_OPEN="0", WPSFAKE_SAVED="1", WPSFAKE_PROCS="2", WPS_AGENT_ALLOW_MULTI_INSTANCE="1",
+            WPSFAKE_ATTACH="1", WPSFAKE_OPEN="0", WPSFAKE_SAVED="1", WPSFAKE_PROCS="2", WPSFAKE_WINDOWED="2",
+            WPS_AGENT_ALLOW_MULTI_INSTANCE="1",
         )
         self.assertTrue(result["ok"], result)
+        self.assertNotIn("warnings", result["data"])
 
     def test_launched_instance_is_still_quit_after_the_refusal(self):
-        self.delete_sheet(WPSFAKE_ATTACH="0", WPSFAKE_OPEN="0", WPSFAKE_SAVED="1", WPSFAKE_PROCS="2")
+        self.delete_sheet(WPSFAKE_ATTACH="0", WPSFAKE_OPEN="0", WPSFAKE_SAVED="1", WPSFAKE_PROCS="2", WPSFAKE_WINDOWED="2")
         self.assertEqual(self.events(), ["quit:new"])
 
-    def test_presentation_and_smoke_commands_refuse_with_several_processes(self):
-        with patch.dict(os.environ, {"WPSFAKE_ATTACH": "1", "WPSFAKE_OPEN": "0", "WPSFAKE_SAVED": "1", "WPSFAKE_PROCS": "2"}):
+    def test_presentation_and_smoke_commands_refuse_with_several_windowed_instances(self):
+        env = {
+            "WPSFAKE_ATTACH": "1", "WPSFAKE_OPEN": "0", "WPSFAKE_SAVED": "1", "WPSFAKE_PROCS": "3", "WPSFAKE_WINDOWED": "2",
+        }
+        with patch.dict(os.environ, env):
             presentation = presentation_ops._run_presentation_replace_com(str(self.document), "a", "b")
             calc = com_backend._run_powershell_com_smoke("spreadsheets", "ket.Application", str(self.document), str(self.dir / "out.xlsx"), False)
             conversion = com_backend.run_conversion_smoke("writer", str(self.document), str(self.dir / "out.pdf"), "pdf")
         for name, result in (("presentation", presentation), ("smoke", calc), ("conversion", conversion)):
             with self.subTest(command=name):
                 self.assertFalse(result["ok"], result)
-                self.assertIn("Several WPS processes", str(result))
+                self.assertIn("Several WPS instances with a window", str(result))
         self.assertFalse([line for line in self.log_lines() if line.startswith("open:")])
 
     def test_open_presentation_is_refused_even_though_saved_is_always_true(self):

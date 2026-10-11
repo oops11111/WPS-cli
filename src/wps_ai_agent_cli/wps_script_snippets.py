@@ -147,16 +147,38 @@ function Get-WpsProcessName([string]$progId) {
   if ($id.Contains('wps') -or $id.Contains('writer')) { return 'wps' }
   return $null
 }
+function Get-WpsProcessSnapshot([string]$processName) {
+  # "Windowed" = a process of this user session that owns a main window. Only those can hold a document
+  # the user is working in; helper, cloud and background WPS processes (several `wps` processes are
+  # normal) have no main window or live in another session, so they are reported but not counted.
+  $mySession = [System.Diagnostics.Process]::GetCurrentProcess().SessionId
+  $all = @(Get-Process -Name $processName -ErrorAction SilentlyContinue)
+  $windowed = @($all | Where-Object { $_.SessionId -eq $mySession -and [int64]$_.MainWindowHandle -ne 0 })
+  return [pscustomobject]@{ All = $all; Windowed = $windowed }
+}
+function Format-WpsProcessList($processes) {
+  return (@($processes | Select-Object -First 5 | ForEach-Object {
+    $title = [string]$_.MainWindowTitle
+    if ($title.Length -gt 60) { $title = $title.Substring(0, 60) }
+    'pid ' + $_.Id + $(if ($title) { ' "' + $title + '"' } else { '' })
+  }) -join ', ')
+}
 function Assert-WpsSingleInstance([string]$progId) {
-  # GetActiveObject returns one instance. With several WPS processes of the same component a document
-  # the user has open can live in another one that this script cannot see, so opening it here could
-  # race with (or silently duplicate) the user's session. Refuse instead of guessing.
+  # GetActiveObject returns one instance. With several windowed WPS processes of the same component, a
+  # document the user has open can live in another one that this script cannot see, so opening it here
+  # could race with (or silently duplicate) the user's session. Refuse instead of guessing. When only
+  # one process has a window the others are assumed to be background processes: proceed, with a warning.
   if ($env:WPS_AGENT_ALLOW_MULTI_INSTANCE -eq '1') { return }
   $name = Get-WpsProcessName $progId
   if ([string]::IsNullOrEmpty($name)) { return }
-  try { $count = @(Get-Process -Name $name -ErrorAction SilentlyContinue).Count } catch { return }
-  if ($count -gt 1) {
-    throw ('Several WPS processes are running (' + $name + ' x' + $count + '), so it cannot be determined whether this document is already open in another instance. Close the extra WPS windows and retry, or set WPS_AGENT_ALLOW_MULTI_INSTANCE=1 to skip this check.')
+  try { $snapshot = Get-WpsProcessSnapshot $name } catch { return }
+  $windowed = @($snapshot.Windowed)
+  $total = @($snapshot.All).Count
+  if ($windowed.Count -gt 1) {
+    throw ('Several WPS instances with a window are running (' + $name + ' x' + $windowed.Count + ': ' + (Format-WpsProcessList $windowed) + '), so it cannot be determined whether this document is already open in another instance. Close the extra WPS windows and retry, or set WPS_AGENT_ALLOW_MULTI_INSTANCE=1 to skip this check.')
+  }
+  if ($total -gt 1) {
+    [Console]::Error.WriteLine('WPS_AGENT_WARNING: ' + $total + ' ' + $name + ' processes are running but only ' + $windowed.Count + ' has a window; the others are assumed to be background processes, so a document open in a hidden instance cannot be ruled out.')
   }
 }
 function Open-WpsDocument($collection, [string]$path, [bool]$wasOpen, [bool]$readOnly = $false) {
