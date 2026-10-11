@@ -25,7 +25,7 @@
     },
     {
       "id": "cli-phase3-next",
-      "title": "Phase 3 next task is available",
+      "title": "Phase 3 records completed P3-307",
       "category": "cli",
       "profile": "safe",
       "risk_level": "low",
@@ -35,11 +35,11 @@
         "--phase",
         "phase3",
         "--status",
-        "next"
+        "done"
       ],
       "expected_ok": true,
       "required_checks": [
-        {"path": "data.tasks", "contains_item": {"id": "P3-307", "status": "next"}}
+        {"path": "data.tasks", "contains_item": {"id": "P3-307", "status": "done"}}
       ]
     },
     {

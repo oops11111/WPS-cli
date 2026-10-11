@@ -436,6 +436,15 @@ class SpreadsheetOpsTests(unittest.TestCase):
             self.assertEqual(result["values"], [["Item", "Value"], ["Sample", 18]])
             self.assertEqual(result["row_count"], 2)
             self.assertEqual(result["column_count"], 2)
+            ok, single, errors = read_spreadsheet_range(
+                record["document_id"],
+                "B2",
+                workspace=workspace,
+            )
+            self.assertTrue(ok, errors)
+            self.assertEqual(single["values"], [[18]])
+            self.assertEqual(single["row_count"], 1)
+            self.assertEqual(single["column_count"], 1)
 
     def test_list_spreadsheet_sheets_reports_order_visibility_and_dimensions_read_only(self):
         with tempfile.TemporaryDirectory() as tmp:

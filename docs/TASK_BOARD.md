@@ -60,11 +60,11 @@
 
 | ID | 任务 | 状态 | 验收标准 |
 | --- | --- | --- | --- |
-| PRD12-001 | 附着运行中实例并列出打开文档 | done | `open-documents` 不启动 WPS、不关闭实例，返回路径、保存状态和稳定 document_id；离线与假 COM 测试通过，真实 WPS 待验证 |
+| PRD12-001 | 附着运行中实例并列出打开文档 | done | `open-documents` 不启动 WPS、不关闭实例，返回路径、保存状态和稳定 document_id；离线与假 COM 测试通过，2026-10-09 已在本机 Writer 12.0 上附着验证 |
 | PRD12-002 | 读取 Writer 当前选区 | done | `writer-selection-read` 按 document_id 定位文档，返回范围、文本、段落序号，页码固定标记为未验证 |
 | PRD12-003 | 替换 Writer 当前选区 | done | `writer-selection-replace` 支持 dry-run、备份、期望文本保护、读回校验和幂等；拒绝未保存文档与跨结构选区 |
 | PRD12-004 | 已打开文档直接导出 HTML | done | `export-open-document` 不改动、不关闭源文档，不覆盖输出，校验源文件哈希并报告已知损失 |
-| PRD12-005 | 真实 WPS 实测上述四个命令 | next | 在目标 WPS 版本上确认 GetActiveObject、选区与页码、`Documents.Add` 副本导出和 HTML 保真度，并更新支持矩阵 |
+| PRD12-005 | 真实 WPS 实测上述四个命令 | done | 2026-10-09 在 Writer 12.0 上确认附着、选区读取与替换、`SaveAs2` HTML 导出。补测了未保存拒绝、只读选区替换拒绝、只读文档 HTML 导出（副本 SaveAs2，源哈希不变）、隐藏窗口附着，以及分页后 `page_number` 为 2。页码字段仍标记为未验证。见 `PRD_V1_2_OPEN_DOCUMENT_OPERATIONS.md` |
 
 ## Phase 3 当前任务
 
@@ -166,7 +166,6 @@
 | P3-094 | 表格工作表复制事务 | done | 新增 spreadsheet-copy-sheet CLI/MCP，支持 dry-run、名称/位置校验、WPS 原生复制、备份、有序名称与样例单元格读回及 request_id 绑定 |
 | P3-095 | 表格工作表标签颜色事务 | done | 新增 spreadsheet-set-sheet-tab-color CLI/MCP，严格接受 #RRGGBB/none，提交前备份并通过 WPS 与独立工作簿读回校验；本机设置及清除集成测试通过 |
 | P3-096 | 表格工作表标签颜色清单 | done | spreadsheet-sheets 新增 none/#RRGGBB 规范化颜色字段；既有哈希不变、WPS 不启动的断言覆盖该字段 |
-| P3-097 | 表格工作表保护状态清单 | next | 扩展只读工作表清单，返回工作表保护状态与受保护单元格计数，不暴露密码、不改写文件且不启动 WPS |
 | P3-097 | 表格工作表保护状态清单 | done | spreadsheet-sheets 返回 protection_enabled、最多扫描 100,000 格的 protected_cell_count 及 protection_scan_truncated；不返回保护密码、不启动 WPS，哈希不变测试覆盖普通与超限工作表 |
 | P3-098 | 表格清单有界扫描契约 | done | 更新 archive/P3_SPREADSHEET_SHEETS.md 说明元数据和 100,000 格扫描限制；单测覆盖超限截断字段及文件哈希不变 |
 | P3-099 | 表格清单公式元数据 | done | spreadsheet-sheets 新增 populated_cell_count/formula_count，并复用 100,000 格边界；超限明确返回 null 和 inventory_scan_truncated，单测覆盖公式及哈希不变 |
@@ -377,9 +376,106 @@
 | P3-304 | 限制配置 MCP server 名称 | done | CLI、MCP schema、API 共用非空及 256 字符边界；非法值在配置读取/spawn 前拒绝且不回显；adapter 同时落实 minLength/maxLength/pattern；全量 484/65 |
 | P3-305 | 对齐 MCP adapter 字符串 schema 校验 | done | adapter 执行 minLength/maxLength/pattern；空白/边界/超长值行为通过测试，三类畸形 pattern 均有界失败且不泄露参数；全量 486/65 |
 | P3-306 | 拒绝畸形 MCP schema 约束元数据 | done | 预检 enum/numeric/string/items 元数据类型与上下界关系；异常元数据在参数比较前结构化失败且不泄露值；catalog 检查和全量 487/65 通过 |
-| P3-307 | 校验 MCP enum 唯一性语义 | next | 用区分 JSON 类型的相等规则拒绝空 enum/重复项，保留合法混合类型枚举并给出有界诊断 |
+| P3-307 | 校验 MCP enum 唯一性语义 | done | 用区分 JSON 类型的相等规则拒绝空 enum 和重复项：`true` 与 `1` 不相等，`1` 与 `1.0` 相等，对象成员顺序无关；合法混合类型枚举保留，诊断不回显参数值 |
+| P3-397 | WPS 版本比较持久化 | done | `wps-version-compare` 将 Writer、Spreadsheets、Presentation 版本与工作区 `.wps-agent/wps-versions.json` 比较；只持久化可解析版本，空白或不可解析值不覆盖已有基线，不启动 WPS、不修改文档 |
+| P3-398 | convert-smoke 支持表格与演示导出 PDF | done | `convert-smoke` 的 component 扩展为 writer/spreadsheets/presentation；表格走 Workbooks.ExportAsFixedFormat(0)，演示走 Presentations.ExportAsFixedFormat(..., 2)（失败退 SaveAs 32）；源路径不得覆盖，空闲才 Quit；离线脚本契约测试覆盖 |
+| P3-399 | 已打开演示文稿 HTML 导出 | done | `export-open-document` 支持已注册且已打开的 presentation：`SaveCopyAs(..., 12)`（失败退 23），不改名不关闭源文件；拒绝 ZIP 伪 HTML（`EXPORT_OUTPUT_NOT_HTML`）；Writer 路径不变 |
+| P3-400 | 已打开演示文稿选区读取 | done | 新增 `presentation-selection-read`：附着只读读取 selection_kind/text/slide_index/shape，不启动不 Quit；slide_index 标记未验证；非 presentation document_id 拒绝 |
+| P3-401 | 已打开演示文稿选区写回 | done | 新增 `presentation-selection-replace`：仅文本选区；dry-run/备份/期望文本/读回/幂等；拒绝未保存、只读、空、超大、非文本选区；不启动不 Quit |
+| P3-402 | 已打开表格选区读取 | done | 新增 `spreadsheet-selection-read`：附着只读读取 selection_kind/address/sheet/cell_count 与最多 100 格采样文本；不启动不 Quit；非 spreadsheets document_id 拒绝 |
+| P3-403 | 已打开表格 HTML 导出 | done | `export-open-document` 接受 spreadsheets：临时 `SaveCopyAs` + 副本 `SaveAs` HTML（44/45），不改名不关闭源；拒绝未保存/已存在输出/非 HTML 字节；Writer/Presentation 行为不变 |
+| P3-404 | 已打开表格选区写回 | done | 新增 `spreadsheet-selection-replace`：仅单格；dry-run/备份/期望文本与地址/读回/幂等；拒绝未保存、只读、多格、不匹配；不启动不 Quit |
+| P3-405 | 表格选区写回支持连续多格填充 | done | `spreadsheet-selection-replace` 支持单区域最多 100 格常量填充；拒绝多区域/超限；地址+TAB 拼接文本护栏与逐格读回 |
+| P3-406 | 表格选区按矩阵逐格写入 | done | `spreadsheet-selection-replace` 支持 `--values-json` 矩形矩阵按格写入，与 `--text` 互斥；形状不匹配/公式前缀拒绝；dry-run/备份/读回/幂等 |
+| P3-407 | 表格多区域选区常量填充 | done | `spreadsheet-selection-replace` 支持 `multi_area` 最多 100 格常量填充（按 Areas 写入）；矩阵模式仍要求单区域；dry-run/备份/读回/幂等 |
+| P3-408 | 表格选区图表/形状只读探测 | done | `spreadsheet-selection-read` 对 `non_range` 尽力返回 `object_kind`/`object_name`（chart/shape）；`object_info_verified=false`；不支持图表/形状写回 |
+| P3-409 | 表格图表/形状选区写回结构化拒绝 | done | `spreadsheet-selection-replace` 对图表/形状选区在备份前返回 `OBJECT_SELECTION_UNSUPPORTED`，错误消息与 selection 载荷带 `object_kind`/`object_name` |
+| P3-410 | HTML 到 PDF 转换矩阵样例 | done | 新增 `fixtures/phase3/html_visual_smoke.html`；离线覆盖 `html-render` 矩阵入口；`CONVERSION_MATRIX` HTML→PDF 由 pending→partial（本机缺 playwright 未跑真实 Edge） |
+| P3-411 | 已打开文档导出 PDF | done | 新增 `export-open-document-pdf`：Writer 副本 `ExportAsFixedFormat`/`SaveAs`，演示优先 `ExportAsFixedFormat` 失败退临时副本 `SaveAs` 32，表格对已打开工作簿 `ExportAsFixedFormat`；不改名不关闭源；拒绝非 PDF 字节 |
+| P3-412 | 已打开文档原生格式副本 | done | 新增 `export-open-document-copy`：同扩展名 `SaveCopyAs`（Writer 可退 `Documents.Add`+`SaveAs`）；不改名不关闭源；OOXML 校验 ZIP 包头；拒绝扩展名不一致/已存在输出 |
+| P3-413 | Writer 光标处插入文本 | done | 新增 `writer-selection-insert`：仅折叠光标；dry-run/备份/`expected_start`/读回/幂等；非折叠返回 `SELECTION_NOT_COLLAPSED`；拒绝未保存/只读/空插入文本 |
+| P3-414 | 演示文稿光标处插入文本 | done | 新增 `presentation-selection-insert`；`presentation-selection-read` 增加 `collapsed`/`text_range_start`/`text_range_length`；仅折叠文本光标；dry-run/备份/`expected_start`/读回/幂等 |
+| P3-415 | 已打开文档导出纯文本 | done | 新增 `export-open-document-text`：Writer 副本文本 `SaveAs`，演示抽取形状文本写 UTF-8，表格临时副本 Unicode/Windows 文本；不改名不关闭源；拒绝非文本字节 |
+| P3-416 | Writer 与演示文稿选区删除 | done | 新增 `writer-selection-delete` / `presentation-selection-delete`：清空非空纯文本选区；dry-run/备份/`expected_selection_text`/读回/幂等；拒绝折叠/结构跨度/未保存/只读 |
+| P3-417 | 表格多区域选区矩阵写入 | done | `spreadsheet-selection-replace` 的 `values_json` 支持 `multi_area`：按 Areas→Cells 行主序扁平写入，格数须匹配；单区域仍要求行列形状一致；工具数仍为 82 |
+| P3-418 | 已打开文档主动保存 | done | 新增 `save-open-document`：对已注册且已有磁盘路径的打开文档显式 `Save()`；dirty 时先备份；已保存则不写不备份；拒绝只读/无路径；其它命令仍拒绝未保存 |
+| P3-419 | 表格选区清空 | done | 新增 `spreadsheet-selection-delete`：对 cell/range/multi_area（最多 100 格）`ClearContents`；dry-run/备份/`expected_selection_text`/读回为空/幂等；拒绝空选区、只读、未保存、图表/形状 |
+| P3-420 | 已打开演示文稿导出 PDF/副本/TXT 本机补测 | done | 本机 WPS 12.0 对已打开 disposable pptx：PDF 走 `SaveCopyAsThenSaveAsPdf` 21554 字节；原生副本 `SaveCopyAs` 37198 字节；TXT `ExtractShapeText` 18 字节含形状文本。三者源未关闭、哈希未变。单机，不作跨版本结论 |
+| P3-421 | 已打开演示/表格主动保存本机补测 | done | 本机 WPS 12.0：脏表格与脏演示均 `save-open-document` dry-run `would_modify=true`，随后 `Save()` 有备份、`wrote=true`、`validation_passed=true`、`source_still_open=true`、同 request_id 幂等重放。工具面仍为 84。单机，不作跨版本结论 |
+| P3-422 | 表格多区域填充与图表选区拒绝本机补测 | done | 本机 WPS 12.0：多区域 `$A$1,$C$1` 常量填充 `P3-422 fill` 成功；`ChartObject` 选区读回 `non_range`/`chart`/`Chart 1`；`spreadsheet-selection-replace` 与 `spreadsheet-selection-delete` 均在备份前返回 `OBJECT_SELECTION_UNSUPPORTED`。工具面仍为 84。单机，不作跨版本结论 |
+| P3-423 | HTML→PDF 本机 Playwright 渲染补测 | done | 本机 `npm install` 后 `html-render` 对 `html_visual_smoke.html` 写出 PDF 37867 字节（`%PDF-`，Edge 154）与 PNG 32159 字节；`network_access=false`；`WPS_AGENT_RUN_BROWSER_INTEGRATION=1` 下 `tests.test_html_render` 4/4 通过。单机，不作跨版本结论 |
+| P3-424 | DOCX→HTML 转换矩阵加深（已打开导出） | done | 本机 WPS Writer 12.0：已打开 disposable docx（标题/段落/表格标记）`export-open-document` 走 `SaveAs2` 写出 317844 字节 HTML + companion `.files`；四标记均保留；`source_unchanged`/`source_still_open`/`validation_passed` 均为 true。`HTML_EXPORT_KNOWN_LOSSES` 已记入该本机证据。矩阵 DOCX→HTML → verified-local。单机，不作跨版本结论 |
+| P3-425 | 表格对象选区拒绝文案按操作区分 | done | `_check_replaceable_spreadsheet_selection` 增加 `operation`；图表/形状拒绝文案 replace→`cannot be replaced`，delete→`cannot be cleared`；错误码与备份前拒绝不变；相关单测通过 |
+| P3-426 | 演示/表格 HTML known_losses 对齐本机证据 | done | 演示/表格 HTML `known_losses` 第三条分别引用 P3-399（演示 SaveCopyAs HTML）与 P3-403（表格临时副本 SaveAs HTML）本机证据；导出行为未改 |
+| P3-427 | 表格多区域选区清空本机补测 | done | 本机 WPS 12.0：多区域 `$A$1,$C$1`（`P3-427-A`/`P3-427-C`）经 `spreadsheet-selection-delete` `ClearContents` 清空，`cells_matched=true`、`read_back_values=["",""]`、`validation_passed=true`、有备份、同 request_id 幂等重放。工具面仍为 84。单机，不作跨版本结论 |
+| P3-428 | 未命名无路径文档不可稳定定位本机补测 | done | 本机 WPS Writer 12.0：`Documents.Add` 未命名文档经 `open-documents` 列出 `document_id=null`、`path_exists=false`、`full_name` 仅为显示名；`save-open-document` 对虚构 id 返回 `DOCUMENT_NOT_FOUND`。未做 untitled SaveAs。单机，不作跨版本结论 |
+| P3-429 | 表格连续区域选区清空本机补测 | done | 本机 WPS 12.0：连续区域 `$A$1:$B$1`（`P3-429-A`/`P3-429-B`，`selection_kind=range`）经 `spreadsheet-selection-delete` 清空，`cells_matched=true`、`validation_passed=true`、有备份、同 request_id 幂等重放。工具面仍为 84。单机，不作跨版本结论 |
+| P3-430 | 选区替换注明纯文本非富文本契约 | done | `writer-selection-replace` / `presentation-selection-replace` 结果 `note` 标明纯文本替换，富文本格式保留不作支持契约；行为未改 |
+| P3-431 | 第 N 页非目标离线契约闸门 | done | 离线闸门：已打开文档相关 MCP/CLI 不接受 `page_number`/`--page` 定位输入；`writer-selection-read` 保持 `page_info_verified=false`；`html-render --page-size` 仅为纸张尺寸 |
+| P3-432 | 表格公式单元格选区清空本机补测 | done | 本机 WPS 12.0：`$A$1` 公式 `=1+2`（显示 `3`）经 `spreadsheet-selection-delete` 清空后 `read_back_text=""`、`formula=null`、`cells_matched=true`、`validation_passed=true`、有备份、同 request_id 幂等重放。工具面仍为 84。单机，不作跨版本结论 |
+| P3-433 | 表格形状选区拒绝本机补测 | done | 收紧非单元格探测：直接 Shape COM + 仅在可读 `ChartType` 时走图表回退。本机 WPS 12.0：矩形 `P3-433-Rect` 读回 `non_range`/`shape`；replace/delete 均备份前 `OBJECT_SELECTION_UNSUPPORTED`。工具面仍为 84。单机，不作跨版本结论 |
+| P3-434 | 表格已打开 HTML 导出公式显示标记补测 | done | 本机 WPS 12.0：已打开含 `P3-434-PLAIN` 与 `=10+5`（显示 15）的 xlsx，`SaveCopyAsThenSaveAsHtml` 写出 19565 字节；去标签后纯文本标记保留，显示值与 `x:fmla` 保留；源未改未关。矩阵 XLSX→HTML 证据已加深。单机，不作跨版本结论 |
+| P3-435 | 演示文稿整形状选区拒绝本机补测 | done | 本机 WPS 12.0：整形状选区 `selection_kind=shapes`/`P3-435-Rect`；replace/delete 均备份前 `SELECTION_SPANS_STRUCTURE`。顺带让演示 delete 拒绝文案用 `cleared`。工具面仍为 84。单机，不作跨版本结论 |
+| P3-436 | 未保存修改时选区写回本机拒绝 | done | 表格 replace/delete 在 `saved=false` 时于备份前返回 `DOCUMENT_HAS_UNSAVED_CHANGES`（提示 `save-open-document`）。本机脏工作簿：`$A$1` replace 拒绝且无备份目录；随后 `save-open-document` `wrote=true`/`validation_passed=true`。工具面仍为 84。单机，不作跨版本结论 |
+| P3-437 | Writer/Presentation 未保存选区写回备份前拒绝 | done | Writer/Presentation replace/insert/delete 与表格共用 `_unsaved_open_document_error`：`saved=false` 时备份前 `DOCUMENT_HAS_UNSAVED_CHANGES`（提示 `save-open-document`）。离线单测覆盖。本机脏 Writer：`writer-selection-replace` 拒绝且无备份；随后 `save-open-document` `wrote=true`/`validation_passed=true`。工具面仍为 84。单机，不作跨版本结论 |
+| P3-438 | 演示未保存选区写回本机拒绝补测 | done | 本机脏演示：文本选区 `P3-438 mark` 上 `presentation-selection-replace` 备份前 `DOCUMENT_HAS_UNSAVED_CHANGES`；随后 `save-open-document` `wrote=true`/`validation_passed=true`。工具面仍为 84。单机，不作跨版本结论 |
+| P3-439 | 未保存错误文案统一指向 save-open-document | done | `_status_error(unsaved)` 改走 `_unsaved_open_document_error`（提示 `save-open-document`，不再写 “save it in WPS”）；导出路径 `action=exported`；只读文案可按 action 区分。离线导出 unsaved 断言新文案。工具面仍为 84 |
+| P3-440 | 脏文档 HTML 导出本机拒绝文案补测 | done | 本机脏 Writer：`export-open-document`→`DOCUMENT_HAS_UNSAVED_CHANGES`（文案含 `save-open-document`/`exported`）；`save-open-document` 后 HTML 导出成功（38203 字节，`source_still_open=true`）。工具面仍为 84。单机，不作跨版本结论 |
+| P3-441 | MCP 导出/选区安全说明指向 save-open-document | done | 四个已打开导出工具与 Writer/Presentation/Spreadsheet 选区变更工具的 `safety_notes` 标明未保存时用 `save-open-document`；离线 schema 测试覆盖。工具面仍为 84 |
+| P3-442 | 表格形状 TextFrame 纯文本选区写回 | done | `spreadsheet-selection-read` 增加 `has_text_frame` 与形状文本；`replace`/`delete` 对带 TextFrame 的 shape 走 `selection-shape-*`（`fill_mode=shape_text`）；图表与无 TextFrame 形状仍 `OBJECT_SELECTION_UNSUPPORTED`；矩阵写形状拒绝。本机：`P3-442-Rect` 读回 `shape`/`has_text_frame`，`P3-442 mark`→`P3-442 done`，`validation_passed=true`、有备份。工具面仍为 84。单机，不作跨版本结论 |
+| P3-443 | 表格图表 ChartTitle 纯文本选区写回 | done | `has_chart_title` + ChartTitle 文本；`replace`/`delete` 走 `selection-chart-title-*`（`fill_mode=chart_title`）；无 ChartTitle API / 系列轴仍拒绝。本机：`P3-443-Chart` 读回 `chart`/`has_chart_title`，`P3-443 title`→`P3-443 done`，`validation_passed=true`、有备份（WPS 选区为 ChartArea，经 `Parent.HasTitle` 识别）。工具面仍为 84。单机，不作跨版本结论 |
 
 进展记录：
+- 2026-10-11: P3-443 已支持工作表图表 ChartTitle 纯文本 replace/delete；系列/轴仍拒绝。离线单测通过。本机 `P3-443-Chart`：读回 `object_kind=chart`/`has_chart_title=true`/`P3-443 title`；`spreadsheet-selection-replace`→`P3-443 done`，`fill_mode=chart_title`、`validation_passed=true`、有备份。WPS ChartObject 选区常为 ChartArea（`ShapeRange` 空），靠 `Selection.Parent.HasTitle` 识别。工具面仍为 84。单机结果，不作跨版本结论。
+- 2026-10-11: P3-442 已支持工作表形状 TextFrame 纯文本 replace/delete；图表仍拒绝。本机 `P3-442-Rect`：`mark`→`done`，`fill_mode=shape_text`、`validation_passed=true`、有备份。工具面仍为 84。单机结果，不作跨版本结论。
+- 2026-10-11: P3-441 已更新 MCP `safety_notes`，导出与选区变更工具未保存拒绝均指向 `save-open-document`；schema 单测通过。工具面仍为 84。
+- 2026-10-11: P3-440 已对本机脏 Writer 补测 HTML 导出：未保存拒绝文案指向 `save-open-document`；保存后导出 38203 字节且源仍打开。工具面仍为 84。单机结果，不作跨版本结论。
+- 2026-10-11: P3-439 已统一 COM `status=unsaved` 错误文案到 `_unsaved_open_document_error`（导出等路径提示 `save-open-document`）；只读文案按 action 区分。工具面仍为 84。
+- 2026-10-11: P3-438 已对本机脏演示补测：`presentation-selection-replace`→`DOCUMENT_HAS_UNSAVED_CHANGES`（无备份），随后 `save-open-document` `wrote=true`/`validation_passed=true`。工具面仍为 84。单机结果，不作跨版本结论。
+- 2026-10-11: P3-437 已将 Writer/Presentation 选区 replace/insert/delete 改为备份前拒绝 `saved=false`（与表格同一 helper）；离线单测通过。本机脏 Writer：`writer-selection-replace`→`DOCUMENT_HAS_UNSAVED_CHANGES`（无备份），随后 `save-open-document` `wrote=true`/`validation_passed=true`。工具面仍为 84。单机结果，不作跨版本结论。
+- 2026-10-11: P3-436 已让表格选区 replace/delete 在 `saved=false` 时备份前拒绝；本机脏工作簿 `$A$1` replace→`DOCUMENT_HAS_UNSAVED_CHANGES`（无备份），随后 `save-open-document` 成功。工具面仍为 84。单机结果，不作跨版本结论。
+- 2026-10-10: P3-435 已对本机已打开演示整形状选区补测：读回 `shapes`/`P3-435-Rect`；replace/delete 均 `SELECTION_SPANS_STRUCTURE`（备份前）；delete 文案改为 `cleared`。工具面仍为 84。单机结果，不作跨版本结论。
+- 2026-10-10: P3-434 已对本机已打开表格 HTML 导出补测公式/显示标记：19565 字节，去标签后 `P3-434-PLAIN` 保留，显示 `15` 与 `x:fmla="=10+5"` 保留。工具面仍为 84。单机结果，不作跨版本结论。
+- 2026-10-10: P3-433 已收紧表格非单元格选区探测并补测矩形形状：读回 `object_kind=shape`/`P3-433-Rect`；replace/delete 均 `OBJECT_SELECTION_UNSUPPORTED`。工具面仍为 84。单机结果，不作跨版本结论。
+- 2026-10-10: P3-432 已对本机公式单元格 `$A$1`（`=1+2`→显示 `3`）补测 `spreadsheet-selection-delete`：清空后无显示文本且无公式，备份与幂等通过。工具面仍为 84。单机结果，不作跨版本结论。
+- 2026-10-10: P3-431 已加离线闸门，防止已打开文档命令引入按页定位参数；`page_info_verified` 仍为 false。工具面仍为 84。
+- 2026-10-10: P3-430 已在 Writer/Presentation 选区替换结果 `note` 中标明纯文本契约（富文本格式保留不支持）。工具面仍为 84。
+- 2026-10-10: P3-429 已对本机已打开表格连续区域 `$A$1:$B$1` 补测 `spreadsheet-selection-delete`：`cells_matched=true`、`validation_passed=true`、有备份、同 request_id 幂等重放。工具面仍为 84。单机结果，不作跨版本结论。
+- 2026-10-10: P3-428 已对本机未命名无路径 Writer 补测：`open-documents` 返回 `document_id=null`/`path_exists=false`；需 `document_id` 的保存无法定位（`DOCUMENT_NOT_FOUND`）。工具面仍为 84。单机结果，不作跨版本结论。
+- 2026-10-10: P3-427 已对本机已打开表格多区域 `$A$1,$C$1` 补测 `spreadsheet-selection-delete`：dry-run 后清空，`cells_matched=true`、`validation_passed=true`、有备份、同 request_id 幂等重放。工具面仍为 84。单机结果，不作跨版本结论。
+- 2026-10-10: P3-426 已将演示/表格 HTML `known_losses` 第三条改为引用 P3-399/P3-403 本机已打开导出证据，不再写“未实测”。工具面仍为 84。
+- 2026-10-10: P3-425 已让表格图表/形状选区拒绝文案按操作区分：`cannot be replaced` / `cannot be cleared`；错误码仍为 `OBJECT_SELECTION_UNSUPPORTED`。工具面仍为 84。
+- 2026-10-10: P3-424 已对本机已打开 Writer 含标题/段落/表格标记的 disposable docx 导出 HTML：`SaveAs2` 317844 字节，四标记保留，源未改未关。矩阵 DOCX→HTML 升为 verified-local。工具面仍为 84。单机结果，不作跨版本结论。
+- 2026-10-10: P3-423 已在本机安装 Playwright 并用 Edge 154 渲染 `fixtures/phase3/html_visual_smoke.html`：PDF 37867 字节、PNG 32159 字节，`network_access=false`；浏览器集成测试 4/4 通过。工具面仍为 84。单机结果，不作跨版本结论。
+- 2026-10-10: P3-422 已对本机已打开表格补测多区域常量填充与图表选区拒绝：`$A$1,$C$1` 填充成功；ChartObject 读回 `object_kind=chart`；replace/delete 均 `OBJECT_SELECTION_UNSUPPORTED`（备份前）。工具面仍为 84。单机结果，不作跨版本结论。
+- 2026-10-09: P3-400 已新增 `presentation-selection-read`；MCP 工具面 72。本机：无窗口打开返回 `SELECTION_UNAVAILABLE`；有窗口时可附着读回 `selection_kind`（单机，不作跨版本结论）。
+- 2026-10-09: P3-401 已新增 `presentation-selection-replace`；MCP 工具面 73。离线覆盖 dry-run、拒绝路径与脚本契约；本机可见窗口文本选区 `P3-401 mark`→`P3-401 done`，`validation_passed=true`（单机，不作跨版本结论）。
+- 2026-10-09: P3-402 已新增 `spreadsheet-selection-read`；MCP 工具面 74。离线覆盖脚本契约与元数据映射；本机可见窗口 `$A$1`→`cell`/`P3-402 mark`（单机，不作跨版本结论）。
+- 2026-10-09: P3-403 已扩展 `export-open-document` 支持表格（临时 `SaveCopyAs` + 副本 `SaveAs` HTML）；工具数仍为 74。本机写出 19479 字节 HTML，`validation_passed=true`（单机，不作跨版本结论）。
+- 2026-10-09: P3-404 已新增 `spreadsheet-selection-replace`；MCP 工具面 75。离线覆盖 dry-run、拒绝路径与脚本契约；本机 `$A$1` `P3-404 mark`→`P3-404 done`，`validation_passed=true`（单机，不作跨版本结论）。
+- 2026-10-10: P3-405 已扩展 `spreadsheet-selection-replace` 支持单区域最多 100 格常量填充；工具数仍为 75。本机 `$A$1:$B$1` 填充 `P3-405 fill`，`cells_matched=true`（单机，不作跨版本结论）。
+- 2026-10-10: P3-406 已扩展 `spreadsheet-selection-replace` 支持 `values_json` 按矩阵逐格写入；工具数仍为 75。本机 `$A$1:$B$1`→`[["c","d"]]`，`validation_passed=true`（单机，不作跨版本结论）。
+- 2026-10-10: P3-407 已扩展 `spreadsheet-selection-replace` 支持多区域常量填充（最多 100 格）；矩阵模式仍拒绝多区域；工具数仍为 75。离线覆盖多区域写回与矩阵拒绝路径。
+- 2026-10-10: P3-408 已扩展 `spreadsheet-selection-read` 对非单元格选区尽力返回 chart/shape 的 `object_kind`/`object_name`；工具数仍为 75。离线覆盖脚本契约与元数据映射；图表/形状写回仍未做。
+- 2026-10-10: P3-409 已让 `spreadsheet-selection-replace` 对图表/形状返回 `OBJECT_SELECTION_UNSUPPORTED`（备份前）；工具数仍为 75。离线覆盖拒绝路径。
+- 2026-10-10: P3-421 已对本机已打开脏表格与脏演示补测 `save-open-document`：dry-run `would_modify=true`，随后 `Save()` 有备份、`wrote=true`、`validation_passed=true`、同 request_id 幂等重放。工具面仍为 84。单机结果，不作跨版本结论。
+- 2026-10-10: P3-420 已对本机已打开演示补测 PDF/原生副本/TXT：`SaveCopyAsThenSaveAsPdf` 21554 字节、`SaveCopyAs` 37198 字节、`ExtractShapeText` 18 字节；三者 `source_unchanged` / `source_still_open` / `validation_passed` 均为 true。工具面仍为 84。单机结果，不作跨版本结论。
+- 2026-10-10: P3-419 已新增 `spreadsheet-selection-delete`；MCP 工具面 84（修改类 30，需 WPS 35，只读 54，spreadsheet 14）。离线覆盖 dry-run、空选区/图表拒绝与脚本不 Quit。本机 WPS 12.0：`$A$1` 上 `P3-419 mark` 经 `ClearContents` 清空，`cells_matched=true`、`validation_passed=true`。单机结果，不作跨版本结论。
+- 2026-10-10: P3-418 已新增 `save-open-document`；MCP 工具面 83（修改类 29，需 WPS 34，只读 54，documents 4）。离线覆盖 dry-run、已保存跳过备份、只读拒绝与脚本不 Quit。本机 WPS 12.0 Writer：打开文档插入脏文本后 `saved=false`，dry-run `would_modify=true`，随后 `Save()` 有备份、`wrote=true`、`validation_passed=true`，同 request_id 幂等重放。演示/表格本机补测见 P3-421。单机结果，不作跨版本结论。
+- 2026-10-10: P3-417 已扩展 `spreadsheet-selection-replace` 的 `values_json` 支持多区域扁平写入；工具数仍为 82。离线覆盖多区域矩阵成功与格数不匹配拒绝。本机 WPS 12.0：选区 `$A$1,$C$1`（`a`/`b`）写入 `[["x","y"]]`，`fill_mode=matrix`、`read_back_values=["x","y"]`、`validation_passed=true`。单机结果，不作跨版本结论。
+- 2026-10-10: P3-416 已新增 `writer-selection-delete` 与 `presentation-selection-delete`；MCP 工具面 82（修改类 28，需 WPS 33，只读 54，writer 9，presentation 5）。离线覆盖 dry-run、拒绝路径、脚本不 Quit 与写回校验。本机 WPS 12.0：Writer 选中 `P3-416-DEL` dry-run 后删除，`validation_passed=true`、有备份、同 request_id 幂等重放；Presentation 文本框选中同标记删除，`read_back_text=""`、`validation_passed=true`。单机结果，不作跨版本结论。
+- 2026-10-10: P3-415 已新增 `export-open-document-text`；MCP 工具面 80（修改类仍为 26，需 WPS 31，只读 54，conversion 12）。离线覆盖三组件导出、非文本拒绝与脚本不 Quit。本机 WPS 12.0：已打开 Writer `SaveAsUnicodeText` 写出 10115 字节 txt；已打开表格 `SaveCopyAsThenUnicodeText` 写出 28 字节 txt。两者 `source_unchanged` / `source_still_open` / `validation_passed` 均为 true。演示仅离线。单机结果，不作跨版本结论。
+- 2026-10-10: P3-414 已新增 `presentation-selection-insert`；MCP 工具面 79（修改类 26，需 WPS 30，只读 53，presentation 4）。选区读取补充折叠光标元数据；离线覆盖 dry-run、拒绝路径与脚本契约。本机 WPS 12.0：空文本框折叠光标 `text_range_start=1` 插入 `P3-414 mark`，`validation_passed=true`（写回用折叠 `TextRange.Text=`，避免个别 build 上 Insert-After 挂起）。单机结果，不作跨版本结论。
+- 2026-10-10: P3-413 已新增 `writer-selection-insert`；MCP 工具面 78（修改类 25，需 WPS 29，只读 53，writer 8）。离线覆盖 dry-run、拒绝路径与脚本契约。本机 WPS 12.0：折叠光标 `start=0` dry-run 后插入 `P3-413 mark`，`read_back_text` 匹配、`validation_passed=true`。单机结果，不作跨版本结论。
+- 2026-10-10: P3-412 已新增 `export-open-document-copy`；MCP 工具面 77（修改类仍为 24，需 WPS 28，只读 53，conversion 11）。离线覆盖三组件 SaveCopyAs、扩展名拒绝与 OOXML 包头校验。本机 WPS 12.0：已打开 Writer 走 `DocumentsAddSaveAs` 回退写出 26721 字节 docx（`PK`）；已打开表格 `SaveCopyAs` 写出 8781 字节 xlsx。两者 `source_unchanged` / `source_still_open` / `validation_passed` 均为 true。演示仅离线。单机结果，不作跨版本结论。
+- 2026-10-10: P3-411 已新增 `export-open-document-pdf`；MCP 工具面 76（修改类仍为 24，需 WPS 27，只读 52，conversion 10）。离线覆盖三组件导出、非 PDF 拒绝与脚本不 Quit。本机 WPS 12.0：已打开 Writer 副本 `ExportAsFixedFormat` 写出 243541 字节 PDF；已打开表格 `ExportAsFixedFormat` 写出 27913 字节 PDF；两者 `source_unchanged` / `source_still_open` / `validation_passed` 均为 true。演示路径仅离线。单机结果，不作跨版本结论。
+- 2026-10-10: P3-410 已新增 HTML→PDF 矩阵样例夹具与离线契约；矩阵状态 pending→partial；本机 `html-render` 因缺 Node `playwright` 未写出真实 PDF。
+- 2026-10-09: P3-399 已支持已打开演示文稿 HTML 导出。`SaveCopyAs(..., 12)` 在本机 Writer/WPP 12.0 上写出真实 HTML（2519 字节 + `export.files`），源哈希不变；无格式的 SaveCopyAs 会写出 PPTX ZIP，已改为强制 HTML 格式并用 `EXPORT_OUTPUT_NOT_HTML` 拦截。表格仍未支持。
+- 2026-10-09: P3-398 已扩展 convert-smoke 到表格/演示 PDF。离线脚本契约测试通过；本机 disposable xlsx→PDF（ExportAsFixedFormat，43219 字节）与 WPS 可打开 pptx→PDF（SaveAs 回退）均成功。残缺 OOXML pptx 可能卡住 WPP，已加强 Close 回退。
+- 2026-10-09: 本机 Writer 12.0 补测只读文档 HTML 导出：`Documents.Open` 只读打开临时副本后 `export-open-document` 成功（SaveAs2，321256 字节），源哈希不变、文档仍打开，结束后无残留进程。不作跨版本结论。
+- 2026-10-09: 清掉看板漂移：删除重复的 P3-097 `next` 行（机器账本早就是 `done`）；同步审计/就绪文档中仍写“P3-307 为 next”的表述。机器账本 341 项均为 `done`，看板无 `next`。
+- 2026-10-09: P3-307 已按 JSON 相等规则拒绝重复 enum。`true` 不与 `1` 冲突，`1` 与 `1.0` 视为重复，重排后的对象成员也视为重复；现有目录 enum 仍通过。全量 589 passed / 66 skipped，safe regression 7/7。账本里不再有 next。
+- 2026-10-09: P3-397 已添加 WPS 版本比较持久化。可解析的组件版本写入工作区 `.wps-agent/wps-versions.json`，命令默认不启动 WPS。
 - 2026-10-09: P3-298 已完成 MCP 配置根节点与 `mcpServers` 对象形状校验；6 种畸形结构均有界失败且不启动子进程，全量测试 477 passed/65 skipped，safe regression 15/15；实现和下一项范围见 `docs\archive\archive/P3_NEXT_MCP_CONFIG_JSON_AMBIGUITY_SCOPE.md`。
 - 2026-10-09: P3-299 已拒绝 MCP 配置中的递归重复成员与 NaN/Infinity 非标准常量；6 种原始 JSON 变体均不 spawn、诊断不泄露配置内容；当前 next 为 P3-300 嵌套深度限制。
 - P3-299 release: 全量 478 passed/65 skipped，local-release-gates 5/5，safe regression passed；package readiness passed，未启动 WPS。

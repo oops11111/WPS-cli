@@ -65,7 +65,7 @@
 
 建议：恢复前从操作记录查找该备份的哈希并比对，不一致返回 `BACKUP_CHANGED_AFTER_CREATION`（该错误码已在 `verify_backup_source` 中使用）。没有记录的旧备份应要求显式确认参数。
 
-### F-04（P1，未在真实 WPS 验证）PowerShell 脚本在 `finally` 中无条件 `$app.Quit()`，可能关闭用户已打开的 WPS 会话
+### F-04（P1，已在真实 WPS 验证）PowerShell 脚本在 `finally` 中无条件 `$app.Quit()`，可能关闭用户已打开的 WPS 会话
 
 位置：`com_backend.py`、`writer_ops.py`、`spreadsheet_ops.py`、`presentation_ops.py` 中约 17 处 `Quit()`。
 
@@ -176,7 +176,7 @@ F-04 到 F-13 已在分支 `cursor/review-batch-1-3-completion-a8c1` 中处理�
 
 | 编号 | 状态 | 说明 |
 | --- | --- | --- |
-| F-04 | 已缓解，未在真实 WPS 验证 | 三个脚本改为只在 `Documents`、`Workbooks`、`Presentations` 都为空时才 `Quit()`（`wps_script_snippets.QUIT_IF_IDLE`）。是否真的会命中用户已有实例仍需 Windows 验证 |
+| F-04 | 已在本机 WPS 验证 | 三个脚本只在 `Documents`、`Workbooks`、`Presentations` 都为空时才 `Quit()`。2026-10-09：先用 `kwps.Application` 打开一份文档并保持可见（PID 31352，`Documents.Count` 为 1），再对同一文件跑 `com-smoke`。冒烟通过，该进程仍在，持有端的文档数始终为 1，说明这次冒烟没有把文档开进同一 `Documents` 集合，也没有退出已打开的实例。关掉这份文档并按空闲条件 `Quit()` 后，`wps`/`et`/`wpp` 进程消失 |
 | F-06 | 已完成 | 三个 PowerShell 运行器统一走 `powershell_runner.run_powershell_script`，超时与启动失败都返回结构化错误 |
 | F-07 | 已完成 | 状态文件损坏返回 `STATE_CORRUPT`，原文件改名隔离，顶层非对象同样处理 |
 | F-08 | 已完成 | 文档 ID 用 `os.path.normcase`，只在大小写不敏感文件系统上折叠 |

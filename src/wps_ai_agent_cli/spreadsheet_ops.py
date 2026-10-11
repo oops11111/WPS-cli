@@ -87,7 +87,10 @@ def read_spreadsheet_range(
         rows = []
         cell_metadata = []
         min_col, min_row, _max_col, _max_row = bounds
-        for row_index, row in enumerate(sheet[range_address]):
+        selected = sheet[range_address]
+        if hasattr(selected, "value"):
+            selected = ((selected,),)
+        for row_index, row in enumerate(selected):
             rows.append([cell.value for cell in row])
             cell_metadata.append([
                 {

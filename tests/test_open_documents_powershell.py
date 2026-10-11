@@ -19,6 +19,7 @@ namespace WpsAgent {
     public static string Mode = Environment.GetEnvironmentVariable("WPSFAKE_MODE") ?? "running";
     public static string Path = Environment.GetEnvironmentVariable("WPSFAKE_PATH") ?? "";
     public static bool Saved = (Environment.GetEnvironmentVariable("WPSFAKE_SAVED") ?? "1") == "1";
+    public static bool ReadOnly = (Environment.GetEnvironmentVariable("WPSFAKE_READONLY") ?? "0") == "1";
     public static string Text = Environment.GetEnvironmentVariable("WPSFAKE_TEXT") ?? "hello brave world";
     public static int SelStart = int.Parse(Environment.GetEnvironmentVariable("WPSFAKE_START") ?? "6");
     public static int SelEnd = int.Parse(Environment.GetEnvironmentVariable("WPSFAKE_END") ?? "11");
@@ -52,7 +53,7 @@ namespace WpsAgent {
     public string Name { get { return System.IO.Path.GetFileName(State.Path); } }
     public string FullName { get { return State.Path; } }
     public bool Saved { get { return State.Saved; } }
-    public bool ReadOnly { get { return false; } }
+    public bool ReadOnly { get { return State.ReadOnly; } }
     public FakeWindow ActiveWindow { get { return new FakeWindow(); } }
     public FakeRange Range(int s, int e) { return new FakeRange(s, e); }
     public void Save() { State.SaveCalls++; State.Saved = true; }
@@ -147,6 +148,10 @@ class GeneratedScriptBehaviourTests(unittest.TestCase):
             unsaved = self.attached("selection-replace", text="x", expected_start=6, expected_end=11, expected_text="brave")
         self.assertEqual(unsaved["data"]["status"], "unsaved")
 
+        with patch.dict(os.environ, {"WPSFAKE_READONLY": "1"}):
+            readonly = self.attached("selection-replace", text="x", expected_start=6, expected_end=11, expected_text="brave")
+        self.assertEqual(readonly["data"]["status"], "read_only")
+
         changed = self.attached("selection-replace", text="x", expected_start=6, expected_end=11, expected_text="BRAVE")
         self.assertEqual(changed["data"]["status"], "selection_changed")
 
@@ -162,6 +167,18 @@ class GeneratedScriptBehaviourTests(unittest.TestCase):
             unsaved = self.attached("export-html", output=str(self.dir / "never.html"))
         self.assertEqual(unsaved["data"]["status"], "unsaved")
         self.assertFalse((self.dir / "never.html").exists())
+
+    def test_export_copies_a_read_only_saved_document(self):
+        output = self.dir / "readonly.html"
+        before = self.document.read_bytes()
+        with patch.dict(os.environ, {"WPSFAKE_READONLY": "1"}):
+            result = self.attached("export-html", output=str(output))
+        self.assertTrue(result["ok"], result)
+        self.assertEqual(result["data"]["status"], "ok")
+        self.assertEqual(result["data"]["export_method"], "SaveAs2")
+        self.assertTrue(result["data"]["source_still_open"])
+        self.assertEqual(output.read_text(encoding="utf-8"), "<html>hello brave world</html>")
+        self.assertEqual(self.document.read_bytes(), before)
 
 
 if __name__ == "__main__":

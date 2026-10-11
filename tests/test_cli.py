@@ -348,6 +348,36 @@ class CliParsingTests(unittest.TestCase):
         self.assertEqual(args.command, "backup-document")
         self.assertEqual(args.task_id, "task_1")
 
+    def test_open_document_parsers_reject_page_number_targeting(self):
+        parser = build_parser()
+        open_doc_commands = [
+            "writer-selection-replace",
+            "writer-selection-insert",
+            "writer-selection-delete",
+            "presentation-selection-replace",
+            "presentation-selection-insert",
+            "presentation-selection-delete",
+            "spreadsheet-selection-replace",
+            "spreadsheet-selection-delete",
+            "save-open-document",
+            "export-open-document",
+            "export-open-document-pdf",
+            "export-open-document-copy",
+            "export-open-document-text",
+        ]
+        for command in open_doc_commands:
+            with self.subTest(command=command):
+                action = next(a for a in parser._subparsers._group_actions if a.dest == "command")
+                sub = action.choices[command]
+                option_strings = {opt for action in sub._actions for opt in (action.option_strings or [])}
+                self.assertNotIn("--page", option_strings)
+                self.assertNotIn("--page-number", option_strings)
+                self.assertNotIn("--page-index", option_strings)
+        html_args = parser.parse_args([
+            "html-render", "--input", "a.html", "--output", "a.pdf", "--format", "pdf", "--page-size", "A4",
+        ])
+        self.assertEqual(html_args.page_size, "A4")
+
     def test_task_recovery_parser_accepts_task_id(self):
         parser = build_parser()
 

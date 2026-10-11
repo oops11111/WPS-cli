@@ -44,6 +44,23 @@ def _mcp_config_audit_server_name(value: str) -> str:
 
 def _add_environment_and_status_commands(subparsers: argparse._SubParsersAction) -> None:
     subparsers.add_parser("inspect-env", help="Inspect OS, pywin32, and WPS ProgID registration.")
+    version_compare_parser = subparsers.add_parser(
+        "wps-version-compare",
+        help="Compare observed WPS component versions with the persisted workspace baseline.",
+    )
+    version_compare_parser.add_argument(
+        "--workspace",
+        default=".",
+        help="Workspace whose .wps-agent/wps-versions.json stores the baseline.",
+    )
+    version_compare_parser.add_argument(
+        "--record",
+        action="store_true",
+        help="Persist parsable observed versions without launching WPS or modifying documents.",
+    )
+    version_compare_parser.add_argument("--writer-version", default=None, help="Observed Writer version.")
+    version_compare_parser.add_argument("--spreadsheets-version", default=None, help="Observed Spreadsheets version.")
+    version_compare_parser.add_argument("--presentation-version", default=None, help="Observed Presentation version.")
     process_audit_parser = subparsers.add_parser(
         "wps-process-audit",
         help="List WPS-related processes and safe cleanup guidance without terminating anything.",
@@ -99,9 +116,13 @@ def _add_conversion_commands(subparsers: argparse._SubParsersAction) -> None:
 
     convert_parser = subparsers.add_parser(
         "convert-smoke",
-        help="Run a Phase 0 WPS conversion smoke test.",
+        help="Convert a Writer, Spreadsheet, or Presentation file to PDF through WPS COM.",
     )
-    convert_parser.add_argument("--component", choices=["writer"], required=True)
+    convert_parser.add_argument(
+        "--component",
+        choices=["writer", "spreadsheets", "presentation"],
+        required=True,
+    )
     convert_parser.add_argument("--input", required=True, help="Input file path.")
     convert_parser.add_argument("--output", required=True, help="Output file path.")
     convert_parser.add_argument("--format", choices=["pdf"], required=True, help="Output format.")
@@ -265,6 +286,158 @@ def _add_document_commands(subparsers: argparse._SubParsersAction) -> None:
     )
     selection_read_parser.add_argument("--document-id", required=True, help="Registered writer document_id.")
 
+    presentation_selection_read_parser = subparsers.add_parser(
+        "presentation-selection-read",
+        help="Read the current selection of a registered Presentation that is open in a running WPS instance.",
+    )
+    presentation_selection_read_parser.add_argument(
+        "--document-id",
+        required=True,
+        help="Registered presentation document_id.",
+    )
+
+    spreadsheet_selection_read_parser = subparsers.add_parser(
+        "spreadsheet-selection-read",
+        help="Read the current selection of a registered Spreadsheet that is open in a running WPS instance, including best-effort chart/shape object metadata for non-range selections.",
+    )
+    spreadsheet_selection_read_parser.add_argument(
+        "--document-id",
+        required=True,
+        help="Registered spreadsheet document_id.",
+    )
+
+    spreadsheet_selection_replace_parser = subparsers.add_parser(
+        "spreadsheet-selection-replace",
+        help="Replace the current cell/range/multi-area selection of an open, saved Spreadsheet with a constant or per-cell matrix, with backup and read-back validation.",
+    )
+    spreadsheet_selection_replace_parser.add_argument(
+        "--document-id",
+        required=True,
+        help="Registered spreadsheet document_id.",
+    )
+    spreadsheet_selection_replace_parser.add_argument(
+        "--text",
+        help="Constant replacement text written to every selected cell, including multi-area (single line, at most 4096 characters). Mutually exclusive with --values-json.",
+    )
+    spreadsheet_selection_replace_parser.add_argument(
+        "--values-json",
+        help=(
+            'Rectangular JSON matrix of cell values. Single-area: shape must match rows×columns. '
+            'Multi-area: row-major flatten onto Areas→Cells order (for example [["a","b"]] for two singleton areas). '
+            "Mutually exclusive with --text."
+        ),
+    )
+    spreadsheet_selection_replace_parser.add_argument(
+        "--expected-selection-text",
+        help="Refuse to write unless the current selection display text equals this value (multi-cell values are TAB-joined).",
+    )
+    spreadsheet_selection_replace_parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Preview the selection replacement without modifying the file.",
+    )
+    spreadsheet_selection_replace_parser.add_argument("--task-id", help="Optional long-running task status id to update.")
+
+    spreadsheet_selection_delete_parser = subparsers.add_parser(
+        "spreadsheet-selection-delete",
+        help="Clear the current cell/range/multi-area selection of an open, saved Spreadsheet with backup and read-back validation.",
+    )
+    spreadsheet_selection_delete_parser.add_argument(
+        "--document-id",
+        required=True,
+        help="Registered spreadsheet document_id.",
+    )
+    spreadsheet_selection_delete_parser.add_argument(
+        "--expected-selection-text",
+        help="Refuse to clear unless the current selection display text equals this value (multi-cell values are TAB-joined).",
+    )
+    spreadsheet_selection_delete_parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Preview the selection deletion without modifying the file.",
+    )
+    spreadsheet_selection_delete_parser.add_argument("--task-id", help="Optional long-running task status id to update.")
+
+    presentation_selection_replace_parser = subparsers.add_parser(
+        "presentation-selection-replace",
+        help="Replace the current text selection of an open, saved Presentation with backup and read-back validation.",
+    )
+    presentation_selection_replace_parser.add_argument(
+        "--document-id",
+        required=True,
+        help="Registered presentation document_id.",
+    )
+    presentation_selection_replace_parser.add_argument(
+        "--text",
+        required=True,
+        help="Replacement text (single line, at most 4096 characters).",
+    )
+    presentation_selection_replace_parser.add_argument(
+        "--expected-selection-text",
+        help="Refuse to write unless the current selection text equals this value.",
+    )
+    presentation_selection_replace_parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Preview the selection replacement without modifying the file.",
+    )
+    presentation_selection_replace_parser.add_argument(
+        "--task-id",
+        help="Optional long-running task status id to update.",
+    )
+
+    presentation_selection_insert_parser = subparsers.add_parser(
+        "presentation-selection-insert",
+        help="Insert text at the collapsed text caret of an open, saved Presentation with backup and read-back validation.",
+    )
+    presentation_selection_insert_parser.add_argument(
+        "--document-id",
+        required=True,
+        help="Registered presentation document_id.",
+    )
+    presentation_selection_insert_parser.add_argument(
+        "--text",
+        required=True,
+        help="Text to insert (single line, at most 4096 characters, nonempty).",
+    )
+    presentation_selection_insert_parser.add_argument(
+        "--expected-start",
+        type=int,
+        help="Refuse to write unless the text caret Start offset equals this value (1-based).",
+    )
+    presentation_selection_insert_parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Preview the caret insert without modifying the file.",
+    )
+    presentation_selection_insert_parser.add_argument(
+        "--task-id",
+        help="Optional long-running task status id to update.",
+    )
+
+    presentation_selection_delete_parser = subparsers.add_parser(
+        "presentation-selection-delete",
+        help="Delete the current text selection of an open, saved Presentation with backup and read-back validation.",
+    )
+    presentation_selection_delete_parser.add_argument(
+        "--document-id",
+        required=True,
+        help="Registered presentation document_id.",
+    )
+    presentation_selection_delete_parser.add_argument(
+        "--expected-selection-text",
+        help="Refuse to delete unless the current selection text equals this value.",
+    )
+    presentation_selection_delete_parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Preview the selection deletion without modifying the file.",
+    )
+    presentation_selection_delete_parser.add_argument(
+        "--task-id",
+        help="Optional long-running task status id to update.",
+    )
+
     selection_replace_parser = subparsers.add_parser(
         "writer-selection-replace",
         help="Replace the current selection text of an open, saved Writer document with backup and read-back validation.",
@@ -277,12 +450,90 @@ def _add_document_commands(subparsers: argparse._SubParsersAction) -> None:
     selection_replace_parser.add_argument("--dry-run", action="store_true", help="Preview the selection replacement without modifying the file.")
     selection_replace_parser.add_argument("--task-id", help="Optional long-running task status id to update.")
 
+    selection_insert_parser = subparsers.add_parser(
+        "writer-selection-insert",
+        help="Insert text at the collapsed caret of an open, saved Writer document with backup and read-back validation.",
+    )
+    selection_insert_parser.add_argument("--document-id", required=True, help="Registered writer document_id.")
+    selection_insert_parser.add_argument("--text", required=True, help="Text to insert (single line, at most 4096 characters, nonempty).")
+    selection_insert_parser.add_argument(
+        "--expected-start",
+        type=int,
+        help="Refuse to write unless the caret start offset equals this value.",
+    )
+    selection_insert_parser.add_argument("--dry-run", action="store_true", help="Preview the caret insert without modifying the file.")
+    selection_insert_parser.add_argument("--task-id", help="Optional long-running task status id to update.")
+
+    selection_delete_parser = subparsers.add_parser(
+        "writer-selection-delete",
+        help="Delete the current selection text of an open, saved Writer document with backup and read-back validation.",
+    )
+    selection_delete_parser.add_argument("--document-id", required=True, help="Registered writer document_id.")
+    selection_delete_parser.add_argument(
+        "--expected-selection-text", help="Refuse to delete unless the current selection text equals this value."
+    )
+    selection_delete_parser.add_argument("--dry-run", action="store_true", help="Preview the selection deletion without modifying the file.")
+    selection_delete_parser.add_argument("--task-id", help="Optional long-running task status id to update.")
+
+    save_open_parser = subparsers.add_parser(
+        "save-open-document",
+        help="Explicitly Save() a registered Writer, Presentation, or Spreadsheet document that is already open on a disk path, with backup when there are unsaved changes.",
+    )
+    save_open_parser.add_argument(
+        "--document-id",
+        required=True,
+        help="Registered writer, presentation, or spreadsheet document_id.",
+    )
+    save_open_parser.add_argument("--dry-run", action="store_true", help="Preview whether Save() would write the open document.")
+    save_open_parser.add_argument("--task-id", help="Optional long-running task status id to update.")
+
     export_open_parser = subparsers.add_parser(
         "export-open-document",
-        help="Export an open, saved Writer document to HTML without closing it or changing the source.",
+        help="Export an open, saved Writer, Presentation, or Spreadsheet document to HTML without closing it or changing the source.",
     )
-    export_open_parser.add_argument("--document-id", required=True, help="Registered writer document_id.")
+    export_open_parser.add_argument(
+        "--document-id",
+        required=True,
+        help="Registered writer, presentation, or spreadsheet document_id.",
+    )
     export_open_parser.add_argument("--output", required=True, help="New .html or .htm output path; existing files are never overwritten.")
+
+    export_open_pdf_parser = subparsers.add_parser(
+        "export-open-document-pdf",
+        help="Export an open, saved Writer, Presentation, or Spreadsheet document to PDF without closing it or changing the source.",
+    )
+    export_open_pdf_parser.add_argument(
+        "--document-id",
+        required=True,
+        help="Registered writer, presentation, or spreadsheet document_id.",
+    )
+    export_open_pdf_parser.add_argument("--output", required=True, help="New .pdf output path; existing files are never overwritten.")
+
+    export_open_copy_parser = subparsers.add_parser(
+        "export-open-document-copy",
+        help="Save a same-format native copy of an open, saved Writer, Presentation, or Spreadsheet document without closing or renaming the source.",
+    )
+    export_open_copy_parser.add_argument(
+        "--document-id",
+        required=True,
+        help="Registered writer, presentation, or spreadsheet document_id.",
+    )
+    export_open_copy_parser.add_argument(
+        "--output",
+        required=True,
+        help="New output path with the same extension as the source; existing files are never overwritten.",
+    )
+
+    export_open_text_parser = subparsers.add_parser(
+        "export-open-document-text",
+        help="Export an open, saved Writer, Presentation, or Spreadsheet document to plain text without closing it or changing the source.",
+    )
+    export_open_text_parser.add_argument(
+        "--document-id",
+        required=True,
+        help="Registered writer, presentation, or spreadsheet document_id.",
+    )
+    export_open_text_parser.add_argument("--output", required=True, help="New .txt output path; existing files are never overwritten.")
 
     validate_parser = subparsers.add_parser(
         "validate-document",

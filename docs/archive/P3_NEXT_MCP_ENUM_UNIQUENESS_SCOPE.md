@@ -18,3 +18,7 @@ Validate MCP schema enum metadata according to JSON value equality rather than P
 - Cover `[true, 1]` as distinct JSON enum values and `[1, 1.0]` according to JSON numeric equality.
 - Confirm current catalog enums remain valid.
 - Run adapter/schema tests, full suite, safe regression, and package readiness.
+
+## Completion
+
+Completed 2026-10-09 in `mcp_adapter.py` with adapter tests covering uniqueness, membership, and catalog enums. Full suite 589 passed/66 skipped; safe regression 7/7. Package-readiness commands were removed earlier (G-07) and were not reintroduced.

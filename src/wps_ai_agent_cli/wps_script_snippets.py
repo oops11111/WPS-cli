@@ -53,4 +53,22 @@ function Find-OpenWriterDocument($app, [string]$path) {
   }
   return $null
 }
+function Find-OpenPresentation($app, [string]$path) {
+  $target = [System.IO.Path]::GetFullPath($path)
+  for ($i = 1; $i -le [int]$app.Presentations.Count; $i++) {
+    $candidate = $app.Presentations.Item($i)
+    try { $full = [System.IO.Path]::GetFullPath([string]$candidate.FullName) } catch { continue }
+    if ([string]::Equals($full, $target, [System.StringComparison]::OrdinalIgnoreCase)) { return $candidate }
+  }
+  return $null
+}
+function Find-OpenWorkbook($app, [string]$path) {
+  $target = [System.IO.Path]::GetFullPath($path)
+  for ($i = 1; $i -le [int]$app.Workbooks.Count; $i++) {
+    $candidate = $app.Workbooks.Item($i)
+    try { $full = [System.IO.Path]::GetFullPath([string]$candidate.FullName) } catch { continue }
+    if ([string]::Equals($full, $target, [System.StringComparison]::OrdinalIgnoreCase)) { return $candidate }
+  }
+  return $null
+}
 '''

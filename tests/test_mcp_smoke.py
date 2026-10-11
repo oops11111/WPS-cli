@@ -68,7 +68,8 @@ class McpSmokeTests(unittest.TestCase):
             result["responses"]["tools_list"]["pages"][0]["tool_count"], 50,
         )
         self.assertEqual(
-            result["responses"]["tools_list"]["pages"][1]["tool_count"], 20,
+            result["responses"]["tools_list"]["pages"][1]["tool_count"],
+            len(list_mcp_tool_schemas()) - 50,
         )
         self.assertEqual(
             result["responses"]["tools_call"]["result"]["structuredContent"]["mcp_call"]["response"]["command"],

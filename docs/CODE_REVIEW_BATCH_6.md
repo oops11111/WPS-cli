@@ -11,7 +11,7 @@
 | G-05 | 已完成 | 补全 `README.md`；`docs/P3_*.md` 已移至 `docs/archive/` |
 | G-04 | 已完成 | 清理 631 个产物与根目录一个游离文件，`artifacts/` 从 653 个文件 13 MB 降到 22 个文件 404 KB，见 `ARTIFACT_INVENTORY.md` |
 | G-02 | 已完成 | 注册表 + `cli_parser.py`；`_handle_*` 已移到 `cli_handlers.py`（经 `build_command_handlers(cli)` 绑定，保留对 `cli` 命名空间的打桩） |
-| G-03 | 已完成（待真实 WPS 验证） | 操作路径 12 处 + inspect/parity/process-audit/capabilities 均走共享运行器；`convert_html_editable` / `export_controlled_html` 抽出路径校验辅助函数 |
+| G-03 | 已完成，12 个修改函数已在本机 WPS 通过 | 操作路径 12 处 + inspect/parity/process-audit/capabilities 均走共享运行器；`convert_html_editable` / `export_controlled_html` 抽出路径校验辅助函数。2026-10-09 用临时副本逐条调用：Writer 替换、表格单元格、书签填充，演示文稿替换，表格写入、公式写入、重命名、新建、复制、标签颜色、隐藏、删除。12/12 通过，结束后没有残留 `wps`/`et`/`wpp` 进程 |
 | G-07 | 已完成 | 删除 15 个自我汇报命令与对应模块，MCP 工具 85 个降到 70 个，见下 |
 
 ## G-06：依赖声明
@@ -94,6 +94,8 @@
 ## 验证
 
 `PYTHONPATH=src python3 -m unittest discover -s tests`：505 个用例通过（用例数从 542 降到 505，减少的是被删除模块的测试）；设置 `WPS_TEST_PWSH` 后同样通过。`mcp-catalog-drift` 与 `security-audit` 通过。`documentation-freshness` 已删除，不再运行。
+
+2026-10-09 本机 WPS profile 重跑 4/4 通过，证据为 `artifacts/regression/wps/regression-run-20261009T072617900044Z-review-wps-20261009-rerun.json`。第一次失败是因为 `convert_smoke_response` 和 `html_render_response` 的 `return` 落在了 `html_roundtrip_export_response` 的返回之后；`spreadsheet_read_response` 从首个提交起就没有返回 `CommandResponse`。三处都已补回。回归清单使用的根目录 `smoke_writer_copy.docx` 曾被 G-04 删掉，已从删除前提交恢复到工作区。同一天补跑 G-03 的 12 个修改函数时，单格范围 `E1` 的读回在只读工作簿里把单元格当成行来迭代，抛出 `TypeError`；`read_spreadsheet_range` 现已把单个单元格收成 1×1 矩阵。
 
 ## 后续补完（原审查未改项）
 

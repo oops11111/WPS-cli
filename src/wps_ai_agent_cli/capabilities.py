@@ -82,8 +82,10 @@ def _probe_wps_capabilities(
                 else:
                     pythoncom.CLSIDFromProgID(prog_id)
                 return True, None
-            except Exception as exc:  # pragma: no cover - depends on local COM registry
+            except Exception as exc:
                 pywin32_error = exc.__class__.__name__
+                if clsid_resolver is not None:
+                    return False, pywin32_error
         else:
             pywin32_error = "pywin32_missing"
 

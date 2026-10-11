@@ -272,6 +272,80 @@ try {{
     return {"ok": True, "errors": [], "data": payload}
 
 
+_CONVERSION_PDF_SPECS: dict[str, dict[str, Any]] = {
+    "writer": {
+        "direction": "docx_to_pdf",
+        "open": "$document = $app.Documents.Open($params.input_path)",
+        "export": """
+  try {
+    $document.ExportAsFixedFormat($params.output_path, 17)
+    $method = 'ExportAsFixedFormat'
+  } catch {
+    $document.SaveAs($params.output_path, 17)
+    $method = 'SaveAs'
+  }
+""",
+        "retained": [
+            "text content",
+            "page layout",
+            "basic tables",
+            "embedded images where supported by WPS",
+        ],
+        "known_losses": [
+            "PDF output is not editable as native WPS content",
+            "interactive Word fields may be flattened",
+            "result depends on installed WPS PDF export behavior",
+        ],
+    },
+    "spreadsheets": {
+        "direction": "xlsx_to_pdf",
+        "open": "$document = $app.Workbooks.Open($params.input_path)",
+        "export": """
+  try {
+    $document.ExportAsFixedFormat(0, $params.output_path)
+    $method = 'ExportAsFixedFormat'
+  } catch {
+    $document.ExportAsFixedFormat($params.output_path, 0)
+    $method = 'ExportAsFixedFormatAlt'
+  }
+""",
+        "retained": [
+            "worksheet cell values as laid out for printing",
+            "basic sheet page breaks where WPS honors them",
+        ],
+        "known_losses": [
+            "PDF is not an editable workbook",
+            "formulas are flattened to displayed values",
+            "print area, page setup, and hidden sheets affect which cells appear",
+            "result depends on installed WPS PDF export behavior",
+        ],
+    },
+    "presentation": {
+        "direction": "pptx_to_pdf",
+        "open": "$document = $app.Presentations.Open($params.input_path, $false, $false, $false)",
+        "export": """
+  try {
+    $document.ExportAsFixedFormat($params.output_path, 2)
+    $method = 'ExportAsFixedFormat'
+  } catch {
+    $document.SaveAs($params.output_path, 32)
+    $method = 'SaveAs'
+  }
+""",
+        "retained": [
+            "slide order",
+            "visible slide content where supported by WPS",
+        ],
+        "known_losses": [
+            "PDF is not an editable presentation",
+            "animations and transitions are flattened",
+            "fonts and media fidelity depend on the installed WPS build",
+            "result depends on installed WPS PDF export behavior",
+        ],
+    },
+}
+
+
 def run_conversion_smoke(
     component: str,
     input_path: str,
@@ -281,27 +355,28 @@ def run_conversion_smoke(
     validation_errors = validate_smoke_inputs(component, input_path, output_path)
     if validation_errors:
         return {"ok": False, "errors": validation_errors, "data": {}}
-    if component != "writer" or output_format.lower() != "pdf":
+    spec = _CONVERSION_PDF_SPECS.get(component)
+    if spec is None or output_format.lower() != "pdf":
         return {
             "ok": False,
             "errors": [
                 {
                     "code": UNSUPPORTED_COMPONENT,
-                    "message": "Only writer to pdf conversion smoke is implemented in Phase 0.",
+                    "message": "Only writer, spreadsheets, and presentation to pdf conversion smoke is implemented.",
                 }
             ],
             "data": {},
         }
 
     capabilities = probe_wps_capabilities()
-    selected_prog_id = capabilities["components"]["writer"]["selected_prog_id"]
+    selected_prog_id = capabilities["components"][component]["selected_prog_id"]
     if not selected_prog_id:
         return {
             "ok": False,
             "errors": [
                 {
                     "code": COM_BACKEND_UNAVAILABLE,
-                    "message": "No registered WPS ProgID detected for writer.",
+                    "message": f"No registered WPS ProgID detected for {component}.",
                 }
             ],
             "data": {"capabilities": capabilities},
@@ -311,6 +386,10 @@ def run_conversion_smoke(
         "prog_id": selected_prog_id,
         "input_path": str(Path(input_path).resolve()),
         "output_path": str(Path(output_path).resolve()),
+        "component": component,
+        "direction": spec["direction"],
+        "retained": spec["retained"],
+        "known_losses": spec["known_losses"],
     }
     params_json = json.dumps(params)
     script = f"""
@@ -323,14 +402,8 @@ $document = $null
 try {{
   $app = New-Object -ComObject $params.prog_id
   try {{ $app.Visible = $false }} catch {{ }}
-  $document = $app.Documents.Open($params.input_path)
-  try {{
-    $document.ExportAsFixedFormat($params.output_path, 17)
-    $method = 'ExportAsFixedFormat'
-  }} catch {{
-    $document.SaveAs($params.output_path, 17)
-    $method = 'SaveAs'
-  }}
+  {spec["open"]}
+  {spec["export"]}
   $exists = Test-Path $params.output_path
   $length = if ($exists) {{ (Get-Item $params.output_path).Length }} else {{ 0 }}
   $passed = $exists -and ($length -gt 0)
@@ -338,14 +411,14 @@ try {{
   [pscustomobject]@{{
     ok = $passed
     backend = 'powershell-com'
-    component = 'writer'
+    component = $params.component
     prog_id = $params.prog_id
     input_path = $params.input_path
     output_path = $params.output_path
-    direction = 'docx_to_pdf'
+    direction = $params.direction
     conversion_method = $method
-    retained = @('text content', 'page layout', 'basic tables', 'embedded images where supported by WPS')
-    known_losses = @('PDF output is not editable as native WPS content', 'interactive Word fields may be flattened', 'result depends on installed WPS PDF export behavior')
+    retained = @($params.retained)
+    known_losses = @($params.known_losses)
     output_exists = $exists
     output_bytes = $length
   }} | ConvertTo-Json -Depth 5
@@ -353,7 +426,7 @@ try {{
   [pscustomobject]@{{
     ok = $false
     backend = 'powershell-com'
-    component = 'writer'
+    component = $params.component
     prog_id = $params.prog_id
     error_type = $_.Exception.GetType().FullName
     error_message = $_.Exception.Message
@@ -362,7 +435,9 @@ try {{
   exit 2
 }} finally {{
   if ($document -ne $null) {{
-    try {{ $document.Close($false) }} catch {{ }}
+    try {{ $document.Close($false) }} catch {{
+      try {{ $document.Close() }} catch {{ }}
+    }}
     try {{ [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($document) }} catch {{ }}
   }}
   if ($app -ne $null) {{
@@ -373,7 +448,7 @@ try {{
   [GC]::WaitForPendingFinalizers()
 }}
 """
-    payload, failure = run_powershell_script(script, 120, failure_data={"component": "writer"})
+    payload, failure = run_powershell_script(script, 120, failure_data={"component": component})
     if failure is not None:
         return failure
 

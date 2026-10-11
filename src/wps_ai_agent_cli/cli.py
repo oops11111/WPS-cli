@@ -33,6 +33,7 @@ from .operations import get_operation, inspect_mutation_request, list_operations
 from .phases import list_phases
 from .performance import capture_performance_baseline
 from .process_audit import audit_wps_processes
+from .wps_versions import compare_wps_versions
 from .presentation_ops import presentation_replace
 from .regression import load_regression_manifest, list_regression_scenarios, run_regression_manifest
 from .security_audit import build_security_boundary_audit
@@ -55,8 +56,21 @@ from .tasks import list_tasks
 from .validators import validate_document
 from .open_documents import (
     export_open_document_html,
+    export_open_document_pdf,
+    export_open_document_copy,
+    export_open_document_text,
+    save_open_document,
     list_open_documents,
+    read_presentation_selection,
+    read_spreadsheet_selection,
     read_writer_selection,
+    delete_presentation_selection,
+    delete_spreadsheet_selection,
+    delete_writer_selection,
+    insert_presentation_selection,
+    insert_writer_selection,
+    replace_presentation_selection,
+    replace_spreadsheet_selection,
     replace_writer_selection,
 )
 from .writer_ops import writer_fill_bookmark, writer_replace, writer_table_write
@@ -130,6 +144,57 @@ def inspect_env_response(request_id: str) -> CommandResponse:
         summary="Environment capability probe completed.",
         data=data,
         validation=ValidationResult(status=status, checks=checks),
+    )
+
+
+def wps_version_compare_response(
+    request_id: str,
+    workspace: str,
+    record: bool,
+    writer_version: str | None,
+    spreadsheets_version: str | None,
+    presentation_version: str | None,
+) -> CommandResponse:
+    ok, result, errors = compare_wps_versions(
+        workspace,
+        {
+            "writer": writer_version,
+            "spreadsheets": spreadsheets_version,
+            "presentation": presentation_version,
+        },
+        record=record,
+    )
+    comparisons = result.get("comparisons", [])
+    unparsable = any(item.get("relation", "").startswith("unparsable") for item in comparisons)
+    if not ok:
+        status = "failed"
+    elif unparsable:
+        status = "warning"
+    else:
+        status = "passed"
+    return CommandResponse(
+        ok=ok,
+        command="wps-version-compare",
+        request_id=request_id,
+        backend=BACKEND,
+        summary="WPS version comparison completed." if ok else "WPS version comparison failed.",
+        data={"wps_version_compare": result},
+        validation=ValidationResult(
+            status=status,
+            checks=[
+                {
+                    "name": "baseline_compared",
+                    "passed": ok,
+                    "details": result.get("state_path"),
+                },
+                {
+                    "name": "versions_recorded",
+                    "passed": (not record) or bool(result.get("persisted")),
+                    "details": {"record_requested": record, "persisted": result.get("persisted", False)},
+                },
+            ],
+        ),
+        errors=errors,
     )
 
 
@@ -325,6 +390,34 @@ def convert_smoke_response(
         output_path=output_path,
         output_format=output_format,
     )
+    return CommandResponse(
+        ok=result["ok"],
+        command="convert-smoke",
+        request_id=request_id,
+        backend="wps-com",
+        summary=(
+            "Conversion smoke run completed."
+            if result["ok"]
+            else "Conversion smoke run could not complete."
+        ),
+        data=result["data"],
+        validation=ValidationResult(
+            status="passed" if result["ok"] else "failed",
+            checks=[
+                {
+                    "name": "output_file_created",
+                    "passed": result["ok"],
+                    "details": result["data"].get("output_path") if result["data"] else None,
+                },
+                {
+                    "name": "output_file_non_empty",
+                    "passed": result["ok"],
+                    "details": result["data"].get("output_bytes") if result["data"] else None,
+                },
+            ],
+        ),
+        errors=result["errors"],
+    )
 
 
 def html_render_response(request_id: str, input_path: str, output_path: str, output_format: str,
@@ -334,6 +427,14 @@ def html_render_response(request_id: str, input_path: str, output_path: str, out
         input_path, output_path, output_format, page_size=page_size,
         viewport_width=viewport_width, viewport_height=viewport_height,
         timeout_seconds=timeout_seconds, allow_javascript=allow_javascript,
+    )
+    return CommandResponse(
+        ok=ok, command="html-render", request_id=request_id, backend="playwright-edge",
+        summary="HTML rendered successfully." if ok else "HTML rendering could not complete.",
+        data=data, validation=ValidationResult(
+            status="passed" if ok else "failed",
+            checks=[{"name": "output_artifact_verified", "passed": ok, "details": data.get("output_path")}],
+        ), errors=errors,
     )
 
 
@@ -445,42 +546,6 @@ def html_roundtrip_export_response(request_id: str, document_path: str, mapping_
             {"name": "owned_html_v1_created", "passed": ok, "details": data.get("output_path")},
             {"name": "all_mapped_object_ids_exported", "passed": ok, "details": data.get("exported_object_count")},
         ]), errors=errors,
-    )
-    return CommandResponse(
-        ok=ok, command="html-render", request_id=request_id, backend="playwright-edge",
-        summary="HTML rendered successfully." if ok else "HTML rendering could not complete.",
-        data=data, validation=ValidationResult(
-            status="passed" if ok else "failed",
-            checks=[{"name": "output_artifact_verified", "passed": ok, "details": data.get("output_path")}],
-        ), errors=errors,
-    )
-    return CommandResponse(
-        ok=result["ok"],
-        command="convert-smoke",
-        request_id=request_id,
-        backend="wps-com",
-        summary=(
-            "Conversion smoke run completed."
-            if result["ok"]
-            else "Conversion smoke run could not complete."
-        ),
-        data=result["data"],
-        validation=ValidationResult(
-            status="passed" if result["ok"] else "failed",
-            checks=[
-                {
-                    "name": "output_file_created",
-                    "passed": result["ok"],
-                    "details": result["data"].get("output_path") if result["data"] else None,
-                },
-                {
-                    "name": "output_file_non_empty",
-                    "passed": result["ok"],
-                    "details": result["data"].get("output_bytes") if result["data"] else None,
-                },
-            ],
-        ),
-        errors=result["errors"],
     )
 
 
@@ -612,6 +677,103 @@ def writer_selection_read_response(request_id: str, document_id: str) -> Command
     )
 
 
+def presentation_selection_read_response(request_id: str, document_id: str) -> CommandResponse:
+    ok, result, errors = read_presentation_selection(document_id)
+    return CommandResponse(
+        ok=ok,
+        command="presentation-selection-read",
+        request_id=request_id,
+        backend="wps-com",
+        summary="Presentation selection read." if ok else "Presentation selection could not be read.",
+        data=result,
+        validation=ValidationResult(status="not_applicable"),
+        errors=errors,
+    )
+
+
+def spreadsheet_selection_read_response(request_id: str, document_id: str) -> CommandResponse:
+    ok, result, errors = read_spreadsheet_selection(document_id)
+    return CommandResponse(
+        ok=ok,
+        command="spreadsheet-selection-read",
+        request_id=request_id,
+        backend="wps-com",
+        summary="Spreadsheet selection read." if ok else "Spreadsheet selection could not be read.",
+        data=result,
+        validation=ValidationResult(status="not_applicable"),
+        errors=errors,
+    )
+
+
+def spreadsheet_selection_replace_response(
+    request_id: str,
+    document_id: str,
+    text: str | None,
+    values_json: str | None,
+    expected_selection_text: str | None,
+    dry_run: bool,
+) -> CommandResponse:
+    values = None
+    if values_json is not None:
+        try:
+            values = json.loads(values_json)
+        except json.JSONDecodeError as exc:
+            return CommandResponse(
+                ok=False,
+                command="spreadsheet-selection-replace",
+                request_id=request_id,
+                backend="wps-com",
+                summary="Spreadsheet selection replace could not parse values_json.",
+                data={},
+                validation=ValidationResult(status="failed"),
+                errors=[{"code": "INVALID_JSON", "message": str(exc)}],
+            )
+    ok, result, errors, replayed = replace_spreadsheet_selection(
+        document_id,
+        text,
+        request_id,
+        values=values,
+        expected_selection_text=expected_selection_text,
+        dry_run=dry_run,
+    )
+    return CommandResponse(
+        ok=ok,
+        command="spreadsheet-selection-replace",
+        request_id=request_id,
+        backend="wps-com",
+        summary=(
+            "Spreadsheet selection replace request replayed from idempotency record."
+            if replayed
+            else "Spreadsheet selection replace dry-run completed."
+            if dry_run and ok
+            else "Spreadsheet selection replace completed."
+            if ok
+            else "Spreadsheet selection replace could not complete."
+        ),
+        data=result,
+        validation=ValidationResult(
+            status="passed" if ok else "failed",
+            checks=[
+                {
+                    "name": "backup_created",
+                    "passed": bool(dry_run or result.get("backup", {}).get("created") or replayed),
+                    "details": result.get("backup", {}).get("backup_path"),
+                },
+                {
+                    "name": "selection_write_validated",
+                    "passed": bool(dry_run or result.get("validation_passed") or replayed),
+                    "details": {
+                        "read_back_text": result.get("read_back_text"),
+                        "replacement_text": result.get("replacement_text"),
+                        "fill_mode": result.get("fill_mode"),
+                    },
+                },
+            ],
+        ),
+        errors=errors,
+    )
+
+
 def writer_selection_replace_response(
     request_id: str,
     document_id: str,
@@ -663,6 +825,359 @@ def writer_selection_replace_response(
     )
 
 
+def writer_selection_insert_response(
+    request_id: str,
+    document_id: str,
+    text: str,
+    expected_start: int | None,
+    dry_run: bool,
+) -> CommandResponse:
+    ok, result, errors, replayed = insert_writer_selection(
+        document_id=document_id,
+        text=text,
+        request_id=request_id,
+        expected_start=expected_start,
+        dry_run=dry_run,
+    )
+    return CommandResponse(
+        ok=ok,
+        command="writer-selection-insert",
+        request_id=request_id,
+        backend="wps-com",
+        summary=(
+            "Writer selection insert request replayed from idempotency record."
+            if replayed
+            else "Writer selection insert dry-run completed."
+            if dry_run and ok
+            else "Writer selection insert completed."
+            if ok
+            else "Writer selection insert could not complete."
+        ),
+        data=result,
+        validation=ValidationResult(
+            status="passed" if ok else "failed",
+            checks=[
+                {
+                    "name": "backup_created",
+                    "passed": bool(dry_run or result.get("backup", {}).get("created") or replayed),
+                    "details": result.get("backup", {}).get("backup_path"),
+                },
+                {
+                    "name": "selection_insert_validated",
+                    "passed": bool(dry_run or result.get("validation_passed") or replayed),
+                    "details": {
+                        "read_back_text": result.get("read_back_text"),
+                        "insert_text": result.get("insert_text"),
+                    },
+                },
+            ],
+        ),
+        errors=errors,
+    )
+
+
+def writer_selection_delete_response(
+    request_id: str,
+    document_id: str,
+    expected_selection_text: str | None,
+    dry_run: bool,
+) -> CommandResponse:
+    ok, result, errors, replayed = delete_writer_selection(
+        document_id=document_id,
+        request_id=request_id,
+        expected_selection_text=expected_selection_text,
+        dry_run=dry_run,
+    )
+    return CommandResponse(
+        ok=ok,
+        command="writer-selection-delete",
+        request_id=request_id,
+        backend="wps-com",
+        summary=(
+            "Writer selection delete request replayed from idempotency record."
+            if replayed
+            else "Writer selection delete dry-run completed."
+            if dry_run and ok
+            else "Writer selection delete completed."
+            if ok
+            else "Writer selection delete could not complete."
+        ),
+        data=result,
+        validation=ValidationResult(
+            status="passed" if ok else "failed",
+            checks=[
+                {
+                    "name": "backup_created",
+                    "passed": bool(dry_run or result.get("backup", {}).get("created") or replayed),
+                    "details": result.get("backup", {}).get("backup_path"),
+                },
+                {
+                    "name": "selection_delete_validated",
+                    "passed": bool(dry_run or result.get("validation_passed") or replayed),
+                    "details": {
+                        "read_back_text": result.get("read_back_text"),
+                        "deleted_text": result.get("deleted_text"),
+                    },
+                },
+            ],
+        ),
+        errors=errors,
+    )
+
+
+def spreadsheet_selection_delete_response(
+    request_id: str,
+    document_id: str,
+    expected_selection_text: str | None,
+    dry_run: bool,
+) -> CommandResponse:
+    ok, result, errors, replayed = delete_spreadsheet_selection(
+        document_id=document_id,
+        request_id=request_id,
+        expected_selection_text=expected_selection_text,
+        dry_run=dry_run,
+    )
+    return CommandResponse(
+        ok=ok,
+        command="spreadsheet-selection-delete",
+        request_id=request_id,
+        backend="wps-com",
+        summary=(
+            "Spreadsheet selection delete request replayed from idempotency record."
+            if replayed
+            else "Spreadsheet selection delete dry-run completed."
+            if dry_run and ok
+            else "Spreadsheet selection delete completed."
+            if ok
+            else "Spreadsheet selection delete could not complete."
+        ),
+        data=result,
+        validation=ValidationResult(
+            status="passed" if ok else "failed",
+            checks=[
+                {
+                    "name": "backup_created",
+                    "passed": bool(dry_run or result.get("backup", {}).get("created") or replayed),
+                    "details": result.get("backup", {}).get("backup_path"),
+                },
+                {
+                    "name": "selection_delete_validated",
+                    "passed": bool(dry_run or result.get("validation_passed") or replayed),
+                    "details": {
+                        "read_back_text": result.get("read_back_text"),
+                        "deleted_text": result.get("deleted_text"),
+                    },
+                },
+            ],
+        ),
+        errors=errors,
+    )
+
+
+def presentation_selection_replace_response(
+    request_id: str,
+    document_id: str,
+    text: str,
+    expected_selection_text: str | None,
+    dry_run: bool,
+) -> CommandResponse:
+    ok, result, errors, replayed = replace_presentation_selection(
+        document_id=document_id,
+        text=text,
+        request_id=request_id,
+        expected_selection_text=expected_selection_text,
+        dry_run=dry_run,
+    )
+    return CommandResponse(
+        ok=ok,
+        command="presentation-selection-replace",
+        request_id=request_id,
+        backend="wps-com",
+        summary=(
+            "Presentation selection replace request replayed from idempotency record."
+            if replayed
+            else "Presentation selection replace dry-run completed."
+            if dry_run and ok
+            else "Presentation selection replace completed."
+            if ok
+            else "Presentation selection replace could not complete."
+        ),
+        data=result,
+        validation=ValidationResult(
+            status="passed" if ok else "failed",
+            checks=[
+                {
+                    "name": "backup_created",
+                    "passed": bool(dry_run or result.get("backup", {}).get("created") or replayed),
+                    "details": result.get("backup", {}).get("backup_path"),
+                },
+                {
+                    "name": "selection_write_validated",
+                    "passed": bool(dry_run or result.get("validation_passed") or replayed),
+                    "details": {
+                        "read_back_text": result.get("read_back_text"),
+                        "replacement_text": result.get("replacement_text"),
+                    },
+                },
+            ],
+        ),
+        errors=errors,
+    )
+
+
+def presentation_selection_insert_response(
+    request_id: str,
+    document_id: str,
+    text: str,
+    expected_start: int | None,
+    dry_run: bool,
+) -> CommandResponse:
+    ok, result, errors, replayed = insert_presentation_selection(
+        document_id=document_id,
+        text=text,
+        request_id=request_id,
+        expected_start=expected_start,
+        dry_run=dry_run,
+    )
+    return CommandResponse(
+        ok=ok,
+        command="presentation-selection-insert",
+        request_id=request_id,
+        backend="wps-com",
+        summary=(
+            "Presentation selection insert request replayed from idempotency record."
+            if replayed
+            else "Presentation selection insert dry-run completed."
+            if dry_run and ok
+            else "Presentation selection insert completed."
+            if ok
+            else "Presentation selection insert could not complete."
+        ),
+        data=result,
+        validation=ValidationResult(
+            status="passed" if ok else "failed",
+            checks=[
+                {
+                    "name": "backup_created",
+                    "passed": bool(dry_run or result.get("backup", {}).get("created") or replayed),
+                    "details": result.get("backup", {}).get("backup_path"),
+                },
+                {
+                    "name": "selection_insert_validated",
+                    "passed": bool(dry_run or result.get("validation_passed") or replayed),
+                    "details": {
+                        "read_back_text": result.get("read_back_text"),
+                        "insert_text": result.get("insert_text"),
+                    },
+                },
+            ],
+        ),
+        errors=errors,
+    )
+
+
+def presentation_selection_delete_response(
+    request_id: str,
+    document_id: str,
+    expected_selection_text: str | None,
+    dry_run: bool,
+) -> CommandResponse:
+    ok, result, errors, replayed = delete_presentation_selection(
+        document_id=document_id,
+        request_id=request_id,
+        expected_selection_text=expected_selection_text,
+        dry_run=dry_run,
+    )
+    return CommandResponse(
+        ok=ok,
+        command="presentation-selection-delete",
+        request_id=request_id,
+        backend="wps-com",
+        summary=(
+            "Presentation selection delete request replayed from idempotency record."
+            if replayed
+            else "Presentation selection delete dry-run completed."
+            if dry_run and ok
+            else "Presentation selection delete completed."
+            if ok
+            else "Presentation selection delete could not complete."
+        ),
+        data=result,
+        validation=ValidationResult(
+            status="passed" if ok else "failed",
+            checks=[
+                {
+                    "name": "backup_created",
+                    "passed": bool(dry_run or result.get("backup", {}).get("created") or replayed),
+                    "details": result.get("backup", {}).get("backup_path"),
+                },
+                {
+                    "name": "selection_delete_validated",
+                    "passed": bool(dry_run or result.get("validation_passed") or replayed),
+                    "details": {
+                        "read_back_text": result.get("read_back_text"),
+                        "deleted_text": result.get("deleted_text"),
+                    },
+                },
+            ],
+        ),
+        errors=errors,
+    )
+
+
+def save_open_document_response(
+    request_id: str,
+    document_id: str,
+    dry_run: bool,
+) -> CommandResponse:
+    ok, result, errors, replayed = save_open_document(
+        document_id=document_id,
+        request_id=request_id,
+        dry_run=dry_run,
+    )
+    return CommandResponse(
+        ok=ok,
+        command="save-open-document",
+        request_id=request_id,
+        backend="wps-com",
+        summary=(
+            "Open document save request replayed from idempotency record."
+            if replayed
+            else "Open document save dry-run completed."
+            if dry_run and ok
+            else "Open document saved."
+            if ok
+            else "Open document could not be saved."
+        ),
+        data=result,
+        validation=ValidationResult(
+            status="passed" if ok else "failed",
+            checks=[
+                {
+                    "name": "backup_created",
+                    "passed": bool(
+                        dry_run
+                        or not result.get("would_modify")
+                        or result.get("backup", {}).get("created")
+                        or replayed
+                    ),
+                    "details": (result.get("backup") or {}).get("backup_path"),
+                },
+                {
+                    "name": "save_validated",
+                    "passed": bool(dry_run or result.get("validation_passed") or replayed),
+                    "details": {
+                        "saved": result.get("saved"),
+                        "wrote": result.get("wrote"),
+                        "source_still_open": result.get("source_still_open"),
+                    },
+                },
+            ],
+        ),
+        errors=errors,
+    )
+
+
 def export_open_document_response(request_id: str, document_id: str, output: str) -> CommandResponse:
     ok, result, errors, replayed = export_open_document_html(
         document_id=document_id, output=output, request_id=request_id,
@@ -678,6 +1193,90 @@ def export_open_document_response(request_id: str, document_id: str, output: str
             else "Open document exported to HTML."
             if ok
             else "Open document could not be exported."
+        ),
+        data=result,
+        validation=ValidationResult(
+            status="passed" if ok else "failed",
+            checks=[
+                {"name": "output_created", "passed": bool(ok), "details": result.get("output")},
+                {"name": "source_unchanged", "passed": bool(result.get("source_unchanged")), "details": result.get("source_path")},
+            ],
+        ),
+        errors=errors,
+    )
+
+
+def export_open_document_pdf_response(request_id: str, document_id: str, output: str) -> CommandResponse:
+    ok, result, errors, replayed = export_open_document_pdf(
+        document_id=document_id, output=output, request_id=request_id,
+    )
+    return CommandResponse(
+        ok=ok,
+        command="export-open-document-pdf",
+        request_id=request_id,
+        backend="wps-com",
+        summary=(
+            "Open document PDF export request replayed from idempotency record."
+            if replayed
+            else "Open document exported to PDF."
+            if ok
+            else "Open document could not be exported to PDF."
+        ),
+        data=result,
+        validation=ValidationResult(
+            status="passed" if ok else "failed",
+            checks=[
+                {"name": "output_created", "passed": bool(ok), "details": result.get("output")},
+                {"name": "source_unchanged", "passed": bool(result.get("source_unchanged")), "details": result.get("source_path")},
+            ],
+        ),
+        errors=errors,
+    )
+
+
+def export_open_document_copy_response(request_id: str, document_id: str, output: str) -> CommandResponse:
+    ok, result, errors, replayed = export_open_document_copy(
+        document_id=document_id, output=output, request_id=request_id,
+    )
+    return CommandResponse(
+        ok=ok,
+        command="export-open-document-copy",
+        request_id=request_id,
+        backend="wps-com",
+        summary=(
+            "Open document native copy request replayed from idempotency record."
+            if replayed
+            else "Open document copied to a new native-format path."
+            if ok
+            else "Open document could not be copied."
+        ),
+        data=result,
+        validation=ValidationResult(
+            status="passed" if ok else "failed",
+            checks=[
+                {"name": "output_created", "passed": bool(ok), "details": result.get("output")},
+                {"name": "source_unchanged", "passed": bool(result.get("source_unchanged")), "details": result.get("source_path")},
+            ],
+        ),
+        errors=errors,
+    )
+
+
+def export_open_document_text_response(request_id: str, document_id: str, output: str) -> CommandResponse:
+    ok, result, errors, replayed = export_open_document_text(
+        document_id=document_id, output=output, request_id=request_id,
+    )
+    return CommandResponse(
+        ok=ok,
+        command="export-open-document-text",
+        request_id=request_id,
+        backend="wps-com",
+        summary=(
+            "Open document text export request replayed from idempotency record."
+            if replayed
+            else "Open document exported to plain text."
+            if ok
+            else "Open document could not be exported to plain text."
         ),
         data=result,
         validation=ValidationResult(
@@ -1871,6 +2470,23 @@ def spreadsheet_read_response(
         document_id=document_id,
         range_address=range_address,
         sheet_name=sheet_name,
+    )
+    return CommandResponse(
+        ok=ok,
+        command="spreadsheet-read",
+        request_id=request_id,
+        backend=BACKEND,
+        summary="Spreadsheet range read completed." if ok else "Spreadsheet range read failed.",
+        data=result,
+        validation=ValidationResult(
+            status="passed" if ok else "failed",
+            checks=[{
+                "name": "range_values_read",
+                "passed": bool(ok and "values" in result),
+                "details": result.get("range"),
+            }],
+        ),
+        errors=errors,
     )
 
 

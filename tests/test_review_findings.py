@@ -1,3 +1,4 @@
+import ast
 import io
 import json
 import os
@@ -9,7 +10,12 @@ from unittest.mock import patch
 
 from wps_ai_agent_cli import com_backend
 from wps_ai_agent_cli.backups import create_backup, guarded_com_mutation, restore_backup
-from wps_ai_agent_cli.cli import _with_optional_task_status
+from wps_ai_agent_cli.cli import (
+    _with_optional_task_status,
+    convert_smoke_response,
+    html_render_response,
+    spreadsheet_read_response,
+)
 from wps_ai_agent_cli.models import CommandResponse, ValidationResult
 from wps_ai_agent_cli.sessions import register_document
 from wps_ai_agent_cli.task_status import get_task_status
@@ -154,6 +160,47 @@ class SmokeOutputGuardTests(unittest.TestCase):
                 result = com_backend.run_conversion_smoke("writer", str(source), str(target), "pdf")
             self.assertFalse(result["ok"])
             self.assertEqual(result["errors"][0]["code"], "COM_OPERATION_TIMEOUT")
+
+
+class ResponseReturnTests(unittest.TestCase):
+    def test_command_response_functions_contain_a_return(self):
+        source = Path("src/wps_ai_agent_cli/cli.py").read_text(encoding="utf-8")
+        tree = ast.parse(source)
+        missing = []
+        for node in tree.body:
+            if not isinstance(node, ast.FunctionDef) or node.returns is None:
+                continue
+            annotation = ast.unparse(node.returns)
+            if "CommandResponse" not in annotation:
+                continue
+            if not any(isinstance(child, ast.Return) and child.value is not None for child in ast.walk(node)):
+                missing.append(node.name)
+        self.assertEqual(missing, [])
+
+    def test_convert_smoke_and_html_render_return_command_responses(self):
+        with patch("wps_ai_agent_cli.cli.run_conversion_smoke", return_value={
+            "ok": True, "data": {"output_path": "out.pdf", "output_bytes": 12}, "errors": [],
+        }):
+            converted = convert_smoke_response("req", "writer", "in.docx", "out.pdf", "pdf")
+        self.assertIsInstance(converted, CommandResponse)
+        self.assertTrue(converted.ok)
+        self.assertEqual(converted.command, "convert-smoke")
+        self.assertEqual(converted.validation.status, "passed")
+
+        with patch("wps_ai_agent_cli.cli.render_html", return_value=(True, {"output_path": "page.pdf"}, [])):
+            rendered = html_render_response("req", "in.html", "page.pdf", "pdf", "A4", 800, 600, 30, False)
+        self.assertIsInstance(rendered, CommandResponse)
+        self.assertTrue(rendered.ok)
+        self.assertEqual(rendered.command, "html-render")
+
+        with patch("wps_ai_agent_cli.cli.read_spreadsheet_range", return_value=(
+            True, {"range": "A1:B1", "values": [[1, 2]]}, [],
+        )):
+            read = spreadsheet_read_response("req", "doc_1", "A1:B1", None)
+        self.assertIsInstance(read, CommandResponse)
+        self.assertTrue(read.ok)
+        self.assertEqual(read.command, "spreadsheet-read")
+        self.assertEqual(read.data["values"], [[1, 2]])
 
 
 if __name__ == "__main__":

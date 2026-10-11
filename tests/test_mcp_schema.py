@@ -160,6 +160,62 @@ class McpSchemaTests(unittest.TestCase):
         self.assertEqual(server_name["maxLength"], 256)
         self.assertIn(r"\S", server_name["pattern"])
 
+    def test_open_document_tools_do_not_accept_page_number_targeting(self):
+        """Page-N mutation is a deliberate non-goal; schemas must not grow page targeting inputs."""
+        forbidden = {
+            "page_number",
+            "page_index",
+            "page",
+            "target_page",
+            "page_start",
+            "page_end",
+        }
+        open_doc_prefixes = (
+            "wps_agent_writer_selection_",
+            "wps_agent_presentation_selection_",
+            "wps_agent_spreadsheet_selection_",
+            "wps_agent_export_open_document",
+            "wps_agent_save_open_document",
+            "wps_agent_open_documents",
+        )
+        matched = [
+            schema
+            for schema in list_mcp_tool_schemas()
+            if schema["name"].startswith(open_doc_prefixes) or schema["name"] in {
+                "wps_agent_export_open_document",
+                "wps_agent_export_open_document_pdf",
+                "wps_agent_export_open_document_copy",
+                "wps_agent_export_open_document_text",
+                "wps_agent_save_open_document",
+                "wps_agent_open_documents",
+            }
+        ]
+        self.assertGreaterEqual(len(matched), 15)
+        for schema in matched:
+            properties = set(schema["input_schema"].get("properties") or {})
+            overlap = properties & forbidden
+            self.assertFalse(
+                overlap,
+                f"{schema['name']} must not accept page targeting inputs; found {sorted(overlap)}",
+            )
+        writer_read = get_mcp_tool_schema("wps_agent_writer_selection_read")
+        self.assertIn("page_number", writer_read["description"] + " ".join(writer_read.get("safety_notes") or []))
+
+    def test_open_document_export_and_mutation_notes_point_to_save_open_document(self):
+        export_names = (
+            "wps_agent_export_open_document",
+            "wps_agent_export_open_document_pdf",
+            "wps_agent_export_open_document_copy",
+            "wps_agent_export_open_document_text",
+        )
+        for name in export_names:
+            with self.subTest(name=name):
+                notes = " ".join(get_mcp_tool_schema(name).get("safety_notes") or [])
+                self.assertIn("save-open-document", notes)
+                self.assertIn("DOCUMENT_HAS_UNSAVED_CHANGES", notes)
+        replace = get_mcp_tool_schema("wps_agent_writer_selection_replace")
+        self.assertIn("save-open-document", " ".join(replace.get("safety_notes") or []))
+
 
 if __name__ == "__main__":
     unittest.main()

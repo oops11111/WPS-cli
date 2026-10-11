@@ -12,6 +12,17 @@ def build_command_handlers(cli: Any) -> dict[str, Callable[[argparse.Namespace, 
         response = cli.inspect_env_response(request_id)
         return response
 
+    def _handle_wps_version_compare(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+        response = cli.wps_version_compare_response(
+            request_id,
+            workspace=args.workspace,
+            record=args.record,
+            writer_version=args.writer_version,
+            spreadsheets_version=args.spreadsheets_version,
+            presentation_version=args.presentation_version,
+        )
+        return response
+
     def _handle_wps_process_audit(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
         response = cli.wps_process_audit_response(request_id, timeout_seconds=args.timeout_seconds)
         return response
@@ -135,12 +146,64 @@ def build_command_handlers(cli: Any) -> dict[str, Callable[[argparse.Namespace, 
         response = cli.writer_selection_read_response(request_id, document_id=args.document_id)
         return response
 
+    def _handle_presentation_selection_read(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+        response = cli.presentation_selection_read_response(request_id, document_id=args.document_id)
+        return response
+
+    def _handle_spreadsheet_selection_read(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+        response = cli.spreadsheet_selection_read_response(request_id, document_id=args.document_id)
+        return response
+
+    def _handle_spreadsheet_selection_replace(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+        response = cli._with_optional_task_status(lambda: cli.spreadsheet_selection_replace_response(request_id, document_id=args.document_id, text=args.text, values_json=args.values_json, expected_selection_text=args.expected_selection_text, dry_run=args.dry_run), task_id=args.task_id, tracked_command='spreadsheet-selection-replace', operation_request_id=request_id, document_id=args.document_id)
+        return response
+
+    def _handle_spreadsheet_selection_delete(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+        response = cli._with_optional_task_status(lambda: cli.spreadsheet_selection_delete_response(request_id, document_id=args.document_id, expected_selection_text=args.expected_selection_text, dry_run=args.dry_run), task_id=args.task_id, tracked_command='spreadsheet-selection-delete', operation_request_id=request_id, document_id=args.document_id)
+        return response
+
+    def _handle_presentation_selection_replace(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+        response = cli._with_optional_task_status(lambda: cli.presentation_selection_replace_response(request_id, document_id=args.document_id, text=args.text, expected_selection_text=args.expected_selection_text, dry_run=args.dry_run), task_id=args.task_id, tracked_command='presentation-selection-replace', operation_request_id=request_id, document_id=args.document_id)
+        return response
+
+    def _handle_presentation_selection_insert(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+        response = cli._with_optional_task_status(lambda: cli.presentation_selection_insert_response(request_id, document_id=args.document_id, text=args.text, expected_start=args.expected_start, dry_run=args.dry_run), task_id=args.task_id, tracked_command='presentation-selection-insert', operation_request_id=request_id, document_id=args.document_id)
+        return response
+
+    def _handle_presentation_selection_delete(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+        response = cli._with_optional_task_status(lambda: cli.presentation_selection_delete_response(request_id, document_id=args.document_id, expected_selection_text=args.expected_selection_text, dry_run=args.dry_run), task_id=args.task_id, tracked_command='presentation-selection-delete', operation_request_id=request_id, document_id=args.document_id)
+        return response
+
     def _handle_writer_selection_replace(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
         response = cli._with_optional_task_status(lambda: cli.writer_selection_replace_response(request_id, document_id=args.document_id, text=args.text, expected_selection_text=args.expected_selection_text, dry_run=args.dry_run), task_id=args.task_id, tracked_command='writer-selection-replace', operation_request_id=request_id, document_id=args.document_id)
         return response
 
+    def _handle_writer_selection_insert(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+        response = cli._with_optional_task_status(lambda: cli.writer_selection_insert_response(request_id, document_id=args.document_id, text=args.text, expected_start=args.expected_start, dry_run=args.dry_run), task_id=args.task_id, tracked_command='writer-selection-insert', operation_request_id=request_id, document_id=args.document_id)
+        return response
+
+    def _handle_writer_selection_delete(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+        response = cli._with_optional_task_status(lambda: cli.writer_selection_delete_response(request_id, document_id=args.document_id, expected_selection_text=args.expected_selection_text, dry_run=args.dry_run), task_id=args.task_id, tracked_command='writer-selection-delete', operation_request_id=request_id, document_id=args.document_id)
+        return response
+
+    def _handle_save_open_document(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+        response = cli._with_optional_task_status(lambda: cli.save_open_document_response(request_id, document_id=args.document_id, dry_run=args.dry_run), task_id=args.task_id, tracked_command='save-open-document', operation_request_id=request_id, document_id=args.document_id)
+        return response
+
     def _handle_export_open_document(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
         response = cli.export_open_document_response(request_id, document_id=args.document_id, output=args.output)
+        return response
+
+    def _handle_export_open_document_pdf(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+        response = cli.export_open_document_pdf_response(request_id, document_id=args.document_id, output=args.output)
+        return response
+
+    def _handle_export_open_document_copy(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+        response = cli.export_open_document_copy_response(request_id, document_id=args.document_id, output=args.output)
+        return response
+
+    def _handle_export_open_document_text(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+        response = cli.export_open_document_text_response(request_id, document_id=args.document_id, output=args.output)
         return response
 
     def _handle_validate_document(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
@@ -305,6 +368,7 @@ def build_command_handlers(cli: Any) -> dict[str, Callable[[argparse.Namespace, 
 
     return {
         'inspect-env': _handle_inspect_env,
+        'wps-version-compare': _handle_wps_version_compare,
         'wps-process-audit': _handle_wps_process_audit,
         'cleanup-plan': _handle_cleanup_plan,
         'cleanup-approval-manifest': _handle_cleanup_approval_manifest,
@@ -333,8 +397,21 @@ def build_command_handlers(cli: Any) -> dict[str, Callable[[argparse.Namespace, 
         'writer-table-write': _handle_writer_table_write,
         'open-documents': _handle_open_documents,
         'writer-selection-read': _handle_writer_selection_read,
+        'presentation-selection-read': _handle_presentation_selection_read,
+        'spreadsheet-selection-read': _handle_spreadsheet_selection_read,
+        'spreadsheet-selection-replace': _handle_spreadsheet_selection_replace,
+        'spreadsheet-selection-delete': _handle_spreadsheet_selection_delete,
+        'presentation-selection-replace': _handle_presentation_selection_replace,
+        'presentation-selection-insert': _handle_presentation_selection_insert,
+        'presentation-selection-delete': _handle_presentation_selection_delete,
         'writer-selection-replace': _handle_writer_selection_replace,
+        'writer-selection-insert': _handle_writer_selection_insert,
+        'writer-selection-delete': _handle_writer_selection_delete,
+        'save-open-document': _handle_save_open_document,
         'export-open-document': _handle_export_open_document,
+        'export-open-document-pdf': _handle_export_open_document_pdf,
+        'export-open-document-copy': _handle_export_open_document_copy,
+        'export-open-document-text': _handle_export_open_document_text,
         'validate-document': _handle_validate_document,
         'snapshot-document': _handle_snapshot_document,
         'writer-structure': _handle_writer_structure,
