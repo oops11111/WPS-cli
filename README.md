@@ -25,6 +25,8 @@ npm install                 # 在仓库根目录安装 playwright
 
 脚本通过 `WPS_AGENT_NODE` 与 `WPS_AGENT_EDGE` 环境变量定位 `node` 和 `msedge`，未设置时从 `PATH` 查找。
 
+渲染脚本 `html_render_playwright.cjs` 通过 `require('playwright')` 解析依赖：从源码目录（`pip install -e .`）运行时会向上找到仓库根的 `node_modules`；如果以 wheel 方式安装，请把 `NODE_PATH` 指向安装了 `playwright` 的 `node_modules` 目录。
+
 ## 快速开始
 
 ```bash
