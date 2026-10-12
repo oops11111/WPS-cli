@@ -12,7 +12,7 @@ pip install -e ".[test]"
 python -m wps_ai_agent_cli register-document --component spreadsheets --path %TEMP%\wps-check\held.xlsx
 ```
 
-Use `python -m wps_ai_agent_cli --help` to confirm the exact flags before running. Record the `document_id` from the register output.
+Flags were checked against `--help` for `register-document`, `spreadsheet-write`, `save-open-document`, `list-backups` and `inspect-env`. Record the `document_id` from the register output.
 
 Record the SHA-256 of each fixture before every case:
 
@@ -39,7 +39,7 @@ Fail if: a traceback appears, stdout is empty, or the call returns `ok: true`.
 Code: `src/wps_ai_agent_cli/sessions.py`, `file_identity`.
 
 1. Keep the exclusive hold from Case A.
-2. Run `spreadsheet-write` with a one-cell value to `held.xlsx`, using a new `--request-id checklist-b`.
+2. Run `python -m wps_ai_agent_cli spreadsheet-write --document-id <id> --range A1 --values-json "[[\"checklist\"]]" --request-id checklist-b`.
 
 Expected:
 - `"ok": false`, and the message says the file is held open by another handle, "such as WPS", and that nothing was written, saved or closed.
@@ -53,7 +53,7 @@ Fail if: the message is the bare `Permission denied`, or the file changed.
 This is the normal path. It checks that the envelope change did not break it.
 
 1. Close the exclusive hold. Open `held.xlsx` in WPS.
-2. Run `spreadsheet-write` with a one-cell value and `--request-id checklist-c`, after saving the open document in WPS. Use `save-open-document` or save in WPS first, so the backup matches what is on disk.
+2. Save the open document in WPS, or run `save-open-document --document-id <id>`, so the on-disk file matches what is open. Then run `spreadsheet-write --document-id <id> --range A1 --values-json "[[\"checklist\"]]" --request-id checklist-c`.
 
 Expected: `"ok": true`, a backup exists for `checklist-c`, and the cell value reads back correctly.
 
@@ -64,7 +64,7 @@ Code: `src/wps_ai_agent_cli/atomic_mutation.py`, applied to 21 commands in `open
 Find an input that WPS writes but reads back differently. A known one is a value WPS normalises on write, such as a number with a leading `+` or a date-like string, depending on the cell format. If you cannot find one in a short search, mark this case "not reproduced" and move on. Do not force the result.
 
 1. Note the SHA-256 of `held.xlsx` (the pre-write state).
-2. Run the write with that input and `--request-id checklist-d`.
+2. Run `spreadsheet-write --document-id <id> --range A1 --values-json <input as a JSON matrix> --request-id checklist-d`.
 
 Expected if the read-back fails:
 - `"ok": false`, with `MUTATION_ROLLED_BACK` in `errors`, and `result.rollback.performed` is `true`.
