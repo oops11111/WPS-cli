@@ -97,6 +97,7 @@ try {{
     'writer' {{
       Assert-WpsSingleInstance $params.prog_id
       Assert-WpsInputNotOpen (Test-WpsPathOpen $app.Documents $params.input_path)
+      Assert-WpsFileNotHeld $params.input_path 'input document' $true
       $wpsCountBefore = [int]$app.Documents.Count
       $document = $app.Documents.Open((ConvertTo-WpsLocalPath $params.input_path))
       if ([int]$app.Documents.Count -le $wpsCountBefore) {{ $document = $null; Stop-WpsConcurrentOpen 'input document' '' }}
@@ -106,6 +107,7 @@ try {{
     'spreadsheets' {{
       Assert-WpsSingleInstance $params.prog_id
       Assert-WpsInputNotOpen (Test-WpsPathOpen $app.Workbooks $params.input_path)
+      Assert-WpsFileNotHeld $params.input_path 'input document' $true
       $wpsCountBefore = [int]$app.Workbooks.Count
       $document = $app.Workbooks.Open((ConvertTo-WpsLocalPath $params.input_path))
       if ([int]$app.Workbooks.Count -le $wpsCountBefore) {{ $document = $null; Stop-WpsConcurrentOpen 'input document' '' }}
@@ -115,6 +117,7 @@ try {{
     'presentation' {{
       Assert-WpsSingleInstance $params.prog_id
       Assert-WpsInputNotOpen (Test-WpsPathOpen $app.Presentations $params.input_path)
+      Assert-WpsFileNotHeld $params.input_path 'input document' $true
       $wpsCountBefore = [int]$app.Presentations.Count
       $document = $app.Presentations.Open((ConvertTo-WpsLocalPath $params.input_path), $false, $false, [bool]$params.visible)
       if ([int]$app.Presentations.Count -le $wpsCountBefore) {{ $document = $null; Stop-WpsConcurrentOpen 'input document' '' }}
@@ -220,6 +223,7 @@ try {{
   {QUIET_ALERTS}
   Assert-WpsSingleInstance $params.prog_id
   Assert-WpsInputNotOpen (Test-WpsPathOpen $app.Workbooks $params.input_path)
+  Assert-WpsFileNotHeld $params.input_path 'input document' $true
   $wpsCountBefore = [int]$app.Workbooks.Count
   $workbook = $app.Workbooks.Open((ConvertTo-WpsLocalPath $params.input_path))
   if ([int]$app.Workbooks.Count -le $wpsCountBefore) {{ $workbook = $null; Stop-WpsConcurrentOpen 'input document' '' }}
@@ -432,6 +436,7 @@ try {{
   {HIDE_LAUNCHED_APP}
   Assert-WpsSingleInstance $params.prog_id
   Assert-WpsInputNotOpen (Test-WpsPathOpen $app.{spec["collection"]} $params.input_path)
+  Assert-WpsFileNotHeld $params.input_path 'input document' $true
   $wpsCountBefore = [int]$app.{spec["collection"]}.Count
   {spec["open"]}
   if ([int]$app.{spec["collection"]}.Count -le $wpsCountBefore) {{ $document = $null; Stop-WpsConcurrentOpen 'input document' '' }}

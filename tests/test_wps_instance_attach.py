@@ -8,7 +8,7 @@ from unittest.mock import patch
 
 from tests.test_wps_preopen_guard import FAKE_SPREADSHEET_PRELUDE, all_scripts
 from tests.test_wps_quit_guard import CAPABILITIES, capture_scripts
-from wps_ai_agent_cli import com_backend, presentation_ops, spreadsheet_inspect, spreadsheet_ops
+from wps_ai_agent_cli import com_backend, presentation_ops, spreadsheet_inspect, spreadsheet_ops, wps_script_snippets
 from wps_ai_agent_cli.sessions import register_document
 from wps_ai_agent_cli.wps_script_snippets import (
     ACQUIRE_WPS_APP,
@@ -68,7 +68,10 @@ class AttachFirstStaticTests(unittest.TestCase):
             scripts = self.smoke_scripts(tmp)
         for script in scripts:
             self.assertIn("Assert-WpsInputNotOpen (Test-WpsPathOpen $app.", script)
-            self.assertLess(script.index("Assert-WpsInputNotOpen"), script.index(".Open((ConvertTo-WpsLocalPath $params.input_path)"))
+            open_call = script.index(".Open((ConvertTo-WpsLocalPath $params.input_path)")
+            self.assertLess(script.index("Assert-WpsInputNotOpen"), open_call)
+            self.assertIn("Assert-WpsFileNotHeld $params.input_path 'input document' $true", script)
+            self.assertLess(script.index("Assert-WpsFileNotHeld"), open_call)
 
 
 def run_pwsh(body):
@@ -183,9 +186,16 @@ $coll | Add-Member -MemberType ScriptMethod -Name Open -Value { param($p, $updat
             return subprocess.run([PWSH, "-NoProfile", "-File", str(script)], capture_output=True, text=True, timeout=60)
 
     def test_a_changing_command_is_refused_without_trusting_the_returned_object(self):
-        completed = self.run_script(r"[void](Open-WpsDocument $coll 'C:\data\new.xlsx' $false)")
-        self.assertNotEqual(completed.returncode, 0)
-        self.assertIn("between the check and the open call", completed.stdout + completed.stderr)
+        completed = self.run_script(
+            r"try { [void](Open-WpsDocument $coll 'C:\data\new.xlsx' $false) } catch { 'refused: ' + $_.Exception.Message }"
+        )
+        self.assertEqual(completed.returncode, 0, completed.stdout + completed.stderr)
+        text = completed.stdout
+        self.assertTrue(text.startswith("refused: "), text)
+        self.assertIn("between the check and the open call", text)
+        self.assertIn("Open() had already been called", text)
+        self.assertIn("may already be lost", text)
+        self.assertNotIn("nothing in it is touched", text)
 
     def test_a_read_only_open_still_returns_but_warns_that_the_values_may_come_from_disk(self):
         completed = self.run_script(
@@ -196,7 +206,102 @@ $coll | Add-Member -MemberType ScriptMethod -Name Open -Value { param($p, $updat
         self.assertEqual(completed.returncode, 0, completed.stdout + completed.stderr)
         self.assertEqual(completed.stdout.split(), ["detached", "True"])
         self.assertIn("WPS_AGENT_WARNING: the document was opened in WPS between the check and the open call", completed.stderr)
-        self.assertIn("copy loaded from disk", completed.stderr)
+        self.assertIn("Open() had already been called", completed.stderr)
+        self.assertIn("unsaved edits made in WPS may have been discarded", completed.stderr)
+        self.assertNotIn("copy loaded from disk", completed.stderr)
+
+
+@unittest.skipUnless(PWSH, "PowerShell (pwsh) is required to execute the generated scripts")
+class FileLockProbeTests(unittest.TestCase):
+    """Open() is never called on a file another handle holds (WPS holds a document it has open)."""
+
+    PRELUDE = r"""
+$env:COMPUTERNAME = 'BOX1'
+$global:opens = @()
+$script:wpsPreOpen = $false
+$params = [pscustomobject]@{ prog_id = 'ket.Application' }
+$coll = [pscustomobject]@{ Count = 0 }
+$coll | Add-Member -MemberType ScriptMethod -Name Item -Value { param($i) return $null }
+$coll | Add-Member -MemberType ScriptMethod -Name Open -Value { param($p, $a, $b, $c) $global:opens += "open:$p"; $this.Count = $this.Count + 1; return [pscustomobject]@{ Tag = 'opened' } }
+function Show-Outcome([scriptblock]$body) {
+  try { & $body; 'passed' } catch { 'refused: ' + $_.Exception.Message }
+  'opens=' + @($global:opens).Count
+}
+"""
+
+    def setUp(self):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        self.dir = Path(tmp.name)
+        self.file = self.dir / "book.xlsx"
+        self.file.write_bytes(b"x")
+
+    def run_script(self, body, hold=False):
+        holder = (
+            f"$held = [System.IO.File]::Open('{self.file}', [System.IO.FileMode]::Open, [System.IO.FileAccess]::Read, [System.IO.FileShare]::None)\n"
+            if hold else ""
+        )
+        script = self.dir / "t.ps1"
+        script.write_text(PRE_OPEN_GUARD + "\n$ErrorActionPreference = 'Stop'\n" + self.PRELUDE + holder + body, encoding="utf-8-sig")
+        done = subprocess.run([PWSH, "-NoProfile", "-File", str(script)], capture_output=True, text=True, timeout=60)
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        return done.stdout.strip().splitlines()
+
+    def probe(self, path, mode, hold=False):
+        return self.run_script(f"Show-Outcome {{ Assert-WpsFileNotHeld '{path}' 'document' {mode} }}", hold)
+
+    def test_a_free_file_passes_in_both_modes(self):
+        for mode in ("$false", "$true"):
+            with self.subTest(mode=mode):
+                self.assertEqual(self.probe(self.file, mode), ["passed", "opens=0"])
+
+    def test_a_held_file_is_refused_in_both_modes_with_an_accurate_message(self):
+        for mode in ("$false", "$true"):
+            with self.subTest(mode=mode):
+                lines = self.probe(self.file, mode, hold=True)
+                self.assertTrue(lines[0].startswith("refused: "), lines)
+                self.assertIn("held open by another handle", lines[0])
+                self.assertIn("Open() was not called", lines[0])
+                self.assertIn("reloads the file from disk without asking", lines[0])
+                self.assertIn("discards unsaved edits", lines[0])
+                self.assertNotIn("nothing in it is touched", lines[0])
+
+    def test_a_missing_file_is_left_to_open_to_report(self):
+        self.assertEqual(self.probe(self.dir / "missing.xlsx", "$false"), ["passed", "opens=0"])
+        self.assertEqual(self.probe(self.dir / "no-such-dir" / "missing.xlsx", "$true"), ["passed", "opens=0"])
+
+    def test_a_path_that_cannot_be_probed_is_refused_conservatively(self):
+        for mode in ("$false", "$true"):
+            with self.subTest(mode=mode):
+                lines = self.probe(self.dir, mode)
+                self.assertTrue(lines[0].startswith("refused: "), lines)
+                self.assertIn("could not be checked for being open in WPS", lines[0])
+                self.assertIn("Open() was not called", lines[0])
+
+    def test_open_is_never_called_on_a_held_file(self):
+        quoted = f"'{self.file}'"
+        for name, call in (
+            ("document", f"Open-WpsDocument $coll {quoted} $false"),
+            ("read-only document", f"Open-WpsDocument $coll {quoted} $false $true"),
+            ("presentation", f"Open-WpsPresentation $coll {quoted}"),
+        ):
+            with self.subTest(command=name):
+                lines = self.run_script(f"Show-Outcome {{ [void]({call}) }}", hold=True)
+                self.assertTrue(lines[0].startswith("refused: "), lines)
+                self.assertEqual(lines[-1], "opens=0")
+
+    def test_a_free_file_is_opened_once(self):
+        quoted = f"'{self.file}'"
+        for call in (f"Open-WpsDocument $coll {quoted} $false", f"Open-WpsDocument $coll {quoted} $false $true"):
+            with self.subTest(call=call):
+                self.assertEqual(self.run_script(f"Show-Outcome {{ [void]({call}) }}"), ["passed", "opens=1"])
+
+    def test_every_open_of_a_user_file_is_preceded_by_the_probe(self):
+        source = Path(wps_script_snippets.__file__).read_text(encoding="utf-8")
+        document = source[source.index("function Open-WpsDocument"):source.index("function Open-WpsPresentation")]
+        presentation = source[source.index("function Open-WpsPresentation"):source.index("function Assert-WpsPreOpenSaved")]
+        self.assertLess(document.index("Assert-WpsFileNotHeld"), document.index("$collection.Open("))
+        self.assertLess(presentation.index("Assert-WpsFileNotHeld"), presentation.index("$collection.Open("))
 
 
 class ScriptWarningTests(unittest.TestCase):
@@ -359,6 +464,13 @@ class InspectRecalculationTests(unittest.TestCase):
         self.assertFalse(result["calculation_performed_in_memory"])
         self.assertIn("close", self.log_lines())
         self.assertNotIn("quit:attached", self.log_lines())
+
+    def test_read_only_inspect_refuses_a_file_held_by_another_handle_without_calling_open(self):
+        ok, result, errors = self.inspect(WPSFAKE_ATTACH="1", WPSFAKE_OPEN="0", WPSFAKE_SAVED="1", WPSFAKE_LOCK="1")
+        self.assertFalse(ok)
+        self.assertIn("Open() was not called", str(errors))
+        self.assertIn("held open by another handle", str(errors))
+        self.assertFalse([line for line in self.log_lines() if line.startswith("open:")])
 
     def test_read_only_inspect_is_not_blocked_by_several_processes(self):
         ok, result, errors = self.inspect(WPSFAKE_ATTACH="1", WPSFAKE_OPEN="0", WPSFAKE_SAVED="1", WPSFAKE_PROCS="2", WPSFAKE_WINDOWED="2")
@@ -565,7 +677,11 @@ class AttachBehaviourTests(unittest.TestCase):
                 with patch.dict(os.environ, env):
                     result = presentation_ops._run_presentation_replace_com(str(self.document), "a", "b")
                 self.assertFalse(result["ok"], result)
-                self.assertIn("between the check and the open call", str(result))
+                if reads == "2":
+                    self.assertIn("between the check and the open call", str(result))
+                    self.assertIn("Open() had already been called", str(result))
+                else:
+                    self.assertIn("Open() was not called", str(result))
                 self.assertNotIn("close", self.log_lines())
                 self.assertEqual(bool([line for line in self.log_lines() if line.startswith("open:")]), reads == "2")
 
@@ -583,6 +699,26 @@ class AttachBehaviourTests(unittest.TestCase):
                 self.assertIn("between the check and the open call", str(result))
         self.assertNotIn("close", self.log_lines())
         self.assertNotIn("save", self.log_lines())
+
+    def test_every_command_refuses_a_file_held_by_another_handle_without_calling_open(self):
+        env = {"WPSFAKE_ATTACH": "1", "WPSFAKE_OPEN": "0", "WPSFAKE_SAVED": "1", "WPSFAKE_LOCK": "1"}
+        out = self.dir / "out"
+        with patch.dict(os.environ, env):
+            results = {
+                "sheet": self.delete_sheet(),
+                "presentation": presentation_ops._run_presentation_replace_com(str(self.document), "a", "b"),
+                "conversion": com_backend.run_conversion_smoke("spreadsheets", str(self.document), str(out) + ".pdf", "pdf"),
+                "calc": com_backend.run_spreadsheet_calc_smoke(str(self.document), str(out) + ".xlsx"),
+                "com_smoke": com_backend.run_com_smoke("spreadsheets", str(self.document), str(out) + "2.xlsx"),
+            }
+        for name, result in results.items():
+            with self.subTest(command=name):
+                self.assertFalse(result["ok"], result)
+                self.assertIn("held open by another handle", str(result))
+                self.assertIn("Open() was not called", str(result))
+        self.assertFalse([line for line in self.log_lines() if line.startswith("open:")])
+        self.assertNotIn("save", self.log_lines())
+        self.assertNotIn("close", self.log_lines())
 
     def test_smoke_commands_refuse_an_input_open_in_the_running_instance(self):
         out = self.dir / "out.xlsx"
