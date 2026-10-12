@@ -26,7 +26,7 @@ These fixes are verified with offline unit tests only. Real-WPS re-verification 
 
 | Gap | Fix | State |
 | --- | --- | --- |
-| 1. `spreadsheet-inspect` + exclusive hold: uncaught `PermissionError`, no JSON envelope | `spreadsheet_inspect.py` returns `DOCUMENT_IDENTITY_UNAVAILABLE` for an unreadable workbook and closes a half-opened pair | Branch `fix/spreadsheet-inspect-held-envelope` (`902a18d`), no PR yet |
+| 1. `spreadsheet-inspect` + exclusive hold: uncaught `PermissionError`, no JSON envelope | `spreadsheet_inspect.py` returns `DOCUMENT_IDENTITY_UNAVAILABLE` for an unreadable workbook and closes a half-opened pair | Merged in PR #13 (`902a18d`) |
 | 2. Changing commands + exclusive hold: bare `Permission denied` before the COM probe | `sessions.py` `file_identity` names the held handle and states that nothing was written | Merged in PR #12 (`e4b43b1`) |
 
 Still to do: re-run the held-handle cases on Windows against a real WPS session, using the `real_wps_verify_remaining` kit, and record the new results here.
