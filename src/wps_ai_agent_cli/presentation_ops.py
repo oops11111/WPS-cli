@@ -8,6 +8,7 @@ from .backups import create_backup, guarded_com_mutation, verify_post_com_source
 from .capabilities import probe_wps_capabilities
 from .powershell_runner import run_powershell_script
 from .errors import COM_BACKEND_UNAVAILABLE, INPUT_FILE_NOT_FOUND
+from .file_hold import is_share_conflict, probe_file_not_held, share_conflict_error
 from .mutation_lock import coordinated_mutation
 from .operations import record_operation, replay_operation
 from .presentation_text import PresentationStructureError, count_text_in_pptx, pptx_slide_texts, pptx_text_objects
@@ -253,10 +254,19 @@ def presentation_replace(
             False,
         )
 
+    # Read-share probe before Zip preview so FileShare.None yields held-open JSON, not Zip PermissionError.
+    held = probe_file_not_held(path, read_only=True, what="presentation")
+    if held is not None:
+        return False, {"document": document, "path": str(path)}, [held], False
+
     try:
         slides = pptx_slide_texts(path)
     except PresentationStructureError as exc:
         return False, {"document": document}, [{"code": "INVALID_PRESENTATION_STRUCTURE", "message": str(exc)}], False
+    except OSError as exc:
+        if is_share_conflict(exc):
+            return False, {"document": document, "path": str(path)}, [share_conflict_error(exc, "presentation")], False
+        raise
     slide_count = len(slides)
     if slide_index is not None and not any(slide["slide_index"] == slide_index for slide in slides):
         return (
@@ -272,7 +282,12 @@ def presentation_replace(
             False,
         )
 
-    before_objects = pptx_text_objects(path)
+    try:
+        before_objects = pptx_text_objects(path)
+    except OSError as exc:
+        if is_share_conflict(exc):
+            return False, {"document": document, "path": str(path)}, [share_conflict_error(exc, "presentation")], False
+        raise
     before_count = sum(
         str(segment).count(find_text)
         for item in before_objects

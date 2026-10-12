@@ -10,6 +10,7 @@ import re
 from typing import Any, Callable
 
 from .errors import COM_OPERATION_FAILED, COM_OPERATION_TIMEOUT
+from .file_hold import is_share_conflict, probe_file_not_held, share_conflict_error
 from .operations import list_operations, record_operation, replay_operation
 from .sessions import get_document
 from .sessions import file_identity
@@ -119,9 +120,18 @@ def create_backup(
             False,
         )
 
+    # Exclusive share probe before identity/backup open, matching Assert-WpsFileNotHeld before Open().
+    # An exclusive holder otherwise surfaces as DOCUMENT_IDENTITY_UNAVAILABLE / Permission denied.
+    what = "presentation" if document.get("component") == "presentation" else "document"
+    held = probe_file_not_held(source_path, read_only=False, what=what)
+    if held is not None:
+        return False, {"document": document}, [held], False
+
     try:
         source_identity = file_identity(source_path)
     except OSError as exc:
+        if is_share_conflict(exc):
+            return False, {"document": document}, [share_conflict_error(exc, what)], False
         return False, {"document": document}, [
             {"code": "DOCUMENT_IDENTITY_UNAVAILABLE", "message": str(exc)}
         ], False
@@ -150,7 +160,9 @@ def create_backup(
             file_identity(source_path) == source_identity
             and file_identity(target_path)["source_sha256"] == source_identity["source_sha256"]
         )
-    except OSError:
+    except OSError as exc:
+        if is_share_conflict(exc):
+            return False, {**result, "backup_path": str(target_path)}, [share_conflict_error(exc, what)], False
         stable_copy = False
     if not stable_copy:
         return False, {**result, "backup_path": str(target_path)}, [
