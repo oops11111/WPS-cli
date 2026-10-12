@@ -53,7 +53,7 @@ class PreOpenGuardStaticTests(unittest.TestCase):
                 self.assertGreaterEqual(closes, 1)
                 self.assertEqual(script.count("if (-not $wpsPreOpen) {"), closes)
                 open_call = (
-                    ".Open((ConvertTo-WpsLocalPath $params.path)"
+                    "Open-WpsPresentation $app."
                     if name == "presentation_replace"
                     else "Open-WpsDocument $app."
                 )
@@ -97,8 +97,9 @@ function New-FakeApp([string]$label, [bool]$open, [bool]$saved) {
   $raced = $env:WPSFAKE_RACE -eq '1'
   $books = [pscustomobject]@{ Stored = $(if ($open -or $raced) { 1 } else { 0 }); Reads = 0; Book = $null; Other = $null }
   # With WPSFAKE_RACE the user opens the document right after the script's first look at the collection.
+  # WPSFAKE_RACE_READS widens the window: the document stays invisible for that many reads of Count.
   $books | Add-Member -MemberType ScriptProperty -Name Count `
-    -Value { $this.Reads++; if ($env:WPSFAKE_RACE -eq '1' -and $this.Reads -eq 1) { return 0 }; return $this.Stored } `
+    -Value { $this.Reads++; $window = if ($env:WPSFAKE_RACE_READS) { [int]$env:WPSFAKE_RACE_READS } else { 1 }; if ($env:WPSFAKE_RACE -eq '1' -and $this.Reads -le $window) { return 0 }; return $this.Stored } `
     -SecondValue { param($value) $this.Stored = $value }
   $book = [pscustomobject]@{ FullName = $env:WPSFAKE_PATH; Saved = $saved; Worksheets = $sheets; Books = $books }
   $book | Add-Member -MemberType ScriptMethod -Name Save -Value { Write-FakeLog 'save' }
@@ -230,6 +231,32 @@ class PreOpenGuardBehaviourTests(unittest.TestCase):
         self.assertFalse(result["ok"], result)
         self.assertIn("unsaved changes", str(result))
         self.assertEqual(self.events(), [])
+
+    def test_recheck_right_before_open_finds_the_workbook_and_never_calls_open(self):
+        result = self.delete_sheet(WPSFAKE_RACE="1", WPSFAKE_SAVED="0", WPSFAKE_OPEN_OTHER="1", WPSFAKE_ATTACH="1")
+        self.assertFalse(result["ok"], result)
+        self.assertIn("unsaved changes", str(result))
+        self.assertEqual(self.open_calls(), [])
+        self.assertEqual(self.events(), [])
+
+    def test_dirty_workbook_opened_after_the_recheck_is_refused_and_left_alone(self):
+        # Both looks see nothing; the user opens the document just before Open(). Open() then returns a
+        # detached Saved=true object and Count does not grow, so only the copy that is really open can be judged.
+        result = self.delete_sheet(
+            WPSFAKE_RACE="1", WPSFAKE_RACE_READS="2", WPSFAKE_SAVED="0", WPSFAKE_OPEN_OTHER="1", WPSFAKE_ATTACH="1",
+        )
+        self.assertFalse(result["ok"], result)
+        self.assertIn("between the check and the open call", str(result))
+        self.assertIn("unsaved changes", str(result))
+        self.assertEqual(len(self.open_calls()), 1)
+        self.assertEqual(self.events(), [])
+
+    def test_clean_workbook_opened_after_the_recheck_is_used_and_not_closed(self):
+        result = self.delete_sheet(
+            WPSFAKE_RACE="1", WPSFAKE_RACE_READS="2", WPSFAKE_SAVED="1", WPSFAKE_OPEN_OTHER="1", WPSFAKE_ATTACH="1",
+        )
+        self.assertTrue(result["ok"], result)
+        self.assertEqual(self.events(), ["delete", "save"])
 
     def test_open_workbook_is_used_directly_instead_of_being_opened_again(self):
         self.log.write_text("", encoding="utf-8")

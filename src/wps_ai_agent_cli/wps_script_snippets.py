@@ -181,28 +181,55 @@ function Assert-WpsSingleInstance([string]$progId) {
     [Console]::Error.WriteLine('WPS_AGENT_WARNING: ' + $total + ' ' + $name + ' processes are running but only ' + $windowed.Count + ' has a window; the others are assumed to be background processes, so a document open in a hidden instance cannot be ruled out.')
   }
 }
-function Open-WpsDocument($collection, [string]$path, [bool]$wasOpen, [bool]$readOnly = $false) {
-  # A document that is already open must be used as is: Workbooks.Open() on an open, unsaved workbook
-  # can hand back a different object (Saved=true, without the in-memory edits), which hides the dirty
-  # state from Assert-WpsPreOpenSaved. Anything else is opened by its local path because WPS cannot
-  # open some UNC spellings (\\localhost\C$\...) that point at a local drive.
-  if ($wasOpen) {
+function Find-WpsOpenDocument($collection, [string]$path) {
+  try {
     $target = ConvertTo-WpsComparablePath $path
     for ($i = 1; $i -le [int]$collection.Count; $i++) {
       $candidate = $collection.Item($i)
       try { $full = ConvertTo-WpsComparablePath ([string]$candidate.FullName) } catch { continue }
       if ([string]::Equals($full, $target, [System.StringComparison]::OrdinalIgnoreCase)) { return $candidate }
     }
+  } catch { }
+  return $null
+}
+function Stop-WpsConcurrentOpen([string]$what, [string]$detail) {
+  throw ('The ' + $what + ' was opened in WPS between the check and the open call' + $detail + '; the command was refused so nothing in it is touched, saved or closed. Save or close it in WPS and retry.')
+}
+function Open-WpsDocument($collection, [string]$path, [bool]$wasOpen, [bool]$readOnly = $false) {
+  # A document that is already open must be used as is: Workbooks.Open() on an open, unsaved workbook
+  # can hand back a different object (Saved=true, without the in-memory edits), which hides the dirty
+  # state from Assert-WpsPreOpenSaved. Anything else is opened by its local path because WPS cannot
+  # open some UNC spellings (\\localhost\C$\...) that point at a local drive.
+  if ($wasOpen) {
+    $existing = Find-WpsOpenDocument $collection $path
+    if ($null -ne $existing) { return $existing }
   }
   if (-not $readOnly) { Assert-WpsSingleInstance $params.prog_id }
+  # Look once more right before Open(): the user may have opened the document since the caller's check,
+  # and Open() on an open document can reload it from disk or return a detached copy.
+  $existing = Find-WpsOpenDocument $collection $path
+  if ($null -ne $existing) { $script:wpsPreOpen = $true; return $existing }
   $openPath = ConvertTo-WpsLocalPath $path
   $countBefore = [int]$collection.Count
   if ($readOnly) { $opened = $collection.Open($openPath, 0, $true) } else { $opened = $collection.Open($openPath) }
   if ([int]$collection.Count -le $countBefore) {
     # Nothing new appeared in the collection, so the document was opened by someone else between the
-    # check and this call (or WPS reused it). It is not ours to close.
+    # look and Open(). It is not ours to close and the object Open() returned cannot be trusted (it can
+    # be a detached copy with Saved=true), so judge the copy that is really open.
     $script:wpsPreOpen = $true
+    $existing = Find-WpsOpenDocument $collection $path
+    if ($null -eq $existing) { Stop-WpsConcurrentOpen 'document' ' and the open copy could not be found' }
+    if (-not $readOnly -and -not [bool]$existing.Saved) { Stop-WpsConcurrentOpen 'document' ' and has unsaved changes' }
+    return $existing
   }
+  return $opened
+}
+function Open-WpsPresentation($collection, [string]$path) {
+  # Presentation.Saved cannot be trusted, so a presentation that turns out to be open is never touched.
+  if ($null -ne (Find-WpsOpenDocument $collection $path)) { $script:wpsPreOpen = $true; Stop-WpsConcurrentOpen 'presentation' '' }
+  $countBefore = [int]$collection.Count
+  $opened = $collection.Open((ConvertTo-WpsLocalPath $path), $false, $false, $false)
+  if ([int]$collection.Count -le $countBefore) { $script:wpsPreOpen = $true; Stop-WpsConcurrentOpen 'presentation' '' }
   return $opened
 }
 function Assert-WpsPreOpenSaved([bool]$wasOpen, $document) {

@@ -136,7 +136,7 @@ $env:COMPUTERNAME = 'BOX1'
 $global:opens = @()
 $coll = [pscustomobject]@{ Count = 1; Existing = [pscustomobject]@{ FullName = 'C:\data\open.xlsx'; Tag = 'existing' } }
 $coll | Add-Member -MemberType ScriptMethod -Name Item -Value { param($i) return $this.Existing }
-$coll | Add-Member -MemberType ScriptMethod -Name Open -Value { param($p, $update, $readOnly) $global:opens += "open:$p|$update|$readOnly"; return [pscustomobject]@{ Tag = 'opened' } }
+$coll | Add-Member -MemberType ScriptMethod -Name Open -Value { param($p, $update, $readOnly) $global:opens += "open:$p|$update|$readOnly"; $this.Count = $this.Count + 1; return [pscustomobject]@{ Tag = 'opened' } }
 """
 
     def call(self, body):
@@ -516,6 +516,36 @@ class AttachBehaviourTests(unittest.TestCase):
                 self.assertIn("does not reliably report unsaved", str(result))
                 self.assertNotIn("open", self.log_lines())
                 self.assertNotIn("close", self.log_lines())
+
+    def test_presentation_opened_by_the_user_after_the_check_is_refused_untouched(self):
+        for reads in ("1", "2"):
+            with self.subTest(race_reads=reads):
+                self.log.write_text("", encoding="utf-8")
+                env = {
+                    "WPSFAKE_ATTACH": "1", "WPSFAKE_SAVED": "1", "WPSFAKE_RACE": "1", "WPSFAKE_RACE_READS": reads,
+                    "WPSFAKE_OPEN_OTHER": "1",
+                }
+                with patch.dict(os.environ, env):
+                    result = presentation_ops._run_presentation_replace_com(str(self.document), "a", "b")
+                self.assertFalse(result["ok"], result)
+                self.assertIn("between the check and the open call", str(result))
+                self.assertNotIn("close", self.log_lines())
+                self.assertEqual(bool([line for line in self.log_lines() if line.startswith("open:")]), reads == "2")
+
+    def test_smoke_input_opened_by_the_user_after_the_check_is_refused_and_not_closed(self):
+        env = {
+            "WPSFAKE_ATTACH": "1", "WPSFAKE_SAVED": "0", "WPSFAKE_RACE": "1", "WPSFAKE_RACE_READS": "1",
+            "WPSFAKE_OPEN_OTHER": "1",
+        }
+        with patch.dict(os.environ, env):
+            convert = com_backend.run_conversion_smoke("spreadsheets", str(self.document), str(self.dir / "o.pdf"), "pdf")
+            calc = com_backend.run_spreadsheet_calc_smoke(str(self.document), str(self.dir / "out.xlsx"))
+        for name, result in (("conversion", convert), ("calc", calc)):
+            with self.subTest(command=name):
+                self.assertFalse(result["ok"], result)
+                self.assertIn("between the check and the open call", str(result))
+        self.assertNotIn("close", self.log_lines())
+        self.assertNotIn("save", self.log_lines())
 
     def test_smoke_commands_refuse_an_input_open_in_the_running_instance(self):
         out = self.dir / "out.xlsx"

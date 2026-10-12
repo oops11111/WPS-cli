@@ -95,23 +95,29 @@ try {{
 
   switch ($params.component) {{
     'writer' {{
-      Assert-WpsInputNotOpen (Test-WpsPathOpen $app.Documents $params.input_path)
       Assert-WpsSingleInstance $params.prog_id
+      Assert-WpsInputNotOpen (Test-WpsPathOpen $app.Documents $params.input_path)
+      $wpsCountBefore = [int]$app.Documents.Count
       $document = $app.Documents.Open((ConvertTo-WpsLocalPath $params.input_path))
+      if ([int]$app.Documents.Count -le $wpsCountBefore) {{ $document = $null; Stop-WpsConcurrentOpen 'input document' '' }}
       $document.SaveAs($params.output_path)
       $document.Close($false)
     }}
     'spreadsheets' {{
-      Assert-WpsInputNotOpen (Test-WpsPathOpen $app.Workbooks $params.input_path)
       Assert-WpsSingleInstance $params.prog_id
+      Assert-WpsInputNotOpen (Test-WpsPathOpen $app.Workbooks $params.input_path)
+      $wpsCountBefore = [int]$app.Workbooks.Count
       $document = $app.Workbooks.Open((ConvertTo-WpsLocalPath $params.input_path))
+      if ([int]$app.Workbooks.Count -le $wpsCountBefore) {{ $document = $null; Stop-WpsConcurrentOpen 'input document' '' }}
       $document.SaveAs($params.output_path)
       $document.Close($false)
     }}
     'presentation' {{
-      Assert-WpsInputNotOpen (Test-WpsPathOpen $app.Presentations $params.input_path)
       Assert-WpsSingleInstance $params.prog_id
+      Assert-WpsInputNotOpen (Test-WpsPathOpen $app.Presentations $params.input_path)
+      $wpsCountBefore = [int]$app.Presentations.Count
       $document = $app.Presentations.Open((ConvertTo-WpsLocalPath $params.input_path), $false, $false, [bool]$params.visible)
+      if ([int]$app.Presentations.Count -le $wpsCountBefore) {{ $document = $null; Stop-WpsConcurrentOpen 'input document' '' }}
       $document.SaveAs($params.output_path)
       $document.Close()
     }}
@@ -212,9 +218,11 @@ try {{
   {ACQUIRE_WPS_APP}
   {HIDE_LAUNCHED_APP}
   {QUIET_ALERTS}
-  Assert-WpsInputNotOpen (Test-WpsPathOpen $app.Workbooks $params.input_path)
   Assert-WpsSingleInstance $params.prog_id
+  Assert-WpsInputNotOpen (Test-WpsPathOpen $app.Workbooks $params.input_path)
+  $wpsCountBefore = [int]$app.Workbooks.Count
   $workbook = $app.Workbooks.Open((ConvertTo-WpsLocalPath $params.input_path))
+  if ([int]$app.Workbooks.Count -le $wpsCountBefore) {{ $workbook = $null; Stop-WpsConcurrentOpen 'input document' '' }}
   $sheet = $workbook.Worksheets.Item(1)
   $sheet.Range("B4").Value2 = 7
   $sheet.Range("C4").Value2 = 11
@@ -422,9 +430,11 @@ $document = $null
 try {{
   {ACQUIRE_WPS_APP}
   {HIDE_LAUNCHED_APP}
-  Assert-WpsInputNotOpen (Test-WpsPathOpen $app.{spec["collection"]} $params.input_path)
   Assert-WpsSingleInstance $params.prog_id
+  Assert-WpsInputNotOpen (Test-WpsPathOpen $app.{spec["collection"]} $params.input_path)
+  $wpsCountBefore = [int]$app.{spec["collection"]}.Count
   {spec["open"]}
+  if ([int]$app.{spec["collection"]}.Count -le $wpsCountBefore) {{ $document = $null; Stop-WpsConcurrentOpen 'input document' '' }}
   {spec["export"]}
   $exists = Test-Path $params.output_path
   $length = if ($exists) {{ (Get-Item $params.output_path).Length }} else {{ 0 }}
