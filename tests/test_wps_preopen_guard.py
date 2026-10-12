@@ -81,6 +81,8 @@ class PreOpenGuardStaticTests(unittest.TestCase):
 FAKE_SPREADSHEET_PRELUDE = r'''
 Add-Type -TypeDefinition 'namespace WpsAgent { public static class Running { public static object Instance; public static object Get(string progId) { return Instance; } } }'
 function Write-FakeLog([string]$line) { Add-Content -LiteralPath $env:WPSFAKE_LOG -Value $line }
+# WPSFAKE_LOCK: another handle holds the document exclusively, as WPS does for a document it has open.
+if ($env:WPSFAKE_LOCK -eq '1') { $global:fakeLock = [System.IO.File]::Open($env:WPSFAKE_PATH, [System.IO.FileMode]::Open, [System.IO.FileAccess]::Read, [System.IO.FileShare]::None) }
 function New-FakeApp([string]$label, [bool]$open, [bool]$saved) {
   $sheet = [pscustomobject]@{ Name = 'S' }
   $sheet | Add-Member -MemberType ScriptMethod -Name Delete -Value { Write-FakeLog 'delete' }
@@ -255,6 +257,32 @@ class PreOpenGuardBehaviourTests(unittest.TestCase):
                 self.assertIn("between the check and the open call", str(result))
                 self.assertEqual(len(self.open_calls()), 1)
                 self.assertEqual(self.events(), [])
+
+    def test_file_held_by_another_handle_is_refused_before_open_is_called(self):
+        # The user opened the document after both looks (race window of two reads); WPS holds the file, so
+        # the lock probe stops the command before Open() can reload the workbook and drop unsaved edits.
+        for saved in ("0", "1"):
+            with self.subTest(saved=saved):
+                self.log.write_text("", encoding="utf-8")
+                result = self.delete_sheet(
+                    WPSFAKE_RACE="1", WPSFAKE_RACE_READS="2", WPSFAKE_SAVED=saved, WPSFAKE_OPEN_OTHER="1",
+                    WPSFAKE_ATTACH="1", WPSFAKE_LOCK="1",
+                )
+                self.assertFalse(result["ok"], result)
+                self.assertIn("Open() was not called", str(result))
+                self.assertIn("held open by another handle", str(result))
+                self.assertIn("alerts are turned off", str(result))
+                self.assertNotIn("nothing in it is touched", str(result))
+                self.assertEqual(self.open_calls(), [])
+                self.assertEqual(self.events(), [])
+
+    def test_locked_document_that_is_not_open_in_wps_is_refused_too(self):
+        # Whatever holds the file, Open() is not called on it; the message says so and names WPS only as the likely holder.
+        result = self.delete_sheet(WPSFAKE_OPEN="0", WPSFAKE_SAVED="1", WPSFAKE_ATTACH="1", WPSFAKE_LOCK="1")
+        self.assertFalse(result["ok"], result)
+        self.assertIn("most likely because it is open in WPS", str(result))
+        self.assertEqual(self.open_calls(), [])
+        self.assertEqual(self.events(), [])
 
     def test_dirty_original_is_refused_even_when_the_collection_hands_back_a_clean_copy(self):
         # After Open() the collection reports the detached Saved=true copy for the document, while the
