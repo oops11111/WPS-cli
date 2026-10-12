@@ -61,8 +61,16 @@ def inspect_spreadsheet_range(
     range_address = range_address.strip()
     min_col, min_row, max_col, max_row = bounds
 
-    formulas_book = load_workbook(path, data_only=False, read_only=True)
-    cached_book = load_workbook(path, data_only=True, read_only=True)
+    unreadable_data = {"document_id": document_id, "path": str(path)}
+    try:
+        formulas_book = load_workbook(path, data_only=False, read_only=True)
+    except OSError as exc:
+        return False, unreadable_data, [{"code": "DOCUMENT_IDENTITY_UNAVAILABLE", "message": f"Workbook could not be read; it may be held open exclusively by another process: {exc}"}]
+    try:
+        cached_book = load_workbook(path, data_only=True, read_only=True)
+    except OSError as exc:
+        formulas_book.close()
+        return False, unreadable_data, [{"code": "DOCUMENT_IDENTITY_UNAVAILABLE", "message": f"Workbook could not be read; it may be held open exclusively by another process: {exc}"}]
     workbook_epoch = formulas_book.epoch
     try:
         selected_sheet = sheet_name or formulas_book.sheetnames[0]
