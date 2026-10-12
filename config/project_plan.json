@@ -1,7 +1,7 @@
 {
   "product": "WPS AI Agent CLI",
   "source_prd": "WPS_AI_Agent_CLI_PRD_v1.1.docx",
-  "current_phase": "phase2",
+  "current_phase": "phase3",
   "phases": [
     {
       "id": "phase0",
@@ -26,13 +26,20 @@
       "id": "phase2",
       "name": "Agent-ready scalable version",
       "goal": "Add mature sessions, MCP reuse, batch operations, HTML modes, observability, and long-running task controls.",
-      "status": "active"
+      "status": "done"
     },
     {
       "id": "phase3",
       "name": "Production-ready automation infrastructure",
       "goal": "Strengthen recovery, security, performance, regression testing, and ecosystem integration.",
-      "status": "planned"
+      "status": "active",
+      "exit_criteria": [
+        "Cross-component conversion is verified between HTML and Office formats (Writer, Spreadsheets, Presentation)",
+        "Mutations are atomic transactions: a change is either fully applied and verified or fully rolled back",
+        "Automated regression suite runs safe and WPS profiles with recorded artifacts",
+        "A real Agent end-to-end evaluation pipeline runs and records results",
+        "Ecosystem extension evaluation is written up, including a verified real desktop MCP client integration"
+      ]
     }
   ]
 }

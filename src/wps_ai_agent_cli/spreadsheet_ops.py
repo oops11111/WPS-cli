@@ -8,6 +8,7 @@ from typing import Any
 from xml.etree import ElementTree as ET
 from zipfile import ZipFile
 
+from .atomic_mutation import atomic_mutation
 from .ooxml import load_workbook_guarded as load_workbook
 from openpyxl.utils.cell import get_column_letter, range_boundaries
 from openpyxl.styles.numbers import is_date_format
@@ -336,6 +337,7 @@ try {{
 
 
 @coordinated_mutation
+@atomic_mutation
 def rename_spreadsheet_sheet(
     document_id: str,
     old_name: str,
@@ -469,6 +471,7 @@ try {{
 
 
 @coordinated_mutation
+@atomic_mutation
 def create_spreadsheet_sheet(
     document_id: str,
     name: str,
@@ -594,6 +597,7 @@ try {{
 
 
 @coordinated_mutation
+@atomic_mutation
 def set_spreadsheet_sheet_visibility(
     document_id: str, sheet_name: str, visible: bool, request_id: str,
     dry_run: bool = False, workspace: str | Path = ".",
@@ -701,6 +705,7 @@ try {{
 
 
 @coordinated_mutation
+@atomic_mutation
 def delete_spreadsheet_sheet(
     document_id: str, sheet_name: str, request_id: str,
     dry_run: bool = False, workspace: str | Path = ".",
@@ -808,6 +813,7 @@ try {{
 
 
 @coordinated_mutation
+@atomic_mutation
 def copy_spreadsheet_sheet(
     document_id: str, source_name: str, new_name: str, request_id: str,
     index: int | None = None, dry_run: bool = False, workspace: str | Path = ".",
@@ -978,6 +984,7 @@ try {{
 
 
 @coordinated_mutation
+@atomic_mutation
 def set_spreadsheet_sheet_tab_color(
     document_id: str, sheet_name: str, color: str, request_id: str,
     dry_run: bool = False, workspace: str | Path = ".",
@@ -1304,6 +1311,7 @@ try {{
 
 
 @coordinated_mutation
+@atomic_mutation
 def write_spreadsheet_range(
     document_id: str,
     range_address: str,
@@ -1429,6 +1437,7 @@ def write_spreadsheet_range(
 
 
 @coordinated_mutation
+@atomic_mutation
 def write_spreadsheet_formulas(
     document_id: str,
     range_address: str,
