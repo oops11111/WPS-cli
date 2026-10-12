@@ -11,6 +11,7 @@ import time
 from typing import Any, Callable
 
 from .errors import OperationRecordError
+from .powershell_runner import collect_script_warnings, merge_warnings
 
 
 DEFAULT_TIMEOUT_SECONDS = 30.0
@@ -149,6 +150,15 @@ def _operation_record_error(exc: OperationRecordError) -> dict[str, str]:
     }
 
 
+def _run_collecting_warnings(operation: Callable[..., Any], args: tuple, kwargs: dict) -> Any:
+    """Run a command and add the warnings its WPS scripts reported to the data of the result tuple."""
+    with collect_script_warnings() as warnings:
+        result = operation(*args, **kwargs)
+    if warnings and isinstance(result, tuple) and len(result) >= 2:
+        return (result[0], merge_warnings(result[1], warnings), *result[2:])
+    return result
+
+
 def coordinated_mutation(operation: Callable[..., Any]) -> Callable[..., Any]:
     signature = inspect.signature(operation)
 
@@ -157,7 +167,7 @@ def coordinated_mutation(operation: Callable[..., Any]) -> Callable[..., Any]:
         bound = signature.bind_partial(*args, **kwargs)
         document_id = bound.arguments.get("document_id")
         if document_id is None:
-            return operation(*args, **kwargs)
+            return _run_collecting_warnings(operation, args, kwargs)
         workspace = bound.arguments.get("workspace", ".")
         request_id = bound.arguments.get("request_id")
         try:
@@ -165,7 +175,7 @@ def coordinated_mutation(operation: Callable[..., Any]) -> Callable[..., Any]:
                 if request_id is not None:
                     locks.enter_context(document_mutation_lock(f"request:{request_id}", workspace, DEFAULT_TIMEOUT_SECONDS))
                 locks.enter_context(document_mutation_lock(str(document_id), workspace, DEFAULT_TIMEOUT_SECONDS))
-                return operation(*args, **kwargs)
+                return _run_collecting_warnings(operation, args, kwargs)
         except DocumentBusyError as exc:
             return False, {"document_id": document_id}, [{"code": "DOCUMENT_BUSY", "message": str(exc)}], False
         except OperationRecordError as exc:
@@ -185,11 +195,11 @@ def coordinated_request(operation: Callable[..., Any]) -> Callable[..., Any]:
         bound = signature.bind_partial(*args, **kwargs)
         request_id = bound.arguments.get("request_id")
         if request_id is None:
-            return operation(*args, **kwargs)
+            return _run_collecting_warnings(operation, args, kwargs)
         workspace = bound.arguments.get("workspace", ".")
         try:
             with document_mutation_lock(f"request:{request_id}", workspace, DEFAULT_TIMEOUT_SECONDS):
-                return operation(*args, **kwargs)
+                return _run_collecting_warnings(operation, args, kwargs)
         except DocumentBusyError as exc:
             return False, {"request_id": request_id}, [{"code": "DOCUMENT_BUSY", "message": str(exc)}], False
         except OperationRecordError as exc:

@@ -63,7 +63,7 @@ try {{
   $wpsPreOpen = Test-WpsPathOpen $app.Presentations $params.path
   Assert-WpsPresentationNotOpen $wpsPreOpen
   Assert-WpsSingleInstance $params.prog_id
-  $presentation = $app.Presentations.Open((ConvertTo-WpsLocalPath $params.path), $false, $false, $false)
+  $presentation = Open-WpsPresentation $app.Presentations $params.path
   $findText = [string]$params.find_text
   $replaceText = [string]$params.replace_text
   $script:replaceCount = 0

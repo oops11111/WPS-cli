@@ -136,7 +136,7 @@ $env:COMPUTERNAME = 'BOX1'
 $global:opens = @()
 $coll = [pscustomobject]@{ Count = 1; Existing = [pscustomobject]@{ FullName = 'C:\data\open.xlsx'; Tag = 'existing' } }
 $coll | Add-Member -MemberType ScriptMethod -Name Item -Value { param($i) return $this.Existing }
-$coll | Add-Member -MemberType ScriptMethod -Name Open -Value { param($p, $update, $readOnly) $global:opens += "open:$p|$update|$readOnly"; return [pscustomobject]@{ Tag = 'opened' } }
+$coll | Add-Member -MemberType ScriptMethod -Name Open -Value { param($p, $update, $readOnly) $global:opens += "open:$p|$update|$readOnly"; $this.Count = $this.Count + 1; return [pscustomobject]@{ Tag = 'opened' } }
 """
 
     def call(self, body):
@@ -160,6 +160,43 @@ $coll | Add-Member -MemberType ScriptMethod -Name Open -Value { param($p, $updat
     def test_already_open_document_is_returned_without_opening_again(self):
         lines = self.call(r"(Open-WpsDocument $coll 'c:\DATA\Open.xlsx' $true).Tag")
         self.assertEqual(lines, ["existing"])
+
+
+@unittest.skipUnless(PWSH, "PowerShell (pwsh) is required to execute the generated scripts")
+class OpenThatDoesNotGrowTheCollectionTests(unittest.TestCase):
+    """Open() returned but Count did not grow: someone else opened the document just before."""
+
+    FAKE_COLLECTION = r"""
+$env:COMPUTERNAME = 'BOX1'
+$global:opens = @()
+$script:wpsPreOpen = $false
+$params = [pscustomobject]@{ prog_id = 'ket.Application' }
+$coll = [pscustomobject]@{ Count = 1; Existing = [pscustomobject]@{ FullName = 'C:\data\other.xlsx'; Saved = $true; Tag = 'existing' } }
+$coll | Add-Member -MemberType ScriptMethod -Name Item -Value { param($i) return $this.Existing }
+$coll | Add-Member -MemberType ScriptMethod -Name Open -Value { param($p, $update, $readOnly) $global:opens += "open:$p"; return [pscustomobject]@{ Tag = 'detached'; Saved = $true } }
+"""
+
+    def run_script(self, body):
+        with tempfile.TemporaryDirectory() as tmp:
+            script = Path(tmp) / "t.ps1"
+            script.write_text(PRE_OPEN_GUARD + "\n$ErrorActionPreference = 'Stop'\n" + self.FAKE_COLLECTION + body, encoding="utf-8-sig")
+            return subprocess.run([PWSH, "-NoProfile", "-File", str(script)], capture_output=True, text=True, timeout=60)
+
+    def test_a_changing_command_is_refused_without_trusting_the_returned_object(self):
+        completed = self.run_script(r"[void](Open-WpsDocument $coll 'C:\data\new.xlsx' $false)")
+        self.assertNotEqual(completed.returncode, 0)
+        self.assertIn("between the check and the open call", completed.stdout + completed.stderr)
+
+    def test_a_read_only_open_still_returns_but_warns_that_the_values_may_come_from_disk(self):
+        completed = self.run_script(
+            r"$doc = Open-WpsDocument $coll 'C:\data\new.xlsx' $false $true" "\n"
+            r"$doc.Tag" "\n"
+            r"$script:wpsPreOpen" "\n"
+        )
+        self.assertEqual(completed.returncode, 0, completed.stdout + completed.stderr)
+        self.assertEqual(completed.stdout.split(), ["detached", "True"])
+        self.assertIn("WPS_AGENT_WARNING: the document was opened in WPS between the check and the open call", completed.stderr)
+        self.assertIn("copy loaded from disk", completed.stderr)
 
 
 class ScriptWarningTests(unittest.TestCase):
@@ -516,6 +553,36 @@ class AttachBehaviourTests(unittest.TestCase):
                 self.assertIn("does not reliably report unsaved", str(result))
                 self.assertNotIn("open", self.log_lines())
                 self.assertNotIn("close", self.log_lines())
+
+    def test_presentation_opened_by_the_user_after_the_check_is_refused_untouched(self):
+        for reads in ("1", "2"):
+            with self.subTest(race_reads=reads):
+                self.log.write_text("", encoding="utf-8")
+                env = {
+                    "WPSFAKE_ATTACH": "1", "WPSFAKE_SAVED": "1", "WPSFAKE_RACE": "1", "WPSFAKE_RACE_READS": reads,
+                    "WPSFAKE_OPEN_OTHER": "1",
+                }
+                with patch.dict(os.environ, env):
+                    result = presentation_ops._run_presentation_replace_com(str(self.document), "a", "b")
+                self.assertFalse(result["ok"], result)
+                self.assertIn("between the check and the open call", str(result))
+                self.assertNotIn("close", self.log_lines())
+                self.assertEqual(bool([line for line in self.log_lines() if line.startswith("open:")]), reads == "2")
+
+    def test_smoke_input_opened_by_the_user_after_the_check_is_refused_and_not_closed(self):
+        env = {
+            "WPSFAKE_ATTACH": "1", "WPSFAKE_SAVED": "0", "WPSFAKE_RACE": "1", "WPSFAKE_RACE_READS": "1",
+            "WPSFAKE_OPEN_OTHER": "1",
+        }
+        with patch.dict(os.environ, env):
+            convert = com_backend.run_conversion_smoke("spreadsheets", str(self.document), str(self.dir / "o.pdf"), "pdf")
+            calc = com_backend.run_spreadsheet_calc_smoke(str(self.document), str(self.dir / "out.xlsx"))
+        for name, result in (("conversion", convert), ("calc", calc)):
+            with self.subTest(command=name):
+                self.assertFalse(result["ok"], result)
+                self.assertIn("between the check and the open call", str(result))
+        self.assertNotIn("close", self.log_lines())
+        self.assertNotIn("save", self.log_lines())
 
     def test_smoke_commands_refuse_an_input_open_in_the_running_instance(self):
         out = self.dir / "out.xlsx"

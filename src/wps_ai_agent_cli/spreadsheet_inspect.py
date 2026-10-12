@@ -186,6 +186,8 @@ try {{
             sum(item["cache_matches_recalculated"] is False for item in result_cells) if recalculated_in_memory else None
         ),
     }
+    if payload.get("warnings"):
+        result["warnings"] = list(payload["warnings"])
     if not recalculated_in_memory:
         result["recalculation_skipped_reason"] = (
             "Attached to a running WPS instance: a full rebuild recalculates every open workbook and can mark the user's "

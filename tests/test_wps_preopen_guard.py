@@ -53,7 +53,7 @@ class PreOpenGuardStaticTests(unittest.TestCase):
                 self.assertGreaterEqual(closes, 1)
                 self.assertEqual(script.count("if (-not $wpsPreOpen) {"), closes)
                 open_call = (
-                    ".Open((ConvertTo-WpsLocalPath $params.path)"
+                    "Open-WpsPresentation $app."
                     if name == "presentation_replace"
                     else "Open-WpsDocument $app."
                 )
@@ -95,10 +95,11 @@ function New-FakeApp([string]$label, [bool]$open, [bool]$saved) {
   $sheets = [pscustomobject]@{ Count = 1; Sheet = $sheet }
   $sheets | Add-Member -MemberType ScriptMethod -Name Item -Value { param($key) return $this.Sheet }
   $raced = $env:WPSFAKE_RACE -eq '1'
-  $books = [pscustomobject]@{ Stored = $(if ($open -or $raced) { 1 } else { 0 }); Reads = 0; Book = $null; Other = $null }
+  $books = [pscustomobject]@{ Stored = $(if ($open -or $raced) { 1 } else { 0 }); Reads = 0; Book = $null; Other = $null; Opened = $false }
   # With WPSFAKE_RACE the user opens the document right after the script's first look at the collection.
+  # WPSFAKE_RACE_READS widens the window: the document stays invisible for that many reads of Count.
   $books | Add-Member -MemberType ScriptProperty -Name Count `
-    -Value { $this.Reads++; if ($env:WPSFAKE_RACE -eq '1' -and $this.Reads -eq 1) { return 0 }; return $this.Stored } `
+    -Value { $this.Reads++; $window = if ($env:WPSFAKE_RACE_READS) { [int]$env:WPSFAKE_RACE_READS } else { 1 }; if ($env:WPSFAKE_RACE -eq '1' -and $this.Reads -le $window) { return 0 }; return $this.Stored } `
     -SecondValue { param($value) $this.Stored = $value }
   $book = [pscustomobject]@{ FullName = $env:WPSFAKE_PATH; Saved = $saved; Worksheets = $sheets; Books = $books }
   $book | Add-Member -MemberType ScriptMethod -Name Save -Value { Write-FakeLog 'save' }
@@ -108,10 +109,12 @@ function New-FakeApp([string]$label, [bool]$open, [bool]$saved) {
   $other | Add-Member -MemberType ScriptMethod -Name Save -Value { Write-FakeLog 'save' }
   $other | Add-Member -MemberType ScriptMethod -Name Close -Value { param($save) Write-FakeLog 'close' }
   $books.Other = $other
-  $books | Add-Member -MemberType ScriptMethod -Name Item -Value { param($i) return $this.Book }
+  # WPSFAKE_ITEM_OTHER: once Open() has been called the collection itself hands out the detached Saved=true copy.
+  $books | Add-Member -MemberType ScriptMethod -Name Item -Value { param($i) if ($env:WPSFAKE_ITEM_OTHER -eq '1' -and $this.Opened) { return $this.Other }; return $this.Book }
   $books | Add-Member -MemberType ScriptMethod -Name Open -Value {
     param($p)
     Write-FakeLog ('open:' + $p)
+    $this.Opened = $true
     # WPS hands back a second, clean-looking object when an already open workbook is opened again.
     if ($env:WPSFAKE_OPEN_OTHER -eq '1' -and $this.Count -gt 0) { return $this.Other }
     $this.Count = 1
@@ -229,6 +232,39 @@ class PreOpenGuardBehaviourTests(unittest.TestCase):
         result = self.delete_sheet(WPSFAKE_RACE="1", WPSFAKE_SAVED="0", WPSFAKE_ATTACH="1")
         self.assertFalse(result["ok"], result)
         self.assertIn("unsaved changes", str(result))
+        self.assertEqual(self.events(), [])
+
+    def test_recheck_right_before_open_finds_the_workbook_and_never_calls_open(self):
+        result = self.delete_sheet(WPSFAKE_RACE="1", WPSFAKE_SAVED="0", WPSFAKE_OPEN_OTHER="1", WPSFAKE_ATTACH="1")
+        self.assertFalse(result["ok"], result)
+        self.assertIn("unsaved changes", str(result))
+        self.assertEqual(self.open_calls(), [])
+        self.assertEqual(self.events(), [])
+
+    def test_workbook_opened_after_the_recheck_is_refused_whether_or_not_it_looks_dirty(self):
+        # Both looks see nothing; the user opens the document just before Open(). Open() returns a detached
+        # Saved=true object and Count does not grow. Saved is not trusted on this branch, so even a document
+        # that reports itself clean is refused, and nothing is changed, saved or closed.
+        for saved in ("0", "1"):
+            with self.subTest(saved=saved):
+                self.log.write_text("", encoding="utf-8")
+                result = self.delete_sheet(
+                    WPSFAKE_RACE="1", WPSFAKE_RACE_READS="2", WPSFAKE_SAVED=saved, WPSFAKE_OPEN_OTHER="1", WPSFAKE_ATTACH="1",
+                )
+                self.assertFalse(result["ok"], result)
+                self.assertIn("between the check and the open call", str(result))
+                self.assertEqual(len(self.open_calls()), 1)
+                self.assertEqual(self.events(), [])
+
+    def test_dirty_original_is_refused_even_when_the_collection_hands_back_a_clean_copy(self):
+        # After Open() the collection reports the detached Saved=true copy for the document, while the
+        # original (held by the user) is dirty: judging by Saved of what Find returns would let this through.
+        result = self.delete_sheet(
+            WPSFAKE_RACE="1", WPSFAKE_RACE_READS="2", WPSFAKE_SAVED="0", WPSFAKE_OPEN_OTHER="1",
+            WPSFAKE_ITEM_OTHER="1", WPSFAKE_ATTACH="1",
+        )
+        self.assertFalse(result["ok"], result)
+        self.assertIn("between the check and the open call", str(result))
         self.assertEqual(self.events(), [])
 
     def test_open_workbook_is_used_directly_instead_of_being_opened_again(self):

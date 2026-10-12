@@ -3,6 +3,9 @@ from __future__ import annotations
 import json
 import subprocess
 import tempfile
+from collections.abc import Iterator
+from contextlib import contextmanager
+from contextvars import ContextVar
 from pathlib import Path
 from typing import Any, Sequence
 
@@ -76,6 +79,44 @@ def _script_warnings(stderr: str | None) -> list[str]:
     return found
 
 
+_WARNING_SINK: ContextVar[list[str] | None] = ContextVar("wps_script_warning_sink", default=None)
+
+
+@contextmanager
+def collect_script_warnings() -> Iterator[list[str]]:
+    """Gather the warnings of every script run inside the block into one list.
+
+    Public commands rebuild their result from selected fields, so a script's own ``warnings`` would be
+    lost; ``coordinated_mutation`` uses this to put them into the returned envelope in one place.
+    Nested blocks pass what they collected on to the enclosing one.
+    """
+    sink: list[str] = []
+    token = _WARNING_SINK.set(sink)
+    try:
+        yield sink
+    finally:
+        _WARNING_SINK.reset(token)
+        outer = _WARNING_SINK.get()
+        if outer is not None:
+            outer.extend(item for item in sink if item not in outer)
+
+
+def merge_warnings(data: Any, warnings: Sequence[str]) -> Any:
+    """Return ``data`` with ``warnings`` added to its ``warnings`` list (deduplicated)."""
+    if not warnings or not isinstance(data, dict):
+        return data
+    existing = data.get("warnings")
+    merged = [existing] if isinstance(existing, str) else list(existing or [])
+    merged.extend(item for item in warnings if item not in merged)
+    return {**data, "warnings": merged}
+
+
+def _remember_warnings(warnings: list[str]) -> None:
+    sink = _WARNING_SINK.get()
+    if sink is not None:
+        sink.extend(item for item in warnings if item not in sink)
+
+
 def run_powershell_script(
     script: str,
     timeout_seconds: int = 120,
@@ -137,6 +178,8 @@ def run_powershell_script(
         payload = json.loads(completed.stdout)
     except json.JSONDecodeError:
         payload = None
+    warnings = _script_warnings(completed.stderr)
+    _remember_warnings(warnings)
     if completed.returncode != 0 or not isinstance(payload, dict):
         message = (completed.stderr or completed.stdout).strip()
         if isinstance(payload, dict):
@@ -146,7 +189,6 @@ def run_powershell_script(
             "errors": [{"code": COM_OPERATION_FAILED, "message": message}],
             "data": {"backend": "powershell-com", **(failure_data or {}), "diagnostic": payload},
         }
-    warnings = _script_warnings(completed.stderr)
     if warnings:
         payload["warnings"] = [*(payload.get("warnings") or []), *warnings]
     return payload, None
