@@ -20,6 +20,17 @@
 2. **`spreadsheet-write` / writer·wpp replace + exclusive hold:** identity/backup open can return `DOCUMENT_IDENTITY_UNAVAILABLE` / `Permission denied` before COM lock-probe text. Direct probe still correct. Under `FileShare.Read`/`ReadWrite`, changing commands get the proper held-open / Open-not-called refuse.
 3. **Item 4 true race:** EXEMPT as checklist recommends.
 
+## Status of the product gaps (offline fixes)
+
+These fixes are verified with offline unit tests only. Real-WPS re-verification is still needed.
+
+| Gap | Fix | State |
+| --- | --- | --- |
+| 1. `spreadsheet-inspect` + exclusive hold: uncaught `PermissionError`, no JSON envelope | `spreadsheet_inspect.py` returns `DOCUMENT_IDENTITY_UNAVAILABLE` for an unreadable workbook and closes a half-opened pair | Branch `fix/spreadsheet-inspect-held-envelope` (`902a18d`), no PR yet |
+| 2. Changing commands + exclusive hold: bare `Permission denied` before the COM probe | `sessions.py` `file_identity` names the held handle and states that nothing was written | Merged in PR #12 (`e4b43b1`) |
+
+Still to do: re-run the held-handle cases on Windows against a real WPS session, using the `real_wps_verify_remaining` kit, and record the new results here.
+
 ## Harness notes
 
 - `Open-FileHold` / `Get-Sha` retry for brief post-Close locks.
