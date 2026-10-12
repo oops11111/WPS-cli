@@ -5,9 +5,9 @@ The CLI's own PowerShell text is patched in memory (nothing in the repo is modif
 * ``Test-WpsPathOpen`` answers "closed" (the caller's first check lost the race), and
 * ``Find-WpsOpenDocument`` answers "not found" (the recheck right before ``Open()`` lost it too),
 
-so ``Open-WpsDocument`` really calls ``Workbooks.Open()`` on a workbook that is already open in WPS. Real ET
-then returns a detached ``Saved=true`` copy and ``Count`` does not grow. The merged behaviour is that a changing
-command is refused on that branch whatever ``Saved`` says.
+so ``Open-WpsDocument`` is not stopped by either look. On a build that calls ``Workbooks.Open()`` next (main@bec1c64),
+real ET reloads the open workbook from disk (unsaved edits are lost), ``Count`` does not grow and the command is then
+refused. A build with a file-lock probe before ``Open()`` is expected to refuse without calling it.
 
 When ``C2_TRACE_FILE`` is set, one JSON line is appended right after ``Open()`` returns with the workbook count
 before/after and the returned object's ``Saved`` and ``B2``; that proves Open() was reached.

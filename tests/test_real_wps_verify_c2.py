@@ -138,6 +138,19 @@ class ScriptSyntaxTests(unittest.TestCase):
                     self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
 
 
+class KitScriptTextTests(unittest.TestCase):
+    def test_trace_rows_are_added_as_arrays_so_a_single_row_does_not_break_the_run(self):
+        text = (KIT / "c2-post-open.ps1").read_text(encoding="utf-8")
+        self.assertNotIn("$t1 + $t2", text)
+        self.assertIn("@($t1) + @($t2)", text)
+
+    def test_unsaved_edit_is_only_enforced_when_open_was_not_called(self):
+        text = (KIT / "c2-post-open.ps1").read_text(encoding="utf-8")
+        self.assertIn("refused_before_open", text)
+        self.assertIn("refused_after_open", text)
+        self.assertIn("Open\\(\\) was not called", text)
+
+
 class FixtureTests(unittest.TestCase):
     def test_fixture_script_writes_the_two_scratch_workbooks(self):
         with tempfile.TemporaryDirectory() as tmp:
