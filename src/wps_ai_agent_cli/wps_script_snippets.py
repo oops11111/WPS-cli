@@ -193,33 +193,67 @@ function Find-WpsOpenDocument($collection, [string]$path) {
   return $null
 }
 function Stop-WpsConcurrentOpen([string]$what, [string]$detail) {
-  throw ('The ' + $what + ' was opened in WPS between the check and the open call' + $detail + '; the command was refused so nothing in it is touched, saved or closed. Save or close it in WPS and retry.')
+  throw ('The ' + $what + ' was opened in WPS between the check and the open call' + $detail + '. Open() had already been called on it, and WPS can reload an open document from disk without asking (alerts are turned off here), so unsaved edits made in WPS may already be lost. The command was refused and wrote, saved and closed nothing; check the document in WPS before retrying.')
+}
+function Stop-WpsAlreadyOpen([string]$what) {
+  throw ('The ' + $what + ' is open in WPS. Open() was not called and nothing was touched, written, saved or closed. Close it in WPS (or save it, for a document with no unsaved changes) and retry.')
+}
+function Assert-WpsFileNotHeld([string]$path, [string]$what, [bool]$readOnly = $false) {
+  # Open() on a document that is already open reloads it from disk (silently, because alerts are turned off here) and
+  # throws away unsaved edits, so Open() must not be called for a file that may be open in WPS. WPS keeps a handle
+  # on a document it has open: a changing command asks for exclusive access (any other handle is a conflict); a
+  # read-only command only asks to be allowed to read next to other readers (a writer or an exclusive holder is a conflict).
+  # A file that cannot be probed is refused as well. A missing file is left to Open() to report.
+  $localPath = ConvertTo-WpsLocalPath $path
+  $share = if ($readOnly) { [System.IO.FileShare]::Read } else { [System.IO.FileShare]::None }
+  $stream = $null
+  $held = $null
+  $unknown = $null
+  try {
+    $stream = [System.IO.File]::Open($localPath, [System.IO.FileMode]::Open, [System.IO.FileAccess]::Read, $share)
+  } catch [System.IO.FileNotFoundException] {
+    return
+  } catch [System.IO.DirectoryNotFoundException] {
+    return
+  } catch [System.IO.IOException] {
+    $held = $_.Exception.Message
+  } catch {
+    $unknown = $_.Exception.Message
+  } finally {
+    if ($null -ne $stream) { $stream.Dispose() }
+  }
+  if ($null -ne $held) {
+    throw ('The ' + $what + ' is held open by another handle (' + $held + '), most likely because it is open in WPS. Open() was not called: on a document that is already open it reloads the file from disk without asking (alerts are turned off here) and discards unsaved edits made in WPS. The command was refused and nothing was written, saved or closed. Save or close the document in WPS (or the program that holds the file) and retry.')
+  }
+  if ($null -ne $unknown) {
+    throw ('The ' + $what + ' could not be checked for being open in WPS (' + $unknown + '). Open() was not called, because on a document that is already open it reloads the file from disk without asking (alerts are turned off here) and discards unsaved edits. The command was refused as a precaution and nothing was written, saved or closed.')
+  }
 }
 function Open-WpsDocument($collection, [string]$path, [bool]$wasOpen, [bool]$readOnly = $false) {
-  # A document that is already open must be used as is: Workbooks.Open() on an open, unsaved workbook
-  # can hand back a different object (Saved=true, without the in-memory edits), which hides the dirty
-  # state from Assert-WpsPreOpenSaved. Anything else is opened by its local path because WPS cannot
-  # open some UNC spellings (\\localhost\C$\...) that point at a local drive.
+  # A document that is already open must be used as is: Workbooks.Open() on an open workbook reloads it from disk
+  # and drops unsaved edits (the object held before is left empty). Anything else is opened by its local path because
+  # WPS cannot open some UNC spellings (\\localhost\C$\...) that point at a local drive.
   if ($wasOpen) {
     $existing = Find-WpsOpenDocument $collection $path
     if ($null -ne $existing) { return $existing }
   }
   if (-not $readOnly) { Assert-WpsSingleInstance $params.prog_id }
-  # Look once more right before Open(): the user may have opened the document since the caller's check,
-  # and Open() on an open document can reload it from disk or return a detached copy.
+  # Look once more right before Open(): the user may have opened the document since the caller's check.
   $existing = Find-WpsOpenDocument $collection $path
   if ($null -ne $existing) { $script:wpsPreOpen = $true; return $existing }
+  # Then make sure nothing holds the file open (WPS does for an open document) so Open() is never called on it.
+  Assert-WpsFileNotHeld $path 'document' $readOnly
   $openPath = ConvertTo-WpsLocalPath $path
   $countBefore = [int]$collection.Count
   if ($readOnly) { $opened = $collection.Open($openPath, 0, $true) } else { $opened = $collection.Open($openPath) }
   if ([int]$collection.Count -le $countBefore) {
     # Nothing new appeared in the collection, so the document was opened by someone else between the
-    # look and Open(). It is not ours to close. Which copy Open() returned cannot be told (on ET it can be a
-    # detached copy read from disk with Saved=true, and so can the copy found afterwards by path), so Saved
-    # is not trusted here: a command that changes the document is refused outright.
+    # lock check and Open(), and Open() has run on it. It is not ours to close. Which copy Open() returned cannot
+    # be told (on ET it can be a detached copy read from disk with Saved=true, and so can the copy found afterwards
+    # by path), so Saved is not trusted here: a command that changes the document is refused outright.
     $script:wpsPreOpen = $true
-    if (-not $readOnly) { Stop-WpsConcurrentOpen 'document' ' (which copy Open() returned cannot be told, so unsaved changes cannot be ruled out)' }
-    [Console]::Error.WriteLine('WPS_AGENT_WARNING: the document was opened in WPS between the check and the open call; the values read may come from a copy loaded from disk and not include unsaved edits in WPS.')
+    if (-not $readOnly) { Stop-WpsConcurrentOpen 'document' ' (which copy Open() returned cannot be told)' }
+    [Console]::Error.WriteLine('WPS_AGENT_WARNING: the document was opened in WPS between the check and the open call; Open() had already been called on it, and WPS can reload an open document from disk without asking, so the values read come from the saved file and unsaved edits made in WPS may have been discarded.')
     $existing = Find-WpsOpenDocument $collection $path
     if ($null -ne $existing) { return $existing }
   }
@@ -227,7 +261,8 @@ function Open-WpsDocument($collection, [string]$path, [bool]$wasOpen, [bool]$rea
 }
 function Open-WpsPresentation($collection, [string]$path) {
   # Presentation.Saved cannot be trusted, so a presentation that turns out to be open is never touched.
-  if ($null -ne (Find-WpsOpenDocument $collection $path)) { $script:wpsPreOpen = $true; Stop-WpsConcurrentOpen 'presentation' '' }
+  if ($null -ne (Find-WpsOpenDocument $collection $path)) { $script:wpsPreOpen = $true; Stop-WpsAlreadyOpen 'presentation' }
+  Assert-WpsFileNotHeld $path 'presentation'
   $countBefore = [int]$collection.Count
   $opened = $collection.Open((ConvertTo-WpsLocalPath $path), $false, $false, $false)
   if ([int]$collection.Count -le $countBefore) { $script:wpsPreOpen = $true; Stop-WpsConcurrentOpen 'presentation' '' }
