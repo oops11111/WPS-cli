@@ -214,13 +214,14 @@ function Open-WpsDocument($collection, [string]$path, [bool]$wasOpen, [bool]$rea
   if ($readOnly) { $opened = $collection.Open($openPath, 0, $true) } else { $opened = $collection.Open($openPath) }
   if ([int]$collection.Count -le $countBefore) {
     # Nothing new appeared in the collection, so the document was opened by someone else between the
-    # look and Open(). It is not ours to close and the object Open() returned cannot be trusted (it can
-    # be a detached copy with Saved=true), so judge the copy that is really open.
+    # look and Open(). It is not ours to close. Which copy Open() returned cannot be told (on ET it can be a
+    # detached copy read from disk with Saved=true, and so can the copy found afterwards by path), so Saved
+    # is not trusted here: a command that changes the document is refused outright.
     $script:wpsPreOpen = $true
+    if (-not $readOnly) { Stop-WpsConcurrentOpen 'document' ' (which copy Open() returned cannot be told, so unsaved changes cannot be ruled out)' }
+    [Console]::Error.WriteLine('WPS_AGENT_WARNING: the document was opened in WPS between the check and the open call; the values read may come from a copy loaded from disk and not include unsaved edits in WPS.')
     $existing = Find-WpsOpenDocument $collection $path
-    if ($null -eq $existing) { Stop-WpsConcurrentOpen 'document' ' and the open copy could not be found' }
-    if (-not $readOnly -and -not [bool]$existing.Saved) { Stop-WpsConcurrentOpen 'document' ' and has unsaved changes' }
-    return $existing
+    if ($null -ne $existing) { return $existing }
   }
   return $opened
 }

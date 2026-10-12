@@ -162,6 +162,43 @@ $coll | Add-Member -MemberType ScriptMethod -Name Open -Value { param($p, $updat
         self.assertEqual(lines, ["existing"])
 
 
+@unittest.skipUnless(PWSH, "PowerShell (pwsh) is required to execute the generated scripts")
+class OpenThatDoesNotGrowTheCollectionTests(unittest.TestCase):
+    """Open() returned but Count did not grow: someone else opened the document just before."""
+
+    FAKE_COLLECTION = r"""
+$env:COMPUTERNAME = 'BOX1'
+$global:opens = @()
+$script:wpsPreOpen = $false
+$params = [pscustomobject]@{ prog_id = 'ket.Application' }
+$coll = [pscustomobject]@{ Count = 1; Existing = [pscustomobject]@{ FullName = 'C:\data\other.xlsx'; Saved = $true; Tag = 'existing' } }
+$coll | Add-Member -MemberType ScriptMethod -Name Item -Value { param($i) return $this.Existing }
+$coll | Add-Member -MemberType ScriptMethod -Name Open -Value { param($p, $update, $readOnly) $global:opens += "open:$p"; return [pscustomobject]@{ Tag = 'detached'; Saved = $true } }
+"""
+
+    def run_script(self, body):
+        with tempfile.TemporaryDirectory() as tmp:
+            script = Path(tmp) / "t.ps1"
+            script.write_text(PRE_OPEN_GUARD + "\n$ErrorActionPreference = 'Stop'\n" + self.FAKE_COLLECTION + body, encoding="utf-8-sig")
+            return subprocess.run([PWSH, "-NoProfile", "-File", str(script)], capture_output=True, text=True, timeout=60)
+
+    def test_a_changing_command_is_refused_without_trusting_the_returned_object(self):
+        completed = self.run_script(r"[void](Open-WpsDocument $coll 'C:\data\new.xlsx' $false)")
+        self.assertNotEqual(completed.returncode, 0)
+        self.assertIn("between the check and the open call", completed.stdout + completed.stderr)
+
+    def test_a_read_only_open_still_returns_but_warns_that_the_values_may_come_from_disk(self):
+        completed = self.run_script(
+            r"$doc = Open-WpsDocument $coll 'C:\data\new.xlsx' $false $true" "\n"
+            r"$doc.Tag" "\n"
+            r"$script:wpsPreOpen" "\n"
+        )
+        self.assertEqual(completed.returncode, 0, completed.stdout + completed.stderr)
+        self.assertEqual(completed.stdout.split(), ["detached", "True"])
+        self.assertIn("WPS_AGENT_WARNING: the document was opened in WPS between the check and the open call", completed.stderr)
+        self.assertIn("copy loaded from disk", completed.stderr)
+
+
 class ScriptWarningTests(unittest.TestCase):
     def run_with(self, stdout, stderr, returncode=0):
         from wps_ai_agent_cli import powershell_runner
