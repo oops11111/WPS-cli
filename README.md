@@ -52,6 +52,22 @@ MCP 客户端配置见 [docs/MCP_SERVER_CLIENT_CONFIG.md](docs/MCP_SERVER_CLIENT
 wps-agent --strict-exit backup-document --document-id doc_xxx --request-id r1 || echo "failed"
 ```
 
+## 修改失败与回滚
+
+修改类命令在写入前先创建备份。如果命令在写入之后失败（读回的值与写入的不一致、源文件校验失败，或命令抛出异常），而文件已经被改动，CLI 会从这份备份原子地恢复文件，并核对恢复后的哈希与备份一致。此时信封里会有：
+
+- `MUTATION_ROLLED_BACK`：文件已恢复。`data.rollback.performed` 为 `true`，`data.rollback.open_in_wps` 表示文档在 WPS 中是否仍然打开（`true`、`false`，无法检查时为 `null`）。
+- `MUTATION_ROLLBACK_FAILED`：自动恢复失败，信封里给出需要用于手动恢复的备份路径，请用 `restore-backup` 处理。
+
+文件未被改动的失败不会回滚，原有错误照常返回。
+
+限制：
+
+- WPS 本身的保存不是原子的。回滚只保证文件恢复到修改前的内容，不改变 WPS 中已经打开的文档。如果 `open_in_wps` 为 `true` 或 `null`，请在 WPS 中不保存地关闭文档或重新加载，否则 WPS 可能把被拒绝的内容写回去。
+- 恢复会覆盖备份之后、且不是通过本 CLI 做的修改。
+- 命令抛出异常且账本中没有对应备份记录时，异常照常抛出；请用 `mutation-request-inspect` 检查该请求后再重试。
+- 当前回滚路径只有离线测试覆盖，尚未在真实 WPS 上验证。
+
 ## WPS 实例与已打开文档
 
 读写文件的 COM 命令（表格/文字/演示的变更与检查、冒烟与转换）取得 WPS 时**先附着到正在运行的实例**（GetActiveObject 语义），只有没有运行中的实例时才 `New-Object` 启动一个。
