@@ -15,7 +15,10 @@ pip install -e .            # 核心运行时，依赖 openpyxl
 pip install -e ".[wps]"     # Windows：pywin32
 pip install -e ".[html]"    # HTML 可编辑转换：python-docx
 pip install -e ".[test]"    # 运行测试所需的全部依赖
+pip install -e ".[lint]"    # 代码检查：ruff（版本与 CI 一致）
 ```
+
+提交前可以在仓库根目录运行 `ruff check .`，规则写在 `pyproject.toml` 里，CI 的 lint 任务也运行同一条命令。
 
 HTML 渲染（`html-render`）额外需要 Node.js 18 及以上、Microsoft Edge 和 Playwright：
 

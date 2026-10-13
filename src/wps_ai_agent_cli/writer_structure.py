@@ -7,7 +7,7 @@ import xml.etree.ElementTree as ET
 from zipfile import ZipFile
 
 from .document_text import _paragraph_text
-from .ooxml import parse_xml_part, read_zip_part
+from .ooxml import parse_xml_part
 
 
 W = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"

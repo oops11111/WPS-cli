@@ -10,7 +10,7 @@ from openpyxl.utils.cell import get_column_letter
 from openpyxl.utils.datetime import to_excel
 
 from .capabilities import probe_wps_capabilities
-from .errors import COM_BACKEND_UNAVAILABLE, COM_OPERATION_FAILED, INPUT_FILE_NOT_FOUND
+from .errors import COM_BACKEND_UNAVAILABLE, INPUT_FILE_NOT_FOUND
 from .file_hold import is_share_conflict, probe_file_not_held, share_conflict_error
 from .powershell_runner import run_powershell_script
 from .sessions import get_document
@@ -19,7 +19,6 @@ from .wps_script_snippets import (
     ACQUIRE_WPS_APP,
     HIDE_LAUNCHED_APP,
     PRE_OPEN_GUARD,
-    QUIET_ALERTS,
     RELEASE_WPS_APP,
 )
 

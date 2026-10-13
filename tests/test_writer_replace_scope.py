@@ -1037,7 +1037,6 @@ class WriterParagraphMappingTests(unittest.TestCase):
 
     def test_missing_image_relationship_context_survives_cli_and_mcp(self):
         import xml.etree.ElementTree as ET
-        from docx.oxml.ns import qn
         from zipfile import ZipFile
         from tests.test_writer_table_bookmark_feasibility import write_image_bookmark_document
         from wps_ai_agent_cli.document_text import docx_body_drawing_semantics
@@ -1157,7 +1156,6 @@ class WriterParagraphMappingTests(unittest.TestCase):
         import socket
         import urllib.request
         import xml.etree.ElementTree as ET
-        from docx.oxml.ns import qn
         from zipfile import ZipFile
         from tests.test_writer_table_bookmark_feasibility import write_image_bookmark_document
         from wps_ai_agent_cli.document_text import docx_body_drawing_semantics

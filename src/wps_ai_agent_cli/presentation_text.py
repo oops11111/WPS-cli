@@ -5,7 +5,7 @@ from pathlib import Path
 import xml.etree.ElementTree as ET
 from urllib.parse import unquote, urlsplit
 from zipfile import ZipFile
-from .ooxml import parse_xml_part, read_zip_part
+from .ooxml import parse_xml_part
 
 
 DRAWING_TEXT = "{http://schemas.openxmlformats.org/drawingml/2006/main}t"

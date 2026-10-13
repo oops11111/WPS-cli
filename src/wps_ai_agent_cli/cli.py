@@ -1,9 +1,7 @@
 from __future__ import annotations
 
-import argparse
 import json
 import sys
-from collections.abc import Callable
 from typing import TextIO
 from uuid import uuid4
 
@@ -19,7 +17,6 @@ from .com_backend import run_com_smoke, run_conversion_smoke, run_spreadsheet_ca
 from .file_scan import scan_directory
 from .jsonio import dumps_json
 from .html_render import render_html
-from .html_editable import convert_html_editable
 from .html_office import BACKENDS as HTML_OFFICE_BACKENDS, convert_html_to_office
 from .html_roundtrip import build_html_roundtrip_mapping, export_controlled_html, import_controlled_html, verify_controlled_document
 from .mcp_adapter import call_mcp_tool
@@ -27,7 +24,8 @@ from .mcp_catalog_drift import DEFAULT_MCP_CATALOG_GUARD, build_mcp_catalog_drif
 from .mcp_catalog import build_mcp_catalog_snapshot
 from .mcp_config_audit import audit_mcp_client_config
 from .mcp_schema import get_mcp_tool_schema, list_mcp_tool_categories, list_mcp_tool_schemas
-from .mcp_server import handle_mcp_json, serve_stdio
+# cli_handlers reaches these through this module (cli.handle_mcp_json, cli.serve_stdio).
+from .mcp_server import handle_mcp_json, serve_stdio  # noqa: F401
 from .mcp_smoke import run_mcp_server_smoke
 from .models import CommandResponse, ValidationResult
 from .operations import get_operation, inspect_mutation_request, list_operations
@@ -2886,8 +2884,8 @@ def presentation_replace_response(
     )
 
 
-
-from .cli_handlers import build_command_handlers
+# Imported last: cli_handlers reads the handler functions defined above from this module.
+from .cli_handlers import build_command_handlers  # noqa: E402
 
 COMMAND_HANDLERS = build_command_handlers(sys.modules[__name__])
 
