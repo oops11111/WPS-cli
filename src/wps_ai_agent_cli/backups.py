@@ -293,7 +293,10 @@ def _restore_file_atomically(backup_file: Path, target_path: Path) -> dict[str, 
         os.replace(temporary, target_path)
         temporary = None
     except OSError as exc:
-        return {"code": "RESTORE_TARGET_WRITE_FAILED", "message": f"Target was not modified or could not be replaced (it may be open in WPS): {exc}"}
+        error = {"code": "RESTORE_TARGET_WRITE_FAILED", "message": f"Target was not modified or could not be replaced (it may be open in WPS): {exc}"}
+        if isinstance(exc, PermissionError):
+            error["reason"] = "file_locked"
+        return error
     finally:
         if temporary is not None:
             temporary.unlink(missing_ok=True)

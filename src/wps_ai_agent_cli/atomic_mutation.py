@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Any, Callable
 
 from .backups import _restore_file_atomically
-from .errors import COM_OPERATION_FAILED, ROLLBACK_FAILED, ROLLED_BACK
+from .errors import COM_OPERATION_FAILED, ROLLBACK_BLOCKED, ROLLBACK_FAILED, ROLLED_BACK
 from .operations import get_operation
 from .sessions import file_identity, get_document
 
@@ -61,6 +61,8 @@ def _undo_write(document_id: str, backup_file: str, workspace: str | Path) -> tu
     if current_sha == backup_sha:
         return {"performed": False, "reason": "the file already matches the pre-write backup"}, None
     write_error = _restore_file_atomically(backup, target)
+    if write_error is not None and write_error.get("reason") == "file_locked":
+        return {"performed": False, "blocked": "file_locked"}, None
     if write_error is not None:
         return {"performed": False}, _rollback_error(document_id, backup_file, write_error["message"])
     try:
@@ -72,27 +74,39 @@ def _undo_write(document_id: str, backup_file: str, workspace: str | Path) -> tu
     return {"performed": True, "restored_from": str(backup)}, None
 
 
-def _open_in_wps(document_id: str, workspace: str | Path) -> bool | None:
-    """Whether WPS has the document open now. None when the check cannot be made.
+def _open_in_wps(document_id: str, workspace: str | Path) -> tuple[bool | None, str | None]:
+    """Whether WPS has the document open now, and why the answer is unknown when it is None.
 
-    A failed probe must not change the rollback result, so any error here only means the answer is unknown.
+    A failed probe must not change the rollback result, so an error here only means the answer is unknown.
+    The reason is returned so that a null result can be diagnosed.
     """
     from . import open_documents  # imported here: open_documents imports this module
 
     document = get_document(document_id, workspace)
     if document is None:
-        return None
+        return None, "document is not registered in this workspace"
     try:
-        ok, data, _errors = open_documents.list_open_documents(component=document["component"], workspace=workspace)
-    except Exception:
-        return None
+        ok, data, errors = open_documents.list_open_documents(component=document["component"], workspace=workspace)
+    except Exception as exc:
+        return None, f"probe raised {type(exc).__name__}: {exc}"
     if not ok:
-        return None
+        codes = ", ".join(error.get("code", "?") for error in errors) or "no error code"
+        return None, f"probe returned an error ({codes})"
     target = str(Path(document["path"]).resolve()).lower()
-    return any(
+    is_open = any(
         str(Path(item["full_name"]).resolve()).lower() == target
         for item in data.get("documents", [])
         if item.get("full_name")
+    )
+    return is_open, None
+
+
+def _blocked_guidance(document_id: str, backup_file: str, open_in_wps: bool | None) -> str:
+    state = "is open in WPS" if open_in_wps is True else "may be open in WPS"
+    return (
+        f"The write was saved by WPS and could not be undone, because the file is locked; the document {state}. "
+        "The file still holds the rejected value. Close the document in WPS without saving, then restore the pre-write "
+        f"backup with: restore-backup --document-id {document_id} --backup-path \"{backup_file}\" --request-id <new-id>."
     )
 
 
@@ -115,14 +129,21 @@ def _undo_failed(document_id, backup_file, workspace, result, errors, replayed):
     result = {**result, "rollback": rollback}
     if rollback_error is not None:
         return False, result, [*errors, rollback_error], replayed
-    if not rollback["performed"]:
+    locked = rollback.get("blocked") == "file_locked"
+    if not rollback["performed"] and not locked:
         return False, result, errors, replayed
-    rollback["open_in_wps"] = _open_in_wps(document_id, workspace)
+    open_in_wps, probe_error = _open_in_wps(document_id, workspace)
+    rollback["open_in_wps"] = open_in_wps
+    if probe_error is not None:
+        rollback["open_in_wps_error"] = probe_error
+    if locked:
+        blocked = {"code": ROLLBACK_BLOCKED, "message": _blocked_guidance(document_id, backup_file, open_in_wps)}
+        return False, result, [*errors, blocked], replayed
     undone = {
         "code": ROLLED_BACK,
         "message": (
             "The write was undone: the document file was restored from the pre-write backup and its hash matches it. "
-            + _wps_guidance(rollback["open_in_wps"])
+            + _wps_guidance(open_in_wps)
         ),
     }
     return False, result, [*errors, undone], replayed

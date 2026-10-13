@@ -11,7 +11,7 @@ from openpyxl import Workbook
 from wps_ai_agent_cli import open_documents
 from wps_ai_agent_cli.atomic_mutation import atomic_mutation
 from wps_ai_agent_cli.backups import create_backup
-from wps_ai_agent_cli.errors import ROLLBACK_FAILED, ROLLED_BACK
+from wps_ai_agent_cli.errors import ROLLBACK_BLOCKED, ROLLBACK_FAILED, ROLLED_BACK
 from wps_ai_agent_cli.sessions import register_document
 
 
@@ -90,6 +90,34 @@ class AtomicMutationTests(unittest.TestCase):
         self.assertIsNone(result["rollback"]["open_in_wps"])
         self.assertEqual(errors[-1]["code"], ROLLED_BACK)
         self.assertIn("Could not check", errors[-1]["message"])
+
+    def test_probe_failure_keeps_its_reason_in_the_result(self):
+        self._probe.side_effect = RuntimeError("attach failed")
+
+        ok, result, errors, _ = self._mutation(change_file=True)
+
+        self.assertIsNone(result["rollback"]["open_in_wps"])
+        self.assertIn("RuntimeError", result["rollback"]["open_in_wps_error"])
+
+    def test_locked_file_blocks_the_undo_and_says_how_to_restore(self):
+        locked = {"code": "RESTORE_TARGET_WRITE_FAILED", "message": "Access denied", "reason": "file_locked"}
+        with patch("wps_ai_agent_cli.atomic_mutation._restore_file_atomically", return_value=locked):
+            ok, result, errors, _ = self._mutation(change_file=True)
+
+        self.assertFalse(ok)
+        self.assertEqual(result["rollback"], {"performed": False, "blocked": "file_locked", "open_in_wps": False})
+        self.assertEqual(errors[-1]["code"], ROLLBACK_BLOCKED)
+        self.assertIn("close the document", errors[-1]["message"].lower())
+        self.assertIn("restore-backup", errors[-1]["message"])
+        self.assertIn(self.backup_path, errors[-1]["message"])
+        self.assertNotEqual(self.document.read_bytes(), self.original_bytes)
+
+    def test_a_real_permission_error_on_replace_is_reported_as_locked(self):
+        with patch("wps_ai_agent_cli.backups.os.replace", side_effect=PermissionError(13, "Access is denied")):
+            ok, result, errors, _ = self._mutation(change_file=True)
+
+        self.assertEqual(errors[-1]["code"], ROLLBACK_BLOCKED)
+        self.assertNotEqual(self.document.read_bytes(), self.original_bytes)
 
     def test_failed_write_that_left_the_file_alone_is_not_rolled_back(self):
         ok, result, errors, _ = self._mutation(change_file=False)
