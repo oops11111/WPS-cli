@@ -72,6 +72,44 @@ def _undo_write(document_id: str, backup_file: str, workspace: str | Path) -> tu
     return {"performed": True, "restored_from": str(backup)}, None
 
 
+def _open_in_wps(document_id: str, workspace: str | Path) -> bool | None:
+    """Whether WPS has the document open now. None when the check cannot be made.
+
+    A failed probe must not change the rollback result, so any error here only means the answer is unknown.
+    """
+    from . import open_documents  # imported here: open_documents imports this module
+
+    document = get_document(document_id, workspace)
+    if document is None:
+        return None
+    try:
+        ok, data, _errors = open_documents.list_open_documents(component=document["component"], workspace=workspace)
+    except Exception:
+        return None
+    if not ok:
+        return None
+    target = str(Path(document["path"]).resolve()).lower()
+    return any(
+        str(Path(item["full_name"]).resolve()).lower() == target
+        for item in data.get("documents", [])
+        if item.get("full_name")
+    )
+
+
+def _wps_guidance(open_in_wps: bool | None) -> str:
+    if open_in_wps is True:
+        return (
+            "The document is open in WPS now: close it without saving or reload it, so WPS does not write the "
+            "rejected content back."
+        )
+    if open_in_wps is False:
+        return "The document is not open in WPS, so nothing else needs to be done."
+    return (
+        "Could not check whether the document is open in WPS. If it is, close it without saving or reload it, "
+        "so WPS does not write the rejected content back."
+    )
+
+
 def _undo_failed(document_id, backup_file, workspace, result, errors, replayed):
     rollback, rollback_error = _undo_write(document_id, backup_file, workspace)
     result = {**result, "rollback": rollback}
@@ -79,12 +117,12 @@ def _undo_failed(document_id, backup_file, workspace, result, errors, replayed):
         return False, result, [*errors, rollback_error], replayed
     if not rollback["performed"]:
         return False, result, errors, replayed
+    rollback["open_in_wps"] = _open_in_wps(document_id, workspace)
     undone = {
         "code": ROLLED_BACK,
         "message": (
             "The write was undone: the document file was restored from the pre-write backup and its hash matches it. "
-            "If the document is still open in WPS, close it without saving or reload it, so WPS does not write the "
-            "rejected content back."
+            + _wps_guidance(rollback["open_in_wps"])
         ),
     }
     return False, result, [*errors, undone], replayed
