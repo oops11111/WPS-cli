@@ -66,7 +66,7 @@ try {
             $checks += Show-Check "$tag exclusive probe refuses" ($probeEx -match 'PROBE_REFUSED') $probeEx
             $writeOk = $false; if ($null -ne $w.json) { $writeOk = [bool]$w.json.ok }
             $writeRefusedBeforeOpen = (-not $writeOk) -and (Test-MessageHas $w 'Open\(\) was not called')
-            $writeRefusedIdentity = (-not $writeOk) -and ((Test-MessageHas $w 'DOCUMENT_IDENTITY_UNAVAILABLE') -or (Test-MessageHas $w 'Permission denied') -or (Test-MessageHas $w 'Errno 13'))
+            $writeRefusedIdentity = (-not $writeOk) -and ((Test-MessageHas $w 'DOCUMENT_HELD_OPEN') -or (Test-MessageHas $w 'DOCUMENT_IDENTITY_UNAVAILABLE') -or (Test-MessageHas $w 'Permission denied') -or (Test-MessageHas $w 'Errno 13'))
             $checks += Show-Check "$tag write refuses (probe text OR pre-COM identity Permission denied — not 误拒 success)" ($writeRefusedBeforeOpen -or $writeRefusedIdentity) ('ok=' + $(if ($null -ne $w.json) { $w.json.ok } else { 'null' }) + ' before_open=' + $writeRefusedBeforeOpen + ' identity=' + $writeRefusedIdentity)
             if ($writeRefusedIdentity -and -not $writeRefusedBeforeOpen) {
                 $report.write_exclusive_hold_product_gap = 'spreadsheet-write hits source identity/backup open before Assert-WpsFileNotHeld; exclusive holder returns DOCUMENT_IDENTITY_UNAVAILABLE instead of held-open/Open-not-called.'

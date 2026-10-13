@@ -28,7 +28,7 @@ Code: `src/wps_ai_agent_cli/spreadsheet_inspect.py`, both `load_workbook` calls.
 2. Run `python -m wps_ai_agent_cli spreadsheet-inspect --document-id <id> --range A1 --request-id checklist-a`.
 
 Expected:
-- stdout is one JSON envelope, with `"ok": false` and `COM_OPERATION_FAILED` in `errors`, whose message names the held handle and says the file was not written (PR #33 replaced the earlier `DOCUMENT_IDENTITY_UNAVAILABLE` here).
+- stdout is one JSON envelope, with `"ok": false` and `DOCUMENT_HELD_OPEN` in `errors`, whose message names the held handle and says the file was not written. Builds before this change returned `COM_OPERATION_FAILED` (PR #33) or, earlier, `DOCUMENT_IDENTITY_UNAVAILABLE` (PR #13).
 - No Python traceback.
 - The file's SHA-256 is unchanged.
 

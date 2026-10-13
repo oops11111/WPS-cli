@@ -52,6 +52,12 @@ MCP 客户端配置见 [docs/MCP_SERVER_CLIENT_CONFIG.md](docs/MCP_SERVER_CLIENT
 wps-agent --strict-exit backup-document --document-id doc_xxx --request-id r1 || echo "failed"
 ```
 
+## 文档被占用
+
+文档被另一个句柄持有时（多半是在 WPS 中打开），读写命令都会在改动任何内容之前拒绝执行，错误码统一为 `DOCUMENT_HELD_OPEN`。这时没有写入、保存或关闭任何东西。请在 WPS 中保存或关闭该文档后重试。
+
+无法判断文件是否被占用时（例如探测本身被拒绝），命令同样会保守地拒绝，但错误码是 `COM_OPERATION_FAILED`，因为这种情况并不能证明文件被占用。其他原因导致的身份读取失败仍然返回 `DOCUMENT_IDENTITY_UNAVAILABLE`。
+
 ## 修改失败与回滚
 
 修改类命令在写入前先创建备份。如果命令在写入之后失败（读回的值与写入的不一致、源文件校验失败，或命令抛出异常），而文件已经被改动，CLI 会从这份备份原子地恢复文件，并核对恢复后的哈希与备份一致。此时信封里会有：

@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from .errors import OperationRecordError
+from .errors import OperationRecordError, identity_error
 from .sessions import file_identity, get_document, refresh_document_identity
 from .mutation_lock import DocumentBusyError, document_mutation_lock
 from .state_store import atomic_write_json, read_json_state
@@ -109,7 +109,7 @@ def replay_operation(
         try:
             current_identity = file_identity(Path(document["path"]))
         except OSError as exc:
-            return False, result, [{"code": "DOCUMENT_IDENTITY_UNAVAILABLE", "message": str(exc)}], False
+            return False, result, [identity_error(exc)], False
         registered_identity = {key: document.get(key) for key in current_identity}
         if registered_identity != current_identity:
             if current_identity != existing["source_identity_at_commit"]:
@@ -117,7 +117,7 @@ def replay_operation(
             try:
                 refresh_document_identity(str(result["document_id"]), workspace, current_identity)
             except (OSError, DocumentBusyError) as exc:
-                return False, result, [{"code": "DOCUMENT_IDENTITY_UNAVAILABLE", "message": str(exc)}], False
+                return False, result, [identity_error(exc)], False
     return True, result, [], True
 
 

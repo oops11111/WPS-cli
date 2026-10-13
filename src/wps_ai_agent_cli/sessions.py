@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from .errors import DocumentHeldOpenError, identity_error
 from .mutation_lock import DocumentBusyError, document_mutation_lock
 from .state_store import atomic_write_json, read_json_state
 
@@ -36,7 +37,7 @@ def file_identity(path: Path) -> dict[str, int | str]:
     except PermissionError as exc:
         # WPS holds an exclusive handle on a document it has open, so the read is refused. Say so, because the
         # bare "Permission denied" does not tell the user that the command was refused before any change.
-        raise OSError(
+        raise DocumentHeldOpenError(
             f"The file could not be opened for reading ({exc.strerror}); it is most likely held open by another handle, "
             "such as WPS. Nothing was written, saved or closed. Save or close the document and retry."
         ) from exc
@@ -89,7 +90,7 @@ def register_document(component: str, path: str, workspace: str | Path = ".") ->
             try:
                 identity = file_identity(document_path)
             except OSError as exc:
-                return False, {}, [{"code": "DOCUMENT_IDENTITY_UNAVAILABLE", "message": str(exc)}]
+                return False, {}, [identity_error(exc)]
             with document_mutation_lock("state:documents", workspace, REGISTRATION_LOCK_TIMEOUT_SECONDS):
                 state = _read_state(workspace)
                 record = DocumentRecord(

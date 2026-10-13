@@ -9,7 +9,23 @@ COM_OPERATION_TIMEOUT = "COM_OPERATION_TIMEOUT"
 ROLLED_BACK = "MUTATION_ROLLED_BACK"
 ROLLBACK_FAILED = "MUTATION_ROLLBACK_FAILED"
 ROLLBACK_BLOCKED = "MUTATION_ROLLBACK_BLOCKED"
+DOCUMENT_IDENTITY_UNAVAILABLE = "DOCUMENT_IDENTITY_UNAVAILABLE"
+DOCUMENT_HELD_OPEN = "DOCUMENT_HELD_OPEN"
+
+# Shared with wps_script_snippets.Assert-WpsFileNotHeld and file_hold, so a refusal raised on either side maps to
+# DOCUMENT_HELD_OPEN.
+HELD_OPEN_MARKER = "is held open by another handle"
 
 
 class OperationRecordError(OSError):
     """The mutation was applied, but its idempotency record could not be completed."""
+
+
+class DocumentHeldOpenError(OSError):
+    """The document could not be read because another handle, usually WPS, holds it open."""
+
+
+def identity_error(exc: BaseException) -> dict[str, str]:
+    """Error entry for a failed identity read: DOCUMENT_HELD_OPEN when the file is held, else unavailable."""
+    code = DOCUMENT_HELD_OPEN if isinstance(exc, DocumentHeldOpenError) else DOCUMENT_IDENTITY_UNAVAILABLE
+    return {"code": code, "message": str(exc)}

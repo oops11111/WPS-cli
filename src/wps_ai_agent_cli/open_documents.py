@@ -12,7 +12,7 @@ from typing import Any
 from .atomic_mutation import atomic_mutation
 from .backups import create_backup, guarded_com_mutation, verify_post_com_source
 from .capabilities import WPS_COMPONENTS
-from .errors import COM_OPERATION_FAILED, INPUT_FILE_NOT_FOUND
+from .errors import COM_OPERATION_FAILED, INPUT_FILE_NOT_FOUND, identity_error
 from .mutation_lock import coordinated_mutation, coordinated_request
 from .operations import record_operation, replay_operation
 from .powershell_runner import run_powershell_script
@@ -5448,7 +5448,7 @@ def export_open_document_html(
     try:
         identity_before = file_identity(source)
     except OSError as exc:
-        return False, {}, [{"code": "DOCUMENT_IDENTITY_UNAVAILABLE", "message": str(exc)}], False
+        return False, {}, [identity_error(exc)], False
 
     if component == "writer":
         result = _run_writer_attached_com("export-html", {"path": str(source), "output": str(resolved_output)})
@@ -5546,7 +5546,7 @@ def export_open_document_pdf(
     try:
         identity_before = file_identity(source)
     except OSError as exc:
-        return False, {}, [{"code": "DOCUMENT_IDENTITY_UNAVAILABLE", "message": str(exc)}], False
+        return False, {}, [identity_error(exc)], False
 
     if component == "writer":
         result = _run_writer_attached_com("export-pdf", {"path": str(source), "output": str(resolved_output)})
@@ -5660,7 +5660,7 @@ def export_open_document_copy(
     try:
         identity_before = file_identity(source)
     except OSError as exc:
-        return False, {}, [{"code": "DOCUMENT_IDENTITY_UNAVAILABLE", "message": str(exc)}], False
+        return False, {}, [identity_error(exc)], False
 
     if component == "writer":
         result = _run_writer_attached_com("export-copy", {"path": str(source), "output": str(resolved_output)})
@@ -5781,7 +5781,7 @@ def export_open_document_text(
     try:
         identity_before = file_identity(source)
     except OSError as exc:
-        return False, {}, [{"code": "DOCUMENT_IDENTITY_UNAVAILABLE", "message": str(exc)}], False
+        return False, {}, [identity_error(exc)], False
 
     if component == "writer":
         result = _run_writer_attached_com("export-text", {"path": str(source), "output": str(resolved_output)})

@@ -7,7 +7,7 @@ import os
 from pathlib import Path
 from typing import Any
 
-from .errors import COM_OPERATION_FAILED
+from .errors import COM_OPERATION_FAILED, DOCUMENT_HELD_OPEN
 
 # Keep these aligned with wps_script_snippets.Assert-WpsFileNotHeld throw text.
 _HELD_OPEN = (
@@ -36,7 +36,7 @@ _ERROR_LOCK_VIOLATION = 33
 
 
 def held_open_error(what: str, held: str) -> dict[str, str]:
-    return {"code": COM_OPERATION_FAILED, "message": _HELD_OPEN.format(what=what, held=held)}
+    return {"code": DOCUMENT_HELD_OPEN, "message": _HELD_OPEN.format(what=what, held=held)}
 
 
 def probe_unknown_error(what: str, unknown: str) -> dict[str, str]:
@@ -124,7 +124,7 @@ def probe_file_not_held(
     read_only: bool = False,
     what: str = "document",
 ) -> dict[str, str] | None:
-    """Return a held-open / probe-unknown COM_OPERATION_FAILED error, or None if the probe passes.
+    """Return a DOCUMENT_HELD_OPEN or probe-unknown COM_OPERATION_FAILED error, or None if the probe passes.
 
     Matches Assert-WpsFileNotHeld: read-only asks for FileShare.Read; mutating asks for FileShare.None.
     A missing file is left for later Open()/existence checks.
