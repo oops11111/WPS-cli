@@ -4,6 +4,7 @@ import base64
 import functools
 import hashlib
 import json
+import logging
 import sys
 from concurrent.futures import Future, ThreadPoolExecutor
 from threading import Lock
@@ -11,6 +12,8 @@ from typing import Any, TextIO
 
 from .mcp_adapter import call_mcp_tool, validate_mcp_tool_arguments
 from .mcp_schema import list_mcp_tool_schemas
+
+logger = logging.getLogger(__name__)
 
 
 MCP_PROTOCOL_VERSION = "2025-11-25"
@@ -317,6 +320,7 @@ def serve_stdio(input_stream: TextIO | None = None, output_stream: TextIO | None
         try:
             response = handle_mcp_json(raw_json)
         except Exception:
+            logger.exception("MCP batch conversion raised; returning a generic -32603 error")
             response = _error_response(request_id, -32603, "Batch conversion failed unexpectedly.")
         # Deliver completion even while the main thread is blocked reading stdin.
         write_response(response)
@@ -325,6 +329,7 @@ def serve_stdio(input_stream: TextIO | None = None, output_stream: TextIO | None
         try:
             response = handle_mcp_json(raw_json)
         except Exception:
+            logger.exception("MCP tool call raised; returning a generic -32603 error")
             response = _error_response(request_id, -32603, "Tool call failed unexpectedly.")
         write_response(response)
 
