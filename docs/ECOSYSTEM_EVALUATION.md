@@ -12,7 +12,7 @@ This is the written evaluation for the second half of Phase 3 item 4 in `docs/RO
 
 | Client | Status | Evidence |
 | --- | --- | --- |
-| Claude Code CLI 2.1.296 | **Verified** | Runs `claude -p` with `--mcp-config` and `--strict-mcp-config`. Three fixed tasks pass, each calling `wps-agent` tools and judged from workspace state. See `docs/AGENT_E2E_EVAL.md`. |
+| Claude Code CLI 2.1.296 | **Verified** | Runs `claude -p` with `--mcp-config` and `--strict-mcp-config`. Eight fixed tasks, judged from workspace state and tool calls; seven pass and the held-file task still needs a Windows or non-root run. See `docs/AGENT_E2E_EVAL.md`. |
 | Codex CLI | **Not verified** | Not installed on the evaluation machine, so it could not be run. Its MCP support is the follow-up item for Phase 3. |
 | Claude Desktop (Windows) | **Not verified** | P3-263 audit (2026-10-09): the desktop process was present, but no MCP server was configured and the UI handshake could not be observed. The integration gate is still open. |
 | Other MCP clients | **Not evaluated** | No run with any other client. |
@@ -30,7 +30,7 @@ These were run against the server directly, not through a client.
 
 1. **Desktop client integration is unverified.** The P3-263 gate needs a configured server, a working desktop inspection channel, and a real `initialize`, paginated `tools/list` and a safe `tools/call` from the desktop client. None of this has been observed.
 2. **Only stdio.** Clients that need HTTP or SSE cannot connect.
-3. **Three evaluation tasks are a smoke set.** The agent evaluation does not show how a client behaves across the full tool surface.
+3. **Eight evaluation tasks are still a small set.** They cover backup, retry, restore, dry run, a held file and HTML conversion, but not the full tool surface or any WPS write path.
 
 ## What would close the gaps
 

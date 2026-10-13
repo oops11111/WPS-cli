@@ -1,8 +1,10 @@
 """Run fixed tasks through the claude CLI against the wps-agent MCP server, then judge the workspace state.
 
 The agent is the real `claude -p` process. Each task runs in its own workspace, which is also the MCP
-server's working directory, so the server's state files live there. The judge reads that state
-(documents, operations, backups, file hash). It does not read the agent's reply.
+server's working directory, so the server's state files live there. A task can list setup steps that
+prepare the workspace before the agent starts (register, back up, change or hold the file, write an HTML
+table). The judge reads the workspace state (documents, operations, backups, file hashes, output files)
+and the agent's tool calls from the CLI transcript. It does not read the agent's reply.
 
 Usage:
     python scripts/agent_eval/run_agent_eval.py [--tasks config/agent_eval_tasks.json] [--out artifacts/agent-eval] [--only ID] [--model MODEL] [--max-turns N] [--timeout SECONDS]
@@ -16,6 +18,7 @@ import argparse
 import datetime as dt
 import hashlib
 import json
+import os
 from pathlib import Path
 import shutil
 import subprocess
@@ -28,9 +31,16 @@ MCP_SERVER_NAME = "wps-agent"
 ALLOWED_TOOLS = f"mcp__{MCP_SERVER_NAME}__*"
 
 sys.path.insert(0, str(SRC_DIR))
-from wps_ai_agent_cli.backups import list_backups  # noqa: E402
+from wps_ai_agent_cli.backups import create_backup, list_backups  # noqa: E402
 from wps_ai_agent_cli.operations import get_operation  # noqa: E402
-from wps_ai_agent_cli.sessions import get_document, stable_document_id  # noqa: E402
+from wps_ai_agent_cli.sessions import get_document, register_document, stable_document_id  # noqa: E402
+
+TOOL_PREFIX = f"mcp__{MCP_SERVER_NAME}__wps_agent_"
+HTML_TABLE = (
+    "<html><body><h2>Sales</h2><table>"
+    "<tr><th>Region</th><th>Q1</th></tr><tr><td>North</td><td>120</td></tr><tr><td>South</td><td>95</td></tr>"
+    "</table></body></html>"
+)
 
 
 def file_sha256(path: Path) -> str:
@@ -62,10 +72,122 @@ def write_mcp_config(workspace: Path) -> Path:
     return path
 
 
+def hold_file(path: Path) -> tuple[Callable[[], None] | None, str | None]:
+    """Hold the file so the server cannot read it, as WPS does with an open document.
+
+    Returns (release, None), or (None, reason) when this machine cannot hold a file.
+    """
+    if os.name == "nt":
+        import ctypes
+        from ctypes import wintypes
+
+        kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+        kernel32.CreateFileW.argtypes = [wintypes.LPCWSTR, wintypes.DWORD, wintypes.DWORD, wintypes.LPVOID,
+                                         wintypes.DWORD, wintypes.DWORD, wintypes.HANDLE]
+        kernel32.CreateFileW.restype = wintypes.HANDLE
+        # GENERIC_READ, no sharing, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL: every other open is refused.
+        handle = kernel32.CreateFileW(str(path), 0x80000000, 0, None, 3, 0x80, None)
+        if handle == wintypes.HANDLE(-1).value:
+            return None, f"CreateFileW failed with error {ctypes.get_last_error()}"
+        return (lambda: kernel32.CloseHandle(handle)), None
+    if hasattr(os, "geteuid") and os.geteuid() == 0:
+        return None, "running as root, which ignores file permissions, so the file cannot be held"
+    mode = path.stat().st_mode
+    path.chmod(0)
+    return (lambda: path.chmod(mode)), None
+
+
+def run_setup(steps: list[str], workspace: Path, fixture: Path, component: str) -> tuple[str, Callable[[], None] | None, str | None]:
+    """Prepare the workspace.
+
+    Returns (hash of the file as the agent receives it, release for a held file, skip reason). The hash is
+    taken before a hold, because a held file cannot be read; "hold" must therefore be the last step.
+    """
+    for step in steps:
+        if step == "register":
+            ok, record, errors = register_document(component, str(fixture), workspace)
+            if not ok:
+                raise RuntimeError(f"setup register failed: {errors}")
+        elif step == "backup":
+            document_id = stable_document_id(component, str(fixture))
+            ok, _result, errors, _replayed = create_backup(document_id, "setup-backup", workspace=workspace)
+            if not ok:
+                raise RuntimeError(f"setup backup failed: {errors}")
+        elif step == "modify":
+            from openpyxl import load_workbook
+
+            workbook = load_workbook(fixture)
+            workbook.active["A1"] = "changed by mistake"
+            workbook.save(fixture)
+        elif step == "html_table":
+            (workspace / "table.html").write_text(HTML_TABLE, encoding="utf-8")
+        elif step == "hold":
+            start_sha = file_sha256(fixture)
+            release, reason = hold_file(fixture)
+            if release is None:
+                return start_sha, None, reason
+            return start_sha, release, None
+        else:
+            raise ValueError(f"unknown setup step {step}")
+    return file_sha256(fixture), None, None
+
+
+def _error_codes(content: Any) -> list[str]:
+    """Error codes from a wps-agent tool result, which is the CLI envelope as JSON text."""
+    if isinstance(content, list):
+        content = "".join(part.get("text", "") for part in content if isinstance(part, dict))
+    try:
+        envelope = json.loads(content) if isinstance(content, str) else content
+    except json.JSONDecodeError:
+        return []
+    if not isinstance(envelope, dict):
+        return []
+    return [str(error.get("code")) for error in envelope.get("errors") or [] if isinstance(error, dict)]
+
+
+def parse_transcript(lines: list[str]) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+    """Return the final result event and every tool call, in order, from stream-json output."""
+    result: dict[str, Any] = {}
+    calls: list[dict[str, Any]] = []
+    by_id: dict[str, dict[str, Any]] = {}
+    for line in lines:
+        try:
+            event = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if event.get("type") == "result":
+            result = event
+            continue
+        message = event.get("message") or {}
+        content = message.get("content") if isinstance(message, dict) else None
+        if not isinstance(content, list):
+            continue
+        for block in content:
+            if block.get("type") == "tool_use":
+                call = {"name": block.get("name"), "input": block.get("input") or {}, "is_error": None, "error_codes": []}
+                calls.append(call)
+                by_id[block.get("id")] = call
+            elif block.get("type") == "tool_result" and block.get("tool_use_id") in by_id:
+                call = by_id[block["tool_use_id"]]
+                call["error_codes"] = _error_codes(block.get("content"))
+                call["is_error"] = bool(block.get("is_error")) or bool(call["error_codes"])
+    return result, calls
+
+
+def tool_metrics(calls: list[dict[str, Any]]) -> dict[str, Any]:
+    wps_calls = [call for call in calls if str(call["name"]).startswith(TOOL_PREFIX)]
+    return {
+        "wps_tool_calls": len(wps_calls),
+        "wps_tool_errors": sum(bool(call["is_error"]) for call in wps_calls),
+        "other_tool_calls": len(calls) - len(wps_calls),
+        "tools_used": sorted({str(call["name"]).removeprefix(TOOL_PREFIX) for call in wps_calls}),
+    }
+
+
 def run_claude(prompt: str, mcp_config: Path, workspace: Path, model: str | None, max_turns: int, timeout: int) -> dict[str, Any]:
     command = [
         "claude", "-p", prompt,
-        "--output-format", "json",
+        "--output-format", "stream-json", "--verbose",
         "--mcp-config", str(mcp_config), "--strict-mcp-config",
         "--allowedTools", ALLOWED_TOOLS,
         "--max-turns", str(max_turns),
@@ -76,10 +198,7 @@ def run_claude(prompt: str, mcp_config: Path, workspace: Path, model: str | None
         completed = subprocess.run(command, cwd=workspace, capture_output=True, text=True, timeout=timeout)
     except subprocess.TimeoutExpired:
         return {"ran": False, "error": f"timed out after {timeout}s"}
-    try:
-        payload = json.loads(completed.stdout)
-    except json.JSONDecodeError:
-        payload = {}
+    payload, calls = parse_transcript(completed.stdout.splitlines())
     return {
         "ran": True,
         "exit_code": completed.returncode,
@@ -89,11 +208,22 @@ def run_claude(prompt: str, mcp_config: Path, workspace: Path, model: str | None
         "total_cost_usd": payload.get("total_cost_usd"),
         "result_excerpt": str(payload.get("result", ""))[:500],
         "stderr_excerpt": completed.stderr[-500:],
+        "tool_calls": calls,
     }
 
 
-def judge(task: dict[str, Any], workspace: Path, fixture: Path, fixture_sha: str, component: str) -> list[dict[str, Any]]:
-    """Check the workspace state the task asks for. A check never reads the agent's reply."""
+def _calls_to(calls: list[dict[str, Any]], tool: str) -> list[dict[str, Any]]:
+    return [call for call in calls if call["name"] == TOOL_PREFIX + tool]
+
+
+def judge(task: dict[str, Any], workspace: Path, fixture: Path, fixture_sha: str, component: str,
+          seed_sha: str | None = None, calls: list[dict[str, Any]] | None = None) -> list[dict[str, Any]]:
+    """Check the workspace state and tool calls the task asks for. A check never reads the agent's reply.
+
+    fixture_sha is the file as the agent received it, after setup; seed_sha is the file before setup.
+    """
+    seed_sha = seed_sha or fixture_sha
+    calls = calls or []
     results = []
     document = get_document(stable_document_id(component, str(fixture)), workspace)
     document_id = document["document_id"] if document else None
@@ -117,6 +247,35 @@ def judge(task: dict[str, Any], workspace: Path, fixture: Path, fixture_sha: str
         elif kind == "file_unchanged":
             passed = file_sha256(fixture) == fixture_sha
             detail = "unchanged" if passed else "changed"
+        elif kind == "file_matches_seed":
+            passed = file_sha256(fixture) == seed_sha
+            detail = "matches the seed" if passed else "differs from the seed"
+        elif kind == "tool_called":
+            matching = [call for call in _calls_to(calls, check["tool"])
+                        if all(call["input"].get(key) == value for key, value in check.get("input", {}).items())]
+            passed, detail = len(matching) >= check.get("min", 1), f"{len(matching)} matching call(s)"
+        elif kind == "tool_not_called":
+            count = len(_calls_to(calls, check["tool"]))
+            passed, detail = count == 0, f"{count} call(s)"
+        elif kind == "tool_error_seen":
+            passed = any(check["code"] in call["error_codes"] for call in calls)
+            detail = "seen" if passed else "not seen"
+        elif kind == "max_tool_calls":
+            count = tool_metrics(calls)["wps_tool_calls"]
+            passed, detail = count <= check["count"], f"{count} wps-agent call(s)"
+        elif kind == "xlsx_cell":
+            from openpyxl import load_workbook
+
+            path = workspace / check["path"]
+            if not path.is_file():
+                passed, detail = False, "output missing"
+            else:
+                workbook = load_workbook(path, read_only=True)
+                try:
+                    value = workbook.worksheets[0][check["cell"]].value
+                finally:
+                    workbook.close()
+                passed, detail = value == check["value"], value
         else:
             passed, detail = False, f"unknown check kind {kind}"
         results.append({"kind": kind, "passed": passed, "detail": detail, **{k: v for k, v in check.items() if k != "kind"}})
@@ -129,14 +288,24 @@ def run_task(task: dict[str, Any], fixture_name: str, component: str, root: Path
     if workspace.exists():
         shutil.rmtree(workspace)
     workspace.mkdir(parents=True)
-    fixture_sha = write_fixture(workspace, fixture_name)
-    mcp_config = write_mcp_config(workspace)
-    agent = runner(task["prompt"], mcp_config, workspace, model, max_turns, timeout)
-    checks = judge(task, workspace, workspace / fixture_name, fixture_sha, component)
+    fixture = workspace / fixture_name
+    seed_sha = write_fixture(workspace, fixture_name)
+    fixture_sha, release, skip_reason = run_setup(task.get("setup", []), workspace, fixture, component)
+    if skip_reason:
+        return {"id": task["id"], "passed": False, "skipped": skip_reason, "agent": {}, "checks": []}
+    try:
+        mcp_config = write_mcp_config(workspace)
+        agent = runner(task["prompt"], mcp_config, workspace, model, max_turns, timeout)
+    finally:
+        if release is not None:
+            release()
+    calls = agent.get("tool_calls") or []
+    checks = judge(task, workspace, fixture, fixture_sha, component, seed_sha=seed_sha, calls=calls)
     return {
         "id": task["id"],
         "passed": bool(agent.get("ran")) and all(check["passed"] for check in checks),
         "agent": agent,
+        "metrics": tool_metrics(calls),
         "checks": checks,
     }
 
@@ -162,23 +331,35 @@ def main(argv: list[str] | None = None) -> int:
     root.mkdir(parents=True, exist_ok=True)
 
     results = [run_task(task, spec["fixture"], spec["component"], root / "work", args.model, args.max_turns, args.timeout) for task in tasks]
-    summary = {
-        "generated_at": stamp,
-        "claude_cli": "claude",
-        "model": args.model or "CLI default",
-        "passed": sum(result["passed"] for result in results),
-        "total": len(results),
-        "results": results,
-    }
+    summary = summarize(results, stamp, args.model)
     artifact = root / "summary.json"
     artifact.write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
     for result in results:
-        status = "PASS" if result["passed"] else "FAIL"
-        print(f"{status} {result['id']}")
+        if result.get("skipped"):
+            print(f"SKIP {result['id']}: {result['skipped']}")
+            continue
+        metrics = result.get("metrics", {})
+        print(f"{'PASS' if result['passed'] else 'FAIL'} {result['id']} "
+              f"(wps-agent calls {metrics.get('wps_tool_calls')}, errors {metrics.get('wps_tool_errors')})")
         for check in result["checks"]:
             print(f"    {'ok ' if check['passed'] else 'BAD'} {check['kind']}: {check['detail']}")
-    print(f"{summary['passed']}/{summary['total']} passed; artifact: {artifact}")
+    print(f"{summary['passed']}/{summary['total']} passed, {summary['skipped']} skipped; artifact: {artifact}")
     return 0 if summary["passed"] == summary["total"] else 1
+
+
+def summarize(results: list[dict[str, Any]], stamp: str, model: str | None) -> dict[str, Any]:
+    ran = [result for result in results if not result.get("skipped")]
+    return {
+        "generated_at": stamp,
+        "claude_cli": "claude",
+        "model": model or "CLI default",
+        "passed": sum(result["passed"] for result in ran),
+        "total": len(ran),
+        "skipped": len(results) - len(ran),
+        "wps_tool_calls": sum(result.get("metrics", {}).get("wps_tool_calls", 0) for result in ran),
+        "wps_tool_errors": sum(result.get("metrics", {}).get("wps_tool_errors", 0) for result in ran),
+        "results": results,
+    }
 
 
 if __name__ == "__main__":
