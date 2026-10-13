@@ -10,7 +10,6 @@ from .mcp_config_audit import (
     MCP_CONFIG_AUDIT_TIMEOUT_MIN_SECONDS,
 )
 
-
 SCHEMA_VERSION = "draft-2026-10-03"
 
 MCP_TOOL_RESULT_OUTPUT_CONTRACT: dict[str, Any] = {

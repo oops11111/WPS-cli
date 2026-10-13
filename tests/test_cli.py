@@ -1,12 +1,13 @@
 import io
 import json
+import unittest
 from contextlib import redirect_stdout
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from threading import Event, Thread
-import unittest
 from unittest.mock import Mock, patch
 
+from tests.isolation import use_temporary_cwd
 from wps_ai_agent_cli.cli import (
     _configure_stdout,
     _extract_request_id,
@@ -16,9 +17,6 @@ from wps_ai_agent_cli.cli import (
     run,
 )
 from wps_ai_agent_cli.models import CommandResponse, ValidationResult
-
-
-from tests.isolation import use_temporary_cwd
 
 _restore_cwd = None
 

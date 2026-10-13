@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 import re
+from collections.abc import Callable
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 from .jsonio import dumps_json
-
 
 Clock = Callable[[], datetime]
 

@@ -2,17 +2,19 @@ from __future__ import annotations
 
 import hashlib
 import json
+import subprocess
+import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Any
 from zipfile import BadZipFile
-import xml.etree.ElementTree as ET
 
-import subprocess
-
-from .powershell_runner import run_powershell_file
 from .document_text import docx_body_paragraphs
-from .writer_structure import read_body_bookmark_text, read_supported_bookmark_text, read_writer_structure
-
+from .powershell_runner import run_powershell_file
+from .writer_structure import (
+    read_body_bookmark_text,
+    read_supported_bookmark_text,
+    read_writer_structure,
+)
 
 FIXTURE = Path("fixtures/phase3/writer_structure_wps_fixture.docx")
 SCRIPT = Path("scripts/audit_writer_structure_wps.ps1")
@@ -65,7 +67,7 @@ def compare_writer_structure(offline: dict[str, Any], observed: dict[str, Any]) 
          "expected": [level if level is not None else 10 for level in offline["heading_levels"]], "actual": wps_levels},
         {"name": "style_grouping", "passed": len(wps_styles) == len(offline_styles) and all(wps_styles) and _partition(wps_styles) == _partition(offline_styles),
          "expected": _partition(offline_styles), "actual": _partition(wps_styles),
-         "representations": [{"ooxml_style_id": source, "wps_display_name": display} for source, display in zip(offline_styles, wps_styles)]},
+         "representations": [{"ooxml_style_id": source, "wps_display_name": display} for source, display in zip(offline_styles, wps_styles, strict=False)]},
         {"name": "bookmark_names_and_text", "passed": len(bookmarks) == len(offline["bookmarks"]) and wps_bookmarks == offline["bookmarks"],
          "expected": offline["bookmarks"], "actual": wps_bookmarks},
     ]

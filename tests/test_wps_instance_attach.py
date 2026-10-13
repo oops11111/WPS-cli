@@ -8,7 +8,13 @@ from unittest.mock import patch
 
 from tests.test_wps_preopen_guard import FAKE_SPREADSHEET_PRELUDE, all_scripts
 from tests.test_wps_quit_guard import CAPABILITIES, capture_scripts
-from wps_ai_agent_cli import com_backend, presentation_ops, spreadsheet_inspect, spreadsheet_ops, wps_script_snippets
+from wps_ai_agent_cli import (
+    com_backend,
+    presentation_ops,
+    spreadsheet_inspect,
+    spreadsheet_ops,
+    wps_script_snippets,
+)
 from wps_ai_agent_cli.sessions import register_document
 from wps_ai_agent_cli.wps_script_snippets import (
     ACQUIRE_WPS_APP,

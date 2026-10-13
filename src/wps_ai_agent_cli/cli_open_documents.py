@@ -6,24 +6,24 @@ import json
 
 from .models import CommandResponse, ValidationResult
 from .open_documents import (
+    delete_presentation_selection,
+    delete_spreadsheet_selection,
+    delete_writer_selection,
+    export_open_document_copy,
     export_open_document_html,
     export_open_document_pdf,
-    export_open_document_copy,
     export_open_document_text,
-    save_as_open_document,
-    save_open_document,
+    insert_presentation_selection,
+    insert_writer_selection,
     list_open_documents,
     read_presentation_selection,
     read_spreadsheet_selection,
     read_writer_selection,
-    delete_presentation_selection,
-    delete_spreadsheet_selection,
-    delete_writer_selection,
-    insert_presentation_selection,
-    insert_writer_selection,
     replace_presentation_selection,
     replace_spreadsheet_selection,
     replace_writer_selection,
+    save_as_open_document,
+    save_open_document,
 )
 
 

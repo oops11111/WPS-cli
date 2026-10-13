@@ -1,10 +1,10 @@
 from __future__ import annotations
 
+import hashlib
+import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Any
 from zipfile import BadZipFile
-import hashlib
-import xml.etree.ElementTree as ET
 
 from .document_text import docx_body_paragraphs
 from .sessions import get_document

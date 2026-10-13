@@ -8,9 +8,9 @@ headings, paragraphs and list items becomes the slide's title and body. Anything
 
 from __future__ import annotations
 
+import re
 from html.parser import HTMLParser
 from pathlib import Path
-import re
 from typing import Any
 
 from .html_editable import validate_office_paths

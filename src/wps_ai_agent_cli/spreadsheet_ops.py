@@ -8,17 +8,18 @@ from typing import Any
 from xml.etree import ElementTree as ET
 from zipfile import ZipFile
 
-from .atomic_mutation import atomic_mutation
-from .ooxml import load_workbook_guarded as load_workbook
-from openpyxl.utils.cell import get_column_letter, range_boundaries
 from openpyxl.styles.numbers import is_date_format
+from openpyxl.utils.cell import get_column_letter, range_boundaries
 
+from .atomic_mutation import atomic_mutation
 from .backups import create_backup, guarded_com_mutation, verify_post_com_source
 from .capabilities import probe_wps_capabilities
-from .powershell_runner import run_powershell_script
 from .errors import COM_BACKEND_UNAVAILABLE, COM_OPERATION_FAILED, INPUT_FILE_NOT_FOUND
 from .mutation_lock import coordinated_mutation
+from .ooxml import load_workbook_guarded as load_workbook
+from .ooxml import parse_xml_part
 from .operations import record_operation, replay_operation
+from .powershell_runner import run_powershell_script
 from .sessions import get_document
 from .spreadsheet_ranges import validate_spreadsheet_read_range
 from .wps_script_snippets import (
@@ -28,7 +29,6 @@ from .wps_script_snippets import (
     QUIET_ALERTS,
     RELEASE_WPS_APP,
 )
-from .ooxml import parse_xml_part
 
 
 def _format_category(cell: Any) -> str:

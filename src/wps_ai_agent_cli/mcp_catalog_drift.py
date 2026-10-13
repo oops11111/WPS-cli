@@ -6,7 +6,6 @@ from typing import Any
 
 from .mcp_catalog import build_mcp_catalog_snapshot
 
-
 DEFAULT_MCP_CATALOG_GUARD = "config/mcp_catalog_guard.json"
 
 

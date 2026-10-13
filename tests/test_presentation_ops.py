@@ -4,12 +4,10 @@ from pathlib import Path
 from unittest.mock import patch
 from zipfile import ZipFile
 
+from tests.isolation import use_temporary_cwd
 from wps_ai_agent_cli.presentation_ops import presentation_replace
 from wps_ai_agent_cli.presentation_text import count_text_in_pptx
 from wps_ai_agent_cli.sessions import register_document
-
-
-from tests.isolation import use_temporary_cwd
 
 _restore_cwd = None
 

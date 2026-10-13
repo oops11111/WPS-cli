@@ -1,14 +1,13 @@
 from __future__ import annotations
 
+import xml.etree.ElementTree as ET
 from collections import Counter
 from pathlib import Path
 from typing import Any
-import xml.etree.ElementTree as ET
 from zipfile import ZipFile
 
 from .document_text import _paragraph_text
 from .ooxml import parse_xml_part
-
 
 W = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
 UNSTABLE_TEXT_CONTAINERS = {f"{W}{tag}" for tag in ("del", "moveFrom", "ins", "moveTo", "txbxContent")}

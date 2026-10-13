@@ -5,7 +5,12 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 from wps_ai_agent_cli import cli
-from wps_ai_agent_cli.wps_versions import compare_version_text, compare_wps_versions, parse_wps_version, version_state_path
+from wps_ai_agent_cli.wps_versions import (
+    compare_version_text,
+    compare_wps_versions,
+    parse_wps_version,
+    version_state_path,
+)
 
 
 class WpsVersionCompareTests(unittest.TestCase):

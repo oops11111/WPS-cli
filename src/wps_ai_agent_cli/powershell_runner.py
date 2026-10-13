@@ -3,14 +3,19 @@ from __future__ import annotations
 import json
 import subprocess
 import tempfile
-from collections.abc import Iterator
+from collections.abc import Iterator, Sequence
 from contextlib import contextmanager
 from contextvars import ContextVar
 from pathlib import Path
-from typing import Any, Sequence
+from typing import Any
 
 from .capabilities import powershell_executable
-from .errors import COM_OPERATION_FAILED, COM_OPERATION_TIMEOUT, DOCUMENT_HELD_OPEN, HELD_OPEN_MARKER
+from .errors import (
+    COM_OPERATION_FAILED,
+    COM_OPERATION_TIMEOUT,
+    DOCUMENT_HELD_OPEN,
+    HELD_OPEN_MARKER,
+)
 
 
 def run_powershell_command(

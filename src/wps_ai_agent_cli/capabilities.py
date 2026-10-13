@@ -8,7 +8,6 @@ import time
 from collections.abc import Callable
 from typing import Any
 
-
 WPS_COMPONENTS: dict[str, tuple[str, ...]] = {
     "writer": ("kwps.Application", "wps.Application", "Kingsoft Writer.Application"),
     "spreadsheets": ("ket.Application", "et.Application", "Kingsoft Spreadsheets.Application"),

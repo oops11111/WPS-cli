@@ -1,17 +1,17 @@
-import unittest
-import json
 import io
+import json
 import sys
+import unittest
 from concurrent.futures import ThreadPoolExecutor
-from threading import Event
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from threading import Event
 from unittest.mock import patch
 
 from wps_ai_agent_cli.regression import (
-    load_regression_manifest,
-    list_regression_scenarios,
     _run_cli,
+    list_regression_scenarios,
+    load_regression_manifest,
     run_regression_manifest,
 )
 

@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-
 # Closing WPS only when no other document is open protects a user's interactive
 # session in case the COM server hands out its already-running instance.
 QUIT_IF_IDLE = (

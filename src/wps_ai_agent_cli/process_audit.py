@@ -6,7 +6,6 @@ from typing import Any
 
 from .powershell_runner import run_powershell_command
 
-
 WPS_PROCESS_NAMES = ("et", "wps", "wpp", "ket", "kwps", "ksolaunch", "wpscloudsvr")
 
 

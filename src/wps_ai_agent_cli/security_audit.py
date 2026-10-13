@@ -5,7 +5,6 @@ from typing import Any
 
 from .mcp_schema import list_mcp_tool_schemas
 
-
 SCOPE_NOTE = (
     "Text checks only confirm that tool schemas mention request_id, backup and WPS/file boundaries. "
     "They do not prove behavior; the schema_matches_cli_parser check is the only structural check. "

@@ -4,8 +4,109 @@ import sys
 from typing import TextIO
 from uuid import uuid4
 
+from .cli_common import BACKEND
+
+# cli_handlers reads every command handler from this module (cli.<name>_response), and tests patch
+# some of them here, so the handlers are re-exported from their modules.
+from .cli_documents import (  # noqa: F401
+    backup_document_response,
+    documents_response,
+    list_backups_response,
+    mutation_request_inspect_response,
+    operation_response,
+    operations_response,
+    register_document_response,
+    restore_backup_response,
+    snapshot_document_response,
+    task_recovery_playbooks_response,
+    task_recovery_response,
+    validate_document_response,
+)
+from .cli_environment import (  # noqa: F401
+    calc_smoke_response,
+    cleanup_approval_manifest_response,
+    cleanup_plan_response,
+    com_smoke_response,
+    convert_smoke_response,
+    inspect_env_response,
+    performance_baseline_response,
+    plan_response,
+    security_audit_response,
+    tasks_response,
+    wps_process_audit_response,
+    wps_version_compare_response,
+)
+from .cli_html import (  # noqa: F401
+    batch_report_response,
+    batch_template_report_response,
+    html_batch_convert_response,
+    html_batch_request_response,
+    html_controlled_import_response,
+    html_editable_response,
+    html_render_response,
+    html_roundtrip_export_response,
+    html_roundtrip_plan_response,
+    html_roundtrip_verify_response,
+    scan_dir_response,
+)
+from .cli_mcp import (  # noqa: F401
+    mcp_call_response,
+    mcp_catalog_drift_response,
+    mcp_catalog_snapshot_response,
+    mcp_config_audit_response,
+    mcp_smoke_response,
+    mcp_tool_schema_response,
+    mcp_tools_response,
+    regression_manifest_response,
+    regression_run_response,
+)
+from .cli_open_documents import (  # noqa: F401
+    export_open_document_copy_response,
+    export_open_document_pdf_response,
+    export_open_document_response,
+    export_open_document_text_response,
+    open_documents_response,
+    presentation_selection_delete_response,
+    presentation_selection_insert_response,
+    presentation_selection_read_response,
+    presentation_selection_replace_response,
+    save_as_open_document_response,
+    save_open_document_response,
+    spreadsheet_selection_delete_response,
+    spreadsheet_selection_read_response,
+    spreadsheet_selection_replace_response,
+    writer_selection_delete_response,
+    writer_selection_insert_response,
+    writer_selection_read_response,
+    writer_selection_replace_response,
+)
 from .cli_parser import build_parser
+from .cli_presentation import (  # noqa: F401
+    presentation_replace_response,
+)
+from .cli_spreadsheet import (  # noqa: F401
+    spreadsheet_copy_sheet_response,
+    spreadsheet_create_sheet_response,
+    spreadsheet_delete_sheet_response,
+    spreadsheet_formula_write_response,
+    spreadsheet_inspect_response,
+    spreadsheet_read_response,
+    spreadsheet_rename_sheet_response,
+    spreadsheet_set_sheet_tab_color_response,
+    spreadsheet_set_sheet_visibility_response,
+    spreadsheet_sheets_response,
+    spreadsheet_write_response,
+)
+from .cli_writer import (  # noqa: F401
+    writer_fill_bookmark_response,
+    writer_replace_response,
+    writer_structure_parity_response,
+    writer_structure_response,
+    writer_table_smoke_response,
+    writer_table_write_response,
+)
 from .jsonio import dumps_json
+
 # cli_handlers reaches these through this module (cli.handle_mcp_json, cli.serve_stdio).
 from .mcp_server import handle_mcp_json, serve_stdio  # noqa: F401
 from .models import CommandResponse, ValidationResult
@@ -16,105 +117,6 @@ from .task_status import (
     get_task_status,
     list_task_statuses,
     update_task_status,
-)
-from .cli_common import BACKEND
-# cli_handlers reads every command handler from this module (cli.<name>_response), and tests patch
-# some of them here, so the handlers are re-exported from their modules.
-from .cli_environment import (  # noqa: F401
-    inspect_env_response,
-    wps_version_compare_response,
-    wps_process_audit_response,
-    cleanup_plan_response,
-    cleanup_approval_manifest_response,
-    plan_response,
-    tasks_response,
-    com_smoke_response,
-    calc_smoke_response,
-    convert_smoke_response,
-    security_audit_response,
-    performance_baseline_response,
-)
-from .cli_html import (  # noqa: F401
-    html_render_response,
-    html_editable_response,
-    html_batch_convert_response,
-    html_batch_request_response,
-    batch_template_report_response,
-    html_roundtrip_plan_response,
-    html_controlled_import_response,
-    html_roundtrip_verify_response,
-    html_roundtrip_export_response,
-    scan_dir_response,
-    batch_report_response,
-)
-from .cli_documents import (  # noqa: F401
-    register_document_response,
-    documents_response,
-    backup_document_response,
-    list_backups_response,
-    restore_backup_response,
-    validate_document_response,
-    snapshot_document_response,
-    operation_response,
-    operations_response,
-    mutation_request_inspect_response,
-    task_recovery_response,
-    task_recovery_playbooks_response,
-)
-from .cli_open_documents import (  # noqa: F401
-    open_documents_response,
-    writer_selection_read_response,
-    presentation_selection_read_response,
-    spreadsheet_selection_read_response,
-    spreadsheet_selection_replace_response,
-    writer_selection_replace_response,
-    writer_selection_insert_response,
-    writer_selection_delete_response,
-    spreadsheet_selection_delete_response,
-    presentation_selection_replace_response,
-    presentation_selection_insert_response,
-    presentation_selection_delete_response,
-    save_open_document_response,
-    save_as_open_document_response,
-    export_open_document_response,
-    export_open_document_pdf_response,
-    export_open_document_copy_response,
-    export_open_document_text_response,
-)
-from .cli_writer import (  # noqa: F401
-    writer_table_smoke_response,
-    writer_replace_response,
-    writer_fill_bookmark_response,
-    writer_table_write_response,
-    writer_structure_response,
-    writer_structure_parity_response,
-)
-from .cli_spreadsheet import (  # noqa: F401
-    spreadsheet_read_response,
-    spreadsheet_sheets_response,
-    spreadsheet_rename_sheet_response,
-    spreadsheet_create_sheet_response,
-    spreadsheet_set_sheet_visibility_response,
-    spreadsheet_delete_sheet_response,
-    spreadsheet_copy_sheet_response,
-    spreadsheet_set_sheet_tab_color_response,
-    spreadsheet_inspect_response,
-    spreadsheet_write_response,
-    spreadsheet_formula_write_response,
-)
-from .cli_presentation import (  # noqa: F401
-    presentation_replace_response,
-)
-from .cli_mcp import (  # noqa: F401
-    mcp_tools_response,
-    mcp_catalog_snapshot_response,
-    mcp_catalog_drift_response,
-    mcp_tool_schema_response,
-    mcp_call_response,
-    mcp_smoke_response,
-    mcp_config_audit_response,
-    regression_manifest_response,
-    regression_run_response,
 )
 
 

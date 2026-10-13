@@ -7,7 +7,6 @@ from unittest.mock import patch
 
 from wps_ai_agent_cli import open_documents
 
-
 PWSH = os.environ.get("WPS_TEST_PWSH") or shutil.which("pwsh")
 
 FAKE_WPS_PRELUDE = r'''

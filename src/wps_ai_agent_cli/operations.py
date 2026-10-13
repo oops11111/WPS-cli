@@ -5,10 +5,9 @@ from pathlib import Path
 from typing import Any
 
 from .errors import OperationRecordError, identity_error
-from .sessions import file_identity, get_document, refresh_document_identity
 from .mutation_lock import DocumentBusyError, document_mutation_lock
+from .sessions import file_identity, get_document, refresh_document_identity
 from .state_store import atomic_write_json, read_json_state
-
 
 OPERATIONS_FILE = "operations.json"
 

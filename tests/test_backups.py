@@ -1,17 +1,15 @@
+import io
+import json
 import tempfile
 import unittest
-import json
-import io
-from unittest.mock import patch
 from pathlib import Path
+from unittest.mock import patch
 
+from tests.isolation import use_temporary_cwd
 from wps_ai_agent_cli.backups import create_backup, list_backups, restore_backup
 from wps_ai_agent_cli.cli import run
 from wps_ai_agent_cli.mcp_adapter import call_mcp_tool
 from wps_ai_agent_cli.sessions import register_document
-
-
-from tests.isolation import use_temporary_cwd
 
 _restore_cwd = None
 

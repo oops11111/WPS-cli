@@ -6,7 +6,6 @@ from wps_ai_agent_cli.mcp_schema import (
     list_mcp_tool_schemas,
 )
 
-
 REMOVED_REPORTING_COMMANDS = frozenset({
     "artifact-retention-summary",
     "project-status",

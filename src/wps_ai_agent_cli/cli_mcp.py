@@ -5,15 +5,23 @@ from __future__ import annotations
 import json
 
 from .artifacts import write_json_artifact
+from .cli_common import BACKEND
 from .mcp_adapter import call_mcp_tool
-from .mcp_catalog_drift import DEFAULT_MCP_CATALOG_GUARD, build_mcp_catalog_drift_report
 from .mcp_catalog import build_mcp_catalog_snapshot
+from .mcp_catalog_drift import DEFAULT_MCP_CATALOG_GUARD, build_mcp_catalog_drift_report
 from .mcp_config_audit import audit_mcp_client_config
-from .mcp_schema import get_mcp_tool_schema, list_mcp_tool_categories, list_mcp_tool_schemas
+from .mcp_schema import (
+    get_mcp_tool_schema,
+    list_mcp_tool_categories,
+    list_mcp_tool_schemas,
+)
 from .mcp_smoke import run_mcp_server_smoke
 from .models import CommandResponse, ValidationResult
-from .regression import load_regression_manifest, list_regression_scenarios, run_regression_manifest
-from .cli_common import BACKEND
+from .regression import (
+    list_regression_scenarios,
+    load_regression_manifest,
+    run_regression_manifest,
+)
 
 
 def mcp_tools_response(

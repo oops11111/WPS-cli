@@ -7,12 +7,17 @@ from typing import Any
 from .atomic_mutation import atomic_mutation
 from .backups import create_backup, guarded_com_mutation, verify_post_com_source
 from .capabilities import probe_wps_capabilities
-from .powershell_runner import run_powershell_script
 from .errors import COM_BACKEND_UNAVAILABLE, INPUT_FILE_NOT_FOUND
 from .file_hold import is_share_conflict, probe_file_not_held, share_conflict_error
 from .mutation_lock import coordinated_mutation
 from .operations import record_operation, replay_operation
-from .presentation_text import PresentationStructureError, count_text_in_pptx, pptx_slide_texts, pptx_text_objects
+from .powershell_runner import run_powershell_script
+from .presentation_text import (
+    PresentationStructureError,
+    count_text_in_pptx,
+    pptx_slide_texts,
+    pptx_text_objects,
+)
 from .sessions import get_document
 from .wps_script_snippets import (
     ACQUIRE_WPS_APP,

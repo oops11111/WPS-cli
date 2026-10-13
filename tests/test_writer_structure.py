@@ -6,7 +6,12 @@ from zipfile import ZipFile
 
 from wps_ai_agent_cli.sessions import register_document
 from wps_ai_agent_cli.snapshots import snapshot_document
-from wps_ai_agent_cli.writer_structure import W, read_body_bookmark_text, read_supported_bookmark_text, read_writer_structure
+from wps_ai_agent_cli.writer_structure import (
+    W,
+    read_body_bookmark_text,
+    read_supported_bookmark_text,
+    read_writer_structure,
+)
 
 
 def write_document(path, body, styles=None, header=None):

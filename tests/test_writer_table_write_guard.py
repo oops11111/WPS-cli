@@ -3,9 +3,9 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
+from tests.test_writer_ops import write_minimal_docx_with_table
 from wps_ai_agent_cli.sessions import register_document
 from wps_ai_agent_cli.writer_ops import writer_table_write
-from tests.test_writer_ops import write_minimal_docx_with_table
 
 
 class WriterTableWriteGuardTests(unittest.TestCase):

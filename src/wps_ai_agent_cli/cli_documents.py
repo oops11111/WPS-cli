@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from .backups import create_backup, list_backups, restore_backup
+from .cli_common import BACKEND
 from .models import CommandResponse, ValidationResult
 from .operations import get_operation, inspect_mutation_request, list_operations
 from .sessions import list_documents, register_document
@@ -12,7 +13,6 @@ from .task_status import (
     list_recovery_playbooks,
 )
 from .validators import validate_document
-from .cli_common import BACKEND
 
 
 def register_document_response(request_id: str, component: str, path: str) -> CommandResponse:

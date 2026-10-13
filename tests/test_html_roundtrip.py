@@ -1,14 +1,19 @@
+import json
+import unittest
+import xml.etree.ElementTree as ET
+import zipfile
 from pathlib import Path
 from tempfile import TemporaryDirectory
-import unittest
-import json
-import zipfile
-import xml.etree.ElementTree as ET
 
 from docx import Document
 from PIL import Image
 
-from wps_ai_agent_cli.html_roundtrip import build_html_roundtrip_mapping, export_controlled_html, import_controlled_html, verify_controlled_document
+from wps_ai_agent_cli.html_roundtrip import (
+    build_html_roundtrip_mapping,
+    export_controlled_html,
+    import_controlled_html,
+    verify_controlled_document,
+)
 
 
 class HtmlRoundtripTests(unittest.TestCase):

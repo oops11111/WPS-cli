@@ -11,7 +11,6 @@ from .errors import DocumentHeldOpenError, identity_error
 from .mutation_lock import DocumentBusyError, document_mutation_lock
 from .state_store import atomic_write_json, read_json_state
 
-
 STATE_DIR = ".wps-agent"
 DOCUMENTS_FILE = "documents.json"
 SUPPORTED_COMPONENTS = {"writer", "spreadsheets", "presentation"}
@@ -55,7 +54,7 @@ def file_identity(path: Path) -> dict[str, int | str]:
 
 def stable_document_id(component: str, path: str) -> str:
     canonical = os.path.normcase(str(Path(path).resolve()))
-    digest = hashlib.sha256(f"{component}:{canonical}".encode("utf-8")).hexdigest()[:16]
+    digest = hashlib.sha256(f"{component}:{canonical}".encode()).hexdigest()[:16]
     return f"doc_{digest}"
 
 

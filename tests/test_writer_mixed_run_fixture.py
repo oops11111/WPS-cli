@@ -13,7 +13,6 @@ from wps_ai_agent_cli.mcp_adapter import call_mcp_tool
 from wps_ai_agent_cli.writer_inspect import inspect_writer_structure
 from wps_ai_agent_cli.writer_structure import read_supported_bookmark_text
 
-
 FIXTURE = Path("fixtures/phase3/writer_mixed_run_wps_fixture.docx")
 SCRIPT = Path("scripts/audit_writer_structure_wps.ps1")
 EXPECTED_SHA256 = "0CF410E40E6B1AD88A9AA7471CCA3CBF03BF5125A8C045D9BBB281EF1BC34B6C"

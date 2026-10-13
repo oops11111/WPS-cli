@@ -1,5 +1,5 @@
-import io
 import hashlib
+import io
 import json
 import os
 import subprocess
@@ -14,8 +14,11 @@ from wps_ai_agent_cli.mcp_adapter import call_mcp_tool
 from wps_ai_agent_cli.sessions import register_document
 from wps_ai_agent_cli.writer_inspect import inspect_writer_structure
 from wps_ai_agent_cli.writer_ops import writer_fill_bookmark
-from wps_ai_agent_cli.writer_structure import read_body_bookmark_text, read_supported_bookmark_text, read_writer_structure
-
+from wps_ai_agent_cli.writer_structure import (
+    read_body_bookmark_text,
+    read_supported_bookmark_text,
+    read_writer_structure,
+)
 
 FIXTURE = Path("fixtures/phase3/writer_nested_scope_wps_fixture.docx")
 SCRIPT = Path("scripts/audit_writer_structure_wps.ps1")

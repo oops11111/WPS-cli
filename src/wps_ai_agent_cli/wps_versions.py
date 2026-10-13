@@ -6,7 +6,6 @@ from typing import Any
 
 from .state_store import StateCorruptError, atomic_write_json, read_json_state
 
-
 COMPONENT_NAMES = ("writer", "spreadsheets", "presentation")
 SCHEMA_VERSION = 1
 _MAX_VERSION_CHARS = 64

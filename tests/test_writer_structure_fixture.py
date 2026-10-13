@@ -3,8 +3,10 @@ import unittest
 from pathlib import Path
 
 from wps_ai_agent_cli.document_text import docx_body_paragraphs
-from wps_ai_agent_cli.writer_structure import read_body_bookmark_text, read_writer_structure
-
+from wps_ai_agent_cli.writer_structure import (
+    read_body_bookmark_text,
+    read_writer_structure,
+)
 
 FIXTURE = Path("fixtures/phase3/writer_structure_wps_fixture.docx")
 

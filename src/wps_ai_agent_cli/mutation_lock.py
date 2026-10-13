@@ -5,14 +5,14 @@ import hashlib
 import inspect
 import os
 import threading
+import time
+from collections.abc import Callable
 from contextlib import ExitStack
 from pathlib import Path
-import time
-from typing import Any, Callable
+from typing import Any
 
 from .errors import OperationRecordError
 from .powershell_runner import collect_script_warnings, merge_warnings
-
 
 DEFAULT_TIMEOUT_SECONDS = 30.0
 STALE_LOCK_SECONDS = 7 * 24 * 3600

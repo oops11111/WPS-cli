@@ -12,7 +12,11 @@ from openpyxl import Workbook
 from wps_ai_agent_cli import ooxml
 from wps_ai_agent_cli.cli import run
 from wps_ai_agent_cli.document_text import count_text_in_docx, docx_body_paragraphs
-from wps_ai_agent_cli.ooxml import OoxmlTooLargeError, load_workbook_guarded, read_zip_part
+from wps_ai_agent_cli.ooxml import (
+    OoxmlTooLargeError,
+    load_workbook_guarded,
+    read_zip_part,
+)
 from wps_ai_agent_cli.writer_structure import read_writer_structure
 
 W_NS = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"

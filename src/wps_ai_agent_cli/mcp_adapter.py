@@ -8,7 +8,6 @@ from typing import Any
 
 from .mcp_schema import get_mcp_tool_schema
 
-
 ADAPTER_BLOCKED_TOOL_NAMES = {"wps_agent_mcp_call", "mcp-call", "wps_agent_mcp_server", "mcp-server"}
 
 
@@ -313,7 +312,6 @@ def call_mcp_tool(tool_name: str, arguments: dict[str, Any]) -> tuple[bool, dict
         )
 
     from .cli import run
-
     from .mcp_config_audit import LAUNCH_RESTRICTED
 
     output = io.StringIO()

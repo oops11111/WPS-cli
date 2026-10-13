@@ -4,14 +4,16 @@ from collections import Counter
 from pathlib import Path
 from typing import Any
 
-from .ooxml import load_workbook_guarded as load_workbook
-
 from .document_text import docx_body_paragraphs
 from .errors import INPUT_FILE_NOT_FOUND
-from .presentation_text import PresentationStructureError, pptx_slide_texts, pptx_text_objects
+from .ooxml import load_workbook_guarded as load_workbook
+from .presentation_text import (
+    PresentationStructureError,
+    pptx_slide_texts,
+    pptx_text_objects,
+)
 from .sessions import get_document
 from .writer_structure import read_writer_structure
-
 
 SPREADSHEET_ERROR_VALUES = {
     "#DIV/0!",

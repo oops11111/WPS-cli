@@ -5,7 +5,11 @@ from unittest.mock import patch
 from zipfile import ZipFile
 
 from tests.test_writer_structure import write_document
-from wps_ai_agent_cli.document_text import count_text_in_docx, count_text_in_docx_paragraph, docx_body_paragraphs
+from wps_ai_agent_cli.document_text import (
+    count_text_in_docx,
+    count_text_in_docx_paragraph,
+    docx_body_paragraphs,
+)
 from wps_ai_agent_cli.sessions import register_document
 from wps_ai_agent_cli.validators import validate_document
 from wps_ai_agent_cli.writer_ops import writer_replace

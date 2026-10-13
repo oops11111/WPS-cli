@@ -2,12 +2,16 @@ import json
 import os
 import subprocess
 import sys
+import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
-import unittest
 from unittest.mock import patch
 
-from wps_ai_agent_cli.batch_conversion import convert_html_batch, inspect_batch_request, _request_record_path
+from wps_ai_agent_cli.batch_conversion import (
+    _request_record_path,
+    convert_html_batch,
+    inspect_batch_request,
+)
 from wps_ai_agent_cli.com_backend import run_com_smoke
 from wps_ai_agent_cli.document_text import docx_body_paragraphs
 
@@ -474,8 +478,9 @@ class BatchConversionBrowserIntegrationTests(unittest.TestCase):
                     if mode == "pdf":
                         self.assertEqual(artifact.read_bytes()[:4], b"%PDF")
                     else:
-                        from PIL import Image
                         import io
+
+                        from PIL import Image
                         image = Image.open(io.BytesIO(artifact.read_bytes()))
                         self.assertEqual(image.format, "PNG")
                         self.assertGreater(image.width, 320)

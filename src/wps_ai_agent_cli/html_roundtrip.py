@@ -1,21 +1,27 @@
 from __future__ import annotations
 
-import hashlib
 import base64
+import hashlib
 import html
 import json
 import os
-from pathlib import Path
 import re
 import tempfile
-from typing import Any
-import zipfile
 import xml.etree.ElementTree as ET
+import zipfile
+from pathlib import Path
+from typing import Any
 
-from .html_editable import _TreeParser, _bookmark_name, _safe_link_target, _text, _walk, convert_html_editable
+from .html_editable import (
+    _bookmark_name,
+    _safe_link_target,
+    _text,
+    _TreeParser,
+    _walk,
+    convert_html_editable,
+)
 from .html_text import decode_html_bytes
 from .ooxml import parse_xml_part
-
 
 SCHEMA_VERSION = "wps-agent-html/v1"
 _ID_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$")

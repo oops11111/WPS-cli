@@ -1,14 +1,14 @@
 from __future__ import annotations
 
-from collections.abc import Iterable
 import hashlib
 import posixpath
 import shlex
 import xml.etree.ElementTree as ET
+from collections.abc import Iterable
 from pathlib import Path
 from zipfile import ZipFile
-from .ooxml import parse_xml_part, read_zip_part
 
+from .ooxml import parse_xml_part, read_zip_part
 
 W = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
 R = "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}"
@@ -90,7 +90,7 @@ def _wrap_polygon_issue(points: list[tuple[int, int]]) -> str | None:
 
     area_twice = sum(
         x1 * y2 - x2 * y1
-        for (x1, y1), (x2, y2) in zip(points, points[1:] + points[:1])
+        for (x1, y1), (x2, y2) in zip(points, points[1:] + points[:1], strict=True)
     )
     if area_twice == 0:
         return "degenerate_wrap_polygon"

@@ -1,10 +1,10 @@
-import unittest
 import json
-from tempfile import TemporaryDirectory
+import unittest
 from pathlib import Path
+from tempfile import TemporaryDirectory
 
-from wps_ai_agent_cli.mcp_catalog_drift import build_mcp_catalog_drift_report
 from wps_ai_agent_cli.mcp_catalog import build_mcp_catalog_snapshot
+from wps_ai_agent_cli.mcp_catalog_drift import build_mcp_catalog_drift_report
 from wps_ai_agent_cli.mcp_schema import list_mcp_tool_schemas
 
 

@@ -1,19 +1,25 @@
-import tempfile
-import unittest
 import io
 import json
-from tests.isolation import chdir
+import tempfile
+import unittest
 from pathlib import Path
 from unittest.mock import patch
 
 from openpyxl import Workbook
 
-from wps_ai_agent_cli.operations import get_operation, inspect_mutation_request, list_operations, record_operation, replay_operation
+from tests.isolation import chdir
 from wps_ai_agent_cli.backups import create_backup
-from wps_ai_agent_cli.sessions import get_document, register_document
-from wps_ai_agent_cli.spreadsheet_ops import rename_spreadsheet_sheet
 from wps_ai_agent_cli.cli import run
 from wps_ai_agent_cli.mcp_adapter import call_mcp_tool
+from wps_ai_agent_cli.operations import (
+    get_operation,
+    inspect_mutation_request,
+    list_operations,
+    record_operation,
+    replay_operation,
+)
+from wps_ai_agent_cli.sessions import get_document, register_document
+from wps_ai_agent_cli.spreadsheet_ops import rename_spreadsheet_sheet
 
 
 class OperationLedgerTests(unittest.TestCase):

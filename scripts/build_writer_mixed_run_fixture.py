@@ -4,7 +4,6 @@ from docx import Document
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 
-
 OUTPUT = Path("fixtures/phase3/writer_mixed_run_wps_fixture.docx")
 
 

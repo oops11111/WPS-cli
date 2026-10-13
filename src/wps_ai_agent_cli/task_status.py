@@ -10,7 +10,6 @@ from threading import Lock
 from typing import Any
 from uuid import uuid4
 
-
 TASK_STATUS_FILE = "task_statuses.json"
 TERMINAL_STATES = {"succeeded", "failed", "cancelled"}
 VALID_STATES = {"pending", "running", *TERMINAL_STATES}

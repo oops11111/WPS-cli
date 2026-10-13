@@ -1,32 +1,31 @@
-import os
 import io
 import json
+import os
 import tempfile
 import unittest
-from tests.isolation import chdir
 from pathlib import Path
 
+import pypdfium2
 from docx import Document
+from docx.opc.constants import RELATIONSHIP_TYPE as RT
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
-from docx.opc.constants import RELATIONSHIP_TYPE as RT
 from docx.shared import Inches
-from PIL import Image
-from PIL import ImageChops
-import pypdfium2
+from PIL import Image, ImageChops
 
+from tests.isolation import chdir
 from wps_ai_agent_cli.backups import create_backup
+from wps_ai_agent_cli.cli import run
 from wps_ai_agent_cli.com_backend import run_conversion_smoke
 from wps_ai_agent_cli.document_text import (
     docx_body_drawing_semantics,
     docx_body_link_field_semantics,
     docx_body_table_topology,
 )
+from wps_ai_agent_cli.mcp_adapter import call_mcp_tool
 from wps_ai_agent_cli.sessions import file_identity, register_document
 from wps_ai_agent_cli.writer_ops import writer_fill_bookmark
 from wps_ai_agent_cli.writer_structure import read_supported_bookmark_text
-from wps_ai_agent_cli.cli import run
-from wps_ai_agent_cli.mcp_adapter import call_mcp_tool
 
 
 def write_image_bookmark_document(
@@ -102,6 +101,7 @@ def write_image_bookmark_document(
                 for name, value in zip(
                     ("distT", "distB", "distL", "distR"),
                     (str(int(Inches(distance).emu)) for distance in anchor_distances_inches),
+                    strict=False,
                 ):
                     anchor.set(name, value)
                 for name, value in (("simplePos", "0"),
@@ -171,7 +171,7 @@ def drawing_structure_differences(left, right, path="drawing"):
     if isinstance(left, list) and isinstance(right, list):
         if len(left) != len(right):
             return [(f"{path}.length", len(left), len(right))]
-        return [difference for index, (before, after) in enumerate(zip(left, right))
+        return [difference for index, (before, after) in enumerate(zip(left, right, strict=False))
                 for difference in drawing_structure_differences(before, after, f"{path}[{index}]")]
     return [] if left == right else [(path, left, right)]
 
@@ -1282,8 +1282,9 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
 
     def test_wps_wrap_none_omitted_and_both_sides_render_identically(self):
         import xml.etree.ElementTree as ET
-        from docx.oxml.ns import qn
         from zipfile import ZipFile
+
+        from docx.oxml.ns import qn
 
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -1323,7 +1324,7 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
             self.assertNotEqual(reports[0], reports[2])
             self.assertEqual(reports[1][0], reports[3][0])
             self.assertEqual(len(reports[1][1]), len(reports[3][1]))
-            for expected, actual in zip(reports[1][1], reports[3][1]):
+            for expected, actual in zip(reports[1][1], reports[3][1], strict=False):
                 self.assertIsNone(ImageChops.difference(expected, actual).getbbox())
 
     def test_wps_wrap_none_one_sided_values_render_identically(self):
@@ -1356,7 +1357,7 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
                     else:
                         self.assertEqual(page_text, reference_text)
                         self.assertEqual(len(page_images), len(reference_image))
-                        for expected, actual in zip(reference_image, page_images):
+                        for expected, actual in zip(reference_image, page_images, strict=False):
                             self.assertIsNone(ImageChops.difference(expected, actual).getbbox())
 
     def test_wps_table_bookmark_preserves_polygon_one_sided_wrap_text(self):
@@ -1425,7 +1426,7 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
                     before_semantics = docx_body_drawing_semantics(path)
                     expected_distances = {
                         name: str(int(Inches(value).emu))
-                        for name, value in zip(("distT", "distB", "distL", "distR"), distances)
+                        for name, value in zip(("distT", "distB", "distL", "distR"), distances, strict=False)
                     }
                     self.assertEqual(before_semantics["drawings"][0]["wrap_distances"], expected_distances)
                     self.assertTrue(run_conversion_smoke("writer", str(path), str(before_pdf), "pdf")["ok"])
@@ -1559,7 +1560,7 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
             after_pages, after_markers = render_report(after_pdf)
             self.assertEqual(len(after_pages), len(before_pages))
             self.assertEqual(after_markers, before_markers)
-            for index, (before, after) in enumerate(zip(before_pages, after_pages)):
+            for index, (before, after) in enumerate(zip(before_pages, after_pages, strict=False)):
                 self.assertIsNone(ImageChops.difference(before["image"], after["image"]).getbbox(), index)
                 self.assertIsNone(ImageChops.difference(before["red"], after["red"]).getbbox(), index)
                 self.assertIsNone(ImageChops.difference(before["blue"], after["blue"]).getbbox(), index)
@@ -1616,7 +1617,7 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
             after_pages, after_markers = render_report(after_pdf)
             self.assertEqual(len(after_pages), len(before_pages))
             self.assertEqual(after_markers, before_markers)
-            for index, (before, after) in enumerate(zip(before_pages, after_pages)):
+            for index, (before, after) in enumerate(zip(before_pages, after_pages, strict=False)):
                 self.assertEqual(before.size, after.size, index)
                 self.assertIsNone(ImageChops.difference(before, after).getbbox(), index)
 

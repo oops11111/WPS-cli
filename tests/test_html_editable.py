@@ -1,14 +1,19 @@
+import os
+import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
-import unittest
-import os
 
 from docx import Document
 from PIL import Image
 
-from wps_ai_agent_cli.html_editable import convert_html_editable
-from wps_ai_agent_cli.html_roundtrip import export_controlled_html, build_html_roundtrip_mapping, import_controlled_html, verify_controlled_document
 from wps_ai_agent_cli.com_backend import run_com_smoke
+from wps_ai_agent_cli.html_editable import convert_html_editable
+from wps_ai_agent_cli.html_roundtrip import (
+    build_html_roundtrip_mapping,
+    export_controlled_html,
+    import_controlled_html,
+    verify_controlled_document,
+)
 
 
 class HtmlEditableTests(unittest.TestCase):
