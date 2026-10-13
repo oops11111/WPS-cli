@@ -4665,8 +4665,8 @@ def replace_spreadsheet_selection(
                 "code": "VALIDATION_FAILED",
                 "message": (
                     "Selection replacement read-back did not match the replacement values. "
-                    "The write was already saved by WPS; the pre-write backup is at "
-                    f"{backup_result.get('backup_path')} (restore it with restore-backup if the result is wrong)."
+                    "WPS saved the write; it is undone from the pre-write backup at "
+                    f"{backup_result.get('backup_path')} when this command returns."
                 ),
             }
         ], False

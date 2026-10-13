@@ -1595,7 +1595,7 @@ class SpreadsheetSelectionReplaceTests(unittest.TestCase):
         self.assertFalse(ok)
         self.assertEqual(errors[0]["code"], "VALIDATION_FAILED")
         self.assertIn("keep/b.xlsx", errors[0]["message"])
-        self.assertIn("restore-backup", errors[0]["message"])
+        self.assertIn("undone from the pre-write backup", errors[0]["message"])
         self.assertFalse(data["validation_passed"])
 
     def test_cell_text_matches_only_equal_plain_numbers(self):
