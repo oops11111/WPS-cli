@@ -25,4 +25,4 @@ wps-agent = "wps_ai_agent_cli.cli:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-wps_ai_agent_cli = ["*.cjs"]
+wps_ai_agent_cli = ["*.cjs", "*.json"]
