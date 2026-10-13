@@ -6,28 +6,187 @@
       "id": "register-and-backup",
       "prompt": "Using the wps-agent MCP tools, register the spreadsheet book.xlsx in the current directory, then create a backup of it with request_id eval-backup-1. Do not modify the file. Reply with the backup file name.",
       "checks": [
-        {"kind": "document_registered"},
-        {"kind": "operation_recorded", "request_id": "eval-backup-1", "command": "backup-document"},
-        {"kind": "backup_count", "count": 1},
-        {"kind": "file_unchanged"}
+        {
+          "kind": "document_registered"
+        },
+        {
+          "kind": "operation_recorded",
+          "request_id": "eval-backup-1",
+          "command": "backup-document"
+        },
+        {
+          "kind": "backup_count",
+          "count": 1
+        },
+        {
+          "kind": "file_unchanged"
+        }
       ]
     },
     {
       "id": "list-backups-readonly",
       "prompt": "Using the wps-agent MCP tools, register the spreadsheet book.xlsx in the current directory, then list its backups. Do not create a backup and do not change the file.",
       "checks": [
-        {"kind": "document_registered"},
-        {"kind": "backup_count", "count": 0},
-        {"kind": "file_unchanged"}
+        {
+          "kind": "document_registered"
+        },
+        {
+          "kind": "backup_count",
+          "count": 0
+        },
+        {
+          "kind": "file_unchanged"
+        }
       ]
     },
     {
       "id": "restore-missing-backup",
       "prompt": "Using the wps-agent MCP tools, register the spreadsheet book.xlsx in the current directory, then restore it from a backup named missing.xlsx with request_id eval-restore-1. Report what happened.",
       "checks": [
-        {"kind": "document_registered"},
-        {"kind": "no_operation", "request_id": "eval-restore-1"},
-        {"kind": "file_unchanged"}
+        {
+          "kind": "document_registered"
+        },
+        {
+          "kind": "no_operation",
+          "request_id": "eval-restore-1"
+        },
+        {
+          "kind": "file_unchanged"
+        }
+      ]
+    },
+    {
+      "id": "idempotent-backup-retry",
+      "prompt": "Using the wps-agent MCP tools, register the spreadsheet book.xlsx in the current directory and back it up with request_id eval-retry-1. Our client lost the response to that call, so then send the same backup call again with the same request_id eval-retry-1. Report whether the second call created a new backup.",
+      "checks": [
+        {
+          "kind": "operation_recorded",
+          "request_id": "eval-retry-1",
+          "command": "backup-document"
+        },
+        {
+          "kind": "tool_called",
+          "tool": "backup_document",
+          "input": {
+            "request_id": "eval-retry-1"
+          },
+          "min": 2
+        },
+        {
+          "kind": "backup_count",
+          "count": 1
+        },
+        {
+          "kind": "file_unchanged"
+        }
+      ]
+    },
+    {
+      "id": "restore-latest-backup",
+      "setup": [
+        "register",
+        "backup",
+        "modify"
+      ],
+      "prompt": "The spreadsheet book.xlsx in the current directory is already registered with wps-agent and has a backup. It was changed by mistake after that backup. Using the wps-agent MCP tools, restore it from its most recent backup with request_id eval-restore-2.",
+      "checks": [
+        {
+          "kind": "operation_recorded",
+          "request_id": "eval-restore-2",
+          "command": "restore-backup"
+        },
+        {
+          "kind": "file_matches_seed"
+        },
+        {
+          "kind": "max_tool_calls",
+          "count": 6
+        }
+      ]
+    },
+    {
+      "id": "restore-dry-run",
+      "setup": [
+        "register",
+        "backup",
+        "modify"
+      ],
+      "prompt": "The spreadsheet book.xlsx in the current directory is already registered with wps-agent and has a backup. Using the wps-agent MCP tools, preview what restoring it from its most recent backup would do, without changing the file.",
+      "checks": [
+        {
+          "kind": "tool_called",
+          "tool": "restore_backup",
+          "input": {
+            "dry_run": true
+          }
+        },
+        {
+          "kind": "file_unchanged"
+        },
+        {
+          "kind": "backup_count",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "id": "held-document-backup",
+      "setup": [
+        "register",
+        "hold"
+      ],
+      "prompt": "The spreadsheet book.xlsx in the current directory is already registered with wps-agent. Using the wps-agent MCP tools, back it up with request_id eval-held-1. If the tool refuses, do not work around it: report the error code and what the user should do.",
+      "checks": [
+        {
+          "kind": "tool_error_seen",
+          "code": "DOCUMENT_HELD_OPEN"
+        },
+        {
+          "kind": "no_operation",
+          "request_id": "eval-held-1"
+        },
+        {
+          "kind": "backup_count",
+          "count": 0
+        },
+        {
+          "kind": "tool_not_called",
+          "tool": "restore_backup"
+        },
+        {
+          "kind": "file_unchanged"
+        }
+      ]
+    },
+    {
+      "id": "html-table-to-xlsx",
+      "setup": [
+        "html_table"
+      ],
+      "prompt": "Using the wps-agent MCP tools, convert the HTML file table.html in the current directory into an editable spreadsheet named table.xlsx in the same directory.",
+      "checks": [
+        {
+          "kind": "tool_called",
+          "tool": "html_editable",
+          "input": {
+            "format": "xlsx"
+          }
+        },
+        {
+          "kind": "xlsx_cell",
+          "path": "table.xlsx",
+          "cell": "A1",
+          "value": "Region"
+        },
+        {
+          "kind": "xlsx_cell",
+          "path": "table.xlsx",
+          "cell": "B2",
+          "value": 120
+        },
+        {
+          "kind": "file_unchanged"
+        }
       ]
     }
   ]

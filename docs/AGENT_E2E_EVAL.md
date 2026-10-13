@@ -1,18 +1,41 @@
 # Agent end-to-end evaluation
 
-This pipeline runs fixed tasks through the real `claude -p` CLI with the `wps-agent` MCP server attached. It then judges each task from the workspace state, not from the agent's reply. It is the Phase 3 "真实 Agent 端到端评测" item in `docs/ROADMAP.md`.
+This pipeline runs fixed tasks through the real `claude -p` CLI with the `wps-agent` MCP server attached. It judges each task from the workspace state and from the tool calls in the CLI transcript, not from the agent's reply. It is the Phase 3 "真实 Agent 端到端评测" item in `docs/ROADMAP.md`.
 
 ## What it covers
 
-Tasks are in `config/agent_eval_tasks.json`. Each task runs in its own workspace, which is also the MCP server's working directory. The fixture is `book.xlsx`.
+Tasks are in `config/agent_eval_tasks.json`. Each task runs in its own workspace, which is also the MCP server's working directory. The fixture is `book.xlsx`, with `seed` in A1.
+
+A task can list `setup` steps that prepare the workspace before the agent starts:
+
+| Step | Effect |
+| --- | --- |
+| `register` | registers `book.xlsx` |
+| `backup` | backs it up with request id `setup-backup` |
+| `modify` | changes A1 to `changed by mistake` and saves the file |
+| `html_table` | writes `table.html` with a two-column table |
+| `hold` | holds `book.xlsx` the way WPS holds an open document. Must be the last step. |
 
 | Task | Asks the agent to | Judged by |
 | --- | --- | --- |
 | `register-and-backup` | register the file, then back it up with a fixed request id | document registered; operation `eval-backup-1` recorded as `backup-document`; one backup; file unchanged |
 | `list-backups-readonly` | register the file and list backups without changing anything | document registered; no backups; file unchanged |
 | `restore-missing-backup` | restore from a backup that does not exist | document registered; no operation recorded for `eval-restore-1`; file unchanged |
+| `idempotent-backup-retry` | back up, then resend the same call with the same request id | operation recorded; at least two `backup_document` calls with that request id; still one backup; file unchanged |
+| `restore-latest-backup` | restore a file that was changed after its backup | operation `eval-restore-2` recorded as `restore-backup`; file matches the seed again; at most 6 `wps-agent` calls |
+| `restore-dry-run` | preview a restore without changing the file | a `restore_backup` call with `dry_run: true`; file unchanged; still one backup (a real restore adds a safety backup) |
+| `held-document-backup` | back up a file that another handle holds | `DOCUMENT_HELD_OPEN` seen in a tool result; no operation recorded; no backup; no `restore_backup` call; file unchanged |
+| `html-table-to-xlsx` | convert `table.html` into `table.xlsx` | an `html_editable` call with `format: "xlsx"`; `table.xlsx` has `Region` in A1 and `120` in B2; `book.xlsx` unchanged |
 
 Only offline tools are used. None of these tasks needs WPS, so they run on any machine with the `claude` CLI logged in. WPS-dependent write paths are not covered here.
+
+`held-document-backup` needs a machine that can hold the file. On Windows the runner opens it with no sharing. On other systems it removes all permissions, which does not work for root. When the file cannot be held, the task is reported as skipped, not as passed or failed.
+
+## Check kinds
+
+State checks: `document_registered`, `operation_recorded`, `no_operation`, `backup_count`, `file_unchanged` (the file as the agent received it, after setup), `file_matches_seed` (the file before setup), `xlsx_cell`.
+
+Transcript checks, read from the tool calls, not from the reply: `tool_called` (optionally with `input` values and a `min` count), `tool_not_called`, `tool_error_seen` (an error code in a tool result), `max_tool_calls` (calls to `wps-agent` tools only).
 
 ## How to run
 
@@ -21,26 +44,38 @@ python scripts/agent_eval/run_agent_eval.py --out artifacts/agent-eval
 python scripts/agent_eval/run_agent_eval.py --only register-and-backup --model <model-id>
 ```
 
-The runner needs `claude` on `PATH`. It exits with 0 when every task passes, 1 when any fails, and 2 when the CLI is missing. Each run writes `summary.json` under `<out>/run-<timestamp>/`. The summary holds the agent's turns, duration, cost, reply excerpt and every check result.
+The runner needs `claude` on `PATH`. It runs the CLI with `--output-format stream-json --verbose` so that it can read each tool call. It exits with 0 when every task that ran passes, 1 when any fails, and 2 when the CLI is missing. Skipped tasks do not change the exit code.
 
-The offline tests in `tests/test_agent_eval.py` cover the judge and the MCP config with a stand-in agent. They do not call the CLI.
+Each run writes `summary.json` under `<out>/run-<timestamp>/`. For each task it holds the agent's turns, duration, cost, reply excerpt, every tool call with its input and error codes, the tool metrics and every check result. The summary also totals `wps-agent` calls and calls that returned an error.
+
+The tool metrics count every call that returned an error code. Some of those errors are the expected outcome: in `restore-missing-backup` and `held-document-backup`, the refusal is what the task tests.
+
+The offline tests in `tests/test_agent_eval.py` cover the transcript parser, the setup steps, the judge for every task and the MCP config with a stand-in agent. They do not call the CLI.
 
 ## Results
 
-Run 2026-10-13 with `claude` 2.1.296 (CLI default model), on this repository's `main` at `4b6fdb3`:
+Run 2026-10-13 with `claude` 2.1.296 (CLI default model), on a Linux container as root, on this repository's `main` at `42cc54f` plus this change:
 
-| Task | Result | Turns | Duration | Cost (USD) |
-| --- | --- | --- | --- | --- |
-| `register-and-backup` | pass | 4 | 9.1 s | 0.067 |
-| `list-backups-readonly` | pass | 4 | 8.2 s | 0.067 |
-| `restore-missing-backup` | pass | 4 | 10.5 s | 0.068 |
+| Task | Result | Turns | `wps-agent` calls | Tool errors | Duration | Cost (USD) |
+| --- | --- | --- | --- | --- | --- | --- |
+| `register-and-backup` | pass | 4 | 2 | 0 | 9.7 s | 0.070 |
+| `list-backups-readonly` | pass | 4 | 2 | 0 | 8.6 s | 0.066 |
+| `restore-missing-backup` | pass | 4 | 2 | 1 (expected refusal) | 11.3 s | 0.068 |
+| `idempotent-backup-retry` | pass | 5 | 3 | 0 | 13.3 s | 0.078 |
+| `restore-latest-backup` | pass | 4 | 2 | 0 | 10.7 s | 0.071 |
+| `restore-dry-run` | pass | 4 | 2 | 0 | 11.7 s | 0.071 |
+| `held-document-backup` | skipped | | | | | |
+| `html-table-to-xlsx` | pass | 4 | 1 | 0 | 9.1 s | 0.069 |
 
-Total for the three tasks: about USD 0.20.
+7 of 7 tasks that ran passed. Total: 14 `wps-agent` calls, 1 error (the expected one), about USD 0.49.
+
+`held-document-backup` was skipped because the run was as root. It still needs a run on Windows or as a non-root user.
 
 ## Limits
 
-- Three tasks are a smoke set, not a benchmark. They check that an agent can reach the server and use the tools correctly.
-- The judge checks state, so a correct-sounding reply with the wrong state fails. A failure to report the result accurately is not detected here.
+- Eight tasks are still a small set, not a benchmark. They cover registration, backup, idempotent retry, restore, dry run, a held file and HTML conversion. They do not cover the 85-tool surface.
+- The judge checks state and tool calls, so a correct-sounding reply with the wrong state fails. A failure to report the result accurately is not detected here.
 - Results depend on the model the CLI uses. Record it with `--model` when comparing runs.
 - Runs are not deterministic. A failing run should be rerun before it is treated as a regression.
+- Tool call counts include calls the CLI makes on its own, such as `ToolSearch` to load deferred tools. These are counted as `other_tool_calls` and are not limited by `max_tool_calls`.
 - The runner writes artifacts outside the repository by default in CI. Do not commit `artifacts/agent-eval/` runs unless they are needed as evidence.
