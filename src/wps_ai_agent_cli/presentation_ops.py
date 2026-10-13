@@ -18,7 +18,6 @@ from .wps_script_snippets import (
     ACQUIRE_WPS_APP,
     HIDE_LAUNCHED_APP,
     PRE_OPEN_GUARD,
-    QUIET_ALERTS,
     RELEASE_WPS_APP,
 )
 

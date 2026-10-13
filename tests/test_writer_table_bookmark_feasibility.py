@@ -662,8 +662,6 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
             self.assertIsNone(ImageChops.difference(before_image, after_image).getbbox())
 
     def test_wps_table_bookmark_normalizes_omitted_square_wrap_text(self):
-        import xml.etree.ElementTree as ET
-        from zipfile import ZipFile
 
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

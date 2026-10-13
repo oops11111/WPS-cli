@@ -28,7 +28,7 @@ from .wps_script_snippets import (
     QUIET_ALERTS,
     RELEASE_WPS_APP,
 )
-from .ooxml import parse_xml_part, read_zip_part
+from .ooxml import parse_xml_part
 
 
 def _format_category(cell: Any) -> str:

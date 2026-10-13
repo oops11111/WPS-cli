@@ -14,7 +14,7 @@ import xml.etree.ElementTree as ET
 
 from .html_editable import _TreeParser, _bookmark_name, _safe_link_target, _text, _walk, convert_html_editable
 from .html_text import decode_html_bytes
-from .ooxml import parse_xml_part, read_zip_part
+from .ooxml import parse_xml_part
 
 
 SCHEMA_VERSION = "wps-agent-html/v1"
@@ -345,7 +345,7 @@ def export_controlled_html(document_path: str | Path, mapping_path: str | Path, 
                 drawing = child.find(f"{{{ns}}}drawing")
                 if drawing is not None:
                     entry = next_inline("image")
-                    blip = drawing.find(f".//{{http://schemas.openxmlformats.org/drawingml/2006/main}}blip")
+                    blip = drawing.find(".//{http://schemas.openxmlformats.org/drawingml/2006/main}blip")
                     relationship_id = blip.get(f"{{{r_ns}}}embed") if blip is not None else None
                     relation = word.part.related_parts.get(relationship_id) if relationship_id else None
                     if relation is None:
