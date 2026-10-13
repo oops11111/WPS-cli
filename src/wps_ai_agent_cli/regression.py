@@ -2,11 +2,43 @@ from __future__ import annotations
 
 import io
 import json
+import sys
+import tempfile
 from pathlib import Path
 from typing import Any
 
 
 DEFAULT_REGRESSION_MANIFEST = "config/regression_manifest.json"
+REPO_ROOT = Path(__file__).resolve().parents[2]
+MCP_AUDIT_TEMPLATE = "config/mcp_client_config.regression.template.json"
+
+
+def _render_mcp_audit_config(template: Path, destination_dir: Path) -> Path:
+    """Write the audit config for the interpreter running this regression.
+
+    The template names no interpreter, because `python` on Windows can be the Store alias, which exits without
+    running anything. The server is launched by sys.executable, from this repository, with its src directory on
+    PYTHONPATH. Both paths are absolute, so the audit does not depend on where it was started from.
+    """
+    config = json.loads(template.read_text(encoding="utf-8"))
+    for server in config["mcpServers"].values():
+        server["command"] = sys.executable
+        server["cwd"] = str(REPO_ROOT)
+        server["env"] = {"PYTHONPATH": str(REPO_ROOT / "src")}
+    rendered = destination_dir / "mcp_client_config.json"
+    rendered.write_text(json.dumps(config, indent=2), encoding="utf-8")
+    return rendered
+
+
+def _scenario_command(command: list[str], destination_dir: Path) -> list[str]:
+    """Replace the audit's template config with one rendered for this run; every other command is unchanged."""
+    if not command or command[0] != "mcp-config-audit" or "--config" not in command:
+        return command
+    index = command.index("--config") + 1
+    if index >= len(command) or command[index] != MCP_AUDIT_TEMPLATE:
+        return command
+    rendered = _render_mcp_audit_config(REPO_ROOT / MCP_AUDIT_TEMPLATE, destination_dir)
+    return [*command[:index], str(rendered), *command[index + 1:]]
 
 # A manifest is data supplied by the caller (including over MCP, where regression-run is advertised as
 # non-mutating), so scenarios may only run the read-only and smoke commands the shipped manifest uses.
@@ -129,6 +161,7 @@ def run_regression_manifest(
     resolved_profile = profile or manifest.get("default_profile")
     scenarios = list_regression_scenarios(manifest, profile=resolved_profile, include_wps=include_wps)
     results: list[dict[str, Any]] = []
+    scratch = tempfile.TemporaryDirectory(prefix="wps-regression-")
     for scenario in scenarios:
         command = scenario.get("command")
         if (
@@ -147,7 +180,7 @@ def run_regression_manifest(
                 }],
             }, ""
         else:
-            exit_code, payload, raw_output = _run_cli(list(command))
+            exit_code, payload, raw_output = _run_cli(_scenario_command(list(command), Path(scratch.name)))
         checks = []
         if payload is not None:
             checks = [_evaluate_check(payload, check) for check in scenario.get("required_checks", [])]
@@ -173,6 +206,7 @@ def run_regression_manifest(
             }
         )
 
+    scratch.cleanup()
     passed_count = sum(1 for result in results if result["ok"])
     failed = [result for result in results if not result["ok"]]
     result = {
