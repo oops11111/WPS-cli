@@ -8,7 +8,6 @@ from unittest.mock import patch
 
 from openpyxl import Workbook
 
-from wps_ai_agent_cli import open_documents
 from wps_ai_agent_cli.atomic_mutation import atomic_mutation
 from wps_ai_agent_cli.backups import create_backup
 from wps_ai_agent_cli.errors import ROLLBACK_BLOCKED, ROLLBACK_FAILED, ROLLED_BACK

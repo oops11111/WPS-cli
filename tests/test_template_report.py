@@ -25,7 +25,8 @@ class TemplateReportTests(unittest.TestCase):
         source_passed.write_bytes(b"source a")
         source_failed.write_bytes(b"source b")
         output_passed.write_bytes(b"docx a")
-        digest = lambda path: hashlib.sha256(path.read_bytes()).hexdigest()
+        def digest(path):
+            return hashlib.sha256(path.read_bytes()).hexdigest()
         manifest = {
             "schema_version": "wps-agent-batch-conversion/v1",
             "mode": "docx", "source_directory": str(source_root),

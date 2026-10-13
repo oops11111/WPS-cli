@@ -4,7 +4,6 @@ import json
 import hashlib
 from pathlib import Path
 from typing import Any
-import xml.etree.ElementTree as ET
 from zipfile import ZipFile
 
 from .atomic_mutation import atomic_mutation
@@ -28,7 +27,6 @@ from .document_text import (
     docx_table_cell_text,
 )
 
-WORD_FIND_TEXT_MAX_CHARS = 255
 from .errors import COM_BACKEND_UNAVAILABLE, INPUT_FILE_NOT_FOUND
 from .file_hold import is_share_conflict, probe_file_not_held, share_conflict_error
 from .mutation_lock import coordinated_mutation
@@ -39,10 +37,11 @@ from .wps_script_snippets import (
     ACQUIRE_WPS_APP,
     HIDE_LAUNCHED_APP,
     PRE_OPEN_GUARD,
-    QUIET_ALERTS,
     RELEASE_WPS_APP,
 )
-from .ooxml import parse_xml_part, read_zip_part
+from .ooxml import parse_xml_part
+
+WORD_FIND_TEXT_MAX_CHARS = 255
 
 
 BODY_PARTS = ("word/document.xml",)

@@ -6,7 +6,7 @@ from zipfile import ZipFile
 
 from wps_ai_agent_cli.document_text import count_text_in_docx, docx_body_tables, docx_table_cell_text
 from wps_ai_agent_cli.sessions import register_document
-from wps_ai_agent_cli.writer_ops import writer_fill_bookmark, writer_replace, writer_table_write
+from wps_ai_agent_cli.writer_ops import writer_replace, writer_table_write
 
 
 from tests.isolation import use_temporary_cwd

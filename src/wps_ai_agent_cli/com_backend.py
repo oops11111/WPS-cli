@@ -10,7 +10,6 @@ from .capabilities import WPS_COMPONENTS, probe_wps_capabilities
 from .errors import (
     COM_BACKEND_UNAVAILABLE,
     COM_OPERATION_FAILED,
-    COM_OPERATION_TIMEOUT,
     INPUT_FILE_NOT_FOUND,
     UNSUPPORTED_COMPONENT,
 )

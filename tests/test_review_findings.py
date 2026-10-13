@@ -1,6 +1,4 @@
 import ast
-import io
-import json
 import os
 import subprocess
 import tempfile
@@ -16,7 +14,7 @@ from wps_ai_agent_cli.cli import (
     html_render_response,
     spreadsheet_read_response,
 )
-from wps_ai_agent_cli.models import CommandResponse, ValidationResult
+from wps_ai_agent_cli.models import CommandResponse
 from wps_ai_agent_cli.sessions import register_document
 from wps_ai_agent_cli.task_status import get_task_status
 

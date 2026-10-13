@@ -17,6 +17,7 @@ dependencies = ["openpyxl>=3.1"]
 wps = ["pywin32>=306; platform_system == 'Windows'"]
 html = ["python-docx>=1.1", "python-pptx>=1.0"]
 test = ["python-docx>=1.1", "Pillow>=10", "pypdfium2>=5", "openpyxl>=3.1", "python-pptx>=1.0"]
+lint = ["ruff==0.16.8"]
 
 [project.scripts]
 wps-agent = "wps_ai_agent_cli.cli:main"
@@ -26,3 +27,12 @@ where = ["src"]
 
 [tool.setuptools.package-data]
 wps_ai_agent_cli = ["*.cjs"]
+
+[tool.ruff]
+target-version = "py310"
+extend-exclude = ["artifacts"]
+
+[tool.ruff.lint]
+# Start from ruff's default set (pyflakes and pycodestyle errors) plus warnings. Line length is not
+# checked: the PowerShell scripts embedded in f-strings would need hundreds of manual wraps.
+select = ["E4", "E7", "E9", "F", "W"]
