@@ -19,11 +19,12 @@ import datetime as dt
 import hashlib
 import json
 import os
-from pathlib import Path
 import shutil
 import subprocess
 import sys
-from typing import Any, Callable
+from collections.abc import Callable
+from pathlib import Path
+from typing import Any
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SRC_DIR = REPO_ROOT / "src"
@@ -33,7 +34,11 @@ ALLOWED_TOOLS = f"mcp__{MCP_SERVER_NAME}__*"
 sys.path.insert(0, str(SRC_DIR))
 from wps_ai_agent_cli.backups import create_backup, list_backups  # noqa: E402
 from wps_ai_agent_cli.operations import get_operation  # noqa: E402
-from wps_ai_agent_cli.sessions import get_document, register_document, stable_document_id  # noqa: E402
+from wps_ai_agent_cli.sessions import (  # noqa: E402
+    get_document,
+    register_document,
+    stable_document_id,
+)
 
 TOOL_PREFIX = f"mcp__{MCP_SERVER_NAME}__wps_agent_"
 HTML_TABLE = (

@@ -1,16 +1,15 @@
 from __future__ import annotations
 
-import json
 import hashlib
+import json
 import os
+import shutil
 import signal
 import subprocess
 import sys
 import tempfile
 from pathlib import Path
-import shutil
 from typing import Any
-
 
 _RENDERER = Path(__file__).with_name("html_render_playwright.cjs")
 _EDGE_CANDIDATES = (

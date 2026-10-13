@@ -5,7 +5,6 @@ from typing import Any
 
 from .sessions import list_documents
 
-
 EXTENSION_COMPONENTS = {
     ".doc": "writer",
     ".docx": "writer",

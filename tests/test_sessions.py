@@ -1,9 +1,15 @@
+import os
 import tempfile
 import unittest
-import os
 from pathlib import Path
 
-from wps_ai_agent_cli.sessions import file_identity, get_document, list_documents, register_document, stable_document_id
+from wps_ai_agent_cli.sessions import (
+    file_identity,
+    get_document,
+    list_documents,
+    register_document,
+    stable_document_id,
+)
 
 
 class SessionRegistryTests(unittest.TestCase):

@@ -1,15 +1,15 @@
-import unittest
-import json
 import io
+import json
+import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
-from wps_ai_agent_cli.mcp_smoke import run_mcp_server_smoke
-from wps_ai_agent_cli.cli import mcp_smoke_response, run
 from wps_ai_agent_cli.batch_conversion import _request_record_path
+from wps_ai_agent_cli.cli import mcp_smoke_response, run
 from wps_ai_agent_cli.mcp_schema import list_mcp_tool_schemas
 from wps_ai_agent_cli.mcp_server import handle_mcp_request as real_handle_mcp_request
+from wps_ai_agent_cli.mcp_smoke import run_mcp_server_smoke
 
 
 class McpSmokeTests(unittest.TestCase):

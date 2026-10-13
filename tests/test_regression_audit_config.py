@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
 import sys
 import tempfile
 import unittest
+from pathlib import Path
 
 from wps_ai_agent_cli import regression
 

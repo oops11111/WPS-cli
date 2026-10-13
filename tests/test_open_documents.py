@@ -5,9 +5,11 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from wps_ai_agent_cli import cli, open_documents
 from openpyxl import Workbook
 
+from tests.test_presentation_ops import write_minimal_pptx
+from tests.test_writer_ops import write_minimal_docx_with_table
+from wps_ai_agent_cli import cli, open_documents
 from wps_ai_agent_cli.open_documents import (
     delete_presentation_selection,
     delete_spreadsheet_selection,
@@ -18,8 +20,6 @@ from wps_ai_agent_cli.open_documents import (
     export_open_document_text,
     insert_presentation_selection,
     insert_writer_selection,
-    save_as_open_document,
-    save_open_document,
     list_open_documents,
     read_presentation_selection,
     read_spreadsheet_selection,
@@ -27,10 +27,10 @@ from wps_ai_agent_cli.open_documents import (
     replace_presentation_selection,
     replace_spreadsheet_selection,
     replace_writer_selection,
+    save_as_open_document,
+    save_open_document,
 )
 from wps_ai_agent_cli.sessions import register_document, stable_document_id
-from tests.test_presentation_ops import write_minimal_pptx
-from tests.test_writer_ops import write_minimal_docx_with_table
 
 
 def com_ok(data):

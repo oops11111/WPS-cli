@@ -1,30 +1,28 @@
 import base64
 import io
 import json
-import unittest
 import os
 import subprocess
 import sys
 import time
+import unittest
 from pathlib import Path
 from queue import Queue
 from tempfile import TemporaryDirectory
 from threading import Event, Thread
 from unittest.mock import patch
 
+from tests.isolation import use_temporary_cwd
 from wps_ai_agent_cli.mcp_schema import list_mcp_tool_schemas
 from wps_ai_agent_cli.mcp_server import (
-    MCP_STDIO_MAX_LINE_CHARS,
     MCP_PROTOCOL_VERSION,
-    MCP_TOOLS_PAGE_SIZE,
+    MCP_STDIO_MAX_LINE_CHARS,
     MCP_TOOLS_CURSOR_MAX_LENGTH,
+    MCP_TOOLS_PAGE_SIZE,
     handle_mcp_json,
     handle_mcp_request,
     serve_stdio,
 )
-
-
-from tests.isolation import use_temporary_cwd
 
 _restore_cwd = None
 
@@ -1176,8 +1174,7 @@ class McpServerTests(unittest.TestCase):
     def _stdio_session_lines(self, *requests):
         yield json.dumps({"jsonrpc": "2.0", "id": "init", "method": "initialize", "params": initialize_params()})
         yield json.dumps({"jsonrpc": "2.0", "method": "notifications/initialized"})
-        for request in requests:
-            yield request
+        yield from requests
 
     def test_stdio_tool_calls_run_on_a_worker_so_ping_is_answered_while_a_call_blocks(self):
         import threading

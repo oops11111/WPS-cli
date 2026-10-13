@@ -9,7 +9,11 @@ from wps_ai_agent_cli.com_backend import (
     run_spreadsheet_calc_smoke,
     validate_smoke_inputs,
 )
-from wps_ai_agent_cli.errors import COM_OPERATION_TIMEOUT, INPUT_FILE_NOT_FOUND, UNSUPPORTED_COMPONENT
+from wps_ai_agent_cli.errors import (
+    COM_OPERATION_TIMEOUT,
+    INPUT_FILE_NOT_FOUND,
+    UNSUPPORTED_COMPONENT,
+)
 
 
 class ComBackendTests(unittest.TestCase):

@@ -7,15 +7,14 @@ import re
 import shutil
 import subprocess
 import time
-from urllib.parse import urlsplit
-from queue import Empty, Full, Queue
 from contextvars import ContextVar
 from pathlib import Path
+from queue import Empty, Full, Queue
 from threading import Event, Thread
 from typing import Any
+from urllib.parse import urlsplit
 
 from .mcp_tool_names import audit_mcp_tool_names
-
 
 DEFAULT_CONFIG_PATH = "config/mcp_client_config.example.json"
 DEFAULT_SERVER_NAME = "wps-ai-agent-cli"

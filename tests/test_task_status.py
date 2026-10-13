@@ -1,14 +1,15 @@
-import tempfile
-import unittest
 import os
 import subprocess
 import sys
-from concurrent.futures import ThreadPoolExecutor, TimeoutError as FutureTimeoutError
+import tempfile
+import unittest
+from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import TimeoutError as FutureTimeoutError
+from pathlib import Path
 from threading import Event, current_thread
 from unittest.mock import patch
-from pathlib import Path
-from wps_ai_agent_cli import task_status
 
+from wps_ai_agent_cli import task_status
 from wps_ai_agent_cli.task_status import (
     build_recovery_playbook,
     create_task_status,

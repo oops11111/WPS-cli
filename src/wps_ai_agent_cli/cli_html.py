@@ -2,15 +2,21 @@
 
 from __future__ import annotations
 
-from .batch_report import build_batch_report
 from .batch_conversion import convert_html_batch, inspect_batch_request
+from .batch_report import build_batch_report
+from .cli_common import BACKEND
 from .file_scan import scan_directory
+from .html_office import BACKENDS as HTML_OFFICE_BACKENDS
+from .html_office import convert_html_to_office
 from .html_render import render_html
-from .html_office import BACKENDS as HTML_OFFICE_BACKENDS, convert_html_to_office
-from .html_roundtrip import build_html_roundtrip_mapping, export_controlled_html, import_controlled_html, verify_controlled_document
+from .html_roundtrip import (
+    build_html_roundtrip_mapping,
+    export_controlled_html,
+    import_controlled_html,
+    verify_controlled_document,
+)
 from .models import CommandResponse, ValidationResult
 from .template_report import render_batch_template_report
-from .cli_common import BACKEND
 
 
 def html_render_response(request_id: str, input_path: str, output_path: str, output_format: str,

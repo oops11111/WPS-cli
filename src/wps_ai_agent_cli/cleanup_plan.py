@@ -3,7 +3,6 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-
 PROBE_FIXTURE_NAMES = {
     "phase0_calculation_smoke_after_profile.xlsx",
     "phase0_calculation_smoke_inprocess_probe.xlsx",

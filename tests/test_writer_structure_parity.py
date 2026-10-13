@@ -8,7 +8,10 @@ from unittest.mock import patch
 
 from wps_ai_agent_cli.cli import run
 from wps_ai_agent_cli.mcp_adapter import call_mcp_tool
-from wps_ai_agent_cli.writer_structure_parity import _sha256, run_writer_structure_parity
+from wps_ai_agent_cli.writer_structure_parity import (
+    _sha256,
+    run_writer_structure_parity,
+)
 
 
 class WriterStructureParityTests(unittest.TestCase):

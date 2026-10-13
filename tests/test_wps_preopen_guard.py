@@ -7,7 +7,12 @@ from pathlib import Path
 from unittest.mock import patch
 
 from tests.test_wps_quit_guard import CAPABILITIES, capture_scripts
-from wps_ai_agent_cli import presentation_ops, spreadsheet_inspect, spreadsheet_ops, writer_ops
+from wps_ai_agent_cli import (
+    presentation_ops,
+    spreadsheet_inspect,
+    spreadsheet_ops,
+    writer_ops,
+)
 from wps_ai_agent_cli.wps_script_snippets import PRE_OPEN_GUARD
 
 PWSH = os.environ.get("WPS_TEST_PWSH") or shutil.which("pwsh")

@@ -9,10 +9,13 @@ from unittest.mock import patch
 from zipfile import ZipFile
 
 from tests.test_presentation_ops import write_minimal_pptx
-from wps_ai_agent_cli.presentation_ops import presentation_replace
 from wps_ai_agent_cli.capabilities import powershell_executable, probe_wps_capabilities
+from wps_ai_agent_cli.presentation_ops import presentation_replace
 from wps_ai_agent_cli.presentation_text import (
-    PresentationStructureError, count_text_in_pptx, pptx_slide_texts, pptx_text_objects,
+    PresentationStructureError,
+    count_text_in_pptx,
+    pptx_slide_texts,
+    pptx_text_objects,
 )
 from wps_ai_agent_cli.sessions import register_document
 from wps_ai_agent_cli.snapshots import snapshot_document

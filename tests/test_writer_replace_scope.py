@@ -1,20 +1,23 @@
-import os
 import io
 import json
+import os
 import shutil
 import tempfile
 import unittest
-from tests.isolation import chdir
 from pathlib import Path
 from unittest.mock import patch
 
+from tests.isolation import chdir
 from tests.test_writer_structure import write_document
-from wps_ai_agent_cli.document_text import docx_body_paragraph_target, docx_body_paragraphs, docx_body_tables
 from wps_ai_agent_cli.cli import run
+from wps_ai_agent_cli.document_text import (
+    docx_body_paragraph_target,
+    docx_body_paragraphs,
+    docx_body_tables,
+)
 from wps_ai_agent_cli.mcp_adapter import call_mcp_tool
 from wps_ai_agent_cli.sessions import register_document
-from wps_ai_agent_cli.writer_ops import writer_replace
-from wps_ai_agent_cli.writer_ops import writer_fill_bookmark
+from wps_ai_agent_cli.writer_ops import writer_fill_bookmark, writer_replace
 
 
 class WriterParagraphMappingTests(unittest.TestCase):
@@ -119,6 +122,7 @@ class WriterParagraphMappingTests(unittest.TestCase):
 
     def test_table_bookmark_fill_rejects_collateral_cell_change(self):
         from zipfile import ZipFile
+
         from wps_ai_agent_cli.operations import get_operation
 
         for corrupt_neighbor in (False, True):
@@ -260,6 +264,7 @@ class WriterParagraphMappingTests(unittest.TestCase):
 
     def test_table_bookmark_rejects_changed_semantic_neighbor(self):
         from zipfile import ZipFile
+
         from wps_ai_agent_cli.operations import get_operation
 
         for changed in ("hyperlink", "field"):
@@ -336,7 +341,9 @@ class WriterParagraphMappingTests(unittest.TestCase):
             self.assertEqual(errors[0]["code"], "VALIDATION_FAILED")
 
     def test_table_bookmark_rejects_drawing_overlap_before_backup(self):
-        from tests.test_writer_table_bookmark_feasibility import write_image_bookmark_document
+        from tests.test_writer_table_bookmark_feasibility import (
+            write_image_bookmark_document,
+        )
 
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "drawing-target.docx"
@@ -354,9 +361,13 @@ class WriterParagraphMappingTests(unittest.TestCase):
 
     def test_drawing_wrap_text_acceptance_matrix(self):
         import xml.etree.ElementTree as ET
-        from docx.oxml.ns import qn
         from zipfile import ZipFile
-        from tests.test_writer_table_bookmark_feasibility import write_image_bookmark_document
+
+        from docx.oxml.ns import qn
+
+        from tests.test_writer_table_bookmark_feasibility import (
+            write_image_bookmark_document,
+        )
         from wps_ai_agent_cli.document_text import docx_body_drawing_semantics
 
         wrap_tags = {
@@ -401,7 +412,9 @@ class WriterParagraphMappingTests(unittest.TestCase):
                     self.assertEqual(actual, expected)
 
     def test_drawing_snapshot_normalizes_default_top_and_bottom_wrap(self):
-        from tests.test_writer_table_bookmark_feasibility import write_image_bookmark_document
+        from tests.test_writer_table_bookmark_feasibility import (
+            write_image_bookmark_document,
+        )
         from wps_ai_agent_cli.document_text import docx_body_drawing_semantics
 
         with tempfile.TemporaryDirectory() as tmp:
@@ -414,7 +427,9 @@ class WriterParagraphMappingTests(unittest.TestCase):
             self.assertEqual(docx_body_drawing_semantics(explicit), docx_body_drawing_semantics(omitted))
 
     def test_drawing_snapshot_normalizes_default_square_wrap_text(self):
-        from tests.test_writer_table_bookmark_feasibility import write_image_bookmark_document
+        from tests.test_writer_table_bookmark_feasibility import (
+            write_image_bookmark_document,
+        )
         from wps_ai_agent_cli.document_text import docx_body_drawing_semantics
 
         with tempfile.TemporaryDirectory() as tmp:
@@ -428,9 +443,13 @@ class WriterParagraphMappingTests(unittest.TestCase):
 
     def test_drawing_snapshot_retains_wrap_none_wrap_text_values(self):
         import xml.etree.ElementTree as ET
-        from docx.oxml.ns import qn
         from zipfile import ZipFile
-        from tests.test_writer_table_bookmark_feasibility import write_image_bookmark_document
+
+        from docx.oxml.ns import qn
+
+        from tests.test_writer_table_bookmark_feasibility import (
+            write_image_bookmark_document,
+        )
         from wps_ai_agent_cli.document_text import docx_body_drawing_semantics
 
         with tempfile.TemporaryDirectory() as tmp:
@@ -460,8 +479,12 @@ class WriterParagraphMappingTests(unittest.TestCase):
     def test_drawing_snapshot_normalizes_integer_wrap_coordinate_lexical_forms(self):
         import xml.etree.ElementTree as ET
         from zipfile import ZipFile
+
         from docx.oxml.ns import qn
-        from tests.test_writer_table_bookmark_feasibility import write_image_bookmark_document
+
+        from tests.test_writer_table_bookmark_feasibility import (
+            write_image_bookmark_document,
+        )
         from wps_ai_agent_cli.document_text import docx_body_drawing_semantics
 
         with tempfile.TemporaryDirectory() as tmp:
@@ -529,9 +552,13 @@ class WriterParagraphMappingTests(unittest.TestCase):
 
     def test_table_bookmark_rejects_invalid_wrap_geometry_before_backup(self):
         import xml.etree.ElementTree as ET
-        from docx.oxml.ns import qn
         from zipfile import ZipFile
-        from tests.test_writer_table_bookmark_feasibility import write_image_bookmark_document
+
+        from docx.oxml.ns import qn
+
+        from tests.test_writer_table_bookmark_feasibility import (
+            write_image_bookmark_document,
+        )
         from wps_ai_agent_cli.document_text import docx_body_drawing_semantics
 
         invalid_variants = (
@@ -665,9 +692,13 @@ class WriterParagraphMappingTests(unittest.TestCase):
 
     def test_table_bookmark_rejects_unsupported_wrap_on_any_anchor_before_backup(self):
         import xml.etree.ElementTree as ET
-        from docx.oxml.ns import qn
         from zipfile import ZipFile
-        from tests.test_writer_table_bookmark_feasibility import write_image_bookmark_document
+
+        from docx.oxml.ns import qn
+
+        from tests.test_writer_table_bookmark_feasibility import (
+            write_image_bookmark_document,
+        )
         from wps_ai_agent_cli.document_text import docx_body_drawing_semantics
 
         with tempfile.TemporaryDirectory() as tmp:
@@ -752,9 +783,13 @@ class WriterParagraphMappingTests(unittest.TestCase):
 
     def test_preflight_reports_every_unsupported_anchor(self):
         import xml.etree.ElementTree as ET
-        from docx.oxml.ns import qn
         from zipfile import ZipFile
-        from tests.test_writer_table_bookmark_feasibility import write_image_bookmark_document
+
+        from docx.oxml.ns import qn
+
+        from tests.test_writer_table_bookmark_feasibility import (
+            write_image_bookmark_document,
+        )
         from wps_ai_agent_cli.document_text import docx_body_drawing_semantics
 
         with tempfile.TemporaryDirectory() as tmp:
@@ -827,9 +862,13 @@ class WriterParagraphMappingTests(unittest.TestCase):
 
     def test_drawing_diagnostic_index_matches_full_snapshot_order(self):
         import xml.etree.ElementTree as ET
-        from docx.oxml.ns import qn
         from zipfile import ZipFile
-        from tests.test_writer_table_bookmark_feasibility import write_image_bookmark_document
+
+        from docx.oxml.ns import qn
+
+        from tests.test_writer_table_bookmark_feasibility import (
+            write_image_bookmark_document,
+        )
         from wps_ai_agent_cli.document_text import docx_body_drawing_semantics
 
         with tempfile.TemporaryDirectory() as tmp:
@@ -871,9 +910,13 @@ class WriterParagraphMappingTests(unittest.TestCase):
 
     def test_invalid_wrap_diagnostic_index_survives_cli_and_mcp(self):
         import xml.etree.ElementTree as ET
-        from docx.oxml.ns import qn
         from zipfile import ZipFile
-        from tests.test_writer_table_bookmark_feasibility import write_image_bookmark_document
+
+        from docx.oxml.ns import qn
+
+        from tests.test_writer_table_bookmark_feasibility import (
+            write_image_bookmark_document,
+        )
         from wps_ai_agent_cli.document_text import docx_body_drawing_semantics
 
         with tempfile.TemporaryDirectory() as tmp:
@@ -946,9 +989,13 @@ class WriterParagraphMappingTests(unittest.TestCase):
 
     def test_drawing_diagnostic_reason_schema_matrix(self):
         import xml.etree.ElementTree as ET
-        from docx.oxml.ns import qn
         from zipfile import ZipFile
-        from tests.test_writer_table_bookmark_feasibility import write_image_bookmark_document
+
+        from docx.oxml.ns import qn
+
+        from tests.test_writer_table_bookmark_feasibility import (
+            write_image_bookmark_document,
+        )
         from wps_ai_agent_cli.document_text import docx_body_drawing_semantics
 
         cases = (
@@ -1038,7 +1085,10 @@ class WriterParagraphMappingTests(unittest.TestCase):
     def test_missing_image_relationship_context_survives_cli_and_mcp(self):
         import xml.etree.ElementTree as ET
         from zipfile import ZipFile
-        from tests.test_writer_table_bookmark_feasibility import write_image_bookmark_document
+
+        from tests.test_writer_table_bookmark_feasibility import (
+            write_image_bookmark_document,
+        )
         from wps_ai_agent_cli.document_text import docx_body_drawing_semantics
 
         with tempfile.TemporaryDirectory() as tmp:
@@ -1110,9 +1160,13 @@ class WriterParagraphMappingTests(unittest.TestCase):
         import socket
         import urllib.request
         import xml.etree.ElementTree as ET
-        from docx.oxml.ns import qn
         from zipfile import ZipFile
-        from tests.test_writer_table_bookmark_feasibility import write_image_bookmark_document
+
+        from docx.oxml.ns import qn
+
+        from tests.test_writer_table_bookmark_feasibility import (
+            write_image_bookmark_document,
+        )
         from wps_ai_agent_cli.document_text import docx_body_drawing_semantics
 
         with tempfile.TemporaryDirectory() as tmp:
@@ -1157,7 +1211,10 @@ class WriterParagraphMappingTests(unittest.TestCase):
         import urllib.request
         import xml.etree.ElementTree as ET
         from zipfile import ZipFile
-        from tests.test_writer_table_bookmark_feasibility import write_image_bookmark_document
+
+        from tests.test_writer_table_bookmark_feasibility import (
+            write_image_bookmark_document,
+        )
         from wps_ai_agent_cli.document_text import docx_body_drawing_semantics
 
         cases = (
@@ -1215,7 +1272,10 @@ class WriterParagraphMappingTests(unittest.TestCase):
     def test_image_relationship_target_mode_controls_package_reads(self):
         import xml.etree.ElementTree as ET
         from zipfile import ZipFile
-        from tests.test_writer_table_bookmark_feasibility import write_image_bookmark_document
+
+        from tests.test_writer_table_bookmark_feasibility import (
+            write_image_bookmark_document,
+        )
         from wps_ai_agent_cli.document_text import docx_body_drawing_semantics
 
         for mode in (None, "Internal", "External", "Unknown"):
@@ -1271,7 +1331,10 @@ class WriterParagraphMappingTests(unittest.TestCase):
         import posixpath
         import xml.etree.ElementTree as ET
         from zipfile import ZipFile
-        from tests.test_writer_table_bookmark_feasibility import write_image_bookmark_document
+
+        from tests.test_writer_table_bookmark_feasibility import (
+            write_image_bookmark_document,
+        )
         from wps_ai_agent_cli.document_text import docx_body_drawing_semantics
 
         cases = ("relative", "rooted", "missing", "traversal")
@@ -1334,7 +1397,10 @@ class WriterParagraphMappingTests(unittest.TestCase):
     def test_relationship_boundary_diagnostics_survive_preflight_cli_and_mcp(self):
         import xml.etree.ElementTree as ET
         from zipfile import ZipFile
-        from tests.test_writer_table_bookmark_feasibility import write_image_bookmark_document
+
+        from tests.test_writer_table_bookmark_feasibility import (
+            write_image_bookmark_document,
+        )
 
         cases = (
             (
@@ -1430,9 +1496,13 @@ class WriterParagraphMappingTests(unittest.TestCase):
 
     def test_multiple_relationship_errors_preserve_order_through_cli_and_mcp(self):
         import xml.etree.ElementTree as ET
-        from docx.oxml.ns import qn
         from zipfile import ZipFile
-        from tests.test_writer_table_bookmark_feasibility import write_image_bookmark_document
+
+        from docx.oxml.ns import qn
+
+        from tests.test_writer_table_bookmark_feasibility import (
+            write_image_bookmark_document,
+        )
 
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "multiple-relationship-errors.docx"
@@ -1512,9 +1582,13 @@ class WriterParagraphMappingTests(unittest.TestCase):
 
     def test_relationship_diagnostic_values_are_bounded_deterministically(self):
         import xml.etree.ElementTree as ET
-        from docx.oxml.ns import qn
         from zipfile import ZipFile
-        from tests.test_writer_table_bookmark_feasibility import write_image_bookmark_document
+
+        from docx.oxml.ns import qn
+
+        from tests.test_writer_table_bookmark_feasibility import (
+            write_image_bookmark_document,
+        )
         from wps_ai_agent_cli.document_text import docx_body_drawing_semantics
 
         with tempfile.TemporaryDirectory() as tmp:
@@ -1562,9 +1636,13 @@ class WriterParagraphMappingTests(unittest.TestCase):
 
     def test_bounded_relationship_diagnostic_survives_cli_and_mcp(self):
         import xml.etree.ElementTree as ET
-        from docx.oxml.ns import qn
         from zipfile import ZipFile
-        from tests.test_writer_table_bookmark_feasibility import write_image_bookmark_document
+
+        from docx.oxml.ns import qn
+
+        from tests.test_writer_table_bookmark_feasibility import (
+            write_image_bookmark_document,
+        )
 
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "bounded-relationship-error.docx"
@@ -1640,9 +1718,13 @@ class WriterParagraphMappingTests(unittest.TestCase):
 
     def test_bounded_relationship_errors_are_isolated_per_drawing(self):
         import xml.etree.ElementTree as ET
-        from docx.oxml.ns import qn
         from zipfile import ZipFile
-        from tests.test_writer_table_bookmark_feasibility import write_image_bookmark_document
+
+        from docx.oxml.ns import qn
+
+        from tests.test_writer_table_bookmark_feasibility import (
+            write_image_bookmark_document,
+        )
 
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "bounded-multiple-relationship-errors.docx"
@@ -1733,7 +1815,10 @@ class WriterParagraphMappingTests(unittest.TestCase):
     def test_total_drawing_diagnostic_payload_has_a_stable_cap(self):
         import xml.etree.ElementTree as ET
         from zipfile import ZipFile
-        from tests.test_writer_table_bookmark_feasibility import write_image_bookmark_document
+
+        from tests.test_writer_table_bookmark_feasibility import (
+            write_image_bookmark_document,
+        )
         from wps_ai_agent_cli.document_text import docx_body_drawing_semantics
 
         with tempfile.TemporaryDirectory() as tmp:
@@ -1768,7 +1853,10 @@ class WriterParagraphMappingTests(unittest.TestCase):
     def test_diagnostic_truncation_summary_survives_cli_and_mcp(self):
         import xml.etree.ElementTree as ET
         from zipfile import ZipFile
-        from tests.test_writer_table_bookmark_feasibility import write_image_bookmark_document
+
+        from tests.test_writer_table_bookmark_feasibility import (
+            write_image_bookmark_document,
+        )
         from wps_ai_agent_cli.document_text import docx_body_drawing_semantics
 
         with tempfile.TemporaryDirectory() as tmp:
@@ -1831,9 +1919,13 @@ class WriterParagraphMappingTests(unittest.TestCase):
 
     def test_worst_case_relationship_diagnostics_stay_under_wire_byte_limit(self):
         import xml.etree.ElementTree as ET
-        from docx.oxml.ns import qn
         from zipfile import ZipFile
-        from tests.test_writer_table_bookmark_feasibility import write_image_bookmark_document
+
+        from docx.oxml.ns import qn
+
+        from tests.test_writer_table_bookmark_feasibility import (
+            write_image_bookmark_document,
+        )
         from wps_ai_agent_cli.mcp_server import handle_mcp_request
 
         byte_limit = 120_000
@@ -1928,7 +2020,10 @@ class WriterParagraphMappingTests(unittest.TestCase):
     def test_drawing_diagnostic_count_cap_boundary(self):
         import xml.etree.ElementTree as ET
         from zipfile import ZipFile
-        from tests.test_writer_table_bookmark_feasibility import write_image_bookmark_document
+
+        from tests.test_writer_table_bookmark_feasibility import (
+            write_image_bookmark_document,
+        )
         from wps_ai_agent_cli.document_text import docx_body_drawing_semantics
 
         for drawing_count in (127, 128, 129):
@@ -1973,7 +2068,9 @@ class WriterParagraphMappingTests(unittest.TestCase):
                     })
 
     def test_wrap_polygon_validation_allows_concave_and_rejects_crossing_or_flat_paths(self):
-        from tests.test_writer_table_bookmark_feasibility import write_image_bookmark_document
+        from tests.test_writer_table_bookmark_feasibility import (
+            write_image_bookmark_document,
+        )
         from wps_ai_agent_cli.document_text import docx_body_drawing_semantics
 
         concave = ((0, 0), (21600, 0), (21600, 7200), (7200, 7200), (7200, 21600), (0, 21600))
@@ -2057,7 +2154,9 @@ class WriterParagraphMappingTests(unittest.TestCase):
                 self.assertEqual(path.read_bytes(), before_bytes)
 
     def test_table_bookmark_rejects_character_anchor_drift_before_backup(self):
-        from tests.test_writer_table_bookmark_feasibility import write_image_bookmark_document
+        from tests.test_writer_table_bookmark_feasibility import (
+            write_image_bookmark_document,
+        )
 
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "character-anchor.docx"
@@ -2077,7 +2176,10 @@ class WriterParagraphMappingTests(unittest.TestCase):
 
     def test_table_bookmark_rejects_changed_drawing_relationship(self):
         from zipfile import ZipFile
-        from tests.test_writer_table_bookmark_feasibility import write_image_bookmark_document
+
+        from tests.test_writer_table_bookmark_feasibility import (
+            write_image_bookmark_document,
+        )
         from wps_ai_agent_cli.document_text import docx_body_drawing_semantics
 
         with tempfile.TemporaryDirectory() as tmp:
@@ -2161,8 +2263,9 @@ class WriterParagraphMappingTests(unittest.TestCase):
                 com.assert_not_called()
 
     def test_readback_rejects_unexpected_change_outside_selected_paragraph(self):
-        from tests.test_writer_ops import write_minimal_docx_paragraphs
         from zipfile import ZipFile
+
+        from tests.test_writer_ops import write_minimal_docx_paragraphs
 
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "scope.docx"
@@ -2220,6 +2323,7 @@ class WriterReplaceScopeIntegrationTests(unittest.TestCase):
 
     def test_document_scope_readback_matches_body_and_table_text(self):
         from docx import Document
+
         from wps_ai_agent_cli.document_text import docx_body_story_paragraphs
 
         with tempfile.TemporaryDirectory() as tmp:
@@ -2243,6 +2347,7 @@ class WriterReplaceScopeIntegrationTests(unittest.TestCase):
         from docx import Document
         from docx.oxml import OxmlElement
         from docx.oxml.ns import qn
+
         from wps_ai_agent_cli.writer_structure import read_body_bookmark_text
 
         with tempfile.TemporaryDirectory() as tmp:
@@ -2274,7 +2379,10 @@ class WriterReplaceScopeIntegrationTests(unittest.TestCase):
             self.assertTrue(reopened.paragraphs[0].runs[1].bold)
 
     def test_paragraph_child_bookmark_fill_preserves_nested_neighbors(self):
-        from wps_ai_agent_cli.writer_structure import read_body_bookmark_text, read_supported_bookmark_text
+        from wps_ai_agent_cli.writer_structure import (
+            read_body_bookmark_text,
+            read_supported_bookmark_text,
+        )
 
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "nested-copy.docx"

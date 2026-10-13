@@ -5,7 +5,6 @@ import json
 import time
 from typing import Any
 
-
 MCP_BASELINE_EXPECTED_TOOL_COUNT = 70
 
 

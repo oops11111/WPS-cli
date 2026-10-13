@@ -3,10 +3,9 @@ from __future__ import annotations
 import importlib.util
 import json
 import os
-from pathlib import Path
 import tempfile
 import unittest
-
+from pathlib import Path
 from unittest.mock import patch
 
 from wps_ai_agent_cli.backups import create_backup, list_backups, restore_backup

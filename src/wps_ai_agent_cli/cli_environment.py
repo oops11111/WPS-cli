@@ -5,15 +5,15 @@ from __future__ import annotations
 from .capabilities import probe_wps_capabilities
 from .cleanup_approval import build_cleanup_approval_manifest
 from .cleanup_plan import build_cleanup_plan
+from .cli_common import BACKEND
 from .com_backend import run_com_smoke, run_conversion_smoke, run_spreadsheet_calc_smoke
 from .models import CommandResponse, ValidationResult
-from .phases import list_phases
 from .performance import capture_performance_baseline
+from .phases import list_phases
 from .process_audit import audit_wps_processes
-from .wps_versions import compare_wps_versions
 from .security_audit import build_security_boundary_audit
 from .tasks import list_tasks
-from .cli_common import BACKEND
+from .wps_versions import compare_wps_versions
 
 
 def inspect_env_response(request_id: str) -> CommandResponse:

@@ -7,12 +7,22 @@ from zipfile import ZipFile
 from wps_ai_agent_cli.document_text import docx_table_cell_rich_content
 from wps_ai_agent_cli.sessions import register_document
 from wps_ai_agent_cli.spreadsheet_ranges import validate_spreadsheet_read_range
-from wps_ai_agent_cli.writer_ops import WORD_FIND_TEXT_MAX_CHARS, writer_replace, writer_table_write
+from wps_ai_agent_cli.writer_ops import (
+    WORD_FIND_TEXT_MAX_CHARS,
+    writer_replace,
+    writer_table_write,
+)
 
 try:
-    from test_writer_ops import write_minimal_docx_paragraphs, write_minimal_docx_with_table
+    from test_writer_ops import (
+        write_minimal_docx_paragraphs,
+        write_minimal_docx_with_table,
+    )
 except ModuleNotFoundError:  # unittest discover as tests.test_*
-    from tests.test_writer_ops import write_minimal_docx_paragraphs, write_minimal_docx_with_table
+    from tests.test_writer_ops import (
+        write_minimal_docx_paragraphs,
+        write_minimal_docx_with_table,
+    )
 
 
 def write_docx_table_with_hyperlink(path: Path) -> None:

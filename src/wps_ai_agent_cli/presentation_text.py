@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 import posixpath
-from pathlib import Path
 import xml.etree.ElementTree as ET
+from pathlib import Path
 from urllib.parse import unquote, urlsplit
 from zipfile import ZipFile
-from .ooxml import parse_xml_part
 
+from .ooxml import parse_xml_part
 
 DRAWING_TEXT = "{http://schemas.openxmlformats.org/drawingml/2006/main}t"
 PRESENTATION_NS = "http://schemas.openxmlformats.org/presentationml/2006/main"

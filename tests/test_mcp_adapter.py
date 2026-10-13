@@ -1,7 +1,7 @@
-import unittest
-import json
 import hashlib
 import io
+import json
+import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from threading import Event, Thread
@@ -181,9 +181,10 @@ class McpAdapterTests(unittest.TestCase):
             self.assertEqual(errors, [], tool["name"])
 
     def test_batch_request_inspection_cli_and_mcp_share_read_only_record(self):
+        import io
+
         from wps_ai_agent_cli.batch_conversion import _request_record_path
         from wps_ai_agent_cli.cli import run
-        import io
 
         with TemporaryDirectory() as directory:
             root = Path(directory)

@@ -162,7 +162,7 @@ class HtmlDecodingTests(unittest.TestCase):
         text = "<html><head><meta charset=\"gb2312\"></head><body>你好，世界</body></html>"
         self.assertEqual(decode_html_bytes(text.encode("gbk"))[:2], (text, "gb2312"))
         self.assertEqual(decode_html_bytes(text.encode("utf-8"))[1], "utf-8")
-        self.assertEqual(decode_html_bytes(b"\xef\xbb\xbf" + "你好".encode("utf-8")), ("你好", "utf-8-sig", None))
+        self.assertEqual(decode_html_bytes(b"\xef\xbb\xbf" + "你好".encode()), ("你好", "utf-8-sig", None))
         self.assertEqual(decode_html_bytes("你好".encode("utf-16"))[:2], ("你好", "utf-16"))
 
         lossy, encoding, warning = decode_html_bytes("你好".encode("gbk"))

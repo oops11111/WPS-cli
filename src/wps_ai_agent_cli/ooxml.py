@@ -10,7 +10,7 @@ MAX_PART_BYTES = 64 * 1024 * 1024
 MAX_TOTAL_UNCOMPRESSED_BYTES = 512 * 1024 * 1024
 MAX_ENTRIES = 20_000
 
-_checked_archives: "weakref.WeakSet[ZipFile]" = weakref.WeakSet()
+_checked_archives: weakref.WeakSet[ZipFile] = weakref.WeakSet()
 
 
 class OoxmlTooLargeError(Exception):

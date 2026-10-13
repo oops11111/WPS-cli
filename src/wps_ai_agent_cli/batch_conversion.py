@@ -3,14 +3,14 @@ from __future__ import annotations
 import hashlib
 import json
 import os
-from pathlib import Path
 import tempfile
-from typing import Any, Callable
+from collections.abc import Callable
+from pathlib import Path
+from typing import Any
 
+from . import task_status
 from .html_editable import convert_html_editable
 from .html_render import render_html
-from . import task_status
-
 
 _MAX_FILES = 100
 _MAX_TOTAL_INPUT_BYTES = 500 * 1024 * 1024
@@ -218,7 +218,7 @@ def _replay_batch(manifest_path: Path, sources: list[Path], source_root: Path,
             or summary.get("failed") != 0 or summary.get("cancelled")):
         return reject("BATCH_REPLAY_EVIDENCE_MISMATCH", "Batch manifest does not describe a completed successful conversion.")
     total_output_bytes = 0
-    for source, item in zip(sources, files):
+    for source, item in zip(sources, files, strict=True):
         if not isinstance(item, dict):
             return reject("BATCH_REPLAY_EVIDENCE_MISMATCH", "Batch manifest file entry is invalid.")
         relative = source.relative_to(source_root)

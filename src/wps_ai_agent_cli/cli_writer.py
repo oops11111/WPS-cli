@@ -3,12 +3,12 @@
 from __future__ import annotations
 
 from .artifacts import write_json_artifact
+from .cli_common import BACKEND
 from .models import CommandResponse, ValidationResult
-from .writer_ops import writer_fill_bookmark, writer_replace, writer_table_write
 from .writer_inspect import inspect_writer_structure
+from .writer_ops import writer_fill_bookmark, writer_replace, writer_table_write
 from .writer_structure_parity import run_writer_structure_parity
 from .writer_table_smoke import run_writer_table_smoke
-from .cli_common import BACKEND
 
 
 def writer_table_smoke_response(

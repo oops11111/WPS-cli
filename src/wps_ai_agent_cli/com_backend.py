@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import json
 import logging
-from pathlib import Path
 import subprocess  # noqa: F401  (patched by tests)
+from pathlib import Path
 from typing import Any
 
 from .capabilities import WPS_COMPONENTS, probe_wps_capabilities

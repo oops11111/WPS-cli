@@ -3,7 +3,10 @@ import unittest
 from unittest.mock import patch
 
 from wps_ai_agent_cli import capabilities
-from wps_ai_agent_cli.capabilities import clear_capabilities_cache, probe_wps_capabilities
+from wps_ai_agent_cli.capabilities import (
+    clear_capabilities_cache,
+    probe_wps_capabilities,
+)
 
 
 class CapabilityProbeTests(unittest.TestCase):

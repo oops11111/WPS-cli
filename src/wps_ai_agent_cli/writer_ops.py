@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-import json
 import hashlib
+import json
 from pathlib import Path
 from typing import Any
 from zipfile import ZipFile
@@ -9,37 +9,41 @@ from zipfile import ZipFile
 from .atomic_mutation import atomic_mutation
 from .backups import create_backup, guarded_com_mutation, verify_post_com_source
 from .capabilities import probe_wps_capabilities
-from .powershell_runner import run_powershell_script
 from .document_text import (
     count_text_in_docx,
     count_text_in_docx_paragraph,
-    docx_body_paragraphs,
-    docx_body_paragraph_target,
-    docx_body_story_paragraphs,
-    docx_body_tables,
-    docx_document_paragraphs,
-    docx_body_table_topology,
-    docx_body_link_field_semantics,
     docx_body_drawing_semantics,
+    docx_body_link_field_semantics,
+    docx_body_paragraph_target,
+    docx_body_paragraphs,
+    docx_body_story_paragraphs,
+    docx_body_table_topology,
+    docx_body_tables,
     docx_bookmark_overlaps_link_or_field,
     docx_bookmark_precedes_character_anchor,
+    docx_document_paragraphs,
     docx_table_cell_rich_content,
     docx_table_cell_text,
 )
-
 from .errors import COM_BACKEND_UNAVAILABLE, INPUT_FILE_NOT_FOUND
 from .file_hold import is_share_conflict, probe_file_not_held, share_conflict_error
 from .mutation_lock import coordinated_mutation
+from .ooxml import parse_xml_part
 from .operations import record_operation, replay_operation
+from .powershell_runner import run_powershell_script
 from .sessions import get_document
-from .writer_structure import W, read_body_bookmark_text, read_supported_bookmark_text, read_writer_structure
 from .wps_script_snippets import (
     ACQUIRE_WPS_APP,
     HIDE_LAUNCHED_APP,
     PRE_OPEN_GUARD,
     RELEASE_WPS_APP,
 )
-from .ooxml import parse_xml_part
+from .writer_structure import (
+    W,
+    read_body_bookmark_text,
+    read_supported_bookmark_text,
+    read_writer_structure,
+)
 
 WORD_FIND_TEXT_MAX_CHARS = 255
 
@@ -642,7 +646,7 @@ def writer_replace(
         if paragraph_index is None else docx_body_paragraphs(path)
     )
     changed_paragraphs = [
-        index for index, (expected, actual) in enumerate(zip(expected_texts, actual_texts), 1)
+        index for index, (expected, actual) in enumerate(zip(expected_texts, actual_texts, strict=False), 1)
         if expected != actual
     ]
     if len(expected_texts) != len(actual_texts):

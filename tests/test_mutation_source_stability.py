@@ -10,13 +10,17 @@ from pptx import Presentation
 from pptx.util import Inches
 
 from tests.test_writer_structure import write_document
-from wps_ai_agent_cli.backups import create_backup, guarded_com_mutation, verify_post_com_source
-from wps_ai_agent_cli.sessions import register_document
+from wps_ai_agent_cli import writer_ops
+from wps_ai_agent_cli.backups import (
+    create_backup,
+    guarded_com_mutation,
+    verify_post_com_source,
+)
 from wps_ai_agent_cli.operations import get_operation
 from wps_ai_agent_cli.presentation_ops import presentation_replace
 from wps_ai_agent_cli.presentation_text import count_text_in_pptx
+from wps_ai_agent_cli.sessions import register_document
 from wps_ai_agent_cli.spreadsheet_ops import rename_spreadsheet_sheet
-from wps_ai_agent_cli import writer_ops
 from wps_ai_agent_cli.writer_ops import writer_fill_bookmark
 
 

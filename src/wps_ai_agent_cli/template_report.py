@@ -1,16 +1,16 @@
 from __future__ import annotations
 
 import hashlib
-from copy import deepcopy
-from io import BytesIO
 import json
 import os
-from pathlib import Path
 import re
 import tempfile
-from typing import Any, Iterator
 import zipfile
-
+from collections.abc import Iterator
+from copy import deepcopy
+from io import BytesIO
+from pathlib import Path
+from typing import Any
 
 _TOKEN = re.compile(r"\{\{\s*([a-z_]+)\s*\}\}")
 _ALLOWED_TOKENS = {"mode", "source_directory", "output_directory", "total", "processed", "passed", "failed", "cancelled", "files_table"}

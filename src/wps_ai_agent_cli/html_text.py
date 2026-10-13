@@ -3,7 +3,6 @@ from __future__ import annotations
 import codecs
 import re
 
-
 _META_CHARSET = re.compile(rb"""<meta[^>]+charset\s*=\s*["']?\s*([A-Za-z0-9_.:-]+)""", re.IGNORECASE)
 
 

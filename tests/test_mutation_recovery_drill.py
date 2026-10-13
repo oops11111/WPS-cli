@@ -4,18 +4,21 @@ import os
 import shutil
 import tempfile
 import unittest
-from tests.isolation import chdir
 from pathlib import Path
 
 from docx import Document
 from openpyxl import Workbook
 
+from tests.isolation import chdir
 from wps_ai_agent_cli.backups import create_backup, guarded_com_mutation
 from wps_ai_agent_cli.cli import run
 from wps_ai_agent_cli.mcp_adapter import call_mcp_tool
 from wps_ai_agent_cli.operations import get_operation, inspect_mutation_request
 from wps_ai_agent_cli.sessions import file_identity, register_document
-from wps_ai_agent_cli.spreadsheet_ops import _run_spreadsheet_rename_sheet_com, rename_spreadsheet_sheet
+from wps_ai_agent_cli.spreadsheet_ops import (
+    _run_spreadsheet_rename_sheet_com,
+    rename_spreadsheet_sheet,
+)
 from wps_ai_agent_cli.writer_ops import _run_writer_replace_com, writer_replace
 
 

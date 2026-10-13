@@ -3,7 +3,6 @@ from __future__ import annotations
 import re
 from typing import Any
 
-
 _MCP_TOOL_NAME_PATTERN = re.compile(r"[A-Za-z0-9_.-]{1,128}\Z")
 
 

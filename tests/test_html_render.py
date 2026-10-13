@@ -1,8 +1,8 @@
 import json
 import os
+import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
-import unittest
 from unittest.mock import patch
 
 from wps_ai_agent_cli.html_render import render_html
@@ -148,8 +148,9 @@ class HtmlRenderBrowserIntegrationTests(unittest.TestCase):
                 artifact = (root / f"page.{extension}").read_bytes()
                 self.assertGreater(len(artifact), 1000)
                 if extension == "png":
-                    from PIL import Image, ImageStat
                     import io
+
+                    from PIL import Image, ImageStat
                     image = Image.open(io.BytesIO(artifact)).convert("RGB")
                     self.assertGreater(image.width, 320)
                     self.assertGreater(sum(ImageStat.Stat(image).stddev), 20)

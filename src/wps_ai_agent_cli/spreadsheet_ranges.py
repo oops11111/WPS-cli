@@ -4,7 +4,6 @@ from typing import Any
 
 from openpyxl.utils.cell import range_boundaries
 
-
 MAX_SPREADSHEET_READ_CELLS = 10_000
 MAX_EXCEL_ROWS = 1_048_576
 MAX_EXCEL_COLUMNS = 16_384

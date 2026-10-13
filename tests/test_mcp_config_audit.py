@@ -7,12 +7,12 @@ from pathlib import Path
 from unittest.mock import patch
 
 from wps_ai_agent_cli.mcp_config_audit import (
+    MCP_CONFIG_AUDIT_MAX_EXPECTED_TOOLS,
+    MCP_CONFIG_AUDIT_MAX_SERVER_NAME_CHARS,
+    MCP_CONFIG_AUDIT_MIN_EXPECTED_TOOLS,
+    MCP_CONFIG_AUDIT_TIMEOUT_MAX_SECONDS,
     MCP_CONFIG_MAX_BYTES,
     MCP_CONFIG_MAX_JSON_DEPTH,
-    MCP_CONFIG_AUDIT_TIMEOUT_MAX_SECONDS,
-    MCP_CONFIG_AUDIT_MAX_EXPECTED_TOOLS,
-    MCP_CONFIG_AUDIT_MIN_EXPECTED_TOOLS,
-    MCP_CONFIG_AUDIT_MAX_SERVER_NAME_CHARS,
     _load_config,
     audit_mcp_client_config,
 )

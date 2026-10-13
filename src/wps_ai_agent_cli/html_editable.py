@@ -1,19 +1,18 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
 import base64
-from html.parser import HTMLParser
-from io import BytesIO
-from pathlib import Path
 import hashlib
 import os
 import re
 import tempfile
+from dataclasses import dataclass, field
+from html.parser import HTMLParser
+from io import BytesIO
+from pathlib import Path
 from typing import Any
 from urllib.parse import urlsplit
 
 from .html_text import decode_html_bytes
-
 
 _VOID = {"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr"}
 _SKIP = {"script", "style", "noscript", "template", "svg", "iframe", "object", "canvas"}
@@ -271,9 +270,9 @@ def convert_html_editable(input_path: str | Path, output_path: str | Path) -> tu
             counts["images"] += 1
 
     def add_text_with_links(paragraph, node: _Node) -> None:
+        from docx.opc.constants import RELATIONSHIP_TYPE as RT
         from docx.oxml import OxmlElement
         from docx.oxml.ns import qn
-        from docx.opc.constants import RELATIONSHIP_TYPE as RT
 
         for child in node.children:
             if isinstance(child, str):

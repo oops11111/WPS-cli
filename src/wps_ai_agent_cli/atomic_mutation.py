@@ -10,8 +10,9 @@ from __future__ import annotations
 
 import functools
 import inspect
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 from .backups import _restore_file_atomically
 from .errors import COM_OPERATION_FAILED, ROLLBACK_BLOCKED, ROLLBACK_FAILED, ROLLED_BACK

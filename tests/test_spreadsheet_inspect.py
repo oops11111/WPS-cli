@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-from datetime import datetime
 import hashlib
 import io
 import json
 import os
-from pathlib import Path
 import tempfile
 import unittest
+from datetime import datetime
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 from openpyxl import Workbook
@@ -15,8 +15,11 @@ from openpyxl.utils.datetime import CALENDAR_MAC_1904, CALENDAR_WINDOWS_1900, to
 
 from wps_ai_agent_cli import cli
 from wps_ai_agent_cli.sessions import register_document
+from wps_ai_agent_cli.spreadsheet_inspect import (
+    _cache_matches,
+    inspect_spreadsheet_range,
+)
 from wps_ai_agent_cli.spreadsheet_ops import read_spreadsheet_range
-from wps_ai_agent_cli.spreadsheet_inspect import _cache_matches, inspect_spreadsheet_range
 
 
 class SpreadsheetInspectTests(unittest.TestCase):

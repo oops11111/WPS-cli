@@ -1,20 +1,20 @@
 from __future__ import annotations
 
 import os
+import re
 import shutil
 import subprocess
 import tempfile
+from collections.abc import Callable
 from datetime import datetime, timezone
 from pathlib import Path
-import re
-from typing import Any, Callable
+from typing import Any
 
 from .errors import COM_OPERATION_FAILED, COM_OPERATION_TIMEOUT, identity_error
 from .file_hold import is_share_conflict, probe_file_not_held, share_conflict_error
-from .operations import list_operations, record_operation, replay_operation
-from .sessions import get_document
-from .sessions import file_identity
 from .mutation_lock import coordinated_mutation, coordinated_request
+from .operations import list_operations, record_operation, replay_operation
+from .sessions import file_identity, get_document
 
 
 def _backup_path(document_id: str, source_path: Path, workspace: str | Path = ".") -> Path:

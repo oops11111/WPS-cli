@@ -7,7 +7,6 @@ import tempfile
 from pathlib import Path
 from typing import Any
 
-
 DEFAULT_REGRESSION_MANIFEST = "config/regression_manifest.json"
 REPO_ROOT = Path(__file__).resolve().parents[2]
 MCP_AUDIT_TEMPLATE = "config/mcp_client_config.regression.template.json"

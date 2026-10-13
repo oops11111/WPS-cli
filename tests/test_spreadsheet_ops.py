@@ -8,29 +8,27 @@ from unittest.mock import patch
 from zipfile import ZipFile
 
 from openpyxl import Workbook, load_workbook
-from openpyxl.styles import Protection
-from openpyxl.workbook.defined_name import DefinedName
-from openpyxl.worksheet.pagebreak import Break
-from openpyxl.worksheet.datavalidation import DataValidation
 from openpyxl.formatting.rule import CellIsRule
+from openpyxl.styles import Protection
 from openpyxl.utils.datetime import CALENDAR_MAC_1904
+from openpyxl.workbook.defined_name import DefinedName
+from openpyxl.worksheet.datavalidation import DataValidation
+from openpyxl.worksheet.pagebreak import Break
 
+from tests.isolation import use_temporary_cwd
 from wps_ai_agent_cli.sessions import register_document
 from wps_ai_agent_cli.spreadsheet_ops import (
-    list_spreadsheet_sheets,
+    copy_spreadsheet_sheet,
     create_spreadsheet_sheet,
     delete_spreadsheet_sheet,
-    copy_spreadsheet_sheet,
-    set_spreadsheet_sheet_tab_color,
+    list_spreadsheet_sheets,
     read_spreadsheet_range,
     rename_spreadsheet_sheet,
+    set_spreadsheet_sheet_tab_color,
     set_spreadsheet_sheet_visibility,
     write_spreadsheet_formulas,
     write_spreadsheet_range,
 )
-
-
-from tests.isolation import use_temporary_cwd
 
 _restore_cwd = None
 

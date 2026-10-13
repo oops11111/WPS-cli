@@ -1,18 +1,18 @@
-import json
 import hashlib
-from io import BytesIO
+import json
 import os
-from pathlib import Path
-from tempfile import TemporaryDirectory
 import unittest
 import zipfile
+from io import BytesIO
+from pathlib import Path
+from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
 from docx import Document
-from wps_ai_agent_cli.template_report import render_batch_template_report
+
 from wps_ai_agent_cli.batch_conversion import convert_html_batch
-from wps_ai_agent_cli.com_backend import run_com_smoke
-from wps_ai_agent_cli.com_backend import run_conversion_smoke
+from wps_ai_agent_cli.com_backend import run_com_smoke, run_conversion_smoke
+from wps_ai_agent_cli.template_report import render_batch_template_report
 
 
 class TemplateReportTests(unittest.TestCase):
@@ -123,9 +123,9 @@ class TemplateReportTests(unittest.TestCase):
             value.bold = True
             table = template.add_table(rows=2, cols=3)
             table.style = "Table Grid"
-            for cell, text in zip(table.rows[0].cells, ("Status", "Source", "Output")):
+            for cell, text in zip(table.rows[0].cells, ("Status", "Source", "Output"), strict=False):
                 cell.text = text
-            for cell, text in zip(table.rows[1].cells, ("{{file_status}}", "{{file_source}}", "{{file_output}}")):
+            for cell, text in zip(table.rows[1].cells, ("{{file_status}}", "{{file_source}}", "{{file_output}}"), strict=False):
                 cell.text = text
             template.save(template_path)
             output = root / "report.docx"
@@ -219,7 +219,7 @@ class TemplateReportWpsIntegrationTests(unittest.TestCase):
                 name = f"item-{index:03d}"
                 source, artifact = source_root / f"{name}.html", output_root / f"{name}.docx"
                 source.write_text(f"source {name}", encoding="utf-8")
-                artifact.write_bytes(f"converted {name}".encode("utf-8"))
+                artifact.write_bytes(f"converted {name}".encode())
                 entries.append({
                     "status": "passed", "relative_source": source.name,
                     "source": str(source), "output": str(artifact),

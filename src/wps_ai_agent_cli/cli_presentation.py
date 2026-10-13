@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
+from .cli_common import BACKEND
 from .models import CommandResponse, ValidationResult
 from .presentation_ops import presentation_replace
-from .cli_common import BACKEND
 
 
 def presentation_replace_response(

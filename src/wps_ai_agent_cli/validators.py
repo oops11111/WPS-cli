@@ -71,6 +71,7 @@ def validate_document(
             )
         try:
             import openpyxl  # noqa: F401
+
             from .ooxml import load_workbook_guarded as load_workbook
         except ImportError:
             return (
