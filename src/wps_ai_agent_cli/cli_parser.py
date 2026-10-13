@@ -155,9 +155,10 @@ def _add_conversion_commands(subparsers: argparse._SubParsersAction) -> None:
     template_report_parser.add_argument("--output", required=True)
     template_report_parser.add_argument("--task-id")
 
-    html_editable_parser = subparsers.add_parser("html-editable", help="Map semantic local HTML to an editable Writer DOCX.")
+    html_editable_parser = subparsers.add_parser("html-editable", help="Map semantic local HTML to an editable DOCX, XLSX or PPTX.")
     html_editable_parser.add_argument("--input", required=True, help="Local HTML or HTM source path.")
-    html_editable_parser.add_argument("--output", required=True, help="New DOCX output path; existing files are never overwritten.")
+    html_editable_parser.add_argument("--output", required=True, help="New output path matching --format; existing files are never overwritten.")
+    html_editable_parser.add_argument("--format", choices=["docx", "xlsx", "pptx"], default="docx", help="docx: Writer content. xlsx: each table becomes a worksheet. pptx: each section or h1/h2 becomes a slide.")
     html_editable_parser.add_argument("--task-id", help="Optional long-running task status id.")
 
     html_roundtrip_parser = subparsers.add_parser("html-roundtrip-plan", help="Validate owned HTML schema and build a read-only object identity map.")
