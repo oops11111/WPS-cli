@@ -11,6 +11,7 @@ from openpyxl.utils.datetime import to_excel
 
 from .capabilities import probe_wps_capabilities
 from .errors import COM_BACKEND_UNAVAILABLE, COM_OPERATION_FAILED, INPUT_FILE_NOT_FOUND
+from .file_hold import is_share_conflict, probe_file_not_held, share_conflict_error
 from .powershell_runner import run_powershell_script
 from .sessions import get_document
 from .spreadsheet_ranges import validate_spreadsheet_read_range
@@ -61,16 +62,22 @@ def inspect_spreadsheet_range(
     range_address = range_address.strip()
     min_col, min_row, max_col, max_row = bounds
 
-    unreadable_data = {"document_id": document_id, "path": str(path)}
+    # Match Open-WpsDocument -ReadOnly: FileShare.Read probe before any Zip/openpyxl disk read, so an
+    # exclusive holder yields the same held-open JSON envelope instead of an uncaught PermissionError.
+    held = probe_file_not_held(path, read_only=True, what="document")
+    if held is not None:
+        return False, {"document_id": document_id, "path": str(path)}, [held]
+
+    formulas_book = None
     try:
         formulas_book = load_workbook(path, data_only=False, read_only=True)
-    except OSError as exc:
-        return False, unreadable_data, [{"code": "DOCUMENT_IDENTITY_UNAVAILABLE", "message": f"Workbook could not be read; it may be held open exclusively by another process: {exc}"}]
-    try:
         cached_book = load_workbook(path, data_only=True, read_only=True)
     except OSError as exc:
-        formulas_book.close()
-        return False, unreadable_data, [{"code": "DOCUMENT_IDENTITY_UNAVAILABLE", "message": f"Workbook could not be read; it may be held open exclusively by another process: {exc}"}]
+        if formulas_book is not None:
+            formulas_book.close()
+        if is_share_conflict(exc):
+            return False, {"document_id": document_id, "path": str(path)}, [share_conflict_error(exc, "document")]
+        raise
     workbook_epoch = formulas_book.epoch
     try:
         selected_sheet = sheet_name or formulas_book.sheetnames[0]

@@ -48,7 +48,7 @@ class HeldDocumentIdentityTests(unittest.TestCase):
                 ok, _result, errors, _replayed = create_backup(record["document_id"], "req-held-backup", workspace=workspace)
 
             self.assertFalse(ok)
-            self.assertEqual(errors[0]["code"], "DOCUMENT_IDENTITY_UNAVAILABLE")
+            self.assertEqual(errors[0]["code"], "COM_OPERATION_FAILED")
             self.assertIn("held open by another handle", errors[0]["message"])
             self.assertFalse((workspace / "backups").exists() and any((workspace / "backups").iterdir()))
 

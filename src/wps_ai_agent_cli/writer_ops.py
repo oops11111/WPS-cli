@@ -30,6 +30,7 @@ from .document_text import (
 
 WORD_FIND_TEXT_MAX_CHARS = 255
 from .errors import COM_BACKEND_UNAVAILABLE, INPUT_FILE_NOT_FOUND
+from .file_hold import is_share_conflict, probe_file_not_held, share_conflict_error
 from .mutation_lock import coordinated_mutation
 from .operations import record_operation, replay_operation
 from .sessions import get_document
@@ -558,34 +559,45 @@ def writer_replace(
             False,
         )
 
-    paragraph_count = len(docx_body_paragraphs(path))
-    if paragraph_index is not None and paragraph_index > paragraph_count:
-        return (
-            False,
-            {
-                "document_id": document_id,
-                "component": "writer",
-                "path": str(path),
-                "scope": "paragraph",
-                "paragraph_index": paragraph_index,
-                "paragraph_count": paragraph_count,
-            },
-            [{"code": "PARAGRAPH_NOT_FOUND", "message": f"Paragraph index out of range: {paragraph_index}"}],
-            False,
-        )
+    # Read-share probe before Zip preview so FileShare.None yields held-open JSON, not Zip PermissionError.
+    # Exclusive probe for mutating backup/COM remains in create_backup.
+    held = probe_file_not_held(path, read_only=True, what="document")
+    if held is not None:
+        return False, {"document": document, "path": str(path)}, [held], False
 
-    if paragraph_index is None:
-        expected_texts = [
-            text.replace(find_text, replace_text)
-            for text in docx_body_story_paragraphs(path)
-        ]
-        before_count = count_text_in_docx(path, find_text, parts=BODY_PARTS)
-        scope = "body"
-    else:
-        expected_texts = list(docx_body_paragraphs(path))
-        expected_texts[paragraph_index - 1] = expected_texts[paragraph_index - 1].replace(find_text, replace_text)
-        before_count = count_text_in_docx_paragraph(path, paragraph_index, find_text)
-        scope = "paragraph"
+    try:
+        paragraph_count = len(docx_body_paragraphs(path))
+        if paragraph_index is not None and paragraph_index > paragraph_count:
+            return (
+                False,
+                {
+                    "document_id": document_id,
+                    "component": "writer",
+                    "path": str(path),
+                    "scope": "paragraph",
+                    "paragraph_index": paragraph_index,
+                    "paragraph_count": paragraph_count,
+                },
+                [{"code": "PARAGRAPH_NOT_FOUND", "message": f"Paragraph index out of range: {paragraph_index}"}],
+                False,
+            )
+
+        if paragraph_index is None:
+            expected_texts = [
+                text.replace(find_text, replace_text)
+                for text in docx_body_story_paragraphs(path)
+            ]
+            before_count = count_text_in_docx(path, find_text, parts=BODY_PARTS)
+            scope = "body"
+        else:
+            expected_texts = list(docx_body_paragraphs(path))
+            expected_texts[paragraph_index - 1] = expected_texts[paragraph_index - 1].replace(find_text, replace_text)
+            before_count = count_text_in_docx_paragraph(path, paragraph_index, find_text)
+            scope = "paragraph"
+    except OSError as exc:
+        if is_share_conflict(exc):
+            return False, {"document": document, "path": str(path)}, [share_conflict_error(exc, "document")], False
+        raise
     preview = {
         "document_id": document_id,
         "component": "writer",

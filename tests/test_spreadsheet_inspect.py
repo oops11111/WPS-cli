@@ -70,7 +70,7 @@ class SpreadsheetInspectTests(unittest.TestCase):
                 ok, result, errors = inspect_spreadsheet_range(record["document_id"], "A1", workspace=workspace)
 
             self.assertFalse(ok)
-            self.assertEqual(errors[0]["code"], "DOCUMENT_IDENTITY_UNAVAILABLE")
+            self.assertEqual(errors[0]["code"], "COM_OPERATION_FAILED")
             self.assertIn("sharing violation", errors[0]["message"])
             self.assertEqual(result["document_id"], record["document_id"])
             probe.assert_not_called()
@@ -88,7 +88,7 @@ class SpreadsheetInspectTests(unittest.TestCase):
                 ok, _result, errors = inspect_spreadsheet_range(record["document_id"], "A1", workspace=workspace)
 
             self.assertFalse(ok)
-            self.assertEqual(errors[0]["code"], "DOCUMENT_IDENTITY_UNAVAILABLE")
+            self.assertEqual(errors[0]["code"], "COM_OPERATION_FAILED")
             first_book.close.assert_called_once()
 
     def test_held_workbook_reaches_the_cli_as_a_json_envelope(self):
@@ -112,7 +112,7 @@ class SpreadsheetInspectTests(unittest.TestCase):
             self.assertFalse(envelope["ok"])
             self.assertEqual(envelope["command"], "spreadsheet-inspect")
             self.assertEqual(envelope["request_id"], "req-held-inspect")
-            self.assertEqual(envelope["errors"][0]["code"], "DOCUMENT_IDENTITY_UNAVAILABLE")
+            self.assertEqual(envelope["errors"][0]["code"], "COM_OPERATION_FAILED")
             self.assertEqual(code, 0)
 
 
