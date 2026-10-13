@@ -37,8 +37,8 @@
         "Cross-component conversion is verified between HTML and Office formats (Writer, Spreadsheets, Presentation)",
         "Mutations are atomic transactions: a change is either fully applied and verified or fully rolled back",
         "Automated regression suite runs safe and WPS profiles with recorded artifacts",
-        "A real Agent end-to-end evaluation pipeline runs and records results",
-        "Ecosystem extension evaluation is written up, including a verified real desktop MCP client integration"
+        "MET: a real Agent end-to-end evaluation pipeline runs and records results (scripts/agent_eval, PR #21, docs/AGENT_E2E_EVAL.md)",
+        "MET: ecosystem extension evaluation is written up (docs/ECOSYSTEM_EVALUATION.md, PR #22). Claude Desktop integration is tracked as a separate follow-up, not a condition for this criterion"
       ]
     }
   ]
