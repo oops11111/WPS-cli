@@ -13,6 +13,7 @@ This is the written evaluation for the second half of Phase 3 item 4 in `docs/RO
 | Client | Status | Evidence |
 | --- | --- | --- |
 | Claude Code CLI 2.1.296 | **Verified** | Runs `claude -p` with `--mcp-config` and `--strict-mcp-config`. Three fixed tasks pass, each calling `wps-agent` tools and judged from workspace state. See `docs/AGENT_E2E_EVAL.md`. |
+| Codex CLI | **Not verified** | Not installed on the evaluation machine, so it could not be run. Its MCP support is the follow-up item for Phase 3. |
 | Claude Desktop (Windows) | **Not verified** | P3-263 audit (2026-10-09): the desktop process was present, but no MCP server was configured and the UI handshake could not be observed. The integration gate is still open. |
 | Other MCP clients | **Not evaluated** | No run with any other client. |
 
@@ -37,6 +38,10 @@ These were run against the server directly, not through a client.
 - For Claude Desktop: configure the server in `claude_desktop_config.json`, then repeat the P3-263 audit with the desktop inspection channel working. Record client version, transport, negotiated protocol, full pagination and one safe `tools/call`.
 - For HTTP clients: a transport decision is needed first. It is not a documentation change.
 - For other clients: pick the clients that matter and run the same checks.
+
+## Follow-up
+
+The follow-up for Phase 3 item 4 is Codex integration: run the server with the Codex CLI as an MCP client, on a machine where Codex is installed. Use the same checks as the Claude Code run: `initialize`, paginated `tools/list`, and a safe `tools/call`. Claude Desktop remains unverified, but it is no longer the follow-up.
 
 ## Decision still needed
 
