@@ -16,7 +16,7 @@ from openpyxl import Workbook
 
 from tests.test_writer_structure import write_document
 from wps_ai_agent_cli.backups import create_backup
-from wps_ai_agent_cli.errors import COM_OPERATION_FAILED
+from wps_ai_agent_cli.errors import DOCUMENT_HELD_OPEN
 from wps_ai_agent_cli.file_hold import (
     held_open_error,
     is_share_conflict,
@@ -32,7 +32,7 @@ from wps_ai_agent_cli.writer_ops import writer_replace
 
 def _assert_held_open_envelope(test: unittest.TestCase, errors: list) -> None:
     test.assertEqual(len(errors), 1, errors)
-    test.assertEqual(errors[0]["code"], COM_OPERATION_FAILED)
+    test.assertEqual(errors[0]["code"], DOCUMENT_HELD_OPEN)
     message = errors[0]["message"]
     test.assertIn("held open", message)
     test.assertIn("Open() was not called", message)
@@ -99,14 +99,14 @@ def _hold_read_share_win32(path: Path):
 class FileHoldHelperTests(unittest.TestCase):
     def test_held_open_message_matches_preopen_guard_contract(self):
         error = held_open_error("document", "sharing violation")
-        self.assertEqual(error["code"], COM_OPERATION_FAILED)
+        self.assertEqual(error["code"], DOCUMENT_HELD_OPEN)
         self.assertIn("held open by another handle", error["message"])
         self.assertIn("Open() was not called", error["message"])
         self.assertIn("alerts are turned off", error["message"])
 
     def test_permission_error_is_treated_as_share_conflict(self):
         self.assertTrue(is_share_conflict(PermissionError("Permission denied")))
-        self.assertEqual(share_conflict_error(PermissionError("x"), "document")["code"], COM_OPERATION_FAILED)
+        self.assertEqual(share_conflict_error(PermissionError("x"), "document")["code"], DOCUMENT_HELD_OPEN)
 
     def test_free_file_passes_probe_in_both_modes(self):
         with tempfile.TemporaryDirectory() as tmp:

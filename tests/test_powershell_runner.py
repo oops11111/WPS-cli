@@ -51,6 +51,17 @@ class RunnerTests(unittest.TestCase):
         self.assertEqual(failure["data"]["component"], "writer")
         self.assertEqual(failure["data"]["diagnostic"]["error_message"], "boom")
 
+    def test_held_open_refusal_from_the_script_maps_to_document_held_open(self):
+        from wps_ai_agent_cli.errors import HELD_OPEN_MARKER
+        from wps_ai_agent_cli.wps_script_snippets import PRE_OPEN_GUARD
+
+        # The marker must stay in Assert-WpsFileNotHeld's throw text, or the mapping below never fires on WPS.
+        self.assertIn(HELD_OPEN_MARKER, PRE_OPEN_GUARD)
+        message = f"The document {HELD_OPEN_MARKER} (sharing violation), most likely because it is open in WPS."
+        _, failure = self.run_with(Completed(2, json.dumps({"ok": False, "error_message": message})))
+        self.assertEqual(failure["errors"][0]["code"], "DOCUMENT_HELD_OPEN")
+        self.assertEqual(failure["errors"][0]["message"], message)
+
     def test_non_json_output_is_failure(self):
         _, failure = self.run_with(Completed(0, "warning text", ""))
         self.assertEqual(failure["errors"][0]["code"], "COM_OPERATION_FAILED")

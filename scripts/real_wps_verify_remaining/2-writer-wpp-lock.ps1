@@ -83,7 +83,7 @@ try {
         $shaHoldDuring = Get-Sha $holdPath
         $c1Ok = $false; if ($null -ne $c1.json) { $c1Ok = [bool]$c1.json.ok }
         $c1BeforeOpen = (-not $c1Ok) -and (Test-MessageHas $c1 'Open\(\) was not called') -and (Test-MessageHas $c1 'held open')
-        $c1Identity = (-not $c1Ok) -and ((Test-MessageHas $c1 'DOCUMENT_IDENTITY_UNAVAILABLE') -or (Test-MessageHas $c1 'Permission denied') -or (($c1.stderr + '') -match 'PermissionError|Permission denied'))
+        $c1Identity = (-not $c1Ok) -and ((Test-MessageHas $c1 'DOCUMENT_HELD_OPEN') -or (Test-MessageHas $c1 'DOCUMENT_IDENTITY_UNAVAILABLE') -or (Test-MessageHas $c1 'Permission denied') -or (($c1.stderr + '') -match 'PermissionError|Permission denied'))
         $checks += Show-Check 'exclusive hold: direct probe refuses' ($direct -match 'PROBE_REFUSED:.*held open') $direct
         $checks += Show-Check 'exclusive hold: CLI refuses (before-Open text OR pre-COM identity deny)' ($c1BeforeOpen -or $c1Identity) ('ok=' + $(if ($null -ne $c1.json) { $c1.json.ok } else { 'null' }) + ' before_open=' + $c1BeforeOpen + ' identity=' + $c1Identity)
         $checks += Show-Check 'exclusive hold: disk unread or unchanged while held' (($null -eq $shaHoldDuring) -or ($shaHoldDuring -eq $shaHoldBefore)) ('sha=' + $shaHoldDuring)

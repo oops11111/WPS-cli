@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Any, Sequence
 
 from .capabilities import powershell_executable
-from .errors import COM_OPERATION_FAILED, COM_OPERATION_TIMEOUT
+from .errors import COM_OPERATION_FAILED, COM_OPERATION_TIMEOUT, DOCUMENT_HELD_OPEN, HELD_OPEN_MARKER
 
 
 def run_powershell_command(
@@ -186,7 +186,7 @@ def run_powershell_script(
             message = payload.get("error_message") or message
         return None, {
             "ok": False,
-            "errors": [{"code": COM_OPERATION_FAILED, "message": message}],
+            "errors": [{"code": DOCUMENT_HELD_OPEN if HELD_OPEN_MARKER in message else COM_OPERATION_FAILED, "message": message}],
             "data": {"backend": "powershell-com", **(failure_data or {}), "diagnostic": payload},
         }
     if warnings:

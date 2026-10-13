@@ -9,7 +9,7 @@ from pathlib import Path
 import re
 from typing import Any, Callable
 
-from .errors import COM_OPERATION_FAILED, COM_OPERATION_TIMEOUT
+from .errors import COM_OPERATION_FAILED, COM_OPERATION_TIMEOUT, identity_error
 from .file_hold import is_share_conflict, probe_file_not_held, share_conflict_error
 from .operations import list_operations, record_operation, replay_operation
 from .sessions import get_document
@@ -121,7 +121,7 @@ def create_backup(
         )
 
     # Exclusive share probe before identity/backup open, matching Assert-WpsFileNotHeld before Open().
-    # An exclusive holder otherwise surfaces as DOCUMENT_IDENTITY_UNAVAILABLE / Permission denied.
+    # An exclusive holder otherwise surfaces as a bare Permission denied from the identity read.
     what = "presentation" if document.get("component") == "presentation" else "document"
     held = probe_file_not_held(source_path, read_only=False, what=what)
     if held is not None:
@@ -132,9 +132,7 @@ def create_backup(
     except OSError as exc:
         if is_share_conflict(exc):
             return False, {"document": document}, [share_conflict_error(exc, what)], False
-        return False, {"document": document}, [
-            {"code": "DOCUMENT_IDENTITY_UNAVAILABLE", "message": str(exc)}
-        ], False
+        return False, {"document": document}, [identity_error(exc)], False
     expected_identity = {key: document.get(key) for key in source_identity}
     if not allow_stale_registration and expected_identity != source_identity:
         code = "DOCUMENT_IDENTITY_UNVERIFIED" if any(value is None for value in expected_identity.values()) else "DOCUMENT_IDENTITY_CHANGED"
