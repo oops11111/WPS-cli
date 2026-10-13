@@ -114,7 +114,7 @@
       "command": [
         "mcp-config-audit",
         "--config",
-        "config/mcp_client_config.example.json",
+        "config/mcp_client_config.regression.json",
         "--server-name",
         "wps-ai-agent-cli",
         "--expected-min-tools",

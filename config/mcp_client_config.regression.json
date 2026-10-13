@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "wps-ai-agent-cli": {
+      "command": "python",
+      "args": ["-m", "wps_ai_agent_cli", "mcp-server"],
+      "cwd": ".",
+      "env": {"PYTHONPATH": "src"}
+    }
+  }
+}
