@@ -8,6 +8,7 @@ from unittest.mock import patch
 
 from openpyxl import Workbook
 
+from wps_ai_agent_cli import open_documents
 from wps_ai_agent_cli.atomic_mutation import atomic_mutation
 from wps_ai_agent_cli.backups import create_backup
 from wps_ai_agent_cli.errors import ROLLBACK_FAILED, ROLLED_BACK
@@ -33,6 +34,10 @@ class AtomicMutationTests(unittest.TestCase):
         self.assertTrue(ok)
         self.backup_path = backup["backup_path"]
         self.original_bytes = self.document.read_bytes()
+        # By default WPS has nothing open; each test that needs another answer patches it.
+        probe = patch("wps_ai_agent_cli.open_documents.list_open_documents", return_value=(True, {"documents": []}, []))
+        self._probe = probe.start()
+        self.addCleanup(probe.stop)
 
     def tearDown(self):
         self._tmp.cleanup()
@@ -59,7 +64,32 @@ class AtomicMutationTests(unittest.TestCase):
         self.assertEqual(self.document.read_bytes(), self.original_bytes)
         self.assertEqual(result["rollback"]["performed"], True)
         self.assertEqual([error["code"] for error in errors], ["VALIDATION_FAILED", ROLLED_BACK])
-        self.assertIn("close it without saving", errors[-1]["message"])
+        self.assertIn("not open in WPS", errors[-1]["message"])
+
+    def test_rollback_says_whether_wps_still_has_the_document_open(self):
+        open_document = {"full_name": str(self.document), "component": "spreadsheets"}
+        self._probe.return_value = (True, {"documents": [open_document]}, [])
+
+        ok, result, errors, _ = self._mutation(change_file=True)
+
+        self.assertIs(result["rollback"]["open_in_wps"], True)
+        self.assertIn("is open in WPS now", errors[-1]["message"])
+
+    def test_rollback_reports_when_the_document_is_not_open_in_wps(self):
+        ok, result, errors, _ = self._mutation(change_file=True)
+
+        self.assertIs(result["rollback"]["open_in_wps"], False)
+        self.assertIn("not open in WPS", errors[-1]["message"])
+
+    def test_failed_wps_probe_does_not_change_the_rollback(self):
+        self._probe.side_effect = RuntimeError("no WPS on this machine")
+
+        ok, result, errors, _ = self._mutation(change_file=True)
+
+        self.assertEqual(self.document.read_bytes(), self.original_bytes)
+        self.assertIsNone(result["rollback"]["open_in_wps"])
+        self.assertEqual(errors[-1]["code"], ROLLED_BACK)
+        self.assertIn("Could not check", errors[-1]["message"])
 
     def test_failed_write_that_left_the_file_alone_is_not_rolled_back(self):
         ok, result, errors, _ = self._mutation(change_file=False)
