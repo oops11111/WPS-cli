@@ -15,7 +15,7 @@ dependencies = ["openpyxl>=3.1"]
 
 [project.optional-dependencies]
 wps = ["pywin32>=306; platform_system == 'Windows'"]
-html = ["python-docx>=1.1"]
+html = ["python-docx>=1.1", "python-pptx>=1.0"]
 test = ["python-docx>=1.1", "Pillow>=10", "pypdfium2>=5", "openpyxl>=3.1", "python-pptx>=1.0"]
 
 [project.scripts]

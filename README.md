@@ -139,6 +139,8 @@ python -m wps_ai_agent_cli calc-smoke --input input.xlsx --output output.xlsx
 python -m wps_ai_agent_cli convert-smoke --component writer --input input.docx --output output.pdf --format pdf
 python -m wps_ai_agent_cli html-render --input page.html --output page.pdf --format pdf
 python -m wps_ai_agent_cli html-editable --input page.html --output page.docx
+python -m wps_ai_agent_cli html-editable --input page.html --output page.xlsx --format xlsx
+python -m wps_ai_agent_cli html-editable --input deck.html --output deck.pptx --format pptx
 python -m wps_ai_agent_cli html-roundtrip-plan --input owned-page.html
 python -m wps_ai_agent_cli html-controlled-import --input owned-page.html --output controlled.docx
 python -m wps_ai_agent_cli html-roundtrip-verify --docx controlled.docx --mapping controlled.docx.wpsmap.json

@@ -83,7 +83,7 @@ def build_command_handlers(cli: Any) -> dict[str, Callable[[argparse.Namespace, 
         return response
 
     def _handle_html_editable(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
-        response = cli._with_optional_task_status(lambda: cli.html_editable_response(request_id, args.input, args.output), task_id=args.task_id, tracked_command='html-editable', operation_request_id=request_id)
+        response = cli._with_optional_task_status(lambda: cli.html_editable_response(request_id, args.input, args.output, getattr(args, 'format', 'docx')), task_id=args.task_id, tracked_command='html-editable', operation_request_id=request_id)
         return response
 
     def _handle_html_roundtrip_plan(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
