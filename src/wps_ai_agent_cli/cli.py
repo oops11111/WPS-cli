@@ -20,6 +20,7 @@ from .file_scan import scan_directory
 from .jsonio import dumps_json
 from .html_render import render_html
 from .html_editable import convert_html_editable
+from .html_office import BACKENDS as HTML_OFFICE_BACKENDS, convert_html_to_office
 from .html_roundtrip import build_html_roundtrip_mapping, export_controlled_html, import_controlled_html, verify_controlled_document
 from .mcp_adapter import call_mcp_tool
 from .mcp_catalog_drift import DEFAULT_MCP_CATALOG_GUARD, build_mcp_catalog_drift_report
@@ -439,16 +440,18 @@ def html_render_response(request_id: str, input_path: str, output_path: str, out
     )
 
 
-def html_editable_response(request_id: str, input_path: str, output_path: str) -> CommandResponse:
-    ok, data, errors = convert_html_editable(input_path, output_path)
+def html_editable_response(request_id: str, input_path: str, output_path: str, output_format: str = "docx") -> CommandResponse:
+    ok, data, errors = convert_html_to_office(input_path, output_path, output_format)
+    backend = HTML_OFFICE_BACKENDS.get(output_format, "python-docx")
+    native_objects = data.get("mapped_objects") or data.get("rows") or data.get("slides")
     return CommandResponse(
-        ok=ok, command="html-editable", request_id=request_id, backend="python-docx",
-        summary="HTML mapped to editable Writer content." if ok else "Editable HTML conversion could not complete.",
+        ok=ok, command="html-editable", request_id=request_id, backend=backend,
+        summary=(f"HTML mapped to editable {output_format.upper()} content." if ok else "Editable HTML conversion could not complete."),
         data=data, validation=ValidationResult(
             status="passed" if ok else "failed",
             checks=[
-                {"name": "output_docx_created", "passed": ok, "details": data.get("output_path")},
-                {"name": "editable_native_objects_reported", "passed": ok and bool(data.get("mapped_objects")), "details": data.get("mapped_objects")},
+                {"name": "output_created", "passed": ok, "details": data.get("output_path")},
+                {"name": "native_objects_reported", "passed": ok and bool(native_objects), "details": native_objects},
             ],
         ), errors=errors,
     )

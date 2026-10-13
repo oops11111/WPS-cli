@@ -2,15 +2,18 @@ from __future__ import annotations
 
 from datetime import datetime
 import hashlib
+import io
+import json
 import os
 from pathlib import Path
 import tempfile
 import unittest
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 from openpyxl import Workbook
 from openpyxl.utils.datetime import CALENDAR_MAC_1904, CALENDAR_WINDOWS_1900, to_excel
 
+from wps_ai_agent_cli import cli
 from wps_ai_agent_cli.sessions import register_document
 from wps_ai_agent_cli.spreadsheet_ops import read_spreadsheet_range
 from wps_ai_agent_cli.spreadsheet_inspect import _cache_matches, inspect_spreadsheet_range
@@ -54,6 +57,63 @@ class SpreadsheetInspectTests(unittest.TestCase):
                     open_workbook.assert_not_called()
                     probe.assert_not_called()
             self.assertEqual(hashlib.sha256(document.read_bytes()).hexdigest(), before)
+
+    def test_held_workbook_returns_structured_error_instead_of_raising(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            workspace = Path(tmp) / "workspace"
+            workspace.mkdir()
+            document = Path(tmp) / "held.xlsx"
+            Workbook().save(document)
+            ok, record, _ = register_document("spreadsheets", str(document), workspace)
+
+            with patch("wps_ai_agent_cli.spreadsheet_inspect.load_workbook", side_effect=PermissionError("sharing violation")), patch("wps_ai_agent_cli.spreadsheet_inspect.probe_wps_capabilities") as probe:
+                ok, result, errors = inspect_spreadsheet_range(record["document_id"], "A1", workspace=workspace)
+
+            self.assertFalse(ok)
+            self.assertEqual(errors[0]["code"], "COM_OPERATION_FAILED")
+            self.assertIn("sharing violation", errors[0]["message"])
+            self.assertEqual(result["document_id"], record["document_id"])
+            probe.assert_not_called()
+
+    def test_second_load_failure_closes_the_first_workbook(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            workspace = Path(tmp) / "workspace"
+            workspace.mkdir()
+            document = Path(tmp) / "held.xlsx"
+            Workbook().save(document)
+            ok, record, _ = register_document("spreadsheets", str(document), workspace)
+            first_book = MagicMock()
+
+            with patch("wps_ai_agent_cli.spreadsheet_inspect.load_workbook", side_effect=[first_book, PermissionError("locked")]):
+                ok, _result, errors = inspect_spreadsheet_range(record["document_id"], "A1", workspace=workspace)
+
+            self.assertFalse(ok)
+            self.assertEqual(errors[0]["code"], "COM_OPERATION_FAILED")
+            first_book.close.assert_called_once()
+
+    def test_held_workbook_reaches_the_cli_as_a_json_envelope(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            workspace = Path(tmp) / "workspace"
+            workspace.mkdir()
+            document = Path(tmp) / "held.xlsx"
+            Workbook().save(document)
+            ok, record, _ = register_document("spreadsheets", str(document), workspace)
+
+            previous_cwd = os.getcwd()
+            os.chdir(workspace)
+            try:
+                output = io.StringIO()
+                with patch("wps_ai_agent_cli.spreadsheet_inspect.load_workbook", side_effect=PermissionError("sharing violation")):
+                    code = cli.run(["spreadsheet-inspect", "--document-id", record["document_id"], "--range", "A1", "--request-id", "req-held-inspect"], output_stream=output)
+            finally:
+                os.chdir(previous_cwd)
+
+            envelope = json.loads(output.getvalue())
+            self.assertFalse(envelope["ok"])
+            self.assertEqual(envelope["command"], "spreadsheet-inspect")
+            self.assertEqual(envelope["request_id"], "req-held-inspect")
+            self.assertEqual(envelope["errors"][0]["code"], "COM_OPERATION_FAILED")
+            self.assertEqual(code, 0)
 
 
 @unittest.skipUnless(os.environ.get("WPS_AGENT_RUN_INTEGRATION") == "1", "Requires explicit local WPS integration run")

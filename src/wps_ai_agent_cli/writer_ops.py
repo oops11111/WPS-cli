@@ -7,6 +7,7 @@ from typing import Any
 import xml.etree.ElementTree as ET
 from zipfile import ZipFile
 
+from .atomic_mutation import atomic_mutation
 from .backups import create_backup, guarded_com_mutation, verify_post_com_source
 from .capabilities import probe_wps_capabilities
 from .powershell_runner import run_powershell_script
@@ -241,6 +242,7 @@ try {{
 
 
 @coordinated_mutation
+@atomic_mutation
 def writer_fill_bookmark(
     document_id: str, bookmark_name: str, value: str, request_id: str,
     dry_run: bool = False, workspace: str | Path = ".",
@@ -486,6 +488,7 @@ try {{
 
 
 @coordinated_mutation
+@atomic_mutation
 def writer_replace(
     document_id: str,
     find_text: str,
@@ -689,6 +692,7 @@ def writer_replace(
 
 
 @coordinated_mutation
+@atomic_mutation
 def writer_table_write(
     document_id: str,
     table_index: int,

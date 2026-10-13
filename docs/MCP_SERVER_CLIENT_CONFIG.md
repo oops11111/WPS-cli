@@ -59,7 +59,7 @@ python -m wps_ai_agent_cli mcp-server --once-json "{\"jsonrpc\":\"2.0\",\"id\":3
 
 ## `tools/list` 分页
 
-当前目录共 84 个工具，每个响应最多包含 50 个工具，因此完整目录通常是 50 + 34 两页。客户端把响应中的 `nextCursor` 作为后续请求 `params.cursor` 原样传回；游标是不透明值，不要解析或改写。继续请求直到响应中不再包含 `nextCursor`。每页都会保留 `resultType`、`ttlMs` 和 `cacheScope`。
+当前目录共 85 个工具，每个响应最多包含 50 个工具，因此完整目录通常是 50 + 35 两页。客户端把响应中的 `nextCursor` 作为后续请求 `params.cursor` 原样传回；游标是不透明值，不要解析或改写。继续请求直到响应中不再包含 `nextCursor`。每页都会保留 `resultType`、`ttlMs` 和 `cacheScope`。
 
 `mcp-server --once-json` 只处理一个请求，所以无 cursor 的示例只返回第一页（最多 50 个），带 cursor 的调用才会返回后续页。`mcp-smoke` 与 `mcp-config-audit` 会跟随所有 cursor 并统计完整目录。
 
@@ -71,7 +71,7 @@ stdio 每条 newline-delimited JSON 消息最大为 1,048,576 个字符（含换
 
 - `initialize` 返回 `protocolVersion`、`serverInfo` 和 `capabilities.tools`。
 - Legacy stdio handshake 支持 `2025-11-25`；initialize 必须包含 `protocolVersion`、object `capabilities` 和带 `name`/`version` 的 `clientInfo`。服务器按协议选择双方可用版本；当前仅支持 `2025-11-25`。
-- `tools/list` 当前目录有 84 个工具，单页最多返回 50 个；客户端需按 `nextCursor` 取完所有页。
+- `tools/list` 当前目录有 85 个工具，单页最多返回 50 个；客户端需按 `nextCursor` 取完所有页。
 - `mcp-catalog-snapshot` 返回当前 MCP 工具目录摘要，包含分类计数、修改类工具数、WPS-required 工具数和 safety-note 覆盖情况。
 - `mcp-catalog-drift` 会对比当前 MCP 工具目录和 `config\mcp_catalog_guard.json` baseline；无 drift 时返回 passed。
 - `tools/call` 返回 `isError = false`，并在 `structuredContent.mcp_call.response` 中包含原始 CLI `CommandResponse`。
@@ -79,7 +79,7 @@ stdio 每条 newline-delimited JSON 消息最大为 1,048,576 个字符（含换
 - `mcp-smoke --arguments-json` 接受 JSON 对象，可验证需要必填参数的本地只读查询工具；批转换和打包等写入命令会被拒绝。
 - `mcp-config-audit` 返回 `ok = true`，validation 中包含 config、cwd、command、env 和 configured tools/list smoke 检查。
 - 审计会真正执行配置里的启动命令，所以只接受本项目自己的启动行：命令必须是 Python 解释器，`args` 必须正好是 `-m wps_ai_agent_cli mcp-server`，`env` 只允许 `PYTHONPATH` 且必须解析到本项目的包。其他配置只报告 `launch_line_is_this_package` 失败，不会执行任何命令。
-- P3-009 额外验证 `mcp-smoke --expected-min-tools 38 --tool-name wps_agent_security_audit`，覆盖无参工具的 `tools/call` adapter 路径；当前工具面为 84 个工具。
+- P3-009 额外验证 `mcp-smoke --expected-min-tools 38 --tool-name wps_agent_security_audit`，覆盖无参工具的 `tools/call` adapter 路径；当前工具面为 85 个工具。
 
 ## Current Limits
 

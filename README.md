@@ -52,6 +52,23 @@ MCP 客户端配置见 [docs/MCP_SERVER_CLIENT_CONFIG.md](docs/MCP_SERVER_CLIENT
 wps-agent --strict-exit backup-document --document-id doc_xxx --request-id r1 || echo "failed"
 ```
 
+## 修改失败与回滚
+
+修改类命令在写入前先创建备份。如果命令在写入之后失败（读回的值与写入的不一致、源文件校验失败，或命令抛出异常），而文件已经被改动，CLI 会从这份备份原子地恢复文件，并核对恢复后的哈希与备份一致。此时信封里会有：
+
+- `MUTATION_ROLLED_BACK`：文件已恢复。`data.rollback.performed` 为 `true`，`data.rollback.open_in_wps` 表示文档在 WPS 中是否仍然打开（`true`、`false`，无法检查时为 `null`）。
+- `MUTATION_ROLLBACK_FAILED`：自动恢复失败，信封里给出需要用于手动恢复的备份路径，请用 `restore-backup` 处理。
+- `MUTATION_ROLLBACK_BLOCKED`：WPS 持有文件，自动恢复被文件锁拒绝（Windows 上为拒绝访问）。文件仍保留被拒绝的写入值。请先在 WPS 中不保存地关闭该文档，再用信封里给出的备份路径执行 `restore-backup`。
+
+文件未被改动的失败不会回滚，原有错误照常返回。
+
+限制：
+
+- WPS 本身的保存不是原子的。回滚只保证文件恢复到修改前的内容，不改变 WPS 中已经打开的文档。如果 `open_in_wps` 为 `true` 或 `null`，请在 WPS 中不保存地关闭文档或重新加载，否则 WPS 可能把被拒绝的内容写回去。
+- 恢复会覆盖备份之后、且不是通过本 CLI 做的修改。
+- 命令抛出异常且账本中没有对应备份记录时，异常照常抛出；请用 `mutation-request-inspect` 检查该请求后再重试。
+- 当前回滚路径只有离线测试覆盖，尚未在真实 WPS 上验证。
+
 ## WPS 实例与已打开文档
 
 读写文件的 COM 命令（表格/文字/演示的变更与检查、冒烟与转换）取得 WPS 时**先附着到正在运行的实例**（GetActiveObject 语义），只有没有运行中的实例时才 `New-Object` 启动一个。
@@ -104,11 +121,11 @@ PYTHONPATH=src python3 -m unittest discover -s tests
 
 - Phase 0/1/2: 已完成可行性验证、核心 CLI、恢复能力和 MCP server 原型
 - 已实现: 环境探测、WPS ProgID 注册检测、结构化响应、任务清单、文档注册、备份/恢复、Writer/Spreadsheet/Presentation 修改命令、MCP adapter/server、回归套件和本地复现脚本
-- MCP: legacy `2025-11-25` initialize 生命周期、分页工具发现、ping、参数/schema 校验和配置客户端持久 stdio 审计；审计会校验工具描述/schema，并限制子进程输出，当前工具面 70 项
-- 最近验证: 默认测试套件共 573 项，Linux 无 WPS 环境全部通过（设置 WPS_TEST_PWSH 时 65 项跳过，否则 72 项跳过）；P3-306 adapter 会在参数比较前校验 schema 约束元数据
+- MCP: legacy `2025-11-25` initialize 生命周期、分页工具发现、ping、参数/schema 校验和配置客户端持久 stdio 审计；审计会校验工具描述/schema，并限制子进程输出，当前工具面 85 项
+- 最近验证: 默认测试套件共 863 项，Linux 无 WPS 环境下全部通过，143 项跳过（需要真实 WPS 或 PowerShell 的用例）；MCP adapter 会在参数比较前校验 schema 约束元数据
 - 当前实测: WPS Writer、Spreadsheets、Presentation 均已通过 PowerShell COM fallback 完成打开、保存副本和关闭；表格公式计算验证和 DOCX 到 PDF 转换验证已通过
 - Phase 1: 已完成 release candidate 审计，详见 `docs/PHASE1_RELEASE_CANDIDATE_REPORT.md`
-- 当前 Phase 3: 本地工作区持续开发，不依赖远程 Git 工作流；当前下一任务为校验 MCP enum 唯一性语义，可用 `tasks --phase phase3 --status next` 查看
+- 当前 Phase 3（active）: 出口标准见 `config/project_plan.json`；尚需 Windows 上的真实 WPS 复验，步骤见 `docs/REAL_WPS_CHECKLIST_HELD_AND_ROLLBACK.md`
 
 ## 命令速查
 
@@ -123,6 +140,8 @@ python -m wps_ai_agent_cli calc-smoke --input input.xlsx --output output.xlsx
 python -m wps_ai_agent_cli convert-smoke --component writer --input input.docx --output output.pdf --format pdf
 python -m wps_ai_agent_cli html-render --input page.html --output page.pdf --format pdf
 python -m wps_ai_agent_cli html-editable --input page.html --output page.docx
+python -m wps_ai_agent_cli html-editable --input page.html --output page.xlsx --format xlsx
+python -m wps_ai_agent_cli html-editable --input deck.html --output deck.pptx --format pptx
 python -m wps_ai_agent_cli html-roundtrip-plan --input owned-page.html
 python -m wps_ai_agent_cli html-controlled-import --input owned-page.html --output controlled.docx
 python -m wps_ai_agent_cli html-roundtrip-verify --docx controlled.docx --mapping controlled.docx.wpsmap.json

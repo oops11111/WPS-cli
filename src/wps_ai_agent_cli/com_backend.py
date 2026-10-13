@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import logging
 from pathlib import Path
 import subprocess  # noqa: F401  (patched by tests)
 from typing import Any
@@ -21,6 +22,8 @@ from .wps_script_snippets import (
     QUIET_ALERTS,
     RELEASE_WPS_APP,
 )
+
+logger = logging.getLogger(__name__)
 
 
 def _load_win32com() -> Any | None:
@@ -585,9 +588,9 @@ def run_com_smoke(
             try:
                 document.Close(False)
             except Exception:
-                pass
+                logger.warning("Could not close the WPS document; it may still be open in WPS", exc_info=True)
         if app is not None:
             try:
                 app.Quit()
             except Exception:
-                pass
+                logger.warning("Could not quit the WPS instance; it may still be running", exc_info=True)

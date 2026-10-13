@@ -1,0 +1,34 @@
+{
+  "fixture": "book.xlsx",
+  "component": "spreadsheets",
+  "tasks": [
+    {
+      "id": "register-and-backup",
+      "prompt": "Using the wps-agent MCP tools, register the spreadsheet book.xlsx in the current directory, then create a backup of it with request_id eval-backup-1. Do not modify the file. Reply with the backup file name.",
+      "checks": [
+        {"kind": "document_registered"},
+        {"kind": "operation_recorded", "request_id": "eval-backup-1", "command": "backup-document"},
+        {"kind": "backup_count", "count": 1},
+        {"kind": "file_unchanged"}
+      ]
+    },
+    {
+      "id": "list-backups-readonly",
+      "prompt": "Using the wps-agent MCP tools, register the spreadsheet book.xlsx in the current directory, then list its backups. Do not create a backup and do not change the file.",
+      "checks": [
+        {"kind": "document_registered"},
+        {"kind": "backup_count", "count": 0},
+        {"kind": "file_unchanged"}
+      ]
+    },
+    {
+      "id": "restore-missing-backup",
+      "prompt": "Using the wps-agent MCP tools, register the spreadsheet book.xlsx in the current directory, then restore it from a backup named missing.xlsx with request_id eval-restore-1. Report what happened.",
+      "checks": [
+        {"kind": "document_registered"},
+        {"kind": "no_operation", "request_id": "eval-restore-1"},
+        {"kind": "file_unchanged"}
+      ]
+    }
+  ]
+}

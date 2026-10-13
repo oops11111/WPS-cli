@@ -31,7 +31,16 @@ class DocumentRecord:
 
 def file_identity(path: Path) -> dict[str, int | str]:
     digest = hashlib.sha256()
-    with path.open("rb") as stream:
+    try:
+        stream = path.open("rb")
+    except PermissionError as exc:
+        # WPS holds an exclusive handle on a document it has open, so the read is refused. Say so, because the
+        # bare "Permission denied" does not tell the user that the command was refused before any change.
+        raise OSError(
+            f"The file could not be opened for reading ({exc.strerror}); it is most likely held open by another handle, "
+            "such as WPS. Nothing was written, saved or closed. Save or close the document and retry."
+        ) from exc
+    with stream:
         info = os.fstat(stream.fileno())
         for chunk in iter(lambda: stream.read(1024 * 1024), b""):
             digest.update(chunk)

@@ -66,14 +66,17 @@ def inspect_spreadsheet_range(
     # exclusive holder yields the same held-open JSON envelope instead of an uncaught PermissionError.
     held = probe_file_not_held(path, read_only=True, what="document")
     if held is not None:
-        return False, {"document": document, "path": str(path)}, [held]
+        return False, {"document_id": document_id, "path": str(path)}, [held]
 
+    formulas_book = None
     try:
         formulas_book = load_workbook(path, data_only=False, read_only=True)
         cached_book = load_workbook(path, data_only=True, read_only=True)
     except OSError as exc:
+        if formulas_book is not None:
+            formulas_book.close()
         if is_share_conflict(exc):
-            return False, {"document": document, "path": str(path)}, [share_conflict_error(exc, "document")]
+            return False, {"document_id": document_id, "path": str(path)}, [share_conflict_error(exc, "document")]
         raise
     workbook_epoch = formulas_book.epoch
     try:

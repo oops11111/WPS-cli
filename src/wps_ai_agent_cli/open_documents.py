@@ -9,6 +9,7 @@ import shutil
 from pathlib import Path
 from typing import Any
 
+from .atomic_mutation import atomic_mutation
 from .backups import create_backup, guarded_com_mutation, verify_post_com_source
 from .capabilities import WPS_COMPONENTS
 from .errors import COM_OPERATION_FAILED, INPUT_FILE_NOT_FOUND
@@ -3564,6 +3565,7 @@ def _check_replaceable_spreadsheet_selection(
 
 
 @coordinated_mutation
+@atomic_mutation
 def replace_writer_selection(
     document_id: str,
     text: str,
@@ -3700,6 +3702,7 @@ def _check_insertable_selection(selection: dict[str, Any], expected_start: int |
 
 
 @coordinated_mutation
+@atomic_mutation
 def insert_writer_selection(
     document_id: str,
     text: str,
@@ -3814,6 +3817,7 @@ def insert_writer_selection(
 
 
 @coordinated_mutation
+@atomic_mutation
 def delete_writer_selection(
     document_id: str,
     request_id: str,
@@ -3926,6 +3930,7 @@ def delete_writer_selection(
 
 
 @coordinated_mutation
+@atomic_mutation
 def replace_presentation_selection(
     document_id: str,
     text: str,
@@ -4078,6 +4083,7 @@ def _check_insertable_presentation_selection(
 
 
 @coordinated_mutation
+@atomic_mutation
 def insert_presentation_selection(
     document_id: str,
     text: str,
@@ -4195,6 +4201,7 @@ def insert_presentation_selection(
 
 
 @coordinated_mutation
+@atomic_mutation
 def delete_presentation_selection(
     document_id: str,
     request_id: str,
@@ -4308,6 +4315,7 @@ def delete_presentation_selection(
 
 
 @coordinated_mutation
+@atomic_mutation
 def replace_spreadsheet_selection(
     document_id: str,
     text: str | None = None,
@@ -4657,8 +4665,8 @@ def replace_spreadsheet_selection(
                 "code": "VALIDATION_FAILED",
                 "message": (
                     "Selection replacement read-back did not match the replacement values. "
-                    "The write was already saved by WPS; the pre-write backup is at "
-                    f"{backup_result.get('backup_path')} (restore it with restore-backup if the result is wrong)."
+                    "WPS saved the write; it is undone from the pre-write backup at "
+                    f"{backup_result.get('backup_path')} when this command returns."
                 ),
             }
         ], False
@@ -4685,6 +4693,7 @@ def _spreadsheet_selection_has_content(selection: dict[str, Any]) -> bool:
 
 
 @coordinated_mutation
+@atomic_mutation
 def delete_spreadsheet_selection(
     document_id: str,
     request_id: str,
@@ -4950,6 +4959,7 @@ def delete_spreadsheet_selection(
 
 
 @coordinated_mutation
+@atomic_mutation
 def save_open_document(
     document_id: str,
     request_id: str,

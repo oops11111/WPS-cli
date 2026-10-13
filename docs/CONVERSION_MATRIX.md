@@ -95,6 +95,22 @@ claim is made. Install the optional converter with `pip install .[html]`.
 python -m wps_ai_agent_cli html-editable --input .\page.html --output .\page.docx
 ```
 
+`--format` chooses the Office output. `docx` (default) is the Writer mapping
+above. `xlsx` maps each `<table>` to a worksheet, named by the nearest preceding
+heading (later tables with no heading of their own keep the same name, with a
+number added). Numbers become numeric cells, but text with leading zeros stays
+text. Cells that start with `=` are written as text, not formulas, and reported
+as a warning. `pptx` maps each `<section>`, and each `<h1>` or `<h2>`, to a
+slide: the heading is the title, and paragraphs and list items are the body.
+Tables and images are reported as not converted. The xlsx and pptx converters
+run offline and do not use WPS. Both are covered by offline tests only; they
+have not been checked by opening the output in WPS.
+
+```powershell
+python -m wps_ai_agent_cli html-editable --input .\page.html --output .\page.xlsx --format xlsx
+python -m wps_ai_agent_cli html-editable --input .\deck.html --output .\deck.pptx --format pptx
+```
+
 ## HTML controlled round-trip identity prototype (P3-116)
 
 Owned HTML v1 marks the root with `data-wps-schema="wps-agent-html/v1"` and
