@@ -13,12 +13,12 @@ from pathlib import Path
 import re
 from typing import Any
 
+from .html_editable import validate_office_paths
 from .html_text import decode_html_bytes
 
 _SKIP = {"script", "style", "noscript", "template", "svg", "iframe", "object", "canvas"}
 _HEADINGS = {"h1", "h2", "h3", "h4", "h5", "h6"}
 _NUMBER = re.compile(r"-?(0|[1-9]\d*)(\.\d+)?")
-MAX_HTML_BYTES = 10 * 1024 * 1024
 MAX_SHEETS = 50
 MAX_ROWS_PER_SHEET = 10_000
 MAX_SLIDES = 200
@@ -151,24 +151,6 @@ class _SlideCollector(HTMLParser):
         self._buffer.append(data)
 
 
-def _validate(input_path: str | Path, output_path: str | Path, suffix: str) -> tuple[Path, Path, list[dict[str, str]]]:
-    source = Path(input_path).expanduser().resolve()
-    destination = Path(output_path).expanduser().resolve()
-    if source.suffix.casefold() not in {".html", ".htm"}:
-        return source, destination, [{"code": "INVALID_INPUT", "message": "Input must be an .html or .htm file."}]
-    if not source.is_file():
-        return source, destination, [{"code": "INPUT_FILE_NOT_FOUND", "message": f"HTML input not found: {source}"}]
-    if source.stat().st_size > MAX_HTML_BYTES:
-        return source, destination, [{"code": "INPUT_TOO_LARGE", "message": "HTML input exceeds the 10 MiB limit."}]
-    if destination.suffix.casefold() != suffix or destination == source:
-        return source, destination, [{"code": "INVALID_OUTPUT", "message": f"Output must be a separate {suffix} file."}]
-    if destination.exists():
-        return source, destination, [{"code": "OUTPUT_ALREADY_EXISTS", "message": f"Refusing to overwrite existing output: {destination}"}]
-    if not destination.parent.is_dir():
-        return source, destination, [{"code": "OUTPUT_DIRECTORY_NOT_FOUND", "message": f"Output directory does not exist: {destination.parent}"}]
-    return source, destination, []
-
-
 def _read_html(source: Path) -> tuple[str, str | None]:
     text, _encoding, decode_warning = decode_html_bytes(source.read_bytes())
     return text, decode_warning
@@ -196,7 +178,7 @@ def _unique_sheet_name(base: str, used: set[str]) -> str:
 
 
 def convert_html_to_xlsx(input_path: str | Path, output_path: str | Path) -> tuple[bool, dict[str, Any], list[dict[str, str]]]:
-    source, destination, path_errors = _validate(input_path, output_path, ".xlsx")
+    source, destination, path_errors = validate_office_paths(input_path, output_path, ".xlsx")
     if path_errors:
         return False, {}, path_errors
     try:
@@ -254,7 +236,7 @@ def convert_html_to_xlsx(input_path: str | Path, output_path: str | Path) -> tup
 
 
 def convert_html_to_pptx(input_path: str | Path, output_path: str | Path) -> tuple[bool, dict[str, Any], list[dict[str, str]]]:
-    source, destination, path_errors = _validate(input_path, output_path, ".pptx")
+    source, destination, path_errors = validate_office_paths(input_path, output_path, ".pptx")
     if path_errors:
         return False, {}, path_errors
     try:
