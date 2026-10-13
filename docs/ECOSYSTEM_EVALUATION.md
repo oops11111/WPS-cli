@@ -29,8 +29,7 @@ These were run against the server directly, not through a client.
 
 1. **Desktop client integration is unverified.** The P3-263 gate needs a configured server, a working desktop inspection channel, and a real `initialize`, paginated `tools/list` and a safe `tools/call` from the desktop client. None of this has been observed.
 2. **Only stdio.** Clients that need HTTP or SSE cannot connect.
-3. **The public docs may show an old tool count.** `docs/MCP_SERVER_CLIENT_CONFIG.md` on `main` still says 84 tools and `50 + 34` pages. The fix is on branch `docs/tool-count-and-task-board-drift`, which has not been merged.
-4. **Three evaluation tasks are a smoke set.** The agent evaluation does not show how a client behaves across the full tool surface.
+3. **Three evaluation tasks are a smoke set.** The agent evaluation does not show how a client behaves across the full tool surface.
 
 ## What would close the gaps
 
