@@ -38,7 +38,7 @@
         "Mutations are atomic transactions: a change is either fully applied and verified or fully rolled back",
         "Automated regression suite runs safe and WPS profiles with recorded artifacts",
         "MET: a real Agent end-to-end evaluation pipeline runs and records results (scripts/agent_eval, PR #21, docs/AGENT_E2E_EVAL.md)",
-        "MET: ecosystem extension evaluation is written up (docs/ECOSYSTEM_EVALUATION.md, PR #22). Claude Desktop integration is tracked as a separate follow-up, not a condition for this criterion"
+        "MET: ecosystem extension evaluation is written up (docs/ECOSYSTEM_EVALUATION.md, PR #22). Codex integration is tracked as a separate follow-up, not a condition for this criterion"
       ]
     }
   ]

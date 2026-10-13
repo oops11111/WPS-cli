@@ -92,3 +92,27 @@ For each case record:
 - The SHA-256 before and after.
 
 Save the results in `scripts/real_wps_verify_remaining/RESULTS-<commit>.md`. Do not edit earlier result files.
+
+## Pending Windows runs
+
+These steps have no results yet. Record each one in a new results file, using the same format as `RESULTS-2593004.md`. Do not edit the existing results file.
+
+1. **Case D (rollback) above.** Still not reproduced. Find a write that WPS saves but reads back differently, or accept "not reproduced" again.
+2. **`open_in_wps` after a rollback.** Run a write that is rolled back while the document is open in WPS. Check that `data.rollback.open_in_wps` is `true`. Then close the document in WPS without saving, run the same write again, and check that it is `false`. Record what `list_open_documents` reports at each step.
+3. **WPS regression profile.** Run the full manifest with WPS on the Windows machine:
+
+   ```powershell
+   python -m wps_ai_agent_cli regression-run --include-wps --artifact-dir <dir>
+   ```
+
+   The latest WPS artifact is from 2026-10-09. It predates PRs #12 to #26, so it does not cover the current code.
+4. **HTML to Office files in WPS.** Make an xlsx and a pptx from a sample page:
+
+   ```powershell
+   python -m wps_ai_agent_cli html-editable --input sample.html --output sample.xlsx --format xlsx
+   python -m wps_ai_agent_cli html-editable --input deck.html --output deck.pptx --format pptx
+   ```
+
+   Open both in WPS, check that the sheets and slides look as the converter reported, then export each to HTML with `export-open-document-html` and record what survives. These files were checked only with openpyxl and python-pptx.
+
+Phase 3 item 1 needs step 4 before it can be closed. Phase 3 stays active until steps 1 to 3 are recorded too.
