@@ -113,6 +113,6 @@ These steps have no results yet. Record each one in a new results file, using th
    python -m wps_ai_agent_cli html-editable --input deck.html --output deck.pptx --format pptx
    ```
 
-   Open both in WPS, check that the sheets and slides look as the converter reported, then export each to HTML with `export-open-document-html` and record what survives. These files were checked only with openpyxl and python-pptx.
+   Open both in WPS, check that the sheets and slides look as the converter reported, then export each to HTML with `export-open-document --document-id <id> --output <name>.html` and record what survives. These files were checked only with openpyxl and python-pptx.
 
 Phase 3 item 1 needs step 4 before it can be closed. Phase 3 stays active until steps 1 to 3 are recorded too.
