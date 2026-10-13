@@ -129,7 +129,8 @@ def _walk(node: _Node):
             yield from _walk(child)
 
 
-def _validate_editable_paths(input_path: str | Path, output_path: str | Path) -> tuple[Path, Path, list[dict[str, str]]]:
+def validate_office_paths(input_path: str | Path, output_path: str | Path, suffix: str = ".docx") -> tuple[Path, Path, list[dict[str, str]]]:
+    """Check an HTML source and a new output of the given suffix. Shared by the docx, xlsx and pptx converters."""
     source = Path(input_path).expanduser().resolve()
     destination = Path(output_path).expanduser().resolve()
     if source.suffix.casefold() not in {".html", ".htm"}:
@@ -138,8 +139,8 @@ def _validate_editable_paths(input_path: str | Path, output_path: str | Path) ->
         return source, destination, [{"code": "INPUT_FILE_NOT_FOUND", "message": f"HTML input not found: {source}"}]
     if source.stat().st_size > _MAX_HTML_BYTES:
         return source, destination, [{"code": "INPUT_TOO_LARGE", "message": "HTML input exceeds the 10 MiB limit."}]
-    if destination.suffix.casefold() != ".docx" or destination == source:
-        return source, destination, [{"code": "INVALID_OUTPUT", "message": "Output must be a separate .docx file."}]
+    if destination.suffix.casefold() != suffix or destination == source:
+        return source, destination, [{"code": "INVALID_OUTPUT", "message": f"Output must be a separate {suffix} file."}]
     if destination.exists():
         return source, destination, [{"code": "OUTPUT_ALREADY_EXISTS", "message": f"Refusing to overwrite existing output: {destination}"}]
     if not destination.parent.is_dir():
@@ -149,7 +150,7 @@ def _validate_editable_paths(input_path: str | Path, output_path: str | Path) ->
 
 
 def convert_html_editable(input_path: str | Path, output_path: str | Path) -> tuple[bool, dict[str, Any], list[dict[str, str]]]:
-    source, destination, path_errors = _validate_editable_paths(input_path, output_path)
+    source, destination, path_errors = validate_office_paths(input_path, output_path, ".docx")
     if path_errors:
         return False, {}, path_errors
     try:
