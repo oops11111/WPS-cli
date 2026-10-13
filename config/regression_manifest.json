@@ -186,7 +186,7 @@
         "--component",
         "writer",
         "--input",
-        "smoke_writer_copy.docx",
+        "fixtures/phase3/writer_table_fixture.docx",
         "--output",
         "fixtures/phase3/writer_smoke_copy.docx"
       ],
@@ -210,7 +210,7 @@
         "--component",
         "writer",
         "--input",
-        "smoke_writer_copy.docx",
+        "fixtures/phase3/writer_table_fixture.docx",
         "--output",
         "fixtures/phase3/writer_smoke.pdf",
         "--format",
