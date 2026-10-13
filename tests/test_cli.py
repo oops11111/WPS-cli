@@ -320,7 +320,7 @@ class CliParsingTests(unittest.TestCase):
             "calculation": {"mode": "manual"},
         }
         output = io.StringIO()
-        with patch("wps_ai_agent_cli.cli.list_spreadsheet_sheets", return_value=(True, inventory, [])):
+        with patch("wps_ai_agent_cli.cli_spreadsheet.list_spreadsheet_sheets", return_value=(True, inventory, [])):
             with redirect_stdout(output):
                 exit_code = run(["spreadsheet-sheets", "--document-id", "doc_1"])
         self.assertEqual(exit_code, 0)
