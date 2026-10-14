@@ -10,6 +10,7 @@ from concurrent.futures import Future, ThreadPoolExecutor
 from threading import Lock
 from typing import Any, TextIO
 
+from . import __version__
 from .mcp_adapter import call_mcp_tool, validate_mcp_tool_arguments
 from .mcp_schema import list_mcp_tool_schemas
 
@@ -18,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 MCP_PROTOCOL_VERSION = "2025-11-25"
 SUPPORTED_MCP_PROTOCOL_VERSIONS = (MCP_PROTOCOL_VERSION,)
-SERVER_INFO = {"name": "wps-ai-agent-cli", "version": "phase2-prototype"}
+SERVER_INFO = {"name": "wps-ai-agent-cli", "version": __version__}
 MCP_TOOLS_PAGE_SIZE = 50
 MCP_TOOLS_CURSOR_MAX_LENGTH = 128
 MCP_STDIO_MAX_LINE_CHARS = 1024 * 1024
