@@ -4,8 +4,8 @@
 
 | 节 | 任务 | 对应标准 | 状态 |
 | --- | --- | --- | --- |
-| 1 | P5-006：新评测任务，每个跑 3 次 | F2 | 待做 |
-| 2 | P5-009：只装 Release 的 wheel，跑 `inspect-env` 和 safe 档 | F3 | 待做 |
+| 1 | P5-006：新评测任务，每个跑 3 次 | F2 | 已完成，有例外（2026-10-15，见 `docs/AGENT_E2E_EVAL.md` 的 P5-006 一节） |
+| 2 | P5-009：只装 Release 的 wheel，跑 `inspect-env` 和 safe 档 | F3 | 已完成（2026-10-15，见 `scripts/real_wps_verify_remaining/RESULTS-bcdbc1d.md`） |
 
 P5-010（第二个 WPS 版本、干净机器）不在这次范围内，拿到条件时按 `docs/PHASE4_WINDOWS_RUNBOOK.md` 第 3 节和第 5 节再做。
 
@@ -47,9 +47,11 @@ P5-005 加了 7 个任务。其中 5 个需要 WPS，F2 只按这 5 个判定。
 | `wps-spreadsheet-create-sheet` | 是 | |
 | `wps-writer-table-write` | 是 | |
 | `wps-docx-to-pdf` | 是 | |
-| `wps-open-document-export-text` | 是 | runner 会先用系统默认程序打开 `report.docx`，最多等 45 秒让 WPS 列出它，跑完后不保存直接关闭。要求 `.docx` 的默认程序是 WPS 文字 |
+| `wps-open-document-export-text` | 是 | runner 会先用系统默认程序打开 `report.docx`，最多等 45 秒让 WPS 列出它，跑完后不保存直接关闭。要求 `.docx` 的默认程序是 WPS 文字，而且打开命令要带 `/Automation`，见下面的说明 |
 | `spreadsheet-sheets-and-read` | 否 | |
 | `html-table-to-docx` | 否 | |
+
+**`wps-open-document-export-text` 的打开命令（P5-006 实测）。** 常规的打开命令 `wps.exe "%1"` 启动的 WPS 文字不注册 `kwps.Application`，`open-documents` 看不到它，这个任务会被 skip。要跑这个任务，先把当前用户的 `.docx` 打开命令临时改成 `wps.exe /Automation "%1"`，跑完后改回来。另外，上一次运行留下的文字进程会一直保持注册，下一次打开的文档在另一个进程里，同样看不到。所以这个任务要分 3 次单独跑（`--repeat 1 --min-passes 1`），每次之间关掉测试用的那个文字窗口。见 `docs/AGENT_E2E_EVAL.md` 的 Limits 和 P5-011。
 
 跑之前：
 

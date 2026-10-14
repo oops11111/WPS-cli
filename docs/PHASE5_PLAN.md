@@ -33,7 +33,7 @@ Phase 4 证明了这套工具在一台 Windows、一个 WPS 版本、两个 Agen
 
 ## 已做的决定
 
-2026-10-14 确认，均按默认建议：
+2026-10-14 确认，均按默认建议；“P5-006 的例外”一行是 2026-10-15 补充的：
 
 | 决定 | 结论 | 依据 |
 | --- | --- | --- |
@@ -41,6 +41,7 @@ Phase 4 证明了这套工具在一台 Windows、一个 WPS 版本、两个 Agen
 | 发布渠道 | 只发 GitHub Release，不发 PyPI | 目标用户在 Windows 上配合 WPS 使用，先保证 Release 可装可用；PyPI 等有外部用户需求再做 |
 | 第二个 WPS 版本 | 不作为出口标准；拿到时按 `docs/COMPATIBILITY_MATRIX.md` 补一节 | Phase 4 已确认拿不到；不让整个阶段卡在外部条件上 |
 | Claude Desktop 等其他客户端 | 不做 | P4-014 决定：两个已验证客户端都用 stdio，没有新需求 |
+| P5-006 的例外 | 算 F2 达成，写明例外 | 2026-10-15 确认：`wps-open-document-export-text` 用 `/Automation` 打开命令、分 3 次单独跑，3/3 通过；runner 的问题已修，产品的问题记为已知限制，由 P5-011 跟进 |
 | 全仓库格式化的时机 | Phase 5 第一件事，单独一个只改格式的 PR | 153 个文件，越晚做与其他改动冲突越多 |
 
 ## 任务拆分
@@ -52,11 +53,12 @@ Phase 4 证明了这套工具在一台 Windows、一个 WPS 版本、两个 Agen
 | P5-003 | F1 | 修复 P5-002 找到的问题，每个修复带回归测试（已完成：找到 3 个，均已修复；F1 达成） | 本地 |
 | P5-004 | F2 | runner 支持任务声明 `expected_tools`，汇总预期之外的调用（只统计，不判失败）（已完成，现有 12 个任务都已声明） | 本地 |
 | P5-005 | F2 | 编写至少 6 个新任务，每个补离线判定测试（已完成：7 个，其中 5 个需要 WPS，含一个由 runner 在 WPS 里打开文档的任务） | 本地 |
-| P5-006 | F2 | 在 Windows 上每个需要 WPS 的新任务跑 3 次，记录结果（步骤见 `docs/PHASE5_WINDOWS_RUNBOOK.md` 第 1 节） | Windows |
+| P5-006 | F2 | 在 Windows 上每个需要 WPS 的新任务跑 3 次，记录结果（步骤见 `docs/PHASE5_WINDOWS_RUNBOOK.md` 第 1 节）（已完成，有例外：5 个任务都 3/3；`wps-open-document-export-text` 改用 `/Automation` 打开命令、分 3 次单独跑，见 `docs/AGENT_E2E_EVAL.md`；F2 达成） | Windows |
 | P5-007 | F3 | 让只装 wheel 时 safe 档回归能跑：把清单和它用到的配置放进包里，按包内路径查找；仓库内运行不受影响（已完成：CI 在仓库外用安装的 wheel 跑 safe 档） | 本地 |
 | P5-008 | F3 | 定版本号，整理 `CHANGELOG.md`，CI 在打标签时把 wheel 和源码包挂到 GitHub Release；打标签由你执行（已完成：`v0.2.0` 于 2026-10-14 发布，Release 附 wheel 和源码包；发布流程在 CI 里只装 wheel 跑过 safe 档，从 Release 下载的 wheel 在 Linux 新虚拟环境里 safe 档 7/7 通过；Windows 检查见 P5-009） | 本地 + 你 |
-| P5-009 | F3 | 在 Windows 的新虚拟环境里只装 Release 的 wheel，跑 `inspect-env` 和 safe 档，记录结果（步骤见 `docs/PHASE5_WINDOWS_RUNBOOK.md` 第 2 节） | Windows |
+| P5-009 | F3 | 在 Windows 的新虚拟环境里只装 Release 的 wheel，跑 `inspect-env` 和 safe 档，记录结果（步骤见 `docs/PHASE5_WINDOWS_RUNBOOK.md` 第 2 节）（已完成：0.2.0，`inspect-env` 通过，safe 档 7/7，清单来自 site-packages，见 `RESULTS-bcdbc1d.md`；F3 达成） | Windows |
 | P5-010 | 缺口 | 拿到第二个 WPS 版本或干净机器时补做兼容矩阵和安装检查；不影响 Phase 5 完成 | Windows |
+| P5-011 | 缺口 | P5-006 发现：常规打开的 WPS 文字不注册 `kwps.Application`，已打开文档命令看不到用户自己打开的 Writer 文档。查清原因（遍历 ROT、启动参数、演示是否同样），定修复或写明用法；不影响 Phase 5 完成 | Windows |
 
 ## 建议顺序
 

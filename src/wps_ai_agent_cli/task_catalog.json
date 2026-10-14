@@ -2873,7 +2873,7 @@
     "id": "P5-006",
     "phase": "phase5",
     "title": "Agent eval: Windows runs of the new tasks",
-    "status": "todo",
+    "status": "done",
     "acceptance": "F2: each new task that needs WPS is run three times on Windows and passes at least twice; pass rate, turns, tool calls and off-path calls are recorded."
   },
   {
@@ -2894,7 +2894,7 @@
     "id": "P5-009",
     "phase": "phase5",
     "title": "Windows check of the released wheel",
-    "status": "todo",
+    "status": "done",
     "acceptance": "F3: in a new virtual environment on Windows with only the released wheel installed, inspect-env and the safe regression profile pass; the result is recorded."
   },
   {
@@ -2903,5 +2903,12 @@
     "title": "Second WPS version and clean-machine install, when available",
     "status": "todo",
     "acceptance": "Gap from Phase 4, not an exit criterion: when a second WPS version or a clean machine is available, add a section to docs/COMPATIBILITY_MATRIX.md or rerun the install check."
+  },
+  {
+    "id": "P5-011",
+    "phase": "phase5",
+    "title": "Open-document tools and a normally opened WPS Writer",
+    "status": "todo",
+    "acceptance": "Gap found in P5-006, not an exit criterion: a WPS Writer opened the usual way does not register kwps.Application, so the open-document commands cannot see its documents. Find out why on Windows (ROT, start options, whether Presentation is affected) and either fix it or document how to start WPS so that it works."
   }
 ]

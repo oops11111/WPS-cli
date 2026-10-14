@@ -63,7 +63,7 @@ The runner needs `claude` on `PATH`. It runs the CLI with `--output-format strea
 
 `--repeat N` runs each task N times, each in its own workspace under `run-<n>/`. A task passes when at least `--min-passes` runs pass; by default every run must pass. The summary records each run, the number of passes and the pass rate. Phase 4 judges WPS write tasks with `--repeat 3 --min-passes 2`.
 
-A task with `"requires_wps": true` runs only when this machine has a registered WPS ProgID for the task's component, found with the project's own capability probe. Otherwise it is reported as skipped with the reason. A skip ends the task after the first attempt, because it does not depend on the run.
+A task with `"requires_wps": true` runs only when this machine has a registered WPS ProgID for the task's component, found with the project's own capability probe. Otherwise it is reported as skipped with the reason. A skip on the first attempt ends the task, because it does not depend on the run. When setup fails only on a later attempt (for example `open_in_wps` timing out after an earlier run passed), that attempt counts as a failed run with `setup_failed` and the reason, and the earlier runs are kept.
 
 Each run writes `summary.json` under `<out>/run-<timestamp>/`. For each task it holds the agent's turns, duration, cost, reply excerpt, every tool call with its input and error codes, the tool metrics and every check result. The summary also totals `wps-agent` calls and calls that returned an error.
 
@@ -165,10 +165,15 @@ python scripts/agent_eval/run_agent_eval.py --only wps-open-document-export-text
 
 Artifacts: `%TEMP%\wps-p5\eval-open-1\run-20261014T233956946366Z\summary.json`, `%TEMP%\wps-p5\eval-open-2\run-20261014T234027391555Z\summary.json`, `%TEMP%\wps-p5\eval-open-3\run-20261014T234056048453Z\summary.json`. Each run was 4 turns, 2 `wps-agent` calls (`open_documents`, `export_open_document_text`), 0 tool errors, 0 off-path calls. `report.txt` had the three paragraphs, `save_open_document` was not called, and `report.docx` was unchanged. No `report.docx` window was left open.
 
+**Accepted with an exception (2026-10-15).** P5-006 counts these three runs: the task passes 3/3, so F2 is met. The exception is how they were run: the current user's `.docx` open command was changed to `wps.exe /Automation "%1"` for the runs and then restored, and each run was its own invocation. A run that skipped after an earlier one had passed no longer drops the earlier run: the runner now records it as a failed run with `setup_failed`.
+
+What this found about the product is in Limits below: the open-document tools cannot see a Writer that the user opened normally on this machine.
+
 ## Limits
 
 - Nineteen tasks are still a small set, not a benchmark. Ten run offline (registration, backup, idempotent retry, restore, dry run, a held file, HTML to xlsx and docx, reading sheets); nine marked (WPS) need WPS on Windows and are skipped elsewhere. Together they use 18 of the 85 tools.
-- The WPS tasks were run on one Windows machine with one WPS version (P4-007). All four pass 3/3: the three write tasks on `4999b77`, `wps-held-spreadsheet-write` on `6484151`. The first runs of the held task failed because of two server bugs, fixed in PRs #55 and #56. Those fixes change only what a failed call returns, so the three passing write tasks were not rerun.
+- The WPS tasks were run on one Windows machine with one WPS version: the first four in P4-007, the five Phase 5 tasks in P5-006, all 3/3. The P4-007 tasks pass on these commits: the three write tasks on `4999b77`, `wps-held-spreadsheet-write` on `6484151`. The first runs of the held task failed because of two server bugs, fixed in PRs #55 and #56. Those fixes change only what a failed call returns, so the three passing write tasks were not rerun.
+- The open-document tools attach with `GetActiveObject`. On the P5-006 machine (WPS 12.8.2.18913), a WPS Writer started by opening a `.docx` the usual way (`wps.exe "%1"`) does not register `kwps.Application`, so `open_documents` does not list its documents; a Writer started with `/Automation` does. Spreadsheets opened the usual way were seen in P4-011. `wps-open-document-export-text` therefore needs the `/Automation` open command, and running it with `--repeat` needs the Writer from the earlier run closed first. P5-011 looks into this.
 - There is no held-file recovery task. The runner cannot make WPS open a document and block a rollback, so recovery with `restore-backup --close-in-wps` is checked by hand in P4-011 instead.
 - The judge checks state and tool calls, so a correct-sounding reply with the wrong state fails. A failure to report the result accurately is not detected here.
 - Results depend on the model the CLI uses. Record it with `--model` when comparing runs.
