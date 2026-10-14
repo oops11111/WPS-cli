@@ -22,6 +22,10 @@ All notable changes to `wps-ai-agent-cli`. The versioning rule and release steps
 - Commands without their own held-file check (for example `spreadsheet-read`, `spreadsheet-sheets`, `snapshot-document`, `batch-report`) raised `PermissionError` on a file held open by another handle, which MCP reported as `MCP_TOOL_EXECUTION_FAILED`. They now answer with a `DOCUMENT_HELD_OPEN` envelope. For commands that can change documents, the message points to `mutation-request-inspect` instead of saying nothing changed. Found by the P4-007 Windows evaluation.
 - `batch-report` stopped at the first file held open by another handle. That file is now reported with `snapshot_status: "held"` and its `DOCUMENT_HELD_OPEN` error, the other files are reported as usual, and the summary counts it as `snapshot_held`. Validation still fails while any snapshot is missing. `snapshot-document` reports a held file as `DOCUMENT_HELD_OPEN` itself.
 - `com-smoke` with pywin32 installed used a separate pywin32 branch that skipped the open and held-file checks; on real WPS it failed for presentations (`presentation-com-smoke`, P4-003). It now always runs the same PowerShell script as the other commands. pywin32 is still used to look up ProgIDs.
+- MCP failure contract (P5-002, P5-003): a test now makes every one of the 85 tools fail and checks that the agent gets an error code. It found three problems, fixed here:
+  - `wps-process-audit` raised when PowerShell could not be started (reported as `MCP_TOOL_EXECUTION_FAILED`); it now returns `WPS_PROCESS_AUDIT_FAILED`.
+  - `MCP_CLI_ARGUMENTS_REJECTED` told the agent to read the server's stderr, which it cannot; the message now carries argparse's reason, for example that `restore_backup` needs `backup_name` or `backup_path`.
+  - `writer-structure` reported a document held open by another handle as `WRITER_STRUCTURE_INVALID`; it now returns `DOCUMENT_HELD_OPEN`.
 
 ## [0.1.0]
 
