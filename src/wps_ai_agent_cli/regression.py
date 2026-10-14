@@ -4,12 +4,18 @@ import io
 import json
 import sys
 import tempfile
+import uuid
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 DEFAULT_REGRESSION_MANIFEST = "config/regression_manifest.json"
 REPO_ROOT = Path(__file__).resolve().parents[2]
 MCP_AUDIT_TEMPLATE = "config/mcp_client_config.regression.template.json"
+# Scenario arguments may name an output file as "{output_dir}/name". Each run replaces the placeholder with
+# its own directory under REGRESSION_OUTPUT_ROOT, which git ignores, so a run never rewrites tracked files.
+OUTPUT_DIR_PLACEHOLDER = "{output_dir}"
+REGRESSION_OUTPUT_ROOT = REPO_ROOT / "artifacts" / "regression" / "outputs"
 
 
 def _render_mcp_audit_config(template: Path, destination_dir: Path) -> Path:
@@ -29,8 +35,28 @@ def _render_mcp_audit_config(template: Path, destination_dir: Path) -> Path:
     return rendered
 
 
-def _scenario_command(command: list[str], destination_dir: Path) -> list[str]:
-    """Replace the audit's template config with one rendered for this run; every other command is unchanged."""
+def _new_output_dir() -> Path:
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    return REGRESSION_OUTPUT_ROOT / f"{stamp}-{uuid.uuid4().hex[:8]}"
+
+
+def _render_output_path(part: str, output_dir: Path) -> str:
+    # Join through Path so the result uses the platform's separator: a COM call on Windows gets a plain
+    # "C:\...\name" path, not one that mixes in the manifest's forward slash.
+    prefix = OUTPUT_DIR_PLACEHOLDER + "/"
+    if part.startswith(prefix):
+        return str(output_dir.joinpath(*part[len(prefix):].split("/")))
+    return part.replace(OUTPUT_DIR_PLACEHOLDER, str(output_dir))
+
+
+def _scenario_command(command: list[str], destination_dir: Path, output_dir: Path | None = None) -> list[str]:
+    """Render a scenario command for this run.
+
+    "{output_dir}" in an argument becomes this run's output directory. The audit's template config is replaced
+    with one rendered for this run. Every other argument is unchanged.
+    """
+    if output_dir is not None:
+        command = [_render_output_path(part, output_dir) for part in command]
     if not command or command[0] != "mcp-config-audit" or "--config" not in command:
         return command
     index = command.index("--config") + 1
@@ -161,6 +187,7 @@ def run_regression_manifest(
     scenarios = list_regression_scenarios(manifest, profile=resolved_profile, include_wps=include_wps)
     results: list[dict[str, Any]] = []
     scratch = tempfile.TemporaryDirectory(prefix="wps-regression-")
+    output_dir: Path | None = None
     for scenario in scenarios:
         command = scenario.get("command")
         if (
@@ -179,7 +206,10 @@ def run_regression_manifest(
                 }],
             }, ""
         else:
-            exit_code, payload, raw_output = _run_cli(_scenario_command(list(command), Path(scratch.name)))
+            if output_dir is None and any(OUTPUT_DIR_PLACEHOLDER in part for part in command):
+                output_dir = _new_output_dir()
+                output_dir.mkdir(parents=True, exist_ok=True)
+            exit_code, payload, raw_output = _run_cli(_scenario_command(list(command), Path(scratch.name), output_dir))
         checks = []
         if payload is not None:
             checks = [_evaluate_check(payload, check) for check in scenario.get("required_checks", [])]
@@ -213,6 +243,7 @@ def run_regression_manifest(
         "version": manifest.get("version"),
         "profile": resolved_profile,
         "include_wps": include_wps,
+        "output_dir": str(output_dir) if output_dir is not None else None,
         "scenario_count": len(results),
         "passed_count": passed_count,
         "failed_count": len(failed),
