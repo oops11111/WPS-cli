@@ -2782,7 +2782,7 @@
     "id": "P4-007",
     "phase": "phase4",
     "title": "Agent eval: Windows write-task runs",
-    "status": "todo",
+    "status": "done",
     "acceptance": "E3: each write task is run three times on Windows and passes at least twice; pass rate, turns and tool calls are recorded."
   },
   {

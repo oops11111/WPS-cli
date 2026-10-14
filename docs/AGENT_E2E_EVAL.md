@@ -31,7 +31,7 @@ A task can list `setup` steps that prepare the workspace before the agent starts
 | `wps-presentation-replace` (WPS) | replace DRAFT with FINAL in `deck.pptx` | operation `eval-presentation-1` recorded as `presentation-replace`; a `presentation_replace` call; the text has `Quarterly review` and `Status: FINAL`, and no `DRAFT`; one backup |
 | `wps-held-spreadsheet-write` (WPS) | write into a held `book.xlsx` | `DOCUMENT_HELD_OPEN` seen; no operation recorded; no backup; no `restore_backup` call; file unchanged |
 
-Only offline tools are used. None of these tasks needs WPS, so they run on any machine with the `claude` CLI logged in. WPS-dependent write paths are not covered here.
+The eight tasks without (WPS) use only offline tools and run on any machine with the `claude` CLI logged in. The four (WPS) tasks need WPS on Windows; their results are under "P4-007 Windows WPS write tasks" below.
 
 `held-document-backup` needs a machine that can hold the file. On Windows the runner opens it with no sharing. On other systems it removes all permissions, which does not work for root. When the file cannot be held, the task is reported as skipped, not as passed or failed.
 
@@ -80,11 +80,46 @@ Run 2026-10-13 with `claude` 2.1.296 (CLI default model), on a Linux container a
 
 `held-document-backup` was skipped because the run was as root. It still needs a run on Windows or as a non-root user.
 
+### P4-007 Windows WPS write tasks (2026-10-14)
+
+Outcome: all four tasks pass, 3/3 each; the held-file task passes on the second rerun below. P4-007 is done.
+
+Commit `4999b77` on `p4-007-wps-eval-runs`. Windows 10.0.19045. Claude Code CLI 2.1.295, model left as the CLI default (no `--model`). Command: `--repeat 3 --min-passes 2` for `wps-spreadsheet-write`, `wps-writer-replace`, `wps-presentation-replace`, and `wps-held-spreadsheet-write`. Artifact: `%TEMP%\wps-p4\eval-wps\run-20261014T070755399357Z\summary.json`. None skipped. **3 of 4 tasks passed.** The pass bar is at least 2 of 3 runs.
+
+| Task | Passes | Mean turns | `wps-agent` calls | Tool errors |
+| --- | --- | --- | --- | --- |
+| `wps-spreadsheet-write` | 3/3 | 4.7 (4, 4, 6) | 11 | 0 |
+| `wps-writer-replace` | 3/3 | 4.3 (5, 3, 5) | 10 | 0 |
+| `wps-presentation-replace` | 3/3 | 4.0 (4, 4, 4) | 9 | 0 |
+| `wps-held-spreadsheet-write` | 0/3 | 18.3 (16, 16, 23) | 33 | 16 |
+
+Each passing run recorded the expected command (`spreadsheet-write`, `writer-replace`, or `presentation-replace`), kept one backup, and matched the expected cell or text. Spreadsheet A1 read back `42` and the untouched cell stayed `seed`.
+
+`wps-held-spreadsheet-write` failed the same check on all three runs: `tool_error_seen` did not find `DOCUMENT_HELD_OPEN`. The other checks passed (no operation, no backup, `restore_backup` not called, file unchanged). `spreadsheet_write` was marked `is_error` true, but the parsed tool result had an empty `error_codes` list, so the judge did not see the code. Later calls in those runs included `MCP_TOOL_EXECUTION_FAILED` and `MCP_ADAPTER_CALL_REJECTED`, not `DOCUMENT_HELD_OPEN`.
+
+### P4-007 rerun of `wps-held-spreadsheet-write` (2026-10-14)
+
+Same branch, still `3d9c831` (`git pull` was already up to date). Claude Code CLI 2.1.295, CLI default model. `--repeat 3 --min-passes 2`. Artifact: `%TEMP%\wps-p4\eval-held-rerun\run-20261014T131756639971Z\summary.json`.
+
+**0/3, not passed.** Turns 16, 16, 16. `wps-agent` calls 34, tool errors 15. No skip.
+
+Each run failed only `tool_error_seen` (`DOCUMENT_HELD_OPEN` not seen). `no_operation`, `backup_count` 0, `restore_backup` not called, and `file_unchanged` passed. `spreadsheet_write` was `is_error` true with an empty `error_codes` list. Codes that did appear: run 1 `MCP_ADAPTER_CALL_REJECTED` (`mcp_call`) and `MCP_TOOL_EXECUTION_FAILED` (`spreadsheet_read`, `spreadsheet_sheets`); run 2 `MCP_TOOL_EXECUTION_FAILED` (`spreadsheet_read`); run 3 `MCP_TOOL_EXECUTION_FAILED` (`spreadsheet_sheets`, `spreadsheet_read`).
+
+### P4-007 second rerun of `wps-held-spreadsheet-write` (2026-10-14)
+
+This is the run that counts for P4-007. `6484151` includes PRs #55 (failed tool calls report their error codes to the agent) and #56 (read commands on a held file answer `DOCUMENT_HELD_OPEN`). The first rerun above was still on code without either fix.
+
+After `git pull` to `6484151`. Claude Code CLI 2.1.295, CLI default model. `--repeat 3 --min-passes 2`. Artifact: `%TEMP%\wps-p4\eval-held-rerun2\run-20261014T133257997329Z\summary.json`.
+
+**3/3, passed.** Turns 5, 4, 3 (mean 4.0). `wps-agent` calls 9, tool errors 6 (each a `DOCUMENT_HELD_OPEN` refusal, which is what the task tests). No skip.
+
+Every run saw `DOCUMENT_HELD_OPEN` on `spreadsheet_write` (run 1 also on `spreadsheet_sheets` and `spreadsheet_read`). `no_operation`, `backup_count` 0, `restore_backup` not called, and `file_unchanged` all passed.
+
 ## Limits
 
 - Twelve tasks are still a small set, not a benchmark. Eight run offline (registration, backup, idempotent retry, restore, dry run, a held file, HTML conversion); four marked (WPS) need WPS on Windows and are skipped elsewhere. They do not cover the 85-tool surface.
-- The WPS tasks have only been checked offline, against a stand-in agent. Their first real runs are P4-007.
-- The held-file recovery task (a rollback blocked by an open document, then recovered from the CLI) is added with the opt-in close-and-restore, P4-010.
+- The WPS tasks were run on one Windows machine with one WPS version (P4-007). All four pass 3/3: the three write tasks on `4999b77`, `wps-held-spreadsheet-write` on `6484151`. The first runs of the held task failed because of two server bugs, fixed in PRs #55 and #56. Those fixes change only what a failed call returns, so the three passing write tasks were not rerun.
+- There is no held-file recovery task. The runner cannot make WPS open a document and block a rollback, so recovery with `restore-backup --close-in-wps` is checked by hand in P4-011 instead.
 - The judge checks state and tool calls, so a correct-sounding reply with the wrong state fails. A failure to report the result accurately is not detected here.
 - Results depend on the model the CLI uses. Record it with `--model` when comparing runs.
 - Runs are not deterministic. A failing run should be rerun before it is treated as a regression.
