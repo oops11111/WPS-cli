@@ -97,7 +97,7 @@ class HeldFileReadTests(unittest.TestCase):
         )
 
         self.assertFalse(ok)
-        self.assertNotIn("MCP_TOOL_EXECUTION_FAILED", [error["code"] for error in errors])
+        self.assertEqual([error["code"] for error in errors], ["DOCUMENT_HELD_OPEN"])
         self.assertEqual(result["response"]["errors"][0]["code"], "DOCUMENT_HELD_OPEN")
 
 
