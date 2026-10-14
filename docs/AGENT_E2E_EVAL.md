@@ -80,6 +80,21 @@ Run 2026-10-13 with `claude` 2.1.296 (CLI default model), on a Linux container a
 
 `held-document-backup` was skipped because the run was as root. It still needs a run on Windows or as a non-root user.
 
+### P4-007 Windows WPS write tasks (2026-10-14)
+
+Commit `4999b77` on `p4-007-wps-eval-runs`. Windows 10.0.19045. Claude Code CLI 2.1.295, model left as the CLI default (no `--model`). Command: `--repeat 3 --min-passes 2` for `wps-spreadsheet-write`, `wps-writer-replace`, `wps-presentation-replace`, and `wps-held-spreadsheet-write`. Artifact: `%TEMP%\wps-p4\eval-wps\run-20261014T070755399357Z\summary.json`. None skipped. **3 of 4 tasks passed.** The pass bar is at least 2 of 3 runs.
+
+| Task | Passes | Mean turns | `wps-agent` calls | Tool errors |
+| --- | --- | --- | --- | --- |
+| `wps-spreadsheet-write` | 3/3 | 4.7 (4, 4, 6) | 11 | 0 |
+| `wps-writer-replace` | 3/3 | 4.3 (5, 3, 5) | 10 | 0 |
+| `wps-presentation-replace` | 3/3 | 4.0 (4, 4, 4) | 9 | 0 |
+| `wps-held-spreadsheet-write` | 0/3 | 18.3 (16, 16, 23) | 33 | 16 |
+
+Each passing run recorded the expected command (`spreadsheet-write`, `writer-replace`, or `presentation-replace`), kept one backup, and matched the expected cell or text. Spreadsheet A1 read back `42` and the untouched cell stayed `seed`.
+
+`wps-held-spreadsheet-write` failed the same check on all three runs: `tool_error_seen` did not find `DOCUMENT_HELD_OPEN`. The other checks passed (no operation, no backup, `restore_backup` not called, file unchanged). `spreadsheet_write` was marked `is_error` true, but the parsed tool result had an empty `error_codes` list, so the judge did not see the code. Later calls in those runs included `MCP_TOOL_EXECUTION_FAILED` and `MCP_ADAPTER_CALL_REJECTED`, not `DOCUMENT_HELD_OPEN`.
+
 ## Limits
 
 - Twelve tasks are still a small set, not a benchmark. Eight run offline (registration, backup, idempotent retry, restore, dry run, a held file, HTML conversion); four marked (WPS) need WPS on Windows and are skipped elsewhere. They do not cover the 85-tool surface.
