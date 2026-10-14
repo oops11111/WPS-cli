@@ -39,6 +39,8 @@ The eight tasks without (WPS) use only offline tools and run on any machine with
 
 State checks: `document_registered`, `operation_recorded`, `no_operation`, `backup_count`, `file_unchanged` (the file as the agent received it, after setup), `file_matches_seed` (the file before setup), `xlsx_cell`, `file_text` (text that a `.docx` or `.pptx` must contain, and text it must not).
 
+Each task also lists `expected_tools`: the `wps-agent` tools a correct run needs, without the `wps_agent_` prefix. The runner counts calls to any other `wps-agent` tool as off-path calls and reports them for each run (`off_path_calls`, `off_path_tools`), for each repeated task and in the summary. Off-path calls are reported only; a task passes or fails on its checks. The task-file test requires every task to list its expected tools, and every `tool_called` check to name one of them.
+
 Transcript checks, read from the tool calls, not from the reply: `tool_called` (optionally with `input` values and a `min` count), `tool_not_called`, `tool_error_seen` (an error code in a tool result), `max_tool_calls` (calls to `wps-agent` tools only).
 
 ## How to run

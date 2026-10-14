@@ -2859,7 +2859,7 @@
     "id": "P5-004",
     "phase": "phase5",
     "title": "Agent eval: expected tools and off-path calls",
-    "status": "todo",
+    "status": "done",
     "acceptance": "F2: a task can list expected_tools; the runner reports calls outside them per run and in the summary, without failing the task on them."
   },
   {

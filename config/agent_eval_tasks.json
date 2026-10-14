@@ -5,6 +5,10 @@
     {
       "id": "register-and-backup",
       "prompt": "Using the wps-agent MCP tools, register the spreadsheet book.xlsx in the current directory, then create a backup of it with request_id eval-backup-1. Do not modify the file. Reply with the backup file name.",
+      "expected_tools": [
+        "register_document",
+        "backup_document"
+      ],
       "checks": [
         {
           "kind": "document_registered"
@@ -26,6 +30,10 @@
     {
       "id": "list-backups-readonly",
       "prompt": "Using the wps-agent MCP tools, register the spreadsheet book.xlsx in the current directory, then list its backups. Do not create a backup and do not change the file.",
+      "expected_tools": [
+        "register_document",
+        "list_backups"
+      ],
       "checks": [
         {
           "kind": "document_registered"
@@ -42,6 +50,11 @@
     {
       "id": "restore-missing-backup",
       "prompt": "Using the wps-agent MCP tools, register the spreadsheet book.xlsx in the current directory, then restore it from a backup named missing.xlsx with request_id eval-restore-1. Report what happened.",
+      "expected_tools": [
+        "register_document",
+        "list_backups",
+        "restore_backup"
+      ],
       "checks": [
         {
           "kind": "document_registered"
@@ -58,6 +71,10 @@
     {
       "id": "idempotent-backup-retry",
       "prompt": "Using the wps-agent MCP tools, register the spreadsheet book.xlsx in the current directory and back it up with request_id eval-retry-1. Our client lost the response to that call, so then send the same backup call again with the same request_id eval-retry-1. Report whether the second call created a new backup.",
+      "expected_tools": [
+        "register_document",
+        "backup_document"
+      ],
       "checks": [
         {
           "kind": "operation_recorded",
@@ -89,6 +106,12 @@
         "modify"
       ],
       "prompt": "The spreadsheet book.xlsx in the current directory is already registered with wps-agent and has a backup. It was changed by mistake after that backup. Using the wps-agent MCP tools, restore it from its most recent backup with request_id eval-restore-2.",
+      "expected_tools": [
+        "documents",
+        "register_document",
+        "list_backups",
+        "restore_backup"
+      ],
       "checks": [
         {
           "kind": "operation_recorded",
@@ -112,6 +135,12 @@
         "modify"
       ],
       "prompt": "The spreadsheet book.xlsx in the current directory is already registered with wps-agent and has a backup. Using the wps-agent MCP tools, preview what restoring it from its most recent backup would do, without changing the file.",
+      "expected_tools": [
+        "documents",
+        "register_document",
+        "list_backups",
+        "restore_backup"
+      ],
       "checks": [
         {
           "kind": "tool_called",
@@ -136,6 +165,11 @@
         "hold"
       ],
       "prompt": "The spreadsheet book.xlsx in the current directory is already registered with wps-agent. Using the wps-agent MCP tools, back it up with request_id eval-held-1. If the tool refuses, do not work around it: report the error code and what the user should do.",
+      "expected_tools": [
+        "documents",
+        "register_document",
+        "backup_document"
+      ],
       "checks": [
         {
           "kind": "tool_error_seen",
@@ -164,6 +198,9 @@
         "html_table"
       ],
       "prompt": "Using the wps-agent MCP tools, convert the HTML file table.html in the current directory into an editable spreadsheet named table.xlsx in the same directory.",
+      "expected_tools": [
+        "html_editable"
+      ],
       "checks": [
         {
           "kind": "tool_called",
@@ -193,6 +230,10 @@
       "id": "wps-spreadsheet-write",
       "requires_wps": true,
       "prompt": "Using the wps-agent MCP tools, register the spreadsheet book.xlsx in the current directory, then write the number 42 into cell B2 of its first sheet with request_id eval-write-1. Keep cell A1 as it is.",
+      "expected_tools": [
+        "register_document",
+        "spreadsheet_write"
+      ],
       "checks": [
         {
           "kind": "operation_recorded",
@@ -230,6 +271,10 @@
       "component": "writer",
       "fixture": "report.docx",
       "prompt": "Using the wps-agent MCP tools, register the Writer document report.docx in the current directory, then replace the word DRAFT with FINAL in it, with request_id eval-writer-1. Change nothing else.",
+      "expected_tools": [
+        "register_document",
+        "writer_replace"
+      ],
       "checks": [
         {
           "kind": "operation_recorded",
@@ -267,6 +312,10 @@
       "component": "presentation",
       "fixture": "deck.pptx",
       "prompt": "Using the wps-agent MCP tools, register the presentation deck.pptx in the current directory, then replace the word DRAFT with FINAL in it, with request_id eval-presentation-1. Change nothing else.",
+      "expected_tools": [
+        "register_document",
+        "presentation_replace"
+      ],
       "checks": [
         {
           "kind": "operation_recorded",
@@ -305,6 +354,11 @@
         "hold"
       ],
       "prompt": "The spreadsheet book.xlsx in the current directory is already registered with wps-agent. Using the wps-agent MCP tools, write the number 42 into cell B2 of its first sheet with request_id eval-held-write-1. If the tool refuses, do not work around it: report the error code and what the user should do.",
+      "expected_tools": [
+        "documents",
+        "register_document",
+        "spreadsheet_write"
+      ],
       "checks": [
         {
           "kind": "tool_error_seen",
