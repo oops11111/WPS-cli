@@ -9,6 +9,7 @@ from typing import Any
 from .mcp_schema import get_mcp_tool_schema
 
 ADAPTER_BLOCKED_TOOL_NAMES = {"wps_agent_mcp_call", "mcp-call", "wps_agent_mcp_server", "mcp-server"}
+MCP_ERROR_MESSAGE_MAX_CHARS = 1000
 
 
 def _error(code: str, message: str, details: Any | None = None) -> dict[str, Any]:
@@ -359,8 +360,17 @@ def call_mcp_tool(tool_name: str, arguments: dict[str, Any]) -> tuple[bool, dict
             [_error("MCP_RESPONSE_PARSE_FAILED", "CLI response was not valid JSON.", str(exc))],
         )
 
+    ok = exit_code == 0 and bool(response.get("ok"))
+    # A failed command's error codes and messages (for example DOCUMENT_HELD_OPEN) are returned as the
+    # call's errors, so that they reach the tool result text the agent reads. Details, which can be large
+    # diagnostics, stay only in the nested response.
+    command_errors = [] if ok else [
+        {"code": str(error.get("code")), "message": str(error.get("message", ""))[:MCP_ERROR_MESSAGE_MAX_CHARS]}
+        for error in response.get("errors") or []
+        if isinstance(error, dict)
+    ]
     return (
-        exit_code == 0 and bool(response.get("ok")),
+        ok,
         {
             "tool_name": schema["name"] if schema else tool_name,
             "cli_command": schema["cli_command"] if schema else None,
@@ -368,5 +378,5 @@ def call_mcp_tool(tool_name: str, arguments: dict[str, Any]) -> tuple[bool, dict
             "exit_code": exit_code,
             "response": response,
         },
-        [],
+        command_errors,
     )
