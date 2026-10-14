@@ -2880,7 +2880,7 @@
     "id": "P5-007",
     "phase": "phase5",
     "title": "Safe regression from an installed wheel",
-    "status": "todo",
+    "status": "done",
     "acceptance": "F3: with only the wheel installed, regression-run --profile safe finds its manifest and configuration inside the package and passes; running from the repository is unchanged."
   },
   {

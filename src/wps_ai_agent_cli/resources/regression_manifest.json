@@ -1,0 +1,366 @@
+{
+  "version": "phase3-regression-2026-10-03",
+  "default_profile": "safe",
+  "scenarios": [
+    {
+      "id": "cli-plan",
+      "title": "Roadmap exposes Phase 3 done state",
+      "category": "cli",
+      "profile": "safe",
+      "risk_level": "low",
+      "requires_wps": false,
+      "command": [
+        "plan"
+      ],
+      "expected_ok": true,
+      "required_checks": [
+        {
+          "path": "data.phases",
+          "contains_item": {
+            "id": "phase3",
+            "status": "done"
+          }
+        }
+      ]
+    },
+    {
+      "id": "cli-phase3-next",
+      "title": "Phase 3 records completed P3-307",
+      "category": "cli",
+      "profile": "safe",
+      "risk_level": "low",
+      "requires_wps": false,
+      "command": [
+        "tasks",
+        "--phase",
+        "phase3",
+        "--status",
+        "done"
+      ],
+      "expected_ok": true,
+      "required_checks": [
+        {"path": "data.tasks", "contains_item": {"id": "P3-307", "status": "done"}}
+      ]
+    },
+    {
+      "id": "mcp-tools-count",
+      "title": "MCP schema list includes current tool count",
+      "category": "mcp",
+      "profile": "safe",
+      "risk_level": "low",
+      "requires_wps": false,
+      "command": [
+        "mcp-tools"
+      ],
+      "expected_ok": true,
+      "required_checks": [
+        {
+          "path": "data.tools",
+          "min_length": 70
+        }
+      ]
+    },
+    {
+      "id": "mcp-catalog-drift",
+      "title": "MCP catalog matches reviewed baseline",
+      "category": "mcp",
+      "profile": "safe",
+      "risk_level": "low",
+      "requires_wps": false,
+      "command": [
+        "mcp-catalog-drift"
+      ],
+      "expected_ok": true,
+      "required_checks": [
+        {
+          "path": "validation.status",
+          "equals": "passed"
+        },
+        {
+          "path": "data.mcp_catalog_drift.drift_count",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "mcp-smoke",
+      "title": "MCP server initialize, tools/list, and tools/call smoke",
+      "category": "mcp",
+      "profile": "safe",
+      "risk_level": "low",
+      "requires_wps": false,
+      "command": [
+        "mcp-smoke",
+        "--expected-min-tools",
+        "70",
+        "--tool-name",
+        "wps_agent_tasks"
+      ],
+      "expected_ok": true,
+      "required_checks": [
+        {
+          "path": "validation.status",
+          "equals": "passed"
+        }
+      ]
+    },
+    {
+      "id": "mcp-config-audit",
+      "title": "MCP desktop client config audit",
+      "category": "mcp",
+      "profile": "safe",
+      "risk_level": "medium",
+      "requires_wps": false,
+      "command": [
+        "mcp-config-audit",
+        "--config",
+        "config/mcp_client_config.regression.template.json",
+        "--server-name",
+        "wps-ai-agent-cli",
+        "--expected-min-tools",
+        "70"
+      ],
+      "expected_ok": true,
+      "required_checks": [
+        {
+          "path": "validation.status",
+          "equals": "passed"
+        }
+      ]
+    },
+    {
+      "id": "security-boundary-audit",
+      "title": "Mutating tool security boundary audit",
+      "category": "security",
+      "profile": "safe",
+      "risk_level": "medium",
+      "requires_wps": false,
+      "command": [
+        "security-audit"
+      ],
+      "expected_ok": true,
+      "required_checks": [
+        {
+          "path": "validation.status",
+          "equals": "passed"
+        },
+        {
+          "path": "data.security_audit.tools",
+          "min_length": 8
+        }
+      ]
+    },
+    {
+      "id": "spreadsheet-calc-smoke",
+      "title": "WPS spreadsheet calculation smoke",
+      "category": "wps",
+      "profile": "wps",
+      "risk_level": "medium",
+      "requires_wps": true,
+      "command": [
+        "calc-smoke",
+        "--input",
+        "fixtures/phase0/phase0_calculation_fixture.xlsx",
+        "--output",
+        "{output_dir}/phase0_calculation_smoke.xlsx",
+        "--timeout-seconds",
+        "30"
+      ],
+      "expected_ok": true,
+      "required_checks": [
+        {
+          "path": "validation.status",
+          "equals": "passed"
+        }
+      ]
+    },
+    {
+      "id": "writer-com-smoke",
+      "title": "WPS Writer open/save/close smoke",
+      "category": "wps",
+      "profile": "wps",
+      "risk_level": "medium",
+      "requires_wps": true,
+      "command": [
+        "com-smoke",
+        "--component",
+        "writer",
+        "--input",
+        "fixtures/phase3/writer_table_fixture.docx",
+        "--output",
+        "{output_dir}/writer_smoke_copy.docx"
+      ],
+      "expected_ok": true,
+      "required_checks": [
+        {
+          "path": "validation.status",
+          "equals": "passed"
+        }
+      ]
+    },
+    {
+      "id": "writer-convert-smoke",
+      "title": "WPS Writer PDF conversion smoke",
+      "category": "wps",
+      "profile": "wps",
+      "risk_level": "medium",
+      "requires_wps": true,
+      "command": [
+        "convert-smoke",
+        "--component",
+        "writer",
+        "--input",
+        "fixtures/phase3/writer_table_fixture.docx",
+        "--output",
+        "{output_dir}/writer_smoke.pdf",
+        "--format",
+        "pdf"
+      ],
+      "expected_ok": true,
+      "required_checks": [
+        {
+          "path": "validation.status",
+          "equals": "passed"
+        }
+      ]
+    },
+    {
+      "id": "writer-table-smoke",
+      "title": "WPS Writer table cell update smoke",
+      "category": "wps",
+      "profile": "wps",
+      "risk_level": "medium",
+      "requires_wps": true,
+      "command": [
+        "writer-table-smoke",
+        "--input",
+        "fixtures/phase3/writer_table_fixture.docx",
+        "--output",
+        "{output_dir}/writer_table_regression_smoke.docx",
+        "--table-index",
+        "1",
+        "--row",
+        "2",
+        "--column",
+        "3",
+        "--text",
+        "REGRESSION_STATUS"
+      ],
+      "expected_ok": true,
+      "required_checks": [
+        {
+          "path": "validation.status",
+          "equals": "passed"
+        },
+        {
+          "path": "data.writer_table.validation_passed",
+          "equals": true
+        },
+        {
+          "path": "data.restore_check.ok",
+          "equals": true
+        }
+      ]
+    },
+    {
+      "id": "spreadsheets-com-smoke",
+      "title": "WPS Spreadsheets open/save/close smoke",
+      "category": "wps",
+      "profile": "compat",
+      "risk_level": "medium",
+      "requires_wps": true,
+      "command": [
+        "com-smoke",
+        "--component",
+        "spreadsheets",
+        "--input",
+        "fixtures/phase0/phase0_calculation_fixture.xlsx",
+        "--output",
+        "{output_dir}/spreadsheets_smoke_copy.xlsx"
+      ],
+      "expected_ok": true,
+      "required_checks": [
+        {
+          "path": "validation.status",
+          "equals": "passed"
+        }
+      ]
+    },
+    {
+      "id": "spreadsheets-convert-smoke",
+      "title": "WPS Spreadsheets PDF conversion smoke",
+      "category": "wps",
+      "profile": "compat",
+      "risk_level": "medium",
+      "requires_wps": true,
+      "command": [
+        "convert-smoke",
+        "--component",
+        "spreadsheets",
+        "--input",
+        "fixtures/phase0/phase0_calculation_fixture.xlsx",
+        "--output",
+        "{output_dir}/spreadsheets_smoke.pdf",
+        "--format",
+        "pdf"
+      ],
+      "expected_ok": true,
+      "required_checks": [
+        {
+          "path": "validation.status",
+          "equals": "passed"
+        }
+      ]
+    },
+    {
+      "id": "presentation-com-smoke",
+      "title": "WPS Presentation open/save/close smoke",
+      "category": "wps",
+      "profile": "compat",
+      "risk_level": "medium",
+      "requires_wps": true,
+      "command": [
+        "com-smoke",
+        "--component",
+        "presentation",
+        "--input",
+        "fixtures/phase0/phase0_presentation_fixture_v2.pptx",
+        "--output",
+        "{output_dir}/presentation_smoke_copy.pptx"
+      ],
+      "expected_ok": true,
+      "required_checks": [
+        {
+          "path": "validation.status",
+          "equals": "passed"
+        }
+      ]
+    },
+    {
+      "id": "presentation-convert-smoke",
+      "title": "WPS Presentation PDF conversion smoke",
+      "category": "wps",
+      "profile": "compat",
+      "risk_level": "medium",
+      "requires_wps": true,
+      "command": [
+        "convert-smoke",
+        "--component",
+        "presentation",
+        "--input",
+        "fixtures/phase0/phase0_presentation_fixture_v2.pptx",
+        "--output",
+        "{output_dir}/presentation_smoke.pdf",
+        "--format",
+        "pdf"
+      ],
+      "expected_ok": true,
+      "required_checks": [
+        {
+          "path": "validation.status",
+          "equals": "passed"
+        }
+      ]
+    }
+  ]
+}

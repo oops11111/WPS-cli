@@ -5,12 +5,13 @@ from pathlib import Path
 from typing import Any
 
 from .mcp_catalog import build_mcp_catalog_snapshot
+from .resources import resolve_config
 
 DEFAULT_MCP_CATALOG_GUARD = "config/mcp_catalog_guard.json"
 
 
 def _load_guard(path: str | Path) -> tuple[bool, dict[str, Any], list[dict[str, Any]], Path]:
-    guard_path = Path(path)
+    guard_path = resolve_config(path)
     if not guard_path.exists():
         return (
             False,

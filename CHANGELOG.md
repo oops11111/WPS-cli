@@ -10,6 +10,7 @@ All notable changes to `wps-ai-agent-cli`. The versioning rule and release steps
 - Agent evaluation: tasks can be marked `requires_wps` and are skipped without WPS; `--repeat N --min-passes M` runs each task N times; four WPS write tasks. (P4-004 to P4-006)
 - Regression profile `compat`: open, save and PDF conversion for Spreadsheets and Presentation, part of the WPS compatibility matrix (`docs/COMPATIBILITY_MATRIX.md`). (P4-002)
 - CI builds the wheel and the source distribution and keeps them as a workflow artifact. (P4-012)
+- An installed wheel runs the safe regression profile on its own: the regression manifest, the MCP catalog guard and the MCP audit template ship inside the package and are used when the default `config/` paths do not exist. CI runs the safe profile from the installed wheel outside the repository. (P5-007)
 
 ### Changed
 

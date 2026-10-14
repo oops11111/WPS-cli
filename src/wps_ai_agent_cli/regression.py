@@ -9,6 +9,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from .resources import PACKAGE_DIR, resolve_config, source_checkout
+
 DEFAULT_REGRESSION_MANIFEST = "config/regression_manifest.json"
 REPO_ROOT = Path(__file__).resolve().parents[2]
 MCP_AUDIT_TEMPLATE = "config/mcp_client_config.regression.template.json"
@@ -22,14 +24,17 @@ def _render_mcp_audit_config(template: Path, destination_dir: Path) -> Path:
     """Write the audit config for the interpreter running this regression.
 
     The template names no interpreter, because `python` on Windows can be the Store alias, which exits without
-    running anything. The server is launched by sys.executable, from this repository, with its src directory on
-    PYTHONPATH. Both paths are absolute, so the audit does not depend on where it was started from.
+    running anything. The server is launched by sys.executable with the directory that holds this package on
+    PYTHONPATH (src/ in a source checkout, site-packages when installed). It runs from the repository in a
+    checkout and from the scratch directory otherwise. Paths are absolute, so the audit does not depend on
+    where it was started from.
     """
     config = json.loads(template.read_text(encoding="utf-8"))
+    checkout = source_checkout()
     for server in config["mcpServers"].values():
         server["command"] = sys.executable
-        server["cwd"] = str(REPO_ROOT)
-        server["env"] = {"PYTHONPATH": str(REPO_ROOT / "src")}
+        server["cwd"] = str(checkout if checkout is not None else destination_dir)
+        server["env"] = {"PYTHONPATH": str(PACKAGE_DIR.parent)}
     rendered = destination_dir / "mcp_client_config.json"
     rendered.write_text(json.dumps(config, indent=2), encoding="utf-8")
     return rendered
@@ -62,7 +67,10 @@ def _scenario_command(command: list[str], destination_dir: Path, output_dir: Pat
     index = command.index("--config") + 1
     if index >= len(command) or command[index] != MCP_AUDIT_TEMPLATE:
         return command
-    rendered = _render_mcp_audit_config(REPO_ROOT / MCP_AUDIT_TEMPLATE, destination_dir)
+    template = REPO_ROOT / MCP_AUDIT_TEMPLATE
+    rendered = _render_mcp_audit_config(
+        template if template.is_file() else resolve_config(MCP_AUDIT_TEMPLATE), destination_dir
+    )
     return [*command[:index], str(rendered), *command[index + 1 :]]
 
 
@@ -88,7 +96,7 @@ REGRESSION_ALLOWED_COMMANDS = frozenset(
 def load_regression_manifest(
     path: str | Path = DEFAULT_REGRESSION_MANIFEST,
 ) -> tuple[bool, dict[str, Any], list[dict[str, Any]]]:
-    manifest_path = Path(path)
+    manifest_path = resolve_config(path)
     if not manifest_path.exists():
         return False, {}, [{"code": "REGRESSION_MANIFEST_NOT_FOUND", "message": f"Manifest not found: {manifest_path}"}]
     try:
@@ -252,7 +260,7 @@ def run_regression_manifest(
     passed_count = sum(1 for result in results if result["ok"])
     failed = [result for result in results if not result["ok"]]
     result = {
-        "manifest_path": str(manifest_path),
+        "manifest_path": str(resolve_config(manifest_path)),
         "version": manifest.get("version"),
         "profile": resolved_profile,
         "include_wps": include_wps,
