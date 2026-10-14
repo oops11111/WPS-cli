@@ -41,7 +41,13 @@ def _slide_parts(archive: ZipFile) -> list[tuple[int, str]]:
             if rel is None or rel.get("Type") != f"{RELATIONSHIP_NS}/slide":
                 raise PresentationStructureError(f"Invalid slide relationship: {rel_id}")
             target = urlsplit(rel.get("Target", ""))
-            if rel.get("TargetMode", "Internal") != "Internal" or target.scheme or target.netloc or target.query or target.fragment:
+            if (
+                rel.get("TargetMode", "Internal") != "Internal"
+                or target.scheme
+                or target.netloc
+                or target.query
+                or target.fragment
+            ):
                 raise PresentationStructureError(f"Slide target must be an internal package part: {rel_id}")
             path = unquote(target.path)
             if not path or "\\" in path:

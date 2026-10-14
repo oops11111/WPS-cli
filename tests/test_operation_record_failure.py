@@ -56,18 +56,33 @@ class OperationRecordFailureTests(unittest.TestCase):
             def fake_com(component, name, output_path, do_save):
                 if do_save:
                     Path(output_path).write_bytes(b"PK-fake")
-                    return com_ok({
-                        "ok": True, "status": "ok", "saved": True, "read_only": False,
-                        "wrote": True, "source_still_open": True, "path_matched": True,
-                        "full_name": output_path, "backend": "powershell-com",
-                    })
+                    return com_ok(
+                        {
+                            "ok": True,
+                            "status": "ok",
+                            "saved": True,
+                            "read_only": False,
+                            "wrote": True,
+                            "source_still_open": True,
+                            "path_matched": True,
+                            "full_name": output_path,
+                            "backend": "powershell-com",
+                        }
+                    )
                 return inspect_payload
 
-            with patch.object(open_documents, "_run_save_as_untitled_com", side_effect=fake_com), \
-                    patch("wps_ai_agent_cli.open_documents.record_operation",
-                          side_effect=OperationRecordError("ledger write failed")):
+            with (
+                patch.object(open_documents, "_run_save_as_untitled_com", side_effect=fake_com),
+                patch(
+                    "wps_ai_agent_cli.open_documents.record_operation",
+                    side_effect=OperationRecordError("ledger write failed"),
+                ),
+            ):
                 ok, data, errors, _replayed = open_documents.save_as_open_document(
-                    "writer", "Document1", str(output), request_id="req-saveas-record",
+                    "writer",
+                    "Document1",
+                    str(output),
+                    request_id="req-saveas-record",
                     workspace=workspace,
                 )
         self.assertFalse(ok)
@@ -86,10 +101,14 @@ class OperationRecordFailureTests(unittest.TestCase):
     def test_save_open_document_reports_record_failure_instead_of_a_traceback(self):
         fixture = Fixture(self)
         saved = com_ok({"ok": True, "status": "ok", "saved": True, "read_only": False})
-        with patch.object(open_documents, "_run_component_attached_com", return_value=saved), \
-                patch("wps_ai_agent_cli.operations.file_identity", side_effect=OSError("unavailable")):
+        with (
+            patch.object(open_documents, "_run_component_attached_com", return_value=saved),
+            patch("wps_ai_agent_cli.operations.file_identity", side_effect=OSError("unavailable")),
+        ):
             ok, data, errors, _replayed = open_documents.save_open_document(
-                fixture.document_id, "req-save-record", workspace=fixture.workspace,
+                fixture.document_id,
+                "req-save-record",
+                workspace=fixture.workspace,
             )
         self.assertFalse(ok)
         self.assertEqual(errors[0]["code"], "OPERATION_RECORD_FAILED")

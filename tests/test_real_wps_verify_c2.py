@@ -31,7 +31,10 @@ class DriverPatchTests(unittest.TestCase):
         self.assertIn("function Test-WpsPathOpen($collection, [string]$path) {\n  return $false", patched)
         self.assertIn("function Find-WpsOpenDocument($collection, [string]$path) {\n  return $null", patched)
         self.assertLess(patched.index("$opened = $collection.Open("), patched.index("C2_TRACE_FILE"))
-        self.assertLess(patched.index("C2_TRACE_FILE"), patched.index("if ([int]$collection.Count -le $countBefore) {\n    # Nothing new"))
+        self.assertLess(
+            patched.index("C2_TRACE_FILE"),
+            patched.index("if ([int]$collection.Count -le $countBefore) {\n    # Nothing new"),
+        )
         self.assertEqual(patched.replace("\r\n", "\n").count("function Open-WpsDocument"), 1)
 
     def test_patch_refuses_to_run_when_the_guard_text_changed(self):
@@ -74,8 +77,9 @@ class InjectedPostOpenBranchTests(unittest.TestCase):
 
     def write(self, injected, **env):
         guard = load_driver().patch_guard(PRE_OPEN_GUARD) if injected else PRE_OPEN_GUARD
-        with patch.object(spreadsheet_ops, "PRE_OPEN_GUARD", guard), patch.dict(
-            os.environ, {"C2_TRACE_FILE": str(self.trace), **env}
+        with (
+            patch.object(spreadsheet_ops, "PRE_OPEN_GUARD", guard),
+            patch.dict(os.environ, {"C2_TRACE_FILE": str(self.trace), **env}),
         ):
             return spreadsheet_ops._run_spreadsheet_write_com(str(self.document), None, "A1", [[1]])
 
@@ -133,7 +137,9 @@ class ScriptSyntaxTests(unittest.TestCase):
                 with self.subTest(script=name):
                     done = subprocess.run(
                         [PWSH, "-NoProfile", "-File", str(checker), str(KIT / name)],
-                        capture_output=True, text=True, timeout=60,
+                        capture_output=True,
+                        text=True,
+                        timeout=60,
                     )
                     self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
 

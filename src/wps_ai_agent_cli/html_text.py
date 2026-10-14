@@ -13,7 +13,7 @@ def decode_html_bytes(raw: bytes) -> tuple[str, str, str | None]:
     UTF-8 fallback that reports the replacement. Returns (text, encoding, warning).
     """
     if raw.startswith(codecs.BOM_UTF8):
-        return raw[len(codecs.BOM_UTF8):].decode("utf-8", errors="replace"), "utf-8-sig", None
+        return raw[len(codecs.BOM_UTF8) :].decode("utf-8", errors="replace"), "utf-8-sig", None
     if raw.startswith((codecs.BOM_UTF16_LE, codecs.BOM_UTF16_BE)):
         try:
             return raw.decode("utf-16"), "utf-16", None

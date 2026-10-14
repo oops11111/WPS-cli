@@ -36,7 +36,10 @@ class AttachFirstStaticTests(unittest.TestCase):
         out = Path(tmp) / "out"
         cases = [
             (com_backend, lambda: com_backend.run_com_smoke("writer", str(source), str(out / "a.docx"))),
-            (com_backend, lambda: com_backend.run_conversion_smoke("spreadsheets", str(source), str(out / "a.pdf"), "pdf")),
+            (
+                com_backend,
+                lambda: com_backend.run_conversion_smoke("spreadsheets", str(source), str(out / "a.pdf"), "pdf"),
+            ),
             (com_backend, lambda: com_backend.run_spreadsheet_calc_smoke(str(source), str(out / "a.xlsx"))),
         ]
         scripts = []
@@ -84,7 +87,10 @@ def run_pwsh(body):
         script = Path(tmp) / "t.ps1"
         script.write_text(PRE_OPEN_GUARD + "\n$ErrorActionPreference = 'Stop'\n" + body, encoding="utf-8-sig")
         completed = subprocess.run(
-            [PWSH, "-NoProfile", "-File", str(script)], capture_output=True, text=True, timeout=60,
+            [PWSH, "-NoProfile", "-File", str(script)],
+            capture_output=True,
+            text=True,
+            timeout=60,
         )
     if completed.returncode != 0:
         raise AssertionError(completed.stdout + completed.stderr)
@@ -111,7 +117,9 @@ class LocalPathNormalisationTests(unittest.TestCase):
 
     def test_extended_length_prefixes_are_removed(self):
         self.assertEqual(
-            self.convert(r"\\?\C:\work\book.xlsx", r"\\?\UNC\localhost\C$\work\book.xlsx", r"\\?\UNC\fileserver\share\a.xlsx"),
+            self.convert(
+                r"\\?\C:\work\book.xlsx", r"\\?\UNC\localhost\C$\work\book.xlsx", r"\\?\UNC\fileserver\share\a.xlsx"
+            ),
             [r"C:\work\book.xlsx", r"C:\work\book.xlsx", r"\\fileserver\share\a.xlsx"],
         )
 
@@ -130,9 +138,9 @@ class LocalPathNormalisationTests(unittest.TestCase):
         lines = run_pwsh(
             "$app = [pscustomobject]@{ DisplayAlerts = $true; EnableEvents = $true; AskToUpdateLinks = $false; Untouched = 1 }\n"
             "Set-WpsAppQuiet $app @('DisplayAlerts', 'EnableEvents', 'AskToUpdateLinks')\n"
-            "\"during: $($app.DisplayAlerts) $($app.EnableEvents) $($app.AskToUpdateLinks)\"\n"
+            '"during: $($app.DisplayAlerts) $($app.EnableEvents) $($app.AskToUpdateLinks)"\n'
             "Restore-WpsAppSettings $app\n"
-            "\"after: $($app.DisplayAlerts) $($app.EnableEvents) $($app.AskToUpdateLinks) $($app.Untouched)\"\n"
+            '"after: $($app.DisplayAlerts) $($app.EnableEvents) $($app.AskToUpdateLinks) $($app.Untouched)"\n'
         )
         self.assertEqual(lines, ["during: False False False", "after: True True False 1"])
 
@@ -156,8 +164,10 @@ $coll | Add-Member -MemberType ScriptMethod -Name Open -Value { param($p, $updat
 
     def test_machine_name_and_extended_prefix_spellings_use_the_local_path(self):
         lines = self.call(
-            r"[void](Open-WpsDocument $coll '\\box1\D$\x\a.xlsx' $false)" "\n"
-            r"[void](Open-WpsDocument $coll '\\?\E:\x\b.xlsx' $false)" "\n"
+            r"[void](Open-WpsDocument $coll '\\box1\D$\x\a.xlsx' $false)"
+            "\n"
+            r"[void](Open-WpsDocument $coll '\\?\E:\x\b.xlsx' $false)"
+            "\n"
         )
         self.assertEqual(lines, [r"open:D:\x\a.xlsx||", r"open:E:\x\b.xlsx||"])
 
@@ -187,8 +197,13 @@ $coll | Add-Member -MemberType ScriptMethod -Name Open -Value { param($p, $updat
     def run_script(self, body):
         with tempfile.TemporaryDirectory() as tmp:
             script = Path(tmp) / "t.ps1"
-            script.write_text(PRE_OPEN_GUARD + "\n$ErrorActionPreference = 'Stop'\n" + self.FAKE_COLLECTION + body, encoding="utf-8-sig")
-            return subprocess.run([PWSH, "-NoProfile", "-File", str(script)], capture_output=True, text=True, timeout=60)
+            script.write_text(
+                PRE_OPEN_GUARD + "\n$ErrorActionPreference = 'Stop'\n" + self.FAKE_COLLECTION + body,
+                encoding="utf-8-sig",
+            )
+            return subprocess.run(
+                [PWSH, "-NoProfile", "-File", str(script)], capture_output=True, text=True, timeout=60
+            )
 
     def test_a_changing_command_is_refused_without_trusting_the_returned_object(self):
         completed = self.run_script(
@@ -204,13 +219,18 @@ $coll | Add-Member -MemberType ScriptMethod -Name Open -Value { param($p, $updat
 
     def test_a_read_only_open_still_returns_but_warns_that_the_values_may_come_from_disk(self):
         completed = self.run_script(
-            r"$doc = Open-WpsDocument $coll 'C:\data\new.xlsx' $false $true" "\n"
-            r"$doc.Tag" "\n"
-            r"$script:wpsPreOpen" "\n"
+            r"$doc = Open-WpsDocument $coll 'C:\data\new.xlsx' $false $true"
+            "\n"
+            r"$doc.Tag"
+            "\n"
+            r"$script:wpsPreOpen"
+            "\n"
         )
         self.assertEqual(completed.returncode, 0, completed.stdout + completed.stderr)
         self.assertEqual(completed.stdout.split(), ["detached", "True"])
-        self.assertIn("WPS_AGENT_WARNING: the document was opened in WPS between the check and the open call", completed.stderr)
+        self.assertIn(
+            "WPS_AGENT_WARNING: the document was opened in WPS between the check and the open call", completed.stderr
+        )
         self.assertIn("Open() had already been called", completed.stderr)
         self.assertIn("unsaved edits made in WPS may have been discarded", completed.stderr)
         self.assertNotIn("copy loaded from disk", completed.stderr)
@@ -244,10 +264,13 @@ function Show-Outcome([scriptblock]$body) {
     def run_script(self, body, hold=False):
         holder = (
             f"$held = [System.IO.File]::Open('{self.file}', [System.IO.FileMode]::Open, [System.IO.FileAccess]::Read, [System.IO.FileShare]::None)\n"
-            if hold else ""
+            if hold
+            else ""
         )
         script = self.dir / "t.ps1"
-        script.write_text(PRE_OPEN_GUARD + "\n$ErrorActionPreference = 'Stop'\n" + self.PRELUDE + holder + body, encoding="utf-8-sig")
+        script.write_text(
+            PRE_OPEN_GUARD + "\n$ErrorActionPreference = 'Stop'\n" + self.PRELUDE + holder + body, encoding="utf-8-sig"
+        )
         done = subprocess.run([PWSH, "-NoProfile", "-File", str(script)], capture_output=True, text=True, timeout=60)
         self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
         return done.stdout.strip().splitlines()
@@ -303,8 +326,10 @@ function Show-Outcome([scriptblock]$body) {
 
     def test_every_open_of_a_user_file_is_preceded_by_the_probe(self):
         source = Path(wps_script_snippets.__file__).read_text(encoding="utf-8")
-        document = source[source.index("function Open-WpsDocument"):source.index("function Open-WpsPresentation")]
-        presentation = source[source.index("function Open-WpsPresentation"):source.index("function Assert-WpsPreOpenSaved")]
+        document = source[source.index("function Open-WpsDocument") : source.index("function Open-WpsPresentation")]
+        presentation = source[
+            source.index("function Open-WpsPresentation") : source.index("function Assert-WpsPreOpenSaved")
+        ]
         self.assertLess(document.index("Assert-WpsFileNotHeld"), document.index("$collection.Open("))
         self.assertLess(presentation.index("Assert-WpsFileNotHeld"), presentation.index("$collection.Open("))
 
@@ -314,8 +339,10 @@ class ScriptWarningTests(unittest.TestCase):
         from wps_ai_agent_cli import powershell_runner
 
         completed = subprocess.CompletedProcess([], returncode, stdout=stdout, stderr=stderr)
-        with patch.object(powershell_runner.subprocess, "run", return_value=completed), \
-                patch.object(powershell_runner, "powershell_executable", return_value="pwsh"):
+        with (
+            patch.object(powershell_runner.subprocess, "run", return_value=completed),
+            patch.object(powershell_runner, "powershell_executable", return_value="pwsh"),
+        ):
             return powershell_runner.run_powershell_script("exit 0")
 
     def test_stderr_notices_are_returned_as_warnings_without_touching_stdout_json(self):
@@ -335,9 +362,15 @@ class ScriptWarningTests(unittest.TestCase):
 class ProcessNameTests(unittest.TestCase):
     def test_progids_map_to_the_component_process(self):
         progids = [
-            "kwps.Application", "wps.Application", "Kingsoft Writer.Application",
-            "ket.Application", "et.Application", "Kingsoft Spreadsheets.Application",
-            "kwpp.Application", "wpp.Application", "Kingsoft Presentation.Application",
+            "kwps.Application",
+            "wps.Application",
+            "Kingsoft Writer.Application",
+            "ket.Application",
+            "et.Application",
+            "Kingsoft Spreadsheets.Application",
+            "kwpp.Application",
+            "wpp.Application",
+            "Kingsoft Presentation.Application",
             "something.Else",
         ]
         calls = "\n".join(f"\"[$(Get-WpsProcessName '{progid}')]\"" for progid in progids)
@@ -376,7 +409,11 @@ function Get-Process {
             env = {key: value for key, value in os.environ.items() if key != "WPS_AGENT_ALLOW_MULTI_INSTANCE"}
             env["FAKE_TOTAL"] = str(total)
             return subprocess.run(
-                [PWSH, "-NoProfile", "-File", str(script)], capture_output=True, text=True, timeout=60, env=env,
+                [PWSH, "-NoProfile", "-File", str(script)],
+                capture_output=True,
+                text=True,
+                timeout=60,
+                env=env,
             )
 
     def test_progids_query_the_matching_process_name(self):
@@ -478,7 +515,9 @@ class InspectRecalculationTests(unittest.TestCase):
         self.assertFalse([line for line in self.log_lines() if line.startswith("open:")])
 
     def test_read_only_inspect_is_not_blocked_by_several_processes(self):
-        ok, result, errors = self.inspect(WPSFAKE_ATTACH="1", WPSFAKE_OPEN="0", WPSFAKE_SAVED="1", WPSFAKE_PROCS="2", WPSFAKE_WINDOWED="2")
+        ok, result, errors = self.inspect(
+            WPSFAKE_ATTACH="1", WPSFAKE_OPEN="0", WPSFAKE_SAVED="1", WPSFAKE_PROCS="2", WPSFAKE_WINDOWED="2"
+        )
         self.assertTrue(ok, errors)
 
     def test_instance_launched_by_the_script_is_still_fully_recalculated(self):
@@ -574,7 +613,9 @@ class AttachBehaviourTests(unittest.TestCase):
             real = spreadsheet_ops.run_powershell_script
 
             def keep_busy(script, *args, **kwargs):
-                return real(script.replace("$wpsPreOpen = ", "$app.Workbooks.Count = 5; $wpsPreOpen = ", 1), *args, **kwargs)
+                return real(
+                    script.replace("$wpsPreOpen = ", "$app.Workbooks.Count = 5; $wpsPreOpen = ", 1), *args, **kwargs
+                )
 
             with patch.object(spreadsheet_ops, "run_powershell_script", side_effect=keep_busy):
                 result = spreadsheet_ops._run_spreadsheet_delete_sheet_com(str(self.document), "S")
@@ -586,7 +627,11 @@ class AttachBehaviourTests(unittest.TestCase):
             with self.subTest(attach=attach):
                 self.log.write_text("", encoding="utf-8")
                 result = self.delete_sheet(
-                    WPSFAKE_ATTACH=attach, WPSFAKE_OPEN="0", WPSFAKE_SAVED="1", WPSFAKE_PROCS="3", WPSFAKE_WINDOWED="2",
+                    WPSFAKE_ATTACH=attach,
+                    WPSFAKE_OPEN="0",
+                    WPSFAKE_SAVED="1",
+                    WPSFAKE_PROCS="3",
+                    WPSFAKE_WINDOWED="2",
                 )
                 self.assertFalse(result["ok"], result)
                 text = str(result)
@@ -605,7 +650,11 @@ class AttachBehaviourTests(unittest.TestCase):
             with self.subTest(attach=attach):
                 self.log.write_text("", encoding="utf-8")
                 result = self.delete_sheet(
-                    WPSFAKE_ATTACH=attach, WPSFAKE_OPEN="0", WPSFAKE_SAVED="1", WPSFAKE_PROCS="3", WPSFAKE_WINDOWED="1",
+                    WPSFAKE_ATTACH=attach,
+                    WPSFAKE_OPEN="0",
+                    WPSFAKE_SAVED="1",
+                    WPSFAKE_PROCS="3",
+                    WPSFAKE_WINDOWED="1",
                 )
                 self.assertTrue(result["ok"], result)
                 [warning] = result["data"]["warnings"]
@@ -615,7 +664,11 @@ class AttachBehaviourTests(unittest.TestCase):
 
     def test_only_background_processes_are_allowed_with_a_warning(self):
         result = self.delete_sheet(
-            WPSFAKE_ATTACH="1", WPSFAKE_OPEN="0", WPSFAKE_SAVED="1", WPSFAKE_PROCS="3", WPSFAKE_WINDOWED="0",
+            WPSFAKE_ATTACH="1",
+            WPSFAKE_OPEN="0",
+            WPSFAKE_SAVED="1",
+            WPSFAKE_PROCS="3",
+            WPSFAKE_WINDOWED="0",
         )
         self.assertTrue(result["ok"], result)
         self.assertIn("only 0 has a window", result["data"]["warnings"][0])
@@ -628,31 +681,49 @@ class AttachBehaviourTests(unittest.TestCase):
 
     def test_a_document_already_open_in_the_attached_instance_is_still_used_with_several_windows(self):
         result = self.delete_sheet(
-            WPSFAKE_ATTACH="1", WPSFAKE_OPEN="1", WPSFAKE_SAVED="1", WPSFAKE_PROCS="3", WPSFAKE_WINDOWED="3",
+            WPSFAKE_ATTACH="1",
+            WPSFAKE_OPEN="1",
+            WPSFAKE_SAVED="1",
+            WPSFAKE_PROCS="3",
+            WPSFAKE_WINDOWED="3",
         )
         self.assertTrue(result["ok"], result)
         self.assertEqual(self.events(), ["delete", "save"])
 
     def test_the_multi_instance_check_can_be_switched_off(self):
         result = self.delete_sheet(
-            WPSFAKE_ATTACH="1", WPSFAKE_OPEN="0", WPSFAKE_SAVED="1", WPSFAKE_PROCS="2", WPSFAKE_WINDOWED="2",
+            WPSFAKE_ATTACH="1",
+            WPSFAKE_OPEN="0",
+            WPSFAKE_SAVED="1",
+            WPSFAKE_PROCS="2",
+            WPSFAKE_WINDOWED="2",
             WPS_AGENT_ALLOW_MULTI_INSTANCE="1",
         )
         self.assertTrue(result["ok"], result)
         self.assertNotIn("warnings", result["data"])
 
     def test_launched_instance_is_still_quit_after_the_refusal(self):
-        self.delete_sheet(WPSFAKE_ATTACH="0", WPSFAKE_OPEN="0", WPSFAKE_SAVED="1", WPSFAKE_PROCS="2", WPSFAKE_WINDOWED="2")
+        self.delete_sheet(
+            WPSFAKE_ATTACH="0", WPSFAKE_OPEN="0", WPSFAKE_SAVED="1", WPSFAKE_PROCS="2", WPSFAKE_WINDOWED="2"
+        )
         self.assertEqual(self.events(), ["quit:new"])
 
     def test_presentation_and_smoke_commands_refuse_with_several_windowed_instances(self):
         env = {
-            "WPSFAKE_ATTACH": "1", "WPSFAKE_OPEN": "0", "WPSFAKE_SAVED": "1", "WPSFAKE_PROCS": "3", "WPSFAKE_WINDOWED": "2",
+            "WPSFAKE_ATTACH": "1",
+            "WPSFAKE_OPEN": "0",
+            "WPSFAKE_SAVED": "1",
+            "WPSFAKE_PROCS": "3",
+            "WPSFAKE_WINDOWED": "2",
         }
         with patch.dict(os.environ, env):
             presentation = presentation_ops._run_presentation_replace_com(str(self.document), "a", "b")
-            calc = com_backend._run_powershell_com_smoke("spreadsheets", "ket.Application", str(self.document), str(self.dir / "out.xlsx"), False)
-            conversion = com_backend.run_conversion_smoke("writer", str(self.document), str(self.dir / "out.pdf"), "pdf")
+            calc = com_backend._run_powershell_com_smoke(
+                "spreadsheets", "ket.Application", str(self.document), str(self.dir / "out.xlsx"), False
+            )
+            conversion = com_backend.run_conversion_smoke(
+                "writer", str(self.document), str(self.dir / "out.pdf"), "pdf"
+            )
         for name, result in (("presentation", presentation), ("smoke", calc), ("conversion", conversion)):
             with self.subTest(command=name):
                 self.assertFalse(result["ok"], result)
@@ -676,7 +747,10 @@ class AttachBehaviourTests(unittest.TestCase):
             with self.subTest(race_reads=reads):
                 self.log.write_text("", encoding="utf-8")
                 env = {
-                    "WPSFAKE_ATTACH": "1", "WPSFAKE_SAVED": "1", "WPSFAKE_RACE": "1", "WPSFAKE_RACE_READS": reads,
+                    "WPSFAKE_ATTACH": "1",
+                    "WPSFAKE_SAVED": "1",
+                    "WPSFAKE_RACE": "1",
+                    "WPSFAKE_RACE_READS": reads,
                     "WPSFAKE_OPEN_OTHER": "1",
                 }
                 with patch.dict(os.environ, env):
@@ -692,11 +766,16 @@ class AttachBehaviourTests(unittest.TestCase):
 
     def test_smoke_input_opened_by_the_user_after_the_check_is_refused_and_not_closed(self):
         env = {
-            "WPSFAKE_ATTACH": "1", "WPSFAKE_SAVED": "0", "WPSFAKE_RACE": "1", "WPSFAKE_RACE_READS": "1",
+            "WPSFAKE_ATTACH": "1",
+            "WPSFAKE_SAVED": "0",
+            "WPSFAKE_RACE": "1",
+            "WPSFAKE_RACE_READS": "1",
             "WPSFAKE_OPEN_OTHER": "1",
         }
         with patch.dict(os.environ, env):
-            convert = com_backend.run_conversion_smoke("spreadsheets", str(self.document), str(self.dir / "o.pdf"), "pdf")
+            convert = com_backend.run_conversion_smoke(
+                "spreadsheets", str(self.document), str(self.dir / "o.pdf"), "pdf"
+            )
             calc = com_backend.run_spreadsheet_calc_smoke(str(self.document), str(self.dir / "out.xlsx"))
         for name, result in (("conversion", convert), ("calc", calc)):
             with self.subTest(command=name):
@@ -712,7 +791,9 @@ class AttachBehaviourTests(unittest.TestCase):
             results = {
                 "sheet": self.delete_sheet(),
                 "presentation": presentation_ops._run_presentation_replace_com(str(self.document), "a", "b"),
-                "conversion": com_backend.run_conversion_smoke("spreadsheets", str(self.document), str(out) + ".pdf", "pdf"),
+                "conversion": com_backend.run_conversion_smoke(
+                    "spreadsheets", str(self.document), str(out) + ".pdf", "pdf"
+                ),
                 "calc": com_backend.run_spreadsheet_calc_smoke(str(self.document), str(out) + ".xlsx"),
                 "com_smoke": com_backend.run_com_smoke("spreadsheets", str(self.document), str(out) + "2.xlsx"),
             }
@@ -732,7 +813,9 @@ class AttachBehaviourTests(unittest.TestCase):
             calc = com_backend.run_spreadsheet_calc_smoke(str(self.document), str(out))
             self.assertFalse(calc["ok"], calc)
             self.assertIn("already open in WPS", str(calc))
-            convert = com_backend.run_conversion_smoke("spreadsheets", str(self.document), str(self.dir / "o.pdf"), "pdf")
+            convert = com_backend.run_conversion_smoke(
+                "spreadsheets", str(self.document), str(self.dir / "o.pdf"), "pdf"
+            )
             self.assertFalse(convert["ok"], convert)
             self.assertIn("already open in WPS", str(convert))
         self.assertEqual(self.events(), [])

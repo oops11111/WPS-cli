@@ -103,8 +103,9 @@ def document_text(path: Path) -> str:
         from pptx import Presentation
 
         presentation = Presentation(path)
-        return "\n".join(shape.text_frame.text for slide in presentation.slides
-                         for shape in slide.shapes if shape.has_text_frame)
+        return "\n".join(
+            shape.text_frame.text for slide in presentation.slides for shape in slide.shapes if shape.has_text_frame
+        )
     raise ValueError(f"unsupported document type {suffix}")
 
 
@@ -134,8 +135,15 @@ def hold_file(path: Path) -> tuple[Callable[[], None] | None, str | None]:
         from ctypes import wintypes
 
         kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
-        kernel32.CreateFileW.argtypes = [wintypes.LPCWSTR, wintypes.DWORD, wintypes.DWORD, wintypes.LPVOID,
-                                         wintypes.DWORD, wintypes.DWORD, wintypes.HANDLE]
+        kernel32.CreateFileW.argtypes = [
+            wintypes.LPCWSTR,
+            wintypes.DWORD,
+            wintypes.DWORD,
+            wintypes.LPVOID,
+            wintypes.DWORD,
+            wintypes.DWORD,
+            wintypes.HANDLE,
+        ]
         kernel32.CreateFileW.restype = wintypes.HANDLE
         # GENERIC_READ, no sharing, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL: every other open is refused.
         handle = kernel32.CreateFileW(str(path), 0x80000000, 0, None, 3, 0x80, None)
@@ -149,7 +157,9 @@ def hold_file(path: Path) -> tuple[Callable[[], None] | None, str | None]:
     return (lambda: path.chmod(mode)), None
 
 
-def run_setup(steps: list[str], workspace: Path, fixture: Path, component: str) -> tuple[str, Callable[[], None] | None, str | None]:
+def run_setup(
+    steps: list[str], workspace: Path, fixture: Path, component: str
+) -> tuple[str, Callable[[], None] | None, str | None]:
     """Prepare the workspace.
 
     Returns (hash of the file as the agent receives it, release for a held file, skip reason). The hash is
@@ -216,7 +226,12 @@ def parse_transcript(lines: list[str]) -> tuple[dict[str, Any], list[dict[str, A
             continue
         for block in content:
             if block.get("type") == "tool_use":
-                call = {"name": block.get("name"), "input": block.get("input") or {}, "is_error": None, "error_codes": []}
+                call = {
+                    "name": block.get("name"),
+                    "input": block.get("input") or {},
+                    "is_error": None,
+                    "error_codes": [],
+                }
                 calls.append(call)
                 by_id[block.get("id")] = call
             elif block.get("type") == "tool_result" and block.get("tool_use_id") in by_id:
@@ -236,13 +251,23 @@ def tool_metrics(calls: list[dict[str, Any]]) -> dict[str, Any]:
     }
 
 
-def run_claude(prompt: str, mcp_config: Path, workspace: Path, model: str | None, max_turns: int, timeout: int) -> dict[str, Any]:
+def run_claude(
+    prompt: str, mcp_config: Path, workspace: Path, model: str | None, max_turns: int, timeout: int
+) -> dict[str, Any]:
     command = [
-        "claude", "-p", prompt,
-        "--output-format", "stream-json", "--verbose",
-        "--mcp-config", str(mcp_config), "--strict-mcp-config",
-        "--allowedTools", ALLOWED_TOOLS,
-        "--max-turns", str(max_turns),
+        "claude",
+        "-p",
+        prompt,
+        "--output-format",
+        "stream-json",
+        "--verbose",
+        "--mcp-config",
+        str(mcp_config),
+        "--strict-mcp-config",
+        "--allowedTools",
+        ALLOWED_TOOLS,
+        "--max-turns",
+        str(max_turns),
     ]
     if model:
         command += ["--model", model]
@@ -268,8 +293,15 @@ def _calls_to(calls: list[dict[str, Any]], tool: str) -> list[dict[str, Any]]:
     return [call for call in calls if call["name"] == TOOL_PREFIX + tool]
 
 
-def judge(task: dict[str, Any], workspace: Path, fixture: Path, fixture_sha: str, component: str,
-          seed_sha: str | None = None, calls: list[dict[str, Any]] | None = None) -> list[dict[str, Any]]:
+def judge(
+    task: dict[str, Any],
+    workspace: Path,
+    fixture: Path,
+    fixture_sha: str,
+    component: str,
+    seed_sha: str | None = None,
+    calls: list[dict[str, Any]] | None = None,
+) -> list[dict[str, Any]]:
     """Check the workspace state and tool calls the task asks for. A check never reads the agent's reply.
 
     fixture_sha is the file as the agent received it, after setup; seed_sha is the file before setup.
@@ -303,8 +335,11 @@ def judge(task: dict[str, Any], workspace: Path, fixture: Path, fixture_sha: str
             passed = file_sha256(fixture) == seed_sha
             detail = "matches the seed" if passed else "differs from the seed"
         elif kind == "tool_called":
-            matching = [call for call in _calls_to(calls, check["tool"])
-                        if all(call["input"].get(key) == value for key, value in check.get("input", {}).items())]
+            matching = [
+                call
+                for call in _calls_to(calls, check["tool"])
+                if all(call["input"].get(key) == value for key, value in check.get("input", {}).items())
+            ]
             passed, detail = len(matching) >= check.get("min", 1), f"{len(matching)} matching call(s)"
         elif kind == "tool_not_called":
             count = len(_calls_to(calls, check["tool"]))
@@ -340,7 +375,9 @@ def judge(task: dict[str, Any], workspace: Path, fixture: Path, fixture_sha: str
                 passed, detail = value == check["value"], value
         else:
             passed, detail = False, f"unknown check kind {kind}"
-        results.append({"kind": kind, "passed": passed, "detail": detail, **{k: v for k, v in check.items() if k != "kind"}})
+        results.append(
+            {"kind": kind, "passed": passed, "detail": detail, **{k: v for k, v in check.items() if k != "kind"}}
+        )
     return results
 
 
@@ -352,12 +389,25 @@ def wps_available(component: str) -> bool:
     return bool(selected)
 
 
-def run_task(task: dict[str, Any], fixture_name: str, component: str, root: Path, model: str | None,
-             max_turns: int, timeout: int, runner: Callable[..., dict[str, Any]] = run_claude,
-             has_wps: Callable[[str], bool] = wps_available) -> dict[str, Any]:
+def run_task(
+    task: dict[str, Any],
+    fixture_name: str,
+    component: str,
+    root: Path,
+    model: str | None,
+    max_turns: int,
+    timeout: int,
+    runner: Callable[..., dict[str, Any]] = run_claude,
+    has_wps: Callable[[str], bool] = wps_available,
+) -> dict[str, Any]:
     if task.get("requires_wps") and not has_wps(component):
-        return {"id": task["id"], "passed": False, "skipped": f"needs WPS {component}, which is not available here",
-                "agent": {}, "checks": []}
+        return {
+            "id": task["id"],
+            "passed": False,
+            "skipped": f"needs WPS {component}, which is not available here",
+            "agent": {},
+            "checks": [],
+        }
     workspace = root / task["id"]
     if workspace.exists():
         shutil.rmtree(workspace)
@@ -384,18 +434,36 @@ def run_task(task: dict[str, Any], fixture_name: str, component: str, root: Path
     }
 
 
-def run_task_repeated(task: dict[str, Any], fixture_name: str, component: str, root: Path, model: str | None,
-                      max_turns: int, timeout: int, repeat: int = 1, min_passes: int = 1,
-                      runner: Callable[..., dict[str, Any]] = run_claude,
-                      has_wps: Callable[[str], bool] = wps_available) -> dict[str, Any]:
+def run_task_repeated(
+    task: dict[str, Any],
+    fixture_name: str,
+    component: str,
+    root: Path,
+    model: str | None,
+    max_turns: int,
+    timeout: int,
+    repeat: int = 1,
+    min_passes: int = 1,
+    runner: Callable[..., dict[str, Any]] = run_claude,
+    has_wps: Callable[[str], bool] = wps_available,
+) -> dict[str, Any]:
     """Run a task `repeat` times, each in its own workspace. It passes when at least `min_passes` runs pass.
 
     A skip (no WPS, or a file that cannot be held) does not depend on the run, so the first one ends the task.
     """
     runs = []
     for index in range(1, repeat + 1):
-        result = run_task(task, fixture_name, component, root / f"run-{index}", model, max_turns, timeout,
-                          runner=runner, has_wps=has_wps)
+        result = run_task(
+            task,
+            fixture_name,
+            component,
+            root / f"run-{index}",
+            model,
+            max_turns,
+            timeout,
+            runner=runner,
+            has_wps=has_wps,
+        )
         if result.get("skipped"):
             return {"id": task["id"], "passed": False, "skipped": result["skipped"], "runs": []}
         runs.append(result)
@@ -424,8 +492,9 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--max-turns", type=int, default=15)
     parser.add_argument("--timeout", type=int, default=600)
     parser.add_argument("--repeat", type=int, default=1, help="Run each task this many times (default 1).")
-    parser.add_argument("--min-passes", type=int, default=None,
-                        help="Runs that must pass for a task to pass (default: all of them).")
+    parser.add_argument(
+        "--min-passes", type=int, default=None, help="Runs that must pass for a task to pass (default: all of them)."
+    )
     args = parser.parse_args(argv)
     if args.repeat < 1:
         parser.error("--repeat must be at least 1")
@@ -444,9 +513,17 @@ def main(argv: list[str] | None = None) -> int:
     root.mkdir(parents=True, exist_ok=True)
 
     results = [
-        run_task_repeated(task, task.get("fixture", spec["fixture"]), task.get("component", spec["component"]),
-                          root / "work", args.model, args.max_turns,
-                          args.timeout, repeat=args.repeat, min_passes=min_passes)
+        run_task_repeated(
+            task,
+            task.get("fixture", spec["fixture"]),
+            task.get("component", spec["component"]),
+            root / "work",
+            args.model,
+            args.max_turns,
+            args.timeout,
+            repeat=args.repeat,
+            min_passes=min_passes,
+        )
         for task in tasks
     ]
     summary = summarize(results, stamp, args.model)
@@ -457,9 +534,11 @@ def main(argv: list[str] | None = None) -> int:
             print(f"SKIP {result['id']}: {result['skipped']}")
             continue
         metrics = result.get("metrics", {})
-        print(f"{'PASS' if result['passed'] else 'FAIL'} {result['id']} "
-              f"({result['passes']}/{result['repeat']} runs passed, need {result['min_passes']}; "
-              f"wps-agent calls {metrics.get('wps_tool_calls')}, errors {metrics.get('wps_tool_errors')})")
+        print(
+            f"{'PASS' if result['passed'] else 'FAIL'} {result['id']} "
+            f"({result['passes']}/{result['repeat']} runs passed, need {result['min_passes']}; "
+            f"wps-agent calls {metrics.get('wps_tool_calls')}, errors {metrics.get('wps_tool_errors')})"
+        )
         for index, run in enumerate(result["runs"], 1):
             label = f"  run {index}: " if result["repeat"] > 1 else ""
             for check in run["checks"]:

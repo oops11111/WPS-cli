@@ -33,23 +33,38 @@ class WriterParagraphMappingTests(unittest.TestCase):
     def test_direct_body_target_excludes_table_paragraphs(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "mapping.docx"
-            write_document(path, '''<w:p><w:r><w:t>before</w:t></w:r></w:p>
+            write_document(
+                path,
+                """<w:p><w:r><w:t>before</w:t></w:r></w:p>
                 <w:tbl><w:tr><w:tc><w:p/><w:p/></w:tc></w:tr></w:tbl>
-                <w:p><w:r><w:t>target</w:t></w:r></w:p>''')
-            self.assertEqual(docx_body_paragraph_target(path, 2), {
-                "body_paragraph_count": 2, "expected_text": "target",
-            })
+                <w:p><w:r><w:t>target</w:t></w:r></w:p>""",
+            )
+            self.assertEqual(
+                docx_body_paragraph_target(path, 2),
+                {
+                    "body_paragraph_count": 2,
+                    "expected_text": "target",
+                },
+            )
             with self.assertRaises(ValueError):
                 docx_body_paragraph_target(path, 3)
 
     def test_bookmark_fill_dry_run_and_preflight_rejections(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "bookmark.docx"
-            write_document(path, '<w:p><w:r><w:t>Dear </w:t></w:r><w:bookmarkStart w:id="1" w:name="Client"/><w:r><w:t>old</w:t></w:r><w:bookmarkEnd w:id="1"/><w:r><w:t>!</w:t></w:r></w:p>')
+            write_document(
+                path,
+                '<w:p><w:r><w:t>Dear </w:t></w:r><w:bookmarkStart w:id="1" w:name="Client"/><w:r><w:t>old</w:t></w:r><w:bookmarkEnd w:id="1"/><w:r><w:t>!</w:t></w:r></w:p>',
+            )
             _, record, _ = register_document("writer", str(path), tmp)
             before = path.read_bytes()
-            with patch("wps_ai_agent_cli.writer_ops.create_backup") as backup, patch("wps_ai_agent_cli.writer_ops._run_writer_bookmark_fill_com") as com:
-                ok, result, errors, replayed = writer_fill_bookmark(record["document_id"], "Client", "new", "bookmark-preview", dry_run=True, workspace=tmp)
+            with (
+                patch("wps_ai_agent_cli.writer_ops.create_backup") as backup,
+                patch("wps_ai_agent_cli.writer_ops._run_writer_bookmark_fill_com") as com,
+            ):
+                ok, result, errors, replayed = writer_fill_bookmark(
+                    record["document_id"], "Client", "new", "bookmark-preview", dry_run=True, workspace=tmp
+                )
             self.assertTrue(ok)
             self.assertFalse(replayed)
             self.assertEqual(errors, [])
@@ -58,7 +73,9 @@ class WriterParagraphMappingTests(unittest.TestCase):
             backup.assert_not_called()
             com.assert_not_called()
             self.assertEqual(path.read_bytes(), before)
-            ok, _, errors, _ = writer_fill_bookmark(record["document_id"], "Missing", "x", "bookmark-missing", dry_run=True, workspace=tmp)
+            ok, _, errors, _ = writer_fill_bookmark(
+                record["document_id"], "Missing", "x", "bookmark-missing", dry_run=True, workspace=tmp
+            )
             self.assertFalse(ok)
             self.assertEqual(errors[0]["code"], "BOOKMARK_NOT_FOUND")
 
@@ -66,14 +83,21 @@ class WriterParagraphMappingTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "bookmark.docx"
             replacement = Path(tmp) / "replacement.docx"
-            write_document(path, '<w:p><w:bookmarkStart w:id="1" w:name="Client"/>'
-                                 '<w:r><w:t>old</w:t></w:r><w:bookmarkEnd w:id="1"/></w:p>')
+            write_document(
+                path,
+                '<w:p><w:bookmarkStart w:id="1" w:name="Client"/>'
+                '<w:r><w:t>old</w:t></w:r><w:bookmarkEnd w:id="1"/></w:p>',
+            )
             _, record, _ = register_document("writer", str(path), tmp)
             replacement.write_bytes(path.read_bytes())
             os.replace(replacement, path)
             with patch("wps_ai_agent_cli.writer_ops._run_writer_bookmark_fill_com") as com:
                 ok, _, errors, _ = writer_fill_bookmark(
-                    record["document_id"], "Client", "new", "replaced-file", workspace=tmp,
+                    record["document_id"],
+                    "Client",
+                    "new",
+                    "replaced-file",
+                    workspace=tmp,
                 )
             self.assertFalse(ok)
             self.assertEqual(errors[0]["code"], "DOCUMENT_IDENTITY_CHANGED")
@@ -81,10 +105,17 @@ class WriterParagraphMappingTests(unittest.TestCase):
             _, rebound, _ = register_document("writer", str(path), tmp)
             self.assertEqual(rebound["document_id"], record["document_id"])
             ok, _, errors, _ = writer_fill_bookmark(
-                rebound["document_id"], "Client", "new", "rebound-preview", dry_run=True, workspace=tmp,
+                rebound["document_id"],
+                "Client",
+                "new",
+                "rebound-preview",
+                dry_run=True,
+                workspace=tmp,
             )
             self.assertTrue(ok, errors)
-            ok, _, errors, _ = writer_fill_bookmark(record["document_id"], "_GoBack", "x", "bookmark-reserved", dry_run=True, workspace=tmp)
+            ok, _, errors, _ = writer_fill_bookmark(
+                record["document_id"], "_GoBack", "x", "bookmark-reserved", dry_run=True, workspace=tmp
+            )
             self.assertFalse(ok)
             self.assertEqual(errors[0]["code"], "INVALID_ARGUMENT")
 
@@ -93,7 +124,10 @@ class WriterParagraphMappingTests(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "bookmark.docx"
-            write_document(path, '<w:p><w:r><w:t>Dear </w:t></w:r><w:bookmarkStart w:id="1" w:name="Client"/><w:r><w:t>old</w:t></w:r><w:bookmarkEnd w:id="1"/><w:r><w:t>!</w:t></w:r></w:p>')
+            write_document(
+                path,
+                '<w:p><w:r><w:t>Dear </w:t></w:r><w:bookmarkStart w:id="1" w:name="Client"/><w:r><w:t>old</w:t></w:r><w:bookmarkEnd w:id="1"/><w:r><w:t>!</w:t></w:r></w:p>',
+            )
             _, record, _ = register_document("writer", str(path), tmp)
 
             def replace_xml(*args):
@@ -106,16 +140,22 @@ class WriterParagraphMappingTests(unittest.TestCase):
                 return {"ok": True, "errors": [], "data": {"backend": "test"}}
 
             with patch("wps_ai_agent_cli.writer_ops._run_writer_bookmark_fill_com", side_effect=replace_xml):
-                ok, result, errors, replayed = writer_fill_bookmark(record["document_id"], "Client", "Northwind", "bookmark-commit", workspace=tmp)
+                ok, result, errors, replayed = writer_fill_bookmark(
+                    record["document_id"], "Client", "Northwind", "bookmark-commit", workspace=tmp
+                )
                 self.assertTrue(ok, errors)
                 self.assertFalse(replayed)
                 self.assertTrue(result["readback_passed"])
-                ok, repeated, errors, replayed = writer_fill_bookmark(record["document_id"], "Client", "Northwind", "bookmark-commit", workspace=tmp)
+                ok, repeated, errors, replayed = writer_fill_bookmark(
+                    record["document_id"], "Client", "Northwind", "bookmark-commit", workspace=tmp
+                )
                 self.assertTrue(ok)
                 self.assertTrue(replayed)
                 self.assertEqual(errors, [])
                 self.assertTrue(repeated["readback_passed"])
-                ok, _result, errors, replayed = writer_fill_bookmark(record["document_id"], "Client", "different", "bookmark-commit", workspace=tmp)
+                ok, _result, errors, replayed = writer_fill_bookmark(
+                    record["document_id"], "Client", "different", "bookmark-commit", workspace=tmp
+                )
             self.assertFalse(ok)
             self.assertFalse(replayed)
             self.assertEqual(errors[0]["code"], "IDEMPOTENCY_CONFLICT")
@@ -128,7 +168,9 @@ class WriterParagraphMappingTests(unittest.TestCase):
         for corrupt_neighbor in (False, True):
             with self.subTest(corrupt_neighbor=corrupt_neighbor), tempfile.TemporaryDirectory() as tmp:
                 path = Path(tmp) / "table-bookmark.docx"
-                write_document(path, '''
+                write_document(
+                    path,
+                    """
                     <w:p><w:r><w:t>Outside</w:t></w:r></w:p>
                     <w:tbl><w:tr>
                       <w:tc><w:p><w:r><w:t>Before </w:t></w:r>
@@ -136,7 +178,8 @@ class WriterParagraphMappingTests(unittest.TestCase):
                         <w:r><w:t>Old</w:t></w:r><w:bookmarkEnd w:id="1"/>
                         <w:r><w:t> After</w:t></w:r></w:p></w:tc>
                       <w:tc><w:p><w:r><w:t>Neighbor</w:t></w:r></w:p></w:tc>
-                    </w:tr></w:tbl>''')
+                    </w:tr></w:tbl>""",
+                )
                 _, record, _ = register_document("writer", str(path), tmp)
 
                 def replace_xml(*_args):
@@ -153,7 +196,11 @@ class WriterParagraphMappingTests(unittest.TestCase):
 
                 with patch("wps_ai_agent_cli.writer_ops._run_writer_bookmark_fill_com", side_effect=replace_xml):
                     ok, result, errors, _ = writer_fill_bookmark(
-                        record["document_id"], "CellMark", "New", "table-commit", workspace=tmp,
+                        record["document_id"],
+                        "CellMark",
+                        "New",
+                        "table-commit",
+                        workspace=tmp,
                     )
                 self.assertEqual(ok, not corrupt_neighbor)
                 self.assertEqual(result["readback_passed"], not corrupt_neighbor)
@@ -169,11 +216,14 @@ class WriterParagraphMappingTests(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "table-topology.docx"
-            write_document(path, '<w:tbl><w:tr><w:tc><w:p>'
-                                 '<w:bookmarkStart w:id="1" w:name="CellMark"/>'
-                                 '<w:r><w:t>Old</w:t></w:r><w:bookmarkEnd w:id="1"/>'
-                                 '</w:p></w:tc><w:tc><w:p><w:r><w:t>Neighbor</w:t></w:r>'
-                                 '</w:p></w:tc></w:tr></w:tbl>')
+            write_document(
+                path,
+                "<w:tbl><w:tr><w:tc><w:p>"
+                '<w:bookmarkStart w:id="1" w:name="CellMark"/>'
+                '<w:r><w:t>Old</w:t></w:r><w:bookmarkEnd w:id="1"/>'
+                "</w:p></w:tc><w:tc><w:p><w:r><w:t>Neighbor</w:t></w:r>"
+                "</w:p></w:tc></w:tr></w:tbl>",
+            )
             _, record, _ = register_document("writer", str(path), tmp)
 
             def alter_topology(*_args):
@@ -181,7 +231,9 @@ class WriterParagraphMappingTests(unittest.TestCase):
                     parts = {name: archive.read(name) for name in archive.namelist()}
                 payload = parts["word/document.xml"].replace(b">Old<", b">New<")
                 parts["word/document.xml"] = payload.replace(
-                    b"<w:tc>", b'<w:tc><w:tcPr><w:gridSpan w:val="2"/></w:tcPr>', 1,
+                    b"<w:tc>",
+                    b'<w:tc><w:tcPr><w:gridSpan w:val="2"/></w:tcPr>',
+                    1,
                 )
                 with ZipFile(path, "w") as archive:
                     for name, content in parts.items():
@@ -190,7 +242,11 @@ class WriterParagraphMappingTests(unittest.TestCase):
 
             with patch("wps_ai_agent_cli.writer_ops._run_writer_bookmark_fill_com", side_effect=alter_topology):
                 ok, result, errors, _ = writer_fill_bookmark(
-                    record["document_id"], "CellMark", "New", "topology-changed", workspace=tmp,
+                    record["document_id"],
+                    "CellMark",
+                    "New",
+                    "topology-changed",
+                    workspace=tmp,
                 )
             self.assertFalse(ok)
             self.assertFalse(result["readback_passed"])
@@ -201,24 +257,33 @@ class WriterParagraphMappingTests(unittest.TestCase):
             '<w:hyperlink w:anchor="Target"><w:r><w:t>Old</w:t></w:r></w:hyperlink>',
             '<w:fldSimple w:instr="MERGEFIELD Code"><w:r><w:t>Old</w:t></w:r></w:fldSimple>',
             '<w:r><w:fldChar w:fldCharType="begin"/></w:r>'
-            '<w:r><w:instrText>MERGEFIELD Code</w:instrText></w:r>'
+            "<w:r><w:instrText>MERGEFIELD Code</w:instrText></w:r>"
             '<w:r><w:fldChar w:fldCharType="separate"/></w:r>'
-            '<w:r><w:t>Old</w:t></w:r>'
+            "<w:r><w:t>Old</w:t></w:r>"
             '<w:r><w:fldChar w:fldCharType="end"/></w:r>',
         )
         for semantic_range in semantic_ranges:
             with self.subTest(semantic_range=semantic_range), tempfile.TemporaryDirectory() as tmp:
                 path = Path(tmp) / "semantic-target.docx"
-                write_document(path, '<w:tbl><w:tr><w:tc><w:p>'
-                                     '<w:bookmarkStart w:id="1" w:name="CellMark"/>'
-                                     f'{semantic_range}'
-                                     '<w:bookmarkEnd w:id="1"/>'
-                                     '</w:p></w:tc></w:tr></w:tbl>')
+                write_document(
+                    path,
+                    "<w:tbl><w:tr><w:tc><w:p>"
+                    '<w:bookmarkStart w:id="1" w:name="CellMark"/>'
+                    f"{semantic_range}"
+                    '<w:bookmarkEnd w:id="1"/>'
+                    "</w:p></w:tc></w:tr></w:tbl>",
+                )
                 _, record, _ = register_document("writer", str(path), tmp)
-                with patch("wps_ai_agent_cli.writer_ops.create_backup") as backup, \
-                        patch("wps_ai_agent_cli.writer_ops._run_writer_bookmark_fill_com") as com:
+                with (
+                    patch("wps_ai_agent_cli.writer_ops.create_backup") as backup,
+                    patch("wps_ai_agent_cli.writer_ops._run_writer_bookmark_fill_com") as com,
+                ):
                     ok, _, errors, _ = writer_fill_bookmark(
-                        record["document_id"], "CellMark", "New", "semantic-target", workspace=tmp,
+                        record["document_id"],
+                        "CellMark",
+                        "New",
+                        "semantic-target",
+                        workspace=tmp,
                     )
                 self.assertFalse(ok)
                 self.assertEqual(errors[0]["code"], "BOOKMARK_SCOPE_UNSUPPORTED")
@@ -229,33 +294,41 @@ class WriterParagraphMappingTests(unittest.TestCase):
         malformed_nodes = (
             '<w:hyperlink xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"'
             ' r:id="rMissing"><w:r><w:t>Link</w:t></w:r></w:hyperlink>',
-            '<w:r><w:fldChar w:fldCharType="begin"/></w:r>'
-            '<w:r><w:instrText>MERGEFIELD Code</w:instrText></w:r>',
+            '<w:r><w:fldChar w:fldCharType="begin"/></w:r><w:r><w:instrText>MERGEFIELD Code</w:instrText></w:r>',
             '<w:r><w:fldChar w:fldCharType="separate"/></w:r>',
-            '<w:fldSimple><w:r><w:t>Value</w:t></w:r></w:fldSimple>',
+            "<w:fldSimple><w:r><w:t>Value</w:t></w:r></w:fldSimple>",
             '<w:r><w:fldChar w:fldCharType="begin"/></w:r>'
-            '<w:r><w:instrText>QUOTE</w:instrText></w:r>'
+            "<w:r><w:instrText>QUOTE</w:instrText></w:r>"
             '<w:r><w:fldChar w:fldCharType="separate"/></w:r>'
-            '<w:r><w:t>outer</w:t></w:r>'
+            "<w:r><w:t>outer</w:t></w:r>"
             '<w:r><w:fldChar w:fldCharType="begin"/></w:r>'
-            '<w:r><w:instrText>MERGEFIELD Code</w:instrText></w:r>'
+            "<w:r><w:instrText>MERGEFIELD Code</w:instrText></w:r>"
             '<w:r><w:fldChar w:fldCharType="separate"/></w:r>'
-            '<w:r><w:t>inner</w:t></w:r>'
+            "<w:r><w:t>inner</w:t></w:r>"
             '<w:r><w:fldChar w:fldCharType="end"/></w:r>'
             '<w:r><w:fldChar w:fldCharType="end"/></w:r>',
         )
         for node in malformed_nodes:
             with self.subTest(node=node), tempfile.TemporaryDirectory() as tmp:
                 path = Path(tmp) / "malformed-semantic.docx"
-                write_document(path, '<w:tbl><w:tr><w:tc><w:p>'
-                                     '<w:bookmarkStart w:id="1" w:name="CellMark"/>'
-                                     '<w:r><w:t>Old</w:t></w:r><w:bookmarkEnd w:id="1"/>'
-                                     f'{node}</w:p></w:tc></w:tr></w:tbl>')
+                write_document(
+                    path,
+                    "<w:tbl><w:tr><w:tc><w:p>"
+                    '<w:bookmarkStart w:id="1" w:name="CellMark"/>'
+                    '<w:r><w:t>Old</w:t></w:r><w:bookmarkEnd w:id="1"/>'
+                    f"{node}</w:p></w:tc></w:tr></w:tbl>",
+                )
                 _, record, _ = register_document("writer", str(path), tmp)
-                with patch("wps_ai_agent_cli.writer_ops.create_backup") as backup, \
-                        patch("wps_ai_agent_cli.writer_ops._run_writer_bookmark_fill_com") as com:
+                with (
+                    patch("wps_ai_agent_cli.writer_ops.create_backup") as backup,
+                    patch("wps_ai_agent_cli.writer_ops._run_writer_bookmark_fill_com") as com,
+                ):
                     ok, _, errors, _ = writer_fill_bookmark(
-                        record["document_id"], "CellMark", "New", "malformed-semantic", workspace=tmp,
+                        record["document_id"],
+                        "CellMark",
+                        "New",
+                        "malformed-semantic",
+                        workspace=tmp,
                     )
                 self.assertFalse(ok)
                 self.assertEqual(errors[0]["code"], "BOOKMARK_SCOPE_UNSUPPORTED")
@@ -270,12 +343,15 @@ class WriterParagraphMappingTests(unittest.TestCase):
         for changed in ("hyperlink", "field"):
             with self.subTest(changed=changed), tempfile.TemporaryDirectory() as tmp:
                 path = Path(tmp) / "semantic-neighbor.docx"
-                write_document(path, '<w:tbl><w:tr><w:tc><w:p>'
-                                     '<w:hyperlink w:anchor="Safe"><w:r><w:t>Link</w:t></w:r></w:hyperlink>'
-                                     '<w:bookmarkStart w:id="1" w:name="CellMark"/>'
-                                     '<w:r><w:t>Old</w:t></w:r><w:bookmarkEnd w:id="1"/>'
-                                     '<w:fldSimple w:instr="MERGEFIELD Code"><w:r><w:t>Code</w:t></w:r></w:fldSimple>'
-                                     '</w:p></w:tc></w:tr></w:tbl>')
+                write_document(
+                    path,
+                    "<w:tbl><w:tr><w:tc><w:p>"
+                    '<w:hyperlink w:anchor="Safe"><w:r><w:t>Link</w:t></w:r></w:hyperlink>'
+                    '<w:bookmarkStart w:id="1" w:name="CellMark"/>'
+                    '<w:r><w:t>Old</w:t></w:r><w:bookmarkEnd w:id="1"/>'
+                    '<w:fldSimple w:instr="MERGEFIELD Code"><w:r><w:t>Code</w:t></w:r></w:fldSimple>'
+                    "</w:p></w:tc></w:tr></w:tbl>",
+                )
                 _, record, _ = register_document("writer", str(path), tmp)
 
                 def change_xml(*_args):
@@ -285,7 +361,7 @@ class WriterParagraphMappingTests(unittest.TestCase):
                     if changed == "hyperlink":
                         payload = payload.replace(b'w:anchor="Safe"', b'w:anchor="Other"')
                     else:
-                        payload = payload.replace(b'MERGEFIELD Code', b'MERGEFIELD Other')
+                        payload = payload.replace(b"MERGEFIELD Code", b"MERGEFIELD Other")
                     parts["word/document.xml"] = payload
                     with ZipFile(path, "w") as archive:
                         for name, content in parts.items():
@@ -294,7 +370,11 @@ class WriterParagraphMappingTests(unittest.TestCase):
 
                 with patch("wps_ai_agent_cli.writer_ops._run_writer_bookmark_fill_com", side_effect=change_xml):
                     ok, result, errors, _ = writer_fill_bookmark(
-                        record["document_id"], "CellMark", "New", "semantic-neighbor", workspace=tmp,
+                        record["document_id"],
+                        "CellMark",
+                        "New",
+                        "semantic-neighbor",
+                        workspace=tmp,
                     )
                 self.assertFalse(ok)
                 self.assertFalse(result["readback_passed"])
@@ -306,18 +386,24 @@ class WriterParagraphMappingTests(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "relationship-neighbor.docx"
-            write_document(path, '<w:tbl><w:tr><w:tc><w:p>'
-                                 '<w:hyperlink xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"'
-                                 ' r:id="rIdLink"><w:r><w:t>Link</w:t></w:r></w:hyperlink>'
-                                 '<w:bookmarkStart w:id="1" w:name="CellMark"/>'
-                                 '<w:r><w:t>Old</w:t></w:r><w:bookmarkEnd w:id="1"/>'
-                                 '</w:p></w:tc></w:tr></w:tbl>')
+            write_document(
+                path,
+                "<w:tbl><w:tr><w:tc><w:p>"
+                '<w:hyperlink xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"'
+                ' r:id="rIdLink"><w:r><w:t>Link</w:t></w:r></w:hyperlink>'
+                '<w:bookmarkStart w:id="1" w:name="CellMark"/>'
+                '<w:r><w:t>Old</w:t></w:r><w:bookmarkEnd w:id="1"/>'
+                "</w:p></w:tc></w:tr></w:tbl>",
+            )
             with ZipFile(path, "a") as archive:
-                archive.writestr("word/_rels/document.xml.rels", '''
+                archive.writestr(
+                    "word/_rels/document.xml.rels",
+                    """
                     <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
                       <Relationship Id="rIdLink" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink"
                         Target="https://example.com/original" TargetMode="External"/>
-                    </Relationships>''')
+                    </Relationships>""",
+                )
             _, record, _ = register_document("writer", str(path), tmp)
 
             def change_target(*_args):
@@ -325,7 +411,8 @@ class WriterParagraphMappingTests(unittest.TestCase):
                     parts = {name: archive.read(name) for name in archive.namelist()}
                 parts["word/document.xml"] = parts["word/document.xml"].replace(b">Old<", b">New<")
                 parts["word/_rels/document.xml.rels"] = parts["word/_rels/document.xml.rels"].replace(
-                    b"https://example.com/original", b"https://example.com/changed",
+                    b"https://example.com/original",
+                    b"https://example.com/changed",
                 )
                 with ZipFile(path, "w") as archive:
                     for name, content in parts.items():
@@ -334,7 +421,11 @@ class WriterParagraphMappingTests(unittest.TestCase):
 
             with patch("wps_ai_agent_cli.writer_ops._run_writer_bookmark_fill_com", side_effect=change_target):
                 ok, result, errors, _ = writer_fill_bookmark(
-                    record["document_id"], "CellMark", "New", "relationship-changed", workspace=tmp,
+                    record["document_id"],
+                    "CellMark",
+                    "New",
+                    "relationship-changed",
+                    workspace=tmp,
                 )
             self.assertFalse(ok)
             self.assertFalse(result["readback_passed"])
@@ -349,10 +440,16 @@ class WriterParagraphMappingTests(unittest.TestCase):
             path = Path(tmp) / "drawing-target.docx"
             write_image_bookmark_document(path, bookmark_around_drawing=True)
             _, record, _ = register_document("writer", str(path), tmp)
-            with patch("wps_ai_agent_cli.writer_ops.create_backup") as backup, \
-                    patch("wps_ai_agent_cli.writer_ops._run_writer_bookmark_fill_com") as com:
+            with (
+                patch("wps_ai_agent_cli.writer_ops.create_backup") as backup,
+                patch("wps_ai_agent_cli.writer_ops._run_writer_bookmark_fill_com") as com,
+            ):
                 ok, _, errors, _ = writer_fill_bookmark(
-                    record["document_id"], "ImageMark", "", "drawing-target", workspace=tmp,
+                    record["document_id"],
+                    "ImageMark",
+                    "",
+                    "drawing-target",
+                    workspace=tmp,
                 )
             self.assertFalse(ok)
             self.assertEqual(errors[0]["code"], "BOOKMARK_SCOPE_UNSUPPORTED")
@@ -371,8 +468,11 @@ class WriterParagraphMappingTests(unittest.TestCase):
         from wps_ai_agent_cli.document_text import docx_body_drawing_semantics
 
         wrap_tags = {
-            "none": "wrapNone", "square": "wrapSquare", "tight": "wrapTight",
-            "through": "wrapThrough", "top_and_bottom": "wrapTopAndBottom",
+            "none": "wrapNone",
+            "square": "wrapSquare",
+            "tight": "wrapTight",
+            "through": "wrapThrough",
+            "top_and_bottom": "wrapTopAndBottom",
         }
         values = (None, "bothSides", "left", "right", "largest", "invalid-enum")
         for mode, tag_name in wrap_tags.items():
@@ -380,7 +480,10 @@ class WriterParagraphMappingTests(unittest.TestCase):
                 with self.subTest(wrap=mode, value=value), tempfile.TemporaryDirectory() as tmp:
                     path = Path(tmp) / "wrap-matrix.docx"
                     write_image_bookmark_document(
-                        path, anchored=True, anchor_wrap=mode, anchor_wrap_text=None,
+                        path,
+                        anchored=True,
+                        anchor_wrap=mode,
+                        anchor_wrap_text=None,
                     )
                     with ZipFile(path) as source:
                         parts = {name: source.read(name) for name in source.namelist()}
@@ -389,7 +492,9 @@ class WriterParagraphMappingTests(unittest.TestCase):
                     if value is not None:
                         wrap.set("wrapText", value)
                     parts["word/document.xml"] = ET.tostring(
-                        root, encoding="utf-8", xml_declaration=True,
+                        root,
+                        encoding="utf-8",
+                        xml_declaration=True,
                     )
                     with ZipFile(path, "w") as target:
                         for name, content in parts.items():
@@ -406,9 +511,7 @@ class WriterParagraphMappingTests(unittest.TestCase):
 
                     wrap_snapshot = snapshot["drawings"][0]["structure"]["children"][4]
                     actual = wrap_snapshot["attributes"].get("wrapText")
-                    expected = (
-                        "bothSides" if value is None and mode != "none" else value
-                    )
+                    expected = "bothSides" if value is None and mode != "none" else value
                     self.assertEqual(actual, expected)
 
     def test_drawing_snapshot_normalizes_default_top_and_bottom_wrap(self):
@@ -422,7 +525,10 @@ class WriterParagraphMappingTests(unittest.TestCase):
             omitted = Path(tmp) / "omitted-wrap.docx"
             write_image_bookmark_document(explicit, anchored=True, anchor_wrap="top_and_bottom")
             write_image_bookmark_document(
-                omitted, anchored=True, anchor_wrap="top_and_bottom", anchor_wrap_text=None,
+                omitted,
+                anchored=True,
+                anchor_wrap="top_and_bottom",
+                anchor_wrap_text=None,
             )
             self.assertEqual(docx_body_drawing_semantics(explicit), docx_body_drawing_semantics(omitted))
 
@@ -437,7 +543,10 @@ class WriterParagraphMappingTests(unittest.TestCase):
             omitted = Path(tmp) / "omitted-square-wrap.docx"
             write_image_bookmark_document(explicit, anchored=True, anchor_wrap="square")
             write_image_bookmark_document(
-                omitted, anchored=True, anchor_wrap="square", anchor_wrap_text=None,
+                omitted,
+                anchored=True,
+                anchor_wrap="square",
+                anchor_wrap_text=None,
             )
             self.assertEqual(docx_body_drawing_semantics(explicit), docx_body_drawing_semantics(omitted))
 
@@ -457,7 +566,10 @@ class WriterParagraphMappingTests(unittest.TestCase):
             for wrap_text in ("left", "right", "largest"):
                 path = Path(tmp) / f"wrap-none-{wrap_text}.docx"
                 write_image_bookmark_document(
-                    path, anchored=True, anchor_wrap="none", anchor_wrap_text=wrap_text,
+                    path,
+                    anchored=True,
+                    anchor_wrap="none",
+                    anchor_wrap_text=wrap_text,
                 )
                 with ZipFile(path) as source:
                     parts = {name: source.read(name) for name in source.namelist()}
@@ -535,19 +647,28 @@ class WriterParagraphMappingTests(unittest.TestCase):
                     else:
                         candidate_anchor.set(name, "0")
                 candidate_parts["word/document.xml"] = ET.tostring(
-                    candidate_root, encoding="utf-8", xml_declaration=True,
+                    candidate_root,
+                    encoding="utf-8",
+                    xml_declaration=True,
                 )
                 with ZipFile(candidate, "w") as target:
                     for name, content in candidate_parts.items():
                         target.writestr(name, content)
             omitted_semantics = docx_body_drawing_semantics(omitted)
             zero_semantics = docx_body_drawing_semantics(explicit_zero)
-            self.assertEqual(omitted_semantics["drawings"][0]["wrap_distances"], {
-                "distT": "0", "distB": "0", "distL": "114300", "distR": "114300",
-            })
-            self.assertEqual(zero_semantics["drawings"][0]["wrap_distances"], {
-                name: "0" for name in ("distT", "distB", "distL", "distR")
-            })
+            self.assertEqual(
+                omitted_semantics["drawings"][0]["wrap_distances"],
+                {
+                    "distT": "0",
+                    "distB": "0",
+                    "distL": "114300",
+                    "distR": "114300",
+                },
+            )
+            self.assertEqual(
+                zero_semantics["drawings"][0]["wrap_distances"],
+                {name: "0" for name in ("distT", "distB", "distL", "distR")},
+            )
             self.assertNotEqual(omitted_semantics, zero_semantics)
 
     def test_table_bookmark_rejects_invalid_wrap_geometry_before_backup(self):
@@ -562,18 +683,37 @@ class WriterParagraphMappingTests(unittest.TestCase):
         from wps_ai_agent_cli.document_text import docx_body_drawing_semantics
 
         invalid_variants = (
-            "missing_polygon", "too_few_points", "coordinate_out_of_range",
-            "coordinate_decimal", "coordinate_empty", "coordinate_huge_integer",
-            "coordinate_unicode_digits", "coordinate_nbsp", "coordinate_repeated_sign",
-            "coordinate_sign_only", "coordinate_embedded_whitespace", "distance_unicode_digits",
-            "distance_decimal", "distance_empty", "distance_signed32_overflow",
-            "distance_uint32_overflow", "distance_non_twip",
-            "distance_huge_integer", "coordinate_negative", "negative_distance",
-            "top_bottom_left", "top_bottom_right", "top_bottom_largest",
+            "missing_polygon",
+            "too_few_points",
+            "coordinate_out_of_range",
+            "coordinate_decimal",
+            "coordinate_empty",
+            "coordinate_huge_integer",
+            "coordinate_unicode_digits",
+            "coordinate_nbsp",
+            "coordinate_repeated_sign",
+            "coordinate_sign_only",
+            "coordinate_embedded_whitespace",
+            "distance_unicode_digits",
+            "distance_decimal",
+            "distance_empty",
+            "distance_signed32_overflow",
+            "distance_uint32_overflow",
+            "distance_non_twip",
+            "distance_huge_integer",
+            "coordinate_negative",
+            "negative_distance",
+            "top_bottom_left",
+            "top_bottom_right",
+            "top_bottom_largest",
             "wrap_none_invalid_text",
-            "square_invalid_text", "tight_invalid_text", "through_invalid_text",
+            "square_invalid_text",
+            "tight_invalid_text",
+            "through_invalid_text",
             "top_bottom_invalid_text",
-            "wrap_none_wrong_case", "wrap_none_padded", "wrap_none_empty",
+            "wrap_none_wrong_case",
+            "wrap_none_padded",
+            "wrap_none_empty",
         )
         for variant in invalid_variants:
             with self.subTest(variant=variant), tempfile.TemporaryDirectory() as tmp:
@@ -592,15 +732,18 @@ class WriterParagraphMappingTests(unittest.TestCase):
                 invalid_wrap_mode = invalid_wrap_modes.get(variant)
                 is_invalid_wrap_enum = invalid_wrap_mode is not None
                 write_image_bookmark_document(
-                    path, anchored=True,
+                    path,
+                    anchored=True,
                     anchor_wrap=invalid_wrap_mode or ("top_and_bottom" if is_top_bottom_side else "tight"),
                     anchor_wrap_text=(
-                        variant.removeprefix("top_bottom_") if is_top_bottom_side
+                        variant.removeprefix("top_bottom_")
+                        if is_top_bottom_side
                         else {
                             "wrap_none_wrong_case": "Left",
                             "wrap_none_padded": " left ",
                             "wrap_none_empty": "",
-                        }.get(variant, "definitely-not-a-wrap-value") if is_invalid_wrap_enum
+                        }.get(variant, "definitely-not-a-wrap-value")
+                        if is_invalid_wrap_enum
                         else "bothSides"
                     ),
                 )
@@ -610,8 +753,11 @@ class WriterParagraphMappingTests(unittest.TestCase):
                 anchor = next(root.iter(qn("wp:anchor")))
                 if is_invalid_wrap_enum:
                     wrap_tag = {
-                        "none": "wrapNone", "square": "wrapSquare", "tight": "wrapTight",
-                        "through": "wrapThrough", "top_and_bottom": "wrapTopAndBottom",
+                        "none": "wrapNone",
+                        "square": "wrapSquare",
+                        "tight": "wrapTight",
+                        "through": "wrapThrough",
+                        "top_and_bottom": "wrapTopAndBottom",
                     }[invalid_wrap_mode]
                     invalid_value = {
                         "wrap_none_wrong_case": "Left",
@@ -674,15 +820,22 @@ class WriterParagraphMappingTests(unittest.TestCase):
                 semantics = docx_body_drawing_semantics(path)
                 self.assertTrue(semantics["unresolved_drawings"])
                 if is_top_bottom_side:
-                    self.assertIn("unsupported_top_and_bottom_wrap_text", {
-                        issue["reason"] for issue in semantics["unresolved_drawings"]
-                    })
+                    self.assertIn(
+                        "unsupported_top_and_bottom_wrap_text",
+                        {issue["reason"] for issue in semantics["unresolved_drawings"]},
+                    )
                 ok, record, errors = register_document("writer", str(path), tmp)
                 self.assertTrue(ok, errors)
-                with patch("wps_ai_agent_cli.writer_ops.create_backup") as backup, \
-                        patch("wps_ai_agent_cli.writer_ops._run_writer_bookmark_fill_com") as com:
+                with (
+                    patch("wps_ai_agent_cli.writer_ops.create_backup") as backup,
+                    patch("wps_ai_agent_cli.writer_ops._run_writer_bookmark_fill_com") as com,
+                ):
                     ok, _, errors, _ = writer_fill_bookmark(
-                        record["document_id"], "CellMark", "New", f"invalid-wrap-{variant}", workspace=tmp,
+                        record["document_id"],
+                        "CellMark",
+                        "New",
+                        f"invalid-wrap-{variant}",
+                        workspace=tmp,
                     )
                 self.assertFalse(ok)
                 self.assertEqual(errors[0]["code"], "BOOKMARK_SCOPE_UNSUPPORTED")
@@ -704,7 +857,10 @@ class WriterParagraphMappingTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "mixed-supported-unsupported-anchors.docx"
             write_image_bookmark_document(
-                path, anchored=True, image_count=2, anchor_wrap="tight",
+                path,
+                anchored=True,
+                image_count=2,
+                anchor_wrap="tight",
             )
             with ZipFile(path) as source:
                 parts = {name: source.read(name) for name in source.namelist()}
@@ -726,33 +882,51 @@ class WriterParagraphMappingTests(unittest.TestCase):
             before_bytes = path.read_bytes()
             semantics = docx_body_drawing_semantics(path)
             self.assertEqual(len(semantics["drawings"]), 2)
-            self.assertIn("unsupported_top_and_bottom_wrap_text", {
-                issue["reason"] for issue in semantics["unresolved_drawings"]
-            })
+            self.assertIn(
+                "unsupported_top_and_bottom_wrap_text", {issue["reason"] for issue in semantics["unresolved_drawings"]}
+            )
             ok, record, errors = register_document("writer", str(path), tmp)
             self.assertTrue(ok, errors)
-            with patch("wps_ai_agent_cli.writer_ops.create_backup") as backup, \
-                    patch("wps_ai_agent_cli.writer_ops._run_writer_bookmark_fill_com") as com:
+            with (
+                patch("wps_ai_agent_cli.writer_ops.create_backup") as backup,
+                patch("wps_ai_agent_cli.writer_ops._run_writer_bookmark_fill_com") as com,
+            ):
                 ok, _, errors, _ = writer_fill_bookmark(
-                    record["document_id"], "CellMark", "New", "mixed-anchor-unsupported",
+                    record["document_id"],
+                    "CellMark",
+                    "New",
+                    "mixed-anchor-unsupported",
                     workspace=tmp,
                 )
             self.assertFalse(ok)
             self.assertEqual(errors[0]["code"], "BOOKMARK_SCOPE_UNSUPPORTED")
-            self.assertIn({
-                "drawing_type": "anchor",
-                "drawing_index": 1,
-                "reason": "unsupported_top_and_bottom_wrap_text",
-            }, errors[0]["details"])
+            self.assertIn(
+                {
+                    "drawing_type": "anchor",
+                    "drawing_index": 1,
+                    "reason": "unsupported_top_and_bottom_wrap_text",
+                },
+                errors[0]["details"],
+            )
             backup.assert_not_called()
             com.assert_not_called()
             cli_output = io.StringIO()
             with chdir(tmp):
-                run([
-                    "writer-fill-bookmark", "--document-id", record["document_id"],
-                    "--bookmark-name", "CellMark", "--text", "New", "--dry-run",
-                    "--request-id", "multi-anchor-cli-diagnostic",
-                ], output_stream=cli_output)
+                run(
+                    [
+                        "writer-fill-bookmark",
+                        "--document-id",
+                        record["document_id"],
+                        "--bookmark-name",
+                        "CellMark",
+                        "--text",
+                        "New",
+                        "--dry-run",
+                        "--request-id",
+                        "multi-anchor-cli-diagnostic",
+                    ],
+                    output_stream=cli_output,
+                )
                 mcp_ok, mcp_result, mcp_errors = call_mcp_tool(
                     "wps_agent_writer_fill_bookmark",
                     {
@@ -773,10 +947,13 @@ class WriterParagraphMappingTests(unittest.TestCase):
             self.assertEqual(cli_response["errors"][0]["code"], "BOOKMARK_SCOPE_UNSUPPORTED")
             self.assertIn(expected_detail, cli_response["errors"][0]["details"])
             self.assertFalse(mcp_ok)
-            self.assertEqual(mcp_errors, [{"code": error["code"], "message": error["message"]}
-                                          for error in mcp_result["response"]["errors"]])
             self.assertEqual(
-                mcp_result["response"]["errors"][0]["code"], "BOOKMARK_SCOPE_UNSUPPORTED",
+                mcp_errors,
+                [{"code": error["code"], "message": error["message"]} for error in mcp_result["response"]["errors"]],
+            )
+            self.assertEqual(
+                mcp_result["response"]["errors"][0]["code"],
+                "BOOKMARK_SCOPE_UNSUPPORTED",
             )
             self.assertEqual(mcp_result["response"]["validation"]["status"], "failed")
             self.assertIn(expected_detail, mcp_result["response"]["errors"][0]["details"])
@@ -796,8 +973,12 @@ class WriterParagraphMappingTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "two-unsupported-anchors.docx"
             write_image_bookmark_document(
-                path, anchored=True, image_count=2, anchor_wrap="tight",
-                preamble_paragraphs=1, preamble_images=1,
+                path,
+                anchored=True,
+                image_count=2,
+                anchor_wrap="tight",
+                preamble_paragraphs=1,
+                preamble_images=1,
             )
             with ZipFile(path) as source:
                 parts = {name: source.read(name) for name in source.namelist()}
@@ -810,11 +991,13 @@ class WriterParagraphMappingTests(unittest.TestCase):
                 wrap.tag = qn("wp:wrapTopAndBottom")
                 wrap.clear()
                 wrap.set("wrapText", value)
-                expected.append({
-                    "drawing_type": "anchor",
-                    "drawing_index": index,
-                    "reason": "unsupported_top_and_bottom_wrap_text",
-                })
+                expected.append(
+                    {
+                        "drawing_type": "anchor",
+                        "drawing_index": index,
+                        "reason": "unsupported_top_and_bottom_wrap_text",
+                    }
+                )
             parts["word/document.xml"] = ET.tostring(root, encoding="utf-8", xml_declaration=True)
             with ZipFile(path, "w") as target:
                 for name, content in parts.items():
@@ -826,18 +1009,31 @@ class WriterParagraphMappingTests(unittest.TestCase):
             ok, record, errors = register_document("writer", str(path), tmp)
             self.assertTrue(ok, errors)
             ok, _, errors, _ = writer_fill_bookmark(
-                record["document_id"], "CellMark", "New", "two-unsupported-anchors",
+                record["document_id"],
+                "CellMark",
+                "New",
+                "two-unsupported-anchors",
                 workspace=tmp,
             )
             self.assertFalse(ok)
             self.assertEqual(errors[0]["details"], expected)
             cli_output = io.StringIO()
             with chdir(tmp):
-                run([
-                    "writer-fill-bookmark", "--document-id", record["document_id"],
-                    "--bookmark-name", "CellMark", "--text", "New", "--dry-run",
-                    "--request-id", "two-invalid-cli",
-                ], output_stream=cli_output)
+                run(
+                    [
+                        "writer-fill-bookmark",
+                        "--document-id",
+                        record["document_id"],
+                        "--bookmark-name",
+                        "CellMark",
+                        "--text",
+                        "New",
+                        "--dry-run",
+                        "--request-id",
+                        "two-invalid-cli",
+                    ],
+                    output_stream=cli_output,
+                )
                 mcp_ok, mcp_result, mcp_errors = call_mcp_tool(
                     "wps_agent_writer_fill_bookmark",
                     {
@@ -853,10 +1049,13 @@ class WriterParagraphMappingTests(unittest.TestCase):
             self.assertEqual(cli_response["errors"][0]["code"], "BOOKMARK_SCOPE_UNSUPPORTED")
             self.assertEqual(cli_response["errors"][0]["details"], expected)
             self.assertFalse(mcp_ok)
-            self.assertEqual(mcp_errors, [{"code": error["code"], "message": error["message"]}
-                                          for error in mcp_result["response"]["errors"]])
             self.assertEqual(
-                mcp_result["response"]["errors"][0]["code"], "BOOKMARK_SCOPE_UNSUPPORTED",
+                mcp_errors,
+                [{"code": error["code"], "message": error["message"]} for error in mcp_result["response"]["errors"]],
+            )
+            self.assertEqual(
+                mcp_result["response"]["errors"][0]["code"],
+                "BOOKMARK_SCOPE_UNSUPPORTED",
             )
             self.assertEqual(mcp_result["response"]["validation"]["status"], "failed")
             self.assertEqual(mcp_result["response"]["errors"][0]["details"], expected)
@@ -876,8 +1075,12 @@ class WriterParagraphMappingTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "inline-before-anchors.docx"
             write_image_bookmark_document(
-                path, anchored=True, image_count=2, anchor_wrap="tight",
-                preamble_paragraphs=1, preamble_images=1,
+                path,
+                anchored=True,
+                image_count=2,
+                anchor_wrap="tight",
+                preamble_paragraphs=1,
+                preamble_images=1,
             )
             with ZipFile(path) as source:
                 parts = {name: source.read(name) for name in source.namelist()}
@@ -897,14 +1100,19 @@ class WriterParagraphMappingTests(unittest.TestCase):
             semantics = docx_body_drawing_semantics(path)
             self.assertEqual(len(semantics["drawings"]), 3)
             issue = next(
-                item for item in semantics["unresolved_drawings"]
+                item
+                for item in semantics["unresolved_drawings"]
                 if item["reason"] == "unsupported_top_and_bottom_wrap_text"
             )
             self.assertEqual(issue["drawing_index"], 2)
             ok, record, errors = register_document("writer", str(path), tmp)
             self.assertTrue(ok, errors)
             ok, _, errors, _ = writer_fill_bookmark(
-                record["document_id"], "CellMark", "New", "drawing-index-order", workspace=tmp,
+                record["document_id"],
+                "CellMark",
+                "New",
+                "drawing-index-order",
+                workspace=tmp,
             )
             self.assertFalse(ok)
             self.assertEqual(errors[0]["details"][0]["drawing_index"], 2)
@@ -924,8 +1132,12 @@ class WriterParagraphMappingTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "invalid-wrap-index.docx"
             write_image_bookmark_document(
-                path, anchored=True, image_count=1, anchor_wrap="tight",
-                preamble_paragraphs=1, preamble_images=1,
+                path,
+                anchored=True,
+                image_count=1,
+                anchor_wrap="tight",
+                preamble_paragraphs=1,
+                preamble_images=1,
             )
             with ZipFile(path) as source:
                 parts = {name: source.read(name) for name in source.namelist()}
@@ -934,7 +1146,9 @@ class WriterParagraphMappingTests(unittest.TestCase):
             wrap = next(child for child in anchor if child.tag == qn("wp:wrapTight"))
             wrap.set("wrapText", "invalid-enum")
             parts["word/document.xml"] = ET.tostring(
-                root, encoding="utf-8", xml_declaration=True,
+                root,
+                encoding="utf-8",
+                xml_declaration=True,
             )
             with ZipFile(path, "w") as target:
                 for name, content in parts.items():
@@ -943,21 +1157,26 @@ class WriterParagraphMappingTests(unittest.TestCase):
             before_bytes = path.read_bytes()
             semantics = docx_body_drawing_semantics(path)
             anchor_index = next(
-                index for index, drawing in enumerate(semantics["drawings"])
-                if drawing["type"] == "anchor"
+                index for index, drawing in enumerate(semantics["drawings"]) if drawing["type"] == "anchor"
             )
-            expected = [{
-                "drawing_type": "anchor",
-                "drawing_index": anchor_index,
-                "reason": "invalid_wrap_text",
-            }]
+            expected = [
+                {
+                    "drawing_type": "anchor",
+                    "drawing_index": anchor_index,
+                    "reason": "invalid_wrap_text",
+                }
+            ]
             self.assertEqual(
-                semantics["unresolved_drawings"], expected,
+                semantics["unresolved_drawings"],
+                expected,
             )
             ok, record, errors = register_document("writer", str(path), tmp)
             self.assertTrue(ok, errors)
             ok, _, errors, _ = writer_fill_bookmark(
-                record["document_id"], "CellMark", "New", "invalid-wrap-index",
+                record["document_id"],
+                "CellMark",
+                "New",
+                "invalid-wrap-index",
                 workspace=tmp,
             )
             self.assertFalse(ok)
@@ -965,11 +1184,21 @@ class WriterParagraphMappingTests(unittest.TestCase):
 
             cli_output = io.StringIO()
             with chdir(tmp):
-                run([
-                    "writer-fill-bookmark", "--document-id", record["document_id"],
-                    "--bookmark-name", "CellMark", "--text", "New", "--dry-run",
-                    "--request-id", "invalid-wrap-index-cli",
-                ], output_stream=cli_output)
+                run(
+                    [
+                        "writer-fill-bookmark",
+                        "--document-id",
+                        record["document_id"],
+                        "--bookmark-name",
+                        "CellMark",
+                        "--text",
+                        "New",
+                        "--dry-run",
+                        "--request-id",
+                        "invalid-wrap-index-cli",
+                    ],
+                    output_stream=cli_output,
+                )
                 mcp_ok, mcp_result, mcp_errors = call_mcp_tool(
                     "wps_agent_writer_fill_bookmark",
                     {
@@ -983,10 +1212,13 @@ class WriterParagraphMappingTests(unittest.TestCase):
             cli_response = json.loads(cli_output.getvalue())
             self.assertEqual(cli_response["errors"][0]["details"], expected)
             self.assertFalse(mcp_ok)
-            self.assertEqual(mcp_errors, [{"code": error["code"], "message": error["message"]}
-                                          for error in mcp_result["response"]["errors"]])
             self.assertEqual(
-                mcp_result["response"]["errors"][0]["details"], expected,
+                mcp_errors,
+                [{"code": error["code"], "message": error["message"]} for error in mcp_result["response"]["errors"]],
+            )
+            self.assertEqual(
+                mcp_result["response"]["errors"][0]["details"],
+                expected,
             )
             self.assertEqual(path.read_bytes(), before_bytes)
 
@@ -1022,10 +1254,15 @@ class WriterParagraphMappingTests(unittest.TestCase):
             with self.subTest(case=case_name), tempfile.TemporaryDirectory() as tmp:
                 path = Path(tmp) / f"{case_name}.docx"
                 write_image_bookmark_document(
-                    path, anchored=True, anchor_wrap="tight",
+                    path,
+                    anchored=True,
+                    anchor_wrap="tight",
                     anchor_wrap_points=(
-                        crossing_points if mutation == "self_intersecting_polygon"
-                        else flat_points if mutation == "degenerate_polygon" else None
+                        crossing_points
+                        if mutation == "self_intersecting_polygon"
+                        else flat_points
+                        if mutation == "degenerate_polygon"
+                        else None
                     ),
                 )
                 with ZipFile(path) as source:
@@ -1058,7 +1295,9 @@ class WriterParagraphMappingTests(unittest.TestCase):
                     for relationship in list(rels):
                         rels.remove(relationship)
                     parts["word/_rels/document.xml.rels"] = ET.tostring(
-                        rels, encoding="utf-8", xml_declaration=True,
+                        rels,
+                        encoding="utf-8",
+                        xml_declaration=True,
                     )
                 elif mutation == "missing_image_reference":
                     for parent in anchor.iter():
@@ -1101,10 +1340,7 @@ class WriterParagraphMappingTests(unittest.TestCase):
                 parts = {name: source.read(name) for name in source.namelist()}
             rels_path = "word/_rels/document.xml.rels"
             rels = ET.fromstring(parts[rels_path])
-            image_relationship = next(
-                item for item in rels
-                if item.get("Type", "").endswith("/image")
-            )
+            image_relationship = next(item for item in rels if item.get("Type", "").endswith("/image"))
             relationship_id = image_relationship.get("Id")
             image_relationship.set("Target", "media/private-missing.png")
             parts[rels_path] = ET.tostring(rels, encoding="utf-8", xml_declaration=True)
@@ -1113,17 +1349,22 @@ class WriterParagraphMappingTests(unittest.TestCase):
                     target.writestr(name, content)
 
             before_bytes = path.read_bytes()
-            expected = [{
-                "relationship_id": relationship_id,
-                "target": "media/private-missing.png",
-                "drawing_index": 0,
-            }]
+            expected = [
+                {
+                    "relationship_id": relationship_id,
+                    "target": "media/private-missing.png",
+                    "drawing_index": 0,
+                }
+            ]
             semantics = docx_body_drawing_semantics(path)
             self.assertEqual(semantics["unresolved_drawings"], expected)
             ok, record, errors = register_document("writer", str(path), tmp)
             self.assertTrue(ok, errors)
             ok, _, errors, _ = writer_fill_bookmark(
-                record["document_id"], "CellMark", "New", "missing-image-context",
+                record["document_id"],
+                "CellMark",
+                "New",
+                "missing-image-context",
                 workspace=tmp,
             )
             self.assertFalse(ok)
@@ -1131,11 +1372,21 @@ class WriterParagraphMappingTests(unittest.TestCase):
 
             cli_output = io.StringIO()
             with chdir(tmp):
-                run([
-                    "writer-fill-bookmark", "--document-id", record["document_id"],
-                    "--bookmark-name", "CellMark", "--text", "New", "--dry-run",
-                    "--request-id", "missing-image-context-cli",
-                ], output_stream=cli_output)
+                run(
+                    [
+                        "writer-fill-bookmark",
+                        "--document-id",
+                        record["document_id"],
+                        "--bookmark-name",
+                        "CellMark",
+                        "--text",
+                        "New",
+                        "--dry-run",
+                        "--request-id",
+                        "missing-image-context-cli",
+                    ],
+                    output_stream=cli_output,
+                )
                 mcp_ok, mcp_result, mcp_errors = call_mcp_tool(
                     "wps_agent_writer_fill_bookmark",
                     {
@@ -1151,8 +1402,10 @@ class WriterParagraphMappingTests(unittest.TestCase):
             mcp_details = mcp_result["response"]["errors"][0]["details"]
             self.assertEqual(cli_details, expected)
             self.assertFalse(mcp_ok)
-            self.assertEqual(mcp_errors, [{"code": error["code"], "message": error["message"]}
-                                          for error in mcp_result["response"]["errors"]])
+            self.assertEqual(
+                mcp_errors,
+                [{"code": error["code"], "message": error["message"]} for error in mcp_result["response"]["errors"]],
+            )
             self.assertEqual(mcp_details, expected)
             serialized = json.dumps({"cli": cli_details, "mcp": mcp_details})
             self.assertNotIn(tmp, serialized)
@@ -1180,10 +1433,7 @@ class WriterParagraphMappingTests(unittest.TestCase):
                 parts = {name: source.read(name) for name in source.namelist()}
             rels_path = "word/_rels/document.xml.rels"
             rels = ET.fromstring(parts[rels_path])
-            image_relationship = next(
-                item for item in rels
-                if item.get("Type", "").endswith("/image")
-            )
+            image_relationship = next(item for item in rels if item.get("Type", "").endswith("/image"))
             image_relationship.set("Target", "https://example.invalid/image.png")
             image_relationship.set("TargetMode", "External")
             parts[rels_path] = ET.tostring(rels, encoding="utf-8", xml_declaration=True)
@@ -1197,17 +1447,24 @@ class WriterParagraphMappingTests(unittest.TestCase):
                     target.writestr(name, content)
 
             before_bytes = path.read_bytes()
-            with patch.object(urllib.request, "urlopen", side_effect=AssertionError("network access")) as urlopen, \
-                    patch.object(socket, "create_connection", side_effect=AssertionError("network access")) as connect:
+            with (
+                patch.object(urllib.request, "urlopen", side_effect=AssertionError("network access")) as urlopen,
+                patch.object(socket, "create_connection", side_effect=AssertionError("network access")) as connect,
+            ):
                 semantics = docx_body_drawing_semantics(path)
             urlopen.assert_not_called()
             connect.assert_not_called()
             self.assertEqual(semantics["unresolved_drawings"], [])
-            self.assertEqual(semantics["drawings"][0]["images"], [{
-                "target": "https://example.invalid/image.png",
-                "mode": "External",
-                "sha256": None,
-            }])
+            self.assertEqual(
+                semantics["drawings"][0]["images"],
+                [
+                    {
+                        "target": "https://example.invalid/image.png",
+                        "mode": "External",
+                        "sha256": None,
+                    }
+                ],
+            )
             self.assertEqual(path.read_bytes(), before_bytes)
 
     def test_external_image_target_edge_cases_are_bounded_and_local(self):
@@ -1235,10 +1492,7 @@ class WriterParagraphMappingTests(unittest.TestCase):
                     parts = {entry: source.read(entry) for entry in source.namelist()}
                 rels_path = "word/_rels/document.xml.rels"
                 rels = ET.fromstring(parts[rels_path])
-                image_relationship = next(
-                    item for item in rels
-                    if item.get("Type", "").endswith("/image")
-                )
+                image_relationship = next(item for item in rels if item.get("Type", "").endswith("/image"))
                 if target_value is None:
                     image_relationship.attrib.pop("Target", None)
                 else:
@@ -1260,9 +1514,11 @@ class WriterParagraphMappingTests(unittest.TestCase):
                     read_entries.append(entry)
                     return original_read(archive, entry, *args, **kwargs)
 
-                with patch.object(urllib.request, "urlopen", side_effect=AssertionError("network access")), \
-                        patch.object(socket, "create_connection", side_effect=AssertionError("network access")), \
-                        patch.object(ZipFile, "read", new=tracked_read):
+                with (
+                    patch.object(urllib.request, "urlopen", side_effect=AssertionError("network access")),
+                    patch.object(socket, "create_connection", side_effect=AssertionError("network access")),
+                    patch.object(ZipFile, "read", new=tracked_read),
+                ):
                     semantics = docx_body_drawing_semantics(path)
 
                 self.assertEqual(bool(semantics["unresolved_drawings"]), expect_unresolved)
@@ -1290,10 +1546,7 @@ class WriterParagraphMappingTests(unittest.TestCase):
                     parts = {name: source.read(name) for name in source.namelist()}
                 rels_path = "word/_rels/document.xml.rels"
                 rels = ET.fromstring(parts[rels_path])
-                relationship = next(
-                    item for item in rels
-                    if item.get("Type", "").endswith("/image")
-                )
+                relationship = next(item for item in rels if item.get("Type", "").endswith("/image"))
                 if mode is None:
                     relationship.attrib.pop("TargetMode", None)
                 else:
@@ -1323,13 +1576,18 @@ class WriterParagraphMappingTests(unittest.TestCase):
                     self.assertIsNone(semantics["drawings"][0]["images"][0]["sha256"])
                 else:
                     self.assertEqual(media_reads, [])
-                    self.assertEqual(semantics["unresolved_drawings"], [{
-                        "relationship_id": relationship.get("Id"),
-                        "target": relationship.get("Target"),
-                        "mode": "Unknown",
-                        "drawing_index": 0,
-                        "reason": "invalid_relationship_target_mode",
-                    }])
+                    self.assertEqual(
+                        semantics["unresolved_drawings"],
+                        [
+                            {
+                                "relationship_id": relationship.get("Id"),
+                                "target": relationship.get("Target"),
+                                "mode": "Unknown",
+                                "drawing_index": 0,
+                                "reason": "invalid_relationship_target_mode",
+                            }
+                        ],
+                    )
 
     def test_internal_image_target_resolution_stays_within_package(self):
         import posixpath
@@ -1350,10 +1608,7 @@ class WriterParagraphMappingTests(unittest.TestCase):
                     parts = {name: source.read(name) for name in source.namelist()}
                 rels_path = "word/_rels/document.xml.rels"
                 rels = ET.fromstring(parts[rels_path])
-                relationship = next(
-                    item for item in rels
-                    if item.get("Type", "").endswith("/image")
-                )
+                relationship = next(item for item in rels if item.get("Type", "").endswith("/image"))
                 relationship_id = relationship.get("Id")
                 original_target = relationship.get("Target")
                 package_target = posixpath.normpath(posixpath.join("word", original_target))
@@ -1384,18 +1639,28 @@ class WriterParagraphMappingTests(unittest.TestCase):
                     self.assertTrue(media["sha256"])
                     self.assertIn(package_target, read_entries)
                 elif case == "missing":
-                    self.assertEqual(semantics["unresolved_drawings"], [{
-                        "relationship_id": relationship_id,
-                        "target": "media/not-present.png",
-                        "drawing_index": 0,
-                    }])
+                    self.assertEqual(
+                        semantics["unresolved_drawings"],
+                        [
+                            {
+                                "relationship_id": relationship_id,
+                                "target": "media/not-present.png",
+                                "drawing_index": 0,
+                            }
+                        ],
+                    )
                 else:
-                    self.assertEqual(semantics["unresolved_drawings"], [{
-                        "relationship_id": relationship_id,
-                        "target": "../../outside.png",
-                        "drawing_index": 0,
-                        "reason": "target_outside_package",
-                    }])
+                    self.assertEqual(
+                        semantics["unresolved_drawings"],
+                        [
+                            {
+                                "relationship_id": relationship_id,
+                                "target": "../../outside.png",
+                                "drawing_index": 0,
+                                "reason": "target_outside_package",
+                            }
+                        ],
+                    )
                     self.assertNotIn("../outside.png", read_entries)
 
     def test_relationship_boundary_diagnostics_survive_preflight_cli_and_mcp(self):
@@ -1408,8 +1673,11 @@ class WriterParagraphMappingTests(unittest.TestCase):
 
         cases = (
             (
-                "unknown-mode", "TargetMode", "Unknown",
-                "media/image1.png", {
+                "unknown-mode",
+                "TargetMode",
+                "Unknown",
+                "media/image1.png",
+                {
                     "relationship_id": None,
                     "target": "media/image1.png",
                     "mode": "Unknown",
@@ -1418,8 +1686,11 @@ class WriterParagraphMappingTests(unittest.TestCase):
                 },
             ),
             (
-                "outside-package", "Target", "../../outside.png",
-                "TargetMode", None,
+                "outside-package",
+                "Target",
+                "../../outside.png",
+                "TargetMode",
+                None,
             ),
         )
         for case_name, first_attr, first_value, second_attr, second_value in cases:
@@ -1430,10 +1701,7 @@ class WriterParagraphMappingTests(unittest.TestCase):
                     parts = {name: source.read(name) for name in source.namelist()}
                 rels_path = "word/_rels/document.xml.rels"
                 rels = ET.fromstring(parts[rels_path])
-                relationship = next(
-                    item for item in rels
-                    if item.get("Type", "").endswith("/image")
-                )
+                relationship = next(item for item in rels if item.get("Type", "").endswith("/image"))
                 relationship_id = relationship.get("Id")
                 if first_attr == "TargetMode":
                     relationship.set(first_attr, first_value)
@@ -1459,18 +1727,33 @@ class WriterParagraphMappingTests(unittest.TestCase):
                 ok, record, errors = register_document("writer", str(path), tmp)
                 self.assertTrue(ok, errors)
                 cli_output = io.StringIO()
-                with patch("wps_ai_agent_cli.writer_ops.create_backup") as backup, \
-                        patch("wps_ai_agent_cli.writer_ops._run_writer_bookmark_fill_com") as com, \
-                        chdir(tmp):
+                with (
+                    patch("wps_ai_agent_cli.writer_ops.create_backup") as backup,
+                    patch("wps_ai_agent_cli.writer_ops._run_writer_bookmark_fill_com") as com,
+                    chdir(tmp),
+                ):
                     ok, _, direct_errors, _ = writer_fill_bookmark(
-                        record["document_id"], "CellMark", "New", f"{case_name}-direct",
+                        record["document_id"],
+                        "CellMark",
+                        "New",
+                        f"{case_name}-direct",
                         workspace=tmp,
                     )
-                    run([
-                        "writer-fill-bookmark", "--document-id", record["document_id"],
-                        "--bookmark-name", "CellMark", "--text", "New", "--dry-run",
-                        "--request-id", f"{case_name}-cli",
-                    ], output_stream=cli_output)
+                    run(
+                        [
+                            "writer-fill-bookmark",
+                            "--document-id",
+                            record["document_id"],
+                            "--bookmark-name",
+                            "CellMark",
+                            "--text",
+                            "New",
+                            "--dry-run",
+                            "--request-id",
+                            f"{case_name}-cli",
+                        ],
+                        output_stream=cli_output,
+                    )
                     mcp_ok, mcp_result, mcp_errors = call_mcp_tool(
                         "wps_agent_writer_fill_bookmark",
                         {
@@ -1491,10 +1774,16 @@ class WriterParagraphMappingTests(unittest.TestCase):
                 self.assertEqual(cli_response["errors"][0]["code"], "BOOKMARK_SCOPE_UNSUPPORTED")
                 self.assertEqual(cli_response["errors"][0]["details"], [expected])
                 self.assertFalse(mcp_ok)
-                self.assertEqual(mcp_errors, [{"code": error["code"], "message": error["message"]}
-                                              for error in mcp_result["response"]["errors"]])
                 self.assertEqual(
-                    mcp_result["response"]["errors"][0]["code"], "BOOKMARK_SCOPE_UNSUPPORTED",
+                    mcp_errors,
+                    [
+                        {"code": error["code"], "message": error["message"]}
+                        for error in mcp_result["response"]["errors"]
+                    ],
+                )
+                self.assertEqual(
+                    mcp_result["response"]["errors"][0]["code"],
+                    "BOOKMARK_SCOPE_UNSUPPORTED",
                 )
                 self.assertEqual(mcp_result["response"]["errors"][0]["details"], [expected])
                 self.assertEqual(path.read_bytes(), before_bytes)
@@ -1517,10 +1806,7 @@ class WriterParagraphMappingTests(unittest.TestCase):
             root = ET.fromstring(parts["word/document.xml"])
             rels_path = "word/_rels/document.xml.rels"
             rels = ET.fromstring(parts[rels_path])
-            relationships = {
-                item.get("Id"): item for item in rels
-                if item.get("Type", "").endswith("/image")
-            }
+            relationships = {item.get("Id"): item for item in rels if item.get("Type", "").endswith("/image")}
             blip_ids = [blip.get(qn("r:embed")) for blip in root.iter(qn("a:blip"))]
             self.assertEqual(len(blip_ids), 2)
             first = relationships[blip_ids[0]]
@@ -1552,18 +1838,33 @@ class WriterParagraphMappingTests(unittest.TestCase):
             ok, record, errors = register_document("writer", str(path), tmp)
             self.assertTrue(ok, errors)
             cli_output = io.StringIO()
-            with patch("wps_ai_agent_cli.writer_ops.create_backup") as backup, \
-                    patch("wps_ai_agent_cli.writer_ops._run_writer_bookmark_fill_com") as com, \
-                    chdir(tmp):
+            with (
+                patch("wps_ai_agent_cli.writer_ops.create_backup") as backup,
+                patch("wps_ai_agent_cli.writer_ops._run_writer_bookmark_fill_com") as com,
+                chdir(tmp),
+            ):
                 ok, _, direct_errors, _ = writer_fill_bookmark(
-                    record["document_id"], "CellMark", "New", "multiple-relationship-direct",
+                    record["document_id"],
+                    "CellMark",
+                    "New",
+                    "multiple-relationship-direct",
                     workspace=tmp,
                 )
-                run([
-                    "writer-fill-bookmark", "--document-id", record["document_id"],
-                    "--bookmark-name", "CellMark", "--text", "New", "--dry-run",
-                    "--request-id", "multiple-relationship-cli",
-                ], output_stream=cli_output)
+                run(
+                    [
+                        "writer-fill-bookmark",
+                        "--document-id",
+                        record["document_id"],
+                        "--bookmark-name",
+                        "CellMark",
+                        "--text",
+                        "New",
+                        "--dry-run",
+                        "--request-id",
+                        "multiple-relationship-cli",
+                    ],
+                    output_stream=cli_output,
+                )
                 mcp_ok, mcp_result, mcp_errors = call_mcp_tool(
                     "wps_agent_writer_fill_bookmark",
                     {
@@ -1581,8 +1882,10 @@ class WriterParagraphMappingTests(unittest.TestCase):
             cli_response = json.loads(cli_output.getvalue())
             self.assertEqual(cli_response["errors"][0]["details"], expected)
             self.assertFalse(mcp_ok)
-            self.assertEqual(mcp_errors, [{"code": error["code"], "message": error["message"]}
-                                          for error in mcp_result["response"]["errors"]])
+            self.assertEqual(
+                mcp_errors,
+                [{"code": error["code"], "message": error["message"]} for error in mcp_result["response"]["errors"]],
+            )
             self.assertEqual(mcp_result["response"]["errors"][0]["details"], expected)
             self.assertEqual(path.read_bytes(), before_bytes)
 
@@ -1604,10 +1907,7 @@ class WriterParagraphMappingTests(unittest.TestCase):
                 parts = {name: source.read(name) for name in source.namelist()}
             rels_path = "word/_rels/document.xml.rels"
             rels = ET.fromstring(parts[rels_path])
-            relationship = next(
-                item for item in rels
-                if item.get("Type", "").endswith("/image")
-            )
+            relationship = next(item for item in rels if item.get("Type", "").endswith("/image"))
             old_id = relationship.get("Id")
             long_id = "rId" + ("I" * 1024)
             long_target = "media/" + ("target" * 256) + ".png"
@@ -1631,7 +1931,9 @@ class WriterParagraphMappingTests(unittest.TestCase):
             self.assertEqual(len(first), 1)
             issue = first[0]
             for field, original in (
-                ("relationship_id", long_id), ("target", long_target), ("mode", long_mode),
+                ("relationship_id", long_id),
+                ("target", long_target),
+                ("mode", long_mode),
             ):
                 self.assertLessEqual(len(issue[field].encode("utf-8")), 96)
                 self.assertEqual(issue[field], original[:93] + "...")
@@ -1657,10 +1959,7 @@ class WriterParagraphMappingTests(unittest.TestCase):
                 parts = {name: source.read(name) for name in source.namelist()}
             rels_path = "word/_rels/document.xml.rels"
             rels = ET.fromstring(parts[rels_path])
-            relationship = next(
-                item for item in rels
-                if item.get("Type", "").endswith("/image")
-            )
+            relationship = next(item for item in rels if item.get("Type", "").endswith("/image"))
             long_id = "rId" + ("I" * 1024)
             long_target = "media/" + ("target" * 256) + ".png"
             long_mode = "Unknown" + ("M" * 512)
@@ -1689,18 +1988,33 @@ class WriterParagraphMappingTests(unittest.TestCase):
             ok, record, errors = register_document("writer", str(path), tmp)
             self.assertTrue(ok, errors)
             cli_output = io.StringIO()
-            with patch("wps_ai_agent_cli.writer_ops.create_backup") as backup, \
-                    patch("wps_ai_agent_cli.writer_ops._run_writer_bookmark_fill_com") as com, \
-                    chdir(tmp):
+            with (
+                patch("wps_ai_agent_cli.writer_ops.create_backup") as backup,
+                patch("wps_ai_agent_cli.writer_ops._run_writer_bookmark_fill_com") as com,
+                chdir(tmp),
+            ):
                 ok, _, direct_errors, _ = writer_fill_bookmark(
-                    record["document_id"], "CellMark", "New", "bounded-diagnostic-direct",
+                    record["document_id"],
+                    "CellMark",
+                    "New",
+                    "bounded-diagnostic-direct",
                     workspace=tmp,
                 )
-                run([
-                    "writer-fill-bookmark", "--document-id", record["document_id"],
-                    "--bookmark-name", "CellMark", "--text", "New", "--dry-run",
-                    "--request-id", "bounded-diagnostic-cli",
-                ], output_stream=cli_output)
+                run(
+                    [
+                        "writer-fill-bookmark",
+                        "--document-id",
+                        record["document_id"],
+                        "--bookmark-name",
+                        "CellMark",
+                        "--text",
+                        "New",
+                        "--dry-run",
+                        "--request-id",
+                        "bounded-diagnostic-cli",
+                    ],
+                    output_stream=cli_output,
+                )
                 mcp_ok, mcp_result, mcp_errors = call_mcp_tool(
                     "wps_agent_writer_fill_bookmark",
                     {
@@ -1718,8 +2032,10 @@ class WriterParagraphMappingTests(unittest.TestCase):
             cli_response = json.loads(cli_output.getvalue())
             self.assertEqual(cli_response["errors"][0]["details"], [expected])
             self.assertFalse(mcp_ok)
-            self.assertEqual(mcp_errors, [{"code": error["code"], "message": error["message"]}
-                                          for error in mcp_result["response"]["errors"]])
+            self.assertEqual(
+                mcp_errors,
+                [{"code": error["code"], "message": error["message"]} for error in mcp_result["response"]["errors"]],
+            )
             self.assertEqual(mcp_result["response"]["errors"][0]["details"], [expected])
             self.assertEqual(path.read_bytes(), before_bytes)
 
@@ -1741,10 +2057,7 @@ class WriterParagraphMappingTests(unittest.TestCase):
             root = ET.fromstring(parts["word/document.xml"])
             rels_path = "word/_rels/document.xml.rels"
             rels = ET.fromstring(parts[rels_path])
-            relationships = {
-                item.get("Id"): item for item in rels
-                if item.get("Type", "").endswith("/image")
-            }
+            relationships = {item.get("Id"): item for item in rels if item.get("Type", "").endswith("/image")}
             blip_ids = [blip.get(qn("r:embed")) for blip in root.iter(qn("a:blip"))]
             self.assertEqual(len(blip_ids), 2)
             long_id = "rId" + ("L" * 600)
@@ -1786,18 +2099,33 @@ class WriterParagraphMappingTests(unittest.TestCase):
             ok, record, errors = register_document("writer", str(path), tmp)
             self.assertTrue(ok, errors)
             cli_output = io.StringIO()
-            with patch("wps_ai_agent_cli.writer_ops.create_backup") as backup, \
-                    patch("wps_ai_agent_cli.writer_ops._run_writer_bookmark_fill_com") as com, \
-                    chdir(tmp):
+            with (
+                patch("wps_ai_agent_cli.writer_ops.create_backup") as backup,
+                patch("wps_ai_agent_cli.writer_ops._run_writer_bookmark_fill_com") as com,
+                chdir(tmp),
+            ):
                 ok, _, direct_errors, _ = writer_fill_bookmark(
-                    record["document_id"], "CellMark", "New", "bounded-multiple-direct",
+                    record["document_id"],
+                    "CellMark",
+                    "New",
+                    "bounded-multiple-direct",
                     workspace=tmp,
                 )
-                run([
-                    "writer-fill-bookmark", "--document-id", record["document_id"],
-                    "--bookmark-name", "CellMark", "--text", "New", "--dry-run",
-                    "--request-id", "bounded-multiple-cli",
-                ], output_stream=cli_output)
+                run(
+                    [
+                        "writer-fill-bookmark",
+                        "--document-id",
+                        record["document_id"],
+                        "--bookmark-name",
+                        "CellMark",
+                        "--text",
+                        "New",
+                        "--dry-run",
+                        "--request-id",
+                        "bounded-multiple-cli",
+                    ],
+                    output_stream=cli_output,
+                )
                 mcp_ok, mcp_result, mcp_errors = call_mcp_tool(
                     "wps_agent_writer_fill_bookmark",
                     {
@@ -1815,8 +2143,10 @@ class WriterParagraphMappingTests(unittest.TestCase):
             cli_response = json.loads(cli_output.getvalue())
             self.assertEqual(cli_response["errors"][0]["details"], expected)
             self.assertFalse(mcp_ok)
-            self.assertEqual(mcp_errors, [{"code": error["code"], "message": error["message"]}
-                                          for error in mcp_result["response"]["errors"]])
+            self.assertEqual(
+                mcp_errors,
+                [{"code": error["code"], "message": error["message"]} for error in mcp_result["response"]["errors"]],
+            )
             self.assertEqual(mcp_result["response"]["errors"][0]["details"], expected)
             self.assertEqual(path.read_bytes(), before_bytes)
 
@@ -1851,11 +2181,14 @@ class WriterParagraphMappingTests(unittest.TestCase):
             self.assertEqual(len(first), 128)
             self.assertEqual([item["drawing_index"] for item in first[:127]], list(range(127)))
             self.assertTrue(all(item["reason"] == "invalid_relationship_target_mode" for item in first[:127]))
-            self.assertEqual(first[-1], {
-                "drawing_index": 127,
-                "reason": "additional_drawing_diagnostics_truncated",
-                "omitted_count": 23,
-            })
+            self.assertEqual(
+                first[-1],
+                {
+                    "drawing_index": 127,
+                    "reason": "additional_drawing_diagnostics_truncated",
+                    "omitted_count": 23,
+                },
+            )
             self.assertLess(len(json.dumps(first)), 120000)
 
     def test_diagnostic_truncation_summary_survives_cli_and_mcp(self):
@@ -1889,18 +2222,33 @@ class WriterParagraphMappingTests(unittest.TestCase):
             ok, record, errors = register_document("writer", str(path), tmp)
             self.assertTrue(ok, errors)
             cli_output = io.StringIO()
-            with patch("wps_ai_agent_cli.writer_ops.create_backup") as backup, \
-                    patch("wps_ai_agent_cli.writer_ops._run_writer_bookmark_fill_com") as com, \
-                    chdir(tmp):
+            with (
+                patch("wps_ai_agent_cli.writer_ops.create_backup") as backup,
+                patch("wps_ai_agent_cli.writer_ops._run_writer_bookmark_fill_com") as com,
+                chdir(tmp),
+            ):
                 ok, _, direct_errors, _ = writer_fill_bookmark(
-                    record["document_id"], "CellMark", "New", "diagnostic-summary-direct",
+                    record["document_id"],
+                    "CellMark",
+                    "New",
+                    "diagnostic-summary-direct",
                     workspace=tmp,
                 )
-                run([
-                    "writer-fill-bookmark", "--document-id", record["document_id"],
-                    "--bookmark-name", "CellMark", "--text", "New", "--dry-run",
-                    "--request-id", "diagnostic-summary-cli",
-                ], output_stream=cli_output)
+                run(
+                    [
+                        "writer-fill-bookmark",
+                        "--document-id",
+                        record["document_id"],
+                        "--bookmark-name",
+                        "CellMark",
+                        "--text",
+                        "New",
+                        "--dry-run",
+                        "--request-id",
+                        "diagnostic-summary-cli",
+                    ],
+                    output_stream=cli_output,
+                )
                 mcp_ok, mcp_result, mcp_errors = call_mcp_tool(
                     "wps_agent_writer_fill_bookmark",
                     {
@@ -1920,8 +2268,10 @@ class WriterParagraphMappingTests(unittest.TestCase):
             self.assertEqual(cli_response["validation"]["status"], "failed")
             self.assertEqual(cli_response["errors"][0]["details"], expected)
             self.assertFalse(mcp_ok)
-            self.assertEqual(mcp_errors, [{"code": error["code"], "message": error["message"]}
-                                          for error in mcp_result["response"]["errors"]])
+            self.assertEqual(
+                mcp_errors,
+                [{"code": error["code"], "message": error["message"]} for error in mcp_result["response"]["errors"]],
+            )
             self.assertEqual(mcp_result["response"]["validation"]["status"], "failed")
             self.assertEqual(mcp_result["response"]["errors"][0]["details"], expected)
             self.assertEqual(path.read_bytes(), before_bytes)
@@ -1945,10 +2295,7 @@ class WriterParagraphMappingTests(unittest.TestCase):
                 parts = {name: source.read(name) for name in source.namelist()}
             rels_path = "word/_rels/document.xml.rels"
             rels = ET.fromstring(parts[rels_path])
-            relationships = [
-                item for item in rels
-                if item.get("Type", "").endswith("/image")
-            ]
+            relationships = [item for item in rels if item.get("Type", "").endswith("/image")]
             root = ET.fromstring(parts["word/document.xml"])
             blips = list(root.iter(qn("a:blip")))
             self.assertEqual(len(blips), 150)
@@ -1979,23 +2326,37 @@ class WriterParagraphMappingTests(unittest.TestCase):
                 "dry_run": True,
                 "request_id": "worst-case-mcp",
             }
-            with patch("wps_ai_agent_cli.writer_ops.create_backup") as backup, \
-                    patch("wps_ai_agent_cli.writer_ops._run_writer_bookmark_fill_com") as com, \
-                    chdir(tmp):
-                run([
-                    "writer-fill-bookmark", "--document-id", record["document_id"],
-                    "--bookmark-name", "CellMark", "--text", "New", "--dry-run",
-                    "--request-id", "worst-case-cli",
-                ], output_stream=cli_output)
-                mcp_response = handle_mcp_request({
-                    "jsonrpc": "2.0",
-                    "id": "worst-case-mcp",
-                    "method": "tools/call",
-                    "params": {
-                        "name": "wps_agent_writer_fill_bookmark",
-                        "arguments": mcp_arguments,
-                    },
-                })
+            with (
+                patch("wps_ai_agent_cli.writer_ops.create_backup") as backup,
+                patch("wps_ai_agent_cli.writer_ops._run_writer_bookmark_fill_com") as com,
+                chdir(tmp),
+            ):
+                run(
+                    [
+                        "writer-fill-bookmark",
+                        "--document-id",
+                        record["document_id"],
+                        "--bookmark-name",
+                        "CellMark",
+                        "--text",
+                        "New",
+                        "--dry-run",
+                        "--request-id",
+                        "worst-case-cli",
+                    ],
+                    output_stream=cli_output,
+                )
+                mcp_response = handle_mcp_request(
+                    {
+                        "jsonrpc": "2.0",
+                        "id": "worst-case-mcp",
+                        "method": "tools/call",
+                        "params": {
+                            "name": "wps_agent_writer_fill_bookmark",
+                            "arguments": mcp_arguments,
+                        },
+                    }
+                )
 
             cli_raw = cli_output.getvalue()
             cli_result = json.loads(cli_raw)
@@ -2009,7 +2370,8 @@ class WriterParagraphMappingTests(unittest.TestCase):
             self.assertEqual(cli_result["validation"]["status"], "failed")
             self.assertEqual(len(cli_details), 128)
             self.assertEqual(
-                cli_details[-1]["omitted_count"], 23,
+                cli_details[-1]["omitted_count"],
+                23,
             )
             self.assertTrue(mcp_response["result"]["isError"])
             self.assertFalse(mcp_call["response"]["ok"])
@@ -2017,7 +2379,8 @@ class WriterParagraphMappingTests(unittest.TestCase):
             self.assertEqual(mcp_details, cli_details)
             self.assertEqual(len(mcp_details), 128)
             self.assertEqual(
-                mcp_details[-1]["omitted_count"], 23,
+                mcp_details[-1]["omitted_count"],
+                23,
             )
             for issue in cli_details[:127]:
                 for field in ("relationship_id", "target", "mode"):
@@ -2039,7 +2402,9 @@ class WriterParagraphMappingTests(unittest.TestCase):
             with self.subTest(drawing_count=drawing_count), tempfile.TemporaryDirectory() as tmp:
                 path = Path(tmp) / f"diagnostic-boundary-{drawing_count}.docx"
                 write_image_bookmark_document(
-                    path, anchored=True, image_count=drawing_count,
+                    path,
+                    anchored=True,
+                    image_count=drawing_count,
                 )
                 with ZipFile(path) as source:
                     parts = {name: source.read(name) for name in source.namelist()}
@@ -2060,21 +2425,21 @@ class WriterParagraphMappingTests(unittest.TestCase):
                         [issue["drawing_index"] for issue in issues],
                         list(range(drawing_count)),
                     )
-                    self.assertTrue(all(
-                        issue["reason"] == "invalid_relationship_target_mode"
-                        for issue in issues
-                    ))
+                    self.assertTrue(all(issue["reason"] == "invalid_relationship_target_mode" for issue in issues))
                 else:
                     self.assertEqual(len(issues), 128)
                     self.assertEqual(
                         [issue["drawing_index"] for issue in issues[:127]],
                         list(range(127)),
                     )
-                    self.assertEqual(issues[-1], {
-                        "drawing_index": 127,
-                        "reason": "additional_drawing_diagnostics_truncated",
-                        "omitted_count": 2,
-                    })
+                    self.assertEqual(
+                        issues[-1],
+                        {
+                            "drawing_index": 127,
+                            "reason": "additional_drawing_diagnostics_truncated",
+                            "omitted_count": 2,
+                        },
+                    )
 
     def test_wrap_polygon_validation_allows_concave_and_rejects_crossing_or_flat_paths(self):
         from tests.test_writer_table_bookmark_feasibility import (
@@ -2096,48 +2461,85 @@ class WriterParagraphMappingTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             valid_path = Path(tmp) / "concave.docx"
             write_image_bookmark_document(
-                valid_path, anchored=True, anchor_wrap="tight", anchor_wrap_points=concave,
+                valid_path,
+                anchored=True,
+                anchor_wrap="tight",
+                anchor_wrap_points=concave,
             )
             self.assertEqual(docx_body_drawing_semantics(valid_path)["unresolved_drawings"], [])
             for index, points in enumerate(winding_and_closure_variants):
                 variant_path = Path(tmp) / f"valid-variant-{index}.docx"
                 write_image_bookmark_document(
-                    variant_path, anchored=True, anchor_wrap="through", anchor_wrap_points=points,
+                    variant_path,
+                    anchored=True,
+                    anchor_wrap="through",
+                    anchor_wrap_points=points,
                 )
                 self.assertEqual(docx_body_drawing_semantics(variant_path)["unresolved_drawings"], [])
             for index in (0, 1, 3, 5):
                 points = (*concave[index:], *concave[:index])
                 variant_path = Path(tmp) / f"valid-cyclic-start-{index}.docx"
                 write_image_bookmark_document(
-                    variant_path, anchored=True, anchor_wrap="tight", anchor_wrap_points=points,
+                    variant_path,
+                    anchored=True,
+                    anchor_wrap="tight",
+                    anchor_wrap_points=points,
                 )
                 self.assertEqual(docx_body_drawing_semantics(variant_path)["unresolved_drawings"], [])
             collinear = (
-                (0, 0), (10800, 0), (21600, 0), (21600, 3600), (21600, 7200),
-                (14400, 7200), (7200, 7200), (7200, 14400), (7200, 21600),
-                (3600, 21600), (0, 21600), (0, 10800),
+                (0, 0),
+                (10800, 0),
+                (21600, 0),
+                (21600, 3600),
+                (21600, 7200),
+                (14400, 7200),
+                (7200, 7200),
+                (7200, 14400),
+                (7200, 21600),
+                (3600, 21600),
+                (0, 21600),
+                (0, 10800),
             )
             collinear_path = Path(tmp) / "valid-collinear.docx"
             write_image_bookmark_document(
-                collinear_path, anchored=True, anchor_wrap="through", anchor_wrap_points=collinear,
+                collinear_path,
+                anchored=True,
+                anchor_wrap="through",
+                anchor_wrap_points=collinear,
             )
             self.assertEqual(docx_body_drawing_semantics(collinear_path)["unresolved_drawings"], [])
             near_degenerate = (
-                (0, 0), (1, 0), (21600, 0), (21600, 7200),
-                (7200, 7200), (7200, 21600), (0, 21600),
+                (0, 0),
+                (1, 0),
+                (21600, 0),
+                (21600, 7200),
+                (7200, 7200),
+                (7200, 21600),
+                (0, 21600),
             )
             near_degenerate_path = Path(tmp) / "valid-near-degenerate.docx"
             write_image_bookmark_document(
-                near_degenerate_path, anchored=True, anchor_wrap="tight", anchor_wrap_points=near_degenerate,
+                near_degenerate_path,
+                anchored=True,
+                anchor_wrap="tight",
+                anchor_wrap_points=near_degenerate,
             )
             self.assertEqual(docx_body_drawing_semantics(near_degenerate_path)["unresolved_drawings"], [])
             near_collinear = (
-                (0, 0), (10800, 120), (21600, 0), (21600, 7200),
-                (7200, 7200), (7200, 21600), (0, 21600),
+                (0, 0),
+                (10800, 120),
+                (21600, 0),
+                (21600, 7200),
+                (7200, 7200),
+                (7200, 21600),
+                (0, 21600),
             )
             near_collinear_path = Path(tmp) / "valid-near-collinear.docx"
             write_image_bookmark_document(
-                near_collinear_path, anchored=True, anchor_wrap="through", anchor_wrap_points=near_collinear,
+                near_collinear_path,
+                anchored=True,
+                anchor_wrap="through",
+                anchor_wrap_points=near_collinear,
             )
             self.assertEqual(docx_body_drawing_semantics(near_collinear_path)["unresolved_drawings"], [])
 
@@ -2145,16 +2547,25 @@ class WriterParagraphMappingTests(unittest.TestCase):
             with self.subTest(variant=variant), tempfile.TemporaryDirectory() as tmp:
                 path = Path(tmp) / f"{variant}.docx"
                 write_image_bookmark_document(
-                    path, anchored=True, anchor_wrap="through", anchor_wrap_points=points,
+                    path,
+                    anchored=True,
+                    anchor_wrap="through",
+                    anchor_wrap_points=points,
                 )
                 self.assertTrue(docx_body_drawing_semantics(path)["unresolved_drawings"])
                 before_bytes = path.read_bytes()
                 ok, record, errors = register_document("writer", str(path), tmp)
                 self.assertTrue(ok, errors)
-                with patch("wps_ai_agent_cli.writer_ops.create_backup") as backup, \
-                        patch("wps_ai_agent_cli.writer_ops._run_writer_bookmark_fill_com") as com:
+                with (
+                    patch("wps_ai_agent_cli.writer_ops.create_backup") as backup,
+                    patch("wps_ai_agent_cli.writer_ops._run_writer_bookmark_fill_com") as com,
+                ):
                     ok, _, errors, _ = writer_fill_bookmark(
-                        record["document_id"], "CellMark", "New", f"wrap-polygon-{variant}", workspace=tmp,
+                        record["document_id"],
+                        "CellMark",
+                        "New",
+                        f"wrap-polygon-{variant}",
+                        workspace=tmp,
                     )
                 self.assertFalse(ok)
                 self.assertEqual(errors[0]["code"], "BOOKMARK_SCOPE_UNSUPPORTED")
@@ -2170,13 +2581,21 @@ class WriterParagraphMappingTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "character-anchor.docx"
             write_image_bookmark_document(
-                path, anchored=True, anchor_relative_frames=("character", "line"),
+                path,
+                anchored=True,
+                anchor_relative_frames=("character", "line"),
             )
             _, record, _ = register_document("writer", str(path), tmp)
-            with patch("wps_ai_agent_cli.writer_ops.create_backup") as backup, \
-                    patch("wps_ai_agent_cli.writer_ops._run_writer_bookmark_fill_com") as com:
+            with (
+                patch("wps_ai_agent_cli.writer_ops.create_backup") as backup,
+                patch("wps_ai_agent_cli.writer_ops._run_writer_bookmark_fill_com") as com,
+            ):
                 ok, _, errors, _ = writer_fill_bookmark(
-                    record["document_id"], "CellMark", "New", "character-anchor", workspace=tmp,
+                    record["document_id"],
+                    "CellMark",
+                    "New",
+                    "character-anchor",
+                    workspace=tmp,
                 )
             self.assertFalse(ok)
             self.assertEqual(errors[0]["code"], "BOOKMARK_SCOPE_UNSUPPORTED")
@@ -2203,7 +2622,8 @@ class WriterParagraphMappingTests(unittest.TestCase):
                     parts = {name: archive.read(name) for name in archive.namelist()}
                 parts["word/document.xml"] = parts["word/document.xml"].replace(b">Old<", b">New<")
                 parts["word/_rels/document.xml.rels"] = parts["word/_rels/document.xml.rels"].replace(
-                    target, b"media/missing.png",
+                    target,
+                    b"media/missing.png",
                 )
                 with ZipFile(path, "w") as archive:
                     for name, content in parts.items():
@@ -2212,7 +2632,11 @@ class WriterParagraphMappingTests(unittest.TestCase):
 
             with patch("wps_ai_agent_cli.writer_ops._run_writer_bookmark_fill_com", side_effect=change_relationship):
                 ok, result, errors, _ = writer_fill_bookmark(
-                    record["document_id"], "CellMark", "New", "drawing-relationship", workspace=tmp,
+                    record["document_id"],
+                    "CellMark",
+                    "New",
+                    "drawing-relationship",
+                    workspace=tmp,
                 )
             self.assertFalse(ok)
             self.assertFalse(result["readback_passed"])
@@ -2222,13 +2646,25 @@ class WriterParagraphMappingTests(unittest.TestCase):
         from zipfile import ZipFile
 
         for has_terminal_table, corrupt_table, expected_ok in (
-            (True, False, True), (False, False, False), (True, True, False),
+            (True, False, True),
+            (False, False, False),
+            (True, True, False),
         ):
-            with self.subTest(has_terminal_table=has_terminal_table, corrupt_table=corrupt_table), tempfile.TemporaryDirectory() as tmp:
+            with (
+                self.subTest(has_terminal_table=has_terminal_table, corrupt_table=corrupt_table),
+                tempfile.TemporaryDirectory() as tmp,
+            ):
                 path = Path(tmp) / "bookmark.docx"
-                table = '<w:tbl><w:tr><w:tc><w:p><w:r><w:t>Cell</w:t></w:r></w:p></w:tc></w:tr></w:tbl>' if has_terminal_table else ''
-                write_document(path, '<w:p><w:bookmarkStart w:id="1" w:name="Target"/>'
-                                     '<w:r><w:t>old</w:t></w:r><w:bookmarkEnd w:id="1"/></w:p>' + table)
+                table = (
+                    "<w:tbl><w:tr><w:tc><w:p><w:r><w:t>Cell</w:t></w:r></w:p></w:tc></w:tr></w:tbl>"
+                    if has_terminal_table
+                    else ""
+                )
+                write_document(
+                    path,
+                    '<w:p><w:bookmarkStart w:id="1" w:name="Target"/>'
+                    '<w:r><w:t>old</w:t></w:r><w:bookmarkEnd w:id="1"/></w:p>' + table,
+                )
                 _, record, _ = register_document("writer", str(path), tmp)
 
                 def replace_xml(*_args):
@@ -2245,7 +2681,11 @@ class WriterParagraphMappingTests(unittest.TestCase):
 
                 with patch("wps_ai_agent_cli.writer_ops._run_writer_bookmark_fill_com", side_effect=replace_xml):
                     ok, result, errors, _ = writer_fill_bookmark(
-                        record["document_id"], "Target", "new", "table-tail", workspace=tmp,
+                        record["document_id"],
+                        "Target",
+                        "new",
+                        "table-tail",
+                        workspace=tmp,
                     )
                 self.assertEqual(ok, expected_ok)
                 self.assertEqual(result["body_tail_normalized"], has_terminal_table)
@@ -2255,17 +2695,31 @@ class WriterParagraphMappingTests(unittest.TestCase):
 
     def test_bookmark_fill_rejects_duplicate_and_cross_paragraph_targets_before_backup(self):
         cases = [
-            ('<w:p><w:bookmarkStart w:id="1" w:name="Target"/><w:r><w:t>A</w:t></w:r><w:bookmarkEnd w:id="1"/><w:bookmarkStart w:id="2" w:name="Target"/><w:r><w:t>B</w:t></w:r><w:bookmarkEnd w:id="2"/></w:p>', "BOOKMARK_AMBIGUOUS"),
-            ('<w:p><w:bookmarkStart w:id="1" w:name="Target"/><w:r><w:t>A</w:t></w:r></w:p><w:p><w:r><w:t>B</w:t></w:r><w:bookmarkEnd w:id="1"/></w:p>', "BOOKMARK_SCOPE_UNSUPPORTED"),
-            ('<w:tbl><w:tr><w:tc><w:p/><w:tbl><w:tr><w:tc><w:p><w:bookmarkStart w:id="1" w:name="Target"/><w:r><w:t>A</w:t></w:r><w:bookmarkEnd w:id="1"/></w:p></w:tc></w:tr></w:tbl></w:tc></w:tr></w:tbl>', "BOOKMARK_SCOPE_UNSUPPORTED"),
+            (
+                '<w:p><w:bookmarkStart w:id="1" w:name="Target"/><w:r><w:t>A</w:t></w:r><w:bookmarkEnd w:id="1"/><w:bookmarkStart w:id="2" w:name="Target"/><w:r><w:t>B</w:t></w:r><w:bookmarkEnd w:id="2"/></w:p>',
+                "BOOKMARK_AMBIGUOUS",
+            ),
+            (
+                '<w:p><w:bookmarkStart w:id="1" w:name="Target"/><w:r><w:t>A</w:t></w:r></w:p><w:p><w:r><w:t>B</w:t></w:r><w:bookmarkEnd w:id="1"/></w:p>',
+                "BOOKMARK_SCOPE_UNSUPPORTED",
+            ),
+            (
+                '<w:tbl><w:tr><w:tc><w:p/><w:tbl><w:tr><w:tc><w:p><w:bookmarkStart w:id="1" w:name="Target"/><w:r><w:t>A</w:t></w:r><w:bookmarkEnd w:id="1"/></w:p></w:tc></w:tr></w:tbl></w:tc></w:tr></w:tbl>',
+                "BOOKMARK_SCOPE_UNSUPPORTED",
+            ),
         ]
         for body, expected_code in cases:
             with self.subTest(code=expected_code), tempfile.TemporaryDirectory() as tmp:
                 path = Path(tmp) / "bookmark.docx"
                 write_document(path, body)
                 _, record, _ = register_document("writer", str(path), tmp)
-                with patch("wps_ai_agent_cli.writer_ops.create_backup") as backup, patch("wps_ai_agent_cli.writer_ops._run_writer_bookmark_fill_com") as com:
-                    ok, _, errors, _ = writer_fill_bookmark(record["document_id"], "Target", "X", "bookmark-rejected", workspace=tmp)
+                with (
+                    patch("wps_ai_agent_cli.writer_ops.create_backup") as backup,
+                    patch("wps_ai_agent_cli.writer_ops._run_writer_bookmark_fill_com") as com,
+                ):
+                    ok, _, errors, _ = writer_fill_bookmark(
+                        record["document_id"], "Target", "X", "bookmark-rejected", workspace=tmp
+                    )
                 self.assertFalse(ok)
                 self.assertEqual(errors[0]["code"], expected_code)
                 backup.assert_not_called()
@@ -2284,7 +2738,11 @@ class WriterParagraphMappingTests(unittest.TestCase):
             def corrupt_neighbor(*_args, **_kwargs):
                 with ZipFile(path) as archive:
                     parts = {name: archive.read(name) for name in archive.namelist()}
-                parts["word/document.xml"] = parts["word/document.xml"].replace(b"needle first", b"CORRUPTED first").replace(b"needle target", b"replacement target")
+                parts["word/document.xml"] = (
+                    parts["word/document.xml"]
+                    .replace(b"needle first", b"CORRUPTED first")
+                    .replace(b"needle target", b"replacement target")
+                )
                 with ZipFile(path, "w") as archive:
                     for name, content in parts.items():
                         archive.writestr(name, content)
@@ -2292,8 +2750,12 @@ class WriterParagraphMappingTests(unittest.TestCase):
 
             with patch("wps_ai_agent_cli.writer_ops._run_writer_replace_com", side_effect=corrupt_neighbor):
                 ok, result, errors, _ = writer_replace(
-                    record["document_id"], "needle", "replacement", "unexpected-neighbor",
-                    paragraph_index=2, workspace=tmp,
+                    record["document_id"],
+                    "needle",
+                    "replacement",
+                    "unexpected-neighbor",
+                    paragraph_index=2,
+                    workspace=tmp,
                 )
             self.assertFalse(ok)
             self.assertFalse(result["readback_matches_expected"])
@@ -2317,16 +2779,25 @@ class WriterReplaceScopeIntegrationTests(unittest.TestCase):
                 document.save(path)
                 _, record, _ = register_document("writer", str(path), tmp)
                 ok, result, errors, _ = writer_replace(
-                    record["document_id"], "needle", replacement, "scope-integration",
-                    paragraph_index=2, workspace=tmp,
+                    record["document_id"],
+                    "needle",
+                    replacement,
+                    "scope-integration",
+                    paragraph_index=2,
+                    workspace=tmp,
                 )
                 self.assertTrue(ok, (errors, result))
                 self.assertEqual(result["backend_replace_count"], 2)
                 self.assertEqual(result["expected_replace_count"], 2)
                 self.assertTrue(result["readback_matches_expected"])
-                self.assertEqual(docx_body_paragraphs(path), [
-                    "needle before", f"{replacement} {replacement} NEEDLE", "needle after",
-                ])
+                self.assertEqual(
+                    docx_body_paragraphs(path),
+                    [
+                        "needle before",
+                        f"{replacement} {replacement} NEEDLE",
+                        "needle after",
+                    ],
+                )
                 self.assertEqual(docx_body_tables(path), [[["needle table"]]])
                 self.assertTrue(result["backup"])
 
@@ -2344,7 +2815,10 @@ class WriterReplaceScopeIntegrationTests(unittest.TestCase):
             document.save(path)
             _, record, _ = register_document("writer", str(path), tmp)
             ok, result, errors, _ = writer_replace(
-                record["document_id"], "needle", "x", "whole-body",
+                record["document_id"],
+                "needle",
+                "x",
+                "whole-body",
                 workspace=tmp,
             )
             self.assertTrue(ok, (errors, result))
@@ -2376,7 +2850,11 @@ class WriterReplaceScopeIntegrationTests(unittest.TestCase):
             document.save(path)
             _, record, _ = register_document("writer", str(path), tmp)
             ok, result, errors, _ = writer_fill_bookmark(
-                record["document_id"], "Client", "Northwind", "bookmark-wps", workspace=tmp,
+                record["document_id"],
+                "Client",
+                "Northwind",
+                "bookmark-wps",
+                workspace=tmp,
             )
             self.assertTrue(ok, (errors, result))
             self.assertTrue(result["readback_passed"])
@@ -2399,7 +2877,11 @@ class WriterReplaceScopeIntegrationTests(unittest.TestCase):
             tables_before = docx_body_tables(path)
             _, record, _ = register_document("writer", str(path), tmp)
             ok, result, errors, replayed = writer_fill_bookmark(
-                record["document_id"], "BodyMark", "Updated", "paragraph-child-wps", workspace=tmp,
+                record["document_id"],
+                "BodyMark",
+                "Updated",
+                "paragraph-child-wps",
+                workspace=tmp,
             )
             self.assertTrue(ok, (errors, result))
             self.assertFalse(replayed)
@@ -2408,15 +2890,23 @@ class WriterReplaceScopeIntegrationTests(unittest.TestCase):
             self.assertTrue(Path(result["backup"]["backup_path"]).is_file())
             self.assertEqual(read_body_bookmark_text(path, "BodyMark")[1], "Updated")
             self.assertEqual(docx_body_tables(path), tables_before)
-            for name, expected in (("CellMark", "CellValue"), ("HeaderMark", "HeaderValue"),
-                                   ("FooterMark", "FooterValue")):
+            for name, expected in (
+                ("CellMark", "CellValue"),
+                ("HeaderMark", "HeaderValue"),
+                ("FooterMark", "FooterValue"),
+            ):
                 self.assertEqual(read_supported_bookmark_text(path, name)[1], expected)
             ok, repeated, errors, replayed = writer_fill_bookmark(
-                record["document_id"], "BodyMark", "Updated", "paragraph-child-wps", workspace=tmp,
+                record["document_id"],
+                "BodyMark",
+                "Updated",
+                "paragraph-child-wps",
+                workspace=tmp,
             )
             self.assertTrue(ok, errors)
             self.assertTrue(replayed)
             self.assertEqual(repeated["readback_passed"], True)
+
 
 if __name__ == "__main__":
     unittest.main()

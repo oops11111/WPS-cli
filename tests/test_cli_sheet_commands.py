@@ -22,7 +22,8 @@ class TaskStatusWiringTests(unittest.TestCase):
     def test_every_task_tracked_handler_passes_the_request_and_command_to_the_tracker(self):
         tree = ast.parse(Path(cli_handlers.__file__).read_text(encoding="utf-8"))
         calls = [
-            node for node in ast.walk(tree)
+            node
+            for node in ast.walk(tree)
             if isinstance(node, ast.Call) and getattr(node.func, "attr", "") == "_with_optional_task_status"
         ]
         self.assertGreater(len(calls), 20)
@@ -98,10 +99,21 @@ class SheetCommandCliTests(unittest.TestCase):
                 self.assertEqual(task["state"], "succeeded")
 
     def test_a_failed_sheet_command_marks_the_task_failed_instead_of_crashing(self):
-        code, payload = run_cli([
-            "spreadsheet-rename-sheet", "--document-id", self.document_id, "--old-name", "Missing",
-            "--new-name", "Whatever", "--task-id", "sheet_fail", "--request-id", "sheet-fail-req",
-        ])
+        code, payload = run_cli(
+            [
+                "spreadsheet-rename-sheet",
+                "--document-id",
+                self.document_id,
+                "--old-name",
+                "Missing",
+                "--new-name",
+                "Whatever",
+                "--task-id",
+                "sheet_fail",
+                "--request-id",
+                "sheet-fail-req",
+            ]
+        )
         self.assertFalse(payload["ok"], payload)
         self.assertEqual(payload["errors"][0]["code"], "SHEET_NOT_FOUND")
         _code, status = run_cli(["task-status", "--task-id", "sheet_fail"])
@@ -117,10 +129,21 @@ class SheetCommandCliTests(unittest.TestCase):
             return {"ok": True, "errors": [], "data": {"backend": "fake-com", "sheet_names": [new_name, "Second"]}}
 
         with patch.object(spreadsheet_ops, "_run_spreadsheet_rename_sheet_com", side_effect=fake_rename):
-            code, payload = run_cli([
-                "spreadsheet-rename-sheet", "--document-id", self.document_id, "--old-name", "First",
-                "--new-name", "Renamed", "--task-id", "sheet_real", "--request-id", "sheet-real-req",
-            ])
+            code, payload = run_cli(
+                [
+                    "spreadsheet-rename-sheet",
+                    "--document-id",
+                    self.document_id,
+                    "--old-name",
+                    "First",
+                    "--new-name",
+                    "Renamed",
+                    "--task-id",
+                    "sheet_real",
+                    "--request-id",
+                    "sheet-real-req",
+                ]
+            )
         self.assertEqual(code, 0, payload)
         self.assertTrue(payload["ok"], payload)
         self.assertTrue(payload["data"]["validation_passed"])

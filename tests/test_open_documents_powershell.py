@@ -9,7 +9,7 @@ from wps_ai_agent_cli import open_documents
 
 PWSH = os.environ.get("WPS_TEST_PWSH") or shutil.which("pwsh")
 
-FAKE_WPS_PRELUDE = r'''
+FAKE_WPS_PRELUDE = r"""
 Add-Type -TypeDefinition @"
 using System;
 using System.IO;
@@ -80,7 +80,7 @@ namespace WpsAgent {
   }
 }
 "@
-'''
+"""
 
 
 @unittest.skipUnless(PWSH, "PowerShell (pwsh) is required to execute the generated scripts against a fake COM object")
@@ -96,7 +96,13 @@ class GeneratedScriptBehaviourTests(unittest.TestCase):
         self.addCleanup(env.stop)
         for patcher in (
             patch("wps_ai_agent_cli.powershell_runner.powershell_executable", return_value=PWSH),
-            patch.object(open_documents, "_render", side_effect=lambda script, params: FAKE_WPS_PRELUDE + open_documents.json.dumps(params).join(script.split("__PARAMS_JSON__"))),
+            patch.object(
+                open_documents,
+                "_render",
+                side_effect=lambda script, params: (
+                    FAKE_WPS_PRELUDE + open_documents.json.dumps(params).join(script.split("__PARAMS_JSON__"))
+                ),
+            ),
         ):
             patcher.start()
             self.addCleanup(patcher.stop)
@@ -137,18 +143,24 @@ class GeneratedScriptBehaviourTests(unittest.TestCase):
         self.assertEqual(data["page_number"], 2)
 
     def test_replace_edits_by_range_saves_and_reads_back(self):
-        result = self.attached("selection-replace", text="bold", expected_start=6, expected_end=11, expected_text="brave")
+        result = self.attached(
+            "selection-replace", text="bold", expected_start=6, expected_end=11, expected_text="brave"
+        )
         self.assertTrue(result["ok"], result)
         self.assertEqual(result["data"]["status"], "ok")
         self.assertEqual(result["data"]["read_back_text"], "bold")
 
     def test_replace_refuses_unsaved_document_and_changed_selection(self):
         with patch.dict(os.environ, {"WPSFAKE_SAVED": "0"}):
-            unsaved = self.attached("selection-replace", text="x", expected_start=6, expected_end=11, expected_text="brave")
+            unsaved = self.attached(
+                "selection-replace", text="x", expected_start=6, expected_end=11, expected_text="brave"
+            )
         self.assertEqual(unsaved["data"]["status"], "unsaved")
 
         with patch.dict(os.environ, {"WPSFAKE_READONLY": "1"}):
-            readonly = self.attached("selection-replace", text="x", expected_start=6, expected_end=11, expected_text="brave")
+            readonly = self.attached(
+                "selection-replace", text="x", expected_start=6, expected_end=11, expected_text="brave"
+            )
         self.assertEqual(readonly["data"]["status"], "read_only")
 
         changed = self.attached("selection-replace", text="x", expected_start=6, expected_end=11, expected_text="BRAVE")
@@ -173,7 +185,9 @@ class GeneratedScriptBehaviourTests(unittest.TestCase):
 
     def test_close_unchanged_reports_a_document_that_is_not_open(self):
         other = self.dir / "other.docx"
-        result = open_documents._run_writer_attached_com("close-unchanged", {"path": str(other), "component": "writer", "do_close": True})
+        result = open_documents._run_writer_attached_com(
+            "close-unchanged", {"path": str(other), "component": "writer", "do_close": True}
+        )
         self.assertEqual(result["data"]["status"], "not_open")
 
     def test_export_saves_a_copy_and_leaves_source_open(self):
@@ -210,13 +224,21 @@ class CellTextMatchTests(unittest.TestCase):
 
         body = open_documents._SPREADSHEET_SELECTION_REPLACE_BODY
         function = re.search(r"  function Test-CellTextMatch.*?\n  }\n", body, re.S).group(0)
-        cases = [("x", "x"), ("123", "00123"), ("1", "1.0"), ("12", "13"), ("abc", "abd"), ("1,234", "1234"), ("7", "+7")]
-        calls = "\n".join(
-            f"Write-Output (Test-CellTextMatch '{actual}' '{expected}')" for actual, expected in cases
-        )
+        cases = [
+            ("x", "x"),
+            ("123", "00123"),
+            ("1", "1.0"),
+            ("12", "13"),
+            ("abc", "abd"),
+            ("1,234", "1234"),
+            ("7", "+7"),
+        ]
+        calls = "\n".join(f"Write-Output (Test-CellTextMatch '{actual}' '{expected}')" for actual, expected in cases)
         completed = subprocess.run(
             [PWSH, "-NoProfile", "-Command", function + "\n" + calls],
-            capture_output=True, text=True, timeout=60,
+            capture_output=True,
+            text=True,
+            timeout=60,
         )
         self.assertEqual(completed.returncode, 0, completed.stderr)
         self.assertEqual(

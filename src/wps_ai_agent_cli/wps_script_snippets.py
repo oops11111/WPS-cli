@@ -14,7 +14,7 @@ QUIT_IF_IDLE = (
 # Attaching uses GetActiveObject semantics: it never launches WPS and callers
 # must never Quit() an instance obtained this way. Marshal.GetActiveObject is
 # missing on PowerShell 7 (.NET 5+), so the OLE call is bound directly.
-ATTACH_RUNNING_INSTANCE = r'''
+ATTACH_RUNNING_INSTANCE = r"""
 if (-not ('WpsAgent.Running' -as [type])) {
 Add-Type -TypeDefinition @"
 using System;
@@ -115,7 +115,7 @@ function Find-OpenWorkbook($app, [string]$path) {
   }
   return $null
 }
-'''
+"""
 
 
 # File-based scripts used to start their own COM session with New-Object. On some hosts that is
@@ -127,7 +127,9 @@ function Find-OpenWorkbook($app, [string]$path) {
 #
 # PRE_OPEN_GUARD also lets a script remember whether the document was open before it touched it, so
 # it never closes (or silently saves over) a user's interactive document.
-PRE_OPEN_GUARD = ATTACH_RUNNING_INSTANCE + r'''
+PRE_OPEN_GUARD = (
+    ATTACH_RUNNING_INSTANCE
+    + r"""
 $script:wpsPrevSettings = @{}
 function Test-WpsPathOpen($collection, [string]$path) {
   try {
@@ -296,7 +298,8 @@ function Restore-WpsAppSettings($app) {
   }
   $script:wpsPrevSettings = @{}
 }
-'''
+"""
+)
 
 # Replaces `$app = New-Object -ComObject $params.prog_id`.
 ACQUIRE_WPS_APP = (

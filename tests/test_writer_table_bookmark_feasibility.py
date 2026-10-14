@@ -29,8 +29,12 @@ from wps_ai_agent_cli.writer_structure import read_supported_bookmark_text
 
 
 def write_image_bookmark_document(
-    path: Path, bookmark_around_drawing: bool = False, image_count: int = 1,
-    anchored: bool = False, cropped: bool = False, image_width_inches: float = 0.25,
+    path: Path,
+    bookmark_around_drawing: bool = False,
+    image_count: int = 1,
+    anchored: bool = False,
+    cropped: bool = False,
+    image_width_inches: float = 0.25,
     anchor_spacing_inches: float = 0.25,
     anchor_relative_frames: tuple[str, str] = ("column", "paragraph"),
     anchor_offsets_inches: tuple[float, float] = (0.75, 0.0),
@@ -104,10 +108,14 @@ def write_image_bookmark_document(
                     strict=False,
                 ):
                     anchor.set(name, value)
-                for name, value in (("simplePos", "0"),
-                                    ("relativeHeight", str(100000 + index * 100000)), ("behindDoc", "0"),
-                                    ("locked", "0"), ("layoutInCell", layout_in_cell),
-                                    ("allowOverlap", "1")):
+                for name, value in (
+                    ("simplePos", "0"),
+                    ("relativeHeight", str(100000 + index * 100000)),
+                    ("behindDoc", "0"),
+                    ("locked", "0"),
+                    ("layoutInCell", layout_in_cell),
+                    ("allowOverlap", "1"),
+                ):
                     anchor.set(name, value)
                 simple = OxmlElement("wp:simplePos")
                 simple.set("x", "0")
@@ -116,9 +124,7 @@ def write_image_bookmark_document(
                 horizontal = OxmlElement("wp:positionH")
                 horizontal.set("relativeFrom", anchor_relative_frames[0])
                 horizontal_offset = OxmlElement("wp:posOffset")
-                horizontal_offset.text = str(int(Inches(
-                    anchor_offsets_inches[0] + index * anchor_spacing_inches
-                ).emu))
+                horizontal_offset.text = str(int(Inches(anchor_offsets_inches[0] + index * anchor_spacing_inches).emu))
                 horizontal.append(horizontal_offset)
                 anchor.append(horizontal)
                 vertical = OxmlElement("wp:positionV")
@@ -171,12 +177,17 @@ def drawing_structure_differences(left, right, path="drawing"):
     if isinstance(left, list) and isinstance(right, list):
         if len(left) != len(right):
             return [(f"{path}.length", len(left), len(right))]
-        return [difference for index, (before, after) in enumerate(zip(left, right, strict=False))
-                for difference in drawing_structure_differences(before, after, f"{path}[{index}]")]
+        return [
+            difference
+            for index, (before, after) in enumerate(zip(left, right, strict=False))
+            for difference in drawing_structure_differences(before, after, f"{path}[{index}]")
+        ]
     return [] if left == right else [(path, left, right)]
 
 
-@unittest.skipUnless(os.environ.get("WPS_AGENT_RUN_INTEGRATION") == "1", "Requires explicit local WPS Writer integration run")
+@unittest.skipUnless(
+    os.environ.get("WPS_AGENT_RUN_INTEGRATION") == "1", "Requires explicit local WPS Writer integration run"
+)
 class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
     def test_wps_table_bookmark_preserves_concave_tight_and_through_paths(self):
         points = ((0, 0), (21600, 0), (21600, 7200), (7200, 7200), (7200, 21600), (0, 21600))
@@ -188,9 +199,13 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
                     before_pdf = root / f"before-concave-{mode}.pdf"
                     after_pdf = root / f"after-concave-{mode}.pdf"
                     write_image_bookmark_document(
-                        path, anchored=True, image_width_inches=1.0,
-                        anchor_offsets_inches=(2.0, 0.0), anchor_wrap=mode,
-                        anchor_wrap_points=points, flow_text_repetitions=30,
+                        path,
+                        anchored=True,
+                        image_width_inches=1.0,
+                        anchor_offsets_inches=(2.0, 0.0),
+                        anchor_wrap=mode,
+                        anchor_wrap_points=points,
+                        flow_text_repetitions=30,
                     )
                     before_semantics = docx_body_drawing_semantics(path)
                     self.assertEqual(before_semantics["unresolved_drawings"], [])
@@ -202,7 +217,11 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
                     ok, record, errors = register_document("writer", str(path), tmp)
                     self.assertTrue(ok, errors)
                     ok, result, errors, _ = writer_fill_bookmark(
-                        record["document_id"], "CellMark", "Old", f"concave-{mode}", workspace=tmp,
+                        record["document_id"],
+                        "CellMark",
+                        "Old",
+                        f"concave-{mode}",
+                        workspace=tmp,
                     )
                     self.assertTrue(ok, (errors, result))
                     self.assertEqual(docx_body_drawing_semantics(path), before_semantics)
@@ -231,9 +250,13 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
                         before_pdf = root / f"before-{mode}-{label}.pdf"
                         after_pdf = root / f"after-{mode}-{label}.pdf"
                         write_image_bookmark_document(
-                            path, anchored=True, image_width_inches=1.0,
-                            anchor_offsets_inches=(2.0, 0.0), anchor_wrap=mode,
-                            anchor_wrap_points=points, flow_text_repetitions=30,
+                            path,
+                            anchored=True,
+                            image_width_inches=1.0,
+                            anchor_offsets_inches=(2.0, 0.0),
+                            anchor_wrap=mode,
+                            anchor_wrap_points=points,
+                            flow_text_repetitions=30,
                         )
                         before_semantics = docx_body_drawing_semantics(path)
                         self.assertEqual(before_semantics["unresolved_drawings"], [])
@@ -245,7 +268,11 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
                         ok, record, errors = register_document("writer", str(path), tmp)
                         self.assertTrue(ok, errors)
                         ok, result, errors, _ = writer_fill_bookmark(
-                            record["document_id"], "CellMark", "Old", f"polygon-{mode}-{label}", workspace=tmp,
+                            record["document_id"],
+                            "CellMark",
+                            "Old",
+                            f"polygon-{mode}-{label}",
+                            workspace=tmp,
                         )
                         self.assertTrue(ok, (errors, result))
                         after_semantics = docx_body_drawing_semantics(path)
@@ -272,9 +299,13 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
                         before_pdf = root / f"before-{mode}-start-{start}.pdf"
                         after_pdf = root / f"after-{mode}-start-{start}.pdf"
                         write_image_bookmark_document(
-                            path, anchored=True, image_width_inches=1.0,
-                            anchor_offsets_inches=(2.0, 0.0), anchor_wrap=mode,
-                            anchor_wrap_points=points, flow_text_repetitions=30,
+                            path,
+                            anchored=True,
+                            image_width_inches=1.0,
+                            anchor_offsets_inches=(2.0, 0.0),
+                            anchor_wrap=mode,
+                            anchor_wrap_points=points,
+                            flow_text_repetitions=30,
                         )
                         before_semantics = docx_body_drawing_semantics(path)
                         self.assertEqual(before_semantics["unresolved_drawings"], [])
@@ -291,7 +322,11 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
                         ok, record, errors = register_document("writer", str(path), tmp)
                         self.assertTrue(ok, errors)
                         ok, result, errors, _ = writer_fill_bookmark(
-                            record["document_id"], "CellMark", "Old", f"polygon-start-{mode}-{start}", workspace=tmp,
+                            record["document_id"],
+                            "CellMark",
+                            "Old",
+                            f"polygon-start-{mode}-{start}",
+                            workspace=tmp,
                         )
                         self.assertTrue(ok, (errors, result))
                         self.assertEqual(docx_body_drawing_semantics(path), before_semantics)
@@ -306,9 +341,18 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
     def test_wps_table_bookmark_audits_collinear_wrap_vertices(self):
         outline = ((0, 0), (21600, 0), (21600, 7200), (7200, 7200), (7200, 21600), (0, 21600))
         with_midpoints = (
-            (0, 0), (10800, 0), (21600, 0), (21600, 3600), (21600, 7200),
-            (14400, 7200), (7200, 7200), (7200, 14400), (7200, 21600),
-            (3600, 21600), (0, 21600), (0, 10800),
+            (0, 0),
+            (10800, 0),
+            (21600, 0),
+            (21600, 3600),
+            (21600, 7200),
+            (14400, 7200),
+            (7200, 7200),
+            (7200, 14400),
+            (7200, 21600),
+            (3600, 21600),
+            (0, 21600),
+            (0, 10800),
         )
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -320,9 +364,13 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
                         before_pdf = root / f"before-{mode}-{label}.pdf"
                         after_pdf = root / f"after-{mode}-{label}.pdf"
                         write_image_bookmark_document(
-                            path, anchored=True, image_width_inches=1.0,
-                            anchor_offsets_inches=(2.0, 0.0), anchor_wrap=mode,
-                            anchor_wrap_points=points, flow_text_repetitions=30,
+                            path,
+                            anchored=True,
+                            image_width_inches=1.0,
+                            anchor_offsets_inches=(2.0, 0.0),
+                            anchor_wrap=mode,
+                            anchor_wrap_points=points,
+                            flow_text_repetitions=30,
                         )
                         before_semantics = docx_body_drawing_semantics(path)
                         self.assertEqual(before_semantics["unresolved_drawings"], [])
@@ -336,7 +384,11 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
                         ok, record, errors = register_document("writer", str(path), tmp)
                         self.assertTrue(ok, errors)
                         ok, result, errors, _ = writer_fill_bookmark(
-                            record["document_id"], "CellMark", "Old", f"polygon-collinear-{mode}-{label}", workspace=tmp,
+                            record["document_id"],
+                            "CellMark",
+                            "Old",
+                            f"polygon-collinear-{mode}-{label}",
+                            workspace=tmp,
                         )
                         self.assertTrue(ok, (errors, result))
                         self.assertEqual(docx_body_drawing_semantics(path), before_semantics)
@@ -351,10 +403,8 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
 
     def test_wps_table_bookmark_round_trips_near_degenerate_and_boundary_polygons(self):
         variants = (
-            ("near_duplicate", ((0, 0), (1, 0), (21600, 0), (21600, 7200),
-                                (7200, 7200), (7200, 21600), (0, 21600))),
-            ("near_bounds", ((1, 1), (21599, 1), (21599, 7199), (7201, 7199),
-                             (7201, 21599), (1, 21599))),
+            ("near_duplicate", ((0, 0), (1, 0), (21600, 0), (21600, 7200), (7200, 7200), (7200, 21600), (0, 21600))),
+            ("near_bounds", ((1, 1), (21599, 1), (21599, 7199), (7201, 7199), (7201, 21599), (1, 21599))),
         )
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -365,9 +415,13 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
                         before_pdf = root / f"before-{mode}-{label}.pdf"
                         after_pdf = root / f"after-{mode}-{label}.pdf"
                         write_image_bookmark_document(
-                            path, anchored=True, image_width_inches=1.0,
-                            anchor_offsets_inches=(2.0, 0.0), anchor_wrap=mode,
-                            anchor_wrap_points=points, flow_text_repetitions=30,
+                            path,
+                            anchored=True,
+                            image_width_inches=1.0,
+                            anchor_offsets_inches=(2.0, 0.0),
+                            anchor_wrap=mode,
+                            anchor_wrap_points=points,
+                            flow_text_repetitions=30,
                         )
                         before_semantics = docx_body_drawing_semantics(path)
                         self.assertEqual(before_semantics["unresolved_drawings"], [])
@@ -380,7 +434,11 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
                         ok, record, errors = register_document("writer", str(path), tmp)
                         self.assertTrue(ok, errors)
                         ok, result, errors, _ = writer_fill_bookmark(
-                            record["document_id"], "CellMark", "Old", f"polygon-{label}-{mode}", workspace=tmp,
+                            record["document_id"],
+                            "CellMark",
+                            "Old",
+                            f"polygon-{label}-{mode}",
+                            workspace=tmp,
                         )
                         self.assertTrue(ok, (errors, result))
                         self.assertEqual(docx_body_drawing_semantics(path), before_semantics)
@@ -408,9 +466,13 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
                         before_pdf = root / f"before-{mode}-{label}.pdf"
                         after_pdf = root / f"after-{mode}-{label}.pdf"
                         write_image_bookmark_document(
-                            path, anchored=True, image_width_inches=1.0,
-                            anchor_offsets_inches=(2.0, 0.0), anchor_wrap=mode,
-                            anchor_wrap_points=points, flow_text_repetitions=30,
+                            path,
+                            anchored=True,
+                            image_width_inches=1.0,
+                            anchor_offsets_inches=(2.0, 0.0),
+                            anchor_wrap=mode,
+                            anchor_wrap_points=points,
+                            flow_text_repetitions=30,
                         )
                         before_semantics = docx_body_drawing_semantics(path)
                         self.assertEqual(before_semantics["unresolved_drawings"], [])
@@ -424,7 +486,10 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
                         ok, record, errors = register_document("writer", str(path), tmp)
                         self.assertTrue(ok, errors)
                         ok, result, errors, _ = writer_fill_bookmark(
-                            record["document_id"], "CellMark", "Old", f"polygon-near-collinear-{mode}-{label}",
+                            record["document_id"],
+                            "CellMark",
+                            "Old",
+                            f"polygon-near-collinear-{mode}-{label}",
                             workspace=tmp,
                         )
                         self.assertTrue(ok, (errors, result))
@@ -467,7 +532,9 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
                     anchor.set("distL", " +0114300 ")
                     anchor.set("distR", "\t114300\n")
                     parts["word/document.xml"] = ET.tostring(
-                        document_xml, encoding="utf-8", xml_declaration=True,
+                        document_xml,
+                        encoding="utf-8",
+                        xml_declaration=True,
                     )
                     with ZipFile(path, "w") as target:
                         for name, content in parts.items():
@@ -484,7 +551,11 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
                     ok, record, errors = register_document("writer", str(path), tmp)
                     self.assertTrue(ok, errors)
                     ok, result, errors, _ = writer_fill_bookmark(
-                        record["document_id"], "CellMark", "Old", f"coordinate-lexical-{index}", workspace=tmp,
+                        record["document_id"],
+                        "CellMark",
+                        "Old",
+                        f"coordinate-lexical-{index}",
+                        workspace=tmp,
                     )
                     self.assertTrue(ok, (errors, result))
                     self.assertEqual(docx_body_drawing_semantics(path), before_semantics)
@@ -518,12 +589,24 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
             ok, record, errors = register_document("writer", str(path), tmp)
             self.assertTrue(ok, errors)
             ok, result, errors, _ = writer_fill_bookmark(
-                record["document_id"], "CellMark", "Old", "maximum-distance", workspace=tmp,
+                record["document_id"],
+                "CellMark",
+                "Old",
+                "maximum-distance",
+                workspace=tmp,
             )
             after_semantics = docx_body_drawing_semantics(path)
-            self.assertTrue(ok, (errors, result, drawing_structure_differences(
-                before_semantics, after_semantics,
-            )))
+            self.assertTrue(
+                ok,
+                (
+                    errors,
+                    result,
+                    drawing_structure_differences(
+                        before_semantics,
+                        after_semantics,
+                    ),
+                ),
+            )
 
     def test_wps_table_bookmark_normalizes_omitted_polygon_wrap_text(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -535,18 +618,29 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
                     before_pdf = root / f"before-{mode}-wrap-text.pdf"
                     after_pdf = root / f"after-{mode}-wrap-text.pdf"
                     write_image_bookmark_document(
-                        omitted, anchored=True, anchor_wrap=mode, anchor_wrap_text=None,
+                        omitted,
+                        anchored=True,
+                        anchor_wrap=mode,
+                        anchor_wrap_text=None,
                         flow_text_repetitions=20,
                     )
                     write_image_bookmark_document(
-                        explicit, anchored=True, anchor_wrap=mode, anchor_wrap_text="bothSides",
+                        explicit,
+                        anchored=True,
+                        anchor_wrap=mode,
+                        anchor_wrap_text="bothSides",
                         flow_text_repetitions=20,
                     )
                     before_semantics = docx_body_drawing_semantics(omitted)
                     self.assertEqual(before_semantics, docx_body_drawing_semantics(explicit))
-                    self.assertTrue(run_conversion_smoke(
-                        "writer", str(omitted), str(before_pdf), "pdf",
-                    )["ok"])
+                    self.assertTrue(
+                        run_conversion_smoke(
+                            "writer",
+                            str(omitted),
+                            str(before_pdf),
+                            "pdf",
+                        )["ok"]
+                    )
                     before_pdf_doc = pypdfium2.PdfDocument(str(before_pdf))
                     before_image = before_pdf_doc[0].render(scale=1.5).to_pil().convert("RGB")
                     before_text = before_pdf_doc[0].get_textpage().get_text_range()
@@ -555,17 +649,33 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
                     ok, record, errors = register_document("writer", str(omitted), tmp)
                     self.assertTrue(ok, errors)
                     ok, result, errors, _ = writer_fill_bookmark(
-                        record["document_id"], "CellMark", "Old", f"polygon-wrap-{mode}",
+                        record["document_id"],
+                        "CellMark",
+                        "Old",
+                        f"polygon-wrap-{mode}",
                         workspace=tmp,
                     )
                     after_semantics = docx_body_drawing_semantics(omitted)
-                    self.assertTrue(ok, (errors, result, drawing_structure_differences(
-                        before_semantics, after_semantics,
-                    )))
+                    self.assertTrue(
+                        ok,
+                        (
+                            errors,
+                            result,
+                            drawing_structure_differences(
+                                before_semantics,
+                                after_semantics,
+                            ),
+                        ),
+                    )
                     self.assertEqual(after_semantics, before_semantics)
-                    self.assertTrue(run_conversion_smoke(
-                        "writer", str(omitted), str(after_pdf), "pdf",
-                    )["ok"])
+                    self.assertTrue(
+                        run_conversion_smoke(
+                            "writer",
+                            str(omitted),
+                            str(after_pdf),
+                            "pdf",
+                        )["ok"]
+                    )
                     after_pdf_doc = pypdfium2.PdfDocument(str(after_pdf))
                     after_image = after_pdf_doc[0].render(scale=1.5).to_pil().convert("RGB")
                     after_text = after_pdf_doc[0].get_textpage().get_text_range()
@@ -582,13 +692,21 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
                     before_pdf = root / f"before-wrap-none-{wrap_text}.pdf"
                     after_pdf = root / f"after-wrap-none-{wrap_text}.pdf"
                     write_image_bookmark_document(
-                        path, anchored=True, anchor_wrap="none", anchor_wrap_text=wrap_text,
+                        path,
+                        anchored=True,
+                        anchor_wrap="none",
+                        anchor_wrap_text=wrap_text,
                     )
                     before_semantics = docx_body_drawing_semantics(path)
                     self.assertEqual(before_semantics["unresolved_drawings"], [])
-                    self.assertTrue(run_conversion_smoke(
-                        "writer", str(path), str(before_pdf), "pdf",
-                    )["ok"])
+                    self.assertTrue(
+                        run_conversion_smoke(
+                            "writer",
+                            str(path),
+                            str(before_pdf),
+                            "pdf",
+                        )["ok"]
+                    )
                     before_pdf_doc = pypdfium2.PdfDocument(str(before_pdf))
                     before_image = before_pdf_doc[0].render(scale=1.5).to_pil().convert("RGB")
                     before_text = before_pdf_doc[0].get_textpage().get_text_range()
@@ -597,17 +715,33 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
                     ok, record, errors = register_document("writer", str(path), tmp)
                     self.assertTrue(ok, errors)
                     ok, result, errors, _ = writer_fill_bookmark(
-                        record["document_id"], "CellMark", "Old", f"wrap-none-{wrap_text}",
+                        record["document_id"],
+                        "CellMark",
+                        "Old",
+                        f"wrap-none-{wrap_text}",
                         workspace=tmp,
                     )
                     after_semantics = docx_body_drawing_semantics(path)
-                    self.assertTrue(ok, (errors, result, drawing_structure_differences(
-                        before_semantics, after_semantics,
-                    )))
+                    self.assertTrue(
+                        ok,
+                        (
+                            errors,
+                            result,
+                            drawing_structure_differences(
+                                before_semantics,
+                                after_semantics,
+                            ),
+                        ),
+                    )
                     self.assertEqual(after_semantics, before_semantics)
-                    self.assertTrue(run_conversion_smoke(
-                        "writer", str(path), str(after_pdf), "pdf",
-                    )["ok"])
+                    self.assertTrue(
+                        run_conversion_smoke(
+                            "writer",
+                            str(path),
+                            str(after_pdf),
+                            "pdf",
+                        )["ok"]
+                    )
                     after_pdf_doc = pypdfium2.PdfDocument(str(after_pdf))
                     after_image = after_pdf_doc[0].render(scale=1.5).to_pil().convert("RGB")
                     after_text = after_pdf_doc[0].get_textpage().get_text_range()
@@ -623,18 +757,29 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
             before_pdf = root / "before-top-bottom-wrap-text.pdf"
             after_pdf = root / "after-top-bottom-wrap-text.pdf"
             write_image_bookmark_document(
-                omitted, anchored=True, anchor_wrap="top_and_bottom", anchor_wrap_text=None,
+                omitted,
+                anchored=True,
+                anchor_wrap="top_and_bottom",
+                anchor_wrap_text=None,
                 flow_text_repetitions=20,
             )
             write_image_bookmark_document(
-                explicit, anchored=True, anchor_wrap="top_and_bottom", anchor_wrap_text="bothSides",
+                explicit,
+                anchored=True,
+                anchor_wrap="top_and_bottom",
+                anchor_wrap_text="bothSides",
                 flow_text_repetitions=20,
             )
             before_semantics = docx_body_drawing_semantics(omitted)
             self.assertEqual(before_semantics, docx_body_drawing_semantics(explicit))
-            self.assertTrue(run_conversion_smoke(
-                "writer", str(omitted), str(before_pdf), "pdf",
-            )["ok"])
+            self.assertTrue(
+                run_conversion_smoke(
+                    "writer",
+                    str(omitted),
+                    str(before_pdf),
+                    "pdf",
+                )["ok"]
+            )
             before_pdf_doc = pypdfium2.PdfDocument(str(before_pdf))
             before_image = before_pdf_doc[0].render(scale=1.5).to_pil().convert("RGB")
             before_text = before_pdf_doc[0].get_textpage().get_text_range()
@@ -643,17 +788,33 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
             ok, record, errors = register_document("writer", str(omitted), tmp)
             self.assertTrue(ok, errors)
             ok, result, errors, _ = writer_fill_bookmark(
-                record["document_id"], "CellMark", "Old", "top-bottom-wrap-default",
+                record["document_id"],
+                "CellMark",
+                "Old",
+                "top-bottom-wrap-default",
                 workspace=tmp,
             )
             after_semantics = docx_body_drawing_semantics(omitted)
-            self.assertTrue(ok, (errors, result, drawing_structure_differences(
-                before_semantics, after_semantics,
-            )))
+            self.assertTrue(
+                ok,
+                (
+                    errors,
+                    result,
+                    drawing_structure_differences(
+                        before_semantics,
+                        after_semantics,
+                    ),
+                ),
+            )
             self.assertEqual(after_semantics, before_semantics)
-            self.assertTrue(run_conversion_smoke(
-                "writer", str(omitted), str(after_pdf), "pdf",
-            )["ok"])
+            self.assertTrue(
+                run_conversion_smoke(
+                    "writer",
+                    str(omitted),
+                    str(after_pdf),
+                    "pdf",
+                )["ok"]
+            )
             after_pdf_doc = pypdfium2.PdfDocument(str(after_pdf))
             after_image = after_pdf_doc[0].render(scale=1.5).to_pil().convert("RGB")
             after_text = after_pdf_doc[0].get_textpage().get_text_range()
@@ -670,11 +831,17 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
             before_pdf = root / "before-wrap-text.pdf"
             after_pdf = root / "after-wrap-text.pdf"
             write_image_bookmark_document(
-                omitted, anchored=True, anchor_wrap="square", anchor_wrap_text=None,
+                omitted,
+                anchored=True,
+                anchor_wrap="square",
+                anchor_wrap_text=None,
                 flow_text_repetitions=20,
             )
             write_image_bookmark_document(
-                explicit, anchored=True, anchor_wrap="square", anchor_wrap_text="bothSides",
+                explicit,
+                anchored=True,
+                anchor_wrap="square",
+                anchor_wrap_text="bothSides",
                 flow_text_repetitions=20,
             )
             before_semantics = docx_body_drawing_semantics(omitted)
@@ -688,12 +855,24 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
             ok, record, errors = register_document("writer", str(omitted), tmp)
             self.assertTrue(ok, errors)
             ok, result, errors, _ = writer_fill_bookmark(
-                record["document_id"], "CellMark", "Old", "wrap-text-default", workspace=tmp,
+                record["document_id"],
+                "CellMark",
+                "Old",
+                "wrap-text-default",
+                workspace=tmp,
             )
             after_semantics = docx_body_drawing_semantics(omitted)
-            self.assertTrue(ok, (errors, result, drawing_structure_differences(
-                before_semantics, after_semantics,
-            )))
+            self.assertTrue(
+                ok,
+                (
+                    errors,
+                    result,
+                    drawing_structure_differences(
+                        before_semantics,
+                        after_semantics,
+                    ),
+                ),
+            )
             self.assertEqual(after_semantics, before_semantics)
             self.assertTrue(run_conversion_smoke("writer", str(omitted), str(after_pdf), "pdf")["ok"])
             after_pdf_doc = pypdfium2.PdfDocument(str(after_pdf))
@@ -713,8 +892,13 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
             before_pdf = root / "before-mixed-anchor-wrap-text.pdf"
             after_pdf = root / "after-mixed-anchor-wrap-text.pdf"
             write_image_bookmark_document(
-                path, anchored=True, image_count=2, anchor_wrap="tight",
-                anchor_wrap_text="largest", anchor_spacing_inches=0.6, flow_text_repetitions=20,
+                path,
+                anchored=True,
+                image_count=2,
+                anchor_wrap="tight",
+                anchor_wrap_text="largest",
+                anchor_spacing_inches=0.6,
+                flow_text_repetitions=20,
             )
             with ZipFile(path) as source:
                 parts = {name: source.read(name) for name in source.namelist()}
@@ -726,7 +910,9 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
             first_wrap.clear()
             first_wrap.set("wrapText", "left")
             parts["word/document.xml"] = ET.tostring(
-                document_xml, encoding="utf-8", xml_declaration=True,
+                document_xml,
+                encoding="utf-8",
+                xml_declaration=True,
             )
             with ZipFile(path, "w") as target:
                 for name, content in parts.items():
@@ -734,13 +920,21 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
 
             before_semantics = docx_body_drawing_semantics(path)
             self.assertEqual(before_semantics["unresolved_drawings"], [])
-            self.assertEqual([
-                drawing["structure"]["children"][4]["attributes"]["wrapText"]
-                for drawing in before_semantics["drawings"]
-            ], ["left", "largest"])
-            self.assertTrue(run_conversion_smoke(
-                "writer", str(path), str(before_pdf), "pdf",
-            )["ok"])
+            self.assertEqual(
+                [
+                    drawing["structure"]["children"][4]["attributes"]["wrapText"]
+                    for drawing in before_semantics["drawings"]
+                ],
+                ["left", "largest"],
+            )
+            self.assertTrue(
+                run_conversion_smoke(
+                    "writer",
+                    str(path),
+                    str(before_pdf),
+                    "pdf",
+                )["ok"]
+            )
             before_pdf_doc = pypdfium2.PdfDocument(str(before_pdf))
             before_image = before_pdf_doc[0].render(scale=1.5).to_pil().convert("RGB")
             before_text = before_pdf_doc[0].get_textpage().get_text_range()
@@ -749,17 +943,33 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
             ok, record, errors = register_document("writer", str(path), tmp)
             self.assertTrue(ok, errors)
             ok, result, errors, _ = writer_fill_bookmark(
-                record["document_id"], "CellMark", "Old", "mixed-anchor-wrap-text",
+                record["document_id"],
+                "CellMark",
+                "Old",
+                "mixed-anchor-wrap-text",
                 workspace=tmp,
             )
             after_semantics = docx_body_drawing_semantics(path)
-            self.assertTrue(ok, (errors, result, drawing_structure_differences(
-                before_semantics, after_semantics,
-            )))
+            self.assertTrue(
+                ok,
+                (
+                    errors,
+                    result,
+                    drawing_structure_differences(
+                        before_semantics,
+                        after_semantics,
+                    ),
+                ),
+            )
             self.assertEqual(after_semantics, before_semantics)
-            self.assertTrue(run_conversion_smoke(
-                "writer", str(path), str(after_pdf), "pdf",
-            )["ok"])
+            self.assertTrue(
+                run_conversion_smoke(
+                    "writer",
+                    str(path),
+                    str(after_pdf),
+                    "pdf",
+                )["ok"]
+            )
             after_pdf_doc = pypdfium2.PdfDocument(str(after_pdf))
             after_image = after_pdf_doc[0].render(scale=1.5).to_pil().convert("RGB")
             after_text = after_pdf_doc[0].get_textpage().get_text_range()
@@ -777,8 +987,13 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
             before_pdf = root / "before-mixed-anchor-distances.pdf"
             after_pdf = root / "after-mixed-anchor-distances.pdf"
             write_image_bookmark_document(
-                path, anchored=True, image_count=2, anchor_wrap="tight",
-                anchor_wrap_text=None, anchor_spacing_inches=0.6, flow_text_repetitions=20,
+                path,
+                anchored=True,
+                image_count=2,
+                anchor_wrap="tight",
+                anchor_wrap_text=None,
+                anchor_spacing_inches=0.6,
+                flow_text_repetitions=20,
             )
             with ZipFile(path) as source:
                 parts = {name: source.read(name) for name in source.namelist()}
@@ -794,7 +1009,9 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
             anchors[0].set("distT", "635")
             anchors[1].set("distL", "1270")
             parts["word/document.xml"] = ET.tostring(
-                document_xml, encoding="utf-8", xml_declaration=True,
+                document_xml,
+                encoding="utf-8",
+                xml_declaration=True,
             )
             with ZipFile(path, "w") as target:
                 for name, content in parts.items():
@@ -802,15 +1019,21 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
 
             before_semantics = docx_body_drawing_semantics(path)
             self.assertEqual(before_semantics["unresolved_drawings"], [])
-            self.assertEqual([
-                drawing["wrap_distances"] for drawing in before_semantics["drawings"]
-            ], [
-                {"distT": "635", "distB": "0", "distL": "114300", "distR": "114300"},
-                {"distT": "0", "distB": "0", "distL": "1270", "distR": "114300"},
-            ])
-            self.assertTrue(run_conversion_smoke(
-                "writer", str(path), str(before_pdf), "pdf",
-            )["ok"])
+            self.assertEqual(
+                [drawing["wrap_distances"] for drawing in before_semantics["drawings"]],
+                [
+                    {"distT": "635", "distB": "0", "distL": "114300", "distR": "114300"},
+                    {"distT": "0", "distB": "0", "distL": "1270", "distR": "114300"},
+                ],
+            )
+            self.assertTrue(
+                run_conversion_smoke(
+                    "writer",
+                    str(path),
+                    str(before_pdf),
+                    "pdf",
+                )["ok"]
+            )
             before_pdf_doc = pypdfium2.PdfDocument(str(before_pdf))
             before_image = before_pdf_doc[0].render(scale=1.5).to_pil().convert("RGB")
             before_text = before_pdf_doc[0].get_textpage().get_text_range()
@@ -819,17 +1042,33 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
             ok, record, errors = register_document("writer", str(path), tmp)
             self.assertTrue(ok, errors)
             ok, result, errors, _ = writer_fill_bookmark(
-                record["document_id"], "CellMark", "Old", "mixed-anchor-distances",
+                record["document_id"],
+                "CellMark",
+                "Old",
+                "mixed-anchor-distances",
                 workspace=tmp,
             )
             after_semantics = docx_body_drawing_semantics(path)
-            self.assertTrue(ok, (errors, result, drawing_structure_differences(
-                before_semantics, after_semantics,
-            )))
+            self.assertTrue(
+                ok,
+                (
+                    errors,
+                    result,
+                    drawing_structure_differences(
+                        before_semantics,
+                        after_semantics,
+                    ),
+                ),
+            )
             self.assertEqual(after_semantics, before_semantics)
-            self.assertTrue(run_conversion_smoke(
-                "writer", str(path), str(after_pdf), "pdf",
-            )["ok"])
+            self.assertTrue(
+                run_conversion_smoke(
+                    "writer",
+                    str(path),
+                    str(after_pdf),
+                    "pdf",
+                )["ok"]
+            )
             after_pdf_doc = pypdfium2.PdfDocument(str(after_pdf))
             after_image = after_pdf_doc[0].render(scale=1.5).to_pil().convert("RGB")
             after_text = after_pdf_doc[0].get_textpage().get_text_range()
@@ -847,8 +1086,13 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
             before_pdf = root / "before-mixed-anchor-defaults.pdf"
             after_pdf = root / "after-mixed-anchor-defaults.pdf"
             write_image_bookmark_document(
-                path, anchored=True, image_count=2, anchor_wrap="tight",
-                anchor_wrap_text=None, anchor_spacing_inches=0.6, flow_text_repetitions=20,
+                path,
+                anchored=True,
+                image_count=2,
+                anchor_wrap="tight",
+                anchor_wrap_text=None,
+                anchor_spacing_inches=0.6,
+                flow_text_repetitions=20,
             )
             with ZipFile(path) as source:
                 parts = {name: source.read(name) for name in source.namelist()}
@@ -862,7 +1106,9 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
                 for name in ("distT", "distB", "distL", "distR"):
                     anchor.attrib.pop(name, None)
             parts["word/document.xml"] = ET.tostring(
-                document_xml, encoding="utf-8", xml_declaration=True,
+                document_xml,
+                encoding="utf-8",
+                xml_declaration=True,
             )
             with ZipFile(path, "w") as target:
                 for name, content in parts.items():
@@ -871,14 +1117,18 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
             before_semantics = docx_body_drawing_semantics(path)
             self.assertEqual(before_semantics["unresolved_drawings"], [])
             self.assertEqual(len(before_semantics["drawings"]), 2)
-            self.assertEqual([
-                drawing["wrap_distances"] for drawing in before_semantics["drawings"]
-            ], [
-                {"distT": "0", "distB": "0", "distL": "114300", "distR": "114300"}
-            ] * 2)
-            self.assertTrue(run_conversion_smoke(
-                "writer", str(path), str(before_pdf), "pdf",
-            )["ok"])
+            self.assertEqual(
+                [drawing["wrap_distances"] for drawing in before_semantics["drawings"]],
+                [{"distT": "0", "distB": "0", "distL": "114300", "distR": "114300"}] * 2,
+            )
+            self.assertTrue(
+                run_conversion_smoke(
+                    "writer",
+                    str(path),
+                    str(before_pdf),
+                    "pdf",
+                )["ok"]
+            )
             before_pdf_doc = pypdfium2.PdfDocument(str(before_pdf))
             before_image = before_pdf_doc[0].render(scale=1.5).to_pil().convert("RGB")
             before_text = before_pdf_doc[0].get_textpage().get_text_range()
@@ -887,17 +1137,33 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
             ok, record, errors = register_document("writer", str(path), tmp)
             self.assertTrue(ok, errors)
             ok, result, errors, _ = writer_fill_bookmark(
-                record["document_id"], "CellMark", "Old", "mixed-anchor-defaults",
+                record["document_id"],
+                "CellMark",
+                "Old",
+                "mixed-anchor-defaults",
                 workspace=tmp,
             )
             after_semantics = docx_body_drawing_semantics(path)
-            self.assertTrue(ok, (errors, result, drawing_structure_differences(
-                before_semantics, after_semantics,
-            )))
+            self.assertTrue(
+                ok,
+                (
+                    errors,
+                    result,
+                    drawing_structure_differences(
+                        before_semantics,
+                        after_semantics,
+                    ),
+                ),
+            )
             self.assertEqual(after_semantics, before_semantics)
-            self.assertTrue(run_conversion_smoke(
-                "writer", str(path), str(after_pdf), "pdf",
-            )["ok"])
+            self.assertTrue(
+                run_conversion_smoke(
+                    "writer",
+                    str(path),
+                    str(after_pdf),
+                    "pdf",
+                )["ok"]
+            )
             after_pdf_doc = pypdfium2.PdfDocument(str(after_pdf))
             after_image = after_pdf_doc[0].render(scale=1.5).to_pil().convert("RGB")
             after_text = after_pdf_doc[0].get_textpage().get_text_range()
@@ -918,7 +1184,10 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
                     before_pdf = root / f"before-{explicit_name}.pdf"
                     after_pdf = root / f"after-{explicit_name}.pdf"
                     write_image_bookmark_document(
-                        path, anchored=True, anchor_wrap="square", anchor_wrap_text=None,
+                        path,
+                        anchored=True,
+                        anchor_wrap="square",
+                        anchor_wrap_text=None,
                         flow_text_repetitions=20,
                     )
                     with ZipFile(path) as source:
@@ -929,7 +1198,9 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
                         anchor.attrib.pop(name, None)
                     anchor.set(explicit_name, "635")
                     parts["word/document.xml"] = ET.tostring(
-                        document_xml, encoding="utf-8", xml_declaration=True,
+                        document_xml,
+                        encoding="utf-8",
+                        xml_declaration=True,
                     )
                     with ZipFile(path, "w") as target:
                         for name, content in parts.items():
@@ -939,9 +1210,14 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
                     before_semantics = docx_body_drawing_semantics(path)
                     self.assertEqual(before_semantics["unresolved_drawings"], [])
                     self.assertEqual(before_semantics["drawings"][0]["wrap_distances"], expected)
-                    self.assertTrue(run_conversion_smoke(
-                        "writer", str(path), str(before_pdf), "pdf",
-                    )["ok"])
+                    self.assertTrue(
+                        run_conversion_smoke(
+                            "writer",
+                            str(path),
+                            str(before_pdf),
+                            "pdf",
+                        )["ok"]
+                    )
                     before_pdf_doc = pypdfium2.PdfDocument(str(before_pdf))
                     before_image = before_pdf_doc[0].render(scale=1.5).to_pil().convert("RGB")
                     before_text = before_pdf_doc[0].get_textpage().get_text_range()
@@ -950,17 +1226,33 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
                     ok, record, errors = register_document("writer", str(path), tmp)
                     self.assertTrue(ok, errors)
                     ok, result, errors, _ = writer_fill_bookmark(
-                        record["document_id"], "CellMark", "Old",
-                        f"explicit-{explicit_name}", workspace=tmp,
+                        record["document_id"],
+                        "CellMark",
+                        "Old",
+                        f"explicit-{explicit_name}",
+                        workspace=tmp,
                     )
                     after_semantics = docx_body_drawing_semantics(path)
-                    self.assertTrue(ok, (errors, result, drawing_structure_differences(
-                        before_semantics, after_semantics,
-                    )))
+                    self.assertTrue(
+                        ok,
+                        (
+                            errors,
+                            result,
+                            drawing_structure_differences(
+                                before_semantics,
+                                after_semantics,
+                            ),
+                        ),
+                    )
                     self.assertEqual(after_semantics, before_semantics)
-                    self.assertTrue(run_conversion_smoke(
-                        "writer", str(path), str(after_pdf), "pdf",
-                    )["ok"])
+                    self.assertTrue(
+                        run_conversion_smoke(
+                            "writer",
+                            str(path),
+                            str(after_pdf),
+                            "pdf",
+                        )["ok"]
+                    )
                     after_pdf_doc = pypdfium2.PdfDocument(str(after_pdf))
                     after_image = after_pdf_doc[0].render(scale=1.5).to_pil().convert("RGB")
                     after_text = after_pdf_doc[0].get_textpage().get_text_range()
@@ -973,7 +1265,10 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
         from zipfile import ZipFile
 
         expected_distances = {
-            "distT": "635", "distB": "0", "distL": "114300", "distR": "114300",
+            "distT": "635",
+            "distB": "0",
+            "distL": "114300",
+            "distR": "114300",
         }
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -983,7 +1278,10 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
                     before_pdf = root / f"before-explicit-distance-{wrap_mode}.pdf"
                     after_pdf = root / f"after-explicit-distance-{wrap_mode}.pdf"
                     write_image_bookmark_document(
-                        path, anchored=True, anchor_wrap=wrap_mode, anchor_wrap_text=None,
+                        path,
+                        anchored=True,
+                        anchor_wrap=wrap_mode,
+                        anchor_wrap_text=None,
                         flow_text_repetitions=20,
                     )
                     with ZipFile(path) as source:
@@ -994,7 +1292,9 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
                         anchor.attrib.pop(name, None)
                     anchor.set("distT", "635")
                     parts["word/document.xml"] = ET.tostring(
-                        document_xml, encoding="utf-8", xml_declaration=True,
+                        document_xml,
+                        encoding="utf-8",
+                        xml_declaration=True,
                     )
                     with ZipFile(path, "w") as target:
                         for name, content in parts.items():
@@ -1003,9 +1303,14 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
                     before_semantics = docx_body_drawing_semantics(path)
                     self.assertEqual(before_semantics["unresolved_drawings"], [])
                     self.assertEqual(before_semantics["drawings"][0]["wrap_distances"], expected_distances)
-                    self.assertTrue(run_conversion_smoke(
-                        "writer", str(path), str(before_pdf), "pdf",
-                    )["ok"])
+                    self.assertTrue(
+                        run_conversion_smoke(
+                            "writer",
+                            str(path),
+                            str(before_pdf),
+                            "pdf",
+                        )["ok"]
+                    )
                     before_pdf_doc = pypdfium2.PdfDocument(str(before_pdf))
                     before_image = before_pdf_doc[0].render(scale=1.5).to_pil().convert("RGB")
                     before_text = before_pdf_doc[0].get_textpage().get_text_range()
@@ -1014,17 +1319,33 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
                     ok, record, errors = register_document("writer", str(path), tmp)
                     self.assertTrue(ok, errors)
                     ok, result, errors, _ = writer_fill_bookmark(
-                        record["document_id"], "CellMark", "Old",
-                        f"explicit-distance-{wrap_mode}", workspace=tmp,
+                        record["document_id"],
+                        "CellMark",
+                        "Old",
+                        f"explicit-distance-{wrap_mode}",
+                        workspace=tmp,
                     )
                     after_semantics = docx_body_drawing_semantics(path)
-                    self.assertTrue(ok, (errors, result, drawing_structure_differences(
-                        before_semantics, after_semantics,
-                    )))
+                    self.assertTrue(
+                        ok,
+                        (
+                            errors,
+                            result,
+                            drawing_structure_differences(
+                                before_semantics,
+                                after_semantics,
+                            ),
+                        ),
+                    )
                     self.assertEqual(after_semantics, before_semantics)
-                    self.assertTrue(run_conversion_smoke(
-                        "writer", str(path), str(after_pdf), "pdf",
-                    )["ok"])
+                    self.assertTrue(
+                        run_conversion_smoke(
+                            "writer",
+                            str(path),
+                            str(after_pdf),
+                            "pdf",
+                        )["ok"]
+                    )
                     after_pdf_doc = pypdfium2.PdfDocument(str(after_pdf))
                     after_image = after_pdf_doc[0].render(scale=1.5).to_pil().convert("RGB")
                     after_text = after_pdf_doc[0].get_textpage().get_text_range()
@@ -1045,7 +1366,10 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
                     before_pdf = root / f"before-combined-{wrap_mode}.pdf"
                     after_pdf = root / f"after-combined-{wrap_mode}.pdf"
                     write_image_bookmark_document(
-                        path, anchored=True, anchor_wrap=wrap_mode, anchor_wrap_text=None,
+                        path,
+                        anchored=True,
+                        anchor_wrap=wrap_mode,
+                        anchor_wrap_text=None,
                         flow_text_repetitions=20,
                     )
                     with ZipFile(path) as source:
@@ -1055,7 +1379,9 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
                     for name in defaults:
                         anchor.attrib.pop(name, None)
                     parts["word/document.xml"] = ET.tostring(
-                        document_xml, encoding="utf-8", xml_declaration=True,
+                        document_xml,
+                        encoding="utf-8",
+                        xml_declaration=True,
                     )
                     with ZipFile(path, "w") as target:
                         for name, content in parts.items():
@@ -1064,9 +1390,14 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
                     before_semantics = docx_body_drawing_semantics(path)
                     self.assertEqual(before_semantics["unresolved_drawings"], [])
                     self.assertEqual(before_semantics["drawings"][0]["wrap_distances"], defaults)
-                    self.assertTrue(run_conversion_smoke(
-                        "writer", str(path), str(before_pdf), "pdf",
-                    )["ok"])
+                    self.assertTrue(
+                        run_conversion_smoke(
+                            "writer",
+                            str(path),
+                            str(before_pdf),
+                            "pdf",
+                        )["ok"]
+                    )
                     before_pdf_doc = pypdfium2.PdfDocument(str(before_pdf))
                     before_image = before_pdf_doc[0].render(scale=1.5).to_pil().convert("RGB")
                     before_text = before_pdf_doc[0].get_textpage().get_text_range()
@@ -1075,17 +1406,33 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
                     ok, record, errors = register_document("writer", str(path), tmp)
                     self.assertTrue(ok, errors)
                     ok, result, errors, _ = writer_fill_bookmark(
-                        record["document_id"], "CellMark", "Old",
-                        f"combined-defaults-{wrap_mode}", workspace=tmp,
+                        record["document_id"],
+                        "CellMark",
+                        "Old",
+                        f"combined-defaults-{wrap_mode}",
+                        workspace=tmp,
                     )
                     after_semantics = docx_body_drawing_semantics(path)
-                    self.assertTrue(ok, (errors, result, drawing_structure_differences(
-                        before_semantics, after_semantics,
-                    )))
+                    self.assertTrue(
+                        ok,
+                        (
+                            errors,
+                            result,
+                            drawing_structure_differences(
+                                before_semantics,
+                                after_semantics,
+                            ),
+                        ),
+                    )
                     self.assertEqual(after_semantics, before_semantics)
-                    self.assertTrue(run_conversion_smoke(
-                        "writer", str(path), str(after_pdf), "pdf",
-                    )["ok"])
+                    self.assertTrue(
+                        run_conversion_smoke(
+                            "writer",
+                            str(path),
+                            str(after_pdf),
+                            "pdf",
+                        )["ok"]
+                    )
                     after_pdf_doc = pypdfium2.PdfDocument(str(after_pdf))
                     after_image = after_pdf_doc[0].render(scale=1.5).to_pil().convert("RGB")
                     after_text = after_pdf_doc[0].get_textpage().get_text_range()
@@ -1117,7 +1464,9 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
                             else:
                                 anchor.set(name, "0")
                         parts["word/document.xml"] = ET.tostring(
-                            document_xml, encoding="utf-8", xml_declaration=True,
+                            document_xml,
+                            encoding="utf-8",
+                            xml_declaration=True,
                         )
                         with ZipFile(path, "w") as target:
                             for name, content in parts.items():
@@ -1135,13 +1484,24 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
                         ok, record, errors = register_document("writer", str(path), tmp)
                         self.assertTrue(ok, errors)
                         ok, result, errors, _ = writer_fill_bookmark(
-                            record["document_id"], "CellMark", "Old",
-                            f"distance-default-{wrap_mode}-{index}", workspace=tmp,
+                            record["document_id"],
+                            "CellMark",
+                            "Old",
+                            f"distance-default-{wrap_mode}-{index}",
+                            workspace=tmp,
                         )
                         after_semantics = docx_body_drawing_semantics(path)
-                        self.assertTrue(ok, (errors, result, drawing_structure_differences(
-                            before_semantics, after_semantics,
-                        )))
+                        self.assertTrue(
+                            ok,
+                            (
+                                errors,
+                                result,
+                                drawing_structure_differences(
+                                    before_semantics,
+                                    after_semantics,
+                                ),
+                            ),
+                        )
                         self.assertEqual(after_semantics, before_semantics)
                         self.assertTrue(run_conversion_smoke("writer", str(path), str(after_pdf), "pdf")["ok"])
                         after_pdf_doc = pypdfium2.PdfDocument(str(after_pdf))
@@ -1150,12 +1510,19 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
                         after_pdf_doc.close()
                         self.assertEqual(after_text, before_text)
                         self.assertIsNone(ImageChops.difference(before_image, after_image).getbbox())
-                self.assertEqual(reports[0]["drawings"][0]["wrap_distances"], {
-                    "distT": "0", "distB": "0", "distL": "114300", "distR": "114300",
-                })
-                self.assertEqual(reports[1]["drawings"][0]["wrap_distances"], {
-                    name: "0" for name in ("distT", "distB", "distL", "distR")
-                })
+                self.assertEqual(
+                    reports[0]["drawings"][0]["wrap_distances"],
+                    {
+                        "distT": "0",
+                        "distB": "0",
+                        "distL": "114300",
+                        "distR": "114300",
+                    },
+                )
+                self.assertEqual(
+                    reports[1]["drawings"][0]["wrap_distances"],
+                    {name: "0" for name in ("distT", "distB", "distL", "distR")},
+                )
                 # The omitted defaults are semantically distinct from explicit
                 # zero, but this fixture need not expose that distinction in
                 # rendered pixels for every wrap mode.
@@ -1172,8 +1539,11 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
                     before_pdf = root / f"before-{wrap_text}.pdf"
                     after_pdf = root / f"after-{wrap_text}.pdf"
                     write_image_bookmark_document(
-                        path, anchored=True, anchor_wrap="square",
-                        anchor_wrap_text=wrap_text, flow_text_repetitions=35,
+                        path,
+                        anchored=True,
+                        anchor_wrap="square",
+                        anchor_wrap_text=wrap_text,
+                        flow_text_repetitions=35,
                     )
                     with ZipFile(path) as source:
                         parts = {name: source.read(name) for name in source.namelist()}
@@ -1182,7 +1552,9 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
                     for name in ("distT", "distB", "distL", "distR"):
                         anchor.attrib.pop(name, None)
                     parts["word/document.xml"] = ET.tostring(
-                        document_xml, encoding="utf-8", xml_declaration=True,
+                        document_xml,
+                        encoding="utf-8",
+                        xml_declaration=True,
                     )
                     with ZipFile(path, "w") as target:
                         for name, content in parts.items():
@@ -1192,9 +1564,15 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
                     self.assertEqual(before_semantics["unresolved_drawings"], [])
                     wrap = before_semantics["drawings"][0]["structure"]["children"][4]
                     self.assertEqual(wrap["attributes"]["wrapText"], wrap_text)
-                    self.assertEqual(before_semantics["drawings"][0]["wrap_distances"], {
-                        "distT": "0", "distB": "0", "distL": "114300", "distR": "114300",
-                    })
+                    self.assertEqual(
+                        before_semantics["drawings"][0]["wrap_distances"],
+                        {
+                            "distT": "0",
+                            "distB": "0",
+                            "distL": "114300",
+                            "distR": "114300",
+                        },
+                    )
                     self.assertTrue(run_conversion_smoke("writer", str(path), str(before_pdf), "pdf")["ok"])
                     before_pdf_doc = pypdfium2.PdfDocument(str(before_pdf))
                     before_image = before_pdf_doc[0].render(scale=1.5).to_pil().convert("RGB")
@@ -1204,13 +1582,24 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
                     ok, record, errors = register_document("writer", str(path), tmp)
                     self.assertTrue(ok, errors)
                     ok, result, errors, _ = writer_fill_bookmark(
-                        record["document_id"], "CellMark", "Old",
-                        f"one-sided-{wrap_text}", workspace=tmp,
+                        record["document_id"],
+                        "CellMark",
+                        "Old",
+                        f"one-sided-{wrap_text}",
+                        workspace=tmp,
                     )
                     after_semantics = docx_body_drawing_semantics(path)
-                    self.assertTrue(ok, (errors, result, drawing_structure_differences(
-                        before_semantics, after_semantics,
-                    )))
+                    self.assertTrue(
+                        ok,
+                        (
+                            errors,
+                            result,
+                            drawing_structure_differences(
+                                before_semantics,
+                                after_semantics,
+                            ),
+                        ),
+                    )
                     self.assertEqual(after_semantics, before_semantics)
                     self.assertTrue(run_conversion_smoke("writer", str(path), str(after_pdf), "pdf")["ok"])
                     after_pdf_doc = pypdfium2.PdfDocument(str(after_pdf))
@@ -1246,7 +1635,9 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
                         anchor.attrib.pop(name, None)
                     anchor.attrib.update(explicit)
                     parts["word/document.xml"] = ET.tostring(
-                        document_xml, encoding="utf-8", xml_declaration=True,
+                        document_xml,
+                        encoding="utf-8",
+                        xml_declaration=True,
                     )
                     with ZipFile(path, "w") as target:
                         for name, content in parts.items():
@@ -1265,12 +1656,24 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
                     ok, record, errors = register_document("writer", str(path), tmp)
                     self.assertTrue(ok, errors)
                     ok, result, errors, _ = writer_fill_bookmark(
-                        record["document_id"], "CellMark", "Old", case_name, workspace=tmp,
+                        record["document_id"],
+                        "CellMark",
+                        "Old",
+                        case_name,
+                        workspace=tmp,
                     )
                     after_semantics = docx_body_drawing_semantics(path)
-                    self.assertTrue(ok, (errors, result, drawing_structure_differences(
-                        before_semantics, after_semantics,
-                    )))
+                    self.assertTrue(
+                        ok,
+                        (
+                            errors,
+                            result,
+                            drawing_structure_differences(
+                                before_semantics,
+                                after_semantics,
+                            ),
+                        ),
+                    )
                     self.assertEqual(after_semantics, before_semantics)
                     self.assertTrue(run_conversion_smoke("writer", str(path), str(after_pdf), "pdf")["ok"])
                     after_pdf_doc = pypdfium2.PdfDocument(str(after_pdf))
@@ -1294,7 +1697,10 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
                 path = root / f"wrap-none-{suffix}.docx"
                 pdf_path = root / f"wrap-none-{suffix}.pdf"
                 write_image_bookmark_document(
-                    path, anchored=True, anchor_wrap="none", anchor_wrap_text=None,
+                    path,
+                    anchored=True,
+                    anchor_wrap="none",
+                    anchor_wrap_text=None,
                     flow_text_repetitions=35,
                 )
                 if value is not None:
@@ -1303,7 +1709,9 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
                     document_xml = ET.fromstring(parts["word/document.xml"])
                     next(document_xml.iter(qn("wp:wrapNone"))).set("wrapText", value)
                     parts["word/document.xml"] = ET.tostring(
-                        document_xml, encoding="utf-8", xml_declaration=True,
+                        document_xml,
+                        encoding="utf-8",
+                        xml_declaration=True,
                     )
                     with ZipFile(path, "w") as target:
                         for name, content in parts.items():
@@ -1311,14 +1719,21 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
                 semantics = docx_body_drawing_semantics(path)
                 self.assertEqual(semantics["unresolved_drawings"], [])
                 reports.append(semantics)
-                self.assertTrue(run_conversion_smoke(
-                    "writer", str(path), str(pdf_path), "pdf",
-                )["ok"])
+                self.assertTrue(
+                    run_conversion_smoke(
+                        "writer",
+                        str(path),
+                        str(pdf_path),
+                        "pdf",
+                    )["ok"]
+                )
                 pdf = pypdfium2.PdfDocument(str(pdf_path))
-                reports.append((
-                    [pdf[index].get_textpage().get_text_range() for index in range(len(pdf))],
-                    [pdf[index].render(scale=1.5).to_pil().convert("RGB") for index in range(len(pdf))],
-                ))
+                reports.append(
+                    (
+                        [pdf[index].get_textpage().get_text_range() for index in range(len(pdf))],
+                        [pdf[index].render(scale=1.5).to_pil().convert("RGB") for index in range(len(pdf))],
+                    )
+                )
                 pdf.close()
 
             self.assertNotEqual(reports[0], reports[2])
@@ -1337,19 +1752,24 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
                     path = root / f"wrap-none-render-{wrap_text}.docx"
                     pdf_path = root / f"wrap-none-render-{wrap_text}.pdf"
                     write_image_bookmark_document(
-                        path, anchored=True, anchor_wrap="none", anchor_wrap_text=wrap_text,
+                        path,
+                        anchored=True,
+                        anchor_wrap="none",
+                        anchor_wrap_text=wrap_text,
                         flow_text_repetitions=35,
                     )
-                    self.assertTrue(run_conversion_smoke(
-                        "writer", str(path), str(pdf_path), "pdf",
-                    )["ok"])
+                    self.assertTrue(
+                        run_conversion_smoke(
+                            "writer",
+                            str(path),
+                            str(pdf_path),
+                            "pdf",
+                        )["ok"]
+                    )
                     pdf = pypdfium2.PdfDocument(str(pdf_path))
                     self.assertGreater(len(pdf), 0)
                     page_text = [pdf[index].get_textpage().get_text_range() for index in range(len(pdf))]
-                    page_images = [
-                        pdf[index].render(scale=1.5).to_pil().convert("RGB")
-                        for index in range(len(pdf))
-                    ]
+                    page_images = [pdf[index].render(scale=1.5).to_pil().convert("RGB") for index in range(len(pdf))]
                     pdf.close()
                     if reference_text is None:
                         reference_text = page_text
@@ -1370,14 +1790,22 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
                         before_pdf = root / f"before-{mode}-{wrap_text}.pdf"
                         after_pdf = root / f"after-{mode}-{wrap_text}.pdf"
                         write_image_bookmark_document(
-                            path, anchored=True, anchor_wrap=mode, anchor_wrap_text=wrap_text,
+                            path,
+                            anchored=True,
+                            anchor_wrap=mode,
+                            anchor_wrap_text=wrap_text,
                             flow_text_repetitions=25,
                         )
                         before_semantics = docx_body_drawing_semantics(path)
                         self.assertEqual(before_semantics["unresolved_drawings"], [])
-                        self.assertTrue(run_conversion_smoke(
-                            "writer", str(path), str(before_pdf), "pdf",
-                        )["ok"])
+                        self.assertTrue(
+                            run_conversion_smoke(
+                                "writer",
+                                str(path),
+                                str(before_pdf),
+                                "pdf",
+                            )["ok"]
+                        )
                         before_pdf_doc = pypdfium2.PdfDocument(str(before_pdf))
                         before_image = before_pdf_doc[0].render(scale=1.5).to_pil().convert("RGB")
                         before_text = before_pdf_doc[0].get_textpage().get_text_range()
@@ -1386,17 +1814,33 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
                         ok, record, errors = register_document("writer", str(path), tmp)
                         self.assertTrue(ok, errors)
                         ok, result, errors, _ = writer_fill_bookmark(
-                            record["document_id"], "CellMark", "Old",
-                            f"{mode}-{wrap_text}", workspace=tmp,
+                            record["document_id"],
+                            "CellMark",
+                            "Old",
+                            f"{mode}-{wrap_text}",
+                            workspace=tmp,
                         )
                         after_semantics = docx_body_drawing_semantics(path)
-                        self.assertTrue(ok, (errors, result, drawing_structure_differences(
-                            before_semantics, after_semantics,
-                        )))
+                        self.assertTrue(
+                            ok,
+                            (
+                                errors,
+                                result,
+                                drawing_structure_differences(
+                                    before_semantics,
+                                    after_semantics,
+                                ),
+                            ),
+                        )
                         self.assertEqual(after_semantics, before_semantics)
-                        self.assertTrue(run_conversion_smoke(
-                            "writer", str(path), str(after_pdf), "pdf",
-                        )["ok"])
+                        self.assertTrue(
+                            run_conversion_smoke(
+                                "writer",
+                                str(path),
+                                str(after_pdf),
+                                "pdf",
+                            )["ok"]
+                        )
                         after_pdf_doc = pypdfium2.PdfDocument(str(after_pdf))
                         after_image = after_pdf_doc[0].render(scale=1.5).to_pil().convert("RGB")
                         after_text = after_pdf_doc[0].get_textpage().get_text_range()
@@ -1418,9 +1862,13 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
                     before_pdf = root / f"before-{wrap_text}.pdf"
                     after_pdf = root / f"after-{wrap_text}.pdf"
                     write_image_bookmark_document(
-                        path, anchored=True, image_width_inches=1.0,
-                        anchor_offsets_inches=(2.0, 0.0), anchor_wrap="square",
-                        anchor_wrap_text=wrap_text, anchor_distances_inches=distances,
+                        path,
+                        anchored=True,
+                        image_width_inches=1.0,
+                        anchor_offsets_inches=(2.0, 0.0),
+                        anchor_wrap="square",
+                        anchor_wrap_text=wrap_text,
+                        anchor_distances_inches=distances,
                         flow_text_repetitions=35,
                     )
                     before_semantics = docx_body_drawing_semantics(path)
@@ -1438,7 +1886,11 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
                     ok, record, errors = register_document("writer", str(path), tmp)
                     self.assertTrue(ok, errors)
                     ok, result, errors, _ = writer_fill_bookmark(
-                        record["document_id"], "CellMark", "Old", f"wrap-side-{wrap_text}", workspace=tmp,
+                        record["document_id"],
+                        "CellMark",
+                        "Old",
+                        f"wrap-side-{wrap_text}",
+                        workspace=tmp,
                     )
                     self.assertTrue(ok, (errors, result))
                     self.assertEqual(docx_body_drawing_semantics(path), before_semantics)
@@ -1459,8 +1911,11 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
                     before_pdf = root / f"before-{mode}.pdf"
                     after_pdf = root / f"after-{mode}.pdf"
                     write_image_bookmark_document(
-                        path, anchored=True, image_width_inches=1.0,
-                        anchor_offsets_inches=(2.5, 0.0), anchor_wrap=mode,
+                        path,
+                        anchored=True,
+                        image_width_inches=1.0,
+                        anchor_offsets_inches=(2.5, 0.0),
+                        anchor_wrap=mode,
                     )
                     before_semantics = docx_body_drawing_semantics(path)
                     wrap = before_semantics["drawings"][0]["structure"]["children"][4]
@@ -1476,7 +1931,11 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
                     ok, record, errors = register_document("writer", str(path), tmp)
                     self.assertTrue(ok, errors)
                     ok, result, errors, _ = writer_fill_bookmark(
-                        record["document_id"], "CellMark", "Old", f"{mode}-wrap", workspace=tmp,
+                        record["document_id"],
+                        "CellMark",
+                        "Old",
+                        f"{mode}-wrap",
+                        workspace=tmp,
                     )
                     self.assertTrue(ok, (errors, result))
                     self.assertEqual(docx_body_drawing_semantics(path), before_semantics)
@@ -1495,11 +1954,16 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
             before_pdf = root / "before-multi-anchor.pdf"
             after_pdf = root / "after-multi-anchor.pdf"
             write_image_bookmark_document(
-                path, anchored=True, image_width_inches=0.9,
+                path,
+                anchored=True,
+                image_width_inches=0.9,
                 anchor_relative_frames=("column", "paragraph"),
-                anchor_offsets_inches=(0.75, 0.0), anchor_spacing_inches=0.25,
-                anchor_wrap="square", preamble_paragraphs=36,
-                preamble_images=1, postamble_paragraphs=36,
+                anchor_offsets_inches=(0.75, 0.0),
+                anchor_spacing_inches=0.25,
+                anchor_wrap="square",
+                preamble_paragraphs=36,
+                preamble_images=1,
+                postamble_paragraphs=36,
             )
             before_semantics = docx_body_drawing_semantics(path)
             self.assertEqual(len(before_semantics["drawings"]), 2)
@@ -1520,10 +1984,15 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
                         start = text.find(marker)
                         if start >= 0:
                             boxes = [text_page.get_charbox(index) for index in range(start, start + len(marker))]
-                            page_markers[marker] = tuple(round(value, 2) for value in (
-                                min(box[0] for box in boxes), min(box[1] for box in boxes),
-                                max(box[2] for box in boxes), max(box[3] for box in boxes),
-                            ))
+                            page_markers[marker] = tuple(
+                                round(value, 2)
+                                for value in (
+                                    min(box[0] for box in boxes),
+                                    min(box[1] for box in boxes),
+                                    max(box[2] for box in boxes),
+                                    max(box[3] for box in boxes),
+                                )
+                            )
                             markers[marker] = (page_index, page_markers[marker])
                     red, green, blue = image.split()
                     red_mask = ImageChops.multiply(
@@ -1551,7 +2020,11 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
             ok, record, errors = register_document("writer", str(path), tmp)
             self.assertTrue(ok, errors)
             ok, result, errors, _ = writer_fill_bookmark(
-                record["document_id"], "CellMark", "Old", "multi-anchor-pages", workspace=tmp,
+                record["document_id"],
+                "CellMark",
+                "Old",
+                "multi-anchor-pages",
+                workspace=tmp,
             )
             self.assertTrue(ok, (errors, result))
             after_semantics = docx_body_drawing_semantics(path)
@@ -1572,10 +2045,14 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
             before_pdf = root / "before-flow.pdf"
             after_pdf = root / "after-flow.pdf"
             write_image_bookmark_document(
-                path, anchored=True, image_width_inches=0.9,
+                path,
+                anchored=True,
+                image_width_inches=0.9,
                 anchor_relative_frames=("column", "paragraph"),
-                anchor_offsets_inches=(2.0, 0.0), anchor_wrap="square",
-                preamble_paragraphs=36, postamble_paragraphs=36,
+                anchor_offsets_inches=(2.0, 0.0),
+                anchor_wrap="square",
+                preamble_paragraphs=36,
+                postamble_paragraphs=36,
             )
             before_semantics = docx_body_drawing_semantics(path)
             self.assertTrue(run_conversion_smoke("writer", str(path), str(before_pdf), "pdf")["ok"])
@@ -1595,10 +2072,15 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
                             boxes = [text_page.get_charbox(index) for index in range(start, start + len(marker))]
                             markers[marker] = (
                                 page_index,
-                                tuple(round(value, 2) for value in (
-                                    min(box[0] for box in boxes), min(box[1] for box in boxes),
-                                    max(box[2] for box in boxes), max(box[3] for box in boxes),
-                                )),
+                                tuple(
+                                    round(value, 2)
+                                    for value in (
+                                        min(box[0] for box in boxes),
+                                        min(box[1] for box in boxes),
+                                        max(box[2] for box in boxes),
+                                        max(box[3] for box in boxes),
+                                    )
+                                ),
                             )
                 pdf.close()
                 return page_images, markers
@@ -1609,7 +2091,11 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
             ok, record, errors = register_document("writer", str(path), tmp)
             self.assertTrue(ok, errors)
             ok, result, errors, _ = writer_fill_bookmark(
-                record["document_id"], "CellMark", "Old", "multi-page-flow", workspace=tmp,
+                record["document_id"],
+                "CellMark",
+                "Old",
+                "multi-page-flow",
+                workspace=tmp,
             )
             self.assertTrue(ok, (errors, result))
             self.assertEqual(docx_body_drawing_semantics(path), before_semantics)
@@ -1638,10 +2124,15 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
             self.assertGreaterEqual(start, 0, text)
             boxes = [text_page.get_charbox(index) for index in range(start, start + 5)]
             pdf_doc.close()
-            return tuple(round(value, 2) for value in (
-                min(box[0] for box in boxes), min(box[1] for box in boxes),
-                max(box[2] for box in boxes), max(box[3] for box in boxes),
-            ))
+            return tuple(
+                round(value, 2)
+                for value in (
+                    min(box[0] for box in boxes),
+                    min(box[1] for box in boxes),
+                    max(box[2] for box in boxes),
+                    max(box[3] for box in boxes),
+                )
+            )
 
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -1651,8 +2142,12 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
                     before_pdf = root / f"before-{name}.pdf"
                     after_pdf = root / f"after-{name}.pdf"
                     write_image_bookmark_document(
-                        path, anchored=True, cropped=cropped, image_width_inches=width,
-                        anchor_relative_frames=frames, anchor_offsets_inches=offsets,
+                        path,
+                        anchored=True,
+                        cropped=cropped,
+                        image_width_inches=width,
+                        anchor_relative_frames=frames,
+                        anchor_offsets_inches=offsets,
                         anchor_wrap=wrap,
                         layout_in_cell="0" if name == "page_top_left_negative" else "1",
                     )
@@ -1667,7 +2162,11 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
                     ok, record, errors = register_document("writer", str(path), tmp)
                     self.assertTrue(ok, errors)
                     ok, result, errors, _ = writer_fill_bookmark(
-                        record["document_id"], "CellMark", "Old", f"wrap-edge-{name}", workspace=tmp,
+                        record["document_id"],
+                        "CellMark",
+                        "Old",
+                        f"wrap-edge-{name}",
+                        workspace=tmp,
                     )
                     self.assertTrue(ok, (errors, result))
                     self.assertEqual(docx_body_drawing_semantics(path), before_semantics)
@@ -1699,7 +2198,9 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
                         self.assertLess(visible[3] - visible[1], round(width * 96) - 20, visible)
                     if name in {"cell_right_square_crop", "cell_left_negative_crop"}:
                         self.assertLessEqual(
-                            abs((visible[2] - visible[0]) - round(width * 144)), 3, visible,
+                            abs((visible[2] - visible[0]) - round(width * 144)),
+                            3,
+                            visible,
                         )
                     if name == "page_top_left_negative":
                         self.assertLessEqual(abs((visible[2] - visible[0]) - 144), 3, visible)
@@ -1718,8 +2219,11 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
                     before_pdf = root / f"before-{name}.pdf"
                     after_pdf = root / f"after-{name}.pdf"
                     write_image_bookmark_document(
-                        path, anchored=True, image_width_inches=0.5,
-                        anchor_relative_frames=frames, anchor_offsets_inches=offsets,
+                        path,
+                        anchored=True,
+                        image_width_inches=0.5,
+                        anchor_relative_frames=frames,
+                        anchor_offsets_inches=offsets,
                     )
                     before_semantics = docx_body_drawing_semantics(path)
                     self.assertEqual(before_semantics["unresolved_drawings"], [])
@@ -1736,7 +2240,11 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
                     ok, record, errors = register_document("writer", str(path), tmp)
                     self.assertTrue(ok, errors)
                     ok, result, errors, _ = writer_fill_bookmark(
-                        record["document_id"], "CellMark", "New", f"anchor-frame-{name}", workspace=tmp,
+                        record["document_id"],
+                        "CellMark",
+                        "New",
+                        f"anchor-frame-{name}",
+                        workspace=tmp,
                     )
                     self.assertTrue(ok, (errors, result))
                     after_semantics = docx_body_drawing_semantics(path)
@@ -1771,7 +2279,10 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
             before_pdf = root / "before.pdf"
             after_pdf = root / "after.pdf"
             write_image_bookmark_document(
-                path, image_count=2, anchored=True, image_width_inches=1.5,
+                path,
+                image_count=2,
+                anchored=True,
+                image_width_inches=1.5,
                 anchor_spacing_inches=0.25,
             )
             before_conversion = run_conversion_smoke("writer", str(path), str(before_pdf), "pdf")
@@ -1785,7 +2296,11 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
             ok, record, errors = register_document("writer", str(path), tmp)
             self.assertTrue(ok, errors)
             ok, result, errors, _ = writer_fill_bookmark(
-                record["document_id"], "CellMark", "New", "rendered-anchors", workspace=tmp,
+                record["document_id"],
+                "CellMark",
+                "New",
+                "rendered-anchors",
+                workspace=tmp,
             )
             self.assertTrue(ok, (errors, result))
             self.assertNotEqual(file_identity(path), before_identity)
@@ -1838,13 +2353,24 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
             ok, record, errors = register_document("writer", str(path), tmp)
             self.assertTrue(ok, errors)
             ok, result, errors, _ = writer_fill_bookmark(
-                record["document_id"], "CellMark", "New", "drawing-neighbor", workspace=tmp,
+                record["document_id"],
+                "CellMark",
+                "New",
+                "drawing-neighbor",
+                workspace=tmp,
             )
-            self.assertTrue(ok, (errors, result, drawings_before,
-                                 drawing_structure_differences(
-                                     drawings_before["drawings"][0]["structure"],
-                                     docx_body_drawing_semantics(path)["drawings"][0]["structure"],
-                                 )))
+            self.assertTrue(
+                ok,
+                (
+                    errors,
+                    result,
+                    drawings_before,
+                    drawing_structure_differences(
+                        drawings_before["drawings"][0]["structure"],
+                        docx_body_drawing_semantics(path)["drawings"][0]["structure"],
+                    ),
+                ),
+            )
             self.assertEqual(docx_body_drawing_semantics(path), drawings_before)
             self.assertEqual(read_supported_bookmark_text(path, "CellMark")[1], "New")
             self.assertEqual(len(Document(path).inline_shapes), 1)
@@ -1864,15 +2390,20 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
                 ok, record, errors = register_document("writer", str(path), tmp)
                 self.assertTrue(ok, errors)
                 ok, result, errors, _ = writer_fill_bookmark(
-                    record["document_id"], "CellMark", "New", f"drawing-{variant}", workspace=tmp,
+                    record["document_id"],
+                    "CellMark",
+                    "New",
+                    f"drawing-{variant}",
+                    workspace=tmp,
                 )
                 after = docx_body_drawing_semantics(path)
                 self.assertTrue(ok, (errors, result, drawings_before, after))
                 self.assertEqual(after, drawings_before)
                 self.assertEqual(read_supported_bookmark_text(path, "CellMark")[1], "New")
                 expected_type = "anchor" if options.get("anchored") else "inline"
-                self.assertEqual([drawing["type"] for drawing in after["drawings"]],
-                                 [expected_type] * options.get("image_count", 1))
+                self.assertEqual(
+                    [drawing["type"] for drawing in after["drawings"]], [expected_type] * options.get("image_count", 1)
+                )
 
     def test_wps_table_bookmark_preserves_hyperlink_and_field_neighbors(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -1882,7 +2413,9 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
             paragraph = table.cell(0, 0).paragraphs[0]
             paragraph.add_run("Before ")
             rel_id = paragraph.part.relate_to(
-                "https://example.com/audit?source=writer", RT.HYPERLINK, is_external=True,
+                "https://example.com/audit?source=writer",
+                RT.HYPERLINK,
+                is_external=True,
             )
             hyperlink = OxmlElement("w:hyperlink")
             hyperlink.set(qn("r:id"), rel_id)
@@ -1913,21 +2446,26 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
             paragraph.add_run(" After")
             document.save(path)
             semantics_before = docx_body_link_field_semantics(path)
-            self.assertEqual(semantics_before["hyperlinks"][0]["target"],
-                             "https://example.com/audit?source=writer")
-            self.assertEqual(semantics_before["fields"][0]["instruction_tokens"],
-                             ["MERGEFIELD", "InvoiceCode"])
+            self.assertEqual(semantics_before["hyperlinks"][0]["target"], "https://example.com/audit?source=writer")
+            self.assertEqual(semantics_before["fields"][0]["instruction_tokens"], ["MERGEFIELD", "InvoiceCode"])
             ok, record, errors = register_document("writer", str(path), tmp)
             self.assertTrue(ok, errors)
             ok, result, errors, _ = writer_fill_bookmark(
-                record["document_id"], "CellMark", "New", "semantic-neighbors", workspace=tmp,
+                record["document_id"],
+                "CellMark",
+                "New",
+                "semantic-neighbors",
+                workspace=tmp,
             )
-            self.assertTrue(ok, (errors, result, semantics_before,
-                                 docx_body_link_field_semantics(path)))
+            self.assertTrue(ok, (errors, result, semantics_before, docx_body_link_field_semantics(path)))
             self.assertEqual(docx_body_link_field_semantics(path), semantics_before)
             self.assertEqual(read_supported_bookmark_text(path, "CellMark")[1], "New")
             ok, result, errors, _ = writer_fill_bookmark(
-                record["document_id"], "CellMark", "Again", "semantic-neighbors-second", workspace=tmp,
+                record["document_id"],
+                "CellMark",
+                "Again",
+                "semantic-neighbors-second",
+                workspace=tmp,
             )
             self.assertTrue(ok, (errors, result))
             self.assertEqual(docx_body_link_field_semantics(path), semantics_before)
@@ -1972,20 +2510,22 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
                 ok, record, errors = register_document("writer", str(path), tmp)
                 self.assertTrue(ok, errors)
                 ok, result, errors, _ = writer_fill_bookmark(
-                    record["document_id"], "CellMark", "New", f"complex-{variant}", workspace=tmp,
+                    record["document_id"],
+                    "CellMark",
+                    "New",
+                    f"complex-{variant}",
+                    workspace=tmp,
                 )
                 self.assertTrue(ok, (variant, errors, result))
                 self.assertEqual(docx_body_table_topology(path), topology_before)
                 readback = Document(path)
                 self.assertEqual(readback.paragraphs[0].text, "Outside")
-                self.assertEqual(readback.tables[0].cell(0, 0).paragraphs[0].text,
-                                 "Before New After")
+                self.assertEqual(readback.tables[0].cell(0, 0).paragraphs[0].text, "Before New After")
                 if variant != "vertical_merge":
                     self.assertEqual(readback.tables[0].cell(1, 0).text, "Lower left")
                 self.assertEqual(readback.tables[0].cell(1, 1).text, "Lower right")
                 if variant == "multiple_paragraphs":
-                    self.assertEqual(readback.tables[0].cell(0, 0).paragraphs[1].text,
-                                     "Second paragraph")
+                    self.assertEqual(readback.tables[0].cell(0, 0).paragraphs[1].text, "Second paragraph")
                 if variant == "styled":
                     self.assertEqual(readback.tables[0].style.name, "Light Shading Accent 1")
                     runs = readback.tables[0].cell(0, 0).paragraphs[0].runs
@@ -2021,7 +2561,11 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
             ok, record, errors = register_document("writer", str(path), tmp)
             self.assertTrue(ok, errors)
             ok, result, errors, replayed = writer_fill_bookmark(
-                record["document_id"], "CellMark", "New", "table-public", workspace=tmp,
+                record["document_id"],
+                "CellMark",
+                "New",
+                "table-public",
+                workspace=tmp,
             )
             self.assertTrue(ok, (errors, result))
             self.assertFalse(replayed)
@@ -2032,15 +2576,19 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
             self.assertTrue(after_bookmark["text_range_supported"])
             self.assertEqual(after_text, "New")
             readback = Document(path)
-            self.assertEqual([paragraph.text for paragraph in readback.paragraphs],
-                             ["Outside before", "Outside after"])
+            self.assertEqual([paragraph.text for paragraph in readback.paragraphs], ["Outside before", "Outside after"])
             self.assertEqual(readback.tables[0].cell(0, 0).text, "Before New After")
             self.assertEqual(readback.tables[0].cell(0, 1).text, "Neighbor")
-            self.assertEqual(file_identity(Path(backup["backup_path"]))["source_sha256"],
-                             backup["source_identity"]["source_sha256"])
+            self.assertEqual(
+                file_identity(Path(backup["backup_path"]))["source_sha256"], backup["source_identity"]["source_sha256"]
+            )
             saved_identity = file_identity(path)
             replay_ok, replay_result, replay_errors, replayed = writer_fill_bookmark(
-                record["document_id"], "CellMark", "New", "table-public", workspace=tmp,
+                record["document_id"],
+                "CellMark",
+                "New",
+                "table-public",
+                workspace=tmp,
             )
             self.assertTrue(replay_ok, replay_errors)
             self.assertTrue(replayed)
@@ -2048,22 +2596,41 @@ class WriterTableBookmarkFeasibilityTests(unittest.TestCase):
             self.assertEqual(file_identity(path), saved_identity)
             with chdir(tmp):
                 output = io.StringIO()
-                self.assertEqual(run([
-                    "writer-fill-bookmark", "--document-id", record["document_id"],
-                    "--bookmark-name", "CellMark", "--text", "New",
-                    "--request-id", "table-public",
-                ], output_stream=output), 0)
+                self.assertEqual(
+                    run(
+                        [
+                            "writer-fill-bookmark",
+                            "--document-id",
+                            record["document_id"],
+                            "--bookmark-name",
+                            "CellMark",
+                            "--text",
+                            "New",
+                            "--request-id",
+                            "table-public",
+                        ],
+                        output_stream=output,
+                    ),
+                    0,
+                )
                 cli = json.loads(output.getvalue())
-                mcp_ok, mcp, mcp_errors = call_mcp_tool("wps_agent_writer_fill_bookmark", {
-                    "document_id": record["document_id"], "bookmark_name": "CellMark",
-                    "text": "New", "request_id": "table-public",
-                })
+                mcp_ok, mcp, mcp_errors = call_mcp_tool(
+                    "wps_agent_writer_fill_bookmark",
+                    {
+                        "document_id": record["document_id"],
+                        "bookmark_name": "CellMark",
+                        "text": "New",
+                        "request_id": "table-public",
+                    },
+                )
             self.assertTrue(mcp_ok, mcp_errors)
             self.assertEqual(cli["data"], mcp["response"]["data"])
             self.assertTrue(cli["data"]["readback_passed"])
             self.assertEqual(file_identity(path), saved_identity)
             backed_up, _, backup_errors, _ = create_backup(
-                record["document_id"], "table-post-fill-backup", workspace=tmp,
+                record["document_id"],
+                "table-post-fill-backup",
+                workspace=tmp,
             )
             self.assertTrue(backed_up, backup_errors)
 

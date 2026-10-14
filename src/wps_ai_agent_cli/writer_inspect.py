@@ -19,30 +19,67 @@ def _file_sha256(stream) -> str:
 
 
 def inspect_writer_structure(
-    document_id: str, limit: int = 50, workspace: str | Path = ".",
-    section: str = "all", offset: int = 0, bookmark_name: str | None = None,
+    document_id: str,
+    limit: int = 50,
+    workspace: str | Path = ".",
+    section: str = "all",
+    offset: int = 0,
+    bookmark_name: str | None = None,
     expected_sha256: str | None = None,
-    include_text: bool = False, text_limit: int = 200,
+    include_text: bool = False,
+    text_limit: int = 200,
 ) -> tuple[bool, dict[str, Any], list[dict[str, str]]]:
     if not 1 <= limit <= 200:
         return False, {}, [{"code": "INVALID_LIMIT", "message": "Limit must be between 1 and 200."}]
     if section not in {"all", "headings", "styles", "bookmarks", "warnings"}:
         return False, {}, [{"code": "INVALID_SECTION", "message": "Unknown Writer structure section."}]
     if offset < 0 or (section == "all" and offset != 0):
-        return False, {}, [{"code": "INVALID_OFFSET", "message": "Offset must be non-negative and requires one selected section."}]
+        return (
+            False,
+            {},
+            [{"code": "INVALID_OFFSET", "message": "Offset must be non-negative and requires one selected section."}],
+        )
     if bookmark_name is not None and (not bookmark_name or len(bookmark_name) > 256 or section != "bookmarks"):
-        return False, {}, [{"code": "INVALID_BOOKMARK_QUERY", "message": "Bookmark name must be 1-256 characters and requires the bookmarks section."}]
+        return (
+            False,
+            {},
+            [
+                {
+                    "code": "INVALID_BOOKMARK_QUERY",
+                    "message": "Bookmark name must be 1-256 characters and requires the bookmarks section.",
+                }
+            ],
+        )
     if include_text and (bookmark_name is None or section != "bookmarks" or offset != 0):
-        return False, {}, [{"code": "INVALID_BOOKMARK_TEXT_QUERY", "message": "Text inspection requires an exact bookmark name at offset zero."}]
+        return (
+            False,
+            {},
+            [
+                {
+                    "code": "INVALID_BOOKMARK_TEXT_QUERY",
+                    "message": "Text inspection requires an exact bookmark name at offset zero.",
+                }
+            ],
+        )
     if not 1 <= text_limit <= 4096:
         return False, {}, [{"code": "INVALID_TEXT_LIMIT", "message": "Text limit must be between 1 and 4096."}]
-    if expected_sha256 is not None and (len(expected_sha256) != 64 or any(c not in "0123456789abcdefABCDEF" for c in expected_sha256)):
-        return False, {}, [{"code": "INVALID_SOURCE_HASH", "message": "Expected SHA-256 must be 64 hexadecimal characters."}]
+    if expected_sha256 is not None and (
+        len(expected_sha256) != 64 or any(c not in "0123456789abcdefABCDEF" for c in expected_sha256)
+    ):
+        return (
+            False,
+            {},
+            [{"code": "INVALID_SOURCE_HASH", "message": "Expected SHA-256 must be 64 hexadecimal characters."}],
+        )
     document = get_document(document_id, workspace)
     if not document:
         return False, {}, [{"code": "DOCUMENT_NOT_FOUND", "message": f"Document not registered: {document_id}"}]
     if document.get("component") != "writer":
-        return False, {}, [{"code": "UNSUPPORTED_COMPONENT", "message": "Writer structure inspection requires a Writer document."}]
+        return (
+            False,
+            {},
+            [{"code": "UNSUPPORTED_COMPONENT", "message": "Writer structure inspection requires a Writer document."}],
+        )
     path = Path(document["path"])
     if not path.is_file():
         return False, {}, [{"code": "INPUT_FILE_NOT_FOUND", "message": f"Input file not found: {path}"}]
@@ -50,29 +87,46 @@ def inspect_writer_structure(
         with path.open("rb") as stream:
             digest = _file_sha256(stream)
         if expected_sha256 is not None and digest.lower() != expected_sha256.lower():
-            return False, {}, [{"code": "WRITER_SOURCE_CHANGED", "message": "Document hash differs from the requested page source."}]
+            return (
+                False,
+                {},
+                [{"code": "WRITER_SOURCE_CHANGED", "message": "Document hash differs from the requested page source."}],
+            )
         structure = read_writer_structure(path)
         texts = docx_body_paragraphs(path)
-        value_matches = [item for item in structure["bookmarks"] if item["name"] == bookmark_name] if include_text else []
+        value_matches = (
+            [item for item in structure["bookmarks"] if item["name"] == bookmark_name] if include_text else []
+        )
         bookmark_text = None
         if len(value_matches) == 1 and value_matches[0]["text_range_supported"]:
             _, bookmark_text = read_supported_bookmark_text(path, bookmark_name)
         with path.open("rb") as stream:
             after_digest = _file_sha256(stream)
         if digest != after_digest:
-            return False, {}, [{"code": "WRITER_SOURCE_CHANGED", "message": "Document changed during structure inspection."}]
+            return (
+                False,
+                {},
+                [{"code": "WRITER_SOURCE_CHANGED", "message": "Document changed during structure inspection."}],
+            )
     except (BadZipFile, KeyError, ET.ParseError, ValueError, OSError) as exc:
         return False, {}, [{"code": "WRITER_STRUCTURE_INVALID", "message": str(exc)}]
     headings = [
         {**item, "preview": " ".join(texts[item["paragraph_index"] - 1].split())[:120]}
-        for item in structure["paragraphs"] if item["heading_level"] is not None
+        for item in structure["paragraphs"]
+        if item["heading_level"] is not None
     ]
-    styles = sorted({
-        (item["style_id"], item["style_name"], item["style_resolution"])
-        for item in structure["paragraphs"] if item["style_id"] is not None
-    }, key=lambda item: (item[0], item[1] or ""))
+    styles = sorted(
+        {
+            (item["style_id"], item["style_name"], item["style_resolution"])
+            for item in structure["paragraphs"]
+            if item["style_id"] is not None
+        },
+        key=lambda item: (item[0], item[1] or ""),
+    )
     bookmarks = structure["bookmarks"]
-    matching_bookmarks = [item for item in bookmarks if item["name"] == bookmark_name] if bookmark_name is not None else bookmarks
+    matching_bookmarks = (
+        [item for item in bookmarks if item["name"] == bookmark_name] if bookmark_name is not None else bookmarks
+    )
     sections = {
         "headings": headings,
         "styles": [{"style_id": item[0], "style_name": item[1], "resolution": item[2]} for item in styles],
@@ -83,7 +137,7 @@ def inspect_writer_structure(
     pagination = {
         name: {
             "offset": offset,
-            "returned_count": len(items[offset:offset + limit]),
+            "returned_count": len(items[offset : offset + limit]),
             "total_count": len(items),
             "next_offset": offset + limit if offset + limit < len(items) else None,
         }
@@ -110,12 +164,16 @@ def inspect_writer_structure(
         "warning_count": len(structure["warnings"]),
         "truncated": any(item["next_offset"] is not None for item in pagination.values()),
     }
-    result.update({name: items[offset:offset + limit] for name, items in selected.items()})
+    result.update({name: items[offset : offset + limit] for name, items in selected.items()})
     if bookmark_name is not None:
         result["bookmark_query"] = {
             "name": bookmark_name,
             "match_count": len(matching_bookmarks),
-            "status": "missing" if not matching_bookmarks else "unique" if len(matching_bookmarks) == 1 else "ambiguous",
+            "status": "missing"
+            if not matching_bookmarks
+            else "unique"
+            if len(matching_bookmarks) == 1
+            else "ambiguous",
         }
     if include_text:
         if not value_matches:

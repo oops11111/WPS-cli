@@ -43,10 +43,13 @@ class CloseAndRestoreTests(unittest.TestCase):
             if failure is not None:
                 return {"ok": False, "errors": [failure], "data": {}}
             return {"ok": True, "errors": [], "data": {"status": status}}
+
         return patch.object(open_documents, "_run_component_attached_com", side_effect=run)
 
     def restore(self, request_id="restore-1", **kwargs):
-        return restore_backup(self.document_id, request_id, backup_name=self.backup_name, workspace=self.workspace, **kwargs)
+        return restore_backup(
+            self.document_id, request_id, backup_name=self.backup_name, workspace=self.workspace, **kwargs
+        )
 
     def a1(self):
         return load_workbook(self.path, read_only=True).active["A1"].value
@@ -117,8 +120,10 @@ class CloseAndRestoreTests(unittest.TestCase):
             order.append("close")
             return {"ok": True, "errors": [], "data": {"status": "closed"}}
 
-        with patch.object(open_documents, "_run_component_attached_com", side_effect=run), \
-                patch.object(backups, "create_backup", side_effect=recording_backup):
+        with (
+            patch.object(open_documents, "_run_component_attached_com", side_effect=run),
+            patch.object(backups, "create_backup", side_effect=recording_backup),
+        ):
             ok, _result, errors, _ = self.restore(close_in_wps=True)
         self.assertTrue(ok, errors)
         self.assertEqual(order, ["close", "backup"])

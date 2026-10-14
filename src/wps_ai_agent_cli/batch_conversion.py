@@ -42,7 +42,11 @@ def inspect_batch_request(request_id: str, verify: bool = False) -> tuple[bool, 
     record_path = _request_record_path(request_id)
     legacy_path = _request_registry_path()
     if record_path.parent.is_symlink():
-        return False, {}, [{"code": "BATCH_REQUEST_REGISTRY_INVALID", "message": "Request record directory is a symlink."}]
+        return (
+            False,
+            {},
+            [{"code": "BATCH_REQUEST_REGISTRY_INVALID", "message": "Request record directory is a symlink."}],
+        )
     if record_path.exists():
         path, origin, max_bytes = record_path, "current", _MAX_REQUEST_RECORD_BYTES
     elif legacy_path.exists():
@@ -58,18 +62,31 @@ def inspect_batch_request(request_id: str, verify: bool = False) -> tuple[bool, 
                 raise ValueError("Legacy request registry is invalid.")
             record = stored["requests"].get(request_id)
             if record is None:
-                return False, {}, [{"code": "BATCH_REQUEST_NOT_FOUND", "message": "Batch request record was not found."}]
+                return (
+                    False,
+                    {},
+                    [{"code": "BATCH_REQUEST_NOT_FOUND", "message": "Batch request record was not found."}],
+                )
         else:
             record = stored
-        if (not isinstance(record, dict) or (origin == "current" and record.get("request_id") != request_id)
-                or not isinstance(record.get("arguments"), dict)
-                or record.get("state") not in {"running", "succeeded", "failed", "cancelled"}):
+        if (
+            not isinstance(record, dict)
+            or (origin == "current" and record.get("request_id") != request_id)
+            or not isinstance(record.get("arguments"), dict)
+            or record.get("state") not in {"running", "succeeded", "failed", "cancelled"}
+        ):
             raise ValueError("Request record fields are invalid.")
     except (OSError, UnicodeError, ValueError, json.JSONDecodeError):
-        return False, {}, [{"code": "BATCH_REQUEST_REGISTRY_INVALID", "message": "Batch request record cannot be trusted."}]
+        return (
+            False,
+            {},
+            [{"code": "BATCH_REQUEST_REGISTRY_INVALID", "message": "Batch request record cannot be trusted."}],
+        )
     arguments = record["arguments"]
     output_directory = arguments.get("output_directory")
-    manifest_path = str(Path(output_directory) / "batch-conversion-manifest.json") if isinstance(output_directory, str) else None
+    manifest_path = (
+        str(Path(output_directory) / "batch-conversion-manifest.json") if isinstance(output_directory, str) else None
+    )
     guidance = {
         "running": "Inspect the manifest; retry this request only when complete output evidence can be verified.",
         "succeeded": "Retry the same request and arguments to verify the files and replay the result.",
@@ -77,8 +94,12 @@ def inspect_batch_request(request_id: str, verify: bool = False) -> tuple[bool, 
         "cancelled": "Review the partial manifest and start a new request after cleanup.",
     }
     result = {
-        "request_id": request_id, "state": record["state"], "arguments": arguments,
-        "manifest_path": manifest_path, "record_path": str(path), "record_origin": origin,
+        "request_id": request_id,
+        "state": record["state"],
+        "arguments": arguments,
+        "manifest_path": manifest_path,
+        "record_path": str(path),
+        "record_origin": origin,
         "recovery_guidance": guidance[record["state"]],
         "evidence_status": "not_checked",
     }
@@ -93,18 +114,29 @@ def inspect_batch_request(request_id: str, verify: bool = False) -> tuple[bool, 
                 raise ValueError("Request arguments no longer identify a valid batch source.")
             iterator = source_root.rglob("*") if recursive else source_root.iterdir()
             sources = sorted(
-                (item.resolve() for item in iterator if not item.is_symlink() and item.is_file() and item.suffix.casefold() in {".html", ".htm"}),
+                (
+                    item.resolve()
+                    for item in iterator
+                    if not item.is_symlink() and item.is_file() and item.suffix.casefold() in {".html", ".htm"}
+                ),
                 key=lambda item: str(item).casefold(),
             )
-            if (not sources or len(sources) > _MAX_FILES
-                    or sum(item.stat().st_size for item in sources) > _MAX_TOTAL_INPUT_BYTES):
+            if (
+                not sources
+                or len(sources) > _MAX_FILES
+                or sum(item.stat().st_size for item in sources) > _MAX_TOTAL_INPUT_BYTES
+            ):
                 raise ValueError("Current source inventory exceeds replay limits or is empty.")
             manifest = output_root / "batch-conversion-manifest.json"
             if not manifest.is_file():
                 raise ValueError("Batch manifest is missing.")
-            verified, _, replay_errors = _replay_batch(manifest, sources, source_root, output_root, mode, recursive, request_id)
+            verified, _, replay_errors = _replay_batch(
+                manifest, sources, source_root, output_root, mode, recursive, request_id
+            )
             if not verified:
-                raise ValueError(replay_errors[0]["message"] if replay_errors else "Batch evidence differs from the record.")
+                raise ValueError(
+                    replay_errors[0]["message"] if replay_errors else "Batch evidence differs from the record."
+                )
         except (KeyError, OSError, ValueError, TypeError) as exc:
             result["evidence_summary"] = str(exc)[:500]
         else:
@@ -122,8 +154,9 @@ def _store_request_record(path: Path, record: dict[str, Any]) -> bool:
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary = None
     try:
-        with tempfile.NamedTemporaryFile("wb", dir=path.parent,
-                                         prefix=".html-batch-request-", suffix=".tmp", delete=False) as stream:
+        with tempfile.NamedTemporaryFile(
+            "wb", dir=path.parent, prefix=".html-batch-request-", suffix=".tmp", delete=False
+        ) as stream:
             temporary = Path(stream.name)
             stream.write(payload)
             stream.flush()
@@ -135,7 +168,9 @@ def _store_request_record(path: Path, record: dict[str, Any]) -> bool:
     return True
 
 
-def _batch_request_state(request_id: str, arguments: dict[str, Any], register: bool) -> tuple[str, dict[str, str] | None]:
+def _batch_request_state(
+    request_id: str, arguments: dict[str, Any], register: bool
+) -> tuple[str, dict[str, str] | None]:
     record_path = _request_record_path(request_id)
     legacy_path = _request_registry_path()
     with task_status._status_transaction("."):
@@ -186,8 +221,15 @@ def _finish_batch_request(request_id: str, state: str) -> None:
             raise ValueError("Batch request record exceeded its size limit.")
 
 
-def _replay_batch(manifest_path: Path, sources: list[Path], source_root: Path,
-                  output_root: Path, mode: str, recursive: bool, request_id: str) -> tuple[bool, dict[str, Any], list[dict[str, str]]]:
+def _replay_batch(
+    manifest_path: Path,
+    sources: list[Path],
+    source_root: Path,
+    output_root: Path,
+    mode: str,
+    recursive: bool,
+    request_id: str,
+) -> tuple[bool, dict[str, Any], list[dict[str, str]]]:
     def reject(code: str, message: str):
         return False, {}, [{"code": code, "message": message}]
 
@@ -212,27 +254,45 @@ def _replay_batch(manifest_path: Path, sources: list[Path], source_root: Path,
         return reject("BATCH_REPLAY_CONFLICT", "Batch request identity or arguments differ from the existing manifest.")
     summary = manifest.get("summary")
     files = manifest.get("files")
-    if (not isinstance(summary, dict) or not isinstance(files, list) or manifest.get("cancelled")
-            or len(files) != len(sources) or summary.get("total") != len(sources)
-            or summary.get("processed") != len(sources) or summary.get("passed") != len(sources)
-            or summary.get("failed") != 0 or summary.get("cancelled")):
-        return reject("BATCH_REPLAY_EVIDENCE_MISMATCH", "Batch manifest does not describe a completed successful conversion.")
+    if (
+        not isinstance(summary, dict)
+        or not isinstance(files, list)
+        or manifest.get("cancelled")
+        or len(files) != len(sources)
+        or summary.get("total") != len(sources)
+        or summary.get("processed") != len(sources)
+        or summary.get("passed") != len(sources)
+        or summary.get("failed") != 0
+        or summary.get("cancelled")
+    ):
+        return reject(
+            "BATCH_REPLAY_EVIDENCE_MISMATCH", "Batch manifest does not describe a completed successful conversion."
+        )
     total_output_bytes = 0
     for source, item in zip(sources, files, strict=True):
         if not isinstance(item, dict):
             return reject("BATCH_REPLAY_EVIDENCE_MISMATCH", "Batch manifest file entry is invalid.")
         relative = source.relative_to(source_root)
         destination = (output_root / relative).with_suffix(f".{mode}")
-        if (item.get("source") != str(source) or item.get("relative_source") != relative.as_posix()
-                or item.get("output") != str(destination) or item.get("status") != "passed"
-                or destination.is_symlink() or not destination.is_file()):
+        if (
+            item.get("source") != str(source)
+            or item.get("relative_source") != relative.as_posix()
+            or item.get("output") != str(destination)
+            or item.get("status") != "passed"
+            or destination.is_symlink()
+            or not destination.is_file()
+        ):
             return reject("BATCH_REPLAY_EVIDENCE_MISMATCH", "Batch file inventory or output path changed.")
         source_bytes = source.stat().st_size
         output_bytes = destination.stat().st_size
         total_output_bytes += output_bytes
-        if (total_output_bytes > _MAX_TOTAL_INPUT_BYTES or item.get("source_bytes") != source_bytes
-                or item.get("output_bytes") != output_bytes or item.get("source_sha256") != _sha256(source)
-                or item.get("output_sha256") != _sha256(destination)):
+        if (
+            total_output_bytes > _MAX_TOTAL_INPUT_BYTES
+            or item.get("source_bytes") != source_bytes
+            or item.get("output_bytes") != output_bytes
+            or item.get("source_sha256") != _sha256(source)
+            or item.get("output_sha256") != _sha256(destination)
+        ):
             return reject("BATCH_REPLAY_EVIDENCE_MISMATCH", "Batch source or output evidence changed.")
     return True, {**manifest, "replayed": True}, []
 
@@ -251,41 +311,90 @@ def convert_html_batch(
     if mode not in {"pdf", "png", "docx"}:
         return False, {}, [{"code": "INVALID_ARGUMENT", "message": "mode must be pdf, png, or docx."}]
     if not source_root.is_dir():
-        return False, {}, [{"code": "INPUT_DIRECTORY_NOT_FOUND", "message": f"Input directory not found: {source_root}"}]
+        return (
+            False,
+            {},
+            [{"code": "INPUT_DIRECTORY_NOT_FOUND", "message": f"Input directory not found: {source_root}"}],
+        )
     if source_root == output_root or source_root in output_root.parents:
         return False, {}, [{"code": "INVALID_OUTPUT", "message": "Output directory must be outside the input tree."}]
 
     iterator = source_root.rglob("*") if recursive else source_root.iterdir()
     sources = sorted(
-        (path.resolve() for path in iterator if not path.is_symlink() and path.is_file() and path.suffix.casefold() in {".html", ".htm"}),
+        (
+            path.resolve()
+            for path in iterator
+            if not path.is_symlink() and path.is_file() and path.suffix.casefold() in {".html", ".htm"}
+        ),
         key=lambda path: str(path).casefold(),
     )
     if not sources:
         return False, {}, [{"code": "NO_INPUT_FILES", "message": "No .html or .htm files were found."}]
     if len(sources) > _MAX_FILES:
-        return False, {}, [{"code": "BATCH_LIMIT_EXCEEDED", "message": f"Batch contains {len(sources)} files; the maximum is {_MAX_FILES}."}]
+        return (
+            False,
+            {},
+            [
+                {
+                    "code": "BATCH_LIMIT_EXCEEDED",
+                    "message": f"Batch contains {len(sources)} files; the maximum is {_MAX_FILES}.",
+                }
+            ],
+        )
     total_bytes = sum(path.stat().st_size for path in sources)
     if total_bytes > _MAX_TOTAL_INPUT_BYTES:
         return False, {}, [{"code": "BATCH_SIZE_LIMIT_EXCEEDED", "message": "Total batch input exceeds 500 MiB."}]
 
     arguments = {
-        "source_directory": str(source_root), "output_directory": str(output_root),
-        "mode": mode, "recursive": recursive,
+        "source_directory": str(source_root),
+        "output_directory": str(output_root),
+        "mode": mode,
+        "recursive": recursive,
     }
     request_state = "missing"
     if request_id:
         try:
             request_state, _record = _batch_request_state(request_id, arguments, register=False)
         except (OSError, ValueError, KeyError):
-            return False, {}, [{"code": "BATCH_REQUEST_REGISTRY_INVALID", "message": "Batch request registry could not be read safely."}]
+            return (
+                False,
+                {},
+                [
+                    {
+                        "code": "BATCH_REQUEST_REGISTRY_INVALID",
+                        "message": "Batch request registry could not be read safely.",
+                    }
+                ],
+            )
         if request_state == "conflict":
-            return False, {}, [{"code": "BATCH_REPLAY_CONFLICT", "message": "request_id belongs to different batch arguments."}]
+            return (
+                False,
+                {},
+                [{"code": "BATCH_REPLAY_CONFLICT", "message": "request_id belongs to different batch arguments."}],
+            )
         if request_state == "invalid":
-            return False, {}, [{"code": "BATCH_REQUEST_REGISTRY_INVALID", "message": "Batch request registry cannot be trusted."}]
+            return (
+                False,
+                {},
+                [{"code": "BATCH_REQUEST_REGISTRY_INVALID", "message": "Batch request registry cannot be trusted."}],
+            )
         if request_state == "capacity":
-            return False, {}, [{"code": "BATCH_REQUEST_REGISTRY_FULL", "message": "Batch request record exceeds the storage limit."}]
+            return (
+                False,
+                {},
+                [{"code": "BATCH_REQUEST_REGISTRY_FULL", "message": "Batch request record exceeds the storage limit."}],
+            )
         if request_state in {"failed", "cancelled"}:
-            return False, {}, [{"code": "BATCH_REPLAY_UNAVAILABLE", "message": f"Batch request is {request_state}; use a new request_id after review."}]
+            return (
+                False,
+                {},
+                [
+                    {
+                        "code": "BATCH_REPLAY_UNAVAILABLE",
+                        "message": f"Batch request is {request_state}; use a new request_id after review.",
+                    }
+                ],
+            )
 
     try:
         output_root.mkdir(parents=True, exist_ok=True)
@@ -294,28 +403,69 @@ def convert_html_batch(
     manifest_path = output_root / "batch-conversion-manifest.json"
     if manifest_path.exists():
         if request_id and request_state == "running":
-            ok, replayed, errors = _replay_batch(manifest_path, sources, source_root, output_root, mode, recursive, request_id)
+            ok, replayed, errors = _replay_batch(
+                manifest_path, sources, source_root, output_root, mode, recursive, request_id
+            )
             if ok:
                 try:
                     _finish_batch_request(request_id, "succeeded")
                 except (OSError, ValueError, KeyError):
-                    return False, replayed, [{"code": "BATCH_REQUEST_REGISTRY_WRITE_FAILED", "message": "Verified batch result could not be recorded as completed."}]
+                    return (
+                        False,
+                        replayed,
+                        [
+                            {
+                                "code": "BATCH_REQUEST_REGISTRY_WRITE_FAILED",
+                                "message": "Verified batch result could not be recorded as completed.",
+                            }
+                        ],
+                    )
             return ok, replayed, errors
         if request_id and request_state == "succeeded":
             return _replay_batch(manifest_path, sources, source_root, output_root, mode, recursive, request_id)
-        return False, {}, [{"code": "OUTPUT_ALREADY_EXISTS", "message": f"Refusing to overwrite batch manifest: {manifest_path}"}]
+        return (
+            False,
+            {},
+            [{"code": "OUTPUT_ALREADY_EXISTS", "message": f"Refusing to overwrite batch manifest: {manifest_path}"}],
+        )
     if request_state == "running":
-        return False, {}, [{"code": "BATCH_REPLAY_UNAVAILABLE", "message": "Batch request is running without a complete manifest."}]
+        return (
+            False,
+            {},
+            [{"code": "BATCH_REPLAY_UNAVAILABLE", "message": "Batch request is running without a complete manifest."}],
+        )
     if request_state == "succeeded":
-        return False, {}, [{"code": "BATCH_REPLAY_EVIDENCE_MISMATCH", "message": "Completed batch manifest is missing."}]
+        return (
+            False,
+            {},
+            [{"code": "BATCH_REPLAY_EVIDENCE_MISMATCH", "message": "Completed batch manifest is missing."}],
+        )
     if request_id:
         try:
             request_state, _record = _batch_request_state(request_id, arguments, register=True)
         except (OSError, ValueError, KeyError):
-            return False, {}, [{"code": "BATCH_REQUEST_REGISTRY_WRITE_FAILED", "message": "Batch request identity could not be persisted."}]
+            return (
+                False,
+                {},
+                [
+                    {
+                        "code": "BATCH_REQUEST_REGISTRY_WRITE_FAILED",
+                        "message": "Batch request identity could not be persisted.",
+                    }
+                ],
+            )
         if request_state != "created":
             if request_state == "capacity":
-                return False, {}, [{"code": "BATCH_REQUEST_REGISTRY_FULL", "message": "Batch request record exceeds the storage limit."}]
+                return (
+                    False,
+                    {},
+                    [
+                        {
+                            "code": "BATCH_REQUEST_REGISTRY_FULL",
+                            "message": "Batch request record exceeds the storage limit.",
+                        }
+                    ],
+                )
             return False, {}, [{"code": "BATCH_REQUEST_IN_PROGRESS", "message": "Batch request was already claimed."}]
 
     results: list[dict[str, Any]] = []
@@ -327,8 +477,10 @@ def convert_html_batch(
         relative = source.relative_to(source_root)
         destination = (output_root / relative).with_suffix(f".{mode}")
         item: dict[str, Any] = {
-            "source": str(source), "relative_source": relative.as_posix(),
-            "output": str(destination), "status": "failed",
+            "source": str(source),
+            "relative_source": relative.as_posix(),
+            "output": str(destination),
+            "status": "failed",
         }
         try:
             destination.parent.mkdir(parents=True, exist_ok=True)
@@ -351,7 +503,11 @@ def convert_html_batch(
             cancelled = True
             break
 
-    if not cancelled and progress_callback and not progress_callback(len(results), len(sources), "Writing batch manifest"):
+    if (
+        not cancelled
+        and progress_callback
+        and not progress_callback(len(results), len(sources), "Writing batch manifest")
+    ):
         cancelled = True
 
     manifest = {
@@ -376,7 +532,9 @@ def convert_html_batch(
     payload = json.dumps(manifest, ensure_ascii=False, indent=2).encode("utf-8")
     temporary: Path | None = None
     try:
-        with tempfile.NamedTemporaryFile(prefix=".batch-manifest.", suffix=".tmp", dir=output_root, delete=False) as handle:
+        with tempfile.NamedTemporaryFile(
+            prefix=".batch-manifest.", suffix=".tmp", dir=output_root, delete=False
+        ) as handle:
             temporary = Path(handle.name)
             handle.write(payload)
         os.link(temporary, manifest_path)
@@ -386,7 +544,12 @@ def convert_html_batch(
             try:
                 _finish_batch_request(request_id, "failed")
             except (OSError, ValueError, KeyError):
-                errors.append({"code": "BATCH_REQUEST_REGISTRY_WRITE_FAILED", "message": "Batch failure state could not be persisted."})
+                errors.append(
+                    {
+                        "code": "BATCH_REQUEST_REGISTRY_WRITE_FAILED",
+                        "message": "Batch failure state could not be persisted.",
+                    }
+                )
         return False, manifest, errors
     finally:
         if temporary is not None:
@@ -396,5 +559,14 @@ def convert_html_batch(
         try:
             _finish_batch_request(request_id, "succeeded" if succeeded else "cancelled" if cancelled else "failed")
         except (OSError, ValueError, KeyError):
-            return False, manifest, [{"code": "BATCH_REQUEST_REGISTRY_WRITE_FAILED", "message": "Batch manifest was created, but terminal request state could not be persisted."}]
+            return (
+                False,
+                manifest,
+                [
+                    {
+                        "code": "BATCH_REQUEST_REGISTRY_WRITE_FAILED",
+                        "message": "Batch manifest was created, but terminal request state could not be persisted.",
+                    }
+                ],
+            )
     return succeeded, manifest, []

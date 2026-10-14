@@ -23,15 +23,27 @@ def mutating_cases(path):
         ("writer_replace", writer_ops, lambda: writer_ops._run_writer_replace_com(path, "a", "b")),
         ("writer_bookmark", writer_ops, lambda: writer_ops._run_writer_bookmark_fill_com(path, "n", "v", "old")),
         ("writer_table", writer_ops, lambda: writer_ops._run_writer_table_write_com(path, 1, 1, 1, "t")),
-        ("presentation_replace", presentation_ops, lambda: presentation_ops._run_presentation_replace_com(path, "a", "b")),
+        (
+            "presentation_replace",
+            presentation_ops,
+            lambda: presentation_ops._run_presentation_replace_com(path, "a", "b"),
+        ),
         ("sheet_rename", spreadsheet_ops, lambda: spreadsheet_ops._run_spreadsheet_rename_sheet_com(path, "a", "b")),
         ("sheet_create", spreadsheet_ops, lambda: spreadsheet_ops._run_spreadsheet_create_sheet_com(path, "n", 1)),
         ("sheet_visibility", spreadsheet_ops, lambda: spreadsheet_ops._run_spreadsheet_visibility_com(path, "n", True)),
         ("sheet_delete", spreadsheet_ops, lambda: spreadsheet_ops._run_spreadsheet_delete_sheet_com(path, "n")),
         ("sheet_copy", spreadsheet_ops, lambda: spreadsheet_ops._run_spreadsheet_copy_sheet_com(path, "a", "b", 1)),
-        ("sheet_tab_color", spreadsheet_ops, lambda: spreadsheet_ops._run_spreadsheet_tab_color_com(path, "n", "FF0000")),
+        (
+            "sheet_tab_color",
+            spreadsheet_ops,
+            lambda: spreadsheet_ops._run_spreadsheet_tab_color_com(path, "n", "FF0000"),
+        ),
         ("sheet_write", spreadsheet_ops, lambda: spreadsheet_ops._run_spreadsheet_write_com(path, None, "A1", [[1]])),
-        ("sheet_formula_write", spreadsheet_ops, lambda: spreadsheet_ops._run_spreadsheet_formula_write_com(path, None, "A1", [["=1"]])),
+        (
+            "sheet_formula_write",
+            spreadsheet_ops,
+            lambda: spreadsheet_ops._run_spreadsheet_formula_write_com(path, None, "A1", [["=1"]]),
+        ),
     ]
 
 
@@ -57,11 +69,7 @@ class PreOpenGuardStaticTests(unittest.TestCase):
                 closes = script.count(".Close(")
                 self.assertGreaterEqual(closes, 1)
                 self.assertEqual(script.count("if (-not $wpsPreOpen) {"), closes)
-                open_call = (
-                    "Open-WpsPresentation $app."
-                    if name == "presentation_replace"
-                    else "Open-WpsDocument $app."
-                )
+                open_call = "Open-WpsPresentation $app." if name == "presentation_replace" else "Open-WpsDocument $app."
                 self.assertEqual(script.count(open_call), 1)
                 self.assertNotIn(".Open($params.path", script)
                 self.assertLess(script.index("Test-WpsPathOpen $app."), script.index(open_call))
@@ -76,14 +84,16 @@ class PreOpenGuardStaticTests(unittest.TestCase):
     def test_read_only_inspect_script_does_not_close_user_workbooks(self):
         source = Path(spreadsheet_inspect.__file__).read_text(encoding="utf-8")
         self.assertIn("Test-WpsPathOpen $app.Workbooks", source)
-        self.assertEqual(source.count(".Close($false)"), source.count("if (-not $wpsPreOpen) {{ try {{ $workbook.Close($false)"))
+        self.assertEqual(
+            source.count(".Close($false)"), source.count("if (-not $wpsPreOpen) {{ try {{ $workbook.Close($false)")
+        )
 
     def test_guard_text_is_embedded_verbatim(self):
         self.assertIn("function Assert-WpsPreOpenSaved", PRE_OPEN_GUARD)
         self.assertNotIn(".Close(", PRE_OPEN_GUARD)
 
 
-FAKE_SPREADSHEET_PRELUDE = r'''
+FAKE_SPREADSHEET_PRELUDE = r"""
 Add-Type -TypeDefinition 'namespace WpsAgent { public static class Running { public static object Instance; public static object Get(string progId) { return Instance; } } }'
 function Write-FakeLog([string]$line) { Add-Content -LiteralPath $env:WPSFAKE_LOG -Value $line }
 # WPSFAKE_LOCK: another handle holds the document exclusively, as WPS does for a document it has open.
@@ -156,7 +166,7 @@ function Get-Process {
   }
 }
 function New-Object { param([string]$ComObject) Write-FakeLog 'new-object'; return $global:fakeLaunched }
-'''
+"""
 
 
 @unittest.skipUnless(PWSH, "PowerShell (pwsh) is required to execute the generated scripts against a fake COM object")
@@ -188,7 +198,8 @@ class PreOpenGuardBehaviourTests(unittest.TestCase):
 
     def events(self):
         return [
-            line for line in self.log_lines()
+            line
+            for line in self.log_lines()
             if not line.startswith(("visible=", "alerts=", "events=", "links=", "new-object", "open"))
         ]
 
@@ -223,7 +234,10 @@ class PreOpenGuardBehaviourTests(unittest.TestCase):
             with self.subTest(attach=attach):
                 self.log.write_text("", encoding="utf-8")
                 result = self.delete_sheet(
-                    WPSFAKE_OPEN="1", WPSFAKE_SAVED="0", WPSFAKE_OPEN_OTHER="1", WPSFAKE_ATTACH=attach,
+                    WPSFAKE_OPEN="1",
+                    WPSFAKE_SAVED="0",
+                    WPSFAKE_OPEN_OTHER="1",
+                    WPSFAKE_ATTACH=attach,
                 )
                 self.assertFalse(result["ok"], result)
                 self.assertIn("unsaved changes", str(result))
@@ -256,7 +270,11 @@ class PreOpenGuardBehaviourTests(unittest.TestCase):
             with self.subTest(saved=saved):
                 self.log.write_text("", encoding="utf-8")
                 result = self.delete_sheet(
-                    WPSFAKE_RACE="1", WPSFAKE_RACE_READS="2", WPSFAKE_SAVED=saved, WPSFAKE_OPEN_OTHER="1", WPSFAKE_ATTACH="1",
+                    WPSFAKE_RACE="1",
+                    WPSFAKE_RACE_READS="2",
+                    WPSFAKE_SAVED=saved,
+                    WPSFAKE_OPEN_OTHER="1",
+                    WPSFAKE_ATTACH="1",
                 )
                 self.assertFalse(result["ok"], result)
                 self.assertIn("between the check and the open call", str(result))
@@ -270,8 +288,12 @@ class PreOpenGuardBehaviourTests(unittest.TestCase):
             with self.subTest(saved=saved):
                 self.log.write_text("", encoding="utf-8")
                 result = self.delete_sheet(
-                    WPSFAKE_RACE="1", WPSFAKE_RACE_READS="2", WPSFAKE_SAVED=saved, WPSFAKE_OPEN_OTHER="1",
-                    WPSFAKE_ATTACH="1", WPSFAKE_LOCK="1",
+                    WPSFAKE_RACE="1",
+                    WPSFAKE_RACE_READS="2",
+                    WPSFAKE_SAVED=saved,
+                    WPSFAKE_OPEN_OTHER="1",
+                    WPSFAKE_ATTACH="1",
+                    WPSFAKE_LOCK="1",
                 )
                 self.assertFalse(result["ok"], result)
                 self.assertIn("Open() was not called", str(result))
@@ -293,8 +315,12 @@ class PreOpenGuardBehaviourTests(unittest.TestCase):
         # After Open() the collection reports the detached Saved=true copy for the document, while the
         # original (held by the user) is dirty: judging by Saved of what Find returns would let this through.
         result = self.delete_sheet(
-            WPSFAKE_RACE="1", WPSFAKE_RACE_READS="2", WPSFAKE_SAVED="0", WPSFAKE_OPEN_OTHER="1",
-            WPSFAKE_ITEM_OTHER="1", WPSFAKE_ATTACH="1",
+            WPSFAKE_RACE="1",
+            WPSFAKE_RACE_READS="2",
+            WPSFAKE_SAVED="0",
+            WPSFAKE_OPEN_OTHER="1",
+            WPSFAKE_ITEM_OTHER="1",
+            WPSFAKE_ATTACH="1",
         )
         self.assertFalse(result["ok"], result)
         self.assertIn("between the check and the open call", str(result))
@@ -343,7 +369,9 @@ class GeneratedScriptSyntaxTests(unittest.TestCase):
                 target.write_text(text, encoding="utf-8-sig")
                 completed = subprocess.run(
                     [PWSH, "-NoProfile", "-File", str(checker), str(target)],
-                    capture_output=True, text=True, timeout=60,
+                    capture_output=True,
+                    text=True,
+                    timeout=60,
                 )
                 with self.subTest(script=name):
                     self.assertEqual(completed.returncode, 0, completed.stdout + completed.stderr)

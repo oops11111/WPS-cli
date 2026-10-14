@@ -68,6 +68,7 @@ class SpreadsheetOpsTests(unittest.TestCase):
             self.assertEqual([item["format_category"] for item in result["cell_metadata"][0]], ["date", "percentage"])
             self.assertIn("[$-409]", result["cell_metadata"][0][0]["number_format"])
             self.assertIn("[$-409]", result["cell_metadata"][0][1]["number_format"])
+
     def test_inventory_reads_macro_enabled_archive_without_saving_or_wps(self):
         with tempfile.TemporaryDirectory() as tmp:
             workspace = Path(tmp) / "workspace"
@@ -81,11 +82,17 @@ class SpreadsheetOpsTests(unittest.TestCase):
             workbook.close()
             with ZipFile(document) as archive:
                 entries = {name: archive.read(name) for name in archive.namelist()}
-            ignored = b"<ignoredErrors>" + b"".join(
-                f'<ignoredError sqref="A{row_index}" numberStoredAsText="1"/>'.encode("ascii")
-                for row_index in range(1, 1_003)
-            ) + b"</ignoredErrors>"
-            entries["xl/worksheets/sheet1.xml"] = entries["xl/worksheets/sheet1.xml"].replace(b"</worksheet>", ignored + b"</worksheet>")
+            ignored = (
+                b"<ignoredErrors>"
+                + b"".join(
+                    f'<ignoredError sqref="A{row_index}" numberStoredAsText="1"/>'.encode("ascii")
+                    for row_index in range(1, 1_003)
+                )
+                + b"</ignoredErrors>"
+            )
+            entries["xl/worksheets/sheet1.xml"] = entries["xl/worksheets/sheet1.xml"].replace(
+                b"</worksheet>", ignored + b"</worksheet>"
+            )
             with ZipFile(document, "w") as archive:
                 for member, content in entries.items():
                     archive.writestr(member, content)
@@ -116,16 +123,25 @@ class SpreadsheetOpsTests(unittest.TestCase):
             workbook.close()
             ok, record, errors = register_document("spreadsheets", str(document), workspace)
             self.assertTrue(ok, errors)
-            with patch("wps_ai_agent_cli.spreadsheet_ops.create_backup") as backup, patch("wps_ai_agent_cli.spreadsheet_ops._run_spreadsheet_tab_color_com") as com:
-                ok, result, errors, replayed = set_spreadsheet_sheet_tab_color(record["document_id"], "Summary", "#12abef", "color-dry", True, workspace)
+            with (
+                patch("wps_ai_agent_cli.spreadsheet_ops.create_backup") as backup,
+                patch("wps_ai_agent_cli.spreadsheet_ops._run_spreadsheet_tab_color_com") as com,
+            ):
+                ok, result, errors, replayed = set_spreadsheet_sheet_tab_color(
+                    record["document_id"], "Summary", "#12abef", "color-dry", True, workspace
+                )
                 self.assertTrue(ok, errors)
                 self.assertFalse(replayed)
                 self.assertEqual(result["color"], "#12ABEF")
                 for color in ("red", "#123", "#12345678", "#GG0000", ""):
-                    ok, _result, errors, _ = set_spreadsheet_sheet_tab_color(record["document_id"], "Summary", color, f"color-invalid-{color}", workspace=workspace)
+                    ok, _result, errors, _ = set_spreadsheet_sheet_tab_color(
+                        record["document_id"], "Summary", color, f"color-invalid-{color}", workspace=workspace
+                    )
                     self.assertFalse(ok)
                     self.assertEqual(errors[0]["code"], "INVALID_TAB_COLOR")
-                ok, _result, errors, _ = set_spreadsheet_sheet_tab_color(record["document_id"], "Missing", "#123456", "color-missing", workspace=workspace)
+                ok, _result, errors, _ = set_spreadsheet_sheet_tab_color(
+                    record["document_id"], "Missing", "#123456", "color-missing", workspace=workspace
+                )
                 self.assertFalse(ok)
                 self.assertEqual(errors[0]["code"], "SHEET_NOT_FOUND")
                 backup.assert_not_called()
@@ -149,22 +165,35 @@ class SpreadsheetOpsTests(unittest.TestCase):
                 actual_color = "none" if color == "none" else color.upper()
                 edited.save(path)
                 edited.close()
-                return {"ok": True, "errors": [], "data": {"backend": "mock-wps", "sheet_name": name, "tab_color": actual_color}}
+                return {
+                    "ok": True,
+                    "errors": [],
+                    "data": {"backend": "mock-wps", "sheet_name": name, "tab_color": actual_color},
+                }
 
-            with patch("wps_ai_agent_cli.spreadsheet_ops._run_spreadsheet_tab_color_com", side_effect=simulated_wps) as com:
-                ok, result, errors, replayed = set_spreadsheet_sheet_tab_color(record["document_id"], "Summary", "#abcdef", "color-commit", workspace=workspace)
+            with patch(
+                "wps_ai_agent_cli.spreadsheet_ops._run_spreadsheet_tab_color_com", side_effect=simulated_wps
+            ) as com:
+                ok, result, errors, replayed = set_spreadsheet_sheet_tab_color(
+                    record["document_id"], "Summary", "#abcdef", "color-commit", workspace=workspace
+                )
                 self.assertTrue(ok, errors)
                 self.assertFalse(replayed)
                 self.assertEqual(result["tab_color_read_back"], "#ABCDEF")
                 self.assertTrue(result["validation_passed"])
                 self.assertTrue(Path(result["backup"]["backup_path"]).exists())
-                ok, _result, errors, replayed = set_spreadsheet_sheet_tab_color(record["document_id"], "Summary", "#ABCDEF", "color-commit", workspace=workspace)
+                ok, _result, errors, replayed = set_spreadsheet_sheet_tab_color(
+                    record["document_id"], "Summary", "#ABCDEF", "color-commit", workspace=workspace
+                )
                 self.assertTrue(ok, errors)
                 self.assertTrue(replayed)
-                ok, _result, errors, _ = set_spreadsheet_sheet_tab_color(record["document_id"], "Summary", "#001122", "color-commit", workspace=workspace)
+                ok, _result, errors, _ = set_spreadsheet_sheet_tab_color(
+                    record["document_id"], "Summary", "#001122", "color-commit", workspace=workspace
+                )
                 self.assertFalse(ok)
                 self.assertEqual(errors[0]["code"], "IDEMPOTENCY_CONFLICT")
                 self.assertEqual(com.call_count, 1)
+
     def test_copy_sheet_dry_run_previews_order_and_rejects_invalid_targets(self):
         with tempfile.TemporaryDirectory() as tmp:
             workspace = Path(tmp) / "workspace"
@@ -177,13 +206,30 @@ class SpreadsheetOpsTests(unittest.TestCase):
             workbook.close()
             ok, record, errors = register_document("spreadsheets", str(document), workspace)
             self.assertTrue(ok, errors)
-            with patch("wps_ai_agent_cli.spreadsheet_ops.create_backup") as backup, patch("wps_ai_agent_cli.spreadsheet_ops._run_spreadsheet_copy_sheet_com") as com:
-                ok, result, errors, replayed = copy_spreadsheet_sheet(record["document_id"], "Source", "Copy", "copy-dry", 2, True, workspace)
+            with (
+                patch("wps_ai_agent_cli.spreadsheet_ops.create_backup") as backup,
+                patch("wps_ai_agent_cli.spreadsheet_ops._run_spreadsheet_copy_sheet_com") as com,
+            ):
+                ok, result, errors, replayed = copy_spreadsheet_sheet(
+                    record["document_id"], "Source", "Copy", "copy-dry", 2, True, workspace
+                )
                 self.assertTrue(ok, errors)
                 self.assertFalse(replayed)
                 self.assertEqual(result["sheet_names_after"], ["Source", "Copy", "Tail"])
-                for source, new_name, index, code in (("Missing", "Copy", 1, "SHEET_NOT_FOUND"), ("Source", "Tail", 1, "SHEET_NAME_CONFLICT"), ("Source", "Bad/Name", 1, "INVALID_SHEET_NAME"), ("Source", "Copy", 0, "INVALID_SHEET_INDEX")):
-                    ok, _result, errors, _ = copy_spreadsheet_sheet(record["document_id"], source, new_name, f"copy-invalid-{source}-{new_name}", index, workspace=workspace)
+                for source, new_name, index, code in (
+                    ("Missing", "Copy", 1, "SHEET_NOT_FOUND"),
+                    ("Source", "Tail", 1, "SHEET_NAME_CONFLICT"),
+                    ("Source", "Bad/Name", 1, "INVALID_SHEET_NAME"),
+                    ("Source", "Copy", 0, "INVALID_SHEET_INDEX"),
+                ):
+                    ok, _result, errors, _ = copy_spreadsheet_sheet(
+                        record["document_id"],
+                        source,
+                        new_name,
+                        f"copy-invalid-{source}-{new_name}",
+                        index,
+                        workspace=workspace,
+                    )
                     self.assertFalse(ok)
                     self.assertEqual(errors[0]["code"], code)
                 backup.assert_not_called()
@@ -215,20 +261,29 @@ class SpreadsheetOpsTests(unittest.TestCase):
                 edited.close()
                 return {"ok": True, "errors": [], "data": {"backend": "mock-wps", "sheet_names": names}}
 
-            with patch("wps_ai_agent_cli.spreadsheet_ops._run_spreadsheet_copy_sheet_com", side_effect=simulated_wps) as com:
-                ok, result, errors, replayed = copy_spreadsheet_sheet(record["document_id"], "Source", "Copy", "copy-commit", 2, workspace=workspace)
+            with patch(
+                "wps_ai_agent_cli.spreadsheet_ops._run_spreadsheet_copy_sheet_com", side_effect=simulated_wps
+            ) as com:
+                ok, result, errors, replayed = copy_spreadsheet_sheet(
+                    record["document_id"], "Source", "Copy", "copy-commit", 2, workspace=workspace
+                )
                 self.assertTrue(ok, errors)
                 self.assertFalse(replayed)
                 self.assertTrue(result["validation_passed"])
                 self.assertEqual(result["copy_a1_read_back"], "copied")
                 self.assertTrue(Path(result["backup"]["backup_path"]).exists())
-                ok, _result, errors, replayed = copy_spreadsheet_sheet(record["document_id"], "Source", "Copy", "copy-commit", 2, workspace=workspace)
+                ok, _result, errors, replayed = copy_spreadsheet_sheet(
+                    record["document_id"], "Source", "Copy", "copy-commit", 2, workspace=workspace
+                )
                 self.assertTrue(ok, errors)
                 self.assertTrue(replayed)
-                ok, _result, errors, _ = copy_spreadsheet_sheet(record["document_id"], "Source", "Different", "copy-commit", 2, workspace=workspace)
+                ok, _result, errors, _ = copy_spreadsheet_sheet(
+                    record["document_id"], "Source", "Different", "copy-commit", 2, workspace=workspace
+                )
                 self.assertFalse(ok)
                 self.assertEqual(errors[0]["code"], "IDEMPOTENCY_CONFLICT")
                 self.assertEqual(com.call_count, 1)
+
     def test_delete_sheet_dry_run_and_last_sheet_guard_precede_mutation(self):
         with tempfile.TemporaryDirectory() as tmp:
             workspace = Path(tmp) / "workspace"
@@ -241,8 +296,13 @@ class SpreadsheetOpsTests(unittest.TestCase):
             workbook.close()
             ok, record, errors = register_document("spreadsheets", str(document), workspace)
             self.assertTrue(ok, errors)
-            with patch("wps_ai_agent_cli.spreadsheet_ops.create_backup") as backup, patch("wps_ai_agent_cli.spreadsheet_ops._run_spreadsheet_delete_sheet_com") as com:
-                ok, result, errors, replayed = delete_spreadsheet_sheet(record["document_id"], "Remove", "delete-dry", True, workspace)
+            with (
+                patch("wps_ai_agent_cli.spreadsheet_ops.create_backup") as backup,
+                patch("wps_ai_agent_cli.spreadsheet_ops._run_spreadsheet_delete_sheet_com") as com,
+            ):
+                ok, result, errors, replayed = delete_spreadsheet_sheet(
+                    record["document_id"], "Remove", "delete-dry", True, workspace
+                )
                 self.assertTrue(ok, errors)
                 self.assertFalse(replayed)
                 self.assertEqual(result["sheet_names_after"], ["Keep"])
@@ -253,7 +313,9 @@ class SpreadsheetOpsTests(unittest.TestCase):
                 single.close()
                 ok, only_record, errors = register_document("spreadsheets", str(only_sheet), workspace)
                 self.assertTrue(ok, errors)
-                ok, _result, errors, _ = delete_spreadsheet_sheet(only_record["document_id"], "Only", "delete-last", workspace=workspace)
+                ok, _result, errors, _ = delete_spreadsheet_sheet(
+                    only_record["document_id"], "Only", "delete-last", workspace=workspace
+                )
                 self.assertFalse(ok)
                 self.assertEqual(errors[0]["code"], "LAST_WORKSHEET")
                 backup.assert_not_called()
@@ -282,16 +344,24 @@ class SpreadsheetOpsTests(unittest.TestCase):
                 edited.close()
                 return {"ok": True, "errors": [], "data": {"backend": "mock-wps", "sheet_names": names}}
 
-            with patch("wps_ai_agent_cli.spreadsheet_ops._run_spreadsheet_delete_sheet_com", side_effect=simulated_wps) as com:
-                ok, result, errors, replayed = delete_spreadsheet_sheet(record["document_id"], "Remove", "delete-commit", workspace=workspace)
+            with patch(
+                "wps_ai_agent_cli.spreadsheet_ops._run_spreadsheet_delete_sheet_com", side_effect=simulated_wps
+            ) as com:
+                ok, result, errors, replayed = delete_spreadsheet_sheet(
+                    record["document_id"], "Remove", "delete-commit", workspace=workspace
+                )
                 self.assertTrue(ok, errors)
                 self.assertFalse(replayed)
                 self.assertTrue(result["validation_passed"])
                 self.assertTrue(Path(result["backup"]["backup_path"]).exists())
-                ok, _result, errors, replayed = delete_spreadsheet_sheet(record["document_id"], "Remove", "delete-commit", workspace=workspace)
+                ok, _result, errors, replayed = delete_spreadsheet_sheet(
+                    record["document_id"], "Remove", "delete-commit", workspace=workspace
+                )
                 self.assertTrue(ok, errors)
                 self.assertTrue(replayed)
-                ok, _result, errors, _ = delete_spreadsheet_sheet(record["document_id"], "Tail", "delete-commit", workspace=workspace)
+                ok, _result, errors, _ = delete_spreadsheet_sheet(
+                    record["document_id"], "Tail", "delete-commit", workspace=workspace
+                )
                 self.assertFalse(ok)
                 self.assertEqual(errors[0]["code"], "IDEMPOTENCY_CONFLICT")
                 self.assertEqual(com.call_count, 1)
@@ -299,6 +369,7 @@ class SpreadsheetOpsTests(unittest.TestCase):
             self.assertEqual(readback.sheetnames, ["Keep", "Tail"])
             self.assertEqual(readback["Keep"]["A1"].value, "preserved")
             readback.close()
+
     def test_sheet_visibility_dry_run_and_last_visible_guard_precede_mutation(self):
         with tempfile.TemporaryDirectory() as tmp:
             workspace = Path(tmp) / "workspace"
@@ -312,12 +383,22 @@ class SpreadsheetOpsTests(unittest.TestCase):
             workbook.close()
             ok, record, errors = register_document("spreadsheets", str(document), workspace)
             self.assertTrue(ok, errors)
-            with patch("wps_ai_agent_cli.spreadsheet_ops.create_backup") as backup, patch("wps_ai_agent_cli.spreadsheet_ops._run_spreadsheet_visibility_com") as com:
-                ok, result, errors, replayed = set_spreadsheet_sheet_visibility(record["document_id"], "Hidden", True, "visibility-preview", True, workspace)
+            with (
+                patch("wps_ai_agent_cli.spreadsheet_ops.create_backup") as backup,
+                patch("wps_ai_agent_cli.spreadsheet_ops._run_spreadsheet_visibility_com") as com,
+            ):
+                ok, result, errors, replayed = set_spreadsheet_sheet_visibility(
+                    record["document_id"], "Hidden", True, "visibility-preview", True, workspace
+                )
                 self.assertTrue(ok, errors)
                 self.assertFalse(replayed)
-                self.assertEqual(result["sheet_states_after"], [{"name": "Visible", "visible": True}, {"name": "Hidden", "visible": True}])
-                ok, _result, errors, _ = set_spreadsheet_sheet_visibility(record["document_id"], "Visible", False, "visibility-last", workspace=workspace)
+                self.assertEqual(
+                    result["sheet_states_after"],
+                    [{"name": "Visible", "visible": True}, {"name": "Hidden", "visible": True}],
+                )
+                ok, _result, errors, _ = set_spreadsheet_sheet_visibility(
+                    record["document_id"], "Visible", False, "visibility-last", workspace=workspace
+                )
                 self.assertFalse(ok)
                 self.assertEqual(errors[0]["code"], "LAST_VISIBLE_SHEET")
                 backup.assert_not_called()
@@ -340,24 +421,35 @@ class SpreadsheetOpsTests(unittest.TestCase):
             def simulated_wps(path, name, visible):
                 edited = load_workbook(path)
                 edited[name].sheet_state = "visible" if visible else "hidden"
-                states = [{"name": sheet.title, "visible": sheet.sheet_state == "visible"} for sheet in edited.worksheets]
+                states = [
+                    {"name": sheet.title, "visible": sheet.sheet_state == "visible"} for sheet in edited.worksheets
+                ]
                 edited.save(path)
                 edited.close()
                 return {"ok": True, "errors": [], "data": {"backend": "mock-wps", "sheet_states": states}}
 
-            with patch("wps_ai_agent_cli.spreadsheet_ops._run_spreadsheet_visibility_com", side_effect=simulated_wps) as com:
-                ok, result, errors, replayed = set_spreadsheet_sheet_visibility(record["document_id"], "Hidden", True, "visibility-commit", workspace=workspace)
+            with patch(
+                "wps_ai_agent_cli.spreadsheet_ops._run_spreadsheet_visibility_com", side_effect=simulated_wps
+            ) as com:
+                ok, result, errors, replayed = set_spreadsheet_sheet_visibility(
+                    record["document_id"], "Hidden", True, "visibility-commit", workspace=workspace
+                )
                 self.assertTrue(ok, errors)
                 self.assertFalse(replayed)
                 self.assertTrue(result["validation_passed"])
                 self.assertTrue(Path(result["backup"]["backup_path"]).exists())
-                ok, _result, errors, replayed = set_spreadsheet_sheet_visibility(record["document_id"], "Hidden", True, "visibility-commit", workspace=workspace)
+                ok, _result, errors, replayed = set_spreadsheet_sheet_visibility(
+                    record["document_id"], "Hidden", True, "visibility-commit", workspace=workspace
+                )
                 self.assertTrue(ok, errors)
                 self.assertTrue(replayed)
-                ok, _result, errors, _ = set_spreadsheet_sheet_visibility(record["document_id"], "Hidden", False, "visibility-commit", workspace=workspace)
+                ok, _result, errors, _ = set_spreadsheet_sheet_visibility(
+                    record["document_id"], "Hidden", False, "visibility-commit", workspace=workspace
+                )
                 self.assertFalse(ok)
                 self.assertEqual(errors[0]["code"], "IDEMPOTENCY_CONFLICT")
                 self.assertEqual(com.call_count, 1)
+
     def test_create_sheet_dry_run_validates_name_position_and_duplicate_without_side_effects(self):
         with tempfile.TemporaryDirectory() as tmp:
             workspace = Path(tmp) / "workspace"
@@ -370,13 +462,25 @@ class SpreadsheetOpsTests(unittest.TestCase):
             workbook.close()
             ok, record, errors = register_document("spreadsheets", str(document), workspace)
             self.assertTrue(ok, errors)
-            with patch("wps_ai_agent_cli.spreadsheet_ops.create_backup") as backup, patch("wps_ai_agent_cli.spreadsheet_ops._run_spreadsheet_create_sheet_com") as com:
-                ok, preview, errors, replayed = create_spreadsheet_sheet(record["document_id"], "Middle", "create-dry", 2, True, workspace)
+            with (
+                patch("wps_ai_agent_cli.spreadsheet_ops.create_backup") as backup,
+                patch("wps_ai_agent_cli.spreadsheet_ops._run_spreadsheet_create_sheet_com") as com,
+            ):
+                ok, preview, errors, replayed = create_spreadsheet_sheet(
+                    record["document_id"], "Middle", "create-dry", 2, True, workspace
+                )
                 self.assertTrue(ok, errors)
                 self.assertFalse(replayed)
                 self.assertEqual(preview["sheet_names_after"], ["First", "Middle", "Last"])
-                for name, index, code in (("bad/name", 1, "INVALID_SHEET_NAME"), ("First", 1, "SHEET_NAME_CONFLICT"), ("Valid", 0, "INVALID_SHEET_INDEX"), ("Valid", "2", "INVALID_SHEET_INDEX")):
-                    ok, _result, errors, _ = create_spreadsheet_sheet(record["document_id"], name, f"invalid-{name}-{index}", index, workspace=workspace)
+                for name, index, code in (
+                    ("bad/name", 1, "INVALID_SHEET_NAME"),
+                    ("First", 1, "SHEET_NAME_CONFLICT"),
+                    ("Valid", 0, "INVALID_SHEET_INDEX"),
+                    ("Valid", "2", "INVALID_SHEET_INDEX"),
+                ):
+                    ok, _result, errors, _ = create_spreadsheet_sheet(
+                        record["document_id"], name, f"invalid-{name}-{index}", index, workspace=workspace
+                    )
                     self.assertFalse(ok)
                     self.assertEqual(errors[0]["code"], code)
                 backup.assert_not_called()
@@ -404,16 +508,24 @@ class SpreadsheetOpsTests(unittest.TestCase):
                 edited.close()
                 return {"ok": True, "errors": [], "data": {"backend": "mock-wps", "sheet_names": names}}
 
-            with patch("wps_ai_agent_cli.spreadsheet_ops._run_spreadsheet_create_sheet_com", side_effect=simulated_wps) as com:
-                ok, result, errors, replayed = create_spreadsheet_sheet(record["document_id"], "Middle", "create-commit", 2, workspace=workspace)
+            with patch(
+                "wps_ai_agent_cli.spreadsheet_ops._run_spreadsheet_create_sheet_com", side_effect=simulated_wps
+            ) as com:
+                ok, result, errors, replayed = create_spreadsheet_sheet(
+                    record["document_id"], "Middle", "create-commit", 2, workspace=workspace
+                )
                 self.assertTrue(ok, errors)
                 self.assertFalse(replayed)
                 self.assertTrue(result["validation_passed"])
                 self.assertTrue(Path(result["backup"]["backup_path"]).exists())
-                ok, _result, errors, replayed = create_spreadsheet_sheet(record["document_id"], "Middle", "create-commit", 2, workspace=workspace)
+                ok, _result, errors, replayed = create_spreadsheet_sheet(
+                    record["document_id"], "Middle", "create-commit", 2, workspace=workspace
+                )
                 self.assertTrue(ok, errors)
                 self.assertTrue(replayed)
-                ok, _result, errors, replayed = create_spreadsheet_sheet(record["document_id"], "Other", "create-commit", 2, workspace=workspace)
+                ok, _result, errors, replayed = create_spreadsheet_sheet(
+                    record["document_id"], "Other", "create-commit", 2, workspace=workspace
+                )
                 self.assertFalse(ok)
                 self.assertFalse(replayed)
                 self.assertEqual(errors[0]["code"], "IDEMPOTENCY_CONFLICT")
@@ -422,6 +534,7 @@ class SpreadsheetOpsTests(unittest.TestCase):
             self.assertEqual(readback.sheetnames, ["First", "Middle", "Last"])
             self.assertEqual(readback["First"]["A1"].value, "preserved")
             readback.close()
+
     def test_read_spreadsheet_range_returns_matrix(self):
         with tempfile.TemporaryDirectory() as tmp:
             workspace = Path(tmp) / "workspace"
@@ -521,7 +634,10 @@ class SpreadsheetOpsTests(unittest.TestCase):
             self.assertTrue(result["read_only"])
             self.assertFalse(result["saved"])
             self.assertEqual(result["sheet_count"], 3)
-            self.assertEqual([(sheet["sheet_index"], sheet["name"]) for sheet in result["sheets"]], [(1, "Summary"), (2, "Archive"), (3, "System")])
+            self.assertEqual(
+                [(sheet["sheet_index"], sheet["name"]) for sheet in result["sheets"]],
+                [(1, "Summary"), (2, "Archive"), (3, "System")],
+            )
             self.assertEqual(result["sheets"][0]["dimension"], "A1:C4")
             self.assertEqual(result["sheets"][0]["max_row"], 4)
             self.assertEqual(result["sheets"][0]["max_column"], 3)
@@ -537,25 +653,50 @@ class SpreadsheetOpsTests(unittest.TestCase):
             self.assertFalse(result["sheets"][0]["row_breaks_truncated"])
             self.assertEqual(result["sheets"][0]["column_breaks"], [3])
             self.assertEqual(result["sheets"][0]["column_break_count"], 1)
-            self.assertEqual(result["sheets"][0]["data_validations"], [{
-                "ranges": "A1:A10", "type": "whole", "operator": "between", "allow_blank": True,
-            }])
+            self.assertEqual(
+                result["sheets"][0]["data_validations"],
+                [
+                    {
+                        "ranges": "A1:A10",
+                        "type": "whole",
+                        "operator": "between",
+                        "allow_blank": True,
+                    }
+                ],
+            )
             self.assertEqual(result["sheets"][0]["data_validation_count"], 1)
             self.assertFalse(result["sheets"][0]["data_validations_truncated"])
-            self.assertEqual(result["sheets"][0]["conditional_formatting"], [{
-                "ranges": "C4", "type": "cellIs", "operator": "greaterThan", "priority": 1,
-            }])
+            self.assertEqual(
+                result["sheets"][0]["conditional_formatting"],
+                [
+                    {
+                        "ranges": "C4",
+                        "type": "cellIs",
+                        "operator": "greaterThan",
+                        "priority": 1,
+                    }
+                ],
+            )
             self.assertEqual(result["sheets"][0]["conditional_formatting_rule_count"], 1)
             self.assertFalse(result["sheets"][0]["conditional_formatting_truncated"])
             self.assertEqual(result["defined_name_count"], 1_003)
             self.assertTrue(result["defined_names_truncated"])
             self.assertEqual(len(result["defined_names"]), 1_000)
-            self.assertEqual(result["defined_names"][0], {"name": "LocalTitle", "scope": "Summary", "target": "'Summary'!$A$1", "hidden": False})
+            self.assertEqual(
+                result["defined_names"][0],
+                {"name": "LocalTitle", "scope": "Summary", "target": "'Summary'!$A$1", "hidden": False},
+            )
             self.assertEqual(result["defined_names"][1]["name"], "Name0000")
-            self.assertEqual(result["calculation"], {
-                "mode": "manual", "full_calc_on_load": False,
-                "force_full_calc": True, "calc_on_save": None, "iterate": None,
-            })
+            self.assertEqual(
+                result["calculation"],
+                {
+                    "mode": "manual",
+                    "full_calc_on_load": False,
+                    "force_full_calc": True,
+                    "calc_on_save": None,
+                    "iterate": None,
+                },
+            )
             self.assertEqual(result["sheets"][0]["merged_ranges"], [])
             self.assertEqual(result["sheets"][0]["merged_range_count"], 0)
             self.assertFalse(result["sheets"][0]["merged_ranges_truncated"])
@@ -572,7 +713,10 @@ class SpreadsheetOpsTests(unittest.TestCase):
             self.assertEqual(len(result["sheets"][2]["conditional_formatting"]), 1_000)
             self.assertEqual(result["sheets"][2]["conditional_formatting_rule_count"], 1_001)
             self.assertTrue(result["sheets"][2]["conditional_formatting_truncated"])
-            self.assertEqual([(sheet["visibility"], sheet["visible"]) for sheet in result["sheets"]], [("visible", True), ("hidden", False), ("veryHidden", False)])
+            self.assertEqual(
+                [(sheet["visibility"], sheet["visible"]) for sheet in result["sheets"]],
+                [("visible", True), ("hidden", False), ("veryHidden", False)],
+            )
             self.assertEqual([sheet["tab_color"] for sheet in result["sheets"]], ["none", "#12ABEF", "none"])
             self.assertEqual([sheet["protection_enabled"] for sheet in result["sheets"]], [False, True, True])
             self.assertEqual([sheet["protected_cell_count"] for sheet in result["sheets"]], [0, 15, None])
@@ -607,7 +751,10 @@ class SpreadsheetOpsTests(unittest.TestCase):
 
             self.assertTrue(ok, errors)
             self.assertEqual(result["values"][0][:3], [datetime(2026, 10, 7), 0.25, 1234.5])
-            self.assertEqual([cell["format_category"] for cell in result["cell_metadata"][0]], ["date", "percentage", "currency", "empty"])
+            self.assertEqual(
+                [cell["format_category"] for cell in result["cell_metadata"][0]],
+                ["date", "percentage", "currency", "empty"],
+            )
             self.assertTrue(result["cell_metadata"][0][0]["is_date"])
             self.assertEqual(result["cell_metadata"][0][1]["number_format"], "0.0%")
             self.assertEqual(result["cell_metadata"][0][3]["address"], "D1")
@@ -627,7 +774,10 @@ class SpreadsheetOpsTests(unittest.TestCase):
                 ("A0", "INVALID_RANGE"),
                 ("A1:XFD1048576", "RANGE_TOO_LARGE"),
             ):
-                with self.subTest(address=address), patch("wps_ai_agent_cli.spreadsheet_ops.load_workbook") as open_workbook:
+                with (
+                    self.subTest(address=address),
+                    patch("wps_ai_agent_cli.spreadsheet_ops.load_workbook") as open_workbook,
+                ):
                     ok, _result, errors = read_spreadsheet_range(record["document_id"], address, workspace=workspace)
                     self.assertFalse(ok)
                     self.assertEqual(errors[0]["code"], expected_code)
@@ -643,11 +793,26 @@ class SpreadsheetOpsTests(unittest.TestCase):
             self.assertTrue(ok, errors)
             cases = (("A:A", "INVALID_RANGE"), ("A1:XFD1048576", "RANGE_TOO_LARGE"))
             for operation_name, operation in (
-                ("values", lambda address, request: write_spreadsheet_range(record["document_id"], address, [[1]], request, workspace=workspace)),
-                ("formulas", lambda address, request: write_spreadsheet_formulas(record["document_id"], address, [["=1"]], [[1]], request, workspace=workspace)),
+                (
+                    "values",
+                    lambda address, request: write_spreadsheet_range(
+                        record["document_id"], address, [[1]], request, workspace=workspace
+                    ),
+                ),
+                (
+                    "formulas",
+                    lambda address, request: write_spreadsheet_formulas(
+                        record["document_id"], address, [["=1"]], [[1]], request, workspace=workspace
+                    ),
+                ),
             ):
                 for address, expected_code in cases:
-                    with self.subTest(operation=operation_name, address=address), patch("wps_ai_agent_cli.spreadsheet_ops.create_backup") as backup, patch("wps_ai_agent_cli.spreadsheet_ops._run_spreadsheet_write_com") as value_com, patch("wps_ai_agent_cli.spreadsheet_ops._run_spreadsheet_formula_write_com") as formula_com:
+                    with (
+                        self.subTest(operation=operation_name, address=address),
+                        patch("wps_ai_agent_cli.spreadsheet_ops.create_backup") as backup,
+                        patch("wps_ai_agent_cli.spreadsheet_ops._run_spreadsheet_write_com") as value_com,
+                        patch("wps_ai_agent_cli.spreadsheet_ops._run_spreadsheet_formula_write_com") as formula_com,
+                    ):
                         ok, _result, errors, replayed = operation(address, f"{operation_name}-{address}")
                         self.assertFalse(ok)
                         self.assertFalse(replayed)
@@ -669,8 +834,13 @@ class SpreadsheetOpsTests(unittest.TestCase):
             ok, record, errors = register_document("spreadsheets", str(document), workspace)
             self.assertTrue(ok, errors)
 
-            with patch("wps_ai_agent_cli.spreadsheet_ops.create_backup") as backup, patch("wps_ai_agent_cli.spreadsheet_ops._run_spreadsheet_rename_sheet_com") as com:
-                ok, preview, errors, replayed = rename_spreadsheet_sheet(record["document_id"], "Current", "Renamed", "rename-dry", dry_run=True, workspace=workspace)
+            with (
+                patch("wps_ai_agent_cli.spreadsheet_ops.create_backup") as backup,
+                patch("wps_ai_agent_cli.spreadsheet_ops._run_spreadsheet_rename_sheet_com") as com,
+            ):
+                ok, preview, errors, replayed = rename_spreadsheet_sheet(
+                    record["document_id"], "Current", "Renamed", "rename-dry", dry_run=True, workspace=workspace
+                )
                 self.assertTrue(ok, errors)
                 self.assertFalse(replayed)
                 self.assertEqual(preview["sheet_names_after"], ["Renamed", "Archive"])
@@ -678,7 +848,9 @@ class SpreadsheetOpsTests(unittest.TestCase):
 
                 for invalid in ("", "bad/name", "x" * 32, "History", "Archive"):
                     with self.subTest(invalid=invalid):
-                        ok, _result, errors, replayed = rename_spreadsheet_sheet(record["document_id"], "Current", invalid, f"invalid-{invalid}", workspace=workspace)
+                        ok, _result, errors, replayed = rename_spreadsheet_sheet(
+                            record["document_id"], "Current", invalid, f"invalid-{invalid}", workspace=workspace
+                        )
                         self.assertFalse(ok)
                         self.assertFalse(replayed)
                         self.assertIn(errors[0]["code"], {"INVALID_SHEET_NAME", "SHEET_NAME_CONFLICT"})
@@ -707,18 +879,26 @@ class SpreadsheetOpsTests(unittest.TestCase):
                 edited.close()
                 return {"ok": True, "errors": [], "data": {"backend": "mock-wps", "sheet_names": names}}
 
-            with patch("wps_ai_agent_cli.spreadsheet_ops._run_spreadsheet_rename_sheet_com", side_effect=simulated_wps) as com:
-                ok, result, errors, replayed = rename_spreadsheet_sheet(record["document_id"], "Current", "Renamed", "rename-commit", workspace=workspace)
+            with patch(
+                "wps_ai_agent_cli.spreadsheet_ops._run_spreadsheet_rename_sheet_com", side_effect=simulated_wps
+            ) as com:
+                ok, result, errors, replayed = rename_spreadsheet_sheet(
+                    record["document_id"], "Current", "Renamed", "rename-commit", workspace=workspace
+                )
                 self.assertTrue(ok, errors)
                 self.assertFalse(replayed)
                 self.assertTrue(result["validation_passed"])
                 self.assertEqual(result["sheet_names_read_back"], ["Renamed", "Archive"])
                 self.assertTrue(Path(result["backup"]["backup_path"]).exists())
-                ok, replay, errors, replayed = rename_spreadsheet_sheet(record["document_id"], "Current", "Renamed", "rename-commit", workspace=workspace)
+                ok, replay, errors, replayed = rename_spreadsheet_sheet(
+                    record["document_id"], "Current", "Renamed", "rename-commit", workspace=workspace
+                )
                 self.assertTrue(ok, errors)
                 self.assertTrue(replayed)
                 self.assertEqual(replay, result)
-                ok, _result, errors, replayed = rename_spreadsheet_sheet(record["document_id"], "Current", "Other", "rename-commit", workspace=workspace)
+                ok, _result, errors, replayed = rename_spreadsheet_sheet(
+                    record["document_id"], "Current", "Other", "rename-commit", workspace=workspace
+                )
                 self.assertFalse(ok)
                 self.assertFalse(replayed)
                 self.assertEqual(errors[0]["code"], "IDEMPOTENCY_CONFLICT")
@@ -840,7 +1020,9 @@ class SpreadsheetRenameWpsIntegrationTests(unittest.TestCase):
             ok, record, errors = register_document("spreadsheets", str(document), workspace)
             self.assertTrue(ok, errors)
 
-            ok, result, errors, replayed = rename_spreadsheet_sheet(record["document_id"], "Current", "Renamed", "wps-rename", workspace=workspace)
+            ok, result, errors, replayed = rename_spreadsheet_sheet(
+                record["document_id"], "Current", "Renamed", "wps-rename", workspace=workspace
+            )
 
             self.assertTrue(ok, errors)
             self.assertFalse(replayed)
@@ -867,7 +1049,9 @@ class SpreadsheetCreateWpsIntegrationTests(unittest.TestCase):
             ok, record, errors = register_document("spreadsheets", str(document), workspace)
             self.assertTrue(ok, errors)
 
-            ok, result, errors, replayed = create_spreadsheet_sheet(record["document_id"], "Middle", "wps-create", 2, workspace=workspace)
+            ok, result, errors, replayed = create_spreadsheet_sheet(
+                record["document_id"], "Middle", "wps-create", 2, workspace=workspace
+            )
 
             self.assertTrue(ok, errors)
             self.assertFalse(replayed)
@@ -896,11 +1080,15 @@ class SpreadsheetStructureWpsIntegrationTests(unittest.TestCase):
             ok, record, errors = register_document("spreadsheets", str(document), workspace)
             self.assertTrue(ok, errors)
 
-            ok, visibility, errors, replayed = set_spreadsheet_sheet_visibility(record["document_id"], "Middle", False, "wps-hide-middle", workspace=workspace)
+            ok, visibility, errors, replayed = set_spreadsheet_sheet_visibility(
+                record["document_id"], "Middle", False, "wps-hide-middle", workspace=workspace
+            )
             self.assertTrue(ok, errors)
             self.assertFalse(replayed)
             self.assertTrue(visibility["validation_passed"])
-            ok, deleted, errors, replayed = delete_spreadsheet_sheet(record["document_id"], "Middle", "wps-delete-middle", workspace=workspace)
+            ok, deleted, errors, replayed = delete_spreadsheet_sheet(
+                record["document_id"], "Middle", "wps-delete-middle", workspace=workspace
+            )
             self.assertTrue(ok, errors)
             self.assertFalse(replayed)
             self.assertEqual(deleted["sheet_names_read_back"], ["First", "Last"])
@@ -924,7 +1112,9 @@ class SpreadsheetStructureWpsIntegrationTests(unittest.TestCase):
             ok, record, errors = register_document("spreadsheets", str(document), workspace)
             self.assertTrue(ok, errors)
 
-            ok, result, errors, replayed = copy_spreadsheet_sheet(record["document_id"], "Source", "Copy", "wps-copy", 2, workspace=workspace)
+            ok, result, errors, replayed = copy_spreadsheet_sheet(
+                record["document_id"], "Source", "Copy", "wps-copy", 2, workspace=workspace
+            )
 
             self.assertTrue(ok, errors)
             self.assertFalse(replayed)
@@ -947,12 +1137,16 @@ class SpreadsheetStructureWpsIntegrationTests(unittest.TestCase):
             ok, record, errors = register_document("spreadsheets", str(document), workspace)
             self.assertTrue(ok, errors)
 
-            ok, result, errors, replayed = set_spreadsheet_sheet_tab_color(record["document_id"], "Summary", "#34A1BC", "wps-color", workspace=workspace)
+            ok, result, errors, replayed = set_spreadsheet_sheet_tab_color(
+                record["document_id"], "Summary", "#34A1BC", "wps-color", workspace=workspace
+            )
 
             self.assertTrue(ok, errors)
             self.assertFalse(replayed)
             self.assertEqual(result["tab_color_read_back"], "#34A1BC")
-            ok, result, errors, _ = set_spreadsheet_sheet_tab_color(record["document_id"], "Summary", "none", "wps-color-clear", workspace=workspace)
+            ok, result, errors, _ = set_spreadsheet_sheet_tab_color(
+                record["document_id"], "Summary", "none", "wps-color-clear", workspace=workspace
+            )
             self.assertTrue(ok, errors)
             self.assertEqual(result["tab_color_read_back"], "none")
 

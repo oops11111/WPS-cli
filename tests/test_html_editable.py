@@ -23,9 +23,9 @@ class HtmlEditableTests(unittest.TestCase):
             Image.new("RGB", (40, 20), (210, 30, 40)).save(root / "local.png")
             source = root / "page.html"
             source.write_text(
-                '<!doctype html><html><head><title>Project brief</title><style>h1{color:red}</style></head>'
+                "<!doctype html><html><head><title>Project brief</title><style>h1{color:red}</style></head>"
                 '<body><h1 class="hero">Plan</h1><p>Hello <a href="https://example.com">Example</a></p>'
-                '<ul><li>One</li><li>Two</li></ul><table><tr><th>A</th><th>B</th></tr><tr><td>1</td><td>2</td></tr></table>'
+                "<ul><li>One</li><li>Two</li></ul><table><tr><th>A</th><th>B</th></tr><tr><td>1</td><td>2</td></tr></table>"
                 '<p><img src="local.png" alt="Local"><img src="https://example.invalid/x.png" alt="Remote">'
                 '<a href="javascript:alert(1)">Unsafe</a></p>'
                 '<script>throw new Error("must not execute")</script></body></html>',
@@ -33,7 +33,9 @@ class HtmlEditableTests(unittest.TestCase):
             )
             ok, data, errors = convert_html_editable(source, root / "editable.docx")
             self.assertTrue(ok, errors)
-            self.assertEqual(data["mapped_objects"], {"paragraphs": 2, "headings": 1, "lists": 2, "tables": 1, "images": 1})
+            self.assertEqual(
+                data["mapped_objects"], {"paragraphs": 2, "headings": 1, "lists": 2, "tables": 1, "images": 1}
+            )
             self.assertIn("embedded CSS", data["unsupported_css"])
             self.assertTrue(any("non-local" in warning for warning in data["warnings"]))
             self.assertIn("Unsafe hyperlink target omitted.", data["warnings"])
@@ -45,8 +47,12 @@ class HtmlEditableTests(unittest.TestCase):
             self.assertEqual(len(document.tables), 1)
             self.assertEqual(document.tables[0].cell(1, 1).text, "2")
             self.assertEqual(len(document.inline_shapes), 1)
-            self.assertTrue(any(getattr(rel, "target_ref", "") == "https://example.com" for rel in document.part.rels.values()))
-            self.assertFalse(any("javascript:" in getattr(rel, "target_ref", "") for rel in document.part.rels.values()))
+            self.assertTrue(
+                any(getattr(rel, "target_ref", "") == "https://example.com" for rel in document.part.rels.values())
+            )
+            self.assertFalse(
+                any("javascript:" in getattr(rel, "target_ref", "") for rel in document.part.rels.values())
+            )
 
     def test_refuses_existing_output_without_modifying_it(self):
         with TemporaryDirectory() as directory:
@@ -60,12 +66,19 @@ class HtmlEditableTests(unittest.TestCase):
             self.assertEqual(output.read_bytes(), b"keep")
 
 
-@unittest.skipUnless(os.environ.get("WPS_AGENT_RUN_INTEGRATION") == "1", "set WPS_AGENT_RUN_INTEGRATION=1 to launch local WPS Writer")
+@unittest.skipUnless(
+    os.environ.get("WPS_AGENT_RUN_INTEGRATION") == "1", "set WPS_AGENT_RUN_INTEGRATION=1 to launch local WPS Writer"
+)
 class HtmlEditableWpsIntegrationTests(unittest.TestCase):
     def test_wps_writer_opens_and_saves_semantically_converted_docx(self):
         with TemporaryDirectory() as directory:
             root = Path(directory)
-            source, editable, saved_copy, exported = root / "page.html", root / "page.docx", root / "wps-copy.docx", root / "wps-copy.html"
+            source, editable, saved_copy, exported = (
+                root / "page.html",
+                root / "page.docx",
+                root / "wps-copy.docx",
+                root / "wps-copy.html",
+            )
             source.write_text(
                 '<html data-wps-schema="wps-agent-html/v1"><h1 data-wps-object-id="heading">WPS validation</h1>'
                 '<p data-wps-object-id="paragraph">Native editable paragraph</p><table data-wps-object-id="table">'
@@ -85,7 +98,9 @@ class HtmlEditableWpsIntegrationTests(unittest.TestCase):
             self.assertEqual(exported_data["exported_object_count"], 5)
             valid, mapping, errors = build_html_roundtrip_mapping(exported)
             self.assertTrue(valid, errors)
-            self.assertEqual({entry["object_id"] for entry in mapping["mappings"]}, {"heading", "paragraph", "table", "row", "cell"})
+            self.assertEqual(
+                {entry["object_id"] for entry in mapping["mappings"]}, {"heading", "paragraph", "table", "row", "cell"}
+            )
 
     def test_wps_rich_media_controlled_roundtrip_preserves_link_and_image_ids(self):
         with TemporaryDirectory() as directory:
@@ -141,8 +156,13 @@ class HtmlEditableWpsIntegrationTests(unittest.TestCase):
             valid, mapping, errors = build_html_roundtrip_mapping(exported)
             self.assertTrue(valid, errors)
             by_id = {item["object_id"]: item for item in mapping["mappings"]}
-            self.assertEqual(set(by_id), {"title", "bullet1", "bullet2", "number1", "number2", "table", "row1", "head1", "row2", "cell1"})
-            self.assertEqual([by_id[name]["native_index"] for name in ("bullet1", "bullet2", "number1", "number2")], [1, 2, 3, 4])
+            self.assertEqual(
+                set(by_id),
+                {"title", "bullet1", "bullet2", "number1", "number2", "table", "row1", "head1", "row2", "cell1"},
+            )
+            self.assertEqual(
+                [by_id[name]["native_index"] for name in ("bullet1", "bullet2", "number1", "number2")], [1, 2, 3, 4]
+            )
             self.assertEqual(by_id["head1"]["object_type"], "table_header")
             self.assertEqual(by_id["cell1"]["object_type"], "table_cell")
 

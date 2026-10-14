@@ -37,16 +37,27 @@ class MutationLockTests(unittest.TestCase):
             env["PYTHONPATH"] = source + os.pathsep + env.get("PYTHONPATH", "")
             process = subprocess.Popen(
                 [sys.executable, "-c", code, document_id, tmp],
-                stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, env=env,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                env=env,
             )
             try:
-                self.assertEqual(process.stdout.readline().strip(), "locked", process.stderr.read() if process.poll() is not None else "")
+                self.assertEqual(
+                    process.stdout.readline().strip(),
+                    "locked",
+                    process.stderr.read() if process.poll() is not None else "",
+                )
                 with self.assertRaises(DocumentBusyError):
                     with document_mutation_lock(document_id, tmp, timeout_seconds=0.1):
                         pass
                 with patch("wps_ai_agent_cli.mutation_lock.DEFAULT_TIMEOUT_SECONDS", 0.1):
                     ok, _, errors, _ = writer_fill_bookmark(
-                        document_id, "Target", "new", "contended", workspace=tmp,
+                        document_id,
+                        "Target",
+                        "new",
+                        "contended",
+                        workspace=tmp,
                     )
                 self.assertFalse(ok)
                 self.assertEqual(errors[0]["code"], "DOCUMENT_BUSY")

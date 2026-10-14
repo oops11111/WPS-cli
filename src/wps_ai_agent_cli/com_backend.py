@@ -155,7 +155,8 @@ try {{
 }}
 """
     payload, failure = run_powershell_script(
-        script, 120,
+        script,
+        120,
         failure_data={"component": component, "prog_id": prog_id},
     )
     if failure is not None:
@@ -271,7 +272,8 @@ try {{
 }}
 """
     payload, failure = run_powershell_script(
-        script, timeout_seconds,
+        script,
+        timeout_seconds,
         timeout_message=f"Spreadsheet calculation smoke timed out after {timeout_seconds} seconds.",
         timeout_data={
             "component": "spreadsheets",
@@ -287,7 +289,12 @@ try {{
     if not payload.get("ok"):
         return {
             "ok": False,
-            "errors": [{"code": COM_OPERATION_FAILED, "message": "Calculated raw/display values did not match expected result."}],
+            "errors": [
+                {
+                    "code": COM_OPERATION_FAILED,
+                    "message": "Calculated raw/display values did not match expected result.",
+                }
+            ],
             "data": payload,
         }
 

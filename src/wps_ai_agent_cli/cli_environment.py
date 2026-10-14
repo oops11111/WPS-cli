@@ -126,7 +126,7 @@ def wps_process_audit_response(request_id: str, timeout_seconds: int) -> Command
                     "details": "Read-only process audit.",
                 },
             ],
-    ),
+        ),
         errors=errors,
     )
 
@@ -228,11 +228,7 @@ def com_smoke_response(
         command="com-smoke",
         request_id=request_id,
         backend="wps-com",
-        summary=(
-            "Minimal COM smoke run completed."
-            if result["ok"]
-            else "Minimal COM smoke run could not complete."
-        ),
+        summary=("Minimal COM smoke run completed." if result["ok"] else "Minimal COM smoke run could not complete."),
         data=result["data"],
         validation=ValidationResult(
             status="passed" if result["ok"] else "failed",
@@ -248,7 +244,9 @@ def com_smoke_response(
     )
 
 
-def calc_smoke_response(request_id: str, input_path: str, output_path: str, timeout_seconds: int = 120) -> CommandResponse:
+def calc_smoke_response(
+    request_id: str, input_path: str, output_path: str, timeout_seconds: int = 120
+) -> CommandResponse:
     result = run_spreadsheet_calc_smoke(
         input_path=input_path,
         output_path=output_path,
@@ -300,11 +298,7 @@ def convert_smoke_response(
         command="convert-smoke",
         request_id=request_id,
         backend="wps-com",
-        summary=(
-            "Conversion smoke run completed."
-            if result["ok"]
-            else "Conversion smoke run could not complete."
-        ),
+        summary=("Conversion smoke run completed." if result["ok"] else "Conversion smoke run could not complete."),
         data=result["data"],
         validation=ValidationResult(
             status="passed" if result["ok"] else "failed",
@@ -332,7 +326,9 @@ def security_audit_response(request_id: str) -> CommandResponse:
         command="security-audit",
         request_id=request_id,
         backend=BACKEND,
-        summary="Schema text and parser consistency audit passed (not a behavioral security test)." if ok else "Schema text and parser consistency audit failed.",
+        summary="Schema text and parser consistency audit passed (not a behavioral security test)."
+        if ok
+        else "Schema text and parser consistency audit failed.",
         data={"security_audit": result},
         validation=ValidationResult(
             status="passed" if ok else "failed",

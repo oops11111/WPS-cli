@@ -26,10 +26,17 @@ class SpreadsheetWriteGuardTests(unittest.TestCase):
     def write(self, values, request_id="w1", dry_run=False):
         rows, columns = len(values), len(values[0])
         address = f"A1:{chr(64 + columns)}{rows}"
-        with patch.object(spreadsheet_ops, "create_backup") as backup, \
-                patch.object(spreadsheet_ops, "_run_spreadsheet_write_com") as com:
+        with (
+            patch.object(spreadsheet_ops, "create_backup") as backup,
+            patch.object(spreadsheet_ops, "_run_spreadsheet_write_com") as com,
+        ):
             result = write_spreadsheet_range(
-                self.document_id, address, values, request_id, dry_run=dry_run, workspace=self.workspace,
+                self.document_id,
+                address,
+                values,
+                request_id,
+                dry_run=dry_run,
+                workspace=self.workspace,
             )
         return result, backup, com
 
@@ -86,8 +93,10 @@ class SpreadsheetWriteGuardTests(unittest.TestCase):
             return Completed()
 
         caps = {"components": {"spreadsheets": {"selected_prog_id": "ket.Application"}}}
-        with patch.object(spreadsheet_ops, "probe_wps_capabilities", return_value=caps), \
-                patch("wps_ai_agent_cli.powershell_runner.subprocess.run", side_effect=fake_run):
+        with (
+            patch.object(spreadsheet_ops, "probe_wps_capabilities", return_value=caps),
+            patch("wps_ai_agent_cli.powershell_runner.subprocess.run", side_effect=fake_run),
+        ):
             spreadsheet_ops._run_spreadsheet_write_com(str(Path(self.tmp.name) / "book.xlsx"), None, "A1", [[True]])
         self.assertIn("$value -is [bool]", scripts[0])
         self.assertLess(scripts[0].index("$value -is [bool]"), scripts[0].index("$value -is [int]"))

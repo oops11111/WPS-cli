@@ -18,7 +18,13 @@ PERFORMANCE_BASELINE_COMMANDS: tuple[dict[str, Any], ...] = (
     {
         "id": "mcp-smoke",
         "category": "mcp",
-        "command": ["mcp-smoke", "--expected-min-tools", str(MCP_BASELINE_EXPECTED_TOOL_COUNT), "--tool-name", "wps_agent_tasks"],
+        "command": [
+            "mcp-smoke",
+            "--expected-min-tools",
+            str(MCP_BASELINE_EXPECTED_TOOL_COUNT),
+            "--tool-name",
+            "wps_agent_tasks",
+        ],
         "launches_wps": False,
     },
     {

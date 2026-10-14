@@ -7,9 +7,21 @@ from .mcp_server import MCP_PROTOCOL_VERSION, handle_mcp_request
 from .mcp_tool_names import audit_mcp_tool_names
 
 _PARAMETERIZED_READ_ONLY_COMMANDS = {
-    "tasks", "task-status", "task-statuses", "task-recovery", "task-recovery-playbooks",
-    "html-batch-request", "operation", "operations", "mutation-request-inspect", "mcp-tools", "mcp-tool-schema",
-    "mcp-catalog-snapshot", "mcp-catalog-drift", "security-audit", "regression-manifest",
+    "tasks",
+    "task-status",
+    "task-statuses",
+    "task-recovery",
+    "task-recovery-playbooks",
+    "html-batch-request",
+    "operation",
+    "operations",
+    "mutation-request-inspect",
+    "mcp-tools",
+    "mcp-tool-schema",
+    "mcp-catalog-snapshot",
+    "mcp-catalog-drift",
+    "security-audit",
+    "regression-manifest",
 }
 
 
@@ -47,14 +59,33 @@ def run_mcp_server_smoke(
 ) -> tuple[bool, dict[str, Any], list[dict[str, Any]]]:
     if tool_arguments is not None:
         schema = get_mcp_tool_schema(tool_name)
-        if (schema is None or schema["mutates_document"] or schema["requires_wps"]
-                or schema["cli_command"] not in _PARAMETERIZED_READ_ONLY_COMMANDS):
-            return False, {}, [{"code": "MCP_SMOKE_TOOL_NOT_READ_ONLY", "message": "Parameterized smoke requires a local read-only tool."}]
-    initialize_response = handle_mcp_request(_request(1, "initialize", {
-        "protocolVersion": MCP_PROTOCOL_VERSION,
-        "capabilities": {},
-        "clientInfo": {"name": "wps-ai-agent-cli-smoke", "version": "1"},
-    }))
+        if (
+            schema is None
+            or schema["mutates_document"]
+            or schema["requires_wps"]
+            or schema["cli_command"] not in _PARAMETERIZED_READ_ONLY_COMMANDS
+        ):
+            return (
+                False,
+                {},
+                [
+                    {
+                        "code": "MCP_SMOKE_TOOL_NOT_READ_ONLY",
+                        "message": "Parameterized smoke requires a local read-only tool.",
+                    }
+                ],
+            )
+    initialize_response = handle_mcp_request(
+        _request(
+            1,
+            "initialize",
+            {
+                "protocolVersion": MCP_PROTOCOL_VERSION,
+                "capabilities": {},
+                "clientInfo": {"name": "wps-ai-agent-cli-smoke", "version": "1"},
+            },
+        )
+    )
     tools_list_pages = []
     tools = []
     cursor = None
@@ -87,8 +118,11 @@ def run_mcp_server_smoke(
             "tools/call",
             {
                 "name": tool_name,
-                "arguments": _tool_arguments(tool_name) if tool_arguments is None else {
-                    "request_id": "mcp-smoke-tools-call-001", **tool_arguments,
+                "arguments": _tool_arguments(tool_name)
+                if tool_arguments is None
+                else {
+                    "request_id": "mcp-smoke-tools-call-001",
+                    **tool_arguments,
                 },
             },
         )
@@ -110,13 +144,15 @@ def run_mcp_server_smoke(
     for index, response in enumerate(tools_list_pages):
         page_result = _response_result(response)
         page_tools = page_result.get("tools")
-        page_summaries.append({
-            "page": index + 1,
-            "tool_count": len(page_tools) if isinstance(page_tools, list) else 0,
-            "has_next_page": "nextCursor" in page_result,
-            "ttlMs": page_result.get("ttlMs"),
-            "cacheScope": page_result.get("cacheScope"),
-        })
+        page_summaries.append(
+            {
+                "page": index + 1,
+                "tool_count": len(page_tools) if isinstance(page_tools, list) else 0,
+                "has_next_page": "nextCursor" in page_result,
+                "ttlMs": page_result.get("ttlMs"),
+                "cacheScope": page_result.get("cacheScope"),
+            }
+        )
     tools_list_summary = {
         "tool_count": len(tools),
         "page_count": len(tools_list_pages),
@@ -128,8 +164,7 @@ def run_mcp_server_smoke(
     checks = [
         _check(
             "initialize_protocol",
-            initialize_result.get("protocolVersion") is not None
-            and tool_capabilities is not None,
+            initialize_result.get("protocolVersion") is not None and tool_capabilities is not None,
             {
                 "protocolVersion": initialize_result.get("protocolVersion"),
                 "serverInfo": initialize_result.get("serverInfo"),
@@ -137,8 +172,10 @@ def run_mcp_server_smoke(
         ),
         _check(
             "tools_list_count",
-            tools_list_error is None and len(tools) >= expected_min_tools
-            and invalid_tool_count == 0 and duplicate_tool_count == 0,
+            tools_list_error is None
+            and len(tools) >= expected_min_tools
+            and invalid_tool_count == 0
+            and duplicate_tool_count == 0,
             {
                 "tool_count": len(tools),
                 "page_count": len(tools_list_pages),
@@ -169,11 +206,15 @@ def run_mcp_server_smoke(
             "tools_call": tools_call_response,
         },
     }
-    errors = [] if ok else [
-        {
-            "code": "MCP_SMOKE_FAILED",
-            "message": "One or more MCP server smoke checks failed.",
-            "details": [check for check in checks if not check["passed"]],
-        }
-    ]
+    errors = (
+        []
+        if ok
+        else [
+            {
+                "code": "MCP_SMOKE_FAILED",
+                "message": "One or more MCP server smoke checks failed.",
+                "details": [check for check in checks if not check["passed"]],
+            }
+        ]
+    )
     return ok, result, errors

@@ -118,9 +118,7 @@ def _spreadsheet_snapshot(document_id: str, path: Path) -> dict[str, Any]:
 def _presentation_snapshot(document_id: str, path: Path) -> dict[str, Any]:
     objects = pptx_text_objects(path)
     by_slide = Counter(int(item["slide_index"]) for item in objects)
-    non_empty_by_slide = Counter(
-        int(item["slide_index"]) for item in objects if not item["is_empty"]
-    )
+    non_empty_by_slide = Counter(int(item["slide_index"]) for item in objects if not item["is_empty"])
     slides = []
     for slide in pptx_slide_texts(path):
         slide_index = int(slide["slide_index"])

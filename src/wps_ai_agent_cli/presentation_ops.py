@@ -199,7 +199,6 @@ try {{
     return {"ok": True, "errors": [], "data": payload}
 
 
-
 @coordinated_mutation
 @atomic_mutation
 def presentation_replace(
@@ -214,7 +213,13 @@ def presentation_replace(
     replay = replay_operation(
         request_id,
         "presentation-replace",
-        {"document_id": document_id, "find_text": find_text, "replace_text": replace_text, "slide_index": slide_index, "dry_run": dry_run},
+        {
+            "document_id": document_id,
+            "find_text": find_text,
+            "replace_text": replace_text,
+            "slide_index": slide_index,
+            "dry_run": dry_run,
+        },
         workspace,
     )
     if replay is not None:
@@ -332,15 +337,25 @@ def presentation_replace(
         return False, {"preview": preview, "backup": backup_result}, backup_errors, False
 
     replace_result = guarded_com_mutation(
-        path, backup_result,
+        path,
+        backup_result,
         lambda: _run_presentation_replace_com(
-            str(path), find_text, replace_text, slide_index=slide_index,
+            str(path),
+            find_text,
+            replace_text,
+            slide_index=slide_index,
         ),
     )
     if not replace_result["ok"]:
-        return False, {"preview": preview, "backup": backup_result, "replace": replace_result["data"]}, replace_result["errors"], False
+        return (
+            False,
+            {"preview": preview, "backup": backup_result, "replace": replace_result["data"]},
+            replace_result["errors"],
+            False,
+        )
 
     after_objects = pptx_text_objects(path)
+
     def object_signature(item: dict[str, Any], expected: bool) -> tuple[Any, ...]:
         segments = tuple(
             str(segment).replace(find_text, replace_text)
@@ -378,7 +393,12 @@ def presentation_replace(
         return (
             False,
             result,
-            [{"code": "VALIDATION_FAILED", "message": "WPS replacement count or exact slide-text read-back did not match the expected result."}],
+            [
+                {
+                    "code": "VALIDATION_FAILED",
+                    "message": "WPS replacement count or exact slide-text read-back did not match the expected result.",
+                }
+            ],
             False,
         )
 

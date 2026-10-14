@@ -177,7 +177,9 @@ def _unique_sheet_name(base: str, used: set[str]) -> str:
     return name
 
 
-def convert_html_to_xlsx(input_path: str | Path, output_path: str | Path) -> tuple[bool, dict[str, Any], list[dict[str, str]]]:
+def convert_html_to_xlsx(
+    input_path: str | Path, output_path: str | Path
+) -> tuple[bool, dict[str, Any], list[dict[str, str]]]:
     source, destination, path_errors = validate_office_paths(input_path, output_path, ".xlsx")
     if path_errors:
         return False, {}, path_errors
@@ -191,7 +193,11 @@ def convert_html_to_xlsx(input_path: str | Path, output_path: str | Path) -> tup
     collector.feed(text)
     collector.close()
     if not collector.tables:
-        return False, {}, [{"code": "NO_CONTENT", "message": "The HTML contains no <table> elements to convert to a worksheet."}]
+        return (
+            False,
+            {},
+            [{"code": "NO_CONTENT", "message": "The HTML contains no <table> elements to convert to a worksheet."}],
+        )
 
     warnings: list[str] = [decode_warning] if decode_warning else []
     if collector.images:
@@ -225,24 +231,34 @@ def convert_html_to_xlsx(input_path: str | Path, output_path: str | Path) -> tup
         warnings.append(f"{formula_like} cell(s) starting with '=' were written as text, not formulas.")
 
     workbook.save(destination)
-    return True, {
-        "input_path": str(source),
-        "output_path": str(destination),
-        "format": "xlsx",
-        "sheets": sheets,
-        "rows": total_rows,
-        "warnings": warnings,
-    }, []
+    return (
+        True,
+        {
+            "input_path": str(source),
+            "output_path": str(destination),
+            "format": "xlsx",
+            "sheets": sheets,
+            "rows": total_rows,
+            "warnings": warnings,
+        },
+        [],
+    )
 
 
-def convert_html_to_pptx(input_path: str | Path, output_path: str | Path) -> tuple[bool, dict[str, Any], list[dict[str, str]]]:
+def convert_html_to_pptx(
+    input_path: str | Path, output_path: str | Path
+) -> tuple[bool, dict[str, Any], list[dict[str, str]]]:
     source, destination, path_errors = validate_office_paths(input_path, output_path, ".pptx")
     if path_errors:
         return False, {}, path_errors
     try:
         from pptx import Presentation
     except ImportError:
-        return False, {}, [{"code": "CONVERTER_UNAVAILABLE", "message": "Install the html optional dependency: python-pptx."}]
+        return (
+            False,
+            {},
+            [{"code": "CONVERTER_UNAVAILABLE", "message": "Install the html optional dependency: python-pptx."}],
+        )
 
     text, decode_warning = _read_html(source)
     collector = _SlideCollector()
@@ -250,11 +266,22 @@ def convert_html_to_pptx(input_path: str | Path, output_path: str | Path) -> tup
     collector.close()
     slides = [slide for slide in collector.slides if slide["title"] or slide["lines"]]
     if not slides:
-        return False, {}, [{"code": "NO_CONTENT", "message": "The HTML contains no headings, paragraphs or list items to convert to slides."}]
+        return (
+            False,
+            {},
+            [
+                {
+                    "code": "NO_CONTENT",
+                    "message": "The HTML contains no headings, paragraphs or list items to convert to slides.",
+                }
+            ],
+        )
 
     warnings: list[str] = [decode_warning] if decode_warning else []
     if collector.tables:
-        warnings.append(f"{collector.tables} table(s) were not converted; use html-editable with --format xlsx for tables.")
+        warnings.append(
+            f"{collector.tables} table(s) were not converted; use html-editable with --format xlsx for tables."
+        )
     if collector.images:
         warnings.append(f"{collector.images} image(s) were not converted.")
     if len(slides) > MAX_SLIDES:
@@ -272,13 +299,17 @@ def convert_html_to_pptx(input_path: str | Path, output_path: str | Path) -> tup
         for line in lines[1:]:
             body.add_paragraph().text = line
     presentation.save(destination)
-    return True, {
-        "input_path": str(source),
-        "output_path": str(destination),
-        "format": "pptx",
-        "slides": len(slides),
-        "warnings": warnings,
-    }, []
+    return (
+        True,
+        {
+            "input_path": str(source),
+            "output_path": str(destination),
+            "format": "pptx",
+            "slides": len(slides),
+            "warnings": warnings,
+        },
+        [],
+    )
 
 
 OUTPUT_FORMATS = ("docx", "xlsx", "pptx")
@@ -286,7 +317,9 @@ BACKENDS = {"docx": "python-docx", "xlsx": "openpyxl", "pptx": "python-pptx"}
 
 
 def convert_html_to_office(
-    input_path: str | Path, output_path: str | Path, output_format: str = "docx",
+    input_path: str | Path,
+    output_path: str | Path,
+    output_format: str = "docx",
 ) -> tuple[bool, dict[str, Any], list[dict[str, str]]]:
     """Dispatch to the converter for one output format. docx keeps the existing Writer mapping."""
     if output_format == "docx":
@@ -297,4 +330,13 @@ def convert_html_to_office(
         return convert_html_to_xlsx(input_path, output_path)
     if output_format == "pptx":
         return convert_html_to_pptx(input_path, output_path)
-    return False, {}, [{"code": "INVALID_ARGUMENT", "message": f"Unsupported output format: {output_format}. Use docx, xlsx or pptx."}]
+    return (
+        False,
+        {},
+        [
+            {
+                "code": "INVALID_ARGUMENT",
+                "message": f"Unsupported output format: {output_format}. Use docx, xlsx or pptx.",
+            }
+        ],
+    )

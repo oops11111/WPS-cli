@@ -46,7 +46,10 @@ def file_identity(path: Path) -> dict[str, int | str]:
             digest.update(chunk)
         after = os.fstat(stream.fileno())
     if (info.st_dev, info.st_ino, info.st_size, info.st_mtime_ns) != (
-        after.st_dev, after.st_ino, after.st_size, after.st_mtime_ns,
+        after.st_dev,
+        after.st_ino,
+        after.st_size,
+        after.st_mtime_ns,
     ):
         raise OSError("File changed while its identity was read.")
     return {"source_sha256": digest.hexdigest().upper(), "file_device": info.st_dev, "file_inode": info.st_ino}
@@ -71,7 +74,9 @@ def _write_state(state: dict[str, Any], workspace: str | Path = ".") -> None:
     atomic_write_json(state_file, state)
 
 
-def register_document(component: str, path: str, workspace: str | Path = ".") -> tuple[bool, dict[str, Any], list[dict[str, str]]]:
+def register_document(
+    component: str, path: str, workspace: str | Path = "."
+) -> tuple[bool, dict[str, Any], list[dict[str, str]]]:
     if component not in SUPPORTED_COMPONENTS:
         return (
             False,

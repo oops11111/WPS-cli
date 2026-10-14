@@ -48,8 +48,9 @@ class MutationRecoveryWpsDrillTests(unittest.TestCase):
 
     def _assert_ambiguous(self, workspace, request_id, document_id, backup):
         self.assertIsNone(get_operation(request_id, workspace))
-        self.assertEqual(file_identity(Path(backup["backup_path"]))["source_sha256"],
-                         backup["source_identity"]["source_sha256"])
+        self.assertEqual(
+            file_identity(Path(backup["backup_path"]))["source_sha256"], backup["source_identity"]["source_sha256"]
+        )
         report = inspect_mutation_request(request_id, workspace)
         self.assertEqual(report["status"], "ambiguous")
         self.assertEqual(report["backups"][0]["document_id"], document_id)
@@ -98,7 +99,9 @@ class MutationRecoveryWpsDrillTests(unittest.TestCase):
             request_id = "drill-spreadsheet"
             ok, backup, errors, _ = create_backup(record["document_id"], f"{request_id}:backup", workspace=tmp)
             self.assertTrue(ok, errors)
-            saved = guarded_com_mutation(path, backup, lambda: _run_spreadsheet_rename_sheet_com(str(path), "Before", "After"))
+            saved = guarded_com_mutation(
+                path, backup, lambda: _run_spreadsheet_rename_sheet_com(str(path), "Before", "After")
+            )
             self.assertTrue(saved["ok"], saved["errors"])
             self._assert_ambiguous(tmp, request_id, record["document_id"], backup)
             saved_identity = file_identity(path)

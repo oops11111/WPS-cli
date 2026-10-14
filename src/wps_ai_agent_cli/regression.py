@@ -45,7 +45,7 @@ def _render_output_path(part: str, output_dir: Path) -> str:
     # "C:\...\name" path, not one that mixes in the manifest's forward slash.
     prefix = OUTPUT_DIR_PLACEHOLDER + "/"
     if part.startswith(prefix):
-        return str(output_dir.joinpath(*part[len(prefix):].split("/")))
+        return str(output_dir.joinpath(*part[len(prefix) :].split("/")))
     return part.replace(OUTPUT_DIR_PLACEHOLDER, str(output_dir))
 
 
@@ -63,26 +63,31 @@ def _scenario_command(command: list[str], destination_dir: Path, output_dir: Pat
     if index >= len(command) or command[index] != MCP_AUDIT_TEMPLATE:
         return command
     rendered = _render_mcp_audit_config(REPO_ROOT / MCP_AUDIT_TEMPLATE, destination_dir)
-    return [*command[:index], str(rendered), *command[index + 1:]]
+    return [*command[:index], str(rendered), *command[index + 1 :]]
+
 
 # A manifest is data supplied by the caller (including over MCP, where regression-run is advertised as
 # non-mutating), so scenarios may only run the read-only and smoke commands the shipped manifest uses.
-REGRESSION_ALLOWED_COMMANDS = frozenset({
-    "calc-smoke",
-    "com-smoke",
-    "convert-smoke",
-    "mcp-catalog-drift",
-    "mcp-config-audit",
-    "mcp-smoke",
-    "mcp-tools",
-    "plan",
-    "security-audit",
-    "tasks",
-    "writer-table-smoke",
-})
+REGRESSION_ALLOWED_COMMANDS = frozenset(
+    {
+        "calc-smoke",
+        "com-smoke",
+        "convert-smoke",
+        "mcp-catalog-drift",
+        "mcp-config-audit",
+        "mcp-smoke",
+        "mcp-tools",
+        "plan",
+        "security-audit",
+        "tasks",
+        "writer-table-smoke",
+    }
+)
 
 
-def load_regression_manifest(path: str | Path = DEFAULT_REGRESSION_MANIFEST) -> tuple[bool, dict[str, Any], list[dict[str, Any]]]:
+def load_regression_manifest(
+    path: str | Path = DEFAULT_REGRESSION_MANIFEST,
+) -> tuple[bool, dict[str, Any], list[dict[str, Any]]]:
     manifest_path = Path(path)
     if not manifest_path.exists():
         return False, {}, [{"code": "REGRESSION_MANIFEST_NOT_FOUND", "message": f"Manifest not found: {manifest_path}"}]
@@ -196,15 +201,23 @@ def run_regression_manifest(
             or not all(isinstance(part, str) for part in command)
             or command[0] not in REGRESSION_ALLOWED_COMMANDS
         ):
-            exit_code, payload, raw_output = 1, {
-                "ok": False,
-                "summary": "Regression scenario command is not allowed.",
-                "errors": [{
-                    "code": "REGRESSION_COMMAND_NOT_ALLOWED",
-                    "message": "Scenarios may only run the read-only and smoke commands used by the shipped manifest; nothing was executed.",
-                    "command": command[0] if isinstance(command, list) and command and isinstance(command[0], str) else None,
-                }],
-            }, ""
+            exit_code, payload, raw_output = (
+                1,
+                {
+                    "ok": False,
+                    "summary": "Regression scenario command is not allowed.",
+                    "errors": [
+                        {
+                            "code": "REGRESSION_COMMAND_NOT_ALLOWED",
+                            "message": "Scenarios may only run the read-only and smoke commands used by the shipped manifest; nothing was executed.",
+                            "command": command[0]
+                            if isinstance(command, list) and command and isinstance(command[0], str)
+                            else None,
+                        }
+                    ],
+                },
+                "",
+            )
         else:
             if output_dir is None and any(OUTPUT_DIR_PLACEHOLDER in part for part in command):
                 output_dir = _new_output_dir()
@@ -249,19 +262,23 @@ def run_regression_manifest(
         "failed_count": len(failed),
         "results": results,
     }
-    errors = [] if not failed else [
-        {
-            "code": "REGRESSION_RUN_FAILED",
-            "message": "One or more regression scenarios failed.",
-            "details": [
-                {
-                    "id": item["id"],
-                    "checks": item["checks"],
-                    "summary": item["summary"],
-                    "errors": item["errors"],
-                }
-                for item in failed
-            ],
-        }
-    ]
+    errors = (
+        []
+        if not failed
+        else [
+            {
+                "code": "REGRESSION_RUN_FAILED",
+                "message": "One or more regression scenarios failed.",
+                "details": [
+                    {
+                        "id": item["id"],
+                        "checks": item["checks"],
+                        "summary": item["summary"],
+                        "errors": item["errors"],
+                    }
+                    for item in failed
+                ],
+            }
+        ]
+    )
     return not failed, result, errors

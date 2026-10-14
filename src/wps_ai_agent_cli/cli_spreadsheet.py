@@ -41,11 +41,13 @@ def spreadsheet_read_response(
         data=result,
         validation=ValidationResult(
             status="passed" if ok else "failed",
-            checks=[{
-                "name": "range_values_read",
-                "passed": bool(ok and "values" in result),
-                "details": result.get("range"),
-            }],
+            checks=[
+                {
+                    "name": "range_values_read",
+                    "passed": bool(ok and "values" in result),
+                    "details": result.get("range"),
+                }
+            ],
         ),
         errors=errors,
     )
@@ -62,122 +64,269 @@ def spreadsheet_sheets_response(request_id: str, document_id: str) -> CommandRes
         data=result,
         validation=ValidationResult(
             status="passed" if ok else "failed",
-            checks=[{
-                "name": "worksheet_inventory_read_only",
-                "passed": bool(ok and result.get("read_only") and not result.get("saved")),
-                "details": result.get("sheet_count"),
-            }],
+            checks=[
+                {
+                    "name": "worksheet_inventory_read_only",
+                    "passed": bool(ok and result.get("read_only") and not result.get("saved")),
+                    "details": result.get("sheet_count"),
+                }
+            ],
         ),
         errors=errors,
     )
 
 
 def spreadsheet_rename_sheet_response(
-    request_id: str, document_id: str, old_name: str, new_name: str, dry_run: bool,
+    request_id: str,
+    document_id: str,
+    old_name: str,
+    new_name: str,
+    dry_run: bool,
 ) -> CommandResponse:
     ok, result, errors, replayed = rename_spreadsheet_sheet(
-        document_id, old_name, new_name, request_id, dry_run,
+        document_id,
+        old_name,
+        new_name,
+        request_id,
+        dry_run,
     )
     return CommandResponse(
         ok=ok,
         command="spreadsheet-rename-sheet",
         request_id=request_id,
         backend="wps-com" if not dry_run and ok and result.get("saved") else BACKEND,
-        summary=("Worksheet rename request replayed." if replayed else "Worksheet rename preview completed." if dry_run and ok else "Worksheet renamed." if ok else "Worksheet rename failed."),
+        summary=(
+            "Worksheet rename request replayed."
+            if replayed
+            else "Worksheet rename preview completed."
+            if dry_run and ok
+            else "Worksheet renamed."
+            if ok
+            else "Worksheet rename failed."
+        ),
         data=result,
         validation=ValidationResult(
             status="passed" if ok else "failed",
-            checks=[{"name": "ordered_sheet_names_read_back", "passed": bool(ok and (dry_run or result.get("validation_passed"))), "details": result.get("sheet_names_read_back", result.get("sheet_names_after"))}],
+            checks=[
+                {
+                    "name": "ordered_sheet_names_read_back",
+                    "passed": bool(ok and (dry_run or result.get("validation_passed"))),
+                    "details": result.get("sheet_names_read_back", result.get("sheet_names_after")),
+                }
+            ],
         ),
         errors=errors,
     )
 
 
 def spreadsheet_create_sheet_response(
-    request_id: str, document_id: str, name: str, index: int | None, dry_run: bool,
+    request_id: str,
+    document_id: str,
+    name: str,
+    index: int | None,
+    dry_run: bool,
 ) -> CommandResponse:
     ok, result, errors, replayed = create_spreadsheet_sheet(document_id, name, request_id, index, dry_run)
     return CommandResponse(
-        ok=ok, command="spreadsheet-create-sheet", request_id=request_id,
+        ok=ok,
+        command="spreadsheet-create-sheet",
+        request_id=request_id,
         backend="wps-com" if not dry_run and ok else BACKEND,
-        summary=("Worksheet creation request replayed." if replayed else "Worksheet creation preview completed." if dry_run and ok else "Worksheet created." if ok else "Worksheet creation failed."),
+        summary=(
+            "Worksheet creation request replayed."
+            if replayed
+            else "Worksheet creation preview completed."
+            if dry_run and ok
+            else "Worksheet created."
+            if ok
+            else "Worksheet creation failed."
+        ),
         data=result,
-        validation=ValidationResult(status="passed" if ok else "failed", checks=[
-            {"name": "ordered_sheet_names_read_back", "passed": bool(ok and (dry_run or result.get("validation_passed"))), "details": result.get("sheet_names_read_back", result.get("sheet_names_after"))},
-        ]),
+        validation=ValidationResult(
+            status="passed" if ok else "failed",
+            checks=[
+                {
+                    "name": "ordered_sheet_names_read_back",
+                    "passed": bool(ok and (dry_run or result.get("validation_passed"))),
+                    "details": result.get("sheet_names_read_back", result.get("sheet_names_after")),
+                },
+            ],
+        ),
         errors=errors,
     )
 
 
 def spreadsheet_set_sheet_visibility_response(
-    request_id: str, document_id: str, sheet_name: str, visible: bool, dry_run: bool,
+    request_id: str,
+    document_id: str,
+    sheet_name: str,
+    visible: bool,
+    dry_run: bool,
 ) -> CommandResponse:
-    ok, result, errors, replayed = set_spreadsheet_sheet_visibility(document_id, sheet_name, visible, request_id, dry_run)
+    ok, result, errors, replayed = set_spreadsheet_sheet_visibility(
+        document_id, sheet_name, visible, request_id, dry_run
+    )
     return CommandResponse(
-        ok=ok, command="spreadsheet-set-sheet-visibility", request_id=request_id,
+        ok=ok,
+        command="spreadsheet-set-sheet-visibility",
+        request_id=request_id,
         backend="wps-com" if ok and result.get("saved") else BACKEND,
-        summary=("Worksheet visibility request replayed." if replayed else "Worksheet visibility preview completed." if dry_run and ok else "Worksheet visibility updated." if ok else "Worksheet visibility update failed."),
+        summary=(
+            "Worksheet visibility request replayed."
+            if replayed
+            else "Worksheet visibility preview completed."
+            if dry_run and ok
+            else "Worksheet visibility updated."
+            if ok
+            else "Worksheet visibility update failed."
+        ),
         data=result,
-        validation=ValidationResult(status="passed" if ok else "failed", checks=[
-            {"name": "ordered_sheet_visibility_read_back", "passed": bool(ok and (dry_run or result.get("validation_passed"))), "details": result.get("sheet_states_read_back", result.get("sheet_states_after"))},
-        ]),
+        validation=ValidationResult(
+            status="passed" if ok else "failed",
+            checks=[
+                {
+                    "name": "ordered_sheet_visibility_read_back",
+                    "passed": bool(ok and (dry_run or result.get("validation_passed"))),
+                    "details": result.get("sheet_states_read_back", result.get("sheet_states_after")),
+                },
+            ],
+        ),
         errors=errors,
     )
 
 
-def spreadsheet_delete_sheet_response(request_id: str, document_id: str, sheet_name: str, dry_run: bool) -> CommandResponse:
+def spreadsheet_delete_sheet_response(
+    request_id: str, document_id: str, sheet_name: str, dry_run: bool
+) -> CommandResponse:
     ok, result, errors, replayed = delete_spreadsheet_sheet(document_id, sheet_name, request_id, dry_run)
     return CommandResponse(
-        ok=ok, command="spreadsheet-delete-sheet", request_id=request_id,
+        ok=ok,
+        command="spreadsheet-delete-sheet",
+        request_id=request_id,
         backend="wps-com" if ok and result.get("saved") else BACKEND,
-        summary=("Worksheet deletion request replayed." if replayed else "Worksheet deletion preview completed." if dry_run and ok else "Worksheet deleted." if ok else "Worksheet deletion failed."),
+        summary=(
+            "Worksheet deletion request replayed."
+            if replayed
+            else "Worksheet deletion preview completed."
+            if dry_run and ok
+            else "Worksheet deleted."
+            if ok
+            else "Worksheet deletion failed."
+        ),
         data=result,
-        validation=ValidationResult(status="passed" if ok else "failed", checks=[
-            {"name": "ordered_sheet_names_read_back", "passed": bool(ok and (dry_run or result.get("validation_passed"))), "details": result.get("sheet_names_read_back", result.get("sheet_names_after"))},
-        ]),
+        validation=ValidationResult(
+            status="passed" if ok else "failed",
+            checks=[
+                {
+                    "name": "ordered_sheet_names_read_back",
+                    "passed": bool(ok and (dry_run or result.get("validation_passed"))),
+                    "details": result.get("sheet_names_read_back", result.get("sheet_names_after")),
+                },
+            ],
+        ),
         errors=errors,
     )
 
 
-def spreadsheet_copy_sheet_response(request_id: str, document_id: str, source_name: str, new_name: str, index: int | None, dry_run: bool) -> CommandResponse:
-    ok, result, errors, replayed = copy_spreadsheet_sheet(document_id, source_name, new_name, request_id, index, dry_run)
+def spreadsheet_copy_sheet_response(
+    request_id: str, document_id: str, source_name: str, new_name: str, index: int | None, dry_run: bool
+) -> CommandResponse:
+    ok, result, errors, replayed = copy_spreadsheet_sheet(
+        document_id, source_name, new_name, request_id, index, dry_run
+    )
     return CommandResponse(
-        ok=ok, command="spreadsheet-copy-sheet", request_id=request_id,
+        ok=ok,
+        command="spreadsheet-copy-sheet",
+        request_id=request_id,
         backend="wps-com" if ok and result.get("saved") else BACKEND,
-        summary=("Worksheet copy request replayed." if replayed else "Worksheet copy preview completed." if dry_run and ok else "Worksheet copied." if ok else "Worksheet copy failed."),
+        summary=(
+            "Worksheet copy request replayed."
+            if replayed
+            else "Worksheet copy preview completed."
+            if dry_run and ok
+            else "Worksheet copied."
+            if ok
+            else "Worksheet copy failed."
+        ),
         data=result,
-        validation=ValidationResult(status="passed" if ok else "failed", checks=[
-            {"name": "ordered_copy_and_cell_read_back", "passed": bool(ok and (dry_run or result.get("validation_passed"))), "details": result.get("sheet_names_read_back", result.get("sheet_names_after"))},
-        ]),
+        validation=ValidationResult(
+            status="passed" if ok else "failed",
+            checks=[
+                {
+                    "name": "ordered_copy_and_cell_read_back",
+                    "passed": bool(ok and (dry_run or result.get("validation_passed"))),
+                    "details": result.get("sheet_names_read_back", result.get("sheet_names_after")),
+                },
+            ],
+        ),
         errors=errors,
     )
 
 
-def spreadsheet_set_sheet_tab_color_response(request_id: str, document_id: str, sheet_name: str, color: str, dry_run: bool) -> CommandResponse:
+def spreadsheet_set_sheet_tab_color_response(
+    request_id: str, document_id: str, sheet_name: str, color: str, dry_run: bool
+) -> CommandResponse:
     ok, result, errors, replayed = set_spreadsheet_sheet_tab_color(document_id, sheet_name, color, request_id, dry_run)
     return CommandResponse(
-        ok=ok, command="spreadsheet-set-sheet-tab-color", request_id=request_id,
+        ok=ok,
+        command="spreadsheet-set-sheet-tab-color",
+        request_id=request_id,
         backend="wps-com" if ok and result.get("saved") else BACKEND,
-        summary=("Worksheet tab color request replayed." if replayed else "Worksheet tab color preview completed." if dry_run and ok else "Worksheet tab color updated." if ok else "Worksheet tab color update failed."),
+        summary=(
+            "Worksheet tab color request replayed."
+            if replayed
+            else "Worksheet tab color preview completed."
+            if dry_run and ok
+            else "Worksheet tab color updated."
+            if ok
+            else "Worksheet tab color update failed."
+        ),
         data=result,
-        validation=ValidationResult(status="passed" if ok else "failed", checks=[
-            {"name": "tab_color_read_back", "passed": bool(ok and (dry_run or result.get("validation_passed"))), "details": result.get("tab_color_read_back", result.get("color"))},
-        ]),
+        validation=ValidationResult(
+            status="passed" if ok else "failed",
+            checks=[
+                {
+                    "name": "tab_color_read_back",
+                    "passed": bool(ok and (dry_run or result.get("validation_passed"))),
+                    "details": result.get("tab_color_read_back", result.get("color")),
+                },
+            ],
+        ),
         errors=errors,
     )
 
 
-def spreadsheet_inspect_response(request_id: str, document_id: str, range_address: str, sheet_name: str | None) -> CommandResponse:
+def spreadsheet_inspect_response(
+    request_id: str, document_id: str, range_address: str, sheet_name: str | None
+) -> CommandResponse:
     ok, result, errors = inspect_spreadsheet_range(document_id, range_address, sheet_name)
     return CommandResponse(
-        ok=ok, command="spreadsheet-inspect", request_id=request_id, backend="wps-com",
-        summary="Spreadsheet calculation and display inspection completed without saving." if ok else "Spreadsheet inspection failed.",
+        ok=ok,
+        command="spreadsheet-inspect",
+        request_id=request_id,
+        backend="wps-com",
+        summary="Spreadsheet calculation and display inspection completed without saving."
+        if ok
+        else "Spreadsheet inspection failed.",
         data=result,
         validation=ValidationResult(
             status="passed" if ok else "failed",
             checks=[
                 {"name": "read_only", "passed": bool(result.get("read_only")), "details": result.get("saved")},
-                {"name": "formula_cache_display_fields", "passed": bool(ok and all("formula" in cell and "saved_cached_value" in cell and "recalculated_value" in cell and "displayed_text" in cell for cell in result.get("cells", []))), "details": len(result.get("cells", []))},
+                {
+                    "name": "formula_cache_display_fields",
+                    "passed": bool(
+                        ok
+                        and all(
+                            "formula" in cell
+                            and "saved_cached_value" in cell
+                            and "recalculated_value" in cell
+                            and "displayed_text" in cell
+                            for cell in result.get("cells", [])
+                        )
+                    ),
+                    "details": len(result.get("cells", [])),
+                },
             ],
         ),
         errors=errors,

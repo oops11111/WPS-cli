@@ -45,7 +45,9 @@ class HeldDocumentIdentityTests(unittest.TestCase):
             ok, record, _ = register_document("spreadsheets", str(document), workspace)
 
             with _deny_reads_of(document):
-                ok, _result, errors, _replayed = create_backup(record["document_id"], "req-held-backup", workspace=workspace)
+                ok, _result, errors, _replayed = create_backup(
+                    record["document_id"], "req-held-backup", workspace=workspace
+                )
 
             self.assertFalse(ok)
             self.assertEqual(errors[0]["code"], "DOCUMENT_HELD_OPEN")

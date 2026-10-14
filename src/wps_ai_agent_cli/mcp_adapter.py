@@ -97,11 +97,13 @@ def _validate_property_schema(argument_name: str, property_schema: Any) -> list[
     expected = property_schema.get("type")
     supported_types = {"string", "integer", "number", "boolean", "array", "object"}
     if expected not in supported_types:
-        return [_error(
-            "MCP_SCHEMA_TYPE_UNSUPPORTED",
-            "Tool input schema uses an unsupported JSON type.",
-            argument_name,
-        )]
+        return [
+            _error(
+                "MCP_SCHEMA_TYPE_UNSUPPORTED",
+                "Tool input schema uses an unsupported JSON type.",
+                argument_name,
+            )
+        ]
 
     errors: list[dict[str, Any]] = []
     for keyword in ("minimum", "maximum"):
@@ -109,15 +111,12 @@ def _validate_property_schema(argument_name: str, property_schema: Any) -> list[
             continue
         value = property_schema[keyword]
         numeric = type(value) is int or (type(value) is float and math.isfinite(value))
-        compatible = (
-            expected in {"integer", "number"}
-            and numeric
-            and (expected != "integer" or type(value) is int)
-        )
+        compatible = expected in {"integer", "number"} and numeric and (expected != "integer" or type(value) is int)
         if not compatible:
             errors.append(_constraint_error(argument_name, keyword))
     if (
-        "minimum" in property_schema and "maximum" in property_schema
+        "minimum" in property_schema
+        and "maximum" in property_schema
         and not any(error["details"]["constraint"] in {"minimum", "maximum"} for error in errors)
         and property_schema["minimum"] > property_schema["maximum"]
     ):
@@ -130,7 +129,8 @@ def _validate_property_schema(argument_name: str, property_schema: Any) -> list[
         if expected != "string" or type(value) is not int or value < 0:
             errors.append(_constraint_error(argument_name, keyword))
     if (
-        "minLength" in property_schema and "maxLength" in property_schema
+        "minLength" in property_schema
+        and "maxLength" in property_schema
         and type(property_schema["minLength"]) is int
         and type(property_schema["maxLength"]) is int
         and property_schema["minLength"] > property_schema["maxLength"]
@@ -164,11 +164,7 @@ def _validate_property_schema(argument_name: str, property_schema: Any) -> list[
 
     if "items" in property_schema:
         item_schema = property_schema["items"]
-        if (
-            expected != "array"
-            or not isinstance(item_schema, dict)
-            or item_schema.get("type") not in supported_types
-        ):
+        if expected != "array" or not isinstance(item_schema, dict) or item_schema.get("type") not in supported_types:
             errors.append(_constraint_error(argument_name, "items"))
     return errors
 
@@ -187,7 +183,9 @@ def _validate_arguments(schema: dict[str, Any], arguments: dict[str, Any]) -> li
     if schema_errors:
         return schema_errors
     missing = [name for name in required if name not in arguments]
-    unknown = sorted(set(arguments) - set(properties)) if input_schema.get("additionalProperties", True) is False else []
+    unknown = (
+        sorted(set(arguments) - set(properties)) if input_schema.get("additionalProperties", True) is False else []
+    )
     errors: list[dict[str, Any]] = []
     if missing:
         errors.append(_error("MCP_ARGUMENTS_MISSING_REQUIRED", "Required arguments are missing.", missing))
@@ -206,7 +204,9 @@ def _validate_arguments(schema: dict[str, Any], arguments: dict[str, Any]) -> li
             "object": lambda item: isinstance(item, dict),
         }.get(expected)
         if valid_type is None:
-            errors.append(_error("MCP_SCHEMA_TYPE_UNSUPPORTED", "Tool input schema uses an unsupported JSON type.", name))
+            errors.append(
+                _error("MCP_SCHEMA_TYPE_UNSUPPORTED", "Tool input schema uses an unsupported JSON type.", name)
+            )
             continue
         if not valid_type(value):
             errors.append(_error("MCP_ARGUMENT_TYPE_INVALID", "Argument has an invalid JSON type.", name))
@@ -215,11 +215,17 @@ def _validate_arguments(schema: dict[str, Any], arguments: dict[str, Any]) -> li
             errors.append(_error("MCP_ARGUMENT_ENUM_INVALID", "Argument is not one of the permitted values.", name))
         if expected == "string":
             if "minLength" in property_schema and len(value) < property_schema["minLength"]:
-                errors.append(_error("MCP_ARGUMENT_STRING_TOO_SHORT", "Argument is shorter than its minimum length.", name))
+                errors.append(
+                    _error("MCP_ARGUMENT_STRING_TOO_SHORT", "Argument is shorter than its minimum length.", name)
+                )
             if "maxLength" in property_schema and len(value) > property_schema["maxLength"]:
-                errors.append(_error("MCP_ARGUMENT_STRING_TOO_LONG", "Argument is longer than its maximum length.", name))
+                errors.append(
+                    _error("MCP_ARGUMENT_STRING_TOO_LONG", "Argument is longer than its maximum length.", name)
+                )
             if "pattern" in property_schema and re.search(property_schema["pattern"], value) is None:
-                errors.append(_error("MCP_ARGUMENT_PATTERN_MISMATCH", "Argument does not match its required pattern.", name))
+                errors.append(
+                    _error("MCP_ARGUMENT_PATTERN_MISMATCH", "Argument does not match its required pattern.", name)
+                )
         if expected in {"integer", "number"}:
             if "minimum" in property_schema and value < property_schema["minimum"]:
                 errors.append(_error("MCP_ARGUMENT_BELOW_MINIMUM", "Argument is below its minimum.", name))
@@ -237,9 +243,17 @@ def _validate_arguments(schema: dict[str, Any], arguments: dict[str, Any]) -> li
             }
             item_validator = item_validators.get(item_type)
             if item_validator is None:
-                errors.append(_error("MCP_SCHEMA_ITEMS_UNSUPPORTED", "Tool input schema uses unsupported array item constraints.", name))
+                errors.append(
+                    _error(
+                        "MCP_SCHEMA_ITEMS_UNSUPPORTED",
+                        "Tool input schema uses unsupported array item constraints.",
+                        name,
+                    )
+                )
             elif any(not item_validator(item) for item in value):
-                errors.append(_error("MCP_ARGUMENT_ARRAY_ITEM_INVALID", "Array contains an item with an invalid JSON type.", name))
+                errors.append(
+                    _error("MCP_ARGUMENT_ARRAY_ITEM_INVALID", "Array contains an item with an invalid JSON type.", name)
+                )
     return errors
 
 
@@ -250,7 +264,9 @@ def validate_mcp_tool_arguments(tool_name: str, arguments: dict[str, Any]) -> li
     return _validate_arguments(schema, arguments)
 
 
-def build_cli_argv(tool_name: str, arguments: dict[str, Any]) -> tuple[bool, list[str], dict[str, Any] | None, list[dict[str, Any]]]:
+def build_cli_argv(
+    tool_name: str, arguments: dict[str, Any]
+) -> tuple[bool, list[str], dict[str, Any] | None, list[dict[str, Any]]]:
     schema = get_mcp_tool_schema(tool_name)
     if not schema:
         return (
@@ -329,7 +345,13 @@ def call_mcp_tool(tool_name: str, arguments: dict[str, Any]) -> tuple[bool, dict
                 "response": None,
                 "exit_code": exc.code,
             },
-            [_error("MCP_CLI_ARGUMENTS_REJECTED", "The CLI parser rejected the arguments; see the server's stderr for the usage message.", {"exit_code": exc.code})],
+            [
+                _error(
+                    "MCP_CLI_ARGUMENTS_REJECTED",
+                    "The CLI parser rejected the arguments; see the server's stderr for the usage message.",
+                    {"exit_code": exc.code},
+                )
+            ],
         )
     except Exception as exc:  # noqa: BLE001
         return (
@@ -364,11 +386,15 @@ def call_mcp_tool(tool_name: str, arguments: dict[str, Any]) -> tuple[bool, dict
     # A failed command's error codes and messages (for example DOCUMENT_HELD_OPEN) are returned as the
     # call's errors, so that they reach the tool result text the agent reads. Details, which can be large
     # diagnostics, stay only in the nested response.
-    command_errors = [] if ok else [
-        {"code": str(error.get("code")), "message": str(error.get("message", ""))[:MCP_ERROR_MESSAGE_MAX_CHARS]}
-        for error in response.get("errors") or []
-        if isinstance(error, dict)
-    ]
+    command_errors = (
+        []
+        if ok
+        else [
+            {"code": str(error.get("code")), "message": str(error.get("message", ""))[:MCP_ERROR_MESSAGE_MAX_CHARS]}
+            for error in response.get("errors") or []
+            if isinstance(error, dict)
+        ]
+    )
     return (
         ok,
         {

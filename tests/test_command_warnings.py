@@ -86,8 +86,13 @@ class PublicCommandWarningTests(unittest.TestCase):
         self.edit_file = edit
         self.payload = {"ok": True, "backend": "powershell-com", "sheet_names": ["Renamed", "Second"]}
         return [
-            "spreadsheet-rename-sheet", "--document-id", self.document_id,
-            "--old-name", "First", "--new-name", "Renamed",
+            "spreadsheet-rename-sheet",
+            "--document-id",
+            self.document_id,
+            "--old-name",
+            "First",
+            "--new-name",
+            "Renamed",
         ]
 
     def write(self):
@@ -151,14 +156,29 @@ class InspectWarningTests(unittest.TestCase):
                 _code, registered = run_cli(["register-document", "--component", "spreadsheets", "--path", str(book)])
                 document_id = registered["data"]["document"]["document_id"]
                 payload = {
-                    "ok": True, "backend": "powershell-com", "sheet": "Sheet", "full_recalculation": False,
-                    "cells": [{"address": "A1", "formula": None, "recalculated_value": 1, "recalculated_type": "number",
-                               "displayed_text": "1", "number_format": "General"}],
+                    "ok": True,
+                    "backend": "powershell-com",
+                    "sheet": "Sheet",
+                    "full_recalculation": False,
+                    "cells": [
+                        {
+                            "address": "A1",
+                            "formula": None,
+                            "recalculated_value": 1,
+                            "recalculated_type": "number",
+                            "displayed_text": "1",
+                            "number_format": "General",
+                        }
+                    ],
                 }
-                completed = subprocess.CompletedProcess([], 0, stdout=json.dumps(payload), stderr=f"WPS_AGENT_WARNING: {WARNING}\n")
-                with patch.object(powershell_runner.subprocess, "run", return_value=completed), \
-                        patch.object(powershell_runner, "powershell_executable", return_value="pwsh"), \
-                        patch.object(spreadsheet_inspect, "probe_wps_capabilities", return_value=CAPABILITIES):
+                completed = subprocess.CompletedProcess(
+                    [], 0, stdout=json.dumps(payload), stderr=f"WPS_AGENT_WARNING: {WARNING}\n"
+                )
+                with (
+                    patch.object(powershell_runner.subprocess, "run", return_value=completed),
+                    patch.object(powershell_runner, "powershell_executable", return_value="pwsh"),
+                    patch.object(spreadsheet_inspect, "probe_wps_capabilities", return_value=CAPABILITIES),
+                ):
                     ok, result, errors = spreadsheet_inspect.inspect_spreadsheet_range(document_id, "A1:A1")
             finally:
                 os.chdir(previous)

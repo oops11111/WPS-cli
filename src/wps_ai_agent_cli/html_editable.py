@@ -128,7 +128,9 @@ def _walk(node: _Node):
             yield from _walk(child)
 
 
-def validate_office_paths(input_path: str | Path, output_path: str | Path, suffix: str = ".docx") -> tuple[Path, Path, list[dict[str, str]]]:
+def validate_office_paths(
+    input_path: str | Path, output_path: str | Path, suffix: str = ".docx"
+) -> tuple[Path, Path, list[dict[str, str]]]:
     """Check an HTML source and a new output of the given suffix. Shared by the docx, xlsx and pptx converters."""
     source = Path(input_path).expanduser().resolve()
     destination = Path(output_path).expanduser().resolve()
@@ -141,14 +143,28 @@ def validate_office_paths(input_path: str | Path, output_path: str | Path, suffi
     if destination.suffix.casefold() != suffix or destination == source:
         return source, destination, [{"code": "INVALID_OUTPUT", "message": f"Output must be a separate {suffix} file."}]
     if destination.exists():
-        return source, destination, [{"code": "OUTPUT_ALREADY_EXISTS", "message": f"Refusing to overwrite existing output: {destination}"}]
+        return (
+            source,
+            destination,
+            [{"code": "OUTPUT_ALREADY_EXISTS", "message": f"Refusing to overwrite existing output: {destination}"}],
+        )
     if not destination.parent.is_dir():
-        return source, destination, [{"code": "OUTPUT_DIRECTORY_NOT_FOUND", "message": f"Output directory does not exist: {destination.parent}"}]
+        return (
+            source,
+            destination,
+            [
+                {
+                    "code": "OUTPUT_DIRECTORY_NOT_FOUND",
+                    "message": f"Output directory does not exist: {destination.parent}",
+                }
+            ],
+        )
     return source, destination, []
 
 
-
-def convert_html_editable(input_path: str | Path, output_path: str | Path) -> tuple[bool, dict[str, Any], list[dict[str, str]]]:
+def convert_html_editable(
+    input_path: str | Path, output_path: str | Path
+) -> tuple[bool, dict[str, Any], list[dict[str, str]]]:
     source, destination, path_errors = validate_office_paths(input_path, output_path, ".docx")
     if path_errors:
         return False, {}, path_errors
@@ -156,44 +172,93 @@ def convert_html_editable(input_path: str | Path, output_path: str | Path) -> tu
         from docx import Document
         from docx.shared import Inches
     except ImportError:
-        return False, {}, [{"code": "CONVERTER_UNAVAILABLE", "message": "Install the html optional dependency: python-docx."}]
+        return (
+            False,
+            {},
+            [{"code": "CONVERTER_UNAVAILABLE", "message": "Install the html optional dependency: python-docx."}],
+        )
 
     parser = _TreeParser()
     html_text, source_encoding, decode_warning = decode_html_bytes(source.read_bytes())
     parser.feed(html_text)
     nodes = list(_walk(parser.root))
     html_root = next((node for node in nodes if node.tag == "html"), None)
-    meta = next((node for node in nodes if node.tag == "meta" and node.attrs.get("name", "").casefold() == "wps-agent-schema"), None)
-    schema_version = (html_root.attrs.get("data-wps-schema") if html_root else None) or (meta.attrs.get("content") if meta else None)
+    meta = next(
+        (node for node in nodes if node.tag == "meta" and node.attrs.get("name", "").casefold() == "wps-agent-schema"),
+        None,
+    )
+    schema_version = (html_root.attrs.get("data-wps-schema") if html_root else None) or (
+        meta.attrs.get("content") if meta else None
+    )
     owned_schema = schema_version == "wps-agent-html/v1"
     if owned_schema:
         from .html_roundtrip import build_html_roundtrip_mapping
+
         valid, _, validation_errors = build_html_roundtrip_mapping(source)
         if not valid:
             return False, {}, validation_errors
-    unsupported_css = sorted(parser.unsupported | {
-        f"inline style on <{node.tag}>" for node in nodes if node.attrs.get("style")
-    } | {
-        f"class selector on <{node.tag}>" for node in nodes if node.attrs.get("class")
-    } | {
-        f"id selector on <{node.tag}>" for node in nodes if node.attrs.get("id")
-    } | {
-        "linked CSS" for node in nodes if node.tag == "link" and node.attrs.get("rel", "").casefold() == "stylesheet"
-    })
-    supported_tags = _VOID | _SKIP | _BLOCKS | set(_HEADINGS) | {
-        "html", "head", "body", "title", "span", "a", "b", "strong", "i", "em", "u", "s", "small",
-        "sub", "sup", "code", "abbr", "cite", "del", "ins", "q", "ul", "ol", "li", "table",
-        "thead", "tbody", "tfoot", "tr", "td", "th", "figure", "figcaption",
-    }
-    warnings = sorted(parser.warnings | {
-        f"Unsupported element <{node.tag}> omitted or flattened to text."
-        for node in nodes
-        if node is not parser.root and node.tag not in supported_tags
-    } | {
-        f"Unsupported element <{tag}> omitted." for tag in parser.unsupported_elements
-    } | {
-        "Scripts and executable content were omitted." for node in nodes if node.tag == "script"
-    })
+    unsupported_css = sorted(
+        parser.unsupported
+        | {f"inline style on <{node.tag}>" for node in nodes if node.attrs.get("style")}
+        | {f"class selector on <{node.tag}>" for node in nodes if node.attrs.get("class")}
+        | {f"id selector on <{node.tag}>" for node in nodes if node.attrs.get("id")}
+        | {
+            "linked CSS"
+            for node in nodes
+            if node.tag == "link" and node.attrs.get("rel", "").casefold() == "stylesheet"
+        }
+    )
+    supported_tags = (
+        _VOID
+        | _SKIP
+        | _BLOCKS
+        | set(_HEADINGS)
+        | {
+            "html",
+            "head",
+            "body",
+            "title",
+            "span",
+            "a",
+            "b",
+            "strong",
+            "i",
+            "em",
+            "u",
+            "s",
+            "small",
+            "sub",
+            "sup",
+            "code",
+            "abbr",
+            "cite",
+            "del",
+            "ins",
+            "q",
+            "ul",
+            "ol",
+            "li",
+            "table",
+            "thead",
+            "tbody",
+            "tfoot",
+            "tr",
+            "td",
+            "th",
+            "figure",
+            "figcaption",
+        }
+    )
+    warnings = sorted(
+        parser.warnings
+        | {
+            f"Unsupported element <{node.tag}> omitted or flattened to text."
+            for node in nodes
+            if node is not parser.root and node.tag not in supported_tags
+        }
+        | {f"Unsupported element <{tag}> omitted." for tag in parser.unsupported_elements}
+        | {"Scripts and executable content were omitted." for node in nodes if node.tag == "script"}
+    )
     if decode_warning:
         warnings.append(decode_warning)
     document = Document()
@@ -216,6 +281,7 @@ def convert_html_editable(input_path: str | Path, output_path: str | Path) -> tu
         paragraph_element.append(start)
         paragraph_element.append(end)
         bookmark_count += 1
+
     image_nodes: list[tuple[_Node, Path | bytes]] = []
     image_bytes = 0
     root = source.parent.resolve()
@@ -233,7 +299,11 @@ def convert_html_editable(input_path: str | Path, output_path: str | Path) -> tu
                 if mime not in {"image/png", "image/jpeg", "image/gif"} or ";base64" not in header.casefold():
                     raise ValueError("unsupported data image format")
                 image_data = base64.b64decode(encoded, validate=True)
-                if not image_data or len(image_data) > _MAX_IMAGE_BYTES or image_bytes + len(image_data) > _MAX_TOTAL_IMAGE_BYTES:
+                if (
+                    not image_data
+                    or len(image_data) > _MAX_IMAGE_BYTES
+                    or image_bytes + len(image_data) > _MAX_TOTAL_IMAGE_BYTES
+                ):
                     raise ValueError("image size limit exceeded")
                 image_nodes.append((node, image_data))
                 image_bytes += len(image_data)
@@ -263,7 +333,10 @@ def convert_html_editable(input_path: str | Path, output_path: str | Path) -> tu
             shape = document.add_picture(picture_source, width=Inches(5.5))
             if paragraph is None:
                 paragraph = shape._inline
-                while paragraph is not None and paragraph.tag != "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}p":
+                while (
+                    paragraph is not None
+                    and paragraph.tag != "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}p"
+                ):
                     paragraph = paragraph.getparent()
             if paragraph is not None:
                 add_bookmark(paragraph, node.attrs.get("data-wps-object-id", ""))
@@ -350,13 +423,18 @@ def convert_html_editable(input_path: str | Path, output_path: str | Path) -> tu
                             counts["lists"] += 1
             elif tag == "table":
                 rows = [item for item in _walk(node) if item.tag == "tr"]
-                cells = [[_text(cell) for cell in row.children if isinstance(cell, _Node) and cell.tag in {"td", "th"}] for row in rows]
+                cells = [
+                    [_text(cell) for cell in row.children if isinstance(cell, _Node) and cell.tag in {"td", "th"}]
+                    for row in rows
+                ]
                 columns = max((len(row) for row in cells), default=0)
                 if cells and columns:
                     table = document.add_table(rows=len(cells), cols=columns)
                     table.style = "Table Grid"
                     for row_index, row_node in enumerate(rows):
-                        source_cells = [cell for cell in row_node.children if isinstance(cell, _Node) and cell.tag in {"td", "th"}]
+                        source_cells = [
+                            cell for cell in row_node.children if isinstance(cell, _Node) and cell.tag in {"td", "th"}
+                        ]
                         first_cell_paragraph = table.cell(row_index, 0).paragraphs[0]._p
                         if row_index == 0:
                             add_bookmark(first_cell_paragraph, node.attrs.get("data-wps-object-id", ""))
@@ -375,9 +453,17 @@ def convert_html_editable(input_path: str | Path, output_path: str | Path) -> tu
     try:
         add_blocks(parser.root)
         if not any(counts.values()):
-            return False, {}, [{"code": "NO_SUPPORTED_CONTENT", "message": "No supported semantic HTML content was found."}]
-        document.core_properties.title = next((_text(node) for node in nodes if node.tag == "title" and _text(node)), "HTML conversion")
-        handle = tempfile.NamedTemporaryFile(prefix=f".{destination.stem}.", suffix=".docx", dir=destination.parent, delete=False)
+            return (
+                False,
+                {},
+                [{"code": "NO_SUPPORTED_CONTENT", "message": "No supported semantic HTML content was found."}],
+            )
+        document.core_properties.title = next(
+            (_text(node) for node in nodes if node.tag == "title" and _text(node)), "HTML conversion"
+        )
+        handle = tempfile.NamedTemporaryFile(
+            prefix=f".{destination.stem}.", suffix=".docx", dir=destination.parent, delete=False
+        )
         temporary = Path(handle.name)
         handle.close()
         document.save(temporary)
@@ -389,13 +475,23 @@ def convert_html_editable(input_path: str | Path, output_path: str | Path) -> tu
             temporary.unlink(missing_ok=True)
         return False, {}, [{"code": "CONVERSION_FAILED", "message": str(exc)[:500]}]
     warnings = sorted(set(warnings))
-    return True, {
-        "input_path": str(source), "output_path": str(destination),
-        "bytes": len(payload), "sha256": hashlib.sha256(payload).hexdigest(),
-        "backend": "python-docx-semantic-mapping", "editable": True,
-        "mapped_objects": counts, "unsupported_css": unsupported_css,
-        "warnings": warnings, "fidelity": "semantic-content; CSS layout is not preserved",
-        "source_encoding": source_encoding,
-        "javascript_executed": False, "remote_resources_fetched": False,
-        "roundtrip_bookmarks": bookmark_count,
-    }, []
+    return (
+        True,
+        {
+            "input_path": str(source),
+            "output_path": str(destination),
+            "bytes": len(payload),
+            "sha256": hashlib.sha256(payload).hexdigest(),
+            "backend": "python-docx-semantic-mapping",
+            "editable": True,
+            "mapped_objects": counts,
+            "unsupported_css": unsupported_css,
+            "warnings": warnings,
+            "fidelity": "semantic-content; CSS layout is not preserved",
+            "source_encoding": source_encoding,
+            "javascript_executed": False,
+            "remote_resources_fetched": False,
+            "roundtrip_bookmarks": bookmark_count,
+        },
+        [],
+    )

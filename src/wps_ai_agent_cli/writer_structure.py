@@ -22,7 +22,8 @@ def read_writer_structure(path: str | Path) -> dict[str, Any]:
         document = parse_xml_part(archive, "word/document.xml")
         styles_root = (
             parse_xml_part(archive, "word/styles.xml")
-            if "word/styles.xml" in archive.namelist() else ET.Element(f"{W}styles")
+            if "word/styles.xml" in archive.namelist()
+            else ET.Element(f"{W}styles")
         )
         stories = [("word/document.xml", document)]
         for name in sorted(archive.namelist()):
@@ -37,7 +38,9 @@ def read_writer_structure(path: str | Path) -> dict[str, Any]:
     style_nodes = [style for style in styles_root.findall(f"{W}style") if style.get(f"{W}type") == "paragraph"]
     style_counts = Counter(style.get(f"{W}styleId") for style in style_nodes)
     styles = {style.get(f"{W}styleId"): style for style in style_nodes if style_counts[style.get(f"{W}styleId")] == 1}
-    default_style = next((key for key, style in styles.items() if style.get(f"{W}default") in {"1", "true", "on"}), None)
+    default_style = next(
+        (key for key, style in styles.items() if style.get(f"{W}default") in {"1", "true", "on"}), None
+    )
     default_outline = styles_root.find(f"{W}docDefaults/{W}pPrDefault/{W}pPr/{W}outlineLvl")
     warnings = []
     items = []
@@ -81,16 +84,18 @@ def read_writer_structure(path: str | Path) -> dict[str, Any]:
                 warnings.append({"paragraph_index": index, "code": "INVALID_OUTLINE_LEVEL"})
         if resolution in {"cycle", "missing_style", "duplicate_style"}:
             warnings.append({"paragraph_index": index, "code": resolution.upper(), "style_id": style_id})
-        items.append({
-            "paragraph_index": index,
-            "style_id": style_id,
-            "style_name": _value(style.find(f"{W}name")) if style is not None else None,
-            "style_is_explicit": explicit_style is not None,
-            "style_resolution": resolution,
-            "outline_level": level,
-            "outline_source": source,
-            "heading_level": level + 1 if level is not None and level < 9 else None,
-        })
+        items.append(
+            {
+                "paragraph_index": index,
+                "style_id": style_id,
+                "style_name": _value(style.find(f"{W}name")) if style is not None else None,
+                "style_is_explicit": explicit_style is not None,
+                "style_resolution": resolution,
+                "outline_level": level,
+                "outline_source": source,
+                "heading_level": level + 1 if level is not None and level < 9 else None,
+            }
+        )
 
     bookmarks = []
     for part, root in stories:
@@ -118,16 +123,26 @@ def read_writer_structure(path: str | Path) -> dict[str, Any]:
             else:
                 paragraph_index = next((paragraph_indices[a] for a in ancestors if a in paragraph_indices), None)
                 scope = "body_paragraph" if paragraph_index is not None else "other_body"
-            result = {"part": part, "scope": scope, "paragraph_index": paragraph_index,
-                      "story_paragraph_index": story_paragraph_index}
+            result = {
+                "part": part,
+                "scope": scope,
+                "paragraph_index": paragraph_index,
+                "story_paragraph_index": story_paragraph_index,
+            }
             if scope == "table":
                 cell = next((ancestor for ancestor in ancestors if ancestor.tag == f"{W}tc"), None)
                 row = next((ancestor for ancestor in ancestors if ancestor.tag == f"{W}tr"), None)
                 table = next((ancestor for ancestor in ancestors if ancestor.tag == f"{W}tbl"), None)
                 body = parents.get(table) if table is not None else None
-                if (cell is not None and row is not None and table is not None
-                        and body is not None and body.tag == f"{W}body"
-                        and parents.get(cell) is row and parents.get(row) is table):
+                if (
+                    cell is not None
+                    and row is not None
+                    and table is not None
+                    and body is not None
+                    and body.tag == f"{W}body"
+                    and parents.get(cell) is row
+                    and parents.get(row) is table
+                ):
                     result["table_index"] = [item for item in body if item.tag == f"{W}tbl"].index(table) + 1
                     result["row"] = [item for item in table if item.tag == f"{W}tr"].index(row) + 1
                     result["column"] = [item for item in row if item.tag == f"{W}tc"].index(cell) + 1
@@ -184,8 +199,12 @@ def read_writer_structure(path: str | Path) -> dict[str, Any]:
             start_location = location(start) if start is not None else None
             end_location = location(end) if end is not None else None
             paragraph = None
-            if start_location and end_location and start_location["story_paragraph_index"] is not None \
-                    and start_location["story_paragraph_index"] == end_location["story_paragraph_index"]:
+            if (
+                start_location
+                and end_location
+                and start_location["story_paragraph_index"] is not None
+                and start_location["story_paragraph_index"] == end_location["story_paragraph_index"]
+            ):
                 paragraph = story_paragraphs[int(start_location["story_paragraph_index"]) - 1]
             unstable_paragraph = paragraph is not None and any(
                 node.tag in UNSTABLE_TEXT_CONTAINERS for node in paragraph.iter()
@@ -208,31 +227,36 @@ def read_writer_structure(path: str | Path) -> dict[str, Any]:
                     for endpoint in (start_location, end_location)
                 )
                 and start_location.get("paragraph_index") == end_location.get("paragraph_index")
-                and "text_offset" in start_location and "text_offset" in end_location
+                and "text_offset" in start_location
+                and "text_offset" in end_location
                 and start_location["text_offset"] <= end_location["text_offset"]
             )
             text_range_supported = (
                 status == "paired"
                 and not unstable_paragraph
-                and start_location is not None and end_location is not None
+                and start_location is not None
+                and end_location is not None
                 and start_location["part"] == end_location["part"]
                 and start_location["scope"] == end_location["scope"]
                 and start_location["scope"] in {"body_paragraph", "table", "header_footer"}
                 and start_location["story_paragraph_index"] is not None
                 and start_location["story_paragraph_index"] == end_location["story_paragraph_index"]
-                and "text_offset" in start_location and "text_offset" in end_location
+                and "text_offset" in start_location
+                and "text_offset" in end_location
                 and start_location.get("text_offset", -1) <= end_location.get("text_offset", -1)
             )
-            bookmarks.append({
-                "id": bookmark_id,
-                "name": start.get(f"{W}name") if start is not None else None,
-                "part": part,
-                "status": status,
-                "start": start_location,
-                "end": end_location,
-                "body_paragraph_range_supported": body_paragraph_range_supported,
-                "text_range_supported": text_range_supported,
-            })
+            bookmarks.append(
+                {
+                    "id": bookmark_id,
+                    "name": start.get(f"{W}name") if start is not None else None,
+                    "part": part,
+                    "status": status,
+                    "start": start_location,
+                    "end": end_location,
+                    "body_paragraph_range_supported": body_paragraph_range_supported,
+                    "text_range_supported": text_range_supported,
+                }
+            )
     return {
         "paragraphs": items,
         "bookmarks": bookmarks,

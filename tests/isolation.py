@@ -13,7 +13,9 @@ def use_temporary_cwd():
     absolute first so lazy imports keep working after the chdir.
     """
     original = os.getcwd()
-    sys.path[:] = [str(Path(entry or original).resolve()) if not os.path.isabs(entry or "") else entry for entry in sys.path]
+    sys.path[:] = [
+        str(Path(entry or original).resolve()) if not os.path.isabs(entry or "") else entry for entry in sys.path
+    ]
     scratch = tempfile.TemporaryDirectory()
     os.chdir(scratch.name)
 

@@ -34,12 +34,12 @@ def _bound_drawing_diagnostic_value(value: str) -> tuple[str, bool]:
     if len(encoded) <= DRAWING_DIAGNOSTIC_VALUE_BYTE_LIMIT:
         return value, False
 
-    prefix = encoded[:DRAWING_DIAGNOSTIC_VALUE_BYTE_LIMIT - 3]
+    prefix = encoded[: DRAWING_DIAGNOSTIC_VALUE_BYTE_LIMIT - 3]
     while True:
         try:
             return prefix.decode("utf-8") + "...", True
         except UnicodeDecodeError as exc:
-            prefix = prefix[:exc.start]
+            prefix = prefix[: exc.start]
 
 
 def _drawing_relationship_issue(
@@ -88,10 +88,7 @@ def _wrap_polygon_issue(points: list[tuple[int, int]]) -> str | None:
     if any(points[index] == points[(index + 1) % len(points)] for index in range(len(points))):
         return "degenerate_wrap_polygon"
 
-    area_twice = sum(
-        x1 * y2 - x2 * y1
-        for (x1, y1), (x2, y2) in zip(points, points[1:] + points[:1], strict=True)
-    )
+    area_twice = sum(x1 * y2 - x2 * y1 for (x1, y1), (x2, y2) in zip(points, points[1:] + points[:1], strict=True))
     if area_twice == 0:
         return "degenerate_wrap_polygon"
 
@@ -99,20 +96,19 @@ def _wrap_polygon_issue(points: list[tuple[int, int]]) -> str | None:
         return (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0])
 
     def on_segment(a: tuple[int, int], b: tuple[int, int], p: tuple[int, int]) -> bool:
-        return (min(a[0], b[0]) <= p[0] <= max(a[0], b[0])
-                and min(a[1], b[1]) <= p[1] <= max(a[1], b[1]))
+        return min(a[0], b[0]) <= p[0] <= max(a[0], b[0]) and min(a[1], b[1]) <= p[1] <= max(a[1], b[1])
 
-    def intersects(a: tuple[int, int], b: tuple[int, int],
-                   c: tuple[int, int], d: tuple[int, int]) -> bool:
+    def intersects(a: tuple[int, int], b: tuple[int, int], c: tuple[int, int], d: tuple[int, int]) -> bool:
         ab_c, ab_d = cross(a, b, c), cross(a, b, d)
         cd_a, cd_b = cross(c, d, a), cross(c, d, b)
-        if ((ab_c > 0 > ab_d or ab_d > 0 > ab_c)
-                and (cd_a > 0 > cd_b or cd_b > 0 > cd_a)):
+        if (ab_c > 0 > ab_d or ab_d > 0 > ab_c) and (cd_a > 0 > cd_b or cd_b > 0 > cd_a):
             return True
-        return ((ab_c == 0 and on_segment(a, b, c))
-                or (ab_d == 0 and on_segment(a, b, d))
-                or (cd_a == 0 and on_segment(c, d, a))
-                or (cd_b == 0 and on_segment(c, d, b)))
+        return (
+            (ab_c == 0 and on_segment(a, b, c))
+            or (ab_d == 0 and on_segment(a, b, d))
+            or (cd_a == 0 and on_segment(c, d, a))
+            or (cd_b == 0 and on_segment(c, d, b))
+        )
 
     count = len(points)
     for first in range(count):
@@ -231,10 +227,7 @@ def docx_body_tables(path: str | Path) -> list[list[list[str]]]:
         for row in table.findall("./w:tr", namespace):
             cells = []
             for cell in row.findall("./w:tc", namespace):
-                texts = [
-                    node.text or ""
-                    for node in cell.findall(".//w:t", namespace)
-                ]
+                texts = [node.text or "" for node in cell.findall(".//w:t", namespace)]
                 cells.append("".join(texts))
             rows.append(cells)
         tables.append(rows)
@@ -260,21 +253,27 @@ def docx_body_table_topology(path: str | Path) -> list[dict[str, object]]:
             cells = []
             for cell in row.findall(f"{W}tc"):
                 merge = cell.find(f"{W}tcPr/{W}vMerge")
-                cells.append({
-                    "grid_span": property_value(cell, f"{W}tcPr/{W}gridSpan") or "1",
-                    "vertical_merge": merge.get(f"{W}val", "continue") if merge is not None else None,
-                    "paragraph_count": len(cell.findall(f"{W}p")),
-                    "nested_table_count": len(cell.findall(f"{W}tbl")),
-                })
-            rows.append({
-                "grid_before": property_value(row, f"{W}trPr/{W}gridBefore") or "0",
-                "grid_after": property_value(row, f"{W}trPr/{W}gridAfter") or "0",
-                "cells": cells,
-            })
-        tables.append({
-            "grid_column_count": len(grid.findall(f"{W}gridCol")) if grid is not None else None,
-            "rows": rows,
-        })
+                cells.append(
+                    {
+                        "grid_span": property_value(cell, f"{W}tcPr/{W}gridSpan") or "1",
+                        "vertical_merge": merge.get(f"{W}val", "continue") if merge is not None else None,
+                        "paragraph_count": len(cell.findall(f"{W}p")),
+                        "nested_table_count": len(cell.findall(f"{W}tbl")),
+                    }
+                )
+            rows.append(
+                {
+                    "grid_before": property_value(row, f"{W}trPr/{W}gridBefore") or "0",
+                    "grid_after": property_value(row, f"{W}trPr/{W}gridAfter") or "0",
+                    "cells": cells,
+                }
+            )
+        tables.append(
+            {
+                "grid_column_count": len(grid.findall(f"{W}gridCol")) if grid is not None else None,
+                "rows": rows,
+            }
+        )
     return tables
 
 
@@ -283,12 +282,17 @@ def docx_body_link_field_semantics(path: str | Path) -> dict[str, list[dict[str,
         root = parse_xml_part(archive, "word/document.xml")
         rels = (
             parse_xml_part(archive, "word/_rels/document.xml.rels")
-            if "word/_rels/document.xml.rels" in archive.namelist() else None
+            if "word/_rels/document.xml.rels" in archive.namelist()
+            else None
         )
-    relationships = {
-        rel.get("Id"): {"target": rel.get("Target"), "mode": rel.get("TargetMode")}
-        for rel in rels.findall(f"{PKG_R}Relationship")
-    } if rels is not None else {}
+    relationships = (
+        {
+            rel.get("Id"): {"target": rel.get("Target"), "mode": rel.get("TargetMode")}
+            for rel in rels.findall(f"{PKG_R}Relationship")
+        }
+        if rels is not None
+        else {}
+    )
     body = root.find(f"{W}body")
     if body is None:
         return {"hyperlinks": [], "fields": [], "unresolved_links": [], "unresolved_fields": []}
@@ -328,11 +332,13 @@ def docx_body_link_field_semantics(path: str | Path) -> dict[str, list[dict[str,
             target = relationship.get("target") if relationship else None
             if (rel_id and not target) or (not rel_id and not anchor):
                 unresolved_links.append({"relationship_id": rel_id, "anchor": anchor})
-            hyperlinks.append({
-                "anchor": anchor,
-                "target": target,
-                "text": _paragraph_text(node),
-            })
+            hyperlinks.append(
+                {
+                    "anchor": anchor,
+                    "target": target,
+                    "text": _paragraph_text(node),
+                }
+            )
         elif node.tag == f"{W}fldSimple":
             if field_stack:
                 unresolved_fields.append({"reason": "nested_simple_field"})
@@ -358,8 +364,7 @@ def docx_body_link_field_semantics(path: str | Path) -> dict[str, list[dict[str,
         elif node.tag in {f"{W}t", f"{W}tab", f"{W}br", f"{W}cr"} and field_stack:
             if field_stack[-1]["in_result"]:
                 field_stack[-1]["result"].append(
-                    node.text or "" if node.tag == f"{W}t" else
-                    "\t" if node.tag == f"{W}tab" else "\n"
+                    node.text or "" if node.tag == f"{W}t" else "\t" if node.tag == f"{W}tab" else "\n"
                 )
     unresolved_fields.extend({"unclosed_instruction": "".join(item["instruction"])} for item in field_stack)
     return {
@@ -375,54 +380,67 @@ def docx_body_drawing_semantics(path: str | Path) -> dict[str, list[dict[str, ob
         names = set(archive.namelist())
         root = parse_xml_part(archive, "word/document.xml")
         rels = (
-            parse_xml_part(archive, "word/_rels/document.xml.rels")
-            if "word/_rels/document.xml.rels" in names else None
+            parse_xml_part(archive, "word/_rels/document.xml.rels") if "word/_rels/document.xml.rels" in names else None
         )
-        relationships = {
-            rel.get("Id"): {"target": rel.get("Target"), "mode": rel.get("TargetMode")}
-            for rel in rels.findall(f"{PKG_R}Relationship")
-        } if rels is not None else {}
+        relationships = (
+            {
+                rel.get("Id"): {"target": rel.get("Target"), "mode": rel.get("TargetMode")}
+                for rel in rels.findall(f"{PKG_R}Relationship")
+            }
+            if rels is not None
+            else {}
+        )
         body = root.find(f"{W}body")
         drawings = []
         unresolved = []
         anchors = list(body.iter(f"{WP}anchor")) if body is not None else []
-        drawing_nodes = [
-            node for node in body.iter()
-            if node.tag in {f"{WP}inline", f"{WP}anchor"}
-        ] if body is not None else []
+        drawing_nodes = (
+            [node for node in body.iter() if node.tag in {f"{WP}inline", f"{WP}anchor"}] if body is not None else []
+        )
         drawing_indices = {node: index for index, node in enumerate(drawing_nodes)}
 
         def anchor_height(node: ET.Element) -> tuple[int, int]:
             try:
                 value = int(node.get("relativeHeight", ""))
             except ValueError:
-                unresolved.append({
-                    "drawing_type": "anchor", "drawing_index": drawing_indices[node],
-                    "reason": "invalid_relative_height",
-                })
+                unresolved.append(
+                    {
+                        "drawing_type": "anchor",
+                        "drawing_index": drawing_indices[node],
+                        "reason": "invalid_relative_height",
+                    }
+                )
                 value = 0
             return value, anchors.index(node)
 
-        anchor_order = {
-            node: rank for rank, node in enumerate(sorted(anchors, key=anchor_height))
-        }
+        anchor_order = {node: rank for rank, node in enumerate(sorted(anchors, key=anchor_height))}
 
         def structure(node: ET.Element) -> dict[str, object] | None:
             if node.tag in {f"{WP}effectExtent", f"{A}picLocks", f"{A}avLst"}:
                 return None
             attributes: dict[str, object] = {}
             for name, value in sorted(node.attrib.items()):
-                if node.tag in {
-                    f"{WP}wrapSquare", f"{WP}wrapTight", f"{WP}wrapThrough",
-                    f"{WP}wrapTopAndBottom",
-                } and name == "wrapText" and value == "bothSides":
+                if (
+                    node.tag
+                    in {
+                        f"{WP}wrapSquare",
+                        f"{WP}wrapTight",
+                        f"{WP}wrapThrough",
+                        f"{WP}wrapTopAndBottom",
+                    }
+                    and name == "wrapText"
+                    and value == "bothSides"
+                ):
                     continue
                 if name == "id" and node.tag in {f"{WP}docPr", f"{PIC}cNvPr"}:
                     continue
                 if name == "name" and node.tag == f"{PIC}cNvPr":
                     continue
                 if node.tag in {f"{WP}inline", f"{WP}anchor"} and name in {
-                    "distT", "distB", "distL", "distR",
+                    "distT",
+                    "distB",
+                    "distL",
+                    "distR",
                 }:
                     continue
                 if node.tag == f"{WP}anchor" and name == "relativeHeight":
@@ -430,10 +448,14 @@ def docx_body_drawing_semantics(path: str | Path) -> dict[str, list[dict[str, ob
                 if name in {f"{R}embed", f"{R}link"}:
                     relationship = relationships.get(value)
                     if relationship is None or not relationship.get("target"):
-                        unresolved.append(_drawing_relationship_issue(
-                            value, None, drawing_indices[drawing],
-                            reason="unresolved_drawing_structure",
-                        ))
+                        unresolved.append(
+                            _drawing_relationship_issue(
+                                value,
+                                None,
+                                drawing_indices[drawing],
+                                reason="unresolved_drawing_structure",
+                            )
+                        )
                     attributes[name] = relationship
                 elif node.tag in {f"{WP}start", f"{WP}lineTo"} and name in {"x", "y"}:
                     try:
@@ -442,10 +464,16 @@ def docx_body_drawing_semantics(path: str | Path) -> dict[str, list[dict[str, ob
                         attributes[name] = value
                 else:
                     attributes[name] = value
-            if node.tag in {
-                f"{WP}wrapSquare", f"{WP}wrapTight", f"{WP}wrapThrough",
-                f"{WP}wrapTopAndBottom",
-            } and node.get("wrapText", "bothSides") == "bothSides":
+            if (
+                node.tag
+                in {
+                    f"{WP}wrapSquare",
+                    f"{WP}wrapTight",
+                    f"{WP}wrapThrough",
+                    f"{WP}wrapTopAndBottom",
+                }
+                and node.get("wrapText", "bothSides") == "bothSides"
+            ):
                 attributes["wrapText"] = "bothSides"
             return {
                 "tag": node.tag,
@@ -459,78 +487,102 @@ def docx_body_drawing_semantics(path: str | Path) -> dict[str, list[dict[str, ob
                 current_drawing_index = drawing_indices[drawing]
                 if drawing.tag == f"{WP}anchor":
                     wrap_tags = {
-                        f"{WP}wrapNone", f"{WP}wrapSquare", f"{WP}wrapTight",
-                        f"{WP}wrapThrough", f"{WP}wrapTopAndBottom",
+                        f"{WP}wrapNone",
+                        f"{WP}wrapSquare",
+                        f"{WP}wrapTight",
+                        f"{WP}wrapThrough",
+                        f"{WP}wrapTopAndBottom",
                     }
                     wrap_elements = [child for child in drawing if child.tag in wrap_tags]
                     if len(wrap_elements) != 1:
-                        unresolved.append({
-                            "drawing_type": "anchor", "drawing_index": current_drawing_index,
-                            "reason": "missing_or_ambiguous_wrap",
-                        })
+                        unresolved.append(
+                            {
+                                "drawing_type": "anchor",
+                                "drawing_index": current_drawing_index,
+                                "reason": "missing_or_ambiguous_wrap",
+                            }
+                        )
                     else:
                         wrap = wrap_elements[0]
                         wrap_text = wrap.get("wrapText", "bothSides")
                         if wrap_text not in {"bothSides", "left", "right", "largest"}:
-                            unresolved.append({
-                                "drawing_type": "anchor", "drawing_index": current_drawing_index,
-                                "reason": "invalid_wrap_text",
-                            })
+                            unresolved.append(
+                                {
+                                    "drawing_type": "anchor",
+                                    "drawing_index": current_drawing_index,
+                                    "reason": "invalid_wrap_text",
+                                }
+                            )
                         if wrap.tag == f"{WP}wrapTopAndBottom" and wrap_text != "bothSides":
-                            unresolved.append({
-                                "drawing_type": "anchor",
-                                "drawing_index": current_drawing_index,
-                                "reason": "unsupported_top_and_bottom_wrap_text",
-                            })
+                            unresolved.append(
+                                {
+                                    "drawing_type": "anchor",
+                                    "drawing_index": current_drawing_index,
+                                    "reason": "unsupported_top_and_bottom_wrap_text",
+                                }
+                            )
                         if wrap.tag in {f"{WP}wrapTight", f"{WP}wrapThrough"}:
                             polygon = wrap.find(f"{WP}wrapPolygon")
                             start = polygon.find(f"{WP}start") if polygon is not None else None
                             lines = list(polygon.findall(f"{WP}lineTo")) if polygon is not None else []
                             points = ([start] if start is not None else []) + lines
                             if start is None or len(lines) < 2:
-                                unresolved.append({
-                                    "drawing_type": "anchor", "drawing_index": current_drawing_index,
-                                    "reason": "invalid_wrap_polygon_shape",
-                                })
+                                unresolved.append(
+                                    {
+                                        "drawing_type": "anchor",
+                                        "drawing_index": current_drawing_index,
+                                        "reason": "invalid_wrap_polygon_shape",
+                                    }
+                                )
                             coordinates = []
                             for point in points:
                                 try:
                                     x = _parse_ooxml_integer(point.get("x", ""))
                                     y = _parse_ooxml_integer(point.get("y", ""))
                                 except ValueError:
-                                    unresolved.append({
-                                        "drawing_type": "anchor", "drawing_index": current_drawing_index,
-                                        "reason": "invalid_wrap_polygon_coordinate",
-                                    })
+                                    unresolved.append(
+                                        {
+                                            "drawing_type": "anchor",
+                                            "drawing_index": current_drawing_index,
+                                            "reason": "invalid_wrap_polygon_coordinate",
+                                        }
+                                    )
                                     continue
                                 if not 0 <= x <= 21600 or not 0 <= y <= 21600:
-                                    unresolved.append({
-                                        "drawing_type": "anchor", "drawing_index": current_drawing_index,
-                                        "reason": "wrap_polygon_coordinate_out_of_range",
-                                    })
+                                    unresolved.append(
+                                        {
+                                            "drawing_type": "anchor",
+                                            "drawing_index": current_drawing_index,
+                                            "reason": "wrap_polygon_coordinate_out_of_range",
+                                        }
+                                    )
                                 coordinates.append((x, y))
                             polygon_issue = _wrap_polygon_issue(coordinates)
                             if polygon_issue:
-                                unresolved.append({
-                                    "drawing_type": "anchor", "drawing_index": current_drawing_index,
-                                    "reason": polygon_issue,
-                                })
+                                unresolved.append(
+                                    {
+                                        "drawing_type": "anchor",
+                                        "drawing_index": current_drawing_index,
+                                        "reason": polygon_issue,
+                                    }
+                                )
                     for name in ("distT", "distB", "distL", "distR"):
                         raw_distance = drawing.get(name)
                         if raw_distance is not None:
                             try:
                                 distance = _parse_ooxml_integer(raw_distance)
-                                valid_distance = (
-                                    0 <= distance <= WORD_COORDINATE_MAX
-                                    and distance % EMU_PER_TWIP == 0
-                                )
+                                valid_distance = 0 <= distance <= WORD_COORDINATE_MAX and distance % EMU_PER_TWIP == 0
                             except ValueError:
                                 valid_distance = False
                             if not valid_distance:
-                                unresolved.append({
-                                    "drawing_type": "anchor", "drawing_index": current_drawing_index,
-                                    "reason": "invalid_wrap_distance", "attribute": name,
-                                })
+                                unresolved.append(
+                                    {
+                                        "drawing_type": "anchor",
+                                        "drawing_index": current_drawing_index,
+                                        "reason": "invalid_wrap_distance",
+                                        "attribute": name,
+                                    }
+                                )
                 extent = drawing.find(f"{WP}extent")
                 properties = drawing.find(f"{WP}docPr")
                 graphic_data = drawing.find(f".//{A}graphicData")
@@ -542,65 +594,103 @@ def docx_body_drawing_semantics(path: str | Path) -> dict[str, list[dict[str, ob
                     mode = relationship.get("mode") if relationship else None
                     part_hash = None
                     if mode not in {None, "Internal", "External"}:
-                        unresolved.append(_drawing_relationship_issue(
-                            rel_id, target, current_drawing_index,
-                            mode=mode, reason="invalid_relationship_target_mode",
-                        ))
+                        unresolved.append(
+                            _drawing_relationship_issue(
+                                rel_id,
+                                target,
+                                current_drawing_index,
+                                mode=mode,
+                                reason="invalid_relationship_target_mode",
+                            )
+                        )
                     elif target and mode != "External":
-                        part_name = (target.lstrip("/") if target.startswith("/") else
-                                     posixpath.normpath(posixpath.join("word", target)))
+                        part_name = (
+                            target.lstrip("/")
+                            if target.startswith("/")
+                            else posixpath.normpath(posixpath.join("word", target))
+                        )
                         if part_name == ".." or part_name.startswith("../"):
-                            unresolved.append(_drawing_relationship_issue(
-                                rel_id, target, current_drawing_index,
-                                reason="target_outside_package",
-                            ))
+                            unresolved.append(
+                                _drawing_relationship_issue(
+                                    rel_id,
+                                    target,
+                                    current_drawing_index,
+                                    reason="target_outside_package",
+                                )
+                            )
                         elif part_name in names:
                             part_hash = hashlib.sha256(read_zip_part(archive, part_name)).hexdigest()
                         else:
-                            unresolved.append(_drawing_relationship_issue(
-                                rel_id, target, current_drawing_index,
-                            ))
+                            unresolved.append(
+                                _drawing_relationship_issue(
+                                    rel_id,
+                                    target,
+                                    current_drawing_index,
+                                )
+                            )
                     elif not target:
-                        unresolved.append(_drawing_relationship_issue(
-                            rel_id, target, current_drawing_index,
-                        ))
+                        unresolved.append(
+                            _drawing_relationship_issue(
+                                rel_id,
+                                target,
+                                current_drawing_index,
+                            )
+                        )
                     image_refs.append({"target": target, "mode": mode, "sha256": part_hash})
                 if not image_refs:
-                    unresolved.append({
-                        "drawing_type": drawing.tag, "drawing_index": current_drawing_index,
-                        "reason": "missing_image_reference",
-                    })
-                drawings.append({
-                    "type": "inline" if drawing.tag == f"{WP}inline" else "anchor",
-                    "relative_height_order": anchor_order.get(drawing) if drawing.tag == f"{WP}anchor" else None,
-                    "wrap_distances": ({
-                        name: _normalized_ooxml_integer(drawing.get(name, WPS_DEFAULT_WRAP_DISTANCES[name]))
-                        for name in ("distT", "distB", "distL", "distR")
-                    } if drawing.tag == f"{WP}anchor" else None),
-                    "extent": ({"cx": extent.get("cx"), "cy": extent.get("cy")} if extent is not None else None),
-                    "object": ({
-                        "name": properties.get("name"),
-                        "descr": properties.get("descr"),
-                        "title": properties.get("title"),
-                    } if properties is not None else None),
-                    "graphic_data_uri": graphic_data.get("uri") if graphic_data is not None else None,
-                    "images": image_refs,
-                    "structure": structure(drawing),
-                })
+                    unresolved.append(
+                        {
+                            "drawing_type": drawing.tag,
+                            "drawing_index": current_drawing_index,
+                            "reason": "missing_image_reference",
+                        }
+                    )
+                drawings.append(
+                    {
+                        "type": "inline" if drawing.tag == f"{WP}inline" else "anchor",
+                        "relative_height_order": anchor_order.get(drawing) if drawing.tag == f"{WP}anchor" else None,
+                        "wrap_distances": (
+                            {
+                                name: _normalized_ooxml_integer(drawing.get(name, WPS_DEFAULT_WRAP_DISTANCES[name]))
+                                for name in ("distT", "distB", "distL", "distR")
+                            }
+                            if drawing.tag == f"{WP}anchor"
+                            else None
+                        ),
+                        "extent": ({"cx": extent.get("cx"), "cy": extent.get("cy")} if extent is not None else None),
+                        "object": (
+                            {
+                                "name": properties.get("name"),
+                                "descr": properties.get("descr"),
+                                "title": properties.get("title"),
+                            }
+                            if properties is not None
+                            else None
+                        ),
+                        "graphic_data_uri": graphic_data.get("uri") if graphic_data is not None else None,
+                        "images": image_refs,
+                        "structure": structure(drawing),
+                    }
+                )
     if len(unresolved) > DRAWING_DIAGNOSTIC_COUNT_LIMIT:
-        omitted = unresolved[DRAWING_DIAGNOSTIC_COUNT_LIMIT - 1:]
-        unresolved = unresolved[:DRAWING_DIAGNOSTIC_COUNT_LIMIT - 1]
-        unresolved.append({
-            "drawing_index": omitted[0].get("drawing_index"),
-            "reason": "additional_drawing_diagnostics_truncated",
-            "omitted_count": len(omitted),
-        })
+        omitted = unresolved[DRAWING_DIAGNOSTIC_COUNT_LIMIT - 1 :]
+        unresolved = unresolved[: DRAWING_DIAGNOSTIC_COUNT_LIMIT - 1]
+        unresolved.append(
+            {
+                "drawing_index": omitted[0].get("drawing_index"),
+                "reason": "additional_drawing_diagnostics_truncated",
+                "omitted_count": len(omitted),
+            }
+        )
     return {"drawings": drawings, "unresolved_drawings": unresolved}
 
 
 def docx_bookmark_overlaps_link_or_field(
-    path: str | Path, bookmark_name: str, story_paragraph_index: int,
-    start_offset: int, end_offset: int,
+    path: str | Path,
+    bookmark_name: str,
+    story_paragraph_index: int,
+    start_offset: int,
+    end_offset: int,
 ) -> bool:
     with ZipFile(path) as archive:
         root = parse_xml_part(archive, "word/document.xml")
@@ -608,8 +698,9 @@ def docx_bookmark_overlaps_link_or_field(
     if not 1 <= story_paragraph_index <= len(paragraphs):
         return True
     paragraph = paragraphs[story_paragraph_index - 1]
-    start_marker = next((node for node in paragraph.iter(f"{W}bookmarkStart")
-                         if node.get(f"{W}name") == bookmark_name), None)
+    start_marker = next(
+        (node for node in paragraph.iter(f"{W}bookmarkStart") if node.get(f"{W}name") == bookmark_name), None
+    )
     if start_marker is None:
         return True
     bookmark_id = start_marker.get(f"{W}id")
@@ -618,13 +709,20 @@ def docx_bookmark_overlaps_link_or_field(
     field_stack: list[int | None] = []
     ordered_nodes = list(paragraph.iter())
     start_position = ordered_nodes.index(start_marker)
-    end_marker = next((node for node in ordered_nodes[start_position + 1:]
-                       if node.tag == f"{W}bookmarkEnd" and node.get(f"{W}id") == bookmark_id), None)
+    end_marker = next(
+        (
+            node
+            for node in ordered_nodes[start_position + 1 :]
+            if node.tag == f"{W}bookmarkEnd" and node.get(f"{W}id") == bookmark_id
+        ),
+        None,
+    )
     marker_inside = False
     if end_marker is not None:
         end_position = ordered_nodes.index(end_marker)
-        marker_inside = any(node.tag in {f"{W}drawing", f"{W}pict"}
-                             for node in ordered_nodes[start_position + 1:end_position])
+        marker_inside = any(
+            node.tag in {f"{W}drawing", f"{W}pict"} for node in ordered_nodes[start_position + 1 : end_position]
+        )
 
     def visit(node: ET.Element, semantic_ancestor: bool = False) -> None:
         nonlocal offset, marker_inside
@@ -661,7 +759,9 @@ def docx_bookmark_overlaps_link_or_field(
 
 
 def docx_bookmark_precedes_character_anchor(
-    path: str | Path, bookmark_name: str, story_paragraph_index: int,
+    path: str | Path,
+    bookmark_name: str,
+    story_paragraph_index: int,
 ) -> bool:
     with ZipFile(path) as archive:
         root = parse_xml_part(archive, "word/document.xml")
@@ -670,13 +770,20 @@ def docx_bookmark_precedes_character_anchor(
         return True
     paragraph = paragraphs[story_paragraph_index - 1]
     nodes = list(paragraph.iter())
-    start = next((node for node in nodes if node.tag == f"{W}bookmarkStart"
-                  and node.get(f"{W}name") == bookmark_name), None)
+    start = next(
+        (node for node in nodes if node.tag == f"{W}bookmarkStart" and node.get(f"{W}name") == bookmark_name), None
+    )
     if start is None:
         return True
     bookmark_id = start.get(f"{W}id")
-    end = next((node for node in nodes[nodes.index(start) + 1:]
-                if node.tag == f"{W}bookmarkEnd" and node.get(f"{W}id") == bookmark_id), None)
+    end = next(
+        (
+            node
+            for node in nodes[nodes.index(start) + 1 :]
+            if node.tag == f"{W}bookmarkEnd" and node.get(f"{W}id") == bookmark_id
+        ),
+        None,
+    )
     if end is None:
         return True
     end_position = nodes.index(end)
@@ -706,7 +813,10 @@ _RICH_CELL_LOCAL_NAMES = ("drawing", "pict", "object", "hyperlink", "fldChar", "
 
 
 def _table_cell_element(
-    path: str | Path, table_index: int, row: int, column: int,
+    path: str | Path,
+    table_index: int,
+    row: int,
+    column: int,
 ) -> ET.Element | None:
     with ZipFile(path) as archive:
         payload = read_zip_part(archive, "word/document.xml")
@@ -724,7 +834,10 @@ def _table_cell_element(
 
 
 def docx_table_cell_rich_content(
-    path: str | Path, table_index: int, row: int, column: int,
+    path: str | Path,
+    table_index: int,
+    row: int,
+    column: int,
 ) -> list[str] | None:
     """Return rich-content kinds in a body table cell, or None if the cell is missing.
 

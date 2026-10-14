@@ -112,7 +112,9 @@ def _add_conversion_commands(subparsers: argparse._SubParsersAction) -> None:
     )
     calc_parser.add_argument("--input", required=True, help="Input workbook path.")
     calc_parser.add_argument("--output", required=True, help="Output workbook copy path.")
-    calc_parser.add_argument("--timeout-seconds", type=int, default=120, help="Timeout for the WPS spreadsheet COM smoke.")
+    calc_parser.add_argument(
+        "--timeout-seconds", type=int, default=120, help="Timeout for the WPS spreadsheet COM smoke."
+    )
 
     convert_parser = subparsers.add_parser(
         "convert-smoke",
@@ -127,50 +129,87 @@ def _add_conversion_commands(subparsers: argparse._SubParsersAction) -> None:
     convert_parser.add_argument("--output", required=True, help="Output file path.")
     convert_parser.add_argument("--format", choices=["pdf"], required=True, help="Output format.")
 
-    html_render_parser = subparsers.add_parser("html-render", help="Render local HTML to PDF or PNG with a sandboxed browser.")
+    html_render_parser = subparsers.add_parser(
+        "html-render", help="Render local HTML to PDF or PNG with a sandboxed browser."
+    )
     html_render_parser.add_argument("--input", required=True, help="Local HTML or HTM input path.")
-    html_render_parser.add_argument("--output", required=True, help="New PDF or PNG output path; existing files are never overwritten.")
+    html_render_parser.add_argument(
+        "--output", required=True, help="New PDF or PNG output path; existing files are never overwritten."
+    )
     html_render_parser.add_argument("--format", choices=["pdf", "png"], required=True)
     html_render_parser.add_argument("--page-size", choices=["A4", "Letter", "Legal", "Tabloid"], default="A4")
     html_render_parser.add_argument("--viewport-width", type=int, default=1280)
     html_render_parser.add_argument("--viewport-height", type=int, default=900)
     html_render_parser.add_argument("--timeout-seconds", type=int, default=30)
-    html_render_parser.add_argument("--allow-javascript", action="store_true", help="Enable page scripts explicitly; scripts remain network-isolated.")
+    html_render_parser.add_argument(
+        "--allow-javascript",
+        action="store_true",
+        help="Enable page scripts explicitly; scripts remain network-isolated.",
+    )
     html_render_parser.add_argument("--task-id", help="Optional long-running task status id.")
 
-    html_batch_parser = subparsers.add_parser("html-batch-convert", help="Convert a bounded directory of HTML files with per-file results.")
+    html_batch_parser = subparsers.add_parser(
+        "html-batch-convert", help="Convert a bounded directory of HTML files with per-file results."
+    )
     html_batch_parser.add_argument("--input-dir", required=True)
     html_batch_parser.add_argument("--output-dir", required=True)
     html_batch_parser.add_argument("--mode", choices=["pdf", "png", "docx"], required=True)
     html_batch_parser.add_argument("--recursive", action="store_true")
     html_batch_parser.add_argument("--task-id")
 
-    batch_request_parser = subparsers.add_parser("html-batch-request", help="Inspect a recorded HTML batch request without changing files.")
-    batch_request_parser.add_argument("--batch-request-id", required=True, help="Original batch conversion request_id to inspect.")
-    batch_request_parser.add_argument("--verify", action="store_true", help="Verify current manifest and source/output hashes without modifying state.")
+    batch_request_parser = subparsers.add_parser(
+        "html-batch-request", help="Inspect a recorded HTML batch request without changing files."
+    )
+    batch_request_parser.add_argument(
+        "--batch-request-id", required=True, help="Original batch conversion request_id to inspect."
+    )
+    batch_request_parser.add_argument(
+        "--verify",
+        action="store_true",
+        help="Verify current manifest and source/output hashes without modifying state.",
+    )
 
-    template_report_parser = subparsers.add_parser("batch-template-report", help="Render a local text or DOCX template from a verified batch conversion manifest.")
+    template_report_parser = subparsers.add_parser(
+        "batch-template-report", help="Render a local text or DOCX template from a verified batch conversion manifest."
+    )
     template_report_parser.add_argument("--manifest", required=True)
     template_report_parser.add_argument("--template", required=True)
     template_report_parser.add_argument("--output", required=True)
     template_report_parser.add_argument("--task-id")
 
-    html_editable_parser = subparsers.add_parser("html-editable", help="Map semantic local HTML to an editable DOCX, XLSX or PPTX.")
+    html_editable_parser = subparsers.add_parser(
+        "html-editable", help="Map semantic local HTML to an editable DOCX, XLSX or PPTX."
+    )
     html_editable_parser.add_argument("--input", required=True, help="Local HTML or HTM source path.")
-    html_editable_parser.add_argument("--output", required=True, help="New output path matching --format; existing files are never overwritten.")
-    html_editable_parser.add_argument("--format", choices=["docx", "xlsx", "pptx"], default="docx", help="docx: Writer content. xlsx: each table becomes a worksheet. pptx: each section or h1/h2 becomes a slide.")
+    html_editable_parser.add_argument(
+        "--output", required=True, help="New output path matching --format; existing files are never overwritten."
+    )
+    html_editable_parser.add_argument(
+        "--format",
+        choices=["docx", "xlsx", "pptx"],
+        default="docx",
+        help="docx: Writer content. xlsx: each table becomes a worksheet. pptx: each section or h1/h2 becomes a slide.",
+    )
     html_editable_parser.add_argument("--task-id", help="Optional long-running task status id.")
 
-    html_roundtrip_parser = subparsers.add_parser("html-roundtrip-plan", help="Validate owned HTML schema and build a read-only object identity map.")
+    html_roundtrip_parser = subparsers.add_parser(
+        "html-roundtrip-plan", help="Validate owned HTML schema and build a read-only object identity map."
+    )
     html_roundtrip_parser.add_argument("--input", required=True, help="Owned HTML v1 source path.")
-    html_import_parser = subparsers.add_parser("html-controlled-import", help="Import owned HTML to DOCX with stable object bookmarks and a mapping sidecar.")
+    html_import_parser = subparsers.add_parser(
+        "html-controlled-import", help="Import owned HTML to DOCX with stable object bookmarks and a mapping sidecar."
+    )
     html_import_parser.add_argument("--input", required=True)
     html_import_parser.add_argument("--output", required=True)
     html_import_parser.add_argument("--task-id")
-    html_verify_parser = subparsers.add_parser("html-roundtrip-verify", help="Verify mapped object bookmark identity in an edited DOCX.")
+    html_verify_parser = subparsers.add_parser(
+        "html-roundtrip-verify", help="Verify mapped object bookmark identity in an edited DOCX."
+    )
     html_verify_parser.add_argument("--docx", required=True)
     html_verify_parser.add_argument("--mapping", required=True)
-    html_export_parser = subparsers.add_parser("html-roundtrip-export", help="Serialize a verified controlled DOCX back to owned HTML v1.")
+    html_export_parser = subparsers.add_parser(
+        "html-roundtrip-export", help="Serialize a verified controlled DOCX back to owned HTML v1."
+    )
     html_export_parser.add_argument("--docx", required=True)
     html_export_parser.add_argument("--mapping", required=True)
     html_export_parser.add_argument("--output", required=True)
@@ -256,9 +295,13 @@ def _add_document_commands(subparsers: argparse._SubParsersAction) -> None:
         help="Fill a unique supported body or direct table-cell bookmark with backup and read-back validation.",
     )
     bookmark_fill_parser.add_argument("--document-id", required=True, help="Registered writer document_id.")
-    bookmark_fill_parser.add_argument("--bookmark-name", required=True, help="Unique, non-reserved supported bookmark name.")
+    bookmark_fill_parser.add_argument(
+        "--bookmark-name", required=True, help="Unique, non-reserved supported bookmark name."
+    )
     bookmark_fill_parser.add_argument("--text", required=True, help="Text to write into the bookmark range.")
-    bookmark_fill_parser.add_argument("--dry-run", action="store_true", help="Preview the bookmark target without modifying the file.")
+    bookmark_fill_parser.add_argument(
+        "--dry-run", action="store_true", help="Preview the bookmark target without modifying the file."
+    )
     bookmark_fill_parser.add_argument("--task-id", help="Optional long-running task status id to update.")
 
     writer_table_parser = subparsers.add_parser(
@@ -270,7 +313,9 @@ def _add_document_commands(subparsers: argparse._SubParsersAction) -> None:
     writer_table_parser.add_argument("--row", type=int, required=True, help="1-based row index.")
     writer_table_parser.add_argument("--column", type=int, required=True, help="1-based column index.")
     writer_table_parser.add_argument("--text", required=True, help="Replacement cell text.")
-    writer_table_parser.add_argument("--dry-run", action="store_true", help="Preview target cell without modifying the file.")
+    writer_table_parser.add_argument(
+        "--dry-run", action="store_true", help="Preview target cell without modifying the file."
+    )
     writer_table_parser.add_argument(
         "--allow-rich-content",
         action="store_true",
@@ -331,7 +376,7 @@ def _add_document_commands(subparsers: argparse._SubParsersAction) -> None:
     spreadsheet_selection_replace_parser.add_argument(
         "--values-json",
         help=(
-            'Rectangular JSON matrix of cell values. Single-area: shape must match rows×columns. '
+            "Rectangular JSON matrix of cell values. Single-area: shape must match rows×columns. "
             'Multi-area: row-major flatten onto Areas→Cells order (for example [["a","b"]] for two singleton areas). '
             "Mutually exclusive with --text."
         ),
@@ -345,7 +390,9 @@ def _add_document_commands(subparsers: argparse._SubParsersAction) -> None:
         action="store_true",
         help="Preview the selection replacement without modifying the file.",
     )
-    spreadsheet_selection_replace_parser.add_argument("--task-id", help="Optional long-running task status id to update.")
+    spreadsheet_selection_replace_parser.add_argument(
+        "--task-id", help="Optional long-running task status id to update."
+    )
 
     spreadsheet_selection_delete_parser = subparsers.add_parser(
         "spreadsheet-selection-delete",
@@ -365,7 +412,9 @@ def _add_document_commands(subparsers: argparse._SubParsersAction) -> None:
         action="store_true",
         help="Preview the selection deletion without modifying the file.",
     )
-    spreadsheet_selection_delete_parser.add_argument("--task-id", help="Optional long-running task status id to update.")
+    spreadsheet_selection_delete_parser.add_argument(
+        "--task-id", help="Optional long-running task status id to update."
+    )
 
     presentation_selection_replace_parser = subparsers.add_parser(
         "presentation-selection-replace",
@@ -452,11 +501,15 @@ def _add_document_commands(subparsers: argparse._SubParsersAction) -> None:
         help="Replace the current selection text of an open, saved Writer document with backup and read-back validation.",
     )
     selection_replace_parser.add_argument("--document-id", required=True, help="Registered writer document_id.")
-    selection_replace_parser.add_argument("--text", required=True, help="Replacement text (single line, at most 4096 characters).")
+    selection_replace_parser.add_argument(
+        "--text", required=True, help="Replacement text (single line, at most 4096 characters)."
+    )
     selection_replace_parser.add_argument(
         "--expected-selection-text", help="Refuse to write unless the current selection text equals this value."
     )
-    selection_replace_parser.add_argument("--dry-run", action="store_true", help="Preview the selection replacement without modifying the file.")
+    selection_replace_parser.add_argument(
+        "--dry-run", action="store_true", help="Preview the selection replacement without modifying the file."
+    )
     selection_replace_parser.add_argument("--task-id", help="Optional long-running task status id to update.")
 
     selection_insert_parser = subparsers.add_parser(
@@ -464,13 +517,17 @@ def _add_document_commands(subparsers: argparse._SubParsersAction) -> None:
         help="Insert text at the collapsed caret of an open, saved Writer document with backup and read-back validation.",
     )
     selection_insert_parser.add_argument("--document-id", required=True, help="Registered writer document_id.")
-    selection_insert_parser.add_argument("--text", required=True, help="Text to insert (single line, at most 4096 characters, nonempty).")
+    selection_insert_parser.add_argument(
+        "--text", required=True, help="Text to insert (single line, at most 4096 characters, nonempty)."
+    )
     selection_insert_parser.add_argument(
         "--expected-start",
         type=int,
         help="Refuse to write unless the caret start offset equals this value.",
     )
-    selection_insert_parser.add_argument("--dry-run", action="store_true", help="Preview the caret insert without modifying the file.")
+    selection_insert_parser.add_argument(
+        "--dry-run", action="store_true", help="Preview the caret insert without modifying the file."
+    )
     selection_insert_parser.add_argument("--task-id", help="Optional long-running task status id to update.")
 
     selection_delete_parser = subparsers.add_parser(
@@ -481,7 +538,9 @@ def _add_document_commands(subparsers: argparse._SubParsersAction) -> None:
     selection_delete_parser.add_argument(
         "--expected-selection-text", help="Refuse to delete unless the current selection text equals this value."
     )
-    selection_delete_parser.add_argument("--dry-run", action="store_true", help="Preview the selection deletion without modifying the file.")
+    selection_delete_parser.add_argument(
+        "--dry-run", action="store_true", help="Preview the selection deletion without modifying the file."
+    )
     selection_delete_parser.add_argument("--task-id", help="Optional long-running task status id to update.")
 
     save_open_parser = subparsers.add_parser(
@@ -493,7 +552,9 @@ def _add_document_commands(subparsers: argparse._SubParsersAction) -> None:
         required=True,
         help="Registered writer, presentation, or spreadsheet document_id.",
     )
-    save_open_parser.add_argument("--dry-run", action="store_true", help="Preview whether Save() would write the open document.")
+    save_open_parser.add_argument(
+        "--dry-run", action="store_true", help="Preview whether Save() would write the open document."
+    )
     save_open_parser.add_argument("--task-id", help="Optional long-running task status id to update.")
 
     save_as_open_parser = subparsers.add_parser(
@@ -532,7 +593,9 @@ def _add_document_commands(subparsers: argparse._SubParsersAction) -> None:
         required=True,
         help="Registered writer, presentation, or spreadsheet document_id.",
     )
-    export_open_parser.add_argument("--output", required=True, help="New .html or .htm output path; existing files are never overwritten.")
+    export_open_parser.add_argument(
+        "--output", required=True, help="New .html or .htm output path; existing files are never overwritten."
+    )
 
     export_open_pdf_parser = subparsers.add_parser(
         "export-open-document-pdf",
@@ -543,7 +606,9 @@ def _add_document_commands(subparsers: argparse._SubParsersAction) -> None:
         required=True,
         help="Registered writer, presentation, or spreadsheet document_id.",
     )
-    export_open_pdf_parser.add_argument("--output", required=True, help="New .pdf output path; existing files are never overwritten.")
+    export_open_pdf_parser.add_argument(
+        "--output", required=True, help="New .pdf output path; existing files are never overwritten."
+    )
 
     export_open_copy_parser = subparsers.add_parser(
         "export-open-document-copy",
@@ -569,7 +634,9 @@ def _add_document_commands(subparsers: argparse._SubParsersAction) -> None:
         required=True,
         help="Registered writer, presentation, or spreadsheet document_id.",
     )
-    export_open_text_parser.add_argument("--output", required=True, help="New .txt output path; existing files are never overwritten.")
+    export_open_text_parser.add_argument(
+        "--output", required=True, help="New .txt output path; existing files are never overwritten."
+    )
 
     validate_parser = subparsers.add_parser(
         "validate-document",
@@ -587,23 +654,44 @@ def _add_document_commands(subparsers: argparse._SubParsersAction) -> None:
     snapshot_parser.add_argument("--document-id", required=True, help="Registered document_id.")
 
     writer_structure_parser = subparsers.add_parser(
-        "writer-structure", help="Inspect bounded Writer headings, styles, and bookmarks from OOXML.",
+        "writer-structure",
+        help="Inspect bounded Writer headings, styles, and bookmarks from OOXML.",
     )
     writer_structure_parser.add_argument("--document-id", required=True, help="Registered Writer document_id.")
-    writer_structure_parser.add_argument("--limit", type=int, default=50, help="Maximum items per section, from 1 to 200.")
-    writer_structure_parser.add_argument("--section", choices=["all", "headings", "styles", "bookmarks", "warnings"], default="all", help="Structure list to inspect.")
-    writer_structure_parser.add_argument("--offset", type=int, default=0, help="Zero-based offset for a selected section.")
+    writer_structure_parser.add_argument(
+        "--limit", type=int, default=50, help="Maximum items per section, from 1 to 200."
+    )
+    writer_structure_parser.add_argument(
+        "--section",
+        choices=["all", "headings", "styles", "bookmarks", "warnings"],
+        default="all",
+        help="Structure list to inspect.",
+    )
+    writer_structure_parser.add_argument(
+        "--offset", type=int, default=0, help="Zero-based offset for a selected section."
+    )
     writer_structure_parser.add_argument("--bookmark-name", help="Exact bookmark name; requires --section bookmarks.")
     writer_structure_parser.add_argument("--expected-sha256", help="Require the DOCX hash from the preceding page.")
-    writer_structure_parser.add_argument("--include-text", action="store_true", help="Read bounded text from a unique supported bookmark.")
-    writer_structure_parser.add_argument("--text-limit", type=int, default=200, help="Maximum returned bookmark text characters, from 1 to 4096.")
+    writer_structure_parser.add_argument(
+        "--include-text", action="store_true", help="Read bounded text from a unique supported bookmark."
+    )
+    writer_structure_parser.add_argument(
+        "--text-limit", type=int, default=200, help="Maximum returned bookmark text characters, from 1 to 4096."
+    )
 
     writer_parity_parser = subparsers.add_parser(
-        "writer-structure-parity", help="Compare a controlled Writer fixture with read-only WPS desktop observations.",
+        "writer-structure-parity",
+        help="Compare a controlled Writer fixture with read-only WPS desktop observations.",
     )
-    writer_parity_parser.add_argument("--run-wps", action="store_true", help="Explicitly launch WPS Writer for this local audit.")
-    writer_parity_parser.add_argument("--timeout-seconds", type=int, default=90, help="WPS audit timeout, from 1 to 300 seconds.")
-    writer_parity_parser.add_argument("--scope", choices=["structure", "nested"], default="structure", help="Controlled Writer fixture to compare.")
+    writer_parity_parser.add_argument(
+        "--run-wps", action="store_true", help="Explicitly launch WPS Writer for this local audit."
+    )
+    writer_parity_parser.add_argument(
+        "--timeout-seconds", type=int, default=90, help="WPS audit timeout, from 1 to 300 seconds."
+    )
+    writer_parity_parser.add_argument(
+        "--scope", choices=["structure", "nested"], default="structure", help="Controlled Writer fixture to compare."
+    )
     writer_parity_parser.add_argument("--artifact-dir", help="Local JSON report directory.")
 
 
@@ -633,7 +721,9 @@ def _add_operation_and_task_commands(subparsers: argparse._SubParsersAction) -> 
         required=True,
         help="Command or workflow being tracked.",
     )
-    task_status_create_parser.add_argument("--operation-request-id", required=True, help="Request id for the tracked operation.")
+    task_status_create_parser.add_argument(
+        "--operation-request-id", required=True, help="Request id for the tracked operation."
+    )
     task_status_create_parser.add_argument("--document-id", help="Optional related document_id.")
     task_status_create_parser.add_argument("--message", help="Initial status message.")
     task_status_create_parser.add_argument(
@@ -791,8 +881,12 @@ def _add_regression_and_release_commands(subparsers: argparse._SubParsersAction)
         default="config/regression_manifest.json",
         help="Path to regression manifest JSON.",
     )
-    regression_manifest_parser.add_argument("--profile", help="Optional scenario profile filter, for example safe or wps.")
-    regression_manifest_parser.add_argument("--include-wps", action="store_true", help="Include scenarios that require WPS.")
+    regression_manifest_parser.add_argument(
+        "--profile", help="Optional scenario profile filter, for example safe or wps."
+    )
+    regression_manifest_parser.add_argument(
+        "--include-wps", action="store_true", help="Include scenarios that require WPS."
+    )
 
     regression_run_parser = subparsers.add_parser(
         "regression-run",
@@ -803,13 +897,14 @@ def _add_regression_and_release_commands(subparsers: argparse._SubParsersAction)
         default="config/regression_manifest.json",
         help="Path to regression manifest JSON.",
     )
-    regression_run_parser.add_argument("--profile", help="Optional scenario profile filter. Defaults to manifest default_profile.")
+    regression_run_parser.add_argument(
+        "--profile", help="Optional scenario profile filter. Defaults to manifest default_profile."
+    )
     regression_run_parser.add_argument("--include-wps", action="store_true", help="Include scenarios that require WPS.")
     regression_run_parser.add_argument(
         "--artifact-dir",
         help="Optional directory where a timestamped regression-run JSON artifact will be written.",
     )
-
 
     subparsers.add_parser(
         "security-audit",
@@ -865,7 +960,9 @@ def _add_spreadsheet_commands(subparsers: argparse._SubParsersAction) -> None:
     spreadsheet_rename_parser.add_argument("--document-id", required=True, help="Registered spreadsheet document_id.")
     spreadsheet_rename_parser.add_argument("--old-name", required=True, help="Current worksheet name.")
     spreadsheet_rename_parser.add_argument("--new-name", required=True, help="New worksheet name.")
-    spreadsheet_rename_parser.add_argument("--dry-run", action="store_true", help="Validate and preview without backup or WPS.")
+    spreadsheet_rename_parser.add_argument(
+        "--dry-run", action="store_true", help="Validate and preview without backup or WPS."
+    )
     spreadsheet_rename_parser.add_argument("--task-id", help="Optional long-running task status id to update.")
 
     spreadsheet_create_parser = subparsers.add_parser(
@@ -875,38 +972,64 @@ def _add_spreadsheet_commands(subparsers: argparse._SubParsersAction) -> None:
     spreadsheet_create_parser.add_argument("--document-id", required=True, help="Registered spreadsheet document_id.")
     spreadsheet_create_parser.add_argument("--name", required=True, help="New worksheet name.")
     spreadsheet_create_parser.add_argument("--index", type=int, help="1-based insertion index; defaults to the end.")
-    spreadsheet_create_parser.add_argument("--dry-run", action="store_true", help="Validate and preview without backup or WPS.")
+    spreadsheet_create_parser.add_argument(
+        "--dry-run", action="store_true", help="Validate and preview without backup or WPS."
+    )
     spreadsheet_create_parser.add_argument("--task-id", help="Optional long-running task status id to update.")
 
     spreadsheet_visibility_parser = subparsers.add_parser(
         "spreadsheet-set-sheet-visibility",
         help="Set worksheet visibility with backup and ordered state read-back.",
     )
-    spreadsheet_visibility_parser.add_argument("--document-id", required=True, help="Registered spreadsheet document_id.")
+    spreadsheet_visibility_parser.add_argument(
+        "--document-id", required=True, help="Registered spreadsheet document_id."
+    )
     spreadsheet_visibility_parser.add_argument("--sheet-name", required=True, help="Worksheet to show or hide.")
-    spreadsheet_visibility_parser.add_argument("--visible", required=True, choices=("true", "false"), help="Set worksheet visible or hidden.")
-    spreadsheet_visibility_parser.add_argument("--dry-run", action="store_true", help="Validate and preview without backup or WPS.")
+    spreadsheet_visibility_parser.add_argument(
+        "--visible", required=True, choices=("true", "false"), help="Set worksheet visible or hidden."
+    )
+    spreadsheet_visibility_parser.add_argument(
+        "--dry-run", action="store_true", help="Validate and preview without backup or WPS."
+    )
     spreadsheet_visibility_parser.add_argument("--task-id", help="Optional long-running task status id to update.")
 
-    spreadsheet_delete_parser = subparsers.add_parser("spreadsheet-delete-sheet", help="Delete a worksheet with backup and ordered read-back validation.")
+    spreadsheet_delete_parser = subparsers.add_parser(
+        "spreadsheet-delete-sheet", help="Delete a worksheet with backup and ordered read-back validation."
+    )
     spreadsheet_delete_parser.add_argument("--document-id", required=True, help="Registered spreadsheet document_id.")
     spreadsheet_delete_parser.add_argument("--sheet-name", required=True, help="Worksheet to delete.")
-    spreadsheet_delete_parser.add_argument("--dry-run", action="store_true", help="Validate and preview without backup or WPS.")
+    spreadsheet_delete_parser.add_argument(
+        "--dry-run", action="store_true", help="Validate and preview without backup or WPS."
+    )
     spreadsheet_delete_parser.add_argument("--task-id", help="Optional long-running task status id to update.")
 
-    spreadsheet_copy_parser = subparsers.add_parser("spreadsheet-copy-sheet", help="Copy a worksheet with backup and ordered read-back validation.")
+    spreadsheet_copy_parser = subparsers.add_parser(
+        "spreadsheet-copy-sheet", help="Copy a worksheet with backup and ordered read-back validation."
+    )
     spreadsheet_copy_parser.add_argument("--document-id", required=True, help="Registered spreadsheet document_id.")
     spreadsheet_copy_parser.add_argument("--source-name", required=True, help="Worksheet to copy.")
     spreadsheet_copy_parser.add_argument("--new-name", required=True, help="Name for the copied worksheet.")
     spreadsheet_copy_parser.add_argument("--index", type=int, help="1-based insertion index; defaults to the end.")
-    spreadsheet_copy_parser.add_argument("--dry-run", action="store_true", help="Validate and preview without backup or WPS.")
+    spreadsheet_copy_parser.add_argument(
+        "--dry-run", action="store_true", help="Validate and preview without backup or WPS."
+    )
     spreadsheet_copy_parser.add_argument("--task-id", help="Optional long-running task status id to update.")
 
-    spreadsheet_tab_color_parser = subparsers.add_parser("spreadsheet-set-sheet-tab-color", help="Set worksheet tab color with backup and read-back validation.")
-    spreadsheet_tab_color_parser.add_argument("--document-id", required=True, help="Registered spreadsheet document_id.")
-    spreadsheet_tab_color_parser.add_argument("--sheet-name", required=True, help="Worksheet whose tab color will change.")
-    spreadsheet_tab_color_parser.add_argument("--color", required=True, help="Hex color in #RRGGBB form, or 'none' to clear it.")
-    spreadsheet_tab_color_parser.add_argument("--dry-run", action="store_true", help="Validate and preview without backup or WPS.")
+    spreadsheet_tab_color_parser = subparsers.add_parser(
+        "spreadsheet-set-sheet-tab-color", help="Set worksheet tab color with backup and read-back validation."
+    )
+    spreadsheet_tab_color_parser.add_argument(
+        "--document-id", required=True, help="Registered spreadsheet document_id."
+    )
+    spreadsheet_tab_color_parser.add_argument(
+        "--sheet-name", required=True, help="Worksheet whose tab color will change."
+    )
+    spreadsheet_tab_color_parser.add_argument(
+        "--color", required=True, help="Hex color in #RRGGBB form, or 'none' to clear it."
+    )
+    spreadsheet_tab_color_parser.add_argument(
+        "--dry-run", action="store_true", help="Validate and preview without backup or WPS."
+    )
     spreadsheet_tab_color_parser.add_argument("--task-id", help="Optional long-running task status id to update.")
 
     spreadsheet_inspect_parser = subparsers.add_parser(
@@ -914,7 +1037,9 @@ def _add_spreadsheet_commands(subparsers: argparse._SubParsersAction) -> None:
         help="Inspect formulas, saved cached values, recalculated values, and WPS display text without saving.",
     )
     spreadsheet_inspect_parser.add_argument("--document-id", required=True, help="Registered spreadsheet document_id.")
-    spreadsheet_inspect_parser.add_argument("--range", required=True, help="Finite A1 range to inspect, for example A1:D6.")
+    spreadsheet_inspect_parser.add_argument(
+        "--range", required=True, help="Finite A1 range to inspect, for example A1:D6."
+    )
     spreadsheet_inspect_parser.add_argument("--sheet", help="Optional sheet name. Defaults to first sheet.")
 
     spreadsheet_write_parser = subparsers.add_parser(
@@ -923,9 +1048,13 @@ def _add_spreadsheet_commands(subparsers: argparse._SubParsersAction) -> None:
     )
     spreadsheet_write_parser.add_argument("--document-id", required=True, help="Registered spreadsheet document_id.")
     spreadsheet_write_parser.add_argument("--range", required=True, help="A1 range to write, for example A1:B2.")
-    spreadsheet_write_parser.add_argument("--values-json", required=True, help="Rectangular JSON matrix, for example [[1,2],[3,4]].")
+    spreadsheet_write_parser.add_argument(
+        "--values-json", required=True, help="Rectangular JSON matrix, for example [[1,2],[3,4]]."
+    )
     spreadsheet_write_parser.add_argument("--sheet", help="Optional sheet name. Defaults to first sheet.")
-    spreadsheet_write_parser.add_argument("--dry-run", action="store_true", help="Preview write shape without modifying the file.")
+    spreadsheet_write_parser.add_argument(
+        "--dry-run", action="store_true", help="Preview write shape without modifying the file."
+    )
     spreadsheet_write_parser.add_argument("--task-id", help="Optional long-running task status id to update.")
 
     spreadsheet_formula_parser = subparsers.add_parser(
@@ -934,10 +1063,16 @@ def _add_spreadsheet_commands(subparsers: argparse._SubParsersAction) -> None:
     )
     spreadsheet_formula_parser.add_argument("--document-id", required=True, help="Registered spreadsheet document_id.")
     spreadsheet_formula_parser.add_argument("--range", required=True, help="A1 range to write, for example D4:D6.")
-    spreadsheet_formula_parser.add_argument("--formulas-json", required=True, help="Rectangular JSON matrix of formulas, for example [[\"=A1+B1\"]].")
-    spreadsheet_formula_parser.add_argument("--expected-values-json", required=True, help="Rectangular JSON matrix of expected cached values.")
+    spreadsheet_formula_parser.add_argument(
+        "--formulas-json", required=True, help='Rectangular JSON matrix of formulas, for example [["=A1+B1"]].'
+    )
+    spreadsheet_formula_parser.add_argument(
+        "--expected-values-json", required=True, help="Rectangular JSON matrix of expected cached values."
+    )
     spreadsheet_formula_parser.add_argument("--sheet", help="Optional sheet name. Defaults to first sheet.")
-    spreadsheet_formula_parser.add_argument("--dry-run", action="store_true", help="Preview formula write shape without modifying the file.")
+    spreadsheet_formula_parser.add_argument(
+        "--dry-run", action="store_true", help="Preview formula write shape without modifying the file."
+    )
     spreadsheet_formula_parser.add_argument("--task-id", help="Optional long-running task status id to update.")
 
 
@@ -946,10 +1081,14 @@ def _add_presentation_commands(subparsers: argparse._SubParsersAction) -> None:
         "presentation-replace",
         help="Replace text in a registered presentation with backup, validation, and idempotency.",
     )
-    presentation_replace_parser.add_argument("--document-id", required=True, help="Registered presentation document_id.")
+    presentation_replace_parser.add_argument(
+        "--document-id", required=True, help="Registered presentation document_id."
+    )
     presentation_replace_parser.add_argument("--find", required=True, help="Text to find.")
     presentation_replace_parser.add_argument("--replace", required=True, help="Replacement text.")
-    presentation_replace_parser.add_argument("--dry-run", action="store_true", help="Preview matches without modifying the file.")
+    presentation_replace_parser.add_argument(
+        "--dry-run", action="store_true", help="Preview matches without modifying the file."
+    )
     presentation_replace_parser.add_argument(
         "--slide-index",
         type=int,
@@ -964,7 +1103,9 @@ def build_parser() -> argparse.ArgumentParser:
         description="Agent-friendly CLI for WPS feasibility validation and automation.",
     )
     parser.add_argument("--request-id", help="Stable request id for idempotent agent calls.")
-    parser.epilog = "Add --strict-exit anywhere to exit with status 1 when the response has ok=false (default exit status is 0)."
+    parser.epilog = (
+        "Add --strict-exit anywhere to exit with status 1 when the response has ok=false (default exit status is 0)."
+    )
     subparsers = parser.add_subparsers(dest="command", required=True)
     _add_environment_and_status_commands(subparsers)
     _add_conversion_commands(subparsers)

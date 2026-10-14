@@ -25,16 +25,34 @@ class TemplateReportTests(unittest.TestCase):
         source_passed.write_bytes(b"source a")
         source_failed.write_bytes(b"source b")
         output_passed.write_bytes(b"docx a")
+
         def digest(path):
             return hashlib.sha256(path.read_bytes()).hexdigest()
+
         manifest = {
             "schema_version": "wps-agent-batch-conversion/v1",
-            "mode": "docx", "source_directory": str(source_root),
+            "mode": "docx",
+            "source_directory": str(source_root),
             "output_directory": str(output_root),
             "summary": {"total": 2, "passed": 1, "failed": 1},
             "files": [
-                {"status": "passed", "relative_source": "a.html", "source": str(source_passed), "output": str(output_passed), "source_sha256": digest(source_passed), "output_sha256": digest(output_passed), "errors": []},
-                {"status": "failed", "relative_source": "bad.html", "source": str(source_failed), "output": str(output_root / "bad.docx"), "source_sha256": digest(source_failed), "errors": [{"code": "FAILED", "message": "missing <body> | review"}]},
+                {
+                    "status": "passed",
+                    "relative_source": "a.html",
+                    "source": str(source_passed),
+                    "output": str(output_passed),
+                    "source_sha256": digest(source_passed),
+                    "output_sha256": digest(output_passed),
+                    "errors": [],
+                },
+                {
+                    "status": "failed",
+                    "relative_source": "bad.html",
+                    "source": str(source_failed),
+                    "output": str(output_root / "bad.docx"),
+                    "source_sha256": digest(source_failed),
+                    "errors": [{"code": "FAILED", "message": "missing <body> | review"}],
+                },
             ],
         }
         manifest_path, template_path = root / "batch.json", root / "report.md"
@@ -45,7 +63,9 @@ class TemplateReportTests(unittest.TestCase):
     def test_renders_verified_manifest_summary_and_file_rows(self):
         with TemporaryDirectory() as directory:
             root = Path(directory)
-            manifest, template = self._inputs(root, "# {{mode}}: {{total}} files ({{passed}} passed, {{failed}} failed)\n{{files_table}}")
+            manifest, template = self._inputs(
+                root, "# {{mode}}: {{total}} files ({{passed}} passed, {{failed}} failed)\n{{files_table}}"
+            )
             output = root / "final.md"
             ok, data, errors = render_batch_template_report(manifest, template, output)
             self.assertTrue(ok, errors)
@@ -125,7 +145,9 @@ class TemplateReportTests(unittest.TestCase):
             table.style = "Table Grid"
             for cell, text in zip(table.rows[0].cells, ("Status", "Source", "Output"), strict=False):
                 cell.text = text
-            for cell, text in zip(table.rows[1].cells, ("{{file_status}}", "{{file_source}}", "{{file_output}}"), strict=False):
+            for cell, text in zip(
+                table.rows[1].cells, ("{{file_status}}", "{{file_source}}", "{{file_output}}"), strict=False
+            ):
                 cell.text = text
             template.save(template_path)
             output = root / "report.docx"
@@ -182,7 +204,9 @@ class TemplateReportTests(unittest.TestCase):
             self.assertFalse((root / "limited.md").exists())
 
 
-@unittest.skipUnless(os.environ.get("WPS_AGENT_RUN_INTEGRATION") == "1", "set WPS_AGENT_RUN_INTEGRATION=1 to launch local WPS Writer")
+@unittest.skipUnless(
+    os.environ.get("WPS_AGENT_RUN_INTEGRATION") == "1", "set WPS_AGENT_RUN_INTEGRATION=1 to launch local WPS Writer"
+)
 class TemplateReportWpsIntegrationTests(unittest.TestCase):
     def test_docx_template_report_opens_and_saves_in_wps(self):
         with TemporaryDirectory() as directory:
@@ -220,18 +244,31 @@ class TemplateReportWpsIntegrationTests(unittest.TestCase):
                 source, artifact = source_root / f"{name}.html", output_root / f"{name}.docx"
                 source.write_text(f"source {name}", encoding="utf-8")
                 artifact.write_bytes(f"converted {name}".encode())
-                entries.append({
-                    "status": "passed", "relative_source": source.name,
-                    "source": str(source), "output": str(artifact),
-                    "source_sha256": hashlib.sha256(source.read_bytes()).hexdigest(),
-                    "output_sha256": hashlib.sha256(artifact.read_bytes()).hexdigest(), "errors": [],
-                })
+                entries.append(
+                    {
+                        "status": "passed",
+                        "relative_source": source.name,
+                        "source": str(source),
+                        "output": str(artifact),
+                        "source_sha256": hashlib.sha256(source.read_bytes()).hexdigest(),
+                        "output_sha256": hashlib.sha256(artifact.read_bytes()).hexdigest(),
+                        "errors": [],
+                    }
+                )
             manifest = root / "batch.json"
-            manifest.write_text(json.dumps({
-                "schema_version": "wps-agent-batch-conversion/v1", "mode": "docx",
-                "source_directory": str(source_root), "output_directory": str(output_root),
-                "summary": {"total": 50, "passed": 50, "failed": 0}, "files": entries,
-            }), encoding="utf-8")
+            manifest.write_text(
+                json.dumps(
+                    {
+                        "schema_version": "wps-agent-batch-conversion/v1",
+                        "mode": "docx",
+                        "source_directory": str(source_root),
+                        "output_directory": str(output_root),
+                        "summary": {"total": 50, "passed": 50, "failed": 0},
+                        "files": entries,
+                    }
+                ),
+                encoding="utf-8",
+            )
             template_path = root / "template.docx"
             template = Document()
             template.add_paragraph("Processed: {{total}}  Passed: {{passed}}")
@@ -250,10 +287,14 @@ class TemplateReportWpsIntegrationTests(unittest.TestCase):
             document = Document(saved_copy)
             self.assertEqual(document.paragraphs[0].text, "Processed: 50  Passed: 50")
             self.assertEqual(len(document.tables[0].rows), 51)
-            self.assertEqual({row.cells[1].text for row in document.tables[0].rows[1:]}, {item["relative_source"] for item in entries})
+            self.assertEqual(
+                {row.cells[1].text for row in document.tables[0].rows[1:]},
+                {item["relative_source"] for item in entries},
+            )
             converted = run_conversion_smoke("writer", str(saved_copy), str(pdf), "pdf")
             self.assertTrue(converted["ok"], converted)
             from pypdf import PdfReader
+
             self.assertGreater(len(PdfReader(str(pdf)).pages), 1)
 
     def test_cancelled_batch_report_keeps_partial_rows_after_wps_roundtrip(self):

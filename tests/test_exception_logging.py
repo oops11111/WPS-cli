@@ -11,16 +11,31 @@ from wps_ai_agent_cli.mcp_server import serve_stdio
 class McpServerExceptionLoggingTests(unittest.TestCase):
     def test_tool_call_exception_is_logged_and_the_protocol_error_is_unchanged(self):
         handshake = [
-            {"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {
-                "protocolVersion": "2025-11-25", "capabilities": {}, "clientInfo": {"name": "test", "version": "0"}}},
+            {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "initialize",
+                "params": {
+                    "protocolVersion": "2025-11-25",
+                    "capabilities": {},
+                    "clientInfo": {"name": "test", "version": "0"},
+                },
+            },
             {"jsonrpc": "2.0", "method": "notifications/initialized"},
         ]
-        call = {"jsonrpc": "2.0", "id": 7, "method": "tools/call", "params": {"name": "wps_agent_tasks", "arguments": {}}}
+        call = {
+            "jsonrpc": "2.0",
+            "id": 7,
+            "method": "tools/call",
+            "params": {"name": "wps_agent_tasks", "arguments": {}},
+        }
         stdin = io.StringIO("".join(json.dumps(message) + "\n" for message in [*handshake, call]))
         output = io.StringIO()
 
-        with patch("wps_ai_agent_cli.mcp_server.handle_mcp_json", side_effect=RuntimeError("boom")) as handler, \
-                self.assertLogs("wps_ai_agent_cli.mcp_server", level="ERROR") as logs:
+        with (
+            patch("wps_ai_agent_cli.mcp_server.handle_mcp_json", side_effect=RuntimeError("boom")) as handler,
+            self.assertLogs("wps_ai_agent_cli.mcp_server", level="ERROR") as logs,
+        ):
             serve_stdio(stdin, output)
 
         self.assertEqual(handler.call_count, 1)

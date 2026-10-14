@@ -311,7 +311,9 @@ MCP_TOOL_SCHEMAS: tuple[dict[str, Any], ...] = (
         "Validate owned HTML schema v1 and return a deterministic read-only map from stable object IDs to native object types and indices.",
         "conversion",
         required=["input"],
-        properties={"input": _string("Local owned HTML file using wps-agent-html/v1 and stable data-wps-object-id attributes.")},
+        properties={
+            "input": _string("Local owned HTML file using wps-agent-html/v1 and stable data-wps-object-id attributes.")
+        },
         safety_notes=[
             "Read-only: does not modify HTML, create a DOCX, launch WPS, or fetch resources.",
             "Rejects missing/duplicate IDs, unsupported ID-bearing elements, CSS and executable content instead of silently losing identity.",
@@ -324,10 +326,17 @@ MCP_TOOL_SCHEMAS: tuple[dict[str, Any], ...] = (
         "Convert validated owned HTML into editable DOCX, preserve stable IDs as DOCX bookmarks, and write a mapping sidecar.",
         "conversion",
         required=["input", "output"],
-        properties={"input": _string("Owned HTML v1 source."), "output": _string("New DOCX path; existing DOCX or mapping sidecar is never overwritten."), "task_id": _string("Optional task status id.")},
+        properties={
+            "input": _string("Owned HTML v1 source."),
+            "output": _string("New DOCX path; existing DOCX or mapping sidecar is never overwritten."),
+            "task_id": _string("Optional task status id."),
+        },
         mutates_document=True,
         idempotency="Optional request_id is accepted for traceability; refuses to overwrite either output artifact.",
-        safety_notes=["Source HTML is unchanged; creates a new DOCX and adjacent .wpsmap.json sidecar.", "Rejects invalid schema/IDs and fails closed if mapping metadata cannot be persisted."],
+        safety_notes=[
+            "Source HTML is unchanged; creates a new DOCX and adjacent .wpsmap.json sidecar.",
+            "Rejects invalid schema/IDs and fails closed if mapping metadata cannot be persisted.",
+        ],
     ),
     _tool(
         "wps_agent_html_roundtrip_verify",
@@ -336,7 +345,10 @@ MCP_TOOL_SCHEMAS: tuple[dict[str, Any], ...] = (
         "Read a DOCX and its mapping sidecar to detect missing, duplicate, or reordered mapped object bookmarks after edits.",
         "conversion",
         required=["docx", "mapping"],
-        properties={"docx": _string("Edited DOCX path."), "mapping": _string("Adjacent .wpsmap.json identity sidecar path.")},
+        properties={
+            "docx": _string("Edited DOCX path."),
+            "mapping": _string("Adjacent .wpsmap.json identity sidecar path."),
+        },
         safety_notes=["Read-only; does not modify the DOCX or mapping sidecar and does not launch WPS."],
     ),
     _tool(
@@ -346,10 +358,18 @@ MCP_TOOL_SCHEMAS: tuple[dict[str, Any], ...] = (
         "Serialize a verified controlled DOCX and identity sidecar back to owned HTML v1 while preserving stable object IDs.",
         "conversion",
         required=["docx", "mapping", "output"],
-        properties={"docx": _string("Controlled DOCX path."), "mapping": _string("Identity sidecar path."), "output": _string("New .html/.htm output; existing files are never overwritten."), "task_id": _string("Optional task status id.")},
+        properties={
+            "docx": _string("Controlled DOCX path."),
+            "mapping": _string("Identity sidecar path."),
+            "output": _string("New .html/.htm output; existing files are never overwritten."),
+            "task_id": _string("Optional task status id."),
+        },
         mutates_document=True,
         idempotency="Optional request_id is accepted for traceability; refuses to overwrite an existing HTML output.",
-        safety_notes=["Creates a new HTML artifact only after all mapped identities verify; source DOCX and sidecar remain unchanged.", "Unsupported WordprocessingML elements or untracked content are rejected instead of silently dropped."],
+        safety_notes=[
+            "Creates a new HTML artifact only after all mapped identities verify; source DOCX and sidecar remain unchanged.",
+            "Unsupported WordprocessingML elements or untracked content are rejected instead of silently dropped.",
+        ],
     ),
     _tool(
         "wps_agent_html_batch_convert",
@@ -360,7 +380,9 @@ MCP_TOOL_SCHEMAS: tuple[dict[str, Any], ...] = (
         required=["input_dir", "output_dir", "mode"],
         properties={
             "input_dir": _string("Directory containing local .html/.htm files."),
-            "output_dir": _string("Output directory outside the input tree; new outputs and manifest are never overwritten."),
+            "output_dir": _string(
+                "Output directory outside the input tree; new outputs and manifest are never overwritten."
+            ),
             "mode": _string("Output format.", ["pdf", "png", "docx"]),
             "recursive": _boolean("Include nested directories."),
             "task_id": _string("Optional task status id for tracking the batch."),
@@ -381,8 +403,10 @@ MCP_TOOL_SCHEMAS: tuple[dict[str, Any], ...] = (
         "Return a recorded HTML batch request state, arguments, manifest path, and recovery guidance without changing files.",
         "batch",
         required=["batch_request_id"],
-        properties={"batch_request_id": _string("Original batch conversion request_id to inspect."),
-                    "verify": _boolean("Verify current manifest and source/output hashes without modifying state.")},
+        properties={
+            "batch_request_id": _string("Original batch conversion request_id to inspect."),
+            "verify": _boolean("Verify current manifest and source/output hashes without modifying state."),
+        },
         safety_notes=["Reads only local request records; does not render or mutate files."],
     ),
     _tool(
@@ -395,7 +419,9 @@ MCP_TOOL_SCHEMAS: tuple[dict[str, Any], ...] = (
         properties={
             "manifest": _string("Existing wps-agent-batch-conversion/v1 JSON manifest."),
             "template": _string("Existing local Markdown, text, or DOCX template with supported placeholders."),
-            "output": _string("New Markdown/text output for text templates, or .docx for DOCX templates; existing reports are never overwritten."),
+            "output": _string(
+                "New Markdown/text output for text templates, or .docx for DOCX templates; existing reports are never overwritten."
+            ),
             "task_id": _string("Optional task status id for tracking report generation."),
         },
         mutates_document=True,
@@ -749,7 +775,9 @@ MCP_TOOL_SCHEMAS: tuple[dict[str, Any], ...] = (
         required=["document_id", "output"],
         properties={
             "document_id": _string("Registered writer, presentation, or spreadsheet document_id."),
-            "output": _string("New output path with the same extension as the source; existing files are never overwritten."),
+            "output": _string(
+                "New output path with the same extension as the source; existing files are never overwritten."
+            ),
         },
         requires_wps=True,
         idempotency="Creates an artifact; request_id should be supplied and is replayed by the operation ledger.",
@@ -835,7 +863,9 @@ MCP_TOOL_SCHEMAS: tuple[dict[str, Any], ...] = (
         properties={
             "document_id": _string("Registered Writer document_id."),
             "limit": _integer("Maximum items per section.", minimum=1, maximum=200),
-            "section": _string("Structure list to inspect.", enum=["all", "headings", "styles", "bookmarks", "warnings"]),
+            "section": _string(
+                "Structure list to inspect.", enum=["all", "headings", "styles", "bookmarks", "warnings"]
+            ),
             "offset": _integer("Zero-based offset for a selected section.", minimum=0),
             "bookmark_name": _string("Exact bookmark name; requires bookmarks section."),
             "expected_sha256": _string("Require the DOCX hash from the preceding page."),
@@ -857,7 +887,9 @@ MCP_TOOL_SCHEMAS: tuple[dict[str, Any], ...] = (
             "artifact_dir": _string("Local JSON report directory."),
         },
         requires_wps=True,
-        safety_notes=["Requires run_wps=true; opens the controlled fixture read-only, writes a local report, and uses no remote Git."],
+        safety_notes=[
+            "Requires run_wps=true; opens the controlled fixture read-only, writes a local report, and uses no remote Git."
+        ],
     ),
     _tool(
         "wps_agent_operation",
@@ -1073,7 +1105,9 @@ MCP_TOOL_SCHEMAS: tuple[dict[str, Any], ...] = (
             "manifest": _string("Path to regression manifest JSON."),
             "profile": _string("Optional scenario profile filter."),
             "include_wps": _boolean("Include scenarios that require WPS."),
-            "artifact_dir": _string("Optional directory where a timestamped regression-run JSON artifact will be written."),
+            "artifact_dir": _string(
+                "Optional directory where a timestamped regression-run JSON artifact will be written."
+            ),
         },
     ),
     _tool(
@@ -1127,11 +1161,13 @@ MCP_TOOL_SCHEMAS: tuple[dict[str, Any], ...] = (
                 "or TAB-joined Series Values / plain ChartTitle/AxisTitle/shape text. Mutually exclusive with values_json."
             ),
             "values_json": _string(
-                'Rectangular JSON matrix of cell values. Single-area: shape must match rows×columns. '
+                "Rectangular JSON matrix of cell values. Single-area: shape must match rows×columns. "
                 'Multi-area: row-major flatten onto Areas→Cells order (for example [["a","b"]] for two singleton areas). '
                 "Mutually exclusive with text."
             ),
-            "expected_selection_text": _string("Refuse to write unless the current selection display text equals this value (multi-cell/series values are TAB-joined)."),
+            "expected_selection_text": _string(
+                "Refuse to write unless the current selection display text equals this value (multi-cell/series values are TAB-joined)."
+            ),
             "dry_run": _boolean("Preview the selection replacement without modifying the file."),
             "task_id": _string("Optional long-running task status id."),
         },
@@ -1154,7 +1190,9 @@ MCP_TOOL_SCHEMAS: tuple[dict[str, Any], ...] = (
         required=["document_id"],
         properties={
             "document_id": _string("Registered spreadsheet document_id."),
-            "expected_selection_text": _string("Refuse to clear unless the current selection display text equals this value (multi-cell/series values are TAB-joined)."),
+            "expected_selection_text": _string(
+                "Refuse to clear unless the current selection display text equals this value (multi-cell/series values are TAB-joined)."
+            ),
             "dry_run": _boolean("Preview the selection deletion without modifying the file."),
             "task_id": _string("Optional long-running task status id."),
         },
@@ -1459,7 +1497,9 @@ MCP_TOOL_SCHEMAS: tuple[dict[str, Any], ...] = (
         properties={
             "document_id": _string("Registered presentation document_id."),
             "text": _string("Text to insert, single line, nonempty, at most 4096 characters."),
-            "expected_start": _integer("Refuse to write unless the text caret Start offset equals this value (1-based).", minimum=1),
+            "expected_start": _integer(
+                "Refuse to write unless the text caret Start offset equals this value (1-based).", minimum=1
+            ),
             "dry_run": _boolean("Preview the caret insert without modifying the file."),
             "task_id": _string("Optional long-running task status id."),
         },

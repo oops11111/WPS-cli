@@ -44,7 +44,9 @@ class RestoreHardeningTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             workspace, _, document_id, backup = self._backed_up_document(tmp)
             backup.write_bytes(b"GARBAGE")
-            ok, _, errors, _ = restore_backup(document_id, "r1d", backup_name=backup.name, dry_run=True, workspace=workspace)
+            ok, _, errors, _ = restore_backup(
+                document_id, "r1d", backup_name=backup.name, dry_run=True, workspace=workspace
+            )
             self.assertFalse(ok)
             self.assertEqual(errors[0]["code"], "BACKUP_CHANGED_AFTER_CREATION")
 
@@ -115,6 +117,7 @@ class TaskStatusExceptionTests(unittest.TestCase):
             previous = os.getcwd()
             os.chdir(tmp)
             try:
+
                 def boom():
                     raise RuntimeError("kaboom")
 
@@ -153,8 +156,10 @@ class SmokeOutputGuardTests(unittest.TestCase):
             source.write_bytes(b"x")
             target = Path(tmp) / "doc.pdf"
             caps = {"components": {"writer": {"selected_prog_id": "kwps.Application"}}}
-            with patch.object(com_backend, "probe_wps_capabilities", return_value=caps), \
-                    patch.object(com_backend.subprocess, "run", side_effect=subprocess.TimeoutExpired("powershell", 120)):
+            with (
+                patch.object(com_backend, "probe_wps_capabilities", return_value=caps),
+                patch.object(com_backend.subprocess, "run", side_effect=subprocess.TimeoutExpired("powershell", 120)),
+            ):
                 result = com_backend.run_conversion_smoke("writer", str(source), str(target), "pdf")
             self.assertFalse(result["ok"])
             self.assertEqual(result["errors"][0]["code"], "COM_OPERATION_TIMEOUT")
@@ -181,9 +186,14 @@ class ResponseReturnTests(unittest.TestCase):
         self.assertGreater(checked, 80, "the scan must still find the command handlers")
 
     def test_convert_smoke_and_html_render_return_command_responses(self):
-        with patch("wps_ai_agent_cli.cli_environment.run_conversion_smoke", return_value={
-            "ok": True, "data": {"output_path": "out.pdf", "output_bytes": 12}, "errors": [],
-        }):
+        with patch(
+            "wps_ai_agent_cli.cli_environment.run_conversion_smoke",
+            return_value={
+                "ok": True,
+                "data": {"output_path": "out.pdf", "output_bytes": 12},
+                "errors": [],
+            },
+        ):
             converted = convert_smoke_response("req", "writer", "in.docx", "out.pdf", "pdf")
         self.assertIsInstance(converted, CommandResponse)
         self.assertTrue(converted.ok)
@@ -196,9 +206,14 @@ class ResponseReturnTests(unittest.TestCase):
         self.assertTrue(rendered.ok)
         self.assertEqual(rendered.command, "html-render")
 
-        with patch("wps_ai_agent_cli.cli_spreadsheet.read_spreadsheet_range", return_value=(
-            True, {"range": "A1:B1", "values": [[1, 2]]}, [],
-        )):
+        with patch(
+            "wps_ai_agent_cli.cli_spreadsheet.read_spreadsheet_range",
+            return_value=(
+                True,
+                {"range": "A1:B1", "values": [[1, 2]]},
+                [],
+            ),
+        ):
             read = spreadsheet_read_response("req", "doc_1", "A1:B1", None)
         self.assertIsInstance(read, CommandResponse)
         self.assertTrue(read.ok)

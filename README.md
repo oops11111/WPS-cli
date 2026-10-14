@@ -18,7 +18,7 @@ pip install -e ".[test]"    # 运行测试所需的全部依赖
 pip install -e ".[lint]"    # 代码检查：ruff（版本与 CI 一致）
 ```
 
-提交前可以在仓库根目录运行 `ruff check .`，规则写在 `pyproject.toml` 里，CI 的 lint 任务也运行同一条命令。
+提交前可以在仓库根目录运行 `ruff check .` 和 `ruff format .`，规则和格式设置写在 `pyproject.toml` 里，CI 的 lint 任务运行 `ruff check .` 和 `ruff format --check .`。整仓库格式化的提交记在 `.git-blame-ignore-revs`，`git blame --ignore-revs-file .git-blame-ignore-revs` 可以跳过它。
 
 HTML 渲染（`html-render`）额外需要 Node.js 18 及以上、Microsoft Edge 和 Playwright：
 

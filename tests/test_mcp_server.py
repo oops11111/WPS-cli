@@ -70,38 +70,60 @@ class McpServerTests(unittest.TestCase):
 
     def test_notifications_are_silent_and_idless_requests_cannot_run_tools(self):
         with patch("wps_ai_agent_cli.mcp_server.call_mcp_tool") as call_tool:
-            response = handle_mcp_request({
-                "jsonrpc": "2.0", "method": "tools/call",
-                "params": {"name": "wps_agent_tasks", "arguments": {}},
-            })
+            response = handle_mcp_request(
+                {
+                    "jsonrpc": "2.0",
+                    "method": "tools/call",
+                    "params": {"name": "wps_agent_tasks", "arguments": {}},
+                }
+            )
         self.assertEqual(response["error"]["code"], -32600)
         self.assertIsNone(response["id"])
         call_tool.assert_not_called()
 
-        self.assertIsNone(handle_mcp_request({
-            "jsonrpc": "2.0", "method": "notifications/initialized",
-        }))
-        self.assertIsNone(handle_mcp_request({
-            "jsonrpc": "2.0", "method": "notifications/future-event", "params": {},
-        }))
+        self.assertIsNone(
+            handle_mcp_request(
+                {
+                    "jsonrpc": "2.0",
+                    "method": "notifications/initialized",
+                }
+            )
+        )
+        self.assertIsNone(
+            handle_mcp_request(
+                {
+                    "jsonrpc": "2.0",
+                    "method": "notifications/future-event",
+                    "params": {},
+                }
+            )
+        )
 
     def test_request_envelope_preserves_valid_string_and_integer_ids(self):
         for request_id in (0, "request-id"):
             with self.subTest(request_id=request_id):
-                response = handle_mcp_request({
-                    "jsonrpc": "2.0", "id": request_id, "method": "initialize",
-                    "params": initialize_params(),
-                })
+                response = handle_mcp_request(
+                    {
+                        "jsonrpc": "2.0",
+                        "id": request_id,
+                        "method": "initialize",
+                        "params": initialize_params(),
+                    }
+                )
                 self.assertEqual(response["id"], request_id)
                 self.assertIn("protocolVersion", response["result"])
 
     def test_initialize_selects_supported_version_and_validates_required_params(self):
         for requested_version in (MCP_PROTOCOL_VERSION, "future-unknown-version"):
             with self.subTest(requested_version=requested_version):
-                response = handle_mcp_request({
-                    "jsonrpc": "2.0", "id": "negotiation", "method": "initialize",
-                    "params": initialize_params(requested_version),
-                })
+                response = handle_mcp_request(
+                    {
+                        "jsonrpc": "2.0",
+                        "id": "negotiation",
+                        "method": "initialize",
+                        "params": initialize_params(requested_version),
+                    }
+                )
                 self.assertEqual(response["id"], "negotiation")
                 self.assertEqual(response["result"]["protocolVersion"], MCP_PROTOCOL_VERSION)
 
@@ -113,9 +135,14 @@ class McpServerTests(unittest.TestCase):
         )
         for params in invalid_params:
             with self.subTest(params=params):
-                response = handle_mcp_request({
-                    "jsonrpc": "2.0", "id": 17, "method": "initialize", "params": params,
-                })
+                response = handle_mcp_request(
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 17,
+                        "method": "initialize",
+                        "params": params,
+                    }
+                )
                 self.assertEqual(response["id"], 17)
                 self.assertEqual(response["error"]["code"], -32602)
 
@@ -124,14 +151,23 @@ class McpServerTests(unittest.TestCase):
             message = {"jsonrpc": "2.0", "id": "ping", "method": "ping"}
             if params is not None:
                 message["params"] = params
-            self.assertEqual(handle_mcp_request(message), {
-                "jsonrpc": "2.0", "id": "ping", "result": {},
-            })
+            self.assertEqual(
+                handle_mcp_request(message),
+                {
+                    "jsonrpc": "2.0",
+                    "id": "ping",
+                    "result": {},
+                },
+            )
 
-        response = handle_mcp_request({
-            "jsonrpc": "2.0", "id": "ping-invalid", "method": "ping",
-            "params": {"unexpected": True},
-        })
+        response = handle_mcp_request(
+            {
+                "jsonrpc": "2.0",
+                "id": "ping-invalid",
+                "method": "ping",
+                "params": {"unexpected": True},
+            }
+        )
         self.assertEqual(response["error"]["code"], -32602)
 
     def test_stdio_ping_works_after_handshake_and_session_remains_usable(self):
@@ -153,8 +189,13 @@ class McpServerTests(unittest.TestCase):
         env = dict(os.environ, PYTHONPATH=str(root / "src"))
         process = subprocess.Popen(
             [sys.executable, "-m", "wps_ai_agent_cli", "mcp-server"],
-            stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-            text=True, encoding="utf-8", cwd=root, env=env,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            encoding="utf-8",
+            cwd=root,
+            env=env,
         )
         replies = Queue()
 
@@ -167,8 +208,12 @@ class McpServerTests(unittest.TestCase):
         try:
             requests = (
                 {"jsonrpc": "2.0", "id": "malformed", "method": "initialize", "params": {}},
-                {"jsonrpc": "2.0", "id": "fallback", "method": "initialize",
-                 "params": initialize_params("future-unknown-version")},
+                {
+                    "jsonrpc": "2.0",
+                    "id": "fallback",
+                    "method": "initialize",
+                    "params": initialize_params("future-unknown-version"),
+                },
             )
             responses = []
             for request in requests:
@@ -181,7 +226,9 @@ class McpServerTests(unittest.TestCase):
             self.assertEqual(responses[1]["id"], "fallback")
             self.assertEqual(responses[1]["result"]["protocolVersion"], MCP_PROTOCOL_VERSION)
             process.stdin.write(json.dumps({"jsonrpc": "2.0", "method": "notifications/initialized"}) + "\n")
-            process.stdin.write(json.dumps({"jsonrpc": "2.0", "id": "still-live", "method": "tools/list", "params": {}}) + "\n")
+            process.stdin.write(
+                json.dumps({"jsonrpc": "2.0", "id": "still-live", "method": "tools/list", "params": {}}) + "\n"
+            )
             process.stdin.flush()
             response = json.loads(replies.get(timeout=10))
             self.assertEqual(response["id"], "still-live")
@@ -207,8 +254,13 @@ class McpServerTests(unittest.TestCase):
         env = dict(os.environ, PYTHONPATH=str(root / "src"))
         process = subprocess.Popen(
             [sys.executable, "-m", "wps_ai_agent_cli", "mcp-server"],
-            stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-            text=True, encoding="utf-8", cwd=root, env=env,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            encoding="utf-8",
+            cwd=root,
+            env=env,
         )
         replies = Queue()
 
@@ -221,9 +273,15 @@ class McpServerTests(unittest.TestCase):
         try:
             for request in (
                 {"jsonrpc": "1.0", "id": "bad-version", "method": "initialize"},
-                {"jsonrpc": "2.0", "id": None, "method": "tools/call", "params": {
-                    "name": "wps_agent_tasks", "arguments": {},
-                }},
+                {
+                    "jsonrpc": "2.0",
+                    "id": None,
+                    "method": "tools/call",
+                    "params": {
+                        "name": "wps_agent_tasks",
+                        "arguments": {},
+                    },
+                },
                 {"jsonrpc": "2.0", "id": "bad-params", "method": "initialize", "params": []},
             ):
                 process.stdin.write(json.dumps(request) + "\n")
@@ -232,9 +290,15 @@ class McpServerTests(unittest.TestCase):
                 self.assertEqual(response["error"]["code"], -32600)
                 self.assertIsNone(response["id"])
 
-            process.stdin.write(json.dumps({
-                "jsonrpc": "2.0", "method": "notifications/initialized",
-            }) + "\n")
+            process.stdin.write(
+                json.dumps(
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "notifications/initialized",
+                    }
+                )
+                + "\n"
+            )
             process.stdin.flush()
             valid = {"jsonrpc": "2.0", "id": "after-errors", "method": "initialize", "params": initialize_params()}
             process.stdin.write(json.dumps(valid) + "\n")
@@ -264,8 +328,13 @@ class McpServerTests(unittest.TestCase):
         env = dict(os.environ, PYTHONPATH=str(root / "src"))
         process = subprocess.Popen(
             [sys.executable, "-m", "wps_ai_agent_cli", "mcp-server"],
-            stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-            text=True, encoding="utf-8", cwd=root, env=env,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            encoding="utf-8",
+            cwd=root,
+            env=env,
         )
         replies = Queue()
 
@@ -312,8 +381,13 @@ class McpServerTests(unittest.TestCase):
         env = dict(os.environ, PYTHONPATH=str(root / "src"))
         process = subprocess.Popen(
             [sys.executable, "-m", "wps_ai_agent_cli", "mcp-server"],
-            stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-            text=True, encoding="utf-8", cwd=root, env=env,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            encoding="utf-8",
+            cwd=root,
+            env=env,
         )
         replies = Queue()
 
@@ -335,9 +409,13 @@ class McpServerTests(unittest.TestCase):
 
         expected_names = [schema["name"] for schema in list_mcp_tool_schemas()]
         try:
-            initialize = exchange("init", "initialize", {
-                **initialize_params(),
-            })
+            initialize = exchange(
+                "init",
+                "initialize",
+                {
+                    **initialize_params(),
+                },
+            )
             self.assertEqual(initialize["result"]["protocolVersion"], MCP_PROTOCOL_VERSION)
             process.stdin.write(json.dumps({"jsonrpc": "2.0", "method": "notifications/initialized"}) + "\n")
             process.stdin.flush()
@@ -359,9 +437,14 @@ class McpServerTests(unittest.TestCase):
             invalid_cursor = exchange("bad-cursor", "tools/list", {"cursor": "invalid"})
             self.assertEqual(invalid_cursor["error"]["code"], -32602)
 
-            call = exchange("safe-call", "tools/call", {
-                "name": "wps_agent_tasks", "arguments": {"phase": "phase3", "status": "next"},
-            })["result"]
+            call = exchange(
+                "safe-call",
+                "tools/call",
+                {
+                    "name": "wps_agent_tasks",
+                    "arguments": {"phase": "phase3", "status": "next"},
+                },
+            )["result"]
             self.assertFalse(call["isError"])
             self.assertTrue(call["structuredContent"]["mcp_call"]["response"]["ok"])
             self.assertIsNone(process.poll())
@@ -390,8 +473,13 @@ class McpServerTests(unittest.TestCase):
             env = dict(os.environ, PYTHONPATH=str(Path(__file__).resolve().parents[1] / "src"))
             process = subprocess.Popen(
                 [sys.executable, "-m", "wps_ai_agent_cli", "mcp-server"],
-                stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                text=True, encoding="utf-8", cwd=root, env=env,
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                encoding="utf-8",
+                cwd=root,
+                env=env,
             )
             replies = Queue()
 
@@ -409,11 +497,19 @@ class McpServerTests(unittest.TestCase):
                 process.stdin.write(json.dumps({"jsonrpc": "2.0", "method": "notifications/initialized"}) + "\n")
                 process.stdin.flush()
                 for index in range(2):
-                    request = {"jsonrpc": "2.0", "id": index, "method": "tools/call", "params": {
-                        "name": "wps_agent_html_batch_convert", "arguments": {
-                            "input_dir": str(source), "output_dir": str(root / f"output-{index}"), "mode": "docx",
+                    request = {
+                        "jsonrpc": "2.0",
+                        "id": index,
+                        "method": "tools/call",
+                        "params": {
+                            "name": "wps_agent_html_batch_convert",
+                            "arguments": {
+                                "input_dir": str(source),
+                                "output_dir": str(root / f"output-{index}"),
+                                "mode": "docx",
+                            },
                         },
-                    }}
+                    }
                     process.stdin.write(json.dumps(request) + "\n")
                     process.stdin.flush()
                     response = json.loads(replies.get(timeout=10))
@@ -438,16 +534,26 @@ class McpServerTests(unittest.TestCase):
 
     def test_batch_response_arrives_while_input_remains_open(self):
         waiting_for_input, response_flushed = Event(), Event()
-        request = {"jsonrpc": "2.0", "id": "live", "method": "tools/call", "params": {
-            "name": "wps_agent_html_batch_convert", "arguments": {},
-        }}
+        request = {
+            "jsonrpc": "2.0",
+            "id": "live",
+            "method": "tools/call",
+            "params": {
+                "name": "wps_agent_html_batch_convert",
+                "arguments": {},
+            },
+        }
 
         class OpenInput:
             def __iter__(self):
-                yield json.dumps({
-                    "jsonrpc": "2.0", "id": "init", "method": "initialize",
-                    "params": initialize_params(),
-                })
+                yield json.dumps(
+                    {
+                        "jsonrpc": "2.0",
+                        "id": "init",
+                        "method": "initialize",
+                        "params": initialize_params(),
+                    }
+                )
                 yield json.dumps({"jsonrpc": "2.0", "method": "notifications/initialized"})
                 yield json.dumps(request)
                 waiting_for_input.set()
@@ -481,9 +587,7 @@ class McpServerTests(unittest.TestCase):
         self.assertFalse(response["result"]["capabilities"]["tools"]["listChanged"])
 
     def test_tools_list_returns_mcp_tool_shapes(self):
-        response = handle_mcp_request(
-            {"jsonrpc": "2.0", "id": 2, "method": "tools/list", "params": {}}
-        )
+        response = handle_mcp_request({"jsonrpc": "2.0", "id": 2, "method": "tools/list", "params": {}})
         tools = response["result"]["tools"]
         names = {tool["name"] for tool in tools}
 
@@ -501,10 +605,14 @@ class McpServerTests(unittest.TestCase):
         page_count = 0
         while True:
             params = {"cursor": cursor} if cursor is not None else {}
-            response = handle_mcp_request({
-                "jsonrpc": "2.0", "id": page_count + 1,
-                "method": "tools/list", "params": params,
-            })
+            response = handle_mcp_request(
+                {
+                    "jsonrpc": "2.0",
+                    "id": page_count + 1,
+                    "method": "tools/list",
+                    "params": params,
+                }
+            )
             result = response["result"]
             page_count += 1
             self.assertEqual(result["resultType"], "complete")
@@ -526,42 +634,65 @@ class McpServerTests(unittest.TestCase):
     def test_tools_list_rejects_invalid_and_stale_cursors(self):
         for cursor in ("", "not-a-cursor", 12, None):
             with self.subTest(cursor=cursor):
-                response = handle_mcp_request({
-                    "jsonrpc": "2.0", "id": "invalid", "method": "tools/list",
-                    "params": {"cursor": cursor},
-                })
+                response = handle_mcp_request(
+                    {
+                        "jsonrpc": "2.0",
+                        "id": "invalid",
+                        "method": "tools/list",
+                        "params": {"cursor": cursor},
+                    }
+                )
                 self.assertEqual(response["error"]["code"], -32602)
 
-        first_page = handle_mcp_request({
-            "jsonrpc": "2.0", "id": 1, "method": "tools/list", "params": {},
-        })["result"]
+        first_page = handle_mcp_request(
+            {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "tools/list",
+                "params": {},
+            }
+        )["result"]
         cursor_payload = first_page["nextCursor"]
         encoded = cursor_payload.encode("ascii")
         decoded = base64.urlsafe_b64decode(encoded + b"=" * (-len(encoded) % 4)).decode("ascii")
         fingerprint, _, _ = decoded.rpartition(":")
-        out_of_range = base64.urlsafe_b64encode(
-            f"{fingerprint}:{len(list_mcp_tool_schemas())}".encode("ascii")
-        ).rstrip(b"=").decode("ascii")
-        response = handle_mcp_request({
-            "jsonrpc": "2.0", "id": 2, "method": "tools/list",
-            "params": {"cursor": out_of_range},
-        })
+        out_of_range = (
+            base64.urlsafe_b64encode(f"{fingerprint}:{len(list_mcp_tool_schemas())}".encode("ascii"))
+            .rstrip(b"=")
+            .decode("ascii")
+        )
+        response = handle_mcp_request(
+            {
+                "jsonrpc": "2.0",
+                "id": 2,
+                "method": "tools/list",
+                "params": {"cursor": out_of_range},
+            }
+        )
         self.assertEqual(response["error"]["code"], -32602)
 
         with patch("wps_ai_agent_cli.mcp_server.list_mcp_tool_schemas", return_value=list_mcp_tool_schemas()[:-1]):
-            response = handle_mcp_request({
-                "jsonrpc": "2.0", "id": 3, "method": "tools/list",
-                "params": {"cursor": cursor_payload},
-            })
+            response = handle_mcp_request(
+                {
+                    "jsonrpc": "2.0",
+                    "id": 3,
+                    "method": "tools/list",
+                    "params": {"cursor": cursor_payload},
+                }
+            )
         self.assertEqual(response["error"]["code"], -32602)
 
     def test_tools_list_rejects_oversized_cursor_before_base64_decode(self):
         oversized = "A" * (MCP_TOOLS_CURSOR_MAX_LENGTH + 1)
         with patch("wps_ai_agent_cli.mcp_server.base64.b64decode") as decode:
-            response = handle_mcp_request({
-                "jsonrpc": "2.0", "id": "oversized", "method": "tools/list",
-                "params": {"cursor": oversized},
-            })
+            response = handle_mcp_request(
+                {
+                    "jsonrpc": "2.0",
+                    "id": "oversized",
+                    "method": "tools/list",
+                    "params": {"cursor": oversized},
+                }
+            )
 
         self.assertEqual(response["error"]["code"], -32602)
         decode.assert_not_called()
@@ -594,14 +725,22 @@ class McpServerTests(unittest.TestCase):
         tool = list_mcp_tool_schemas()[0]
         with patch(
             "wps_ai_agent_cli.mcp_server.call_mcp_tool",
-            return_value=(False, {"tool_name": tool["name"], "response": None}, [
-                {"code": "TEST_FAILURE", "message": "Synthetic adapter failure."},
-            ]),
+            return_value=(
+                False,
+                {"tool_name": tool["name"], "response": None},
+                [
+                    {"code": "TEST_FAILURE", "message": "Synthetic adapter failure."},
+                ],
+            ),
         ):
-            response = handle_mcp_request({
-                "jsonrpc": "2.0", "id": "tool-error", "method": "tools/call",
-                "params": {"name": tool["name"], "arguments": {}},
-            })
+            response = handle_mcp_request(
+                {
+                    "jsonrpc": "2.0",
+                    "id": "tool-error",
+                    "method": "tools/call",
+                    "params": {"name": tool["name"], "arguments": {}},
+                }
+            )
 
         self.assertTrue(response["result"]["isError"])
         structured = response["result"]["structuredContent"]
@@ -616,11 +755,17 @@ class McpServerTests(unittest.TestCase):
     def test_a_failed_command_reports_its_error_codes_in_the_text_the_agent_reads(self):
         # Agents read the text content. Before this was fixed it held "errors": [] for a failed command,
         # and the code (for example DOCUMENT_HELD_OPEN) was only in the nested response.
-        response = handle_mcp_request({
-            "jsonrpc": "2.0", "id": "command-error", "method": "tools/call",
-            "params": {"name": "wps_agent_restore_backup",
-                       "arguments": {"document_id": "doc_missing", "backup_name": "x.xlsx"}},
-        })
+        response = handle_mcp_request(
+            {
+                "jsonrpc": "2.0",
+                "id": "command-error",
+                "method": "tools/call",
+                "params": {
+                    "name": "wps_agent_restore_backup",
+                    "arguments": {"document_id": "doc_missing", "backup_name": "x.xlsx"},
+                },
+            }
+        )
 
         result = response["result"]
         self.assertTrue(result["isError"])
@@ -632,19 +777,27 @@ class McpServerTests(unittest.TestCase):
         self.assertEqual(result["structuredContent"]["mcp_call"]["response"]["errors"], text["errors"])
 
     def test_copied_errors_leave_details_in_the_response_and_cap_the_message(self):
-        envelope = {"ok": False, "summary": "failed", "errors": [
-            {"code": "BIG", "message": "m" * 5000, "details": {"diagnostics": ["x" * 100] * 1000}},
-        ]}
+        envelope = {
+            "ok": False,
+            "summary": "failed",
+            "errors": [
+                {"code": "BIG", "message": "m" * 5000, "details": {"diagnostics": ["x" * 100] * 1000}},
+            ],
+        }
 
         def fake_run(argv, output_stream=None):
             output_stream.write(json.dumps(envelope))
             return 1
 
         with patch("wps_ai_agent_cli.cli.run", side_effect=fake_run):
-            response = handle_mcp_request({
-                "jsonrpc": "2.0", "id": "big-error", "method": "tools/call",
-                "params": {"name": "wps_agent_tasks", "arguments": {}},
-            })
+            response = handle_mcp_request(
+                {
+                    "jsonrpc": "2.0",
+                    "id": "big-error",
+                    "method": "tools/call",
+                    "params": {"name": "wps_agent_tasks", "arguments": {}},
+                }
+            )
 
         result = response["result"]
         text = json.loads(result["content"][0]["text"])
@@ -653,10 +806,14 @@ class McpServerTests(unittest.TestCase):
         self.assertEqual(result["structuredContent"]["mcp_call"]["response"], envelope)
 
     def test_a_successful_command_reports_no_errors(self):
-        response = handle_mcp_request({
-            "jsonrpc": "2.0", "id": "command-ok", "method": "tools/call",
-            "params": {"name": "wps_agent_tasks", "arguments": {"phase": "phase4"}},
-        })
+        response = handle_mcp_request(
+            {
+                "jsonrpc": "2.0",
+                "id": "command-ok",
+                "method": "tools/call",
+                "params": {"name": "wps_agent_tasks", "arguments": {"phase": "phase4"}},
+            }
+        )
 
         result = response["result"]
         self.assertFalse(result["isError"])
@@ -665,10 +822,14 @@ class McpServerTests(unittest.TestCase):
 
     def test_tools_call_unknown_name_returns_protocol_error_without_adapter_dispatch(self):
         with patch("wps_ai_agent_cli.mcp_server.call_mcp_tool") as call_tool:
-            response = handle_mcp_request({
-                "jsonrpc": "2.0", "id": "unknown-tool", "method": "tools/call",
-                "params": {"name": "wps_agent_not_in_catalog", "arguments": {}},
-            })
+            response = handle_mcp_request(
+                {
+                    "jsonrpc": "2.0",
+                    "id": "unknown-tool",
+                    "method": "tools/call",
+                    "params": {"name": "wps_agent_not_in_catalog", "arguments": {}},
+                }
+            )
 
         self.assertEqual(response["error"]["code"], -32602)
         self.assertEqual(response["id"], "unknown-tool")
@@ -676,10 +837,14 @@ class McpServerTests(unittest.TestCase):
 
     def test_tools_call_invalid_arguments_returns_protocol_error_without_adapter_dispatch(self):
         with patch("wps_ai_agent_cli.mcp_server.call_mcp_tool") as call_tool:
-            response = handle_mcp_request({
-                "jsonrpc": "2.0", "id": "invalid-arguments", "method": "tools/call",
-                "params": {"name": "wps_agent_mcp_tools", "arguments": {"mutates_document": True}},
-            })
+            response = handle_mcp_request(
+                {
+                    "jsonrpc": "2.0",
+                    "id": "invalid-arguments",
+                    "method": "tools/call",
+                    "params": {"name": "wps_agent_mcp_tools", "arguments": {"mutates_document": True}},
+                }
+            )
 
         self.assertEqual(response["error"]["code"], -32602)
         self.assertEqual(response["id"], "invalid-arguments")
@@ -691,8 +856,13 @@ class McpServerTests(unittest.TestCase):
         env = dict(os.environ, PYTHONPATH=str(root / "src"))
         process = subprocess.Popen(
             [sys.executable, "-m", "wps_ai_agent_cli", "mcp-server"],
-            stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-            text=True, encoding="utf-8", cwd=root, env=env,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            encoding="utf-8",
+            cwd=root,
+            env=env,
         )
         replies = Queue()
 
@@ -708,18 +878,30 @@ class McpServerTests(unittest.TestCase):
             process.stdin.flush()
             self.assertEqual(json.loads(replies.get(timeout=10))["id"], "init")
             process.stdin.write(json.dumps({"jsonrpc": "2.0", "method": "notifications/initialized"}) + "\n")
-            unknown = {"jsonrpc": "2.0", "id": "unknown", "method": "tools/call", "params": {
-                "name": "wps_agent_not_in_catalog", "arguments": {},
-            }}
+            unknown = {
+                "jsonrpc": "2.0",
+                "id": "unknown",
+                "method": "tools/call",
+                "params": {
+                    "name": "wps_agent_not_in_catalog",
+                    "arguments": {},
+                },
+            }
             process.stdin.write(json.dumps(unknown) + "\n")
             process.stdin.flush()
             invalid = json.loads(replies.get(timeout=10))
             self.assertEqual(invalid["id"], "unknown")
             self.assertEqual(invalid["error"]["code"], -32602)
 
-            invalid_arguments = {"jsonrpc": "2.0", "id": "bad-type", "method": "tools/call", "params": {
-                "name": "wps_agent_mcp_tools", "arguments": {"mutates_document": True},
-            }}
+            invalid_arguments = {
+                "jsonrpc": "2.0",
+                "id": "bad-type",
+                "method": "tools/call",
+                "params": {
+                    "name": "wps_agent_mcp_tools",
+                    "arguments": {"mutates_document": True},
+                },
+            }
             process.stdin.write(json.dumps(invalid_arguments) + "\n")
             process.stdin.flush()
             response = json.loads(replies.get(timeout=10))
@@ -781,8 +963,13 @@ class McpServerTests(unittest.TestCase):
         env = dict(os.environ, PYTHONPATH=str(root / "src"))
         process = subprocess.Popen(
             [sys.executable, "-m", "wps_ai_agent_cli", "mcp-server"],
-            stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-            text=True, encoding="utf-8", cwd=root, env=env,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            encoding="utf-8",
+            cwd=root,
+            env=env,
         )
         replies = Queue()
 
@@ -837,8 +1024,13 @@ class McpServerTests(unittest.TestCase):
             output = workspace / "output"
             process = subprocess.Popen(
                 [sys.executable, "-m", "wps_ai_agent_cli", "mcp-server"],
-                stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                text=True, encoding="utf-8", cwd=workspace, env=env,
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                encoding="utf-8",
+                cwd=workspace,
+                env=env,
             )
             replies = Queue()
 
@@ -858,7 +1050,9 @@ class McpServerTests(unittest.TestCase):
                 duplicate_call = (
                     '{"jsonrpc":"2.0","id":"ambiguous","method":"tools/call","params":'
                     '{"name":"wps_agent_html_batch_convert","arguments":{"input_dir":'
-                    + json.dumps(str(source)) + ',"output_dir":' + json.dumps(str(output))
+                    + json.dumps(str(source))
+                    + ',"output_dir":'
+                    + json.dumps(str(output))
                     + ',"mode":"docx","mode":"pdf"}}}'
                 )
                 process.stdin.write(duplicate_call + "\n")
@@ -921,7 +1115,9 @@ class McpServerTests(unittest.TestCase):
         payload = "\n".join(json.dumps(message) for message in messages) + "\n"
         output_stream = io.StringIO()
         with patch("wps_ai_agent_cli.mcp_server.MCP_STDIO_MAX_LINE_CHARS", max_chars):
-            self.assertEqual(serve_stdio(io.StringIO(payload + exact_line + oversized_line + following), output_stream), 0)
+            self.assertEqual(
+                serve_stdio(io.StringIO(payload + exact_line + oversized_line + following), output_stream), 0
+            )
 
         responses = [json.loads(line) for line in output_stream.getvalue().splitlines()]
         self.assertEqual(responses[1]["id"], "exact")
@@ -937,8 +1133,13 @@ class McpServerTests(unittest.TestCase):
         env = dict(os.environ, PYTHONPATH=str(root / "src"))
         process = subprocess.Popen(
             [sys.executable, "-m", "wps_ai_agent_cli", "mcp-server"],
-            stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-            text=True, encoding="utf-8", cwd=root, env=env,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            encoding="utf-8",
+            cwd=root,
+            env=env,
         )
         replies = Queue()
 
@@ -994,8 +1195,13 @@ class McpServerTests(unittest.TestCase):
             output = workspace / "output"
             process = subprocess.Popen(
                 [sys.executable, "-m", "wps_ai_agent_cli", "mcp-server"],
-                stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                text=True, encoding="utf-8", cwd=workspace, env=env,
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                encoding="utf-8",
+                cwd=workspace,
+                env=env,
             )
             replies = Queue()
 
@@ -1007,7 +1213,10 @@ class McpServerTests(unittest.TestCase):
             reader.start()
             try:
                 invalid_initialize = {
-                    "jsonrpc": "2.0", "id": "reserved", "method": "initialize", "params": {},
+                    "jsonrpc": "2.0",
+                    "id": "reserved",
+                    "method": "initialize",
+                    "params": {},
                 }
                 process.stdin.write(json.dumps(invalid_initialize) + "\n")
                 process.stdin.flush()
@@ -1019,11 +1228,19 @@ class McpServerTests(unittest.TestCase):
                 self.assertEqual(json.loads(replies.get(timeout=10))["id"], "init")
                 process.stdin.write(json.dumps({"jsonrpc": "2.0", "method": "notifications/initialized"}) + "\n")
 
-                duplicate_call = {"jsonrpc": "2.0", "id": "reserved", "method": "tools/call", "params": {
-                    "name": "wps_agent_html_batch_convert", "arguments": {
-                        "input_dir": str(source), "output_dir": str(output), "mode": "docx",
+                duplicate_call = {
+                    "jsonrpc": "2.0",
+                    "id": "reserved",
+                    "method": "tools/call",
+                    "params": {
+                        "name": "wps_agent_html_batch_convert",
+                        "arguments": {
+                            "input_dir": str(source),
+                            "output_dir": str(output),
+                            "mode": "docx",
+                        },
                     },
-                }}
+                }
                 process.stdin.write(json.dumps(duplicate_call) + "\n")
                 process.stdin.flush()
                 duplicate_response = json.loads(replies.get(timeout=10))
@@ -1059,8 +1276,13 @@ class McpServerTests(unittest.TestCase):
         env = dict(os.environ, PYTHONPATH=str(root / "src"))
         process = subprocess.Popen(
             [sys.executable, "-m", "wps_ai_agent_cli", "mcp-server"],
-            stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-            text=True, encoding="utf-8", cwd=root, env=env,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            encoding="utf-8",
+            cwd=root,
+            env=env,
         )
         replies = Queue()
 
@@ -1092,11 +1314,22 @@ class McpServerTests(unittest.TestCase):
             self.assertEqual(response["id"], "early")
             self.assertEqual(response["error"]["code"], -32600)
 
-            process.stdin.write(json.dumps({
-                "jsonrpc": "2.0", "method": "notifications/initialized",
-            }) + "\n")
+            process.stdin.write(
+                json.dumps(
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "notifications/initialized",
+                    }
+                )
+                + "\n"
+            )
             ready = {"jsonrpc": "2.0", "id": "ready", "method": "tools/list", "params": {}}
-            duplicate_init = {"jsonrpc": "2.0", "id": "duplicate", "method": "initialize", "params": initialize_params()}
+            duplicate_init = {
+                "jsonrpc": "2.0",
+                "id": "duplicate",
+                "method": "initialize",
+                "params": initialize_params(),
+            }
             process.stdin.write(json.dumps(ready) + "\n" + json.dumps(duplicate_init) + "\n")
             process.stdin.flush()
             ready_response = json.loads(replies.get(timeout=10))
@@ -1131,30 +1364,57 @@ class McpServerTests(unittest.TestCase):
                 (source / f"{name}.html").write_text(name, encoding="utf-8")
             started, release = Event(), Event()
             batch_request = {
-                "jsonrpc": "2.0", "id": "batch", "method": "tools/call",
-                "params": {"name": "wps_agent_html_batch_convert", "arguments": {
-                    "input_dir": str(source), "output_dir": str(output), "mode": "pdf", "task_id": "stdio_cancel",
-                }},
+                "jsonrpc": "2.0",
+                "id": "batch",
+                "method": "tools/call",
+                "params": {
+                    "name": "wps_agent_html_batch_convert",
+                    "arguments": {
+                        "input_dir": str(source),
+                        "output_dir": str(output),
+                        "mode": "pdf",
+                        "task_id": "stdio_cancel",
+                    },
+                },
             }
             cancel_request = {
-                "jsonrpc": "2.0", "id": "cancel", "method": "tools/call",
-                "params": {"name": "wps_agent_task_status_update", "arguments": {
-                    "task_id": "stdio_cancel", "state": "cancelled", "message": "stdio cancellation",
-                }},
+                "jsonrpc": "2.0",
+                "id": "cancel",
+                "method": "tools/call",
+                "params": {
+                    "name": "wps_agent_task_status_update",
+                    "arguments": {
+                        "task_id": "stdio_cancel",
+                        "state": "cancelled",
+                        "message": "stdio cancellation",
+                    },
+                },
             }
             overlapping_request = {
-                "jsonrpc": "2.0", "id": "overlap", "method": "tools/call",
-                "params": {"name": "wps_agent_html_batch_convert", "arguments": {
-                    "input_dir": str(source), "output_dir": str(root / "other-output"), "mode": "pdf", "task_id": "stdio_overlap",
-                }},
+                "jsonrpc": "2.0",
+                "id": "overlap",
+                "method": "tools/call",
+                "params": {
+                    "name": "wps_agent_html_batch_convert",
+                    "arguments": {
+                        "input_dir": str(source),
+                        "output_dir": str(root / "other-output"),
+                        "mode": "pdf",
+                        "task_id": "stdio_overlap",
+                    },
+                },
             }
 
             class RequestStream:
                 def __iter__(self):
-                    yield json.dumps({
-                        "jsonrpc": "2.0", "id": "init", "method": "initialize",
-                        "params": initialize_params(),
-                    })
+                    yield json.dumps(
+                        {
+                            "jsonrpc": "2.0",
+                            "id": "init",
+                            "method": "initialize",
+                            "params": initialize_params(),
+                        }
+                    )
                     yield json.dumps({"jsonrpc": "2.0", "method": "notifications/initialized"})
                     yield json.dumps(batch_request)
                     if not started.wait(5):
@@ -1176,16 +1436,26 @@ class McpServerTests(unittest.TestCase):
                 return True, {}, []
 
             output_stream = io.StringIO()
-            with patch("wps_ai_agent_cli.task_status.task_status_state_path", side_effect=lambda workspace=".": root / "statuses.json"), \
-                 patch("wps_ai_agent_cli.batch_conversion.render_html", side_effect=render):
+            with (
+                patch(
+                    "wps_ai_agent_cli.task_status.task_status_state_path",
+                    side_effect=lambda workspace=".": root / "statuses.json",
+                ),
+                patch("wps_ai_agent_cli.batch_conversion.render_html", side_effect=render),
+            ):
                 self.assertEqual(serve_stdio(RequestStream(), output_stream), 0)
 
             responses = {item["id"]: item for item in map(json.loads, output_stream.getvalue().splitlines())}
             self.assertEqual(responses["overlap"]["error"]["code"], -32000)
-            parse_error = next(item for item in map(json.loads, output_stream.getvalue().splitlines()) if item.get("error", {}).get("code") == -32700)
+            parse_error = next(
+                item
+                for item in map(json.loads, output_stream.getvalue().splitlines())
+                if item.get("error", {}).get("code") == -32700
+            )
             self.assertIsNone(parse_error["id"])
             invalid_request = next(
-                item for item in map(json.loads, output_stream.getvalue().splitlines())
+                item
+                for item in map(json.loads, output_stream.getvalue().splitlines())
                 if item.get("error", {}).get("code") == -32600
             )
             self.assertIsNone(invalid_request["id"])
@@ -1242,7 +1512,9 @@ class McpServerTests(unittest.TestCase):
             return True, {"response": {"summary": "slow done"}}, []
 
         tool_call = {
-            "jsonrpc": "2.0", "id": "slow", "method": "tools/call",
+            "jsonrpc": "2.0",
+            "id": "slow",
+            "method": "tools/call",
             "params": {"name": "wps_agent_tasks", "arguments": {}},
         }
         ping = {"jsonrpc": "2.0", "id": "ping", "method": "ping"}
@@ -1283,10 +1555,14 @@ class McpServerTests(unittest.TestCase):
             return True, {"response": {"summary": label}}, []
 
         def call(request_id, label):
-            return json.dumps({
-                "jsonrpc": "2.0", "id": request_id, "method": "tools/call",
-                "params": {"name": "wps_agent_task_status", "arguments": {"task_id": label}},
-            })
+            return json.dumps(
+                {
+                    "jsonrpc": "2.0",
+                    "id": request_id,
+                    "method": "tools/call",
+                    "params": {"name": "wps_agent_task_status", "arguments": {"task_id": label}},
+                }
+            )
 
         output_stream = io.StringIO()
         requests = list(self._stdio_session_lines(call("a", "one"), call("b", "two")))
@@ -1305,10 +1581,17 @@ class McpServerTests(unittest.TestCase):
             for name in ("a", "b"):
                 (source / f"{name}.html").write_text(name, encoding="utf-8")
             request = {
-                "jsonrpc": "2.0", "id": "complete", "method": "tools/call",
-                "params": {"name": "wps_agent_html_batch_convert", "arguments": {
-                    "input_dir": str(source), "output_dir": str(output), "mode": "pdf",
-                }},
+                "jsonrpc": "2.0",
+                "id": "complete",
+                "method": "tools/call",
+                "params": {
+                    "name": "wps_agent_html_batch_convert",
+                    "arguments": {
+                        "input_dir": str(source),
+                        "output_dir": str(output),
+                        "mode": "pdf",
+                    },
+                },
             }
             initialize = {"jsonrpc": "2.0", "id": "init", "method": "initialize", "params": initialize_params()}
             initialized = {"jsonrpc": "2.0", "method": "notifications/initialized"}
@@ -1330,9 +1613,15 @@ class McpServerTests(unittest.TestCase):
             self.assertEqual(batch_response["data"]["summary"]["passed"], 2)
 
     def test_stdio_contains_unexpected_batch_worker_exception(self):
-        batch = {"jsonrpc": "2.0", "id": "broken-batch", "method": "tools/call", "params": {
-            "name": "wps_agent_html_batch_convert", "arguments": {},
-        }}
+        batch = {
+            "jsonrpc": "2.0",
+            "id": "broken-batch",
+            "method": "tools/call",
+            "params": {
+                "name": "wps_agent_html_batch_convert",
+                "arguments": {},
+            },
+        }
         listing = {"jsonrpc": "2.0", "id": "list", "method": "tools/list", "params": {}}
         initialize = {"jsonrpc": "2.0", "id": "init", "method": "initialize", "params": initialize_params()}
         initialized = {"jsonrpc": "2.0", "method": "notifications/initialized"}

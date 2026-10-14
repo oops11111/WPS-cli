@@ -26,10 +26,20 @@ from .ooxml import parse_xml_part
 SCHEMA_VERSION = "wps-agent-html/v1"
 _ID_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$")
 _OBJECT_TYPES = {
-    "p": "paragraph", "h1": "heading", "h2": "heading", "h3": "heading",
-    "h4": "heading", "h5": "heading", "h6": "heading", "li": "list_item",
-    "table": "table", "tr": "table_row", "td": "table_cell", "th": "table_header",
-    "a": "hyperlink", "img": "image",
+    "p": "paragraph",
+    "h1": "heading",
+    "h2": "heading",
+    "h3": "heading",
+    "h4": "heading",
+    "h5": "heading",
+    "h6": "heading",
+    "li": "list_item",
+    "table": "table",
+    "tr": "table_row",
+    "td": "table_cell",
+    "th": "table_header",
+    "a": "hyperlink",
+    "img": "image",
 }
 
 
@@ -46,10 +56,24 @@ def build_html_roundtrip_mapping(input_path: str | Path) -> tuple[bool, dict[str
     parser.feed(decode_html_bytes(raw)[0])
     nodes = list(_walk(parser.root))
     html_root = next((node for node in nodes if node.tag == "html"), None)
-    meta = next((node for node in nodes if node.tag == "meta" and node.attrs.get("name", "").casefold() == "wps-agent-schema"), None)
-    version = (html_root.attrs.get("data-wps-schema") if html_root else None) or (meta.attrs.get("content") if meta else None)
+    meta = next(
+        (node for node in nodes if node.tag == "meta" and node.attrs.get("name", "").casefold() == "wps-agent-schema"),
+        None,
+    )
+    version = (html_root.attrs.get("data-wps-schema") if html_root else None) or (
+        meta.attrs.get("content") if meta else None
+    )
     if version != SCHEMA_VERSION:
-        return False, {}, [{"code": "ROUNDTRIP_SCHEMA_REQUIRED", "message": f"Controlled round-trip requires schema {SCHEMA_VERSION}."}]
+        return (
+            False,
+            {},
+            [
+                {
+                    "code": "ROUNDTRIP_SCHEMA_REQUIRED",
+                    "message": f"Controlled round-trip requires schema {SCHEMA_VERSION}.",
+                }
+            ],
+        )
 
     errors: list[dict[str, Any]] = []
     seen: set[str] = set()
@@ -68,22 +92,57 @@ def build_html_roundtrip_mapping(input_path: str | Path) -> tuple[bool, dict[str
                 seen.add(object_id)
                 ids_by_node[id(node)] = object_id
             if node.tag not in _OBJECT_TYPES:
-                errors.append({"code": "UNSUPPORTED_OBJECT_TYPE", "message": f"Object ID is attached to unsupported <{node.tag}>."})
+                errors.append(
+                    {
+                        "code": "UNSUPPORTED_OBJECT_TYPE",
+                        "message": f"Object ID is attached to unsupported <{node.tag}>.",
+                    }
+                )
         elif node.tag in _OBJECT_TYPES:
             errors.append({"code": "OBJECT_ID_REQUIRED", "message": f"<{node.tag}> is missing data-wps-object-id."})
 
     if parser.unsupported:
-        errors.append({"code": "UNSUPPORTED_ROUNDTRIP_CSS", "message": "Embedded CSS is not supported by the v1 round-trip contract."})
+        errors.append(
+            {
+                "code": "UNSUPPORTED_ROUNDTRIP_CSS",
+                "message": "Embedded CSS is not supported by the v1 round-trip contract.",
+            }
+        )
     if parser.warnings:
-        errors.append({"code": "UNSUPPORTED_ROUNDTRIP_FEATURE", "message": "Executable content is not supported by the v1 round-trip contract."})
+        errors.append(
+            {
+                "code": "UNSUPPORTED_ROUNDTRIP_FEATURE",
+                "message": "Executable content is not supported by the v1 round-trip contract.",
+            }
+        )
     if parser.unsupported_elements:
-        errors.append({"code": "UNSUPPORTED_ROUNDTRIP_FEATURE", "message": "Embedded active or non-semantic content is not supported by the v1 round-trip contract: " + ", ".join(sorted(parser.unsupported_elements))})
+        errors.append(
+            {
+                "code": "UNSUPPORTED_ROUNDTRIP_FEATURE",
+                "message": "Embedded active or non-semantic content is not supported by the v1 round-trip contract: "
+                + ", ".join(sorted(parser.unsupported_elements)),
+            }
+        )
 
     for node in nodes:
         if node.tag in {"iframe", "object", "canvas", "svg"}:
-            errors.append({"code": "UNSUPPORTED_ROUNDTRIP_FEATURE", "message": f"<{node.tag}> is not supported by controlled round-trip."})
-        if node.attrs.get("style") or node.attrs.get("class") or (node.tag == "link" and node.attrs.get("rel", "").casefold() == "stylesheet"):
-            errors.append({"code": "UNSUPPORTED_ROUNDTRIP_CSS", "message": f"CSS on <{node.tag}> is not supported by the v1 round-trip contract."})
+            errors.append(
+                {
+                    "code": "UNSUPPORTED_ROUNDTRIP_FEATURE",
+                    "message": f"<{node.tag}> is not supported by controlled round-trip.",
+                }
+            )
+        if (
+            node.attrs.get("style")
+            or node.attrs.get("class")
+            or (node.tag == "link" and node.attrs.get("rel", "").casefold() == "stylesheet")
+        ):
+            errors.append(
+                {
+                    "code": "UNSUPPORTED_ROUNDTRIP_CSS",
+                    "message": f"CSS on <{node.tag}> is not supported by the v1 round-trip contract.",
+                }
+            )
         object_id = ids_by_node.get(id(node))
         if not object_id or node.tag not in _OBJECT_TYPES:
             continue
@@ -93,34 +152,45 @@ def build_html_roundtrip_mapping(input_path: str | Path) -> tuple[bool, dict[str
         while ancestor is not None and id(ancestor) not in ids_by_node:
             ancestor = parents.get(id(ancestor))
         parent = ancestor
-        mappings.append({
-            "object_id": object_id,
-            "bookmark_name": _bookmark_name(object_id),
-            "html_tag": node.tag,
-            "object_type": object_type,
-            "native_index": native_counts[object_type],
-            "parent_object_id": ids_by_node.get(id(parent)) if parent else None,
-            "text_sha256": hashlib.sha256(_text(node).encode("utf-8")).hexdigest(),
-            **({"href": node.attrs.get("href", "")} if node.tag == "a" else {}),
-        })
+        mappings.append(
+            {
+                "object_id": object_id,
+                "bookmark_name": _bookmark_name(object_id),
+                "html_tag": node.tag,
+                "object_type": object_type,
+                "native_index": native_counts[object_type],
+                "parent_object_id": ids_by_node.get(id(parent)) if parent else None,
+                "text_sha256": hashlib.sha256(_text(node).encode("utf-8")).hexdigest(),
+                **({"href": node.attrs.get("href", "")} if node.tag == "a" else {}),
+            }
+        )
     if not mappings:
         errors.append({"code": "NO_MAPPED_OBJECTS", "message": "No ID-bearing supported objects were found."})
     if errors:
         return False, {"schema_version": version, "mapping_count": len(mappings), "errors": errors}, errors
-    return True, {
-        "input_path": str(source), "schema_version": SCHEMA_VERSION,
-        "source_sha256": hashlib.sha256(raw).hexdigest(), "read_only": True,
-        "mapping_count": len(mappings), "mappings": mappings,
-        "contract": {
-            "object_id_attribute": "data-wps-object-id",
-            "stable_id_pattern": _ID_PATTERN.pattern,
-            "css_policy": "CSS is rejected in schema v1 to avoid untracked layout edits.",
-            "ambiguity_policy": "Missing/duplicate IDs and unsupported ID-bearing elements are rejected.",
+    return (
+        True,
+        {
+            "input_path": str(source),
+            "schema_version": SCHEMA_VERSION,
+            "source_sha256": hashlib.sha256(raw).hexdigest(),
+            "read_only": True,
+            "mapping_count": len(mappings),
+            "mappings": mappings,
+            "contract": {
+                "object_id_attribute": "data-wps-object-id",
+                "stable_id_pattern": _ID_PATTERN.pattern,
+                "css_policy": "CSS is rejected in schema v1 to avoid untracked layout edits.",
+                "ambiguity_policy": "Missing/duplicate IDs and unsupported ID-bearing elements are rejected.",
+            },
         },
-    }, []
+        [],
+    )
 
 
-def import_controlled_html(input_path: str | Path, output_path: str | Path) -> tuple[bool, dict[str, Any], list[dict[str, Any]]]:
+def import_controlled_html(
+    input_path: str | Path, output_path: str | Path
+) -> tuple[bool, dict[str, Any], list[dict[str, Any]]]:
     source = Path(input_path).expanduser().resolve()
     destination = Path(output_path).expanduser().resolve()
     valid, mapping, errors = build_html_roundtrip_mapping(source)
@@ -128,7 +198,11 @@ def import_controlled_html(input_path: str | Path, output_path: str | Path) -> t
         return False, {"roundtrip_mapping": mapping}, errors
     mapping_path = Path(str(destination) + ".wpsmap.json")
     if mapping_path.exists():
-        return False, {}, [{"code": "MAPPING_ALREADY_EXISTS", "message": f"Refusing to overwrite mapping: {mapping_path}"}]
+        return (
+            False,
+            {},
+            [{"code": "MAPPING_ALREADY_EXISTS", "message": f"Refusing to overwrite mapping: {mapping_path}"}],
+        )
     converted, document, conversion_errors = convert_html_editable(source, destination)
     if not converted:
         return False, {}, conversion_errors
@@ -136,14 +210,19 @@ def import_controlled_html(input_path: str | Path, output_path: str | Path) -> t
     try:
         with zipfile.ZipFile(destination) as archive:
             xml_root = parse_xml_part(archive, "word/document.xml")
-        bookmark_names = [element.get("{http://schemas.openxmlformats.org/wordprocessingml/2006/main}name") for element in xml_root.iter("{http://schemas.openxmlformats.org/wordprocessingml/2006/main}bookmarkStart")]
+        bookmark_names = [
+            element.get("{http://schemas.openxmlformats.org/wordprocessingml/2006/main}name")
+            for element in xml_root.iter("{http://schemas.openxmlformats.org/wordprocessingml/2006/main}bookmarkStart")
+        ]
         expected = [item["bookmark_name"] for item in mapping["mappings"]]
         if sorted(bookmark_names.count(name) for name in expected) != [1] * len(expected):
             raise ValueError("Generated DOCX bookmark identity does not match owned HTML IDs.")
         mapping["document_path"] = str(destination)
         mapping["document_sha256_at_import"] = document["sha256"]
         mapping["mapping_path"] = str(mapping_path)
-        handle = tempfile.NamedTemporaryFile(prefix=f".{destination.name}.", suffix=".json", dir=destination.parent, delete=False)
+        handle = tempfile.NamedTemporaryFile(
+            prefix=f".{destination.name}.", suffix=".json", dir=destination.parent, delete=False
+        )
         temporary = Path(handle.name)
         try:
             handle.write(json.dumps(mapping, ensure_ascii=False, sort_keys=True, indent=2).encode("utf-8"))
@@ -161,30 +240,51 @@ def import_controlled_html(input_path: str | Path, output_path: str | Path) -> t
         except OSError:
             pass
         return False, {}, [{"code": "ROUNDTRIP_IMPORT_FAILED", "message": str(exc)[:500]}]
-    return True, {
-        "document_path": str(destination), "mapping_path": str(mapping_path),
-        "object_count": len(mapping["mappings"]), "document_sha256": document["sha256"],
-        "editable": True, "bookmark_count": len(expected),
-    }, []
+    return (
+        True,
+        {
+            "document_path": str(destination),
+            "mapping_path": str(mapping_path),
+            "object_count": len(mapping["mappings"]),
+            "document_sha256": document["sha256"],
+            "editable": True,
+            "bookmark_count": len(expected),
+        },
+        [],
+    )
 
 
-def verify_controlled_document(document_path: str | Path, mapping_path: str | Path) -> tuple[bool, dict[str, Any], list[dict[str, Any]]]:
+def verify_controlled_document(
+    document_path: str | Path, mapping_path: str | Path
+) -> tuple[bool, dict[str, Any], list[dict[str, Any]]]:
     document = Path(document_path).expanduser().resolve()
     mapping_file = Path(mapping_path).expanduser().resolve()
     if not document.is_file() or not mapping_file.is_file():
         return False, {}, [{"code": "ROUNDTRIP_FILE_NOT_FOUND", "message": "DOCX and mapping sidecar must both exist."}]
     try:
         mapping = json.loads(mapping_file.read_text(encoding="utf-8"))
-        if not isinstance(mapping, dict) or mapping.get("schema_version") != SCHEMA_VERSION or not isinstance(mapping.get("mappings"), list):
+        if (
+            not isinstance(mapping, dict)
+            or mapping.get("schema_version") != SCHEMA_VERSION
+            or not isinstance(mapping.get("mappings"), list)
+        ):
             raise ValueError("Mapping sidecar has an unsupported schema or shape.")
-        if not all(isinstance(item, dict) and isinstance(item.get("bookmark_name"), str) and isinstance(item.get("object_type"), str) for item in mapping["mappings"]):
+        if not all(
+            isinstance(item, dict)
+            and isinstance(item.get("bookmark_name"), str)
+            and isinstance(item.get("object_type"), str)
+            for item in mapping["mappings"]
+        ):
             raise ValueError("Mapping sidecar contains an invalid object entry.")
         with zipfile.ZipFile(document) as archive:
             root = parse_xml_part(archive, "word/document.xml")
     except (OSError, ValueError, KeyError, TypeError, AttributeError, zipfile.BadZipFile, ET.ParseError) as exc:
         return False, {}, [{"code": "ROUNDTRIP_VERIFY_INPUT_INVALID", "message": str(exc)[:500]}]
     w_name = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}name"
-    actual = [node.get(w_name) for node in root.iter("{http://schemas.openxmlformats.org/wordprocessingml/2006/main}bookmarkStart")]
+    actual = [
+        node.get(w_name)
+        for node in root.iter("{http://schemas.openxmlformats.org/wordprocessingml/2006/main}bookmarkStart")
+    ]
     expected = [item.get("bookmark_name") for item in mapping["mappings"]]
     errors: list[dict[str, Any]] = []
     duplicate = sorted({name for name in actual if name and name.startswith("wps_") and actual.count(name) > 1})
@@ -192,54 +292,94 @@ def verify_controlled_document(document_path: str | Path, mapping_path: str | Pa
     repeated = [name for name in expected if actual.count(name) > 1]
     unexpected = sorted({name for name in actual if name and name.startswith("wps_") and name not in set(expected)})
     if missing:
-        errors.append({"code": "ROUNDTRIP_OBJECT_MISSING", "message": "One or more mapped object bookmarks are missing.", "details": missing})
+        errors.append(
+            {
+                "code": "ROUNDTRIP_OBJECT_MISSING",
+                "message": "One or more mapped object bookmarks are missing.",
+                "details": missing,
+            }
+        )
     if repeated or duplicate:
-        errors.append({"code": "ROUNDTRIP_OBJECT_DUPLICATED", "message": "One or more mapped object bookmarks are duplicated.", "details": sorted(set(repeated + duplicate))})
+        errors.append(
+            {
+                "code": "ROUNDTRIP_OBJECT_DUPLICATED",
+                "message": "One or more mapped object bookmarks are duplicated.",
+                "details": sorted(set(repeated + duplicate)),
+            }
+        )
     if unexpected:
-        errors.append({"code": "ROUNDTRIP_OBJECT_UNMAPPED", "message": "DOCX contains controlled bookmarks that are absent from the mapping sidecar.", "details": unexpected})
+        errors.append(
+            {
+                "code": "ROUNDTRIP_OBJECT_UNMAPPED",
+                "message": "DOCX contains controlled bookmarks that are absent from the mapping sidecar.",
+                "details": unexpected,
+            }
+        )
     expected_by_type: dict[str, list[str]] = {}
     for item in mapping["mappings"]:
         expected_by_type.setdefault(item["object_type"], []).append(item["bookmark_name"])
-    actual_by_type = {
-        kind: [name for name in actual if name in names]
-        for kind, names in expected_by_type.items()
-    }
+    actual_by_type = {kind: [name for name in actual if name in names] for kind, names in expected_by_type.items()}
     reordered = [kind for kind, names in expected_by_type.items() if actual_by_type[kind] != names]
     if reordered:
-        errors.append({"code": "ROUNDTRIP_OBJECT_REORDERED", "message": "Mapped objects changed order within a native object type.", "details": reordered})
+        errors.append(
+            {
+                "code": "ROUNDTRIP_OBJECT_REORDERED",
+                "message": "Mapped objects changed order within a native object type.",
+                "details": reordered,
+            }
+        )
     current_hash = hashlib.sha256(document.read_bytes()).hexdigest()
     result = {
-        "document_path": str(document), "mapping_path": str(mapping_file),
-        "schema_version": mapping["schema_version"], "object_count": len(expected),
+        "document_path": str(document),
+        "mapping_path": str(mapping_file),
+        "schema_version": mapping["schema_version"],
+        "object_count": len(expected),
         "bookmark_count": sum(1 for name in actual if name in set(expected)),
         "document_edited_since_import": current_hash != mapping.get("document_sha256_at_import"),
         "identity_status": "passed" if not errors else "failed",
-        "missing_count": len(missing), "duplicate_count": len(set(repeated + duplicate)),
-        "unmapped_count": len(unexpected), "reordered_types": reordered,
+        "missing_count": len(missing),
+        "duplicate_count": len(set(repeated + duplicate)),
+        "unmapped_count": len(unexpected),
+        "reordered_types": reordered,
     }
     return not errors, result, errors
 
 
-def _validate_controlled_export_paths(document_path: str | Path, mapping_path: str | Path, output_path: str | Path) -> tuple[Path, Path, Path, list[dict[str, Any]]]:
+def _validate_controlled_export_paths(
+    document_path: str | Path, mapping_path: str | Path, output_path: str | Path
+) -> tuple[Path, Path, Path, list[dict[str, Any]]]:
     document = Path(document_path).expanduser().resolve()
     mapping_file = Path(mapping_path).expanduser().resolve()
     output = Path(output_path).expanduser().resolve()
     if output.suffix.casefold() not in {".html", ".htm"}:
         return document, mapping_file, output, [{"code": "INVALID_OUTPUT", "message": "Output must use .html or .htm."}]
     if output.exists():
-        return document, mapping_file, output, [{"code": "OUTPUT_ALREADY_EXISTS", "message": f"Refusing to overwrite existing output: {output}"}]
+        return (
+            document,
+            mapping_file,
+            output,
+            [{"code": "OUTPUT_ALREADY_EXISTS", "message": f"Refusing to overwrite existing output: {output}"}],
+        )
     if not output.parent.is_dir():
-        return document, mapping_file, output, [{"code": "OUTPUT_DIRECTORY_NOT_FOUND", "message": f"Output directory does not exist: {output.parent}"}]
+        return (
+            document,
+            mapping_file,
+            output,
+            [{"code": "OUTPUT_DIRECTORY_NOT_FOUND", "message": f"Output directory does not exist: {output.parent}"}],
+        )
     return document, mapping_file, output, []
 
 
-
-def export_controlled_html(document_path: str | Path, mapping_path: str | Path, output_path: str | Path) -> tuple[bool, dict[str, Any], list[dict[str, Any]]]:
+def export_controlled_html(
+    document_path: str | Path, mapping_path: str | Path, output_path: str | Path
+) -> tuple[bool, dict[str, Any], list[dict[str, Any]]]:
     from docx import Document
     from docx.table import Table
     from docx.text.paragraph import Paragraph
 
-    document, mapping_file, output, path_errors = _validate_controlled_export_paths(document_path, mapping_path, output_path)
+    document, mapping_file, output, path_errors = _validate_controlled_export_paths(
+        document_path, mapping_path, output_path
+    )
     if path_errors:
         return False, {}, path_errors
     verified, identity, errors = verify_controlled_document(document, mapping_file)
@@ -314,7 +454,9 @@ def export_controlled_html(document_path: str | Path, mapping_path: str | Path, 
                 href = getattr(relation, "target_ref", "")
                 if not href:
                     raise ValueError("A mapped hyperlink has no supported target relationship.")
-                pieces.append(f'<a data-wps-object-id="{html.escape(entry["object_id"], quote=True)}" href="{html.escape(href, quote=True)}">{html.escape(text_content(child))}</a>')
+                pieces.append(
+                    f'<a data-wps-object-id="{html.escape(entry["object_id"], quote=True)}" href="{html.escape(href, quote=True)}">{html.escape(text_content(child))}</a>'
+                )
                 index += 1
             elif child.tag == f"{{{ns}}}r":
                 field_start = child.find(f"{{{ns}}}fldChar")
@@ -345,7 +487,9 @@ def export_controlled_html(document_path: str | Path, mapping_path: str | Path, 
                         raise ValueError("Unsupported or unsafe Word field in a mapped paragraph.")
                     entry = next_inline("hyperlink")
                     href = match.group(1)
-                    pieces.append(f'<a data-wps-object-id="{html.escape(entry["object_id"], quote=True)}" href="{html.escape(href, quote=True)}">{html.escape("".join(visible))}</a>')
+                    pieces.append(
+                        f'<a data-wps-object-id="{html.escape(entry["object_id"], quote=True)}" href="{html.escape(href, quote=True)}">{html.escape("".join(visible))}</a>'
+                    )
                     index = cursor
                     continue
                 drawing = child.find(f"{{{ns}}}drawing")
@@ -364,7 +508,13 @@ def export_controlled_html(document_path: str | Path, mapping_path: str | Path, 
                     parent_id = entry.get("parent_object_id")
                     if parent_id:
                         parent = by_object_id.get(parent_id, {})
-                        if parent.get("object_type") not in {"paragraph", "heading", "list_item", "table_cell", "table_header"}:
+                        if parent.get("object_type") not in {
+                            "paragraph",
+                            "heading",
+                            "list_item",
+                            "table_cell",
+                            "table_header",
+                        }:
                             raise ValueError("An image's original parent cannot be represented in owned HTML v1.")
                         deferred_images.setdefault(parent_id, []).append(image_markup)
                     else:
@@ -380,7 +530,9 @@ def export_controlled_html(document_path: str | Path, mapping_path: str | Path, 
         return "".join(pieces)
 
     def paragraph_html(element) -> tuple[str | None, str | None]:
-        entry = next((item for item in bookmarks(element) if item["object_type"] in {"paragraph", "heading", "list_item"}), None)
+        entry = next(
+            (item for item in bookmarks(element) if item["object_type"] in {"paragraph", "heading", "list_item"}), None
+        )
         inline = export_inlines(element)
         image_only = any(item["object_type"] == "image" for item in bookmarks(element))
         if entry is None:
@@ -394,7 +546,10 @@ def export_controlled_html(document_path: str | Path, mapping_path: str | Path, 
         if tag == "li":
             style = Paragraph(element, word).style.name
             list_tag = "ol" if "Number" in style else "ul"
-            return f'<{list_tag}><li data-wps-object-id="{html.escape(entry["object_id"], quote=True)}">{inline}</li></{list_tag}>', None
+            return (
+                f'<{list_tag}><li data-wps-object-id="{html.escape(entry["object_id"], quote=True)}">{inline}</li></{list_tag}>',
+                None,
+            )
         return f'<{tag} data-wps-object-id="{html.escape(entry["object_id"], quote=True)}">{inline}</{tag}>', None
 
     body = word._element.body
@@ -415,27 +570,45 @@ def export_controlled_html(document_path: str | Path, mapping_path: str | Path, 
                     row_entry = take("table_row", element=row._tr)
                     cells_markup = []
                     for cell in row.cells:
-                        cell_type = "table_header" if any(entry["object_type"] == "table_header" for entry in bookmarks(cell._tc)) else "table_cell"
+                        cell_type = (
+                            "table_header"
+                            if any(entry["object_type"] == "table_header" for entry in bookmarks(cell._tc))
+                            else "table_cell"
+                        )
                         cell_entry = take(cell_type, element=cell._tc)
                         if len(cell.paragraphs) != 1:
                             raise ValueError("Multi-paragraph table cells are not supported by owned schema v1 export.")
                         content = export_inlines(cell.paragraphs[0]._p)
                         tag = "th" if cell_type == "table_header" else "td"
-                        cells_markup.append(f'<{tag} data-wps-object-id="{html.escape(cell_entry["object_id"], quote=True)}">{content}</{tag}>')
-                    rows_markup.append(f'<tr data-wps-object-id="{html.escape(row_entry["object_id"], quote=True)}">{"".join(cells_markup)}</tr>')
-                blocks.append(f'<table data-wps-object-id="{html.escape(table_entry["object_id"], quote=True)}">{"".join(rows_markup)}</table>')
+                        cells_markup.append(
+                            f'<{tag} data-wps-object-id="{html.escape(cell_entry["object_id"], quote=True)}">{content}</{tag}>'
+                        )
+                    rows_markup.append(
+                        f'<tr data-wps-object-id="{html.escape(row_entry["object_id"], quote=True)}">{"".join(cells_markup)}</tr>'
+                    )
+                blocks.append(
+                    f'<table data-wps-object-id="{html.escape(table_entry["object_id"], quote=True)}">{"".join(rows_markup)}</table>'
+                )
             elif element.tag != f"{{{ns}}}sectPr":
                 raise ValueError(f"Unsupported WordprocessingML body element: {element.tag.rsplit('}', 1)[-1]}")
         expected_ids = {entry["object_id"] for entry in mapping["mappings"]}
         if used != expected_ids:
             missing_ids = sorted(expected_ids - used)
             unexpected_ids = sorted(used - expected_ids)
-            raise ValueError("Some mapped identities could not be represented in the exported HTML. "
-                             f"Missing: {missing_ids}; unexpected: {unexpected_ids}")
+            raise ValueError(
+                "Some mapped identities could not be represented in the exported HTML. "
+                f"Missing: {missing_ids}; unexpected: {unexpected_ids}"
+            )
         for parent_id, images in deferred_images.items():
             parent = by_object_id[parent_id]
-            tag = "th" if parent["object_type"] == "table_header" else "td" if parent["object_type"] == "table_cell" else parent["html_tag"]
-            marker = f'</{tag}>'
+            tag = (
+                "th"
+                if parent["object_type"] == "table_header"
+                else "td"
+                if parent["object_type"] == "table_cell"
+                else parent["html_tag"]
+            )
+            marker = f"</{tag}>"
             target_marker = f'data-wps-object-id="{html.escape(parent_id, quote=True)}"'
             found = False
             for index, block in enumerate(blocks):
@@ -450,13 +623,14 @@ def export_controlled_html(document_path: str | Path, mapping_path: str | Path, 
         title = html.escape(word.core_properties.title or "Controlled document")
         output_html = (
             '<!doctype html><html data-wps-schema="wps-agent-html/v1"><head>'
-            f"<meta charset=\"utf-8\"><title>{title}</title></head><body>"
-            + "".join(blocks) + "</body></html>"
+            f'<meta charset="utf-8"><title>{title}</title></head><body>' + "".join(blocks) + "</body></html>"
         )
         output_bytes = output_html.encode("utf-8")
         if len(output_bytes) > 70 * 1024 * 1024:
             raise ValueError("Exported HTML exceeds the 70 MiB output limit.")
-        with tempfile.NamedTemporaryFile(prefix=f".{output.stem}.", suffix=output.suffix, dir=output.parent, delete=False) as handle:
+        with tempfile.NamedTemporaryFile(
+            prefix=f".{output.stem}.", suffix=output.suffix, dir=output.parent, delete=False
+        ) as handle:
             temporary = Path(handle.name)
             handle.write(output_bytes)
         os.link(temporary, output)
@@ -466,9 +640,16 @@ def export_controlled_html(document_path: str | Path, mapping_path: str | Path, 
             temporary.unlink(missing_ok=True)
         return False, {}, [{"code": "ROUNDTRIP_EXPORT_UNSUPPORTED", "message": str(exc)[:500]}]
     payload = output.read_bytes()
-    return True, {
-        "document_path": str(document), "mapping_path": str(mapping_file),
-        "output_path": str(output), "bytes": len(payload),
-        "sha256": hashlib.sha256(payload).hexdigest(),
-        "schema_version": SCHEMA_VERSION, "exported_object_count": len(used),
-    }, []
+    return (
+        True,
+        {
+            "document_path": str(document),
+            "mapping_path": str(mapping_file),
+            "output_path": str(output),
+            "bytes": len(payload),
+            "sha256": hashlib.sha256(payload).hexdigest(),
+            "schema_version": SCHEMA_VERSION,
+            "exported_object_count": len(used),
+        },
+        [],
+    )

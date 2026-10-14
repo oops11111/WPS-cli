@@ -20,14 +20,20 @@ class WriterInspectTests(unittest.TestCase):
             path = Path(tmp) / "sample.docx"
             namespace = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
             with ZipFile(path, "w") as archive:
-                archive.writestr("word/document.xml", f'''<w:document xmlns:w="{namespace}"><w:body>
+                archive.writestr(
+                    "word/document.xml",
+                    f'''<w:document xmlns:w="{namespace}"><w:body>
                     <w:p><w:pPr><w:pStyle w:val="Heading"/></w:pPr><w:r><w:t>One</w:t></w:r></w:p>
                     <w:p><w:pPr><w:pStyle w:val="Heading"/></w:pPr><w:r><w:t>Two</w:t></w:r></w:p>
                     <w:p><w:bookmarkStart w:id="1" w:name="Field"/><w:r><w:t>Value</w:t></w:r><w:bookmarkEnd w:id="1"/></w:p>
-                </w:body></w:document>''')
-                archive.writestr("word/styles.xml", f'''<w:styles xmlns:w="{namespace}">
+                </w:body></w:document>''',
+                )
+                archive.writestr(
+                    "word/styles.xml",
+                    f'''<w:styles xmlns:w="{namespace}">
                     <w:style w:type="paragraph" w:styleId="Heading"><w:name w:val="Heading"/><w:pPr><w:outlineLvl w:val="0"/></w:pPr></w:style>
-                </w:styles>''')
+                </w:styles>''',
+                )
             before = hashlib.sha256(path.read_bytes()).hexdigest()
             _, document, _ = register_document("writer", str(path), tmp)
             ok, result, errors = inspect_writer_structure(document["document_id"], 1, tmp)
@@ -44,23 +50,35 @@ class WriterInspectTests(unittest.TestCase):
 
             with patch("wps_ai_agent_cli.writer_inspect.get_document", return_value=document):
                 output = io.StringIO()
-                self.assertEqual(run(["writer-structure", "--document-id", document["document_id"], "--limit", "1"], output_stream=output), 0)
+                self.assertEqual(
+                    run(
+                        ["writer-structure", "--document-id", document["document_id"], "--limit", "1"],
+                        output_stream=output,
+                    ),
+                    0,
+                )
                 cli = json.loads(output.getvalue())
-                mcp_ok, mcp, mcp_errors = call_mcp_tool("wps_agent_writer_structure", {"document_id": document["document_id"], "limit": 1})
+                mcp_ok, mcp, mcp_errors = call_mcp_tool(
+                    "wps_agent_writer_structure", {"document_id": document["document_id"], "limit": 1}
+                )
             self.assertTrue(mcp_ok, mcp_errors)
             self.assertEqual(cli["data"]["writer_structure"], mcp["response"]["data"]["writer_structure"])
 
     def test_invalid_limit_missing_document_and_non_writer(self):
         self.assertEqual(inspect_writer_structure("missing", 0)[2][0]["code"], "INVALID_LIMIT")
         self.assertEqual(inspect_writer_structure("missing")[2][0]["code"], "DOCUMENT_NOT_FOUND")
-        with patch("wps_ai_agent_cli.writer_inspect.get_document", return_value={"component": "spreadsheets", "path": "a.xlsx"}):
+        with patch(
+            "wps_ai_agent_cli.writer_inspect.get_document", return_value={"component": "spreadsheets", "path": "a.xlsx"}
+        ):
             self.assertEqual(inspect_writer_structure("sheet")[2][0]["code"], "UNSUPPORTED_COMPONENT")
 
     def test_invalid_docx_is_structured_failure(self):
         with TemporaryDirectory() as tmp:
             path = Path(tmp) / "broken.docx"
             path.write_text("not a zip", encoding="utf-8")
-            with patch("wps_ai_agent_cli.writer_inspect.get_document", return_value={"component": "writer", "path": str(path)}):
+            with patch(
+                "wps_ai_agent_cli.writer_inspect.get_document", return_value={"component": "writer", "path": str(path)}
+            ):
                 ok, _, errors = inspect_writer_structure("broken")
             self.assertFalse(ok)
             self.assertEqual(errors[0]["code"], "WRITER_STRUCTURE_INVALID")
@@ -75,44 +93,87 @@ class WriterInspectTests(unittest.TestCase):
                 for index, name in enumerate(("Repeated", "Repeated", "Unique", "Last"), 1)
             )
             with ZipFile(path, "w") as archive:
-                archive.writestr("word/document.xml", f'<w:document xmlns:w="{namespace}"><w:body>{body}</w:body></w:document>')
-                archive.writestr("word/styles.xml", f'<w:styles xmlns:w="{namespace}"><w:style w:type="paragraph" w:styleId="Heading"><w:pPr><w:outlineLvl w:val="0"/></w:pPr></w:style></w:styles>')
+                archive.writestr(
+                    "word/document.xml", f'<w:document xmlns:w="{namespace}"><w:body>{body}</w:body></w:document>'
+                )
+                archive.writestr(
+                    "word/styles.xml",
+                    f'<w:styles xmlns:w="{namespace}"><w:style w:type="paragraph" w:styleId="Heading"><w:pPr><w:outlineLvl w:val="0"/></w:pPr></w:style></w:styles>',
+                )
             _, document, _ = register_document("writer", str(path), tmp)
             doc_id = document["document_id"]
             ok, first, errors = inspect_writer_structure(doc_id, 2, tmp, section="headings")
             self.assertTrue(ok, errors)
-            self.assertEqual(first["pagination"]["headings"], {"offset": 0, "returned_count": 2, "total_count": 4, "next_offset": 2})
-            ok, second, errors = inspect_writer_structure(doc_id, 2, tmp, section="headings", offset=2,
-                                                           expected_sha256=first["source_sha256"])
+            self.assertEqual(
+                first["pagination"]["headings"], {"offset": 0, "returned_count": 2, "total_count": 4, "next_offset": 2}
+            )
+            ok, second, errors = inspect_writer_structure(
+                doc_id, 2, tmp, section="headings", offset=2, expected_sha256=first["source_sha256"]
+            )
             self.assertTrue(ok, errors)
-            self.assertEqual([item["preview"] for item in first["headings"] + second["headings"]],
-                             ["Heading 1", "Heading 2", "Heading 3", "Heading 4"])
+            self.assertEqual(
+                [item["preview"] for item in first["headings"] + second["headings"]],
+                ["Heading 1", "Heading 2", "Heading 3", "Heading 4"],
+            )
             self.assertIsNone(second["pagination"]["headings"]["next_offset"])
             self.assertFalse(second["truncated"])
             self.assertEqual(first["source_sha256"], second["source_sha256"])
 
-            for name, status, count in (("Repeated", "ambiguous", 2), ("Unique", "unique", 1), ("Absent", "missing", 0)):
+            for name, status, count in (
+                ("Repeated", "ambiguous", 2),
+                ("Unique", "unique", 1),
+                ("Absent", "missing", 0),
+            ):
                 with self.subTest(name=name):
-                    ok, result, errors = inspect_writer_structure(doc_id, 1, tmp, section="bookmarks", bookmark_name=name)
+                    ok, result, errors = inspect_writer_structure(
+                        doc_id, 1, tmp, section="bookmarks", bookmark_name=name
+                    )
                     self.assertTrue(ok, errors)
                     self.assertEqual(result["bookmark_query"], {"name": name, "match_count": count, "status": status})
                     self.assertEqual(result["pagination"]["bookmarks"]["total_count"], count)
 
             with patch("wps_ai_agent_cli.writer_inspect.get_document", return_value=document):
                 output = io.StringIO()
-                self.assertEqual(run(["writer-structure", "--document-id", doc_id, "--section", "headings", "--offset", "2",
-                                      "--limit", "2", "--expected-sha256", first["source_sha256"]], output_stream=output), 0)
+                self.assertEqual(
+                    run(
+                        [
+                            "writer-structure",
+                            "--document-id",
+                            doc_id,
+                            "--section",
+                            "headings",
+                            "--offset",
+                            "2",
+                            "--limit",
+                            "2",
+                            "--expected-sha256",
+                            first["source_sha256"],
+                        ],
+                        output_stream=output,
+                    ),
+                    0,
+                )
                 cli = json.loads(output.getvalue())
-                mcp_ok, mcp, mcp_errors = call_mcp_tool("wps_agent_writer_structure", {
-                    "document_id": doc_id, "section": "headings", "offset": 2, "limit": 2,
-                    "expected_sha256": first["source_sha256"],
-                })
+                mcp_ok, mcp, mcp_errors = call_mcp_tool(
+                    "wps_agent_writer_structure",
+                    {
+                        "document_id": doc_id,
+                        "section": "headings",
+                        "offset": 2,
+                        "limit": 2,
+                        "expected_sha256": first["source_sha256"],
+                    },
+                )
             self.assertTrue(mcp_ok, mcp_errors)
             self.assertEqual(cli["data"]["writer_structure"], mcp["response"]["data"]["writer_structure"])
 
             path.write_bytes(path.read_bytes() + b"changed")
-            self.assertEqual(inspect_writer_structure(doc_id, 2, tmp, section="headings", offset=2,
-                                                       expected_sha256=first["source_sha256"])[2][0]["code"], "WRITER_SOURCE_CHANGED")
+            self.assertEqual(
+                inspect_writer_structure(
+                    doc_id, 2, tmp, section="headings", offset=2, expected_sha256=first["source_sha256"]
+                )[2][0]["code"],
+                "WRITER_SOURCE_CHANGED",
+            )
 
     def test_invalid_pagination_parameters_are_rejected(self):
         for kwargs, code in (
@@ -132,14 +193,17 @@ class WriterInspectTests(unittest.TestCase):
             path = Path(tmp) / "values.docx"
             namespace = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
             with ZipFile(path, "w") as archive:
-                archive.writestr("word/document.xml", f'''<w:document xmlns:w="{namespace}"><w:body>
+                archive.writestr(
+                    "word/document.xml",
+                    f'''<w:document xmlns:w="{namespace}"><w:body>
                     <w:p><w:bookmarkStart w:id="1" w:name="Value"/><w:r><w:t>Long value</w:t></w:r><w:bookmarkEnd w:id="1"/></w:p>
                     <w:p><w:bookmarkStart w:id="2" w:name="Empty"/><w:bookmarkEnd w:id="2"/></w:p>
                     <w:p><w:bookmarkStart w:id="3" w:name="Repeated"/><w:bookmarkEnd w:id="3"/>
                          <w:bookmarkStart w:id="4" w:name="Repeated"/><w:bookmarkEnd w:id="4"/></w:p>
                     <w:tbl><w:tr><w:tc><w:p><w:bookmarkStart w:id="5" w:name="Cell"/>
                          <w:r><w:t>Private</w:t></w:r><w:bookmarkEnd w:id="5"/></w:p></w:tc></w:tr></w:tbl>
-                </w:body></w:document>''')
+                </w:body></w:document>''',
+                )
             before = hashlib.sha256(path.read_bytes()).hexdigest()
             _, document, _ = register_document("writer", str(path), tmp)
             doc_id = document["document_id"]
@@ -153,8 +217,12 @@ class WriterInspectTests(unittest.TestCase):
             for name, (status, value, truncated, length) in expected.items():
                 with self.subTest(name=name):
                     ok, result, errors = inspect_writer_structure(
-                        doc_id, workspace=tmp, section="bookmarks", bookmark_name=name,
-                        include_text=True, text_limit=5,
+                        doc_id,
+                        workspace=tmp,
+                        section="bookmarks",
+                        bookmark_name=name,
+                        include_text=True,
+                        text_limit=5,
                     )
                     self.assertTrue(ok, errors)
                     self.assertEqual(result["bookmark_value"]["status"], status)
@@ -166,20 +234,40 @@ class WriterInspectTests(unittest.TestCase):
 
             with patch("wps_ai_agent_cli.writer_inspect.get_document", return_value=document):
                 output = io.StringIO()
-                args = ["writer-structure", "--document-id", doc_id, "--section", "bookmarks",
-                        "--bookmark-name", "Value", "--include-text", "--text-limit", "5"]
+                args = [
+                    "writer-structure",
+                    "--document-id",
+                    doc_id,
+                    "--section",
+                    "bookmarks",
+                    "--bookmark-name",
+                    "Value",
+                    "--include-text",
+                    "--text-limit",
+                    "5",
+                ]
                 self.assertEqual(run(args, output_stream=output), 0)
                 cli = json.loads(output.getvalue())
-                mcp_ok, mcp, mcp_errors = call_mcp_tool("wps_agent_writer_structure", {
-                    "document_id": doc_id, "section": "bookmarks", "bookmark_name": "Value",
-                    "include_text": True, "text_limit": 5,
-                })
+                mcp_ok, mcp, mcp_errors = call_mcp_tool(
+                    "wps_agent_writer_structure",
+                    {
+                        "document_id": doc_id,
+                        "section": "bookmarks",
+                        "bookmark_name": "Value",
+                        "include_text": True,
+                        "text_limit": 5,
+                    },
+                )
             self.assertTrue(mcp_ok, mcp_errors)
             self.assertEqual(cli["data"]["writer_structure"], mcp["response"]["data"]["writer_structure"])
 
             with patch("wps_ai_agent_cli.writer_inspect.read_supported_bookmark_text", return_value=(None, None)):
                 ok, result, errors = inspect_writer_structure(
-                    doc_id, workspace=tmp, section="bookmarks", bookmark_name="Value", include_text=True,
+                    doc_id,
+                    workspace=tmp,
+                    section="bookmarks",
+                    bookmark_name="Value",
+                    include_text=True,
                 )
             self.assertTrue(ok, errors)
             self.assertEqual(result["bookmark_value"]["status"], "invalid_range")
@@ -187,7 +275,10 @@ class WriterInspectTests(unittest.TestCase):
     def test_bookmark_text_invalid_input_and_malformed_file(self):
         for kwargs, code in (
             ({"include_text": True}, "INVALID_BOOKMARK_TEXT_QUERY"),
-            ({"section": "bookmarks", "bookmark_name": "A", "include_text": True, "offset": 1}, "INVALID_BOOKMARK_TEXT_QUERY"),
+            (
+                {"section": "bookmarks", "bookmark_name": "A", "include_text": True, "offset": 1},
+                "INVALID_BOOKMARK_TEXT_QUERY",
+            ),
             ({"text_limit": 0}, "INVALID_TEXT_LIMIT"),
             ({"text_limit": 4097}, "INVALID_TEXT_LIMIT"),
         ):
@@ -196,8 +287,12 @@ class WriterInspectTests(unittest.TestCase):
         with TemporaryDirectory() as tmp:
             path = Path(tmp) / "broken.docx"
             path.write_text("not a zip", encoding="utf-8")
-            with patch("wps_ai_agent_cli.writer_inspect.get_document", return_value={"component": "writer", "path": str(path)}):
-                ok, _, errors = inspect_writer_structure("broken", section="bookmarks", bookmark_name="A", include_text=True)
+            with patch(
+                "wps_ai_agent_cli.writer_inspect.get_document", return_value={"component": "writer", "path": str(path)}
+            ):
+                ok, _, errors = inspect_writer_structure(
+                    "broken", section="bookmarks", bookmark_name="A", include_text=True
+                )
             self.assertFalse(ok)
             self.assertEqual(errors[0]["code"], "WRITER_STRUCTURE_INVALID")
 
@@ -206,31 +301,63 @@ class WriterInspectTests(unittest.TestCase):
             path = Path(tmp) / "revision.docx"
             namespace = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
             with ZipFile(path, "w") as archive:
-                archive.writestr("word/document.xml", f'''<w:document xmlns:w="{namespace}"><w:body><w:p>
+                archive.writestr(
+                    "word/document.xml",
+                    f'''<w:document xmlns:w="{namespace}"><w:body><w:p>
                     <w:ins><w:r><w:t>Inserted</w:t></w:r></w:ins>
                     <w:bookmarkStart w:id="1" w:name="Field"/><w:r><w:t>Value</w:t></w:r>
                     <w:bookmarkEnd w:id="1"/>
-                </w:p></w:body></w:document>''')
+                </w:p></w:body></w:document>''',
+                )
             before = hashlib.sha256(path.read_bytes()).hexdigest()
             _, document, _ = register_document("writer", str(path), tmp)
             document_id = document["document_id"]
             ok, result, errors = inspect_writer_structure(
-                document_id, workspace=tmp, section="bookmarks", bookmark_name="Field", include_text=True,
+                document_id,
+                workspace=tmp,
+                section="bookmarks",
+                bookmark_name="Field",
+                include_text=True,
             )
             self.assertTrue(ok, errors)
             self.assertEqual(result["bookmark_value"]["status"], "unsupported_scope")
             with patch("wps_ai_agent_cli.writer_inspect.get_document", return_value=document):
                 output = io.StringIO()
-                self.assertEqual(run(["writer-structure", "--document-id", document_id, "--section", "bookmarks",
-                                      "--bookmark-name", "Field", "--include-text"], output_stream=output), 0)
+                self.assertEqual(
+                    run(
+                        [
+                            "writer-structure",
+                            "--document-id",
+                            document_id,
+                            "--section",
+                            "bookmarks",
+                            "--bookmark-name",
+                            "Field",
+                            "--include-text",
+                        ],
+                        output_stream=output,
+                    ),
+                    0,
+                )
                 cli = json.loads(output.getvalue())
-                mcp_ok, mcp, mcp_errors = call_mcp_tool("wps_agent_writer_structure", {
-                    "document_id": document_id, "section": "bookmarks", "bookmark_name": "Field", "include_text": True,
-                })
+                mcp_ok, mcp, mcp_errors = call_mcp_tool(
+                    "wps_agent_writer_structure",
+                    {
+                        "document_id": document_id,
+                        "section": "bookmarks",
+                        "bookmark_name": "Field",
+                        "include_text": True,
+                    },
+                )
             self.assertTrue(mcp_ok, mcp_errors)
             self.assertEqual(cli["data"]["writer_structure"], mcp["response"]["data"]["writer_structure"])
             filled, _, fill_errors, _ = writer_fill_bookmark(
-                document_id, "Field", "replacement", "revision-dry-run", dry_run=True, workspace=tmp,
+                document_id,
+                "Field",
+                "replacement",
+                "revision-dry-run",
+                dry_run=True,
+                workspace=tmp,
             )
             self.assertFalse(filled)
             self.assertEqual(fill_errors[0]["code"], "BOOKMARK_SCOPE_UNSUPPORTED")

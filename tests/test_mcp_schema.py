@@ -6,22 +6,24 @@ from wps_ai_agent_cli.mcp_schema import (
     list_mcp_tool_schemas,
 )
 
-REMOVED_REPORTING_COMMANDS = frozenset({
-    "artifact-retention-summary",
-    "project-status",
-    "workspace-health",
-    "local-handoff-summary",
-    "validation-runbook",
-    "documentation-freshness",
-    "regression-evidence",
-    "regression-history",
-    "cloud-sync-package",
-    "sync-package-inspect",
-    "sync-package-summary",
-    "sync-package-manifest",
-    "sync-package-coverage",
-    "sync-package-readiness",
-})
+REMOVED_REPORTING_COMMANDS = frozenset(
+    {
+        "artifact-retention-summary",
+        "project-status",
+        "workspace-health",
+        "local-handoff-summary",
+        "validation-runbook",
+        "documentation-freshness",
+        "regression-evidence",
+        "regression-history",
+        "cloud-sync-package",
+        "sync-package-inspect",
+        "sync-package-summary",
+        "sync-package-manifest",
+        "sync-package-coverage",
+        "sync-package-readiness",
+    }
+)
 
 
 class McpSchemaTests(unittest.TestCase):
@@ -181,7 +183,9 @@ class McpSchemaTests(unittest.TestCase):
         matched = [
             schema
             for schema in list_mcp_tool_schemas()
-            if schema["name"].startswith(open_doc_prefixes) or schema["name"] in {
+            if schema["name"].startswith(open_doc_prefixes)
+            or schema["name"]
+            in {
                 "wps_agent_export_open_document",
                 "wps_agent_export_open_document_pdf",
                 "wps_agent_export_open_document_copy",

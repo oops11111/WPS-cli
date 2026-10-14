@@ -51,12 +51,23 @@ def _hold_exclusive_win32(path: Path):
 
     kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
     kernel32.CreateFileW.argtypes = [
-        wintypes.LPCWSTR, wintypes.DWORD, wintypes.DWORD, wintypes.LPVOID,
-        wintypes.DWORD, wintypes.DWORD, wintypes.HANDLE,
+        wintypes.LPCWSTR,
+        wintypes.DWORD,
+        wintypes.DWORD,
+        wintypes.LPVOID,
+        wintypes.DWORD,
+        wintypes.DWORD,
+        wintypes.HANDLE,
     ]
     kernel32.CreateFileW.restype = wintypes.HANDLE
     handle = kernel32.CreateFileW(
-        str(path), GENERIC_READ, FILE_SHARE_NONE, None, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, None,
+        str(path),
+        GENERIC_READ,
+        FILE_SHARE_NONE,
+        None,
+        OPEN_EXISTING,
+        FILE_ATTRIBUTE_NORMAL,
+        None,
     )
     if handle == INVALID or handle == wintypes.HANDLE(-1).value:
         raise OSError(ctypes.get_last_error(), ctypes.FormatError(ctypes.get_last_error()))
@@ -80,12 +91,23 @@ def _hold_read_share_win32(path: Path):
 
     kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
     kernel32.CreateFileW.argtypes = [
-        wintypes.LPCWSTR, wintypes.DWORD, wintypes.DWORD, wintypes.LPVOID,
-        wintypes.DWORD, wintypes.DWORD, wintypes.HANDLE,
+        wintypes.LPCWSTR,
+        wintypes.DWORD,
+        wintypes.DWORD,
+        wintypes.LPVOID,
+        wintypes.DWORD,
+        wintypes.DWORD,
+        wintypes.HANDLE,
     ]
     kernel32.CreateFileW.restype = wintypes.HANDLE
     handle = kernel32.CreateFileW(
-        str(path), GENERIC_READ, FILE_SHARE_READ, None, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, None,
+        str(path),
+        GENERIC_READ,
+        FILE_SHARE_READ,
+        None,
+        OPEN_EXISTING,
+        FILE_ATTRIBUTE_NORMAL,
+        None,
     )
     if handle == INVALID or handle == wintypes.HANDLE(-1).value:
         raise OSError(ctypes.get_last_error(), ctypes.FormatError(ctypes.get_last_error()))
@@ -131,11 +153,15 @@ class GapAInspectEnvelopeTests(unittest.TestCase):
             Workbook().save(document)
             _, record, _ = register_document("spreadsheets", str(document), workspace)
             held = held_open_error("document", "exclusive test hold")
-            with patch("wps_ai_agent_cli.spreadsheet_inspect.probe_file_not_held", return_value=held) as probe, \
-                    patch("wps_ai_agent_cli.spreadsheet_inspect.load_workbook") as load_workbook, \
-                    patch("wps_ai_agent_cli.spreadsheet_inspect.probe_wps_capabilities") as caps:
+            with (
+                patch("wps_ai_agent_cli.spreadsheet_inspect.probe_file_not_held", return_value=held) as probe,
+                patch("wps_ai_agent_cli.spreadsheet_inspect.load_workbook") as load_workbook,
+                patch("wps_ai_agent_cli.spreadsheet_inspect.probe_wps_capabilities") as caps,
+            ):
                 ok, _result, errors = inspect_spreadsheet_range(
-                    record["document_id"], "A1", workspace=workspace,
+                    record["document_id"],
+                    "A1",
+                    workspace=workspace,
                 )
             self.assertFalse(ok)
             _assert_held_open_envelope(self, errors)
@@ -151,14 +177,18 @@ class GapAInspectEnvelopeTests(unittest.TestCase):
             document = Path(tmp) / "book.xlsx"
             Workbook().save(document)
             _, record, _ = register_document("spreadsheets", str(document), workspace)
-            with patch("wps_ai_agent_cli.spreadsheet_inspect.probe_file_not_held", return_value=None), \
-                    patch(
-                        "wps_ai_agent_cli.spreadsheet_inspect.load_workbook",
-                        side_effect=PermissionError("Permission denied"),
-                    ), \
-                    patch("wps_ai_agent_cli.spreadsheet_inspect.probe_wps_capabilities") as caps:
+            with (
+                patch("wps_ai_agent_cli.spreadsheet_inspect.probe_file_not_held", return_value=None),
+                patch(
+                    "wps_ai_agent_cli.spreadsheet_inspect.load_workbook",
+                    side_effect=PermissionError("Permission denied"),
+                ),
+                patch("wps_ai_agent_cli.spreadsheet_inspect.probe_wps_capabilities") as caps,
+            ):
                 ok, _result, errors = inspect_spreadsheet_range(
-                    record["document_id"], "A1", workspace=workspace,
+                    record["document_id"],
+                    "A1",
+                    workspace=workspace,
                 )
             self.assertFalse(ok)
             _assert_held_open_envelope(self, errors)
@@ -173,14 +203,18 @@ class GapAInspectEnvelopeTests(unittest.TestCase):
             Workbook().save(document)
             _, record, _ = register_document("spreadsheets", str(document), workspace)
             fake_book = Workbook()
-            with patch("wps_ai_agent_cli.spreadsheet_inspect.probe_file_not_held", return_value=None) as probe, \
-                    patch("wps_ai_agent_cli.spreadsheet_inspect.load_workbook", return_value=fake_book), \
-                    patch(
-                        "wps_ai_agent_cli.spreadsheet_inspect.probe_wps_capabilities",
-                        return_value={"components": {"spreadsheets": {"selected_prog_id": None}}},
-                    ):
+            with (
+                patch("wps_ai_agent_cli.spreadsheet_inspect.probe_file_not_held", return_value=None) as probe,
+                patch("wps_ai_agent_cli.spreadsheet_inspect.load_workbook", return_value=fake_book),
+                patch(
+                    "wps_ai_agent_cli.spreadsheet_inspect.probe_wps_capabilities",
+                    return_value={"components": {"spreadsheets": {"selected_prog_id": None}}},
+                ),
+            ):
                 ok, _result, errors = inspect_spreadsheet_range(
-                    record["document_id"], "A1", workspace=workspace,
+                    record["document_id"],
+                    "A1",
+                    workspace=workspace,
                 )
             self.assertEqual(probe.call_args.kwargs["read_only"], True)
             # No ProgID → COM_BACKEND_UNAVAILABLE after Zip, not held-open.
@@ -198,8 +232,10 @@ class GapBWriteEnvelopeTests(unittest.TestCase):
             Workbook().save(document)
             _, record, _ = register_document("spreadsheets", str(document), workspace)
             held = held_open_error("document", "exclusive test hold")
-            with patch("wps_ai_agent_cli.backups.probe_file_not_held", return_value=held) as probe, \
-                    patch("wps_ai_agent_cli.backups.file_identity") as identity:
+            with (
+                patch("wps_ai_agent_cli.backups.probe_file_not_held", return_value=held) as probe,
+                patch("wps_ai_agent_cli.backups.file_identity") as identity,
+            ):
                 ok, _result, errors, _ = create_backup(record["document_id"], "b-held", workspace=workspace)
             self.assertFalse(ok)
             _assert_held_open_envelope(self, errors)
@@ -213,11 +249,13 @@ class GapBWriteEnvelopeTests(unittest.TestCase):
             document = Path(tmp) / "book.xlsx"
             Workbook().save(document)
             _, record, _ = register_document("spreadsheets", str(document), workspace)
-            with patch("wps_ai_agent_cli.backups.probe_file_not_held", return_value=None), \
-                    patch(
-                        "wps_ai_agent_cli.backups.file_identity",
-                        side_effect=PermissionError("Permission denied"),
-                    ):
+            with (
+                patch("wps_ai_agent_cli.backups.probe_file_not_held", return_value=None),
+                patch(
+                    "wps_ai_agent_cli.backups.file_identity",
+                    side_effect=PermissionError("Permission denied"),
+                ),
+            ):
                 ok, _result, errors, _ = create_backup(record["document_id"], "b-perm", workspace=workspace)
             self.assertFalse(ok)
             _assert_held_open_envelope(self, errors)
@@ -231,10 +269,16 @@ class GapBWriteEnvelopeTests(unittest.TestCase):
             Workbook().save(document)
             _, record, _ = register_document("spreadsheets", str(document), workspace)
             held = held_open_error("document", "exclusive test hold")
-            with patch("wps_ai_agent_cli.backups.probe_file_not_held", return_value=held), \
-                    patch("wps_ai_agent_cli.spreadsheet_ops._run_spreadsheet_write_com") as com:
+            with (
+                patch("wps_ai_agent_cli.backups.probe_file_not_held", return_value=held),
+                patch("wps_ai_agent_cli.spreadsheet_ops._run_spreadsheet_write_com") as com,
+            ):
                 ok, _result, errors, _ = write_spreadsheet_range(
-                    record["document_id"], "A1", [["x"]], "w-held", workspace=workspace,
+                    record["document_id"],
+                    "A1",
+                    [["x"]],
+                    "w-held",
+                    workspace=workspace,
                 )
             self.assertFalse(ok)
             _assert_held_open_envelope(self, errors)
@@ -246,11 +290,17 @@ class GapBWriteEnvelopeTests(unittest.TestCase):
             write_document(path, "<w:p><w:r><w:t>hello</w:t></w:r></w:p>")
             _, record, _ = register_document("writer", str(path), tmp)
             held = held_open_error("document", "exclusive test hold")
-            with patch("wps_ai_agent_cli.writer_ops.probe_file_not_held", return_value=held) as probe, \
-                    patch("wps_ai_agent_cli.writer_ops.docx_body_paragraphs") as paragraphs, \
-                    patch("wps_ai_agent_cli.writer_ops.create_backup") as backup:
+            with (
+                patch("wps_ai_agent_cli.writer_ops.probe_file_not_held", return_value=held) as probe,
+                patch("wps_ai_agent_cli.writer_ops.docx_body_paragraphs") as paragraphs,
+                patch("wps_ai_agent_cli.writer_ops.create_backup") as backup,
+            ):
                 ok, _result, errors, _ = writer_replace(
-                    record["document_id"], "hello", "hi", "w-held", workspace=tmp,
+                    record["document_id"],
+                    "hello",
+                    "hi",
+                    "w-held",
+                    workspace=tmp,
                 )
             self.assertFalse(ok)
             _assert_held_open_envelope(self, errors)
@@ -265,11 +315,17 @@ class GapBWriteEnvelopeTests(unittest.TestCase):
             path.write_bytes(b"PK\x05\x06" + b"\x00" * 18)
             _, record, _ = register_document("presentation", str(path), tmp)
             held = held_open_error("presentation", "exclusive test hold")
-            with patch("wps_ai_agent_cli.presentation_ops.probe_file_not_held", return_value=held) as probe, \
-                    patch("wps_ai_agent_cli.presentation_ops.pptx_slide_texts") as slides, \
-                    patch("wps_ai_agent_cli.presentation_ops.create_backup") as backup:
+            with (
+                patch("wps_ai_agent_cli.presentation_ops.probe_file_not_held", return_value=held) as probe,
+                patch("wps_ai_agent_cli.presentation_ops.pptx_slide_texts") as slides,
+                patch("wps_ai_agent_cli.presentation_ops.create_backup") as backup,
+            ):
                 ok, _result, errors, _ = presentation_replace(
-                    record["document_id"], "a", "b", "p-held", workspace=tmp,
+                    record["document_id"],
+                    "a",
+                    "b",
+                    "p-held",
+                    workspace=tmp,
                 )
             self.assertFalse(ok)
             _assert_held_open_envelope(self, errors)
@@ -321,7 +377,9 @@ class Win32ShareHoldIntegrationTests(unittest.TestCase):
             try:
                 with patch("wps_ai_agent_cli.spreadsheet_inspect.probe_wps_capabilities") as caps:
                     ok, _result, errors = inspect_spreadsheet_range(
-                        record["document_id"], "A1", workspace=workspace,
+                        record["document_id"],
+                        "A1",
+                        workspace=workspace,
                     )
             finally:
                 close()

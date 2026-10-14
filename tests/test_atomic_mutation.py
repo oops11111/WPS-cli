@@ -50,9 +50,12 @@ class AtomicMutationTests(unittest.TestCase):
                 document.write_bytes(b"WPS saved this")
             if raise_after_change:
                 raise RuntimeError("COM dropped after save")
-            return ok, {"document_id": document_id, "backup": {"backup_path": backup_path}}, [
-                {"code": "VALIDATION_FAILED", "message": "read-back mismatch"}
-            ] if not ok else [], False
+            return (
+                ok,
+                {"document_id": document_id, "backup": {"backup_path": backup_path}},
+                [{"code": "VALIDATION_FAILED", "message": "read-back mismatch"}] if not ok else [],
+                False,
+            )
 
         return write(self.document_id, "req-atomic-write", workspace=workspace)
 
@@ -122,7 +125,9 @@ class AtomicMutationTests(unittest.TestCase):
         ok, result, errors, _ = self._mutation(change_file=False)
 
         self.assertFalse(ok)
-        self.assertEqual(result["rollback"], {"performed": False, "reason": "the file already matches the pre-write backup"})
+        self.assertEqual(
+            result["rollback"], {"performed": False, "reason": "the file already matches the pre-write backup"}
+        )
         self.assertEqual([error["code"] for error in errors], ["VALIDATION_FAILED"])
 
     def test_successful_write_is_left_as_written(self):

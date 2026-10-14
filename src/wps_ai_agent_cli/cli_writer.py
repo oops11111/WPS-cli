@@ -35,11 +35,7 @@ def writer_table_smoke_response(
         command="writer-table-smoke",
         request_id=request_id,
         backend="wps-com",
-        summary=(
-            "Writer table smoke run completed."
-            if result["ok"]
-            else "Writer table smoke run could not complete."
-        ),
+        summary=("Writer table smoke run completed." if result["ok"] else "Writer table smoke run could not complete."),
         data=data,
         validation=ValidationResult(
             status="passed" if result["ok"] else "failed",
@@ -129,25 +125,54 @@ def writer_replace_response(
 
 
 def writer_fill_bookmark_response(
-    request_id: str, document_id: str, bookmark_name: str, text: str, dry_run: bool,
+    request_id: str,
+    document_id: str,
+    bookmark_name: str,
+    text: str,
+    dry_run: bool,
 ) -> CommandResponse:
     ok, result, errors, replayed = writer_fill_bookmark(
-        document_id=document_id, bookmark_name=bookmark_name, value=text,
-        request_id=request_id, dry_run=dry_run,
+        document_id=document_id,
+        bookmark_name=bookmark_name,
+        value=text,
+        request_id=request_id,
+        dry_run=dry_run,
     )
     return CommandResponse(
-        ok=ok, command="writer-fill-bookmark", request_id=request_id,
+        ok=ok,
+        command="writer-fill-bookmark",
+        request_id=request_id,
         backend="local-python" if dry_run else "wps-com",
-        summary=("Writer bookmark fill request replayed." if replayed else
-                 "Writer bookmark fill dry-run completed." if ok and dry_run else
-                 "Writer bookmark fill completed." if ok else "Writer bookmark fill could not complete."),
+        summary=(
+            "Writer bookmark fill request replayed."
+            if replayed
+            else "Writer bookmark fill dry-run completed."
+            if ok and dry_run
+            else "Writer bookmark fill completed."
+            if ok
+            else "Writer bookmark fill could not complete."
+        ),
         data=result,
         validation=ValidationResult(
             status="passed" if ok else "failed",
             checks=[
-                {"name": "unique_supported_bookmark", "passed": not errors or errors[0]["code"] not in {"BOOKMARK_NOT_FOUND", "BOOKMARK_AMBIGUOUS", "BOOKMARK_SCOPE_UNSUPPORTED"}, "details": result.get("bookmark_name")},
-                {"name": "backup_created", "passed": dry_run or bool(result.get("backup", {}).get("created")), "details": result.get("backup", {}).get("backup_path")},
-                {"name": "bookmark_readback_matches", "passed": dry_run or bool(result.get("readback_passed")), "details": result.get("readback_passed")},
+                {
+                    "name": "unique_supported_bookmark",
+                    "passed": not errors
+                    or errors[0]["code"]
+                    not in {"BOOKMARK_NOT_FOUND", "BOOKMARK_AMBIGUOUS", "BOOKMARK_SCOPE_UNSUPPORTED"},
+                    "details": result.get("bookmark_name"),
+                },
+                {
+                    "name": "backup_created",
+                    "passed": dry_run or bool(result.get("backup", {}).get("created")),
+                    "details": result.get("backup", {}).get("backup_path"),
+                },
+                {
+                    "name": "bookmark_readback_matches",
+                    "passed": dry_run or bool(result.get("readback_passed")),
+                    "details": result.get("readback_passed"),
+                },
             ],
         ),
         errors=errors,
@@ -221,29 +246,53 @@ def writer_table_write_response(
     )
 
 
-def writer_structure_response(request_id: str, document_id: str, limit: int, section: str = "all",
-                              offset: int = 0, bookmark_name: str | None = None,
-                              expected_sha256: str | None = None, include_text: bool = False,
-                              text_limit: int = 200) -> CommandResponse:
+def writer_structure_response(
+    request_id: str,
+    document_id: str,
+    limit: int,
+    section: str = "all",
+    offset: int = 0,
+    bookmark_name: str | None = None,
+    expected_sha256: str | None = None,
+    include_text: bool = False,
+    text_limit: int = 200,
+) -> CommandResponse:
     ok, result, errors = inspect_writer_structure(
-        document_id, limit, section=section, offset=offset, bookmark_name=bookmark_name,
-        expected_sha256=expected_sha256, include_text=include_text, text_limit=text_limit,
+        document_id,
+        limit,
+        section=section,
+        offset=offset,
+        bookmark_name=bookmark_name,
+        expected_sha256=expected_sha256,
+        include_text=include_text,
+        text_limit=text_limit,
     )
     return CommandResponse(
-        ok=ok, command="writer-structure", request_id=request_id, backend=BACKEND,
+        ok=ok,
+        command="writer-structure",
+        request_id=request_id,
+        backend=BACKEND,
         summary="Writer structure inspected from OOXML." if ok else "Writer structure inspection failed.",
         data={"writer_structure": result},
-        validation=ValidationResult(status="passed" if ok else "failed", checks=[
-            {"name": "offline_structure_available", "passed": ok, "details": result.get("path")},
-        ]), errors=errors,
+        validation=ValidationResult(
+            status="passed" if ok else "failed",
+            checks=[
+                {"name": "offline_structure_available", "passed": ok, "details": result.get("path")},
+            ],
+        ),
+        errors=errors,
     )
 
 
-def writer_structure_parity_response(request_id: str, run_wps: bool, timeout_seconds: int,
-                                     artifact_dir: str | None, scope: str = "structure") -> CommandResponse:
+def writer_structure_parity_response(
+    request_id: str, run_wps: bool, timeout_seconds: int, artifact_dir: str | None, scope: str = "structure"
+) -> CommandResponse:
     ok, report, errors = run_writer_structure_parity(run_wps=run_wps, timeout_seconds=timeout_seconds, scope=scope)
     response = CommandResponse(
-        ok=ok, command="writer-structure-parity", request_id=request_id, backend=BACKEND,
+        ok=ok,
+        command="writer-structure-parity",
+        request_id=request_id,
+        backend=BACKEND,
         summary="Writer structure parity passed." if ok else "Writer structure parity did not pass.",
         data={"writer_structure_parity": report},
         validation=ValidationResult(status="passed" if ok else "failed", checks=report.get("checks", [])),
@@ -254,7 +303,12 @@ def writer_structure_parity_response(request_id: str, run_wps: bool, timeout_sec
     prefix = "writer-nested-parity" if scope == "nested" else "writer-structure-parity"
     artifact = write_json_artifact(response.to_dict(), artifact_dir or f"artifacts/{prefix}", prefix, request_id)
     return CommandResponse(
-        ok=response.ok, command=response.command, request_id=response.request_id,
-        backend=response.backend, summary=response.summary, data={**response.data, "artifact": artifact},
-        validation=response.validation, errors=response.errors,
+        ok=response.ok,
+        command=response.command,
+        request_id=response.request_id,
+        backend=response.backend,
+        summary=response.summary,
+        data={**response.data, "artifact": artifact},
+        validation=response.validation,
+        errors=response.errors,
     )

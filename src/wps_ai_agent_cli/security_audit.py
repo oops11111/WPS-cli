@@ -92,7 +92,9 @@ def _tool_checks(schema: dict[str, Any], commands: dict[str, dict[str, dict[str,
         *safety_notes,
     ]
     creates_or_protects_backup = _has_text(text_surface, "backup") or _has_text(text_surface, "protect")
-    file_system_boundary = _has_text(text_surface, "file") or _has_text(text_surface, "backup") or _has_text(text_surface, "restore")
+    file_system_boundary = (
+        _has_text(text_surface, "file") or _has_text(text_surface, "backup") or _has_text(text_surface, "restore")
+    )
     artifact_creation = (
         schema.get("category") == "conversion"
         and _has_text(text_surface, "artifact")
@@ -139,9 +141,7 @@ def build_security_boundary_audit() -> tuple[bool, dict[str, Any], list[dict[str
 
     failed_tools = [tool for tool in tool_results if tool["status"] != "passed"]
     all_mismatches = {
-        schema["name"]: problems
-        for schema in schemas
-        if (problems := schema_parser_mismatches(schema, commands))
+        schema["name"]: problems for schema in schemas if (problems := schema_parser_mismatches(schema, commands))
     }
     result = {
         "scope": "schema_text_and_parser_consistency",
@@ -155,17 +155,22 @@ def build_security_boundary_audit() -> tuple[bool, dict[str, Any], list[dict[str
         "tools": tool_results,
     }
     ok_overall = not failed_tools and not all_mismatches
-    errors = [] if ok_overall else [
-        {
-            "code": "SECURITY_BOUNDARY_AUDIT_FAILED",
-            "message": "One or more mutating tools are missing required safety boundary evidence, or a tool schema disagrees with its CLI parser.",
-            "details": [
-                {
-                    "name": tool["name"],
-                    "failed_checks": [check["name"] for check in tool["checks"] if not check["passed"]],
-                }
-                for tool in failed_tools
-            ] + [{"name": name, "schema_parser_mismatches": problems} for name, problems in all_mismatches.items()],
-        }
-    ]
+    errors = (
+        []
+        if ok_overall
+        else [
+            {
+                "code": "SECURITY_BOUNDARY_AUDIT_FAILED",
+                "message": "One or more mutating tools are missing required safety boundary evidence, or a tool schema disagrees with its CLI parser.",
+                "details": [
+                    {
+                        "name": tool["name"],
+                        "failed_checks": [check["name"] for check in tool["checks"] if not check["passed"]],
+                    }
+                    for tool in failed_tools
+                ]
+                + [{"name": name, "schema_parser_mismatches": problems} for name, problems in all_mismatches.items()],
+            }
+        ]
+    )
     return ok_overall, result, errors

@@ -153,7 +153,19 @@ class HtmlEditableFormatCliTests(unittest.TestCase):
             source.write_text(TABLES_HTML, encoding="utf-8")
             target = Path(tmp) / "out.xlsx"
 
-            code, envelope = self._run(["html-editable", "--input", str(source), "--output", str(target), "--format", "xlsx", "--request-id", "req-office-xlsx"])
+            code, envelope = self._run(
+                [
+                    "html-editable",
+                    "--input",
+                    str(source),
+                    "--output",
+                    str(target),
+                    "--format",
+                    "xlsx",
+                    "--request-id",
+                    "req-office-xlsx",
+                ]
+            )
 
             self.assertEqual(code, 0)
             self.assertTrue(envelope["ok"], envelope["errors"])
@@ -167,7 +179,19 @@ class HtmlEditableFormatCliTests(unittest.TestCase):
             source.write_text(SLIDES_HTML, encoding="utf-8")
             target = Path(tmp) / "out.pptx"
 
-            _code, envelope = self._run(["html-editable", "--input", str(source), "--output", str(target), "--format", "pptx", "--request-id", "req-office-pptx"])
+            _code, envelope = self._run(
+                [
+                    "html-editable",
+                    "--input",
+                    str(source),
+                    "--output",
+                    str(target),
+                    "--format",
+                    "pptx",
+                    "--request-id",
+                    "req-office-pptx",
+                ]
+            )
 
             self.assertTrue(envelope["ok"], envelope["errors"])
             self.assertEqual(envelope["backend"], "python-pptx")

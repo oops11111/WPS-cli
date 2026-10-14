@@ -51,10 +51,16 @@ class SharedStateConcurrencyTests(unittest.TestCase):
             env = dict(os.environ)
             source = str(Path(__file__).resolve().parents[1] / "src")
             env["PYTHONPATH"] = source + os.pathsep + env.get("PYTHONPATH", "")
-            processes = [subprocess.Popen(
-                [sys.executable, "-c", code, tmp, str(worker), str(per_worker)],
-                stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, env=env,
-            ) for worker in range(workers)]
+            processes = [
+                subprocess.Popen(
+                    [sys.executable, "-c", code, tmp, str(worker), str(per_worker)],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True,
+                    env=env,
+                )
+                for worker in range(workers)
+            ]
             try:
                 deadline = time.monotonic() + 30
                 while any(process.poll() is None for process in processes):
@@ -90,11 +96,18 @@ class SharedStateConcurrencyTests(unittest.TestCase):
                 self.assertTrue(ok, errors)
                 document_ids.append(record["document_id"])
             with ThreadPoolExecutor(max_workers=2) as pool:
-                results = list(pool.map(
-                    lambda document_id: rename_spreadsheet_sheet(
-                        document_id, "Same", "Same", "shared-request", workspace=tmp,
-                    ), document_ids,
-                ))
+                results = list(
+                    pool.map(
+                        lambda document_id: rename_spreadsheet_sheet(
+                            document_id,
+                            "Same",
+                            "Same",
+                            "shared-request",
+                            workspace=tmp,
+                        ),
+                        document_ids,
+                    )
+                )
             self.assertEqual(sum(result[0] for result in results), 1)
             self.assertEqual([error["code"] for result in results for error in result[2]], ["IDEMPOTENCY_CONFLICT"])
 

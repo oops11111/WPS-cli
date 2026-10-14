@@ -18,7 +18,12 @@ from wps_ai_agent_cli.security_audit import (
 
 
 def tools_call(name, arguments, request_id=1):
-    return {"jsonrpc": "2.0", "id": request_id, "method": "tools/call", "params": {"name": name, "arguments": arguments}}
+    return {
+        "jsonrpc": "2.0",
+        "id": request_id,
+        "method": "tools/call",
+        "params": {"name": name, "arguments": arguments},
+    }
 
 
 TABLE_WRITE = {"document_id": "doc_x", "table_index": 1, "row": 1, "column": 1, "text": "t"}
@@ -51,7 +56,9 @@ class AdapterArgumentValidationTests(unittest.TestCase):
         self.assertIn("--text=--dry-run", argv)
         self.assertNotIn("--dry-run", argv)
 
-        ok, argv, _schema, _errors = build_cli_argv("wps_agent_writer_table_write", {**TABLE_WRITE, "request_id": "-abc"})
+        ok, argv, _schema, _errors = build_cli_argv(
+            "wps_agent_writer_table_write", {**TABLE_WRITE, "request_id": "-abc"}
+        )
         self.assertIn("--request-id=-abc", argv)
 
     def test_parser_exit_becomes_a_structured_error(self):
@@ -74,7 +81,11 @@ HANDSHAKE = (
             "jsonrpc": "2.0",
             "id": "init",
             "method": "initialize",
-            "params": {"protocolVersion": mcp_server.MCP_PROTOCOL_VERSION, "capabilities": {}, "clientInfo": {"name": "t", "version": "1"}},
+            "params": {
+                "protocolVersion": mcp_server.MCP_PROTOCOL_VERSION,
+                "capabilities": {},
+                "clientInfo": {"name": "t", "version": "1"},
+            },
         }
     )
     + "\n"
@@ -103,14 +114,19 @@ class McpServerResilienceTests(unittest.TestCase):
     def test_unexpected_exception_in_a_tool_call_does_not_end_the_session(self):
         with patch.object(mcp_server, "call_mcp_tool", side_effect=RuntimeError("boom")):
             responses = self.serve(
-                json.dumps(tools_call("wps_agent_plan", {})) + "\n" + json.dumps({"jsonrpc": "2.0", "id": 2, "method": "tools/list"}) + "\n"
+                json.dumps(tools_call("wps_agent_plan", {}))
+                + "\n"
+                + json.dumps({"jsonrpc": "2.0", "id": 2, "method": "tools/list"})
+                + "\n"
             )
         by_id = {item["id"]: item for item in responses}
         self.assertEqual(by_id[1]["error"]["code"], -32603)
         self.assertIn("result", by_id[2])
 
     def test_notifications_never_get_a_response(self):
-        self.assertIsNone(mcp_server.handle_mcp_request({"jsonrpc": "2.0", "method": "notifications/cancelled", "params": {}}))
+        self.assertIsNone(
+            mcp_server.handle_mcp_request({"jsonrpc": "2.0", "method": "notifications/cancelled", "params": {}})
+        )
         self.assertIsNone(mcp_server.handle_mcp_request({"jsonrpc": "2.0", "method": "notifications/initialized"}))
         self.assertEqual(
             mcp_server.handle_mcp_request({"jsonrpc": "2.0", "id": 3, "method": "nope"})["error"]["code"], -32601
@@ -132,7 +148,11 @@ class SchemaParserConsistencyTests(unittest.TestCase):
         schema = {
             "cli_command": "writer-table-write",
             "input_schema": {
-                "properties": {"document_id": {"type": "string"}, "bogus_flag": {"type": "string"}, "dry_run": {"type": "string"}},
+                "properties": {
+                    "document_id": {"type": "string"},
+                    "bogus_flag": {"type": "string"},
+                    "dry_run": {"type": "string"},
+                },
                 "required": ["document_id"],
             },
         }
@@ -140,7 +160,10 @@ class SchemaParserConsistencyTests(unittest.TestCase):
         self.assertIn("bogus_flag", found)
         self.assertIn("dry_run: boolean schema/flag mismatch", found)
         self.assertIn("CLI requires --table-index", found)
-        self.assertEqual(schema_parser_mismatches({"cli_command": "does-not-exist", "input_schema": {}}, commands), ["no CLI subcommand named does-not-exist"])
+        self.assertEqual(
+            schema_parser_mismatches({"cli_command": "does-not-exist", "input_schema": {}}, commands),
+            ["no CLI subcommand named does-not-exist"],
+        )
 
     def test_audit_declares_its_scope_and_fails_on_drift(self):
         ok, result, errors = build_security_boundary_audit()
@@ -159,7 +182,7 @@ class SchemaParserConsistencyTests(unittest.TestCase):
 
 class HtmlDecodingTests(unittest.TestCase):
     def test_decoding_order_and_fallback(self):
-        text = "<html><head><meta charset=\"gb2312\"></head><body>你好，世界</body></html>"
+        text = '<html><head><meta charset="gb2312"></head><body>你好，世界</body></html>'
         self.assertEqual(decode_html_bytes(text.encode("gbk"))[:2], (text, "gb2312"))
         self.assertEqual(decode_html_bytes(text.encode("utf-8"))[1], "utf-8")
         self.assertEqual(decode_html_bytes(b"\xef\xbb\xbf" + "你好".encode()), ("你好", "utf-8-sig", None))
@@ -181,7 +204,11 @@ class HtmlDecodingTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             source = root / "gbk.html"
-            source.write_bytes('<html><head><meta charset="gb2312"><title>报告</title></head><body><p>你好，世界</p></body></html>'.encode("gbk"))
+            source.write_bytes(
+                '<html><head><meta charset="gb2312"><title>报告</title></head><body><p>你好，世界</p></body></html>'.encode(
+                    "gbk"
+                )
+            )
             ok, data, errors = convert_html_editable(source, root / "out.docx")
             self.assertTrue(ok, errors)
             self.assertEqual(data["source_encoding"], "gb2312")
@@ -204,7 +231,14 @@ class HyperlinkTargetTests(unittest.TestCase):
     def test_unc_paths_and_control_characters_are_not_linked(self):
         from wps_ai_agent_cli.html_editable import _safe_link_target
 
-        for value in (r"\\server\share\file.docx", "\\folder\\x", "page\x00.html", "javascript:alert(1)", "//host/x", "file:///c:/x"):
+        for value in (
+            r"\\server\share\file.docx",
+            "\\folder\\x",
+            "page\x00.html",
+            "javascript:alert(1)",
+            "//host/x",
+            "file:///c:/x",
+        ):
             with self.subTest(value=value):
                 self.assertFalse(_safe_link_target(value))
         for value in ("https://example.com/a", "mailto:a@b.c", "tel:123", "page.html#top", "../up.html"):
@@ -227,8 +261,9 @@ class RenderPublishTests(unittest.TestCase):
                 destination.write_bytes(b"someone else's file")
                 return type("Completed", (), {"stdout": json.dumps({"ok": True}), "stderr": "", "returncode": 0})()
 
-            with patch.object(html_render, "_resolve_browser_runtime", return_value=("node", "edge")), patch.object(
-                html_render, "_run_renderer", side_effect=fake_run
+            with (
+                patch.object(html_render, "_resolve_browser_runtime", return_value=("node", "edge")),
+                patch.object(html_render, "_run_renderer", side_effect=fake_run),
             ):
                 ok, _data, errors = html_render.render_html(source, destination, "pdf")
             self.assertFalse(ok)
@@ -249,8 +284,9 @@ class RenderPublishTests(unittest.TestCase):
                 Path(request["output_path"]).write_bytes(b"%PDF-1.7 fake")
                 return type("Completed", (), {"stdout": json.dumps({"ok": True}), "stderr": "", "returncode": 0})()
 
-            with patch.object(html_render, "_resolve_browser_runtime", return_value=("node", "edge")), patch.object(
-                html_render, "_run_renderer", side_effect=fake_run
+            with (
+                patch.object(html_render, "_resolve_browser_runtime", return_value=("node", "edge")),
+                patch.object(html_render, "_run_renderer", side_effect=fake_run),
             ):
                 ok, data, errors = html_render.render_html(source, destination, "pdf")
             self.assertTrue(ok, errors)
@@ -276,9 +312,11 @@ class RenderPublishTests(unittest.TestCase):
                 ("", ""),
             ]
 
-            with patch.object(html_render, "_resolve_browser_runtime", return_value=("node", "edge")), patch.object(
-                html_render.subprocess, "Popen", return_value=process
-            ), patch.object(html_render, "_kill_process_tree") as kill_tree:
+            with (
+                patch.object(html_render, "_resolve_browser_runtime", return_value=("node", "edge")),
+                patch.object(html_render.subprocess, "Popen", return_value=process),
+                patch.object(html_render, "_kill_process_tree") as kill_tree,
+            ):
                 ok, _data, errors = html_render.render_html(source, destination, "pdf", timeout_seconds=1)
             self.assertFalse(ok)
             self.assertEqual(errors[0]["code"], "RENDER_TIMEOUT")
@@ -289,11 +327,18 @@ class ConfigAuditExecutionTests(unittest.TestCase):
     def write_config(self, root, command, args, env=None, cwd=None):
         path = root / "mcp.json"
         path.write_text(
-            json.dumps({
-                "mcpServers": {
-                    "srv": {"command": command, "args": args, "cwd": str(cwd or Path.cwd()), "env": env or {"PYTHONPATH": "src"}}
+            json.dumps(
+                {
+                    "mcpServers": {
+                        "srv": {
+                            "command": command,
+                            "args": args,
+                            "cwd": str(cwd or Path.cwd()),
+                            "env": env or {"PYTHONPATH": "src"},
+                        }
+                    }
                 }
-            }),
+            ),
             encoding="utf-8",
         )
         return path
@@ -312,8 +357,16 @@ class ConfigAuditExecutionTests(unittest.TestCase):
             cases = {
                 "shell": ("/bin/sh", ["-c", f"touch {marker}", "mcp-server"], None),
                 "python -c": (sys.executable, ["-c", f"open({str(marker)!r}, 'w')", "mcp-server"], None),
-                "extra env": (sys.executable, ["-m", "wps_ai_agent_cli", "mcp-server"], {"PYTHONPATH": "src", "PYTHONSTARTUP": str(marker)}),
-                "foreign package": (sys.executable, ["-m", "wps_ai_agent_cli", "mcp-server"], {"PYTHONPATH": str(root)}),
+                "extra env": (
+                    sys.executable,
+                    ["-m", "wps_ai_agent_cli", "mcp-server"],
+                    {"PYTHONPATH": "src", "PYTHONSTARTUP": str(marker)},
+                ),
+                "foreign package": (
+                    sys.executable,
+                    ["-m", "wps_ai_agent_cli", "mcp-server"],
+                    {"PYTHONPATH": str(root)},
+                ),
             }
             for name, (command, args, env) in cases.items():
                 with self.subTest(case=name):
@@ -344,7 +397,9 @@ class RegressionCommandAllowlistTests(unittest.TestCase):
     def test_shipped_manifest_only_uses_allowed_commands(self):
         from wps_ai_agent_cli.regression import REGRESSION_ALLOWED_COMMANDS
 
-        manifest = json.loads((Path(__file__).resolve().parent.parent / "config" / "regression_manifest.json").read_text(encoding="utf-8"))
+        manifest = json.loads(
+            (Path(__file__).resolve().parent.parent / "config" / "regression_manifest.json").read_text(encoding="utf-8")
+        )
         used = {scenario["command"][0] for scenario in manifest["scenarios"]}
         self.assertEqual(used - REGRESSION_ALLOWED_COMMANDS, set())
 
@@ -354,17 +409,29 @@ class RegressionCommandAllowlistTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             manifest = Path(tmp) / "manifest.json"
             manifest.write_text(
-                json.dumps({
-                    "version": "t",
-                    "default_profile": "safe",
-                    "scenarios": [
-                        {"id": "restore", "profile": "safe", "command": ["restore-backup", "--document-id", "d"], "required_checks": []},
-                        {"id": "recursion", "profile": "safe", "command": ["regression-run"], "required_checks": []},
-                        {"id": "server", "profile": "safe", "command": ["mcp-server"], "required_checks": []},
-                        {"id": "empty", "profile": "safe", "command": [], "required_checks": []},
-                        {"id": "wrong-type", "profile": "safe", "command": ["plan", 5], "required_checks": []},
-                    ],
-                }),
+                json.dumps(
+                    {
+                        "version": "t",
+                        "default_profile": "safe",
+                        "scenarios": [
+                            {
+                                "id": "restore",
+                                "profile": "safe",
+                                "command": ["restore-backup", "--document-id", "d"],
+                                "required_checks": [],
+                            },
+                            {
+                                "id": "recursion",
+                                "profile": "safe",
+                                "command": ["regression-run"],
+                                "required_checks": [],
+                            },
+                            {"id": "server", "profile": "safe", "command": ["mcp-server"], "required_checks": []},
+                            {"id": "empty", "profile": "safe", "command": [], "required_checks": []},
+                            {"id": "wrong-type", "profile": "safe", "command": ["plan", 5], "required_checks": []},
+                        ],
+                    }
+                ),
                 encoding="utf-8",
             )
             with patch("wps_ai_agent_cli.regression._run_cli") as run_cli:
@@ -372,7 +439,9 @@ class RegressionCommandAllowlistTests(unittest.TestCase):
             run_cli.assert_not_called()
             self.assertFalse(ok)
             self.assertEqual(result["failed_count"], 5)
-            self.assertTrue(all(item["errors"][0]["code"] == "REGRESSION_COMMAND_NOT_ALLOWED" for item in result["results"]))
+            self.assertTrue(
+                all(item["errors"][0]["code"] == "REGRESSION_COMMAND_NOT_ALLOWED" for item in result["results"])
+            )
 
     def test_allowed_commands_still_run(self):
         from wps_ai_agent_cli.regression import run_regression_manifest
@@ -380,9 +449,13 @@ class RegressionCommandAllowlistTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             manifest = Path(tmp) / "manifest.json"
             manifest.write_text(
-                json.dumps({"version": "t", "default_profile": "safe", "scenarios": [
-                    {"id": "plan", "profile": "safe", "command": ["plan"], "required_checks": []}
-                ]}),
+                json.dumps(
+                    {
+                        "version": "t",
+                        "default_profile": "safe",
+                        "scenarios": [{"id": "plan", "profile": "safe", "command": ["plan"], "required_checks": []}],
+                    }
+                ),
                 encoding="utf-8",
             )
             ok, result, errors = run_regression_manifest(manifest_path=manifest)

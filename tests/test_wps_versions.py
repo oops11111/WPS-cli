@@ -112,7 +112,16 @@ class WpsVersionCompareTests(unittest.TestCase):
         with TemporaryDirectory() as tmpdir:
             stream = io.StringIO()
             code = cli.run(
-                ["wps-version-compare", "--workspace", tmpdir, "--writer-version", "12.0", "--record", "--request-id", "p3-397"],
+                [
+                    "wps-version-compare",
+                    "--workspace",
+                    tmpdir,
+                    "--writer-version",
+                    "12.0",
+                    "--record",
+                    "--request-id",
+                    "p3-397",
+                ],
                 stream,
             )
             payload = json.loads(stream.getvalue())

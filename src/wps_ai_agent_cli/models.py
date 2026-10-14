@@ -18,9 +18,7 @@ class CommandResponse:
     backend: str
     summary: str
     data: dict[str, Any] = field(default_factory=dict)
-    validation: ValidationResult = field(
-        default_factory=lambda: ValidationResult(status="not_applicable")
-    )
+    validation: ValidationResult = field(default_factory=lambda: ValidationResult(status="not_applicable"))
     errors: list[dict[str, Any]] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:

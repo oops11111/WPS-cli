@@ -33,7 +33,9 @@ class CliDispatchTests(unittest.TestCase):
 
     def test_server_handler_exit_code_is_returned_without_envelope(self):
         stream = io.StringIO()
-        code = cli.run(["mcp-server", "--once-json", json.dumps({"jsonrpc": "2.0", "method": "notifications/initialized"})], stream)
+        code = cli.run(
+            ["mcp-server", "--once-json", json.dumps({"jsonrpc": "2.0", "method": "notifications/initialized"})], stream
+        )
         self.assertEqual(code, 0)
         self.assertEqual(stream.getvalue(), "")
 

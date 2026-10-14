@@ -51,10 +51,7 @@ PHASES: tuple[Phase, ...] = (
         id="phase3",
         name="Production-ready automation infrastructure",
         status="done",
-        goal=(
-            "Strengthen recovery, security, performance, regression testing, "
-            "and ecosystem integration."
-        ),
+        goal=("Strengthen recovery, security, performance, regression testing, and ecosystem integration."),
     ),
     Phase(
         id="phase4",

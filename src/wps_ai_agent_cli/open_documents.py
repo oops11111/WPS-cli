@@ -101,7 +101,6 @@ EXPORT_OUTPUT_NOT_TEXT = "EXPORT_OUTPUT_NOT_TEXT"
 OOXML_PACKAGE_SUFFIXES = {".docx", ".xlsx", ".pptx"}
 
 
-
 def _render(script: str, params: dict[str, Any]) -> str:
     return script.replace("__PARAMS_JSON__", json.dumps(params))
 
@@ -260,7 +259,10 @@ def _status_error(
                 "The open document is read-only, so its selection cannot be replaced.",
             ),
         ),
-        "no_window": (SELECTION_UNAVAILABLE, "The open document has no active window, so there is no selection to use."),
+        "no_window": (
+            SELECTION_UNAVAILABLE,
+            "The open document has no active window, so there is no selection to use.",
+        ),
         "not_text_selection": (
             SELECTION_SPANS_STRUCTURE,
             "The active selection is not a text range; select plain text inside a shape before replacing.",
@@ -455,24 +457,34 @@ def _registered_document(
         return None, {}, [{"code": "DOCUMENT_NOT_FOUND", "message": f"Document not registered: {document_id}"}]
     if document["component"] not in allowed_components:
         allowed = ", ".join(sorted(allowed_components))
-        return None, {"document": document}, [
-            {
-                "code": "UNSUPPORTED_COMPONENT",
-                "message": f"This command requires a registered document in: {allowed}.",
-            }
-        ]
+        return (
+            None,
+            {"document": document},
+            [
+                {
+                    "code": "UNSUPPORTED_COMPONENT",
+                    "message": f"This command requires a registered document in: {allowed}.",
+                }
+            ],
+        )
     if not Path(document["path"]).exists():
-        return None, {"document": document}, [
-            {"code": INPUT_FILE_NOT_FOUND, "message": f"Input file not found: {document['path']}"}
-        ]
+        return (
+            None,
+            {"document": document},
+            [{"code": INPUT_FILE_NOT_FOUND, "message": f"Input file not found: {document['path']}"}],
+        )
     return document, {}, []
 
 
-def _writer_document(document_id: str, workspace: str | Path) -> tuple[dict[str, Any] | None, dict[str, Any], list[dict[str, str]]]:
+def _writer_document(
+    document_id: str, workspace: str | Path
+) -> tuple[dict[str, Any] | None, dict[str, Any], list[dict[str, str]]]:
     return _registered_document(document_id, workspace, allowed_components={"writer"})
 
 
-def close_unchanged_document(component: str, path: str | Path, *, do_close: bool) -> tuple[str | None, dict[str, str] | None]:
+def close_unchanged_document(
+    component: str, path: str | Path, *, do_close: bool
+) -> tuple[str | None, dict[str, str] | None]:
     """Close a document in the running WPS without saving, only when WPS reports no unsaved changes.
 
     Returns (status, None) or (None, error). Status is "no_instance" or "not_open" when there is nothing to
@@ -480,7 +492,8 @@ def close_unchanged_document(component: str, path: str | Path, *, do_close: bool
     A document with unsaved changes is never closed.
     """
     outcome = _run_component_attached_com(
-        component, "close-unchanged",
+        component,
+        "close-unchanged",
         {"path": str(Path(path).resolve()), "component": component, "do_close": do_close},
     )
     if not outcome.get("ok"):
@@ -515,9 +528,11 @@ def list_open_documents(
         return False, {"probed_components": components, **result["data"]}, result["errors"]
     payload = result["data"] or {}
     if payload.get("ok") is False:
-        return False, {"probed_components": components, "diagnostic": payload}, [
-            {"code": COM_OPERATION_FAILED, "message": str(payload.get("error_message") or "Attach failed.")}
-        ]
+        return (
+            False,
+            {"probed_components": components, "diagnostic": payload},
+            [{"code": COM_OPERATION_FAILED, "message": str(payload.get("error_message") or "Attach failed.")}],
+        )
 
     instances = []
     documents: list[dict[str, Any]] = []
@@ -563,9 +578,16 @@ def list_open_documents(
         ),
     }
     if not instances:
-        return False, data, [
-            {"code": NO_RUNNING_WPS_INSTANCE, "message": "No running WPS instance was found for the probed components; nothing was launched."}
-        ]
+        return (
+            False,
+            data,
+            [
+                {
+                    "code": NO_RUNNING_WPS_INSTANCE,
+                    "message": "No running WPS instance was found for the probed components; nothing was launched.",
+                }
+            ],
+        )
     return True, data, []
 
 
@@ -582,32 +604,38 @@ def read_writer_selection(
         return False, {"document_id": document_id, "path": path, **result["data"]}, result["errors"]
     payload = result["data"] or {}
     if payload.get("ok") is False:
-        return False, {"document_id": document_id, "path": path, "diagnostic": payload}, [
-            {"code": COM_OPERATION_FAILED, "message": str(payload.get("error_message") or "Selection read failed.")}
-        ]
+        return (
+            False,
+            {"document_id": document_id, "path": path, "diagnostic": payload},
+            [{"code": COM_OPERATION_FAILED, "message": str(payload.get("error_message") or "Selection read failed.")}],
+        )
     error = _status_error(payload.get("status"), path)
     if error:
         return False, {"document_id": document_id, "path": path}, [error]
 
     text = str(payload.get("selection_text") or "")
     start, end = int(payload["start"]), int(payload["end"])
-    return True, {
-        "document_id": document_id,
-        "component": "writer",
-        "path": path,
-        "saved": payload.get("saved"),
-        "read_only": bool(payload.get("read_only")),
-        "start": start,
-        "end": end,
-        "collapsed": start == end,
-        "selection_length": end - start,
-        "selection_text": text[:MAX_SELECTION_CHARS],
-        "selection_text_truncated": len(text) > MAX_SELECTION_CHARS,
-        "paragraph_index": payload.get("paragraph_index"),
-        "page_number": payload.get("page_number"),
-        "page_info_verified": False,
-        "page_note": "Page is not a first-class object; page_number comes from the selection's active end and is unverified on this WPS version. Target content (selection, paragraph, bookmark, keyword) rather than page numbers.",
-    }, []
+    return (
+        True,
+        {
+            "document_id": document_id,
+            "component": "writer",
+            "path": path,
+            "saved": payload.get("saved"),
+            "read_only": bool(payload.get("read_only")),
+            "start": start,
+            "end": end,
+            "collapsed": start == end,
+            "selection_length": end - start,
+            "selection_text": text[:MAX_SELECTION_CHARS],
+            "selection_text_truncated": len(text) > MAX_SELECTION_CHARS,
+            "paragraph_index": payload.get("paragraph_index"),
+            "page_number": payload.get("page_number"),
+            "page_info_verified": False,
+            "page_note": "Page is not a first-class object; page_number comes from the selection's active end and is unverified on this WPS version. Target content (selection, paragraph, bookmark, keyword) rather than page numbers.",
+        },
+        [],
+    )
 
 
 def read_presentation_selection(
@@ -615,7 +643,9 @@ def read_presentation_selection(
     workspace: str | Path = ".",
 ) -> tuple[bool, dict[str, Any], list[dict[str, str]]]:
     document, data, errors = _registered_document(
-        document_id, workspace, allowed_components={"presentation"},
+        document_id,
+        workspace,
+        allowed_components={"presentation"},
     )
     if document is None:
         return False, data, errors
@@ -625,9 +655,11 @@ def read_presentation_selection(
         return False, {"document_id": document_id, "path": path, **result["data"]}, result["errors"]
     payload = result["data"] or {}
     if payload.get("ok") is False:
-        return False, {"document_id": document_id, "path": path, "diagnostic": payload}, [
-            {"code": COM_OPERATION_FAILED, "message": str(payload.get("error_message") or "Selection read failed.")}
-        ]
+        return (
+            False,
+            {"document_id": document_id, "path": path, "diagnostic": payload},
+            [{"code": COM_OPERATION_FAILED, "message": str(payload.get("error_message") or "Selection read failed.")}],
+        )
     error = _status_error(payload.get("status"), path, component="presentation")
     if error:
         return False, {"document_id": document_id, "path": path}, [error]
@@ -649,25 +681,29 @@ def read_presentation_selection(
     collapsed = bool(payload.get("collapsed"))
     if kind == "text" and text_range_length is not None:
         collapsed = text_range_length == 0
-    return True, {
-        "document_id": document_id,
-        "component": "presentation",
-        "path": path,
-        "saved": payload.get("saved"),
-        "read_only": bool(payload.get("read_only")),
-        "selection_kind": kind,
-        "selection_type": payload.get("selection_type"),
-        "selection_text": text[:MAX_SELECTION_CHARS],
-        "selection_text_truncated": len(text) > MAX_SELECTION_CHARS,
-        "text_range_start": text_range_start,
-        "text_range_length": text_range_length,
-        "collapsed": collapsed,
-        "slide_index": payload.get("slide_index"),
-        "shape_name": payload.get("shape_name"),
-        "shape_count": int(payload.get("shape_count") or 0),
-        "slide_info_verified": False,
-        "slide_note": "slide_index is best-effort from the active selection and is unverified across layouts, masters, and hidden slides. Prefer shape text or slide-scoped replace rather than slide numbers alone.",
-    }, []
+    return (
+        True,
+        {
+            "document_id": document_id,
+            "component": "presentation",
+            "path": path,
+            "saved": payload.get("saved"),
+            "read_only": bool(payload.get("read_only")),
+            "selection_kind": kind,
+            "selection_type": payload.get("selection_type"),
+            "selection_text": text[:MAX_SELECTION_CHARS],
+            "selection_text_truncated": len(text) > MAX_SELECTION_CHARS,
+            "text_range_start": text_range_start,
+            "text_range_length": text_range_length,
+            "collapsed": collapsed,
+            "slide_index": payload.get("slide_index"),
+            "shape_name": payload.get("shape_name"),
+            "shape_count": int(payload.get("shape_count") or 0),
+            "slide_info_verified": False,
+            "slide_note": "slide_index is best-effort from the active selection and is unverified across layouts, masters, and hidden slides. Prefer shape text or slide-scoped replace rather than slide numbers alone.",
+        },
+        [],
+    )
 
 
 def read_spreadsheet_selection(
@@ -675,7 +711,9 @@ def read_spreadsheet_selection(
     workspace: str | Path = ".",
 ) -> tuple[bool, dict[str, Any], list[dict[str, str]]]:
     document, data, errors = _registered_document(
-        document_id, workspace, allowed_components={"spreadsheets"},
+        document_id,
+        workspace,
+        allowed_components={"spreadsheets"},
     )
     if document is None:
         return False, data, errors
@@ -685,9 +723,11 @@ def read_spreadsheet_selection(
         return False, {"document_id": document_id, "path": path, **result["data"]}, result["errors"]
     payload = result["data"] or {}
     if payload.get("ok") is False:
-        return False, {"document_id": document_id, "path": path, "diagnostic": payload}, [
-            {"code": COM_OPERATION_FAILED, "message": str(payload.get("error_message") or "Selection read failed.")}
-        ]
+        return (
+            False,
+            {"document_id": document_id, "path": path, "diagnostic": payload},
+            [{"code": COM_OPERATION_FAILED, "message": str(payload.get("error_message") or "Selection read failed.")}],
+        )
     error = _status_error(payload.get("status"), path, component="spreadsheets")
     if error:
         return False, {"document_id": document_id, "path": path}, [error]
@@ -700,38 +740,44 @@ def read_spreadsheet_selection(
         object_kind = str(object_kind) or None
     if object_name is not None:
         object_name = str(object_name) or None
-    return True, {
-        "document_id": document_id,
-        "component": "spreadsheets",
-        "path": path,
-        "saved": payload.get("saved"),
-        "read_only": bool(payload.get("read_only")),
-        "selection_kind": payload.get("selection_kind") or "unknown",
-        "address": payload.get("address"),
-        "sheet_name": payload.get("sheet_name"),
-        "cell_count": int(payload.get("cell_count") or 0),
-        "area_count": int(payload.get("area_count") or 0),
-        "row_count": int(payload.get("row_count") or 0),
-        "column_count": int(payload.get("column_count") or 0),
-        "selection_text": text[:MAX_SELECTION_CHARS],
-        "selection_text_truncated": len(text) > MAX_SELECTION_CHARS or sample_truncated,
-        "formula": payload.get("formula"),
-        "object_kind": object_kind,
-        "object_name": object_name,
-        "has_text_frame": bool(payload.get("has_text_frame")),
-        "has_chart_title": bool(payload.get("has_chart_title")),
-        "has_axis_title": bool(payload.get("has_axis_title")),
-        "has_series_values": bool(payload.get("has_series_values")),
-        "series_name": (str(payload.get("series_name")) or None) if payload.get("series_name") is not None else None,
-        "object_info_verified": False,
-        "object_note": (
-            "object_kind/object_name/has_text_frame/has_chart_title/has_axis_title/has_series_values are best-effort for non-range selections. "
-            "Worksheet shape TextFrame, chart ChartTitle, AxisTitle, and selected Series Values may be replaced or cleared when those flags are true; "
-            "shape geometry mutation remains unsupported. Unverified across WPS versions."
-        ),
-        "sample_cell_limit": MAX_SPREADSHEET_SELECTION_SAMPLE_CELLS,
-        "note": "selection_text samples at most 100 cells for multi-cell ranges; prefer address + spreadsheet-read for full values.",
-    }, []
+    return (
+        True,
+        {
+            "document_id": document_id,
+            "component": "spreadsheets",
+            "path": path,
+            "saved": payload.get("saved"),
+            "read_only": bool(payload.get("read_only")),
+            "selection_kind": payload.get("selection_kind") or "unknown",
+            "address": payload.get("address"),
+            "sheet_name": payload.get("sheet_name"),
+            "cell_count": int(payload.get("cell_count") or 0),
+            "area_count": int(payload.get("area_count") or 0),
+            "row_count": int(payload.get("row_count") or 0),
+            "column_count": int(payload.get("column_count") or 0),
+            "selection_text": text[:MAX_SELECTION_CHARS],
+            "selection_text_truncated": len(text) > MAX_SELECTION_CHARS or sample_truncated,
+            "formula": payload.get("formula"),
+            "object_kind": object_kind,
+            "object_name": object_name,
+            "has_text_frame": bool(payload.get("has_text_frame")),
+            "has_chart_title": bool(payload.get("has_chart_title")),
+            "has_axis_title": bool(payload.get("has_axis_title")),
+            "has_series_values": bool(payload.get("has_series_values")),
+            "series_name": (str(payload.get("series_name")) or None)
+            if payload.get("series_name") is not None
+            else None,
+            "object_info_verified": False,
+            "object_note": (
+                "object_kind/object_name/has_text_frame/has_chart_title/has_axis_title/has_series_values are best-effort for non-range selections. "
+                "Worksheet shape TextFrame, chart ChartTitle, AxisTitle, and selected Series Values may be replaced or cleared when those flags are true; "
+                "shape geometry mutation remains unsupported. Unverified across WPS versions."
+            ),
+            "sample_cell_limit": MAX_SPREADSHEET_SELECTION_SAMPLE_CELLS,
+            "note": "selection_text samples at most 100 cells for multi-cell ranges; prefer address + spreadsheet-read for full values.",
+        },
+        [],
+    )
 
 
 def _utf16_length(text: str) -> int:
@@ -744,7 +790,10 @@ def _check_replaceable_selection(selection: dict[str, Any], expected: str | None
     if selection["collapsed"]:
         return {"code": SELECTION_EMPTY, "message": "The selection is empty; select the text to replace first."}
     if selection["selection_length"] > MAX_SELECTION_CHARS or selection["selection_text_truncated"]:
-        return {"code": SELECTION_TOO_LARGE, "message": f"The selection is longer than {MAX_SELECTION_CHARS} characters."}
+        return {
+            "code": SELECTION_TOO_LARGE,
+            "message": f"The selection is longer than {MAX_SELECTION_CHARS} characters.",
+        }
     if any(ord(char) < 32 or ord(char) == 127 for char in text):
         return {
             "code": SELECTION_SPANS_STRUCTURE,
@@ -756,7 +805,10 @@ def _check_replaceable_selection(selection: dict[str, Any], expected: str | None
             "message": "The selection contains non-text objects such as fields or drawings; shrink it to plain text.",
         }
     if expected is not None and expected != text:
-        return {"code": SELECTION_MISMATCH, "message": "The current selection text does not match expected_selection_text."}
+        return {
+            "code": SELECTION_MISMATCH,
+            "message": "The current selection text does not match expected_selection_text.",
+        }
     return None
 
 
@@ -783,8 +835,7 @@ def _check_replaceable_presentation_selection(
         return {
             "code": SELECTION_SPANS_STRUCTURE,
             "message": (
-                f"Only a text selection inside a shape can be {verb_past}; "
-                "shrink the selection to plain text."
+                f"Only a text selection inside a shape can be {verb_past}; shrink the selection to plain text."
             ),
         }
     if not text:
@@ -793,14 +844,20 @@ def _check_replaceable_presentation_selection(
             "message": f"The selection is empty; select the text to {verb_inf} first.",
         }
     if selection.get("selection_text_truncated") or len(text) > MAX_SELECTION_CHARS:
-        return {"code": SELECTION_TOO_LARGE, "message": f"The selection is longer than {MAX_SELECTION_CHARS} characters."}
+        return {
+            "code": SELECTION_TOO_LARGE,
+            "message": f"The selection is longer than {MAX_SELECTION_CHARS} characters.",
+        }
     if any(ord(char) < 32 or ord(char) == 127 for char in text):
         return {
             "code": SELECTION_SPANS_STRUCTURE,
             "message": "The selection includes control characters; shrink it to a single plain-text run.",
         }
     if expected is not None and expected != text:
-        return {"code": SELECTION_MISMATCH, "message": "The current selection text does not match expected_selection_text."}
+        return {
+            "code": SELECTION_MISMATCH,
+            "message": "The current selection text does not match expected_selection_text.",
+        }
     return None
 
 
@@ -934,7 +991,10 @@ def _check_replaceable_spreadsheet_selection(
             ),
         }
     if len(text) > MAX_SELECTION_CHARS:
-        return {"code": SELECTION_TOO_LARGE, "message": f"The selection is longer than {MAX_SELECTION_CHARS} characters."}
+        return {
+            "code": SELECTION_TOO_LARGE,
+            "message": f"The selection is longer than {MAX_SELECTION_CHARS} characters.",
+        }
     # Multi-cell selection_text uses TAB as a sample delimiter; allow it only as separator.
     for char in text:
         code = ord(char)
@@ -946,7 +1006,10 @@ def _check_replaceable_spreadsheet_selection(
                 "message": "The selection includes control characters; shrink it to plain-text cell values.",
             }
     if expected is not None and expected != text:
-        return {"code": SELECTION_MISMATCH, "message": "The current selection text does not match expected_selection_text."}
+        return {
+            "code": SELECTION_MISMATCH,
+            "message": "The current selection text does not match expected_selection_text.",
+        }
     return None
 
 
@@ -984,10 +1047,17 @@ def replace_writer_selection(
     if not ok:
         return False, selection, errors, False
     if selection.get("read_only"):
-        return False, {"selection": selection}, [{
-            "code": DOCUMENT_READ_ONLY,
-            "message": "The open document is read-only, so its selection cannot be replaced.",
-        }], False
+        return (
+            False,
+            {"selection": selection},
+            [
+                {
+                    "code": DOCUMENT_READ_ONLY,
+                    "message": "The open document is read-only, so its selection cannot be replaced.",
+                }
+            ],
+            False,
+        )
     if selection.get("saved") is False:
         return False, {"selection": selection}, [_unsaved_open_document_error("replaced")], False
     problem = _check_replaceable_selection(selection, expected_selection_text)
@@ -1035,7 +1105,12 @@ def replace_writer_selection(
         ),
     )
     if not write_result["ok"]:
-        return False, {"preview": preview, "backup": backup_result, "write": write_result["data"]}, write_result["errors"], False
+        return (
+            False,
+            {"preview": preview, "backup": backup_result, "write": write_result["data"]},
+            write_result["errors"],
+            False,
+        )
     payload = write_result["data"]
     status_error = _status_error(payload.get("status"), str(path), action="replaced")
     if status_error:
@@ -1065,9 +1140,17 @@ def replace_writer_selection(
     if post_error is not None:
         return False, result, [post_error], False
     if not validation_passed:
-        return False, result, [
-            {"code": "VALIDATION_FAILED", "message": "Selection replacement read-back did not match the replacement text."}
-        ], False
+        return (
+            False,
+            result,
+            [
+                {
+                    "code": "VALIDATION_FAILED",
+                    "message": "Selection replacement read-back did not match the replacement text.",
+                }
+            ],
+            False,
+        )
 
     record_operation(request_id, "writer-selection-replace", result, workspace)
     return True, result, [], False
@@ -1121,10 +1204,17 @@ def insert_writer_selection(
     if not ok:
         return False, selection, errors, False
     if selection.get("read_only"):
-        return False, {"selection": selection}, [{
-            "code": DOCUMENT_READ_ONLY,
-            "message": "The open document is read-only, so text cannot be inserted at the caret.",
-        }], False
+        return (
+            False,
+            {"selection": selection},
+            [
+                {
+                    "code": DOCUMENT_READ_ONLY,
+                    "message": "The open document is read-only, so text cannot be inserted at the caret.",
+                }
+            ],
+            False,
+        )
     if selection.get("saved") is False:
         return False, {"selection": selection}, [_unsaved_open_document_error("inserted into")], False
     problem = _check_insertable_selection(selection, expected_start)
@@ -1169,7 +1259,12 @@ def insert_writer_selection(
         ),
     )
     if not write_result["ok"]:
-        return False, {"preview": preview, "backup": backup_result, "write": write_result["data"]}, write_result["errors"], False
+        return (
+            False,
+            {"preview": preview, "backup": backup_result, "write": write_result["data"]},
+            write_result["errors"],
+            False,
+        )
     payload = write_result["data"]
     status_error = _status_error(payload.get("status"), str(path), action="inserted into")
     if status_error:
@@ -1194,9 +1289,12 @@ def insert_writer_selection(
     if post_error is not None:
         return False, result, [post_error], False
     if not validation_passed:
-        return False, result, [
-            {"code": "VALIDATION_FAILED", "message": "Caret insert read-back did not match the insert text."}
-        ], False
+        return (
+            False,
+            result,
+            [{"code": "VALIDATION_FAILED", "message": "Caret insert read-back did not match the insert text."}],
+            False,
+        )
 
     record_operation(request_id, "writer-selection-insert", result, workspace)
     return True, result, [], False
@@ -1233,10 +1331,17 @@ def delete_writer_selection(
     if not ok:
         return False, selection, errors, False
     if selection.get("read_only"):
-        return False, {"selection": selection}, [{
-            "code": DOCUMENT_READ_ONLY,
-            "message": "The open document is read-only, so its selection cannot be deleted.",
-        }], False
+        return (
+            False,
+            {"selection": selection},
+            [
+                {
+                    "code": DOCUMENT_READ_ONLY,
+                    "message": "The open document is read-only, so its selection cannot be deleted.",
+                }
+            ],
+            False,
+        )
     if selection.get("saved") is False:
         return False, {"selection": selection}, [_unsaved_open_document_error("cleared")], False
     problem = _check_replaceable_selection(selection, expected_selection_text)
@@ -1282,7 +1387,12 @@ def delete_writer_selection(
         ),
     )
     if not write_result["ok"]:
-        return False, {"preview": preview, "backup": backup_result, "write": write_result["data"]}, write_result["errors"], False
+        return (
+            False,
+            {"preview": preview, "backup": backup_result, "write": write_result["data"]},
+            write_result["errors"],
+            False,
+        )
     payload = write_result["data"]
     status_error = _status_error(payload.get("status"), str(path), action="cleared")
     if status_error:
@@ -1307,9 +1417,12 @@ def delete_writer_selection(
     if post_error is not None:
         return False, result, [post_error], False
     if not validation_passed:
-        return False, result, [
-            {"code": "VALIDATION_FAILED", "message": "Selection delete read-back still matches the deleted text."}
-        ], False
+        return (
+            False,
+            result,
+            [{"code": "VALIDATION_FAILED", "message": "Selection delete read-back still matches the deleted text."}],
+            False,
+        )
 
     record_operation(request_id, "writer-selection-delete", result, workspace)
     return True, result, [], False
@@ -1349,10 +1462,17 @@ def replace_presentation_selection(
     if not ok:
         return False, selection, errors, False
     if selection.get("read_only"):
-        return False, {"selection": selection}, [{
-            "code": DOCUMENT_READ_ONLY,
-            "message": "The open document is read-only, so its selection cannot be replaced.",
-        }], False
+        return (
+            False,
+            {"selection": selection},
+            [
+                {
+                    "code": DOCUMENT_READ_ONLY,
+                    "message": "The open document is read-only, so its selection cannot be replaced.",
+                }
+            ],
+            False,
+        )
     if selection.get("saved") is False:
         return False, {"selection": selection}, [_unsaved_open_document_error("replaced")], False
     problem = _check_replaceable_presentation_selection(selection, expected_selection_text)
@@ -1399,7 +1519,12 @@ def replace_presentation_selection(
         ),
     )
     if not write_result["ok"]:
-        return False, {"preview": preview, "backup": backup_result, "write": write_result["data"]}, write_result["errors"], False
+        return (
+            False,
+            {"preview": preview, "backup": backup_result, "write": write_result["data"]},
+            write_result["errors"],
+            False,
+        )
     payload = write_result["data"]
     status_error = _status_error(payload.get("status"), str(path), component="presentation", action="replaced")
     if status_error:
@@ -1429,9 +1554,17 @@ def replace_presentation_selection(
     if post_error is not None:
         return False, result, [post_error], False
     if not validation_passed:
-        return False, result, [
-            {"code": "VALIDATION_FAILED", "message": "Selection replacement read-back did not match the replacement text."}
-        ], False
+        return (
+            False,
+            result,
+            [
+                {
+                    "code": "VALIDATION_FAILED",
+                    "message": "Selection replacement read-back did not match the replacement text.",
+                }
+            ],
+            False,
+        )
 
     record_operation(request_id, "presentation-selection-replace", result, workspace)
     return True, result, [], False
@@ -1444,7 +1577,10 @@ def _check_insertable_presentation_selection(
     kind = selection.get("selection_kind") or "unknown"
     if kind != "text":
         if kind in {"none", "unknown"}:
-            return {"code": SELECTION_EMPTY, "message": "The selection is empty; place a text caret inside a shape before inserting."}
+            return {
+                "code": SELECTION_EMPTY,
+                "message": "The selection is empty; place a text caret inside a shape before inserting.",
+            }
         return {
             "code": SELECTION_SPANS_STRUCTURE,
             "message": "Only a collapsed text caret inside a shape can receive inserts; select plain text or collapse the caret.",
@@ -1502,10 +1638,17 @@ def insert_presentation_selection(
     if not ok:
         return False, selection, errors, False
     if selection.get("read_only"):
-        return False, {"selection": selection}, [{
-            "code": DOCUMENT_READ_ONLY,
-            "message": "The open document is read-only, so text cannot be inserted at the caret.",
-        }], False
+        return (
+            False,
+            {"selection": selection},
+            [
+                {
+                    "code": DOCUMENT_READ_ONLY,
+                    "message": "The open document is read-only, so text cannot be inserted at the caret.",
+                }
+            ],
+            False,
+        )
     if selection.get("saved") is False:
         return False, {"selection": selection}, [_unsaved_open_document_error("inserted into")], False
     problem = _check_insertable_presentation_selection(selection, expected_start)
@@ -1553,7 +1696,12 @@ def insert_presentation_selection(
         ),
     )
     if not write_result["ok"]:
-        return False, {"preview": preview, "backup": backup_result, "write": write_result["data"]}, write_result["errors"], False
+        return (
+            False,
+            {"preview": preview, "backup": backup_result, "write": write_result["data"]},
+            write_result["errors"],
+            False,
+        )
     payload = write_result["data"]
     status_error = _status_error(payload.get("status"), str(path), component="presentation", action="inserted into")
     if status_error:
@@ -1578,9 +1726,12 @@ def insert_presentation_selection(
     if post_error is not None:
         return False, result, [post_error], False
     if not validation_passed:
-        return False, result, [
-            {"code": "VALIDATION_FAILED", "message": "Caret insert read-back did not match the insert text."}
-        ], False
+        return (
+            False,
+            result,
+            [{"code": "VALIDATION_FAILED", "message": "Caret insert read-back did not match the insert text."}],
+            False,
+        )
 
     record_operation(request_id, "presentation-selection-insert", result, workspace)
     return True, result, [], False
@@ -1617,14 +1768,23 @@ def delete_presentation_selection(
     if not ok:
         return False, selection, errors, False
     if selection.get("read_only"):
-        return False, {"selection": selection}, [{
-            "code": DOCUMENT_READ_ONLY,
-            "message": "The open document is read-only, so its selection cannot be deleted.",
-        }], False
+        return (
+            False,
+            {"selection": selection},
+            [
+                {
+                    "code": DOCUMENT_READ_ONLY,
+                    "message": "The open document is read-only, so its selection cannot be deleted.",
+                }
+            ],
+            False,
+        )
     if selection.get("saved") is False:
         return False, {"selection": selection}, [_unsaved_open_document_error("cleared")], False
     problem = _check_replaceable_presentation_selection(
-        selection, expected_selection_text, operation="delete",
+        selection,
+        expected_selection_text,
+        operation="delete",
     )
     if problem:
         return False, {"selection": selection}, [problem], False
@@ -1667,7 +1827,12 @@ def delete_presentation_selection(
         ),
     )
     if not write_result["ok"]:
-        return False, {"preview": preview, "backup": backup_result, "write": write_result["data"]}, write_result["errors"], False
+        return (
+            False,
+            {"preview": preview, "backup": backup_result, "write": write_result["data"]},
+            write_result["errors"],
+            False,
+        )
     payload = write_result["data"]
     status_error = _status_error(payload.get("status"), str(path), component="presentation", action="cleared")
     if status_error:
@@ -1692,9 +1857,12 @@ def delete_presentation_selection(
     if post_error is not None:
         return False, result, [post_error], False
     if not validation_passed:
-        return False, result, [
-            {"code": "VALIDATION_FAILED", "message": "Selection delete read-back still matches the deleted text."}
-        ], False
+        return (
+            False,
+            result,
+            [{"code": "VALIDATION_FAILED", "message": "Selection delete read-back still matches the deleted text."}],
+            False,
+        )
 
     record_operation(request_id, "presentation-selection-delete", result, workspace)
     return True, result, [], False
@@ -1718,10 +1886,17 @@ def replace_spreadsheet_selection(
     has_text = text is not None
     has_values = values is not None
     if has_text == has_values:
-        return False, {}, [{
-            "code": "INVALID_ARGUMENT",
-            "message": "Provide exactly one of text (constant fill) or values_json (per-cell matrix).",
-        }], False
+        return (
+            False,
+            {},
+            [
+                {
+                    "code": "INVALID_ARGUMENT",
+                    "message": "Provide exactly one of text (constant fill) or values_json (per-cell matrix).",
+                }
+            ],
+            False,
+        )
 
     matrix: list[list[str | None]] | None = None
     if has_values:
@@ -1768,10 +1943,17 @@ def replace_spreadsheet_selection(
     if not ok:
         return False, selection, errors, False
     if selection.get("read_only"):
-        return False, {"selection": selection}, [{
-            "code": DOCUMENT_READ_ONLY,
-            "message": "The open document is read-only, so its selection cannot be replaced.",
-        }], False
+        return (
+            False,
+            {"selection": selection},
+            [
+                {
+                    "code": DOCUMENT_READ_ONLY,
+                    "message": "The open document is read-only, so its selection cannot be replaced.",
+                }
+            ],
+            False,
+        )
     if selection.get("saved") is False:
         return False, {"selection": selection}, [_unsaved_open_document_error("replaced")], False
     problem = _check_replaceable_spreadsheet_selection(selection, expected_selection_text)
@@ -1811,14 +1993,21 @@ def replace_spreadsheet_selection(
             if is_chart_title
             else "Shape TextFrame"
         )
-        return False, {"selection": selection}, [{
-            "code": OBJECT_SELECTION_UNSUPPORTED,
-            "message": (
-                f"{target} write supports only constant --text"
-                + (" (TAB-joined values)" if is_series_values else "")
-                + "; values_json matrix fill is for worksheet cells."
-            ),
-        }], False
+        return (
+            False,
+            {"selection": selection},
+            [
+                {
+                    "code": OBJECT_SELECTION_UNSUPPORTED,
+                    "message": (
+                        f"{target} write supports only constant --text"
+                        + (" (TAB-joined values)" if is_series_values else "")
+                        + "; values_json matrix fill is for worksheet cells."
+                    ),
+                }
+            ],
+            False,
+        )
 
     if fill_mode == "constant" and not (is_shape_text or is_chart_title or is_axis_title or is_series_values):
         prefix_error = _formula_prefix_error(replacement_text, "Replacement text")
@@ -1830,17 +2019,24 @@ def replace_spreadsheet_selection(
         expected_points = selection["selection_text"].split("\t")
         provided_points = replacement_text.split("\t")
         if len(provided_points) != len(expected_points):
-            return False, {
-                "selection": selection,
-                "expected_count": len(expected_points),
-                "provided_count": len(provided_points),
-            }, [{
-                "code": "RANGE_SHAPE_MISMATCH",
-                "message": (
-                    "Series replacement value count must match the selected series point count "
-                    f"({len(expected_points)} TAB-joined values)."
-                ),
-            }], False
+            return (
+                False,
+                {
+                    "selection": selection,
+                    "expected_count": len(expected_points),
+                    "provided_count": len(provided_points),
+                },
+                [
+                    {
+                        "code": "RANGE_SHAPE_MISMATCH",
+                        "message": (
+                            "Series replacement value count must match the selected series point count "
+                            f"({len(expected_points)} TAB-joined values)."
+                        ),
+                    }
+                ],
+                False,
+            )
 
     cell_count = int(selection.get("cell_count") or 0)
     selection_rows = int(selection.get("row_count") or 0)
@@ -1849,23 +2045,37 @@ def replace_spreadsheet_selection(
     if fill_mode == "matrix":
         assert matrix is not None
         if row_count * column_count != cell_count:
-            return False, {
-                "selection": selection,
-                "values_shape": [row_count, column_count],
-                "selection_cell_count": cell_count,
-            }, [{
-                "code": "RANGE_SHAPE_MISMATCH",
-                "message": "values_json cell count must match the selected cells (row-major flatten for multi-area).",
-            }], False
+            return (
+                False,
+                {
+                    "selection": selection,
+                    "values_shape": [row_count, column_count],
+                    "selection_cell_count": cell_count,
+                },
+                [
+                    {
+                        "code": "RANGE_SHAPE_MISMATCH",
+                        "message": "values_json cell count must match the selected cells (row-major flatten for multi-area).",
+                    }
+                ],
+                False,
+            )
         if area_count == 1 and (selection_rows, selection_cols) != (row_count, column_count):
-            return False, {
-                "selection": selection,
-                "values_shape": [row_count, column_count],
-                "selection_shape": [selection_rows, selection_cols],
-            }, [{
-                "code": "RANGE_SHAPE_MISMATCH",
-                "message": "values_json shape must match the selected range rows and columns.",
-            }], False
+            return (
+                False,
+                {
+                    "selection": selection,
+                    "values_shape": [row_count, column_count],
+                    "selection_shape": [selection_rows, selection_cols],
+                },
+                [
+                    {
+                        "code": "RANGE_SHAPE_MISMATCH",
+                        "message": "values_json shape must match the selected range rows and columns.",
+                    }
+                ],
+                False,
+            )
 
     object_text_mode = is_shape_text or is_chart_title or is_axis_title or is_series_values
     preview = {
@@ -1963,12 +2173,14 @@ def replace_spreadsheet_selection(
             "mode": fill_mode,
         }
         if fill_mode == "matrix":
-            com_params.update({
-                "values": matrix,
-                "row_count": row_count,
-                "column_count": column_count,
-                "text": "",
-            })
+            com_params.update(
+                {
+                    "values": matrix,
+                    "row_count": row_count,
+                    "column_count": column_count,
+                    "text": "",
+                }
+            )
         else:
             com_params["text"] = replacement_text
         com_action = "selection-replace"
@@ -1979,7 +2191,12 @@ def replace_spreadsheet_selection(
         lambda: _run_spreadsheet_attached_com(com_action, com_params),
     )
     if not write_result["ok"]:
-        return False, {"preview": preview, "backup": backup_result, "write": write_result["data"]}, write_result["errors"], False
+        return (
+            False,
+            {"preview": preview, "backup": backup_result, "write": write_result["data"]},
+            write_result["errors"],
+            False,
+        )
     payload = write_result["data"]
     status_error = _status_error(payload.get("status"), str(path), component="spreadsheets", action="replaced")
     if status_error:
@@ -1991,8 +2208,10 @@ def replace_spreadsheet_selection(
     elif object_text_mode:
         cells_matched = read_back_text == replacement_text
     else:
-        cells_matched = bool(payload.get("cells_matched")) if "cells_matched" in payload else (
-            fill_mode == "constant" and cell_count == 1 and _cell_text_matches(read_back_text, replacement_text)
+        cells_matched = (
+            bool(payload.get("cells_matched"))
+            if "cells_matched" in payload
+            else (fill_mode == "constant" and cell_count == 1 and _cell_text_matches(read_back_text, replacement_text))
         )
         if fill_mode == "constant" and cell_count == 1:
             cells_matched = _cell_text_matches(read_back_text, replacement_text)
@@ -2046,16 +2265,21 @@ def replace_spreadsheet_selection(
     if post_error is not None:
         return False, result, [post_error], False
     if not validation_passed:
-        return False, result, [
-            {
-                "code": "VALIDATION_FAILED",
-                "message": (
-                    "Selection replacement read-back did not match the replacement values. "
-                    "WPS saved the write; it is undone from the pre-write backup at "
-                    f"{backup_result.get('backup_path')} when this command returns."
-                ),
-            }
-        ], False
+        return (
+            False,
+            result,
+            [
+                {
+                    "code": "VALIDATION_FAILED",
+                    "message": (
+                        "Selection replacement read-back did not match the replacement values. "
+                        "WPS saved the write; it is undone from the pre-write backup at "
+                        f"{backup_result.get('backup_path')} when this command returns."
+                    ),
+                }
+            ],
+            False,
+        )
 
     record_operation(request_id, "spreadsheet-selection-replace", result, workspace)
     return True, result, [], False
@@ -2109,14 +2333,23 @@ def delete_spreadsheet_selection(
     if not ok:
         return False, selection, errors, False
     if selection.get("read_only"):
-        return False, {"selection": selection}, [{
-            "code": DOCUMENT_READ_ONLY,
-            "message": "The open document is read-only, so its selection cannot be deleted.",
-        }], False
+        return (
+            False,
+            {"selection": selection},
+            [
+                {
+                    "code": DOCUMENT_READ_ONLY,
+                    "message": "The open document is read-only, so its selection cannot be deleted.",
+                }
+            ],
+            False,
+        )
     if selection.get("saved") is False:
         return False, {"selection": selection}, [_unsaved_open_document_error("cleared")], False
     problem = _check_replaceable_spreadsheet_selection(
-        selection, expected_selection_text, operation="delete",
+        selection,
+        expected_selection_text,
+        operation="delete",
     )
     if problem:
         return False, {"selection": selection}, [problem], False
@@ -2156,10 +2389,17 @@ def delete_spreadsheet_selection(
             empty_message = (
                 "The selection has no display text or formula to clear; select cells that contain values first."
             )
-        return False, {"selection": selection}, [{
-            "code": SELECTION_EMPTY,
-            "message": empty_message,
-        }], False
+        return (
+            False,
+            {"selection": selection},
+            [
+                {
+                    "code": SELECTION_EMPTY,
+                    "message": empty_message,
+                }
+            ],
+            False,
+        )
 
     preview = {
         "document_id": document_id,
@@ -2274,7 +2514,12 @@ def delete_spreadsheet_selection(
             ),
         )
     if not write_result["ok"]:
-        return False, {"preview": preview, "backup": backup_result, "write": write_result["data"]}, write_result["errors"], False
+        return (
+            False,
+            {"preview": preview, "backup": backup_result, "write": write_result["data"]},
+            write_result["errors"],
+            False,
+        )
     payload = write_result["data"]
     status_error = _status_error(payload.get("status"), str(path), component="spreadsheets", action="cleared")
     if status_error:
@@ -2283,14 +2528,18 @@ def delete_spreadsheet_selection(
     deleted_text = selection["selection_text"]
     read_back_text = str(payload.get("read_back_text") if payload.get("read_back_text") is not None else "")
     read_back_values = payload.get("read_back_values")
-    cells_matched = bool(payload.get("cells_matched")) if "cells_matched" in payload else (
-        not read_back_text and (not read_back_values or all(not str(value or "") for value in read_back_values))
+    cells_matched = (
+        bool(payload.get("cells_matched"))
+        if "cells_matched" in payload
+        else (not read_back_text and (not read_back_values or all(not str(value or "") for value in read_back_values)))
     )
     if is_shape_text or is_chart_title or is_axis_title:
         cells_matched = not read_back_text
     elif is_series_values:
-        cells_matched = bool(payload.get("cells_matched")) if "cells_matched" in payload else (
-            not any(part for part in read_back_text.split("\t"))
+        cells_matched = (
+            bool(payload.get("cells_matched"))
+            if "cells_matched" in payload
+            else (not any(part for part in read_back_text.split("\t")))
         )
     validation_passed = cells_matched
     if is_series_values:
@@ -2336,9 +2585,12 @@ def delete_spreadsheet_selection(
     if post_error is not None:
         return False, result, [post_error], False
     if not validation_passed:
-        return False, result, [
-            {"code": "VALIDATION_FAILED", "message": "Selection delete read-back still contains cell text."}
-        ], False
+        return (
+            False,
+            result,
+            [{"code": "VALIDATION_FAILED", "message": "Selection delete read-back still contains cell text."}],
+            False,
+        )
 
     record_operation(request_id, "spreadsheet-selection-delete", result, workspace)
     return True, result, [], False
@@ -2362,7 +2614,9 @@ def save_open_document(
         return replay
 
     document, data, errors = _registered_document(
-        document_id, workspace, allowed_components={"writer", "presentation", "spreadsheets"},
+        document_id,
+        workspace,
+        allowed_components={"writer", "presentation", "spreadsheets"},
     )
     if document is None:
         return False, data, errors, False
@@ -2373,14 +2627,29 @@ def save_open_document(
         return False, {"document_id": document_id, "path": str(path), **inspect["data"]}, inspect["errors"], False
     payload = inspect["data"] or {}
     if payload.get("ok") is False:
-        return False, {"document_id": document_id, "path": str(path), "diagnostic": payload}, [
-            {"code": COM_OPERATION_FAILED, "message": str(payload.get("error_message") or "Open-document save inspect failed.")}
-        ], False
+        return (
+            False,
+            {"document_id": document_id, "path": str(path), "diagnostic": payload},
+            [
+                {
+                    "code": COM_OPERATION_FAILED,
+                    "message": str(payload.get("error_message") or "Open-document save inspect failed."),
+                }
+            ],
+            False,
+        )
     if payload.get("status") == "read_only" or payload.get("read_only"):
-        return False, {"document_id": document_id, "path": str(path), "saved": payload.get("saved"), "read_only": True}, [{
-            "code": DOCUMENT_READ_ONLY,
-            "message": "The open document is read-only, so it cannot be saved over the source file.",
-        }], False
+        return (
+            False,
+            {"document_id": document_id, "path": str(path), "saved": payload.get("saved"), "read_only": True},
+            [
+                {
+                    "code": DOCUMENT_READ_ONLY,
+                    "message": "The open document is read-only, so it cannot be saved over the source file.",
+                }
+            ],
+            False,
+        )
     status_error = _status_error(payload.get("status"), str(path), component=component, action="saved")
     if status_error:
         return False, {"document_id": document_id, "path": str(path)}, [status_error], False
@@ -2425,13 +2694,25 @@ def save_open_document(
         lambda: _run_component_attached_com(component, "save", {"path": str(path), "do_save": True}),
     )
     if not write_result["ok"]:
-        return False, {"preview": preview, "backup": backup_result, "write": write_result["data"]}, write_result["errors"], False
+        return (
+            False,
+            {"preview": preview, "backup": backup_result, "write": write_result["data"]},
+            write_result["errors"],
+            False,
+        )
     write_payload = write_result["data"] or {}
     if write_payload.get("status") == "read_only" or write_payload.get("read_only"):
-        return False, {"preview": preview, "backup": backup_result, "write": write_payload}, [{
-            "code": DOCUMENT_READ_ONLY,
-            "message": "The open document is read-only, so it cannot be saved over the source file.",
-        }], False
+        return (
+            False,
+            {"preview": preview, "backup": backup_result, "write": write_payload},
+            [
+                {
+                    "code": DOCUMENT_READ_ONLY,
+                    "message": "The open document is read-only, so it cannot be saved over the source file.",
+                }
+            ],
+            False,
+        )
     status_error = _status_error(write_payload.get("status"), str(path), component=component, action="saved")
     if status_error:
         return False, {"preview": preview, "backup": backup_result, "write": write_payload}, [status_error], False
@@ -2454,9 +2735,17 @@ def save_open_document(
     if post_error is not None:
         return False, result, [post_error], False
     if not validation_passed:
-        return False, result, [
-            {"code": "VALIDATION_FAILED", "message": "Open-document Save() did not leave the document saved and still open."}
-        ], False
+        return (
+            False,
+            result,
+            [
+                {
+                    "code": "VALIDATION_FAILED",
+                    "message": "Open-document Save() did not leave the document saved and still open.",
+                }
+            ],
+            False,
+        )
 
     record_operation(request_id, "save-open-document", result, workspace)
     return True, result, [], False
@@ -2485,7 +2774,12 @@ def save_as_open_document(
         return False, {}, [{"code": "UNSUPPORTED_COMPONENT", "message": f"Unsupported component: {component}"}], False
     display_name = (name or "").strip()
     if not display_name:
-        return False, {}, [{"code": "INVALID_ARGUMENT", "message": "Untitled document --name must be non-empty."}], False
+        return (
+            False,
+            {},
+            [{"code": "INVALID_ARGUMENT", "message": "Untitled document --name must be non-empty."}],
+            False,
+        )
 
     output_path = Path(output)
     try:
@@ -2496,95 +2790,168 @@ def save_as_open_document(
     allowed = SAVE_AS_NATIVE_SUFFIXES[component]
     if suffix not in allowed:
         allowed_list = ", ".join(sorted(allowed))
-        return False, {"component": component, "output": str(resolved_output)}, [{
-            "code": UNSUPPORTED_OUTPUT_EXTENSION,
-            "message": f"save-as-open-document for {component} requires a native extension ({allowed_list}).",
-        }], False
+        return (
+            False,
+            {"component": component, "output": str(resolved_output)},
+            [
+                {
+                    "code": UNSUPPORTED_OUTPUT_EXTENSION,
+                    "message": f"save-as-open-document for {component} requires a native extension ({allowed_list}).",
+                }
+            ],
+            False,
+        )
     if resolved_output.exists():
-        return False, {"component": component, "name": display_name, "output": str(resolved_output)}, [{
-            "code": OUTPUT_EXISTS,
-            "message": f"Output already exists and will not be overwritten: {resolved_output}",
-        }], False
+        return (
+            False,
+            {"component": component, "name": display_name, "output": str(resolved_output)},
+            [
+                {
+                    "code": OUTPUT_EXISTS,
+                    "message": f"Output already exists and will not be overwritten: {resolved_output}",
+                }
+            ],
+            False,
+        )
     if not resolved_output.parent.is_dir():
-        return False, {"component": component, "output": str(resolved_output)}, [{
-            "code": "OUTPUT_DIRECTORY_MISSING",
-            "message": f"Output directory does not exist: {resolved_output.parent}",
-        }], False
+        return (
+            False,
+            {"component": component, "output": str(resolved_output)},
+            [
+                {
+                    "code": "OUTPUT_DIRECTORY_MISSING",
+                    "message": f"Output directory does not exist: {resolved_output.parent}",
+                }
+            ],
+            False,
+        )
 
     inspect = _run_save_as_untitled_com(component, display_name, str(resolved_output), do_save=False)
     if not inspect["ok"]:
-        return False, {
-            "component": component,
-            "name": display_name,
-            "output": str(resolved_output),
-            **inspect["data"],
-        }, inspect["errors"], False
+        return (
+            False,
+            {
+                "component": component,
+                "name": display_name,
+                "output": str(resolved_output),
+                **inspect["data"],
+            },
+            inspect["errors"],
+            False,
+        )
     payload = inspect["data"] or {}
     if payload.get("ok") is False:
-        return False, {
-            "component": component,
-            "name": display_name,
-            "output": str(resolved_output),
-            "diagnostic": payload,
-        }, [{
-            "code": COM_OPERATION_FAILED,
-            "message": str(payload.get("error_message") or "Untitled SaveAs inspect failed."),
-        }], False
+        return (
+            False,
+            {
+                "component": component,
+                "name": display_name,
+                "output": str(resolved_output),
+                "diagnostic": payload,
+            },
+            [
+                {
+                    "code": COM_OPERATION_FAILED,
+                    "message": str(payload.get("error_message") or "Untitled SaveAs inspect failed."),
+                }
+            ],
+            False,
+        )
 
     status = payload.get("status")
     if status == "no_instance":
-        return False, {"component": component, "name": display_name, "output": str(resolved_output)}, [{
-            "code": NO_RUNNING_WPS_INSTANCE,
-            "message": f"No running WPS {component} instance was found; nothing was launched.",
-        }], False
+        return (
+            False,
+            {"component": component, "name": display_name, "output": str(resolved_output)},
+            [
+                {
+                    "code": NO_RUNNING_WPS_INSTANCE,
+                    "message": f"No running WPS {component} instance was found; nothing was launched.",
+                }
+            ],
+            False,
+        )
     if status == "not_found":
-        return False, {"component": component, "name": display_name, "output": str(resolved_output)}, [{
-            "code": UNTITLED_DOCUMENT_NOT_FOUND,
-            "message": (
-                f"No untitled open {component} document named {display_name!r} was found. "
-                "List candidates with open-documents."
-            ),
-        }], False
+        return (
+            False,
+            {"component": component, "name": display_name, "output": str(resolved_output)},
+            [
+                {
+                    "code": UNTITLED_DOCUMENT_NOT_FOUND,
+                    "message": (
+                        f"No untitled open {component} document named {display_name!r} was found. "
+                        "List candidates with open-documents."
+                    ),
+                }
+            ],
+            False,
+        )
     if status == "ambiguous":
-        return False, {
-            "component": component,
-            "name": display_name,
-            "output": str(resolved_output),
-            "match_count": payload.get("match_count"),
-        }, [{
-            "code": AMBIGUOUS_OPEN_DOCUMENT,
-            "message": (
-                f"Multiple untitled open {component} documents are named {display_name!r}; "
-                "rename one in WPS or close extras before save-as-open-document."
-            ),
-        }], False
+        return (
+            False,
+            {
+                "component": component,
+                "name": display_name,
+                "output": str(resolved_output),
+                "match_count": payload.get("match_count"),
+            },
+            [
+                {
+                    "code": AMBIGUOUS_OPEN_DOCUMENT,
+                    "message": (
+                        f"Multiple untitled open {component} documents are named {display_name!r}; "
+                        "rename one in WPS or close extras before save-as-open-document."
+                    ),
+                }
+            ],
+            False,
+        )
     if status == "already_pathed":
-        return False, {
-            "component": component,
-            "name": display_name,
-            "output": str(resolved_output),
-            "match_count": payload.get("match_count"),
-        }, [{
-            "code": DOCUMENT_ALREADY_PATHED,
-            "message": (
-                f"Open {component} document {display_name!r} already has a disk path; "
-                "use save-open-document or export-open-document-copy instead."
-            ),
-        }], False
+        return (
+            False,
+            {
+                "component": component,
+                "name": display_name,
+                "output": str(resolved_output),
+                "match_count": payload.get("match_count"),
+            },
+            [
+                {
+                    "code": DOCUMENT_ALREADY_PATHED,
+                    "message": (
+                        f"Open {component} document {display_name!r} already has a disk path; "
+                        "use save-open-document or export-open-document-copy instead."
+                    ),
+                }
+            ],
+            False,
+        )
     if status == "read_only" or payload.get("read_only"):
-        return False, {
-            "component": component,
-            "name": display_name,
-            "output": str(resolved_output),
-            "read_only": True,
-        }, [{
-            "code": DOCUMENT_READ_ONLY,
-            "message": "The open untitled document is read-only, so it cannot be saved to a new path.",
-        }], False
+        return (
+            False,
+            {
+                "component": component,
+                "name": display_name,
+                "output": str(resolved_output),
+                "read_only": True,
+            },
+            [
+                {
+                    "code": DOCUMENT_READ_ONLY,
+                    "message": "The open untitled document is read-only, so it cannot be saved to a new path.",
+                }
+            ],
+            False,
+        )
     if status not in (None, "ok"):
         status_error = _status_error(status, str(resolved_output), component=component, action="saved")
         if status_error:
-            return False, {"component": component, "name": display_name, "output": str(resolved_output)}, [status_error], False
+            return (
+                False,
+                {"component": component, "name": display_name, "output": str(resolved_output)},
+                [status_error],
+                False,
+            )
 
     preview = {
         "component": component,
@@ -2608,16 +2975,30 @@ def save_as_open_document(
         return False, {"preview": preview, "write": write_result["data"]}, write_result["errors"], False
     write_payload = write_result["data"] or {}
     if write_payload.get("ok") is False:
-        return False, {"preview": preview, "diagnostic": write_payload}, [{
-            "code": COM_OPERATION_FAILED,
-            "message": str(write_payload.get("error_message") or "Untitled SaveAs failed."),
-        }], False
+        return (
+            False,
+            {"preview": preview, "diagnostic": write_payload},
+            [
+                {
+                    "code": COM_OPERATION_FAILED,
+                    "message": str(write_payload.get("error_message") or "Untitled SaveAs failed."),
+                }
+            ],
+            False,
+        )
     write_status = write_payload.get("status")
     if write_status == "read_only" or write_payload.get("read_only"):
-        return False, {"preview": preview, "write": write_payload}, [{
-            "code": DOCUMENT_READ_ONLY,
-            "message": "The open untitled document is read-only, so it cannot be saved to a new path.",
-        }], False
+        return (
+            False,
+            {"preview": preview, "write": write_payload},
+            [
+                {
+                    "code": DOCUMENT_READ_ONLY,
+                    "message": "The open untitled document is read-only, so it cannot be saved to a new path.",
+                }
+            ],
+            False,
+        )
     if write_status in {"not_found", "ambiguous", "already_pathed", "no_instance"}:
         # Race: selection changed between inspect and write.
         code = {
@@ -2626,10 +3007,17 @@ def save_as_open_document(
             "already_pathed": DOCUMENT_ALREADY_PATHED,
             "no_instance": NO_RUNNING_WPS_INSTANCE,
         }[write_status]
-        return False, {"preview": preview, "write": write_payload}, [{
-            "code": code,
-            "message": f"Untitled SaveAs aborted because open-document state became {write_status}.",
-        }], False
+        return (
+            False,
+            {"preview": preview, "write": write_payload},
+            [
+                {
+                    "code": code,
+                    "message": f"Untitled SaveAs aborted because open-document state became {write_status}.",
+                }
+            ],
+            False,
+        )
     if write_status not in (None, "ok"):
         status_error = _status_error(write_status, str(resolved_output), component=component, action="saved")
         if status_error:
@@ -2664,18 +3052,33 @@ def save_as_open_document(
         "validation_passed": validation_passed,
     }
     if not validation_passed:
-        return False, result, [{
-            "code": "VALIDATION_FAILED",
-            "message": (
-                "Untitled SaveAs did not leave a nonempty output file with the document saved, "
-                "still open, and path-matched."
-            ),
-        }], False
+        return (
+            False,
+            result,
+            [
+                {
+                    "code": "VALIDATION_FAILED",
+                    "message": (
+                        "Untitled SaveAs did not leave a nonempty output file with the document saved, "
+                        "still open, and path-matched."
+                    ),
+                }
+            ],
+            False,
+        )
     if document_id is None:
-        return False, result, register_errors or [{
-            "code": "DOCUMENT_REGISTER_FAILED",
-            "message": "SaveAs wrote the file but registration of the new path failed.",
-        }], False
+        return (
+            False,
+            result,
+            register_errors
+            or [
+                {
+                    "code": "DOCUMENT_REGISTER_FAILED",
+                    "message": "SaveAs wrote the file but registration of the new path failed.",
+                }
+            ],
+            False,
+        )
 
     record_operation(request_id, "save-as-open-document", result, workspace)
     return True, result, [], False
@@ -2815,7 +3218,9 @@ def export_open_document_html(
         return replay
 
     document, data, errors = _registered_document(
-        document_id, workspace, allowed_components={"writer", "presentation", "spreadsheets"},
+        document_id,
+        workspace,
+        allowed_components={"writer", "presentation", "spreadsheets"},
     )
     if document is None:
         return False, data, errors, False
@@ -2823,13 +3228,38 @@ def export_open_document_html(
     source = Path(document["path"]).resolve()
     resolved_output = output_path.resolve()
     if resolved_output.suffix.lower() not in HTML_EXPORT_SUFFIXES:
-        return False, {}, [{"code": "INVALID_ARGUMENT", "message": "Output must end in .html or .htm; only HTML export of open Writer, Presentation, or Spreadsheet documents is supported."}], False
+        return (
+            False,
+            {},
+            [
+                {
+                    "code": "INVALID_ARGUMENT",
+                    "message": "Output must end in .html or .htm; only HTML export of open Writer, Presentation, or Spreadsheet documents is supported.",
+                }
+            ],
+            False,
+        )
     if resolved_output == source:
-        return False, {}, [{"code": "INVALID_ARGUMENT", "message": "Output must differ from the source document."}], False
+        return (
+            False,
+            {},
+            [{"code": "INVALID_ARGUMENT", "message": "Output must differ from the source document."}],
+            False,
+        )
     if resolved_output.exists():
-        return False, {"output": str(resolved_output)}, [{"code": OUTPUT_EXISTS, "message": "Output already exists; choose a new path. Nothing was overwritten."}], False
+        return (
+            False,
+            {"output": str(resolved_output)},
+            [{"code": OUTPUT_EXISTS, "message": "Output already exists; choose a new path. Nothing was overwritten."}],
+            False,
+        )
     if not resolved_output.parent.is_dir():
-        return False, {"output": str(resolved_output)}, [{"code": "INVALID_ARGUMENT", "message": "Output directory does not exist."}], False
+        return (
+            False,
+            {"output": str(resolved_output)},
+            [{"code": "INVALID_ARGUMENT", "message": "Output directory does not exist."}],
+            False,
+        )
 
     try:
         identity_before = file_identity(source)
@@ -2849,9 +3279,12 @@ def export_open_document_html(
         return False, {"document_id": document_id, **result["data"]}, result["errors"], False
     payload = result["data"] or {}
     if payload.get("ok") is False:
-        return False, {"document_id": document_id, "diagnostic": payload}, [
-            {"code": COM_OPERATION_FAILED, "message": str(payload.get("error_message") or "HTML export failed.")}
-        ], False
+        return (
+            False,
+            {"document_id": document_id, "diagnostic": payload},
+            [{"code": COM_OPERATION_FAILED, "message": str(payload.get("error_message") or "HTML export failed.")}],
+            False,
+        )
     status_error = _status_error(payload.get("status"), str(source), component=component, action="exported")
     if status_error:
         return False, {"document_id": document_id}, [status_error], False
@@ -2862,9 +3295,7 @@ def export_open_document_html(
     except OSError:
         source_unchanged = False
     companion = [
-        str(item)
-        for item in resolved_output.parent.glob(f"{glob.escape(resolved_output.stem)}*")
-        if item.is_dir()
+        str(item) for item in resolved_output.parent.glob(f"{glob.escape(resolved_output.stem)}*") if item.is_dir()
     ]
     export_result = {
         "document_id": document_id,
@@ -2881,14 +3312,36 @@ def export_open_document_html(
         "validation_passed": bool(exported and source_unchanged and payload.get("source_still_open")),
     }
     if not exported:
-        return False, export_result, [{"code": EXPORT_OUTPUT_MISSING, "message": "WPS reported success but no HTML output file was produced."}], False
+        return (
+            False,
+            export_result,
+            [{"code": EXPORT_OUTPUT_MISSING, "message": "WPS reported success but no HTML output file was produced."}],
+            False,
+        )
     if component in {"presentation", "spreadsheets"} and not _looks_like_html(resolved_output):
-        return False, export_result, [{
-            "code": EXPORT_OUTPUT_NOT_HTML,
-            "message": "WPS wrote the output path, but the bytes are not HTML (for example a renamed package). The source document was left open and unchanged.",
-        }], False
+        return (
+            False,
+            export_result,
+            [
+                {
+                    "code": EXPORT_OUTPUT_NOT_HTML,
+                    "message": "WPS wrote the output path, but the bytes are not HTML (for example a renamed package). The source document was left open and unchanged.",
+                }
+            ],
+            False,
+        )
     if not source_unchanged:
-        return False, export_result, [{"code": "DOCUMENT_CHANGED_AFTER_COM", "message": "The source document changed during export; inspect it before continuing."}], False
+        return (
+            False,
+            export_result,
+            [
+                {
+                    "code": "DOCUMENT_CHANGED_AFTER_COM",
+                    "message": "The source document changed during export; inspect it before continuing.",
+                }
+            ],
+            False,
+        )
 
     record_operation(request_id, "export-open-document", export_result, workspace)
     return True, export_result, [], False
@@ -2913,7 +3366,9 @@ def export_open_document_pdf(
         return replay
 
     document, data, errors = _registered_document(
-        document_id, workspace, allowed_components={"writer", "presentation", "spreadsheets"},
+        document_id,
+        workspace,
+        allowed_components={"writer", "presentation", "spreadsheets"},
     )
     if document is None:
         return False, data, errors, False
@@ -2921,13 +3376,38 @@ def export_open_document_pdf(
     source = Path(document["path"]).resolve()
     resolved_output = output_path.resolve()
     if resolved_output.suffix.lower() not in PDF_EXPORT_SUFFIXES:
-        return False, {}, [{"code": "INVALID_ARGUMENT", "message": "Output must end in .pdf; only PDF export of open Writer, Presentation, or Spreadsheet documents is supported."}], False
+        return (
+            False,
+            {},
+            [
+                {
+                    "code": "INVALID_ARGUMENT",
+                    "message": "Output must end in .pdf; only PDF export of open Writer, Presentation, or Spreadsheet documents is supported.",
+                }
+            ],
+            False,
+        )
     if resolved_output == source:
-        return False, {}, [{"code": "INVALID_ARGUMENT", "message": "Output must differ from the source document."}], False
+        return (
+            False,
+            {},
+            [{"code": "INVALID_ARGUMENT", "message": "Output must differ from the source document."}],
+            False,
+        )
     if resolved_output.exists():
-        return False, {"output": str(resolved_output)}, [{"code": OUTPUT_EXISTS, "message": "Output already exists; choose a new path. Nothing was overwritten."}], False
+        return (
+            False,
+            {"output": str(resolved_output)},
+            [{"code": OUTPUT_EXISTS, "message": "Output already exists; choose a new path. Nothing was overwritten."}],
+            False,
+        )
     if not resolved_output.parent.is_dir():
-        return False, {"output": str(resolved_output)}, [{"code": "INVALID_ARGUMENT", "message": "Output directory does not exist."}], False
+        return (
+            False,
+            {"output": str(resolved_output)},
+            [{"code": "INVALID_ARGUMENT", "message": "Output directory does not exist."}],
+            False,
+        )
 
     try:
         identity_before = file_identity(source)
@@ -2947,9 +3427,12 @@ def export_open_document_pdf(
         return False, {"document_id": document_id, **result["data"]}, result["errors"], False
     payload = result["data"] or {}
     if payload.get("ok") is False:
-        return False, {"document_id": document_id, "diagnostic": payload}, [
-            {"code": COM_OPERATION_FAILED, "message": str(payload.get("error_message") or "PDF export failed.")}
-        ], False
+        return (
+            False,
+            {"document_id": document_id, "diagnostic": payload},
+            [{"code": COM_OPERATION_FAILED, "message": str(payload.get("error_message") or "PDF export failed.")}],
+            False,
+        )
     status_error = _status_error(payload.get("status"), str(source), component=component, action="exported")
     if status_error:
         return False, {"document_id": document_id}, [status_error], False
@@ -2975,14 +3458,36 @@ def export_open_document_pdf(
         ),
     }
     if not exported:
-        return False, export_result, [{"code": EXPORT_OUTPUT_MISSING, "message": "WPS reported success but no PDF output file was produced."}], False
+        return (
+            False,
+            export_result,
+            [{"code": EXPORT_OUTPUT_MISSING, "message": "WPS reported success but no PDF output file was produced."}],
+            False,
+        )
     if not _looks_like_pdf(resolved_output):
-        return False, export_result, [{
-            "code": EXPORT_OUTPUT_NOT_PDF,
-            "message": "WPS wrote the output path, but the bytes are not a PDF. The source document was left open and unchanged.",
-        }], False
+        return (
+            False,
+            export_result,
+            [
+                {
+                    "code": EXPORT_OUTPUT_NOT_PDF,
+                    "message": "WPS wrote the output path, but the bytes are not a PDF. The source document was left open and unchanged.",
+                }
+            ],
+            False,
+        )
     if not source_unchanged:
-        return False, export_result, [{"code": "DOCUMENT_CHANGED_AFTER_COM", "message": "The source document changed during export; inspect it before continuing."}], False
+        return (
+            False,
+            export_result,
+            [
+                {
+                    "code": "DOCUMENT_CHANGED_AFTER_COM",
+                    "message": "The source document changed during export; inspect it before continuing.",
+                }
+            ],
+            False,
+        )
 
     record_operation(request_id, "export-open-document-pdf", export_result, workspace)
     return True, export_result, [], False
@@ -3021,7 +3526,9 @@ def export_open_document_copy(
         return replay
 
     document, data, errors = _registered_document(
-        document_id, workspace, allowed_components={"writer", "presentation", "spreadsheets"},
+        document_id,
+        workspace,
+        allowed_components={"writer", "presentation", "spreadsheets"},
     )
     if document is None:
         return False, data, errors, False
@@ -3030,18 +3537,50 @@ def export_open_document_copy(
     resolved_output = output_path.resolve()
     source_suffix = source.suffix.lower()
     if not source_suffix:
-        return False, {}, [{"code": "INVALID_ARGUMENT", "message": "Source document has no file extension; cannot choose a same-format copy path."}], False
+        return (
+            False,
+            {},
+            [
+                {
+                    "code": "INVALID_ARGUMENT",
+                    "message": "Source document has no file extension; cannot choose a same-format copy path.",
+                }
+            ],
+            False,
+        )
     if resolved_output.suffix.lower() != source_suffix:
-        return False, {}, [{
-            "code": "INVALID_ARGUMENT",
-            "message": f"Output must use the same extension as the source ({source_suffix}); native format conversion is not supported by this command.",
-        }], False
+        return (
+            False,
+            {},
+            [
+                {
+                    "code": "INVALID_ARGUMENT",
+                    "message": f"Output must use the same extension as the source ({source_suffix}); native format conversion is not supported by this command.",
+                }
+            ],
+            False,
+        )
     if resolved_output == source:
-        return False, {}, [{"code": "INVALID_ARGUMENT", "message": "Output must differ from the source document."}], False
+        return (
+            False,
+            {},
+            [{"code": "INVALID_ARGUMENT", "message": "Output must differ from the source document."}],
+            False,
+        )
     if resolved_output.exists():
-        return False, {"output": str(resolved_output)}, [{"code": OUTPUT_EXISTS, "message": "Output already exists; choose a new path. Nothing was overwritten."}], False
+        return (
+            False,
+            {"output": str(resolved_output)},
+            [{"code": OUTPUT_EXISTS, "message": "Output already exists; choose a new path. Nothing was overwritten."}],
+            False,
+        )
     if not resolved_output.parent.is_dir():
-        return False, {"output": str(resolved_output)}, [{"code": "INVALID_ARGUMENT", "message": "Output directory does not exist."}], False
+        return (
+            False,
+            {"output": str(resolved_output)},
+            [{"code": "INVALID_ARGUMENT", "message": "Output directory does not exist."}],
+            False,
+        )
 
     try:
         identity_before = file_identity(source)
@@ -3058,9 +3597,17 @@ def export_open_document_copy(
         return False, {"document_id": document_id, **result["data"]}, result["errors"], False
     payload = result["data"] or {}
     if payload.get("ok") is False:
-        return False, {"document_id": document_id, "diagnostic": payload}, [
-            {"code": COM_OPERATION_FAILED, "message": str(payload.get("error_message") or "Native copy export failed.")}
-        ], False
+        return (
+            False,
+            {"document_id": document_id, "diagnostic": payload},
+            [
+                {
+                    "code": COM_OPERATION_FAILED,
+                    "message": str(payload.get("error_message") or "Native copy export failed."),
+                }
+            ],
+            False,
+        )
     status_error = _status_error(payload.get("status"), str(source), component=component, action="exported")
     if status_error:
         return False, {"document_id": document_id}, [status_error], False
@@ -3084,19 +3631,39 @@ def export_open_document_copy(
         "source_still_open": payload.get("source_still_open"),
         "source_unchanged": source_unchanged,
         "known_losses": NATIVE_COPY_KNOWN_LOSSES,
-        "validation_passed": bool(
-            exported and source_unchanged and payload.get("source_still_open") and package_ok
-        ),
+        "validation_passed": bool(exported and source_unchanged and payload.get("source_still_open") and package_ok),
     }
     if not exported:
-        return False, export_result, [{"code": EXPORT_OUTPUT_MISSING, "message": "WPS reported success but no copy file was produced."}], False
+        return (
+            False,
+            export_result,
+            [{"code": EXPORT_OUTPUT_MISSING, "message": "WPS reported success but no copy file was produced."}],
+            False,
+        )
     if not package_ok:
-        return False, export_result, [{
-            "code": EXPORT_OUTPUT_NOT_PACKAGE,
-            "message": "WPS wrote the output path, but the bytes are not a recognizable Office Open XML package. The source document was left open and unchanged.",
-        }], False
+        return (
+            False,
+            export_result,
+            [
+                {
+                    "code": EXPORT_OUTPUT_NOT_PACKAGE,
+                    "message": "WPS wrote the output path, but the bytes are not a recognizable Office Open XML package. The source document was left open and unchanged.",
+                }
+            ],
+            False,
+        )
     if not source_unchanged:
-        return False, export_result, [{"code": "DOCUMENT_CHANGED_AFTER_COM", "message": "The source document changed during export; inspect it before continuing."}], False
+        return (
+            False,
+            export_result,
+            [
+                {
+                    "code": "DOCUMENT_CHANGED_AFTER_COM",
+                    "message": "The source document changed during export; inspect it before continuing.",
+                }
+            ],
+            False,
+        )
 
     record_operation(request_id, "export-open-document-copy", export_result, workspace)
     return True, export_result, [], False
@@ -3148,7 +3715,9 @@ def export_open_document_text(
         return replay
 
     document, data, errors = _registered_document(
-        document_id, workspace, allowed_components={"writer", "presentation", "spreadsheets"},
+        document_id,
+        workspace,
+        allowed_components={"writer", "presentation", "spreadsheets"},
     )
     if document is None:
         return False, data, errors, False
@@ -3156,13 +3725,38 @@ def export_open_document_text(
     source = Path(document["path"]).resolve()
     resolved_output = output_path.resolve()
     if resolved_output.suffix.lower() not in TEXT_EXPORT_SUFFIXES:
-        return False, {}, [{"code": "INVALID_ARGUMENT", "message": "Output must end in .txt; only plain-text export of open Writer, Presentation, or Spreadsheet documents is supported."}], False
+        return (
+            False,
+            {},
+            [
+                {
+                    "code": "INVALID_ARGUMENT",
+                    "message": "Output must end in .txt; only plain-text export of open Writer, Presentation, or Spreadsheet documents is supported.",
+                }
+            ],
+            False,
+        )
     if resolved_output == source:
-        return False, {}, [{"code": "INVALID_ARGUMENT", "message": "Output must differ from the source document."}], False
+        return (
+            False,
+            {},
+            [{"code": "INVALID_ARGUMENT", "message": "Output must differ from the source document."}],
+            False,
+        )
     if resolved_output.exists():
-        return False, {"output": str(resolved_output)}, [{"code": OUTPUT_EXISTS, "message": "Output already exists; choose a new path. Nothing was overwritten."}], False
+        return (
+            False,
+            {"output": str(resolved_output)},
+            [{"code": OUTPUT_EXISTS, "message": "Output already exists; choose a new path. Nothing was overwritten."}],
+            False,
+        )
     if not resolved_output.parent.is_dir():
-        return False, {"output": str(resolved_output)}, [{"code": "INVALID_ARGUMENT", "message": "Output directory does not exist."}], False
+        return (
+            False,
+            {"output": str(resolved_output)},
+            [{"code": "INVALID_ARGUMENT", "message": "Output directory does not exist."}],
+            False,
+        )
 
     try:
         identity_before = file_identity(source)
@@ -3179,9 +3773,17 @@ def export_open_document_text(
         return False, {"document_id": document_id, **result["data"]}, result["errors"], False
     payload = result["data"] or {}
     if payload.get("ok") is False:
-        return False, {"document_id": document_id, "diagnostic": payload}, [
-            {"code": COM_OPERATION_FAILED, "message": str(payload.get("error_message") or "Plain-text export failed.")}
-        ], False
+        return (
+            False,
+            {"document_id": document_id, "diagnostic": payload},
+            [
+                {
+                    "code": COM_OPERATION_FAILED,
+                    "message": str(payload.get("error_message") or "Plain-text export failed."),
+                }
+            ],
+            False,
+        )
     status_error = _status_error(payload.get("status"), str(source), component=component, action="exported")
     if status_error:
         return False, {"document_id": document_id}, [status_error], False
@@ -3203,19 +3805,39 @@ def export_open_document_text(
         "source_still_open": payload.get("source_still_open"),
         "source_unchanged": source_unchanged,
         "known_losses": TEXT_EXPORT_KNOWN_LOSSES,
-        "validation_passed": bool(
-            exported and source_unchanged and payload.get("source_still_open") and text_ok
-        ),
+        "validation_passed": bool(exported and source_unchanged and payload.get("source_still_open") and text_ok),
     }
     if not exported:
-        return False, export_result, [{"code": EXPORT_OUTPUT_MISSING, "message": "WPS reported success but no text output file was produced."}], False
+        return (
+            False,
+            export_result,
+            [{"code": EXPORT_OUTPUT_MISSING, "message": "WPS reported success but no text output file was produced."}],
+            False,
+        )
     if not text_ok:
-        return False, export_result, [{
-            "code": EXPORT_OUTPUT_NOT_TEXT,
-            "message": "WPS wrote the output path, but the bytes are not plain text (for example a package or PDF). The source document was left open and unchanged.",
-        }], False
+        return (
+            False,
+            export_result,
+            [
+                {
+                    "code": EXPORT_OUTPUT_NOT_TEXT,
+                    "message": "WPS wrote the output path, but the bytes are not plain text (for example a package or PDF). The source document was left open and unchanged.",
+                }
+            ],
+            False,
+        )
     if not source_unchanged:
-        return False, export_result, [{"code": "DOCUMENT_CHANGED_AFTER_COM", "message": "The source document changed during export; inspect it before continuing."}], False
+        return (
+            False,
+            export_result,
+            [
+                {
+                    "code": "DOCUMENT_CHANGED_AFTER_COM",
+                    "message": "The source document changed during export; inspect it before continuing.",
+                }
+            ],
+            False,
+        )
 
     record_operation(request_id, "export-open-document-text", export_result, workspace)
     return True, export_result, [], False

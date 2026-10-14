@@ -25,7 +25,9 @@ W_NS = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
 def write_docx(path, body_xml, padding=0):
     document = f'<w:document xmlns:w="{W_NS}"><w:body>{body_xml}{" " * padding}</w:body></w:document>'
     with zipfile.ZipFile(path, "w", zipfile.ZIP_DEFLATED) as archive:
-        archive.writestr("[Content_Types].xml", '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"/>')
+        archive.writestr(
+            "[Content_Types].xml", '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"/>'
+        )
         archive.writestr("word/document.xml", document)
 
 
@@ -112,7 +114,10 @@ class CliStructuredErrorTests(unittest.TestCase):
                 run(["register-document", "--component", "writer", "--path", str(path)], output_stream=stream)
                 document_id = json.loads(stream.getvalue())["data"]["document"]["document_id"]
                 stream = io.StringIO()
-                code = run(["validate-document", "--document-id", document_id, "--contains", "x", "--request-id", "big-1"], output_stream=stream)
+                code = run(
+                    ["validate-document", "--document-id", document_id, "--contains", "x", "--request-id", "big-1"],
+                    output_stream=stream,
+                )
                 payload = json.loads(stream.getvalue())
             finally:
                 os.chdir(previous)

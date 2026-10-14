@@ -296,7 +296,12 @@ def _with_optional_task_status(
     )
     if _ok and status.get("state") in {"cancelled", "failed"}:
         _ok = False
-        _errors = [{"code": "TASK_ALREADY_TERMINAL", "message": "Use a new task ID after reviewing the failed or cancelled operation."}]
+        _errors = [
+            {
+                "code": "TASK_ALREADY_TERMINAL",
+                "message": "Use a new task ID after reviewing the failed or cancelled operation.",
+            }
+        ]
     if _ok and not status.get("terminal"):
         _ok, status, _errors = update_task_status(
             task_id,
@@ -335,12 +340,10 @@ def _with_optional_task_status(
         update_task_status(
             task_id,
             "succeeded" if response.ok else "failed",
-            message=(
-                f"{tracked_command} completed."
-                if response.ok
-                else f"{tracked_command} failed."
-            ),
-            recovery_guidance=[] if response.ok else [
+            message=(f"{tracked_command} completed." if response.ok else f"{tracked_command} failed."),
+            recovery_guidance=[]
+            if response.ok
+            else [
                 "Inspect response errors before retrying.",
                 "Run task-status with this task_id to avoid duplicate work.",
             ],

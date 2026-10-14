@@ -43,7 +43,9 @@ def _file_item(
 def _existing_files(root: Path, pattern: str) -> list[Path]:
     if not root.exists():
         return []
-    return sorted((path for path in root.glob(pattern) if path.is_file()), key=lambda item: (item.stat().st_mtime, item.name))
+    return sorted(
+        (path for path in root.glob(pattern) if path.is_file()), key=lambda item: (item.stat().st_mtime, item.name)
+    )
 
 
 def build_cleanup_plan(workspace: Path | str = ".") -> dict[str, Any]:
