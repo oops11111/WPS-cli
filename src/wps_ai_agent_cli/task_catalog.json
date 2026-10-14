@@ -2831,7 +2831,7 @@
     "id": "P4-014",
     "phase": "phase4",
     "title": "Record the transport and tool-surface decisions",
-    "status": "todo",
+    "status": "done",
     "acceptance": "Whether to add HTTP/SSE transport and whether to reduce the 85-tool surface are decided from the E3 and E4 results and written down."
   }
 ]
