@@ -162,7 +162,7 @@
         "--input",
         "fixtures/phase0/phase0_calculation_fixture.xlsx",
         "--output",
-        "fixtures/phase3/phase0_calculation_smoke.xlsx",
+        "{output_dir}/phase0_calculation_smoke.xlsx",
         "--timeout-seconds",
         "30"
       ],
@@ -188,7 +188,7 @@
         "--input",
         "fixtures/phase3/writer_table_fixture.docx",
         "--output",
-        "fixtures/phase3/writer_smoke_copy.docx"
+        "{output_dir}/writer_smoke_copy.docx"
       ],
       "expected_ok": true,
       "required_checks": [
@@ -212,7 +212,7 @@
         "--input",
         "fixtures/phase3/writer_table_fixture.docx",
         "--output",
-        "fixtures/phase3/writer_smoke.pdf",
+        "{output_dir}/writer_smoke.pdf",
         "--format",
         "pdf"
       ],
@@ -236,7 +236,7 @@
         "--input",
         "fixtures/phase3/writer_table_fixture.docx",
         "--output",
-        "fixtures/phase3/writer_table_regression_smoke.docx",
+        "{output_dir}/writer_table_regression_smoke.docx",
         "--table-index",
         "1",
         "--row",

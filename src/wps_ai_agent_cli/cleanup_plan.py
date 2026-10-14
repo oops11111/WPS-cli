@@ -15,11 +15,7 @@ PROTECTED_PATHS = [
     "config",
     "docs",
     "fixtures/phase0",
-    "fixtures/phase3/phase0_calculation_smoke.xlsx",
-    "fixtures/phase3/writer_smoke_copy.docx",
-    "fixtures/phase3/writer_smoke.pdf",
     "fixtures/phase3/writer_table_fixture.docx",
-    "fixtures/phase3/writer_table_regression_smoke.docx",
     "artifacts/cloud-sync/wps-ai-agent-cli-phase3-sync-cli.zip",
 ]
 

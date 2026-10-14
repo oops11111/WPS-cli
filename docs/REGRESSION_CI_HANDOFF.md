@@ -36,7 +36,7 @@ The shipped manifest has no `release` scenarios. The profile name is kept so a c
 
 ## WPS Profile
 
-Use the WPS profile only on an interactive Windows runner with WPS installed and COM automation available. It can launch WPS desktop processes and writes output files under `fixtures\phase3`.
+Use the WPS profile only on an interactive Windows runner with WPS installed and COM automation available. It can launch WPS desktop processes. Each run writes its output files to a new directory under `artifacts\regression\outputs\`, which git ignores, and reports that directory as `data.regression.output_dir`. Tracked files under `fixtures` are only read.
 
 ```powershell
 $env:PYTHONPATH='src'
@@ -51,15 +51,13 @@ Required gate:
 - `data.regression.failed_count` is `0`.
 - `data.regression.scenario_count` is at least `3`.
 - Every result has `requires_wps` set to `true`.
-- `fixtures\phase3\writer_smoke_copy.docx` exists.
-- `fixtures\phase3\phase0_calculation_smoke.xlsx` exists.
-- `fixtures\phase3\writer_smoke.pdf` exists.
+- `writer_smoke_copy.docx`, `phase0_calculation_smoke.xlsx`, `writer_smoke.pdf` and `writer_table_regression_smoke.docx` exist in `data.regression.output_dir`.
 - `data.artifact.created` is `true`.
 
 Artifact retention:
 
 - Upload `artifacts\regression\wps\regression-run-*.json`.
-- Upload WPS output evidence from `fixtures\phase3`.
+- Upload WPS output evidence from `data.regression.output_dir`.
 - Keep all WPS profile artifacts for at least 90 days because they are environment-specific evidence.
 
 ## Failure Triage
@@ -79,7 +77,7 @@ Latest Windows run, on `main@b1a4b31` (2026-10-14), with WPS installed:
 | safe | 7/7 passed | `artifacts/regression/safe/regression-run-20261014T003140284929Z-0c8ae0f4-c225-48ba-b0ea-9db42b32a852.json` |
 | wps | 4/4 passed | `artifacts/regression/wps/regression-run-20261014T003207822953Z-b92e49b9-6389-482e-a069-230c2b5a23cf.json` |
 
-The four WPS scenarios write their outputs to tracked files under `fixtures/phase3/`, so each Windows run changes them. The outputs from this run were checked: the calculation total is 18 (7 + 11), table cell row 2 column 3 reads `REGRESSION_STATUS`, and the Writer copy and PDF match the current input `fixtures/phase3/writer_table_fixture.docx`.
+That run wrote its outputs to tracked files under `fixtures/phase3/`, which is how it was configured then; runs now write to `artifacts/regression/outputs/` instead. The outputs from that run were checked: the calculation total is 18 (7 + 11), table cell row 2 column 3 reads `REGRESSION_STATUS`, and the Writer copy and PDF match the current input `fixtures/phase3/writer_table_fixture.docx`.
 
 Earlier evidence:
 
