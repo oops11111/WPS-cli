@@ -2761,7 +2761,7 @@
     "id": "P4-004",
     "phase": "phase4",
     "title": "Agent eval: WPS-dependent tasks",
-    "status": "todo",
+    "status": "done",
     "acceptance": "E3: tasks can be marked requires_wps and are reported as skipped without WPS; offline tests cover the skip."
   },
   {
@@ -2775,7 +2775,7 @@
     "id": "P4-006",
     "phase": "phase4",
     "title": "Agent eval: repeated runs",
-    "status": "todo",
+    "status": "done",
     "acceptance": "E3: the runner can run a task N times and reports the pass rate per task."
   },
   {

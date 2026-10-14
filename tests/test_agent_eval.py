@@ -286,6 +286,92 @@ class AgentEvalJudgeTests(unittest.TestCase):
         self.assertEqual((summary["passed"], summary["total"], summary["skipped"]), (1, 2, 1))
         self.assertEqual((summary["wps_tool_calls"], summary["wps_tool_errors"]), (5, 1))
 
+    def test_a_wps_task_is_skipped_without_wps_and_the_agent_never_runs(self):
+        task = {**_task("register-and-backup"), "requires_wps": True}
+        with tempfile.TemporaryDirectory() as tmp:
+            result = run_agent_eval.run_task(task, "book.xlsx", "spreadsheets", Path(tmp), None, 15, 60,
+                                             runner=_fake_agent(lambda workspace: self.fail("agent must not run")),
+                                             has_wps=lambda component: False)
+
+        self.assertIn("needs WPS spreadsheets", result["skipped"])
+        self.assertFalse(result["passed"])
+
+    def test_a_wps_task_runs_when_wps_is_available(self):
+        task = {**_task("register-and-backup"), "requires_wps": True}
+        seen = []
+        with tempfile.TemporaryDirectory() as tmp:
+            def agent(workspace):
+                document_id = _register(workspace)
+                create_backup(document_id, "eval-backup-1", workspace=workspace)
+
+            result = run_agent_eval.run_task(task, "book.xlsx", "spreadsheets", Path(tmp), None, 15, 60,
+                                             runner=_fake_agent(agent), has_wps=lambda component: seen.append(component) or True)
+
+        self.assertEqual(seen, ["spreadsheets"])
+        self.assertTrue(result["passed"], result)
+
+    def test_a_task_without_requires_wps_never_probes(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            run_agent_eval.run_task(_task("list-backups-readonly"), "book.xlsx", "spreadsheets", Path(tmp), None, 15, 60,
+                                    runner=_fake_agent(lambda workspace: None),
+                                    has_wps=lambda component: self.fail("must not probe"))
+
+    def test_repeated_runs_use_separate_workspaces_and_count_passes(self):
+        workspaces = []
+        outcomes = iter([True, False, True])
+
+        def agent(workspace):
+            workspaces.append(workspace)
+            if next(outcomes):
+                document_id = _register(workspace)
+                create_backup(document_id, "eval-backup-1", workspace=workspace)
+
+        with tempfile.TemporaryDirectory() as tmp:
+            result = run_agent_eval.run_task_repeated(_task("register-and-backup"), "book.xlsx", "spreadsheets",
+                                                      Path(tmp), None, 15, 60, repeat=3, min_passes=2,
+                                                      runner=_fake_agent(agent))
+
+        self.assertEqual(len(set(workspaces)), 3)
+        self.assertEqual((result["passes"], result["repeat"], result["min_passes"]), (2, 3, 2))
+        self.assertAlmostEqual(result["pass_rate"], 2 / 3)
+        self.assertTrue(result["passed"])
+        self.assertEqual([run["passed"] for run in result["runs"]], [True, False, True])
+
+    def test_too_few_passes_fail_the_repeated_task(self):
+        outcomes = iter([True, False, False])
+
+        def agent(workspace):
+            if next(outcomes):
+                create_backup(_register(workspace), "eval-backup-1", workspace=workspace)
+
+        with tempfile.TemporaryDirectory() as tmp:
+            result = run_agent_eval.run_task_repeated(_task("register-and-backup"), "book.xlsx", "spreadsheets",
+                                                      Path(tmp), None, 15, 60, repeat=3, min_passes=2,
+                                                      runner=_fake_agent(agent))
+
+        self.assertEqual(result["passes"], 1)
+        self.assertFalse(result["passed"])
+
+    def test_a_skip_ends_the_repeated_task_after_one_attempt(self):
+        task = {**_task("register-and-backup"), "requires_wps": True}
+        probes = []
+        with tempfile.TemporaryDirectory() as tmp:
+            result = run_agent_eval.run_task_repeated(task, "book.xlsx", "spreadsheets", Path(tmp), None, 15, 60,
+                                                      repeat=3, min_passes=2,
+                                                      runner=_fake_agent(lambda workspace: self.fail("agent must not run")),
+                                                      has_wps=lambda component: probes.append(component) or False)
+
+        self.assertEqual(len(probes), 1)
+        self.assertIn("skipped", result)
+        summary = run_agent_eval.summarize([result], "stamp", None)
+        self.assertEqual((summary["total"], summary["skipped"]), (0, 1))
+
+    def test_repeat_options_are_validated(self):
+        for argv in (["--repeat", "0"], ["--repeat", "2", "--min-passes", "3"], ["--min-passes", "0"]):
+            with self.subTest(argv=argv), self.assertRaises(SystemExit) as raised:
+                run_agent_eval.main(argv)
+            self.assertEqual(raised.exception.code, 2)
+
     def test_mcp_config_runs_the_server_in_the_task_workspace(self):
         with tempfile.TemporaryDirectory() as tmp:
             workspace = Path(tmp) / "task"
