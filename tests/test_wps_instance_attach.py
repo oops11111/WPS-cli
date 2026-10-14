@@ -40,11 +40,10 @@ class AttachFirstStaticTests(unittest.TestCase):
             (com_backend, lambda: com_backend.run_spreadsheet_calc_smoke(str(source), str(out / "a.xlsx"))),
         ]
         scripts = []
-        with patch.object(com_backend, "_load_win32com", return_value=None):
-            for module, call in cases:
-                captured = capture_scripts(module, call)
-                self.assertEqual(len(captured), 1)
-                scripts.append(captured[0])
+        for module, call in cases:
+            captured = capture_scripts(module, call)
+            self.assertEqual(len(captured), 1)
+            scripts.append(captured[0])
         return scripts
 
     def test_every_file_based_script_attaches_first_and_never_quits_an_attached_instance(self):

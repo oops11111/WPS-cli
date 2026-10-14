@@ -25,14 +25,6 @@ from .wps_script_snippets import (
 logger = logging.getLogger(__name__)
 
 
-def _load_win32com() -> Any | None:
-    try:
-        import win32com.client  # type: ignore[import-not-found]
-    except ImportError:
-        return None
-    return win32com.client
-
-
 def validate_smoke_inputs(component: str, input_path: str, output_path: str) -> list[dict[str, str]]:
     errors: list[dict[str, str]] = []
     if component not in WPS_COMPONENTS:
@@ -525,71 +517,13 @@ def run_com_smoke(
             "data": {"capabilities": capabilities},
         }
 
-    win32com_client = _load_win32com()
-    if win32com_client is None:
-        return _run_powershell_com_smoke(
-            component=component,
-            prog_id=selected_prog_id,
-            input_path=input_path,
-            output_path=output_path,
-            visible=visible,
-        )
-
-    app = None
-    document = None
-    try:
-        app = win32com_client.DispatchEx(selected_prog_id)
-        if hasattr(app, "Visible"):
-            app.Visible = visible
-
-        source = str(Path(input_path).resolve())
-        target = str(Path(output_path).resolve())
-
-        if component == "writer":
-            document = app.Documents.Open(source)
-            document.SaveAs(target)
-        elif component == "spreadsheets":
-            document = app.Workbooks.Open(source)
-            document.SaveAs(target)
-        elif component == "presentation":
-            document = app.Presentations.Open(source, WithWindow=visible)
-            document.SaveAs(target)
-        else:
-            raise ValueError(f"Unsupported component: {component}")
-
-        return {
-            "ok": True,
-            "errors": [],
-            "data": {
-                "component": component,
-                "prog_id": selected_prog_id,
-                "backend": "pywin32-com",
-                "input_path": source,
-                "output_path": target,
-            },
-        }
-    except Exception as exc:  # pragma: no cover - depends on local WPS COM
-        return {
-            "ok": False,
-            "errors": [
-                {
-                    "code": COM_OPERATION_FAILED,
-                    "message": str(exc),
-                }
-            ],
-            "data": {
-                "component": component,
-                "prog_id": selected_prog_id,
-            },
-        }
-    finally:
-        if document is not None:
-            try:
-                document.Close(False)
-            except Exception:
-                logger.warning("Could not close the WPS document; it may still be open in WPS", exc_info=True)
-        if app is not None:
-            try:
-                app.Quit()
-            except Exception:
-                logger.warning("Could not quit the WPS instance; it may still be running", exc_info=True)
+    # Always the PowerShell script: it attaches to or starts WPS the same way as every other command, checks
+    # that the input is not open or held before Open(), and quits only an instance it started. An earlier
+    # pywin32 branch skipped those checks and failed on real WPS for presentations (P4-003, main@82c7a88).
+    return _run_powershell_com_smoke(
+        component=component,
+        prog_id=selected_prog_id,
+        input_path=input_path,
+        output_path=output_path,
+        visible=visible,
+    )
