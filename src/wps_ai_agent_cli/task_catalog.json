@@ -2838,7 +2838,7 @@
     "id": "P5-001",
     "phase": "phase5",
     "title": "Format the repository and check formatting in CI",
-    "status": "todo",
+    "status": "done",
     "acceptance": "F4: ruff format applied to the whole repository in a format-only change; the CI lint job runs ruff format --check."
   },
   {

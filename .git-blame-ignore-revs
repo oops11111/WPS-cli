@@ -1,0 +1,3 @@
+# Format-only commits. Use with: git blame --ignore-revs-file .git-blame-ignore-revs
+# ruff format of the whole repository (P5-001)
+9f2bc82224dda849bdcb27c7a01f05ed812ee0c3

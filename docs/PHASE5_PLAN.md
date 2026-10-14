@@ -47,7 +47,7 @@ Phase 4 证明了这套工具在一台 Windows、一个 WPS 版本、两个 Agen
 
 | 任务 | 对应标准 | 内容 | 在哪做 |
 | --- | --- | --- | --- |
-| P5-001 | F4 | 全仓库 `ruff format`，CI 的 lint 任务加 `ruff format --check`；只改格式 | 本地 |
+| P5-001 | F4 | 全仓库 `ruff format`，CI 的 lint 任务加 `ruff format --check`；只改格式（已完成：行宽 120，F4 达成） | 本地 |
 | P5-002 | F1 | 失败契约测试：为 85 个工具各构造失败输入，经 MCP `tools/call` 检查结果文本里的错误码 | 本地 |
 | P5-003 | F1 | 修复 P5-002 找到的问题，每个修复带回归测试 | 本地 |
 | P5-004 | F2 | runner 支持任务声明 `expected_tools`，汇总预期之外的调用（只统计，不判失败） | 本地 |
