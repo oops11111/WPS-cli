@@ -1,6 +1,17 @@
 # Phase 4 Windows 上机手册
 
-把 Phase 4 需要 Windows 的任务合到一次上机：P4-001、P4-003（12.0 部分）、P4-007、P4-011、P4-013。第二个 WPS 版本的 P4-003 要在装了那个版本的机器上再跑一遍第 3 节。P4-008（第 6 节）不需要 WPS，在装了 Codex CLI 的机器上做，可以是同一台。
+把 Phase 4 需要 Windows 的任务合到一次上机。第二个 WPS 版本的 P4-003 要在装了那个版本的机器上再跑一遍第 3 节。
+
+| 节 | 任务 | 状态 |
+| --- | --- | --- |
+| 1 | P4-001 | 待做 |
+| 2 | P4-011 | 待做 |
+| 3 | P4-003 | 待做（12.0 和第二个版本） |
+| 4 | P4-007 | 已完成（2026-10-14，见 `docs/AGENT_E2E_EVAL.md`），不用再跑 |
+| 5 | P4-013 | 待做 |
+| 6 | P4-008 | 已完成（2026-10-14，见 `docs/ECOSYSTEM_EVALUATION.md`），不用再跑 |
+
+在 `main` 上做，提交要包含 PR #55 和 #56（`main@dbdab9d` 之后都包含）。这两个修复让 Agent 能看到失败调用的错误码，并让读命令遇到被占用的文件时返回 `DOCUMENT_HELD_OPEN`；1b 依赖它们。
 
 每一步写明命令、通过条件和结果记到哪里。结果只按实测记录；没跑或没复现的写明原因，不要推断。
 
@@ -45,7 +56,7 @@ python -m wps_ai_agent_cli inspect-env
 python scripts/agent_eval/run_agent_eval.py --only held-document-backup --out $env:TEMP\wps-p4\eval-held
 ```
 
-通过条件：该任务为 pass，不是 skipped。记下 `summary.json` 里的轮数、`wps-agent` 调用数和工具错误数（`DOCUMENT_HELD_OPEN` 是预期的拒绝）。
+通过条件：该任务为 pass，不是 skipped。记下 `summary.json` 里的轮数、`wps-agent` 调用数和工具错误数（`DOCUMENT_HELD_OPEN` 是预期的拒绝）。在没有 #55 的代码上，这个任务会因为 Agent 看不到错误码而失败，和 P4-007 第一次运行一样。
 
 ### 1c. 回归输出不写进仓库
 
@@ -120,6 +131,8 @@ C4 到 C6 按矩阵文档的“HTML 导出”一节手动做。按该文档的�
 
 ## 4. P4-007：WPS 写入评测，每个任务 3 次
 
+**已完成**，四个任务均 3/3，结果见 `docs/AGENT_E2E_EVAL.md`。下面的步骤留作以后重跑时参考。
+
 需要 `claude` CLI 已登录，WPS 已安装，并且没有打开 `book.xlsx`、`report.docx`、`deck.pptx` 这几个名字的文档。
 
 ```powershell
@@ -147,6 +160,8 @@ python -m wps_ai_agent_cli regression-run --profile safe --artifact-dir artifact
 只装 wheel 不能跑回归，见 `docs/RELEASING.md`，所以这里从源码目录安装。
 
 ## 6. P4-008：Codex CLI 作为第二个 MCP 客户端
+
+**已完成**，Codex CLI 0.162.1 通过，结果见 `docs/ECOSYSTEM_EVALUATION.md`。下面的步骤留作检查其他客户端或新版本时参考。
 
 不需要 WPS。要证明的是 Codex 自己完成了 `initialize`、分页的 `tools/list` 和一次安全的 `tools/call`，并记下 Codex 版本、传输方式和协商出的协议版本。服务器本身不记录收发内容，所以在 Codex 和服务器之间放一个记录脚本 `scripts/mcp_client_check/record_mcp_traffic.py`：它原样转发每一行，同时把每一行写进日志。
 
