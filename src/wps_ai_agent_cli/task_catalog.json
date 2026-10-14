@@ -2768,8 +2768,8 @@
     "id": "P4-005",
     "phase": "phase4",
     "title": "Agent eval: four WPS write tasks",
-    "status": "todo",
-    "acceptance": "E3: spreadsheet write with verification, Writer replace, presentation replace and held-file refusal and recovery tasks, each with offline judge tests."
+    "status": "done",
+    "acceptance": "E3: four WPS write tasks marked requires_wps (spreadsheet write with verification, Writer replace, presentation replace, and a refused write to a held file), each with offline judge tests. The held-file recovery task depends on the E5 opt-in and is added with P4-010."
   },
   {
     "id": "P4-006",
@@ -2804,7 +2804,7 @@
     "phase": "phase4",
     "title": "Implement opt-in close-and-restore",
     "status": "todo",
-    "acceptance": "E5: implemented with offline tests, including that the document is never closed without the opt-in."
+    "acceptance": "E5: implemented with offline tests, including that the document is never closed without the opt-in. Adds the agent-eval task for recovering a rollback blocked by an open document."
   },
   {
     "id": "P4-011",

@@ -52,13 +52,60 @@ def file_sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def write_fixture(workspace: Path, name: str) -> str:
-    from openpyxl import Workbook
+WRITER_FIXTURE_PARAGRAPHS = ("Quarterly report", "Status: DRAFT", "Owner: Finance")
+PRESENTATION_FIXTURE_TEXTS = ("Quarterly review", "Status: DRAFT")
 
-    workbook = Workbook()
-    workbook.active["A1"] = "seed"
-    workbook.save(workspace / name)
-    return file_sha256(workspace / name)
+
+def write_fixture(workspace: Path, name: str) -> str:
+    """Write the task's fixture, chosen by its suffix: .xlsx, .docx or .pptx."""
+    path = workspace / name
+    suffix = path.suffix.lower()
+    if suffix == ".xlsx":
+        from openpyxl import Workbook
+
+        workbook = Workbook()
+        workbook.active["A1"] = "seed"
+        workbook.save(path)
+    elif suffix == ".docx":
+        from docx import Document
+
+        document = Document()
+        for text in WRITER_FIXTURE_PARAGRAPHS:
+            document.add_paragraph(text)
+        document.save(path)
+    elif suffix == ".pptx":
+        from pptx import Presentation
+        from pptx.util import Inches
+
+        presentation = Presentation()
+        slide = presentation.slides.add_slide(presentation.slide_layouts[6])
+        for index, text in enumerate(PRESENTATION_FIXTURE_TEXTS):
+            box = slide.shapes.add_textbox(Inches(1), Inches(1 + index), Inches(8), Inches(1))
+            box.text_frame.text = text
+        presentation.save(path)
+    else:
+        raise ValueError(f"unsupported fixture type {suffix}")
+    return file_sha256(path)
+
+
+def document_text(path: Path) -> str:
+    """All text in a .docx (paragraphs and tables) or .pptx (every shape), joined by newlines."""
+    suffix = path.suffix.lower()
+    if suffix == ".docx":
+        from docx import Document
+
+        document = Document(path)
+        parts = [paragraph.text for paragraph in document.paragraphs]
+        for table in document.tables:
+            parts += [cell.text for row in table.rows for cell in row.cells]
+        return "\n".join(parts)
+    if suffix == ".pptx":
+        from pptx import Presentation
+
+        presentation = Presentation(path)
+        return "\n".join(shape.text_frame.text for slide in presentation.slides
+                         for shape in slide.shapes if shape.has_text_frame)
+    raise ValueError(f"unsupported document type {suffix}")
 
 
 def write_mcp_config(workspace: Path) -> Path:
@@ -268,6 +315,16 @@ def judge(task: dict[str, Any], workspace: Path, fixture: Path, fixture_sha: str
         elif kind == "max_tool_calls":
             count = tool_metrics(calls)["wps_tool_calls"]
             passed, detail = count <= check["count"], f"{count} wps-agent call(s)"
+        elif kind == "file_text":
+            path = workspace / check["path"]
+            if not path.is_file():
+                passed, detail = False, "file missing"
+            else:
+                text = document_text(path)
+                missing = [item for item in check.get("contains", []) if item not in text]
+                present = [item for item in check.get("absent", []) if item in text]
+                passed = not missing and not present
+                detail = "ok" if passed else {"missing": missing, "present": present}
         elif kind == "xlsx_cell":
             from openpyxl import load_workbook
 
@@ -387,7 +444,8 @@ def main(argv: list[str] | None = None) -> int:
     root.mkdir(parents=True, exist_ok=True)
 
     results = [
-        run_task_repeated(task, spec["fixture"], spec["component"], root / "work", args.model, args.max_turns,
+        run_task_repeated(task, task.get("fixture", spec["fixture"]), task.get("component", spec["component"]),
+                          root / "work", args.model, args.max_turns,
                           args.timeout, repeat=args.repeat, min_passes=min_passes)
         for task in tasks
     ]

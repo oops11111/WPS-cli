@@ -9,6 +9,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from wps_ai_agent_cli.backups import create_backup, list_backups, restore_backup
+from wps_ai_agent_cli.operations import record_operation
 from wps_ai_agent_cli.sessions import register_document, stable_document_id
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -21,7 +22,9 @@ _spec.loader.exec_module(run_agent_eval)
 KNOWN_CHECK_KINDS = {
     "document_registered", "operation_recorded", "no_operation", "backup_count", "file_unchanged",
     "file_matches_seed", "tool_called", "tool_not_called", "tool_error_seen", "max_tool_calls", "xlsx_cell",
+    "file_text",
 }
+WPS_WRITE_TASKS = ("wps-spreadsheet-write", "wps-writer-replace", "wps-presentation-replace", "wps-held-spreadsheet-write")
 KNOWN_SETUP_STEPS = {"register", "backup", "modify", "html_table", "hold"}
 
 
@@ -64,6 +67,23 @@ class AgentEvalTaskFileTests(unittest.TestCase):
         kinds = {check["kind"] for task in spec["tasks"] for check in task["checks"]}
         self.assertLessEqual(kinds, KNOWN_CHECK_KINDS)
         self.assertEqual(len({task["id"] for task in spec["tasks"]}), len(spec["tasks"]))
+
+    def test_wps_write_tasks_require_wps_and_name_a_supported_fixture(self):
+        spec = json.loads(TASKS_PATH.read_text(encoding="utf-8"))
+        tasks = {task["id"]: task for task in spec["tasks"]}
+        for task_id in WPS_WRITE_TASKS:
+            task = tasks[task_id]
+            self.assertTrue(task.get("requires_wps"), task_id)
+            fixture = task.get("fixture", spec["fixture"])
+            self.assertIn(Path(fixture).suffix, {".xlsx", ".docx", ".pptx"}, task_id)
+            self.assertIn(task.get("component", spec["component"]), {"spreadsheets", "writer", "presentation"}, task_id)
+
+    def test_docx_and_pptx_fixtures_hold_the_text_the_tasks_replace(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            for name in ("report.docx", "deck.pptx"):
+                run_agent_eval.write_fixture(Path(tmp), name)
+                text = run_agent_eval.document_text(Path(tmp) / name)
+                self.assertIn("Status: DRAFT", text, name)
 
     def test_setup_steps_are_known_and_hold_comes_last(self):
         spec = json.loads(TASKS_PATH.read_text(encoding="utf-8"))
@@ -371,6 +391,135 @@ class AgentEvalJudgeTests(unittest.TestCase):
             with self.subTest(argv=argv), self.assertRaises(SystemExit) as raised:
                 run_agent_eval.main(argv)
             self.assertEqual(raised.exception.code, 2)
+
+    def run_wps_task(self, task_id, root, actions, calls):
+        task = _task(task_id)
+        fixture = task.get("fixture", "book.xlsx")
+        component = task.get("component", "spreadsheets")
+        return run_agent_eval.run_task(task, fixture, component, root, None, 15, 60,
+                                       runner=_fake_agent(actions, calls), has_wps=lambda component: True)
+
+    @staticmethod
+    def simulate_write(workspace, component, fixture, request_id, command, edit):
+        """What a successful WPS write leaves behind: a backup, the edited file and an operation record."""
+        ok, record, errors = register_document(component, str(workspace / fixture), workspace)
+        assert ok, errors
+        document_id = record["document_id"]
+        ok, _result, errors, _ = create_backup(document_id, f"{request_id}:backup", workspace=workspace)
+        assert ok, errors
+        edit(workspace / fixture)
+        record_operation(request_id, command, {"document_id": document_id}, workspace)
+
+    @staticmethod
+    def replace_in_docx(path, old, new):
+        from docx import Document
+
+        document = Document(path)
+        for paragraph in document.paragraphs:
+            if old in paragraph.text:
+                paragraph.text = paragraph.text.replace(old, new)
+        document.save(path)
+
+    @staticmethod
+    def replace_in_pptx(path, old, new):
+        from pptx import Presentation
+
+        presentation = Presentation(path)
+        for slide in presentation.slides:
+            for shape in slide.shapes:
+                if shape.has_text_frame and old in shape.text_frame.text:
+                    shape.text_frame.text = shape.text_frame.text.replace(old, new)
+        presentation.save(path)
+
+    def test_wps_spreadsheet_write_passes_when_b2_is_written_after_a_backup(self):
+        from openpyxl import load_workbook
+
+        def edit(path):
+            workbook = load_workbook(path)
+            workbook.active["B2"] = 42
+            workbook.save(path)
+
+        with tempfile.TemporaryDirectory() as tmp:
+            result = self.run_wps_task(
+                "wps-spreadsheet-write", Path(tmp),
+                lambda ws: self.simulate_write(ws, "spreadsheets", "book.xlsx", "eval-write-1", "spreadsheet-write", edit),
+                [_call("spreadsheet_write", request_id="eval-write-1", range="B2", values_json="[[42]]")])
+        self.assertTrue(result["passed"], result)
+
+    def test_wps_spreadsheet_write_fails_when_a1_is_overwritten(self):
+        from openpyxl import load_workbook
+
+        def edit(path):
+            workbook = load_workbook(path)
+            workbook.active["A1"] = 42
+            workbook.save(path)
+
+        with tempfile.TemporaryDirectory() as tmp:
+            result = self.run_wps_task(
+                "wps-spreadsheet-write", Path(tmp),
+                lambda ws: self.simulate_write(ws, "spreadsheets", "book.xlsx", "eval-write-1", "spreadsheet-write", edit),
+                [_call("spreadsheet_write", request_id="eval-write-1")])
+        failed = [(check["kind"], check.get("cell")) for check in result["checks"] if not check["passed"]]
+        self.assertEqual(failed, [("xlsx_cell", "B2"), ("xlsx_cell", "A1")])
+
+    def test_wps_writer_replace_passes_and_keeps_the_other_paragraphs(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            result = self.run_wps_task(
+                "wps-writer-replace", Path(tmp),
+                lambda ws: self.simulate_write(ws, "writer", "report.docx", "eval-writer-1", "writer-replace",
+                                               lambda path: self.replace_in_docx(path, "DRAFT", "FINAL")),
+                [_call("writer_replace", request_id="eval-writer-1", find="DRAFT", replace="FINAL")])
+        self.assertTrue(result["passed"], result)
+
+    def test_wps_writer_replace_fails_when_draft_is_left(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            result = self.run_wps_task(
+                "wps-writer-replace", Path(tmp),
+                lambda ws: self.simulate_write(ws, "writer", "report.docx", "eval-writer-1", "writer-replace",
+                                               lambda path: None),
+                [_call("writer_replace", request_id="eval-writer-1")])
+        text_check = next(check for check in result["checks"] if check["kind"] == "file_text")
+        self.assertFalse(text_check["passed"])
+        self.assertEqual(text_check["detail"], {"missing": ["Status: FINAL"], "present": ["DRAFT"]})
+
+    def test_wps_presentation_replace_passes(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            result = self.run_wps_task(
+                "wps-presentation-replace", Path(tmp),
+                lambda ws: self.simulate_write(ws, "presentation", "deck.pptx", "eval-presentation-1",
+                                               "presentation-replace",
+                                               lambda path: self.replace_in_pptx(path, "DRAFT", "FINAL")),
+                [_call("presentation_replace", request_id="eval-presentation-1", find="DRAFT", replace="FINAL")])
+        self.assertTrue(result["passed"], result)
+
+    def test_wps_presentation_replace_fails_when_the_title_is_lost(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            result = self.run_wps_task(
+                "wps-presentation-replace", Path(tmp),
+                lambda ws: self.simulate_write(ws, "presentation", "deck.pptx", "eval-presentation-1",
+                                               "presentation-replace",
+                                               lambda path: self.replace_in_pptx(path, "Quarterly review", "FINAL")),
+                [_call("presentation_replace", request_id="eval-presentation-1")])
+        text_check = next(check for check in result["checks"] if check["kind"] == "file_text")
+        self.assertEqual(text_check["detail"]["missing"], ["Quarterly review", "Status: FINAL"])
+
+    def test_wps_held_write_passes_on_a_reported_refusal(self):
+        with tempfile.TemporaryDirectory() as tmp, \
+                patch.object(run_agent_eval, "hold_file", return_value=(lambda: None, None)):
+            result = self.run_wps_task(
+                "wps-held-spreadsheet-write", Path(tmp), lambda ws: None,
+                [_call("spreadsheet_write", error_codes=["DOCUMENT_HELD_OPEN"], request_id="eval-held-write-1")])
+        self.assertTrue(result["passed"], result)
+
+    def test_wps_tasks_are_skipped_without_wps(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            for task_id in WPS_WRITE_TASKS:
+                task = _task(task_id)
+                result = run_agent_eval.run_task(task, task.get("fixture", "book.xlsx"), task.get("component", "spreadsheets"),
+                                                 Path(tmp), None, 15, 60,
+                                                 runner=_fake_agent(lambda ws: self.fail("agent must not run")),
+                                                 has_wps=lambda component: False)
+                self.assertIn("needs WPS", result["skipped"], task_id)
 
     def test_mcp_config_runs_the_server_in_the_task_workspace(self):
         with tempfile.TemporaryDirectory() as tmp:
