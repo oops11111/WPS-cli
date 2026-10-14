@@ -48,3 +48,13 @@ Claude Code CLI 2.1.295，未传 `--model`。`%TEMP%\wps-p4\eval-held\run-202610
 不是一台从没装过本项目的机器：这台电脑已有别的检出。按手册命令做了一次新的浅克隆和新建 venv：`%TEMP%\wps-p4\clean-clone`，提交 `82c7a88`。
 
 `pip install -e ".[test]"` 无报错。`inspect-env`：`ok: true`。`regression-run --profile safe`：`ok: true`，7/7。克隆目录里的 `git status --short` 列出了 safe 结果 JSON，手册的通过条件没有要求它为空。
+
+## 复核（2026-10-14）
+
+以上是上机时记录的原文，没有改动。复核结论：
+
+- **1c 改判为 pass。** 手册的通过条件写错了：`git status` 列出的是 `--artifact-dir` 下这次的结果 JSON，正是手册要求写出的证据，仓库里以前的回归结果 JSON 也是提交的。回归输出都在 `artifacts\regression\outputs\` 下，没有写进被跟踪的文件，E1 要求的正是这一点。手册的条件已改正。1a、1b 通过，所以 **P4-001 完成，E1 达成**。
+- **P4-011 的 2a 不是缺陷。** WPS 打开工作簿时，写入现在在建备份和改文件之前就以 `DOCUMENT_HELD_OPEN` 拒绝，所以回滚被锁的情形用这种办法造不出来了。手册第 2 节已改写：文档关着时建备份并改文件，再在 WPS 里打开它，然后直接验证 `restore-backup` 默认不关、有未保存改动时拒绝、`--close-in-wps` 关闭并恢复。P4-011 按新步骤重跑。
+- **P4-013 按例外接受。** 不是干净机器，但按 README 新克隆、新建 venv 安装无报错，`inspect-env` 通过，safe 档 7/7。机器上已有 Python、WPS 和别的检出，这一点写进结论。**P4-013 完成，E6 达成（有例外）。**
+- **C3 的 `presentation-com-smoke` 失败的原因：** 装了 pywin32 时，`com-smoke` 走的是一条单独的 pywin32 分支，它用命名参数 `WithWindow` 打开演示，也不做占用检查；同一个文件上通过的 `convert-smoke` 走的是 PowerShell 脚本。分支 `fix/com-smoke-powershell` 让 `com-smoke` 一律走 PowerShell 脚本。合并后只需重跑 compat 档。
+- **C1 的版本来源**是三个 exe 的 FileVersion，不是“关于”对话框，接受，矩阵里已写明。

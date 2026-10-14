@@ -4,11 +4,11 @@
 
 | 节 | 任务 | 状态 |
 | --- | --- | --- |
-| 1 | P4-001 | 待做 |
-| 2 | P4-011 | 待做 |
-| 3 | P4-003 | 待做（12.0 和第二个版本） |
+| 1 | P4-001 | 已完成（2026-10-14，`main@82c7a88`，见 `RESULTS-82c7a88.md`） |
+| 2 | P4-011 | 待做：第 2 节已改写，按新步骤重跑 |
+| 3 | P4-003 | 12.8.2.18913：C3 待重跑（`presentation-com-smoke` 的修复合并后只重跑 compat 档）；第二个版本待做 |
 | 4 | P4-007 | 已完成（2026-10-14，见 `docs/AGENT_E2E_EVAL.md`），不用再跑 |
-| 5 | P4-013 | 待做 |
+| 5 | P4-013 | 已完成，有例外（同一台机器上的新克隆和新 venv，见 `RESULTS-82c7a88.md`） |
 | 6 | P4-008 | 已完成（2026-10-14，见 `docs/ECOSYSTEM_EVALUATION.md`），不用再跑 |
 
 在 `main` 上做，提交要包含 PR #55 和 #56（`main@dbdab9d` 之后都包含）。这两个修复让 Agent 能看到失败调用的错误码，并让读命令遇到被占用的文件时返回 `DOCUMENT_HELD_OPEN`；1b 依赖它们。
@@ -65,58 +65,47 @@ python -m wps_ai_agent_cli regression-run --profile wps --include-wps --artifact
 git status --short
 ```
 
-通过条件：4/4 通过；`data.regression.output_dir` 在 `artifacts\regression\outputs\` 下，输出文件都在那里；`git status --short` 没有列出任何文件。
+通过条件：4/4 通过；`data.regression.output_dir` 在 `artifacts\regression\outputs\` 下，输出文件都在那里；`git status --short` 只列出 `--artifact-dir` 下这次的结果 JSON（它是要记录的证据，仓库里以前的结果 JSON 也是提交的），没有别的文件。
 
 这一步的回归结果也就是第 3 节的 C2，不用再跑一次。
 
 ## 2. P4-011：文档开着时用 `--close-in-wps` 恢复
 
-用的是已经在 12.0 上复现过的场景（`RESULTS-3a40da6.md` 的 Case D）：WPS 打开着工作簿时写入 `"001"`，WPS 读回 `1`，校验失败，回滚被文件锁拒绝。
+**2026-10-14 改写。** 原来的做法是在 WPS 打开工作簿时写入 `"001"`，让回滚被文件锁拒绝（`RESULTS-3a40da6.md` 的 Case D）。在 `main@82c7a88` 上这一步不再发生：WPS 打开着文档时，写入在建备份、改文件之前就以 `DOCUMENT_HELD_OPEN` 拒绝（`RESULTS-82c7a88.md`）。所以改为直接验证 E5 要的那一步：文档在 WPS 里开着，用 `restore-backup --close-in-wps` 恢复一个备份。`MUTATION_ROLLBACK_BLOCKED` 给的恢复命令就是这一条。
 
-### 准备
+### 准备（文档关着时做）
 
-1. 新建 `$env:TEMP\wps-p4\close.xlsx`，A1 写 `seed`，保存。
+1. 新建 `$env:TEMP\wps-p4\close.xlsx`，A1 写 `seed`，保存，WPS 里不要打开它。
 2. `python -m wps_ai_agent_cli register-document --component spreadsheets --path $env:TEMP\wps-p4\close.xlsx`，记下 `document_id`。
-3. 在 WPS 里打开 `close.xlsx`，不做任何改动。
+3. `python -m wps_ai_agent_cli backup-document --document-id <id> --request-id p4-011-backup`，记下返回的备份路径和备份文件的 SHA-256。
+4. 让文件和备份不同：`python -m wps_ai_agent_cli spreadsheet-write --document-id <id> --range A1 --values-json "[[\"changed\"]]" --request-id p4-011-change`，预期 `ok: true`。记下 `close.xlsx` 的 SHA-256，应和备份不同。
+5. 在 WPS 里打开 `close.xlsx`，不做任何改动。
 
-### 2a. 有未保存改动时拒绝
+### 2a. 不加选项时不关闭
 
-1. 写入，让回滚被拒：
+```powershell
+python -m wps_ai_agent_cli restore-backup --document-id <id> --backup-path "<备份路径>" --request-id p4-011-plain
+```
 
-   ```powershell
-   python -m wps_ai_agent_cli spreadsheet-write --document-id <id> --range A1 --values-json "[[\"001\"]]" --request-id p4-011-write-1
-   ```
+通过条件：`ok: false`，错误码 `DOCUMENT_HELD_OPEN`；WPS 里文档仍开着；文件 SHA-256 不变。
 
-   预期：`ok: false`，`errors` 里有 `VALIDATION_FAILED` 和 `MUTATION_ROLLBACK_BLOCKED`；提示文字提到 `--close-in-wps`；记下提示里的 `--backup-path`。如果没有出现 `MUTATION_ROLLBACK_BLOCKED`，停下记录实际结果，不要继续。
-2. 在 WPS 里随便改一个单元格，不保存。记下 `close.xlsx` 的 SHA-256。
-3. 运行：
+### 2b. 有未保存改动时拒绝
+
+1. 在 WPS 里改一个别的单元格，不保存。
+2. 运行：
 
    ```powershell
    python -m wps_ai_agent_cli restore-backup --document-id <id> --backup-path "<备份路径>" --close-in-wps --request-id p4-011-refuse
    ```
 
    通过条件：`ok: false`，错误码 `DOCUMENT_HAS_UNSAVED_CHANGES`；WPS 里文档仍开着，刚才的改动还在；文件 SHA-256 不变；`list-backups --document-id <id>` 没有多出恢复前备份。
-4. 收尾：在 WPS 里关闭 `close.xlsx`，选择不保存；再不带 `--close-in-wps` 运行一次 `restore-backup`，恢复到 `seed`。
+3. 在 WPS 里关闭 `close.xlsx`，选择不保存，再重新打开它，不做任何改动。
 
-### 2b. 已保存时关闭并恢复
+### 2c. 已保存时关闭并恢复
 
-1. 在 WPS 里重新打开 `close.xlsx`，不做任何改动。
-2. 重复 2a 第 1 步的写入，`--request-id` 改为 `p4-011-write-2`，记下新的备份路径和备份文件的 SHA-256。
-3. 预演：
-
-   ```powershell
-   python -m wps_ai_agent_cli restore-backup --document-id <id> --backup-path "<备份路径>" --close-in-wps --dry-run --request-id p4-011-dry
-   ```
-
-   通过条件：`ok: true`，`data.close_in_wps` 为 `would_close`；WPS 里文档仍开着；文件未变。
-4. 正式恢复：
-
-   ```powershell
-   python -m wps_ai_agent_cli restore-backup --document-id <id> --backup-path "<备份路径>" --close-in-wps --request-id p4-011-restore
-   ```
-
-   通过条件：`ok: true`，`data.close_in_wps` 为 `closed`；`open-documents --component spreadsheets` 不再列出 `close.xlsx`；`close.xlsx` 的 SHA-256 等于备份的 SHA-256；A1 为 `seed`。
-5. 用同一个 `--request-id p4-011-restore` 再运行一次：返回上次的结果，WPS 不受影响。
+1. 预演：`restore-backup ... --close-in-wps --dry-run --request-id p4-011-dry`。通过条件：`ok: true`，`data.close_in_wps` 为 `would_close`；文档仍开着；文件未变。
+2. 正式：`restore-backup ... --close-in-wps --request-id p4-011-restore`。通过条件：`ok: true`，`data.close_in_wps` 为 `closed`；`open-documents --component spreadsheets` 不再列出 `close.xlsx`；`close.xlsx` 的 SHA-256 等于备份的 SHA-256；A1 为 `seed`。
+3. 用同一个 `--request-id p4-011-restore` 再运行一次：返回上次的结果，WPS 不受影响。
 
 ## 3. P4-003：兼容矩阵（12.0）
 

@@ -2740,7 +2740,7 @@
     "id": "P4-001",
     "phase": "phase4",
     "title": "Record the three Phase 3 Windows checks",
-    "status": "todo",
+    "status": "done",
     "acceptance": "E1: DOCUMENT_HELD_OPEN on real WPS, the held-document-backup eval task and regression outputs under artifacts\\regression\\outputs are recorded under scripts/real_wps_verify_remaining/."
   },
   {
@@ -2811,7 +2811,7 @@
     "phase": "phase4",
     "title": "Verify opt-in close-and-restore on Windows",
     "status": "todo",
-    "acceptance": "E5: on Windows, a write whose rollback is blocked by the open document is recovered with restore-backup --close-in-wps and the file hash matches the backup; a document with unsaved WPS changes is refused."
+    "acceptance": "E5: on Windows, with the document open in WPS, restore-backup without the flag refuses with DOCUMENT_HELD_OPEN and closes nothing; with --close-in-wps it refuses DOCUMENT_HAS_UNSAVED_CHANGES while WPS has unsaved changes, and otherwise closes the document and restores it so that the file hash matches the backup. (A write to an open document is now refused before it changes the file, so the blocked-rollback state is no longer used to set this up; see docs/PHASE4_WINDOWS_RUNBOOK.md section 2.)"
   },
   {
     "id": "P4-012",
@@ -2824,7 +2824,7 @@
     "id": "P4-013",
     "phase": "phase4",
     "title": "Clean Windows install check",
-    "status": "todo",
+    "status": "done",
     "acceptance": "E6: following the README on a clean Windows machine, inspect-env and the safe regression profile pass; the result is recorded."
   },
   {

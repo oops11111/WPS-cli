@@ -52,7 +52,7 @@ Phase 3 证明了这套工具在一台 Windows 机器、一个 WPS 版本、一�
 
 | 任务 | 对应标准 | 内容 | 在哪做 |
 | --- | --- | --- | --- |
-| P4-001 | E1 | 跑完三项遗留的 Windows 验证并记录结果 | Windows |
+| P4-001 | E1 | 跑完三项遗留的 Windows 验证并记录结果（已完成：`main@82c7a88`，见 `scripts/real_wps_verify_remaining/RESULTS-82c7a88.md`；E1 达成） | Windows |
 | P4-002 | E2 | 定出兼容矩阵的检查项和记录格式，新建 `docs/COMPATIBILITY_MATRIX.md` | 本地 |
 | P4-003 | E2 | 在 12.0 和第二个 WPS 版本上按 `docs/COMPATIBILITY_MATRIX.md` 跑 C1 到 C6（wps 档、compat 档、三个组件导出 HTML），写入矩阵 | Windows |
 | P4-004 | E3 | 评测 runner 支持需要 WPS 的任务：标记 `requires_wps`，没有 WPS 时跳过 | 本地 |
@@ -62,9 +62,9 @@ Phase 3 证明了这套工具在一台 Windows 机器、一个 WPS 版本、一�
 | P4-008 | E4 | 用 Codex CLI 或 Claude Desktop 完成 MCP 检查，记录结果；Codex 的步骤见 `docs/PHASE4_WINDOWS_RUNBOOK.md` 第 6 节（已完成：2026-10-14 Codex CLI 0.162.1 通过，见 `docs/ECOSYSTEM_EVALUATION.md`；E4 达成） | 客户端所在机器 |
 | P4-009 | E5 | 设计"需显式同意的关闭再恢复"方式：参数名、提示文字、错误码；默认行为不变 | 本地 |
 | P4-010 | E5 | 实现并补离线测试（包括未同意时绝不关闭文档） | 本地 |
-| P4-011 | E5 | 在 Windows 上验证打开状态下的恢复：写入失败、回滚被拒后，用 `--close-in-wps` 恢复，文件哈希等于备份；再验证有未保存改动时被拒 | Windows |
+| P4-011 | E5 | 在 Windows 上验证打开状态下的恢复：文档在 WPS 里开着时，默认的 `restore-backup` 不关闭；有未保存改动时 `--close-in-wps` 拒绝；否则关闭并恢复，文件哈希等于备份。原来用“写入失败、回滚被拒”来造这个状态，`main@82c7a88` 上写入已在改文件前被拒，所以改为直接从打开状态恢复（手册第 2 节） | Windows |
 | P4-012 | E6 | 定版本号规则，加 `CHANGELOG.md`，CI 构建 wheel 并上传为产物（已完成，见 `docs/RELEASING.md`） | 本地 |
-| P4-013 | E6 | 在干净的 Windows 上按 README 安装并跑 safe 档回归，记录结果 | Windows |
+| P4-013 | E6 | 在干净的 Windows 上按 README 安装并跑 safe 档回归，记录结果（已完成，有例外：同一台机器上新克隆、新 venv，不是干净机器；E6 达成） | Windows |
 | P4-014 | 决定 | 根据 E3、E4 的结果，写下是否支持 HTTP 传输、是否收缩工具面（已完成，见“P4-014 决定”） | 本地 |
 
 ## E5 设计（P4-009）

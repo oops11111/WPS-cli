@@ -98,6 +98,8 @@ E2 达成的条件：两个版本的 C1 到 C6 都是 pass（C2、C3 都是 4/4�
 
 其余三项 compat 场景通过：`spreadsheets-com-smoke`、`spreadsheets-convert-smoke`、`presentation-convert-smoke`。
 
+复核：失败出在装了 pywin32 时 `com-smoke` 走的 pywin32 分支（命名参数 `WithWindow`、没有占用检查），不是演示组件本身；同一个文件的 `convert-smoke` 走 PowerShell 脚本通过。修复见分支 `fix/com-smoke-powershell`，合并后在这一版本上重跑 compat 档并更新 C3。
+
 ### 第二个版本
 
 未跑。版本待定（见 `docs/PHASE4_PLAN.md` 的决定：12.0 之外再加一个更新或更旧的正式版）。
