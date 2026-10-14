@@ -34,14 +34,22 @@ Phase 4 出口标准 E6 的一部分（P4-012）。
 
 ## CI 构建
 
-CI 的 `build` 任务用 `python -m build` 生成 wheel 和源码包，在新的虚拟环境里安装 wheel，运行 `wps-agent inspect-env`、`wps-agent tasks` 和一次 MCP `initialize`，然后把 `dist/` 作为 `dist` 产物保存 30 天。
+CI 的 `build` 任务用 `python -m build` 生成 wheel 和源码包，在新的虚拟环境里安装 wheel，运行 `wps-agent inspect-env`、`wps-agent tasks` 和一次 MCP `initialize`，再在仓库以外的目录里跑 safe 档回归（要求全部通过，且清单来自安装的包），然后把 `dist/` 作为 `dist` 产物保存 30 天。
 
 ## wheel 里有什么
 
-wheel 包含 CLI（`wps-agent`）、MCP 服务器、任务目录和 HTML 渲染脚本。不包含以下仓库内容，需要时要用源码目录安装（`pip install -e .`）：
+wheel 包含 CLI（`wps-agent`）、MCP 服务器、任务目录、HTML 渲染脚本，以及 safe 档回归要用的三个配置文件的副本（`wps_ai_agent_cli/resources/`）：
 
-- `config/`：回归清单、MCP 配置样例和项目计划。`regression-run` 用的是 `config/regression_manifest.json`，只装 wheel 时会报 `REGRESSION_MANIFEST_NOT_FOUND`。
-- `fixtures/`：回归档和评测用的样例文件。
+| 仓库里的文件 | 包里的副本 |
+| --- | --- |
+| `config/regression_manifest.json` | `resources/regression_manifest.json` |
+| `config/mcp_catalog_guard.json` | `resources/mcp_catalog_guard.json` |
+| `config/mcp_client_config.regression.template.json` | `resources/mcp_client_config.regression.template.json` |
+
+命令收到这几个默认路径时，依次使用：当前目录下的这个文件、所在源码目录里的文件、包里的副本。所以只装 wheel 时，在任意目录运行 `wps-agent regression-run --profile safe` 都能通过（P5-007）。改了 `config/` 里的这三个文件，要同样复制到 `src/wps_ai_agent_cli/resources/`，`tests/test_packaged_resources.py` 会检查两边是否一致。
+
+仍然不包含以下仓库内容，需要时用源码目录安装（`pip install -e .`）：
+
+- `fixtures/`：wps 档、compat 档回归和评测用的样例文件。只装 wheel 时这两档的场景找不到输入文件。
 - `scripts/`：Agent 评测和 Windows 实测脚本。
-
-所以 P4-013 在干净机器上按 README 从源码目录安装，再跑 safe 档回归。
+- `config/` 里其余的文件：MCP 配置样例、项目计划等。

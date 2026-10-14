@@ -30,7 +30,7 @@ version = { attr = "wps_ai_agent_cli.__version__" }
 where = ["src"]
 
 [tool.setuptools.package-data]
-wps_ai_agent_cli = ["*.cjs", "*.json"]
+wps_ai_agent_cli = ["*.cjs", "*.json", "resources/*.json"]
 
 [tool.ruff]
 target-version = "py310"

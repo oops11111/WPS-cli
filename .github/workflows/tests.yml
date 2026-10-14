@@ -83,6 +83,20 @@ jobs:
           assert server_info["version"] == wps_ai_agent_cli.__version__, server_info
           print("wheel", wps_ai_agent_cli.__version__, "ok")
           PY
+      - name: Run the safe regression profile from the installed wheel, outside the repository
+        run: |
+          mkdir -p /tmp/wheel-regression
+          cd /tmp/wheel-regression
+          /tmp/wheel-check/bin/wps-agent regression-run --profile safe --artifact-dir /tmp/wheel-regression/artifacts > result.json
+          /tmp/wheel-check/bin/python - <<'PY'
+          import json
+          payload = json.load(open("result.json"))
+          regression = payload["data"]["regression"]
+          assert payload["ok"] is True, payload["errors"]
+          assert regression["failed_count"] == 0 and regression["scenario_count"] >= 7, regression
+          assert "site-packages" in regression["manifest_path"], regression["manifest_path"]
+          print("safe profile from the wheel:", regression["passed_count"], "of", regression["scenario_count"])
+          PY
       - uses: actions/upload-artifact@v4
         with:
           name: dist
