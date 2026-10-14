@@ -2887,7 +2887,7 @@
     "id": "P5-008",
     "phase": "phase5",
     "title": "Publish the first release",
-    "status": "todo",
+    "status": "done",
     "acceptance": "F3: the version is set by docs/RELEASING.md, CHANGELOG.md has the release section, and a tag publishes the wheel and sdist to a GitHub Release from CI; the tag is pushed by the maintainer."
   },
   {
