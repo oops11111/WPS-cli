@@ -2796,22 +2796,22 @@
     "id": "P4-009",
     "phase": "phase4",
     "title": "Design opt-in close-and-restore",
-    "status": "todo",
-    "acceptance": "E5: the flag name, prompt text and error codes are written down; the default never closes a user's document; unsaved WPS changes refuse the close."
+    "status": "done",
+    "acceptance": "E5: the design is in docs/PHASE4_PLAN.md (restore-backup --close-in-wps / close_in_wps): default unchanged, unsaved WPS changes refuse with DOCUMENT_HAS_UNSAVED_CHANGES, close before the pre-restore backup, dry run only reports."
   },
   {
     "id": "P4-010",
     "phase": "phase4",
     "title": "Implement opt-in close-and-restore",
-    "status": "todo",
-    "acceptance": "E5: implemented with offline tests, including that the document is never closed without the opt-in. Adds the agent-eval task for recovering a rollback blocked by an open document."
+    "status": "done",
+    "acceptance": "E5: implemented with offline tests (never touching WPS without the flag, close then restore, refusal on unsaved changes, failed close, dry run, order, replay) and fake-COM PowerShell tests of the close script. The agent-eval recovery task is not added: the runner cannot yet have WPS open a document."
   },
   {
     "id": "P4-011",
     "phase": "phase4",
     "title": "Verify opt-in close-and-restore on Windows",
     "status": "todo",
-    "acceptance": "E5: a failed write on an open document is recovered with the opt-in and the file hash matches the backup."
+    "acceptance": "E5: on Windows, a write whose rollback is blocked by the open document is recovered with restore-backup --close-in-wps and the file hash matches the backup; a document with unsaved WPS changes is refused."
   },
   {
     "id": "P4-012",

@@ -321,13 +321,20 @@ def restore_backup(
     backup_path: str | None = None,
     dry_run: bool = False,
     workspace: str | Path = ".",
+    close_in_wps: bool = False,
 ) -> tuple[bool, dict[str, Any], list[dict[str, str]], bool]:
+    """Restore a registered document from a backup, after taking a pre-restore backup of the current file.
+
+    With close_in_wps, a document open in WPS is first closed there without saving, but only when WPS reports
+    no unsaved changes; otherwise nothing is closed or restored. Without it, WPS is never touched.
+    """
     requested_backup_path = str(Path(backup_path).resolve()) if backup_path else None
-    replay = replay_operation(
-        request_id, "restore-backup",
-        {"document_id": document_id, "requested_backup_name": backup_name, "requested_backup_path": requested_backup_path, "dry_run": dry_run},
-        workspace,
-    )
+    request = {"document_id": document_id, "requested_backup_name": backup_name, "requested_backup_path": requested_backup_path, "dry_run": dry_run}
+    if close_in_wps:
+        # Only added when set, so requests recorded before this option existed still replay. The replay compares
+        # it with the same field in the recorded result; "close_in_wps" in the result holds the close status.
+        request["close_in_wps_requested"] = True
+    replay = replay_operation(request_id, "restore-backup", request, workspace)
     if replay is not None:
         return replay
 
@@ -368,10 +375,21 @@ def restore_backup(
         "dry_run": dry_run,
         "restored": False,
     }
+    if close_in_wps:
+        result["close_in_wps_requested"] = True
     integrity_error = _verify_backup_integrity(document_id, backup_file, workspace)
     if integrity_error is not None:
         return False, {"restore": result}, [integrity_error], False
     result["backup_integrity_verified"] = _recorded_backup_sha256(document_id, backup_file, workspace) is not None
+    if close_in_wps:
+        # Close before the pre-restore backup: while WPS holds the file, the backup is refused.
+        # Imported here because open_documents imports this module.
+        from .open_documents import close_unchanged_document
+
+        close_status, close_error = close_unchanged_document(document["component"], target_path, do_close=not dry_run)
+        if close_error is not None:
+            return False, {"restore": result}, [close_error], False
+        result["close_in_wps"] = close_status
     if dry_run:
         return True, result, [], False
 

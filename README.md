@@ -67,7 +67,7 @@ wps-agent --strict-exit backup-document --document-id doc_xxx --request-id r1 ||
 
 - `MUTATION_ROLLED_BACK`：文件已恢复。`data.rollback.performed` 为 `true`，`data.rollback.open_in_wps` 表示文档在 WPS 中是否仍然打开（`true`、`false`，无法检查时为 `null`）。
 - `MUTATION_ROLLBACK_FAILED`：自动恢复失败，信封里给出需要用于手动恢复的备份路径，请用 `restore-backup` 处理。
-- `MUTATION_ROLLBACK_BLOCKED`：WPS 持有文件，自动恢复被文件锁拒绝（Windows 上为拒绝访问）。文件仍保留被拒绝的写入值。请先在 WPS 中不保存地关闭该文档，再用信封里给出的备份路径执行 `restore-backup`。
+- `MUTATION_ROLLBACK_BLOCKED`：WPS 持有文件，自动恢复被文件锁拒绝（Windows 上为拒绝访问）。文件仍保留被拒绝的写入值。请先在 WPS 中不保存地关闭该文档，再用信封里给出的备份路径执行 `restore-backup`；也可以给 `restore-backup` 加 `--close-in-wps`，让它在 WPS 里没有未保存改动时替你不保存地关闭该文档再恢复（有未保存改动时会拒绝，返回 `DOCUMENT_HAS_UNSAVED_CHANGES`）。
 
 文件未被改动的失败不会回滚，原有错误照常返回。
 

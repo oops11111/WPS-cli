@@ -18,6 +18,7 @@ from .open_document_scripts import (  # noqa: F401  (re-exported; tests read the
     _ATTACHED_PRESENTATION_WRAPPER,
     _ATTACHED_SPREADSHEET_WRAPPER,
     _ATTACHED_WRITER_WRAPPER,
+    _CLOSE_UNCHANGED_BODY,
     _DOCUMENT_SAVE_BODY,
     _EXPORT_COPY_BODY,
     _EXPORT_HTML_BODY,
@@ -153,6 +154,7 @@ def _run_writer_attached_com(action: str, params: dict[str, Any]) -> dict[str, A
         "selection-insert": _SELECTION_INSERT_BODY,
         "selection-delete": _SELECTION_DELETE_BODY,
         "save": _DOCUMENT_SAVE_BODY,
+        "close-unchanged": _CLOSE_UNCHANGED_BODY,
         "export-html": _EXPORT_HTML_BODY,
         "export-pdf": _EXPORT_PDF_BODY,
         "export-copy": _EXPORT_COPY_BODY,
@@ -177,6 +179,7 @@ def _run_presentation_attached_com(action: str, params: dict[str, Any]) -> dict[
         "selection-insert": _PRESENTATION_SELECTION_INSERT_BODY,
         "selection-delete": _PRESENTATION_SELECTION_DELETE_BODY,
         "save": _DOCUMENT_SAVE_BODY,
+        "close-unchanged": _CLOSE_UNCHANGED_BODY,
     }[action]
     script = _ATTACHED_PRESENTATION_WRAPPER.replace("__ACTION_BODY__", body)
     return _run_script(script, {"prog_ids": _presentation_prog_ids(), **params}, timeout_seconds=120)
@@ -204,6 +207,7 @@ def _run_spreadsheet_attached_com(action: str, params: dict[str, Any]) -> dict[s
         "export-copy": _SPREADSHEET_EXPORT_COPY_BODY,
         "export-text": _SPREADSHEET_EXPORT_TEXT_BODY,
         "save": _DOCUMENT_SAVE_BODY,
+        "close-unchanged": _CLOSE_UNCHANGED_BODY,
     }[action]
     script = _ATTACHED_SPREADSHEET_WRAPPER.replace("__ACTION_BODY__", body)
     return _run_script(script, {"prog_ids": _spreadsheet_prog_ids(), **params}, timeout_seconds=120)
@@ -466,6 +470,35 @@ def _registered_document(
 
 def _writer_document(document_id: str, workspace: str | Path) -> tuple[dict[str, Any] | None, dict[str, Any], list[dict[str, str]]]:
     return _registered_document(document_id, workspace, allowed_components={"writer"})
+
+
+def close_unchanged_document(component: str, path: str | Path, *, do_close: bool) -> tuple[str | None, dict[str, str] | None]:
+    """Close a document in the running WPS without saving, only when WPS reports no unsaved changes.
+
+    Returns (status, None) or (None, error). Status is "no_instance" or "not_open" when there is nothing to
+    close, "would_close" when do_close is false and the document is open with no unsaved changes, or "closed".
+    A document with unsaved changes is never closed.
+    """
+    outcome = _run_component_attached_com(
+        component, "close-unchanged",
+        {"path": str(Path(path).resolve()), "component": component, "do_close": do_close},
+    )
+    if not outcome.get("ok"):
+        return None, (outcome.get("errors") or [{"code": COM_OPERATION_FAILED, "message": "Close in WPS failed."}])[0]
+    status = (outcome.get("data") or {}).get("status")
+    if status in ("no_instance", "not_open", "closed"):
+        return status, None
+    if status == "open":
+        return "would_close", None
+    if status == "unsaved":
+        return None, {
+            "code": DOCUMENT_HAS_UNSAVED_CHANGES,
+            "message": (
+                "The document is open in WPS with unsaved changes, so it was not closed and nothing was restored. "
+                "Save or discard those changes in WPS, then retry."
+            ),
+        }
+    return None, {"code": COM_OPERATION_FAILED, "message": f"Close in WPS returned an unexpected status: {status!r}."}
 
 
 def list_open_documents(

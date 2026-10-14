@@ -124,7 +124,7 @@ def build_command_handlers(cli: Any) -> dict[str, Callable[[argparse.Namespace, 
         return response
 
     def _handle_restore_backup(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
-        response = cli._with_optional_task_status(lambda: cli.restore_backup_response(request_id, document_id=args.document_id, backup_name=args.backup_name, backup_path=args.backup_path, dry_run=args.dry_run), task_id=args.task_id, tracked_command='restore-backup', operation_request_id=request_id, document_id=args.document_id)
+        response = cli._with_optional_task_status(lambda: cli.restore_backup_response(request_id, document_id=args.document_id, backup_name=args.backup_name, backup_path=args.backup_path, dry_run=args.dry_run, close_in_wps=args.close_in_wps), task_id=args.task_id, tracked_command='restore-backup', operation_request_id=request_id, document_id=args.document_id)
         return response
 
     def _handle_writer_replace(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:

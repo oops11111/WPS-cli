@@ -214,3 +214,22 @@ _DOCUMENT_SAVE_BODY = """
     source_still_open = $true
   } | ConvertTo-Json -Depth 5
 """
+
+# Close the open document without saving, but only when WPS reports no unsaved changes, so nothing the user
+# typed is lost. With do_close false it only reports what it would do.
+_CLOSE_UNCHANGED_BODY = """
+  if (-not [bool]$doc.Saved) {
+    [pscustomobject]@{ ok = $true; status = 'unsaved'; saved = $false; closed = $false } | ConvertTo-Json -Depth 5
+    exit 0
+  }
+  if (-not [bool]$params.do_close) {
+    [pscustomobject]@{ ok = $true; status = 'open'; saved = $true; closed = $false } | ConvertTo-Json -Depth 5
+    exit 0
+  }
+  switch ([string]$params.component) {
+    'writer' { [void]$doc.Close(0) }
+    'spreadsheets' { [void]$doc.Close($false) }
+    default { [void]$doc.Close() }
+  }
+  [pscustomobject]@{ ok = $true; status = 'closed'; saved = $true; closed = $true } | ConvertTo-Json -Depth 5
+"""
