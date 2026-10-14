@@ -23,10 +23,7 @@ def validate_spreadsheet_read_range(
         }
     if ":" in address:
         start, _, end = address.partition(":")
-        if start and end and (
-            (start.isalpha() and end.isalpha())
-            or (start.isdigit() and end.isdigit())
-        ):
+        if start and end and ((start.isalpha() and end.isalpha()) or (start.isdigit() and end.isdigit())):
             return None, {
                 "code": "INVALID_RANGE",
                 "message": "Whole-column and whole-row ranges such as A:A or 1:1 are not supported; use a finite A1 range like A1:A100.",

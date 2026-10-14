@@ -46,8 +46,13 @@ class PresentationOrderTests(unittest.TestCase):
             _, record, _ = register_document("presentation", str(path), workspace)
             with patch("wps_ai_agent_cli.presentation_ops._run_presentation_replace_com") as com:
                 ok, result, errors, replayed = presentation_replace(
-                    record["document_id"], "alpha", "beta", "reordered-dry",
-                    dry_run=True, slide_index=1, workspace=workspace,
+                    record["document_id"],
+                    "alpha",
+                    "beta",
+                    "reordered-dry",
+                    dry_run=True,
+                    slide_index=1,
+                    workspace=workspace,
                 )
             self.assertTrue(ok)
             self.assertEqual(errors, [])
@@ -63,7 +68,11 @@ class PresentationOrderTests(unittest.TestCase):
             path = workspace / "deck.pptx"
             write_minimal_pptx(path, ["text", "image", "blank"], order=[3, 1, 2])
             for index, shape in [(3, ""), (2, "<p:pic/>")]:
-                replace_part(path, f"ppt/slides/slide{index}.xml", f'<p:sld xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"><p:cSld><p:spTree>{shape}</p:spTree></p:cSld></p:sld>')
+                replace_part(
+                    path,
+                    f"ppt/slides/slide{index}.xml",
+                    f'<p:sld xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"><p:cSld><p:spTree>{shape}</p:spTree></p:cSld></p:sld>',
+                )
             _, record, _ = register_document("presentation", str(path), workspace)
             ok, result, errors = snapshot_document(record["document_id"], workspace)
             self.assertTrue(ok)
@@ -78,7 +87,7 @@ class PresentationOrderTests(unittest.TestCase):
             workspace = Path(tmp)
             path = workspace / "objects.pptx"
             write_minimal_pptx(path, ["placeholder"])
-            slide_xml = '''<p:sld xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+            slide_xml = """<p:sld xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
 <p:cSld><p:spTree>
 <p:grpSp><p:nvGrpSpPr/><p:grpSpPr/>
 <p:sp><p:nvSpPr><p:nvPr/></p:nvSpPr><p:txBody><a:p><a:r><a:t>Group A</a:t></a:r></a:p></p:txBody></p:sp>
@@ -89,13 +98,15 @@ class PresentationOrderTests(unittest.TestCase):
 <a:tr><a:tc><a:txBody><a:p><a:r><a:t>Cell 3</a:t></a:r></a:p></a:txBody></a:tc><a:tc><a:txBody><a:p/></a:txBody></a:tc></a:tr>
 </a:tbl></a:graphicData></a:graphic></p:graphicFrame>
 <p:sp><p:nvSpPr><p:nvPr/></p:nvSpPr><p:txBody><a:p><a:r><a:t>Outside</a:t></a:r></a:p></p:txBody></p:sp>
-</p:spTree></p:cSld></p:sld>'''
+</p:spTree></p:cSld></p:sld>"""
             replace_part(path, "ppt/slides/slide1.xml", slide_xml)
 
             objects = pptx_text_objects(path)
             self.assertEqual([item["object_index"] for item in objects], [1, 2, 3, 4])
             self.assertEqual([item["object_type"] for item in objects], ["shape", "shape", "table", "shape"])
-            self.assertEqual([item["text"] for item in objects], ["Group A", "Group B", "Cell 1\tCell 2\nCell 3\t", "Outside"])
+            self.assertEqual(
+                [item["text"] for item in objects], ["Group A", "Group B", "Cell 1\tCell 2\nCell 3\t", "Outside"]
+            )
             self.assertEqual(sum(item["text"].count("Cell 1") for item in objects), 1)
             self.assertEqual(count_text_in_pptx(path, "AGroup"), 0)
             self.assertEqual(count_text_in_pptx(path, "2\tCell"), 0)
@@ -119,15 +130,27 @@ class PresentationOrderTests(unittest.TestCase):
                 def simulated_wps(*_args, **_kwargs):
                     with ZipFile(path) as archive:
                         parts = {entry: archive.read(entry) for entry in archive.namelist()}
-                    parts["ppt/slides/slide1.xml"] = parts["ppt/slides/slide1.xml"].replace(b"alpha beta", replacement_xml)
+                    parts["ppt/slides/slide1.xml"] = parts["ppt/slides/slide1.xml"].replace(
+                        b"alpha beta", replacement_xml
+                    )
                     with ZipFile(path, "w") as archive:
                         for entry, payload in parts.items():
                             archive.writestr(entry, payload)
-                    return {"ok": True, "errors": [], "data": {"backend": "mock", "replace_count": 1, "text_shape_count": 1, "table_cell_count": 0}}
+                    return {
+                        "ok": True,
+                        "errors": [],
+                        "data": {"backend": "mock", "replace_count": 1, "text_shape_count": 1, "table_cell_count": 0},
+                    }
 
-                with patch("wps_ai_agent_cli.presentation_ops._run_presentation_replace_com", side_effect=simulated_wps):
+                with patch(
+                    "wps_ai_agent_cli.presentation_ops._run_presentation_replace_com", side_effect=simulated_wps
+                ):
                     ok, result, errors, _replayed = presentation_replace(
-                        record["document_id"], "alpha", "gamma", f"replace-{expected_ok}", workspace=workspace,
+                        record["document_id"],
+                        "alpha",
+                        "gamma",
+                        f"replace-{expected_ok}",
+                        workspace=workspace,
                     )
 
                 self.assertEqual(ok, expected_ok)
@@ -158,12 +181,21 @@ class PresentationOrderTests(unittest.TestCase):
             for rel in relationships:
                 with self.subTest(relationship=rel):
                     write_minimal_pptx(path, ["alpha"])
-                    replace_part(path, "ppt/_rels/presentation.xml.rels", f'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">{rel}</Relationships>')
+                    replace_part(
+                        path,
+                        "ppt/_rels/presentation.xml.rels",
+                        f'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">{rel}</Relationships>',
+                    )
                     with self.assertRaises(PresentationStructureError):
                         pptx_slide_texts(path)
                     _, record, _ = register_document("presentation", str(path), workspace)
-                    with patch("wps_ai_agent_cli.presentation_ops.create_backup") as backup, patch("wps_ai_agent_cli.presentation_ops._run_presentation_replace_com") as com:
-                        ok, _, errors, _ = presentation_replace(record["document_id"], "alpha", "beta", "invalid", workspace=workspace)
+                    with (
+                        patch("wps_ai_agent_cli.presentation_ops.create_backup") as backup,
+                        patch("wps_ai_agent_cli.presentation_ops._run_presentation_replace_com") as com,
+                    ):
+                        ok, _, errors, _ = presentation_replace(
+                            record["document_id"], "alpha", "beta", "invalid", workspace=workspace
+                        )
                     self.assertFalse(ok)
                     self.assertEqual(errors[0]["code"], "INVALID_PRESENTATION_STRUCTURE")
                     backup.assert_not_called()
@@ -177,7 +209,9 @@ class PresentationOrderTests(unittest.TestCase):
             path = Path(tmp) / "deck.pptx"
             write_minimal_pptx(path, ["alpha"])
             with ZipFile(path) as archive:
-                rels = archive.read("ppt/_rels/presentation.xml.rels").replace(b'Target="slides/', b'Target="/ppt/slides/')
+                rels = archive.read("ppt/_rels/presentation.xml.rels").replace(
+                    b'Target="slides/', b'Target="/ppt/slides/'
+                )
             replace_part(path, "ppt/_rels/presentation.xml.rels", rels)
             self.assertEqual(count_text_in_pptx(path, "alpha", slide_index=1), 1)
 
@@ -222,7 +256,11 @@ try {{
 """
             completed = subprocess.run(
                 [powershell_executable(), "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", script],
-                capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=120,
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                timeout=120,
             )
             self.assertEqual(completed.returncode, 0, completed.stderr or completed.stdout)
             self.assertTrue(document.exists())
@@ -230,7 +268,11 @@ try {{
             self.assertTrue(ok, errors)
 
             ok, result, errors, replayed = presentation_replace(
-                record["document_id"], "needle", "token", "nested-shape-table-replace", workspace=workspace,
+                record["document_id"],
+                "needle",
+                "token",
+                "nested-shape-table-replace",
+                workspace=workspace,
             )
 
             self.assertTrue(ok, errors)
@@ -275,14 +317,22 @@ try {{
 """
             completed = subprocess.run(
                 [powershell_executable(), "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", script],
-                capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=120,
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                timeout=120,
             )
             self.assertEqual(completed.returncode, 0, completed.stderr or completed.stdout)
             ok, record, errors = register_document("presentation", str(document), workspace)
             self.assertTrue(ok, errors)
 
             ok, result, errors, _replayed = presentation_replace(
-                record["document_id"], "MID", "center", "formatted-replace", workspace=workspace,
+                record["document_id"],
+                "MID",
+                "center",
+                "formatted-replace",
+                workspace=workspace,
             )
 
             self.assertTrue(ok, f"{errors}; result={result}")

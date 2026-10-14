@@ -51,9 +51,15 @@ class SpreadsheetInspectTests(unittest.TestCase):
             before = hashlib.sha256(document.read_bytes()).hexdigest()
 
             for address, expected_code in (("A:A", "INVALID_RANGE"), ("A1:XFD1048576", "RANGE_TOO_LARGE")):
-                with self.subTest(address=address), patch("wps_ai_agent_cli.spreadsheet_inspect.load_workbook") as open_workbook, patch("wps_ai_agent_cli.spreadsheet_inspect.probe_wps_capabilities") as probe:
+                with (
+                    self.subTest(address=address),
+                    patch("wps_ai_agent_cli.spreadsheet_inspect.load_workbook") as open_workbook,
+                    patch("wps_ai_agent_cli.spreadsheet_inspect.probe_wps_capabilities") as probe,
+                ):
                     ok, _result, errors = inspect_spreadsheet_range(
-                        record["document_id"], address, workspace=workspace,
+                        record["document_id"],
+                        address,
+                        workspace=workspace,
                     )
                     self.assertFalse(ok)
                     self.assertEqual(errors[0]["code"], expected_code)
@@ -69,7 +75,13 @@ class SpreadsheetInspectTests(unittest.TestCase):
             Workbook().save(document)
             ok, record, _ = register_document("spreadsheets", str(document), workspace)
 
-            with patch("wps_ai_agent_cli.spreadsheet_inspect.load_workbook", side_effect=PermissionError("sharing violation")), patch("wps_ai_agent_cli.spreadsheet_inspect.probe_wps_capabilities") as probe:
+            with (
+                patch(
+                    "wps_ai_agent_cli.spreadsheet_inspect.load_workbook",
+                    side_effect=PermissionError("sharing violation"),
+                ),
+                patch("wps_ai_agent_cli.spreadsheet_inspect.probe_wps_capabilities") as probe,
+            ):
                 ok, result, errors = inspect_spreadsheet_range(record["document_id"], "A1", workspace=workspace)
 
             self.assertFalse(ok)
@@ -87,7 +99,10 @@ class SpreadsheetInspectTests(unittest.TestCase):
             ok, record, _ = register_document("spreadsheets", str(document), workspace)
             first_book = MagicMock()
 
-            with patch("wps_ai_agent_cli.spreadsheet_inspect.load_workbook", side_effect=[first_book, PermissionError("locked")]):
+            with patch(
+                "wps_ai_agent_cli.spreadsheet_inspect.load_workbook",
+                side_effect=[first_book, PermissionError("locked")],
+            ):
                 ok, _result, errors = inspect_spreadsheet_range(record["document_id"], "A1", workspace=workspace)
 
             self.assertFalse(ok)
@@ -106,8 +121,22 @@ class SpreadsheetInspectTests(unittest.TestCase):
             os.chdir(workspace)
             try:
                 output = io.StringIO()
-                with patch("wps_ai_agent_cli.spreadsheet_inspect.load_workbook", side_effect=PermissionError("sharing violation")):
-                    code = cli.run(["spreadsheet-inspect", "--document-id", record["document_id"], "--range", "A1", "--request-id", "req-held-inspect"], output_stream=output)
+                with patch(
+                    "wps_ai_agent_cli.spreadsheet_inspect.load_workbook",
+                    side_effect=PermissionError("sharing violation"),
+                ):
+                    code = cli.run(
+                        [
+                            "spreadsheet-inspect",
+                            "--document-id",
+                            record["document_id"],
+                            "--range",
+                            "A1",
+                            "--request-id",
+                            "req-held-inspect",
+                        ],
+                        output_stream=output,
+                    )
             finally:
                 os.chdir(previous_cwd)
 
@@ -158,7 +187,9 @@ class SpreadsheetInspectWpsIntegrationTests(unittest.TestCase):
             self.assertIn("2024", cells["C1"]["displayed_text"])
             self.assertNotIn("###", cells["C1"]["displayed_text"])
             self.assertNotIn("###", cells["D1"]["displayed_text"])
-            self.assertIn("1234", "".join(character for character in cells["D1"]["displayed_text"] if character.isdigit()))
+            self.assertIn(
+                "1234", "".join(character for character in cells["D1"]["displayed_text"] if character.isdigit())
+            )
             self.assertIn("[$-407]", cells["B1"]["number_format"])
             self.assertIn("[$-407]", cells["D1"]["number_format"])
             self.assertTrue(result["read_only"])
@@ -187,14 +218,20 @@ class SpreadsheetInspectWpsIntegrationTests(unittest.TestCase):
             ok, record, errors = register_document("spreadsheets", str(document), workspace)
             self.assertTrue(ok, errors)
 
-            read_ok, read_result, read_errors = read_spreadsheet_range(record["document_id"], "A1:D1", workspace=workspace)
-            inspect_ok, inspect_result, inspect_errors = inspect_spreadsheet_range(record["document_id"], "A1:D1", "Formats", workspace)
+            read_ok, read_result, read_errors = read_spreadsheet_range(
+                record["document_id"], "A1:D1", workspace=workspace
+            )
+            inspect_ok, inspect_result, inspect_errors = inspect_spreadsheet_range(
+                record["document_id"], "A1:D1", "Formats", workspace
+            )
 
             self.assertTrue(read_ok, read_errors)
             self.assertTrue(inspect_ok, inspect_errors)
             metadata = read_result["cell_metadata"][0]
             live = {cell["address"]: cell for cell in inspect_result["cells"]}
-            self.assertEqual([cell["format_category"] for cell in metadata], ["date", "percentage", "currency", "empty"])
+            self.assertEqual(
+                [cell["format_category"] for cell in metadata], ["date", "percentage", "currency", "empty"]
+            )
             self.assertIn("2026", live["A1"]["displayed_text"])
             self.assertIn("%", live["B1"]["displayed_text"])
             self.assertIn("$", live["C1"]["displayed_text"])
@@ -223,7 +260,10 @@ class SpreadsheetInspectWpsIntegrationTests(unittest.TestCase):
             self.assertTrue(ok, errors)
 
             ok, result, errors = inspect_spreadsheet_range(
-                record["document_id"], "A1:F1", "Contract", workspace,
+                record["document_id"],
+                "A1:F1",
+                "Contract",
+                workspace,
             )
 
             self.assertTrue(ok, errors)

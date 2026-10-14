@@ -34,8 +34,11 @@ class MutationSourceStabilityTests(unittest.TestCase):
     def test_writer_replacement_after_backup_blocks_com(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "writer.docx"
-            write_document(path, '<w:p><w:bookmarkStart w:id="1" w:name="Target"/>'
-                                 '<w:r><w:t>old</w:t></w:r><w:bookmarkEnd w:id="1"/></w:p>')
+            write_document(
+                path,
+                '<w:p><w:bookmarkStart w:id="1" w:name="Target"/>'
+                '<w:r><w:t>old</w:t></w:r><w:bookmarkEnd w:id="1"/></w:p>',
+            )
             _, record, _ = register_document("writer", str(path), tmp)
 
             def replace_after_backup(*args, **kwargs):
@@ -44,10 +47,16 @@ class MutationSourceStabilityTests(unittest.TestCase):
                 replace_with_same_bytes(path)
                 return result
 
-            with patch("wps_ai_agent_cli.writer_ops.create_backup", side_effect=replace_after_backup), \
-                    patch("wps_ai_agent_cli.writer_ops._run_writer_bookmark_fill_com") as com:
+            with (
+                patch("wps_ai_agent_cli.writer_ops.create_backup", side_effect=replace_after_backup),
+                patch("wps_ai_agent_cli.writer_ops._run_writer_bookmark_fill_com") as com,
+            ):
                 ok, _, errors, _ = writer_fill_bookmark(
-                    record["document_id"], "Target", "new", "writer-after-backup", workspace=tmp,
+                    record["document_id"],
+                    "Target",
+                    "new",
+                    "writer-after-backup",
+                    workspace=tmp,
                 )
             self.assertFalse(ok)
             self.assertEqual(errors[0]["code"], "DOCUMENT_CHANGED_AFTER_BACKUP")
@@ -68,10 +77,16 @@ class MutationSourceStabilityTests(unittest.TestCase):
                 replace_with_same_bytes(path)
                 return result
 
-            with patch("wps_ai_agent_cli.spreadsheet_ops.create_backup", side_effect=replace_after_backup), \
-                    patch("wps_ai_agent_cli.spreadsheet_ops._run_spreadsheet_rename_sheet_com") as com:
+            with (
+                patch("wps_ai_agent_cli.spreadsheet_ops.create_backup", side_effect=replace_after_backup),
+                patch("wps_ai_agent_cli.spreadsheet_ops._run_spreadsheet_rename_sheet_com") as com,
+            ):
                 ok, _, errors, _ = rename_spreadsheet_sheet(
-                    record["document_id"], "Original", "Renamed", "sheet-after-backup", workspace=tmp,
+                    record["document_id"],
+                    "Original",
+                    "Renamed",
+                    "sheet-after-backup",
+                    workspace=tmp,
                 )
             self.assertFalse(ok)
             self.assertEqual(errors[0]["code"], "DOCUMENT_CHANGED_AFTER_BACKUP")
@@ -87,12 +102,18 @@ class MutationSourceStabilityTests(unittest.TestCase):
             _, record, _ = register_document("spreadsheets", str(path), tmp)
             replace_with_same_bytes(path)
             ok, result, errors, _ = rename_spreadsheet_sheet(
-                record["document_id"], "Original", "Original", "noop-after-replacement", workspace=tmp,
+                record["document_id"],
+                "Original",
+                "Original",
+                "noop-after-replacement",
+                workspace=tmp,
             )
             self.assertTrue(ok, errors)
             self.assertFalse(result["saved"])
             backed_up, _, backup_errors, _ = create_backup(
-                record["document_id"], "after-noop-backup", workspace=tmp,
+                record["document_id"],
+                "after-noop-backup",
+                workspace=tmp,
             )
             self.assertFalse(backed_up)
             self.assertEqual(backup_errors[0]["code"], "DOCUMENT_IDENTITY_CHANGED")
@@ -126,8 +147,11 @@ class MutationSourceStabilityTests(unittest.TestCase):
     def test_writer_post_com_replacement_fails_even_when_text_matches(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "writer.docx"
-            write_document(path, '<w:p><w:bookmarkStart w:id="1" w:name="Target"/>'
-                                 '<w:r><w:t>old</w:t></w:r><w:bookmarkEnd w:id="1"/></w:p>')
+            write_document(
+                path,
+                '<w:p><w:bookmarkStart w:id="1" w:name="Target"/>'
+                '<w:r><w:t>old</w:t></w:r><w:bookmarkEnd w:id="1"/></w:p>',
+            )
             _, record, _ = register_document("writer", str(path), tmp)
 
             def simulated_wps(*_args):
@@ -150,17 +174,25 @@ class MutationSourceStabilityTests(unittest.TestCase):
                     replace_with_same_bytes(path)
                 return value
 
-            with patch("wps_ai_agent_cli.writer_ops._run_writer_bookmark_fill_com", side_effect=simulated_wps), \
-                    patch("wps_ai_agent_cli.writer_ops.docx_body_tables", side_effect=replace_during_readback):
+            with (
+                patch("wps_ai_agent_cli.writer_ops._run_writer_bookmark_fill_com", side_effect=simulated_wps),
+                patch("wps_ai_agent_cli.writer_ops.docx_body_tables", side_effect=replace_during_readback),
+            ):
                 ok, result, errors, _ = writer_fill_bookmark(
-                    record["document_id"], "Target", "new", "writer-after-com", workspace=tmp,
+                    record["document_id"],
+                    "Target",
+                    "new",
+                    "writer-after-com",
+                    workspace=tmp,
                 )
             self.assertFalse(ok)
             self.assertTrue(result["readback_passed"])
             self.assertEqual(errors[0]["code"], "DOCUMENT_CHANGED_AFTER_COM")
             self.assertIsNone(get_operation("writer-after-com", tmp))
 
-    @unittest.skipUnless(os.environ.get("WPS_AGENT_RUN_INTEGRATION") == "1", "set WPS_AGENT_RUN_INTEGRATION=1 to launch local WPS")
+    @unittest.skipUnless(
+        os.environ.get("WPS_AGENT_RUN_INTEGRATION") == "1", "set WPS_AGENT_RUN_INTEGRATION=1 to launch local WPS"
+    )
     def test_presentation_wps_mutation_retains_verified_backup(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "slides.pptx"
@@ -170,13 +202,19 @@ class MutationSourceStabilityTests(unittest.TestCase):
             deck.save(path)
             _, record, _ = register_document("presentation", str(path), tmp)
             ok, result, errors, _ = presentation_replace(
-                record["document_id"], "alpha", "gamma", "presentation-stability", workspace=tmp,
+                record["document_id"],
+                "alpha",
+                "gamma",
+                "presentation-stability",
+                workspace=tmp,
             )
             self.assertTrue(ok, (errors, result))
             self.assertEqual(count_text_in_pptx(path, "gamma"), 1)
             self.assertTrue(Path(result["backup"]["backup_path"]).is_file())
             backed_up, _, backup_errors, _ = create_backup(
-                record["document_id"], "presentation-after-com", workspace=tmp,
+                record["document_id"],
+                "presentation-after-com",
+                workspace=tmp,
             )
             self.assertTrue(backed_up, backup_errors)
 

@@ -59,7 +59,10 @@ def write_minimal_pptx(path: Path, slide_texts: list[str], order: list[int] | No
 <p:presentation xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><p:sldIdLst>{slide_ids}</p:sldIdLst></p:presentation>
 """,
         )
-        archive.writestr("ppt/_rels/presentation.xml.rels", f'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">{relationships}</Relationships>')
+        archive.writestr(
+            "ppt/_rels/presentation.xml.rels",
+            f'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">{relationships}</Relationships>',
+        )
         for index, text in enumerate(slide_texts, start=1):
             archive.writestr(
                 f"ppt/slides/slide{index}.xml",
@@ -184,13 +187,25 @@ class PresentationOpsTests(unittest.TestCase):
         prior = {
             "command": "presentation-replace",
             "result": {
-                "document_id": "doc_1", "find_text": "alpha", "replace_text": "beta",
-                "slide_index": 2, "dry_run": False, "validation_passed": True,
+                "document_id": "doc_1",
+                "find_text": "alpha",
+                "replace_text": "beta",
+                "slide_index": 2,
+                "dry_run": False,
+                "validation_passed": True,
             },
         }
-        with patch("wps_ai_agent_cli.operations.get_operation", return_value=prior), patch("wps_ai_agent_cli.presentation_ops.create_backup") as backup, patch("wps_ai_agent_cli.presentation_ops._run_presentation_replace_com") as com:
+        with (
+            patch("wps_ai_agent_cli.operations.get_operation", return_value=prior),
+            patch("wps_ai_agent_cli.presentation_ops.create_backup") as backup,
+            patch("wps_ai_agent_cli.presentation_ops._run_presentation_replace_com") as com,
+        ):
             ok, result, errors, replayed = presentation_replace(
-                "doc_1", "alpha", "beta", "same-request", slide_index=2,
+                "doc_1",
+                "alpha",
+                "beta",
+                "same-request",
+                slide_index=2,
             )
             self.assertTrue(ok)
             self.assertTrue(replayed)
@@ -207,11 +222,20 @@ class PresentationOpsTests(unittest.TestCase):
                 {"dry_run": True},
             ):
                 with self.subTest(changed=changed):
-                    arguments = {"document_id": "doc_1", "find_text": "alpha", "replace_text": "beta", "slide_index": 2, "dry_run": False}
+                    arguments = {
+                        "document_id": "doc_1",
+                        "find_text": "alpha",
+                        "replace_text": "beta",
+                        "slide_index": 2,
+                        "dry_run": False,
+                    }
                     arguments.update(changed)
                     ok, result, errors, replayed = presentation_replace(
-                        arguments.pop("document_id"), arguments.pop("find_text"),
-                        arguments.pop("replace_text"), "same-request", **arguments,
+                        arguments.pop("document_id"),
+                        arguments.pop("find_text"),
+                        arguments.pop("replace_text"),
+                        "same-request",
+                        **arguments,
                     )
                     self.assertFalse(ok)
                     self.assertFalse(replayed)

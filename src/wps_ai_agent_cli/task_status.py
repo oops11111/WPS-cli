@@ -144,8 +144,9 @@ def _write_task_statuses_unlocked(state: dict[str, Any], workspace: str | Path =
     state_file.parent.mkdir(parents=True, exist_ok=True)
     temporary = None
     try:
-        with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", dir=state_file.parent,
-                                         prefix=".task-status-", suffix=".tmp", delete=False) as stream:
+        with tempfile.NamedTemporaryFile(
+            mode="w", encoding="utf-8", dir=state_file.parent, prefix=".task-status-", suffix=".tmp", delete=False
+        ) as stream:
             temporary = Path(stream.name)
             json.dump(state, stream, ensure_ascii=False, indent=2, sort_keys=True)
             stream.flush()
@@ -193,8 +194,9 @@ def create_task_status(
     workspace: str | Path = ".",
 ) -> tuple[bool, dict[str, Any], list[dict[str, str]], bool]:
     with _status_transaction(workspace):
-        return _create_task_status_unlocked(command, request_id, task_id, document_id,
-                                            message, recovery_guidance, workspace)
+        return _create_task_status_unlocked(
+            command, request_id, task_id, document_id, message, recovery_guidance, workspace
+        )
 
 
 def _create_task_status_unlocked(
@@ -212,10 +214,17 @@ def _create_task_status_unlocked(
     if existing:
         owner = {"command": command, "request_id": request_id, "document_id": document_id}
         if any(existing.get(key) != value for key, value in owner.items()):
-            return False, dict(existing), [{
-                "code": "TASK_ID_CONFLICT",
-                "message": "Task ID belongs to a different command, request, or document.",
-            }], False
+            return (
+                False,
+                dict(existing),
+                [
+                    {
+                        "code": "TASK_ID_CONFLICT",
+                        "message": "Task ID belongs to a different command, request, or document.",
+                    }
+                ],
+                False,
+            )
         return True, dict(existing), [], True
 
     timestamp = _now()
@@ -250,8 +259,9 @@ def update_task_status(
     workspace: str | Path = ".",
 ) -> tuple[bool, dict[str, Any], list[dict[str, str]]]:
     with _status_transaction(workspace):
-        return _update_task_status_unlocked(task_id, state_value, progress_percent,
-                                            message, recovery_guidance, result_ref, workspace)
+        return _update_task_status_unlocked(
+            task_id, state_value, progress_percent, message, recovery_guidance, result_ref, workspace
+        )
 
 
 def _update_task_status_unlocked(

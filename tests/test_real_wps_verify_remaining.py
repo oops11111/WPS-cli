@@ -1,4 +1,5 @@
 """Offline checks for scripts/real_wps_verify_remaining/ (no real WPS required)."""
+
 from __future__ import annotations
 
 import importlib.util

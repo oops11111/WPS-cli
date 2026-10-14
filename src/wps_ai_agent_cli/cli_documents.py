@@ -98,11 +98,7 @@ def list_backups_response(request_id: str, document_id: str | None) -> CommandRe
         command="list-backups",
         request_id=request_id,
         backend=BACKEND,
-        summary=(
-            f"Returned {result.get('count', 0)} backups."
-            if ok
-            else "Backup inventory failed."
-        ),
+        summary=(f"Returned {result.get('count', 0)} backups." if ok else "Backup inventory failed."),
         data=result,
         validation=ValidationResult(
             status="passed" if ok else "failed",
@@ -300,7 +296,9 @@ def operation_response(request_id: str, operation_request_id: str) -> CommandRes
                 }
             ],
         ),
-        errors=[] if ok else [{"code": "OPERATION_NOT_FOUND", "message": f"Operation not found: {operation_request_id}"}],
+        errors=[]
+        if ok
+        else [{"code": "OPERATION_NOT_FOUND", "message": f"Operation not found: {operation_request_id}"}],
     )
 
 
@@ -327,10 +325,18 @@ def mutation_request_inspect_response(request_id: str, operation_request_id: str
         backend=BACKEND,
         summary=f"Mutation request evidence: {status}.",
         data={"mutation_request": inspection},
-        validation=ValidationResult(status="warning" if status in {
-            "ambiguous", "recorded_unverified", "recorded_unavailable",
-            "recorded_repairable", "recorded_changed",
-        } else "passed"),
+        validation=ValidationResult(
+            status="warning"
+            if status
+            in {
+                "ambiguous",
+                "recorded_unverified",
+                "recorded_unavailable",
+                "recorded_repairable",
+                "recorded_changed",
+            }
+            else "passed"
+        ),
     )
 
 

@@ -152,26 +152,26 @@ def _load_config(path: Path) -> tuple[dict[str, Any] | None, list[dict[str, Any]
     if len(raw_config) > MCP_CONFIG_MAX_BYTES:
         return None, checks + [
             _check(
-                "config_size_within_limit", False,
+                "config_size_within_limit",
+                False,
                 {"limit_bytes": MCP_CONFIG_MAX_BYTES, "observed_at_least": len(raw_config)},
             )
         ]
-    checks.append(_check(
-        "config_size_within_limit", True,
-        {"size_bytes": len(raw_config), "limit_bytes": MCP_CONFIG_MAX_BYTES},
-    ))
+    checks.append(
+        _check(
+            "config_size_within_limit",
+            True,
+            {"size_bytes": len(raw_config), "limit_bytes": MCP_CONFIG_MAX_BYTES},
+        )
+    )
     try:
         config_text = raw_config.decode("utf-8")
     except UnicodeDecodeError:
         return None, checks + [_check("config_utf8_valid", False, None)]
     checks.append(_check("config_utf8_valid", True, None))
     if not _json_nesting_depth_within_limit(config_text, MCP_CONFIG_MAX_JSON_DEPTH):
-        return None, checks + [
-            _check("config_json_depth_within_limit", False, {"limit": MCP_CONFIG_MAX_JSON_DEPTH})
-        ]
-    checks.append(
-        _check("config_json_depth_within_limit", True, {"limit": MCP_CONFIG_MAX_JSON_DEPTH})
-    )
+        return None, checks + [_check("config_json_depth_within_limit", False, {"limit": MCP_CONFIG_MAX_JSON_DEPTH})]
+    checks.append(_check("config_json_depth_within_limit", True, {"limit": MCP_CONFIG_MAX_JSON_DEPTH}))
     try:
         config = json.loads(
             config_text,
@@ -199,9 +199,7 @@ def _resolve_command(command: str) -> str | None:
 
 def _implementation_metadata_issue(server_info: dict[str, Any]) -> str | None:
     for field in ("title", "description"):
-        if field in server_info and (
-            not isinstance(server_info[field], str) or not server_info[field].strip()
-        ):
+        if field in server_info and (not isinstance(server_info[field], str) or not server_info[field].strip()):
             return f"serverInfo.{field}"
 
     if "websiteUrl" in server_info:
@@ -236,18 +234,14 @@ def _implementation_metadata_issue(server_info: dict[str, Any]) -> str | None:
                     return f"{prefix}.src"
             else:
                 return f"{prefix}.src"
-            if "mimeType" in icon and (
-                not isinstance(icon["mimeType"], str) or not icon["mimeType"].strip()
-            ):
+            if "mimeType" in icon and (not isinstance(icon["mimeType"], str) or not icon["mimeType"].strip()):
                 return f"{prefix}.mimeType"
             if "sizes" in icon and (
                 not isinstance(icon["sizes"], list)
                 or not all(isinstance(size, str) and size.strip() for size in icon["sizes"])
             ):
                 return f"{prefix}.sizes"
-            if "theme" in icon and (
-                not isinstance(icon["theme"], str) or icon["theme"] not in {"light", "dark"}
-            ):
+            if "theme" in icon and (not isinstance(icon["theme"], str) or icon["theme"] not in {"light", "dark"}):
                 return f"{prefix}.theme"
     return None
 
@@ -265,20 +259,51 @@ def _tool_descriptor_issues(tools: list[Any], page_number: int) -> list[dict[str
         allowed_types = {"array", "boolean", "integer", "null", "number", "object", "string"}
         maps = ("properties", "patternProperties", "$defs", "definitions", "dependentSchemas")
         nested = (
-            "additionalItems", "additionalProperties", "contains", "contentSchema", "else",
-            "if", "items", "not", "propertyNames", "then", "unevaluatedItems", "unevaluatedProperties",
+            "additionalItems",
+            "additionalProperties",
+            "contains",
+            "contentSchema",
+            "else",
+            "if",
+            "items",
+            "not",
+            "propertyNames",
+            "then",
+            "unevaluatedItems",
+            "unevaluatedProperties",
         )
         applicators = ("allOf", "anyOf", "oneOf", "prefixItems")
         number_keywords = (
-            "maximum", "minimum", "exclusiveMaximum", "exclusiveMinimum", "multipleOf",
+            "maximum",
+            "minimum",
+            "exclusiveMaximum",
+            "exclusiveMinimum",
+            "multipleOf",
         )
         integer_keywords = (
-            "maxContains", "maxItems", "maxLength", "maxProperties", "minContains",
-            "minItems", "minLength", "minProperties",
+            "maxContains",
+            "maxItems",
+            "maxLength",
+            "maxProperties",
+            "minContains",
+            "minItems",
+            "minLength",
+            "minProperties",
         )
         string_keywords = (
-            "$anchor", "$comment", "$dynamicRef", "$dynamicAnchor", "$id", "$ref", "$schema",
-            "contentEncoding", "contentMediaType", "format", "pattern", "title", "description",
+            "$anchor",
+            "$comment",
+            "$dynamicRef",
+            "$dynamicAnchor",
+            "$id",
+            "$ref",
+            "$schema",
+            "contentEncoding",
+            "contentMediaType",
+            "format",
+            "pattern",
+            "title",
+            "description",
         )
         boolean_keywords = ("deprecated", "readOnly", "uniqueItems", "writeOnly")
 
@@ -300,8 +325,10 @@ def _tool_descriptor_issues(tools: list[Any], page_number: int) -> list[dict[str
             value = current.get("type")
             if "type" in current:
                 valid_type = (
-                    value in allowed_types if isinstance(value, str)
-                    else isinstance(value, list) and bool(value)
+                    value in allowed_types
+                    if isinstance(value, str)
+                    else isinstance(value, list)
+                    and bool(value)
                     and all(isinstance(item, str) and item in allowed_types for item in value)
                     and len(set(value)) == len(value)
                 )
@@ -310,8 +337,11 @@ def _tool_descriptor_issues(tools: list[Any], page_number: int) -> list[dict[str
 
             if "required" in current:
                 value = current["required"]
-                if (not isinstance(value, list) or not all(isinstance(item, str) for item in value)
-                        or len(set(value)) != len(value)):
+                if (
+                    not isinstance(value, list)
+                    or not all(isinstance(item, str) for item in value)
+                    or len(set(value)) != len(value)
+                ):
                     issue(f"{path}.required")
 
             for keyword in maps:
@@ -343,9 +373,14 @@ def _tool_descriptor_issues(tools: list[Any], page_number: int) -> list[dict[str
             for keyword in number_keywords:
                 if keyword in current:
                     value = current[keyword]
-                    if (isinstance(value, bool) or not isinstance(value, (int, float))
-                            or isinstance(value, float) and not math.isfinite(value)
-                            or keyword == "multipleOf" and value <= 0):
+                    if (
+                        isinstance(value, bool)
+                        or not isinstance(value, (int, float))
+                        or isinstance(value, float)
+                        and not math.isfinite(value)
+                        or keyword == "multipleOf"
+                        and value <= 0
+                    ):
                         issue(f"{path}.{keyword}")
             for keyword in integer_keywords:
                 if keyword in current:
@@ -360,11 +395,12 @@ def _tool_descriptor_issues(tools: list[Any], page_number: int) -> list[dict[str
                     issue(f"{path}.{keyword}")
             if "dependentRequired" in current:
                 value = current["dependentRequired"]
-                if (not isinstance(value, dict) or any(
-                    not isinstance(names, list) or not all(isinstance(name, str) for name in names)
+                if not isinstance(value, dict) or any(
+                    not isinstance(names, list)
+                    or not all(isinstance(name, str) for name in names)
                     or len(set(names)) != len(names)
                     for names in value.values()
-                )):
+                ):
                     issue(f"{path}.dependentRequired")
             if "examples" in current and not isinstance(current["examples"], list):
                 issue(f"{path}.examples")
@@ -421,7 +457,16 @@ def audit_mcp_client_config(
             "checks": [server_name_check],
             "smoke": None,
         }
-        return False, result, [{"code": "MCP_CONFIG_AUDIT_FAILED", "message": "Server name must be nonempty and at most 256 characters."}]
+        return (
+            False,
+            result,
+            [
+                {
+                    "code": "MCP_CONFIG_AUDIT_FAILED",
+                    "message": "Server name must be nonempty and at most 256 characters.",
+                }
+            ],
+        )
     expected_tools_valid = (
         isinstance(expected_min_tools, int)
         and not isinstance(expected_min_tools, bool)
@@ -442,7 +487,11 @@ def audit_mcp_client_config(
             "checks": [server_name_check, expected_tools_check],
             "smoke": None,
         }
-        return False, result, [{"code": "MCP_CONFIG_AUDIT_FAILED", "message": "Expected tool count must be between 1 and 10000."}]
+        return (
+            False,
+            result,
+            [{"code": "MCP_CONFIG_AUDIT_FAILED", "message": "Expected tool count must be between 1 and 10000."}],
+        )
     timeout_valid = (
         isinstance(timeout_seconds, int)
         and not isinstance(timeout_seconds, bool)
@@ -463,7 +512,11 @@ def audit_mcp_client_config(
             "checks": [server_name_check, expected_tools_check, timeout_check],
             "smoke": None,
         }
-        return False, result, [{"code": "MCP_CONFIG_AUDIT_FAILED", "message": "Timeout must be between 1 and 120 seconds."}]
+        return (
+            False,
+            result,
+            [{"code": "MCP_CONFIG_AUDIT_FAILED", "message": "Timeout must be between 1 and 120 seconds."}],
+        )
     config, checks = _load_config(path)
     checks[0:0] = [server_name_check, expected_tools_check, timeout_check]
     if config is None:
@@ -504,8 +557,12 @@ def audit_mcp_client_config(
     command_valid = isinstance(command, str) and bool(command.strip()) and "\0" not in command
     args_valid = isinstance(args, list) and all(isinstance(arg, str) and "\0" not in arg for arg in args)
     env_valid = isinstance(env_overrides, dict) and all(
-        isinstance(key, str) and bool(key) and "=" not in key and "\0" not in key
-        and isinstance(value, str) and "\0" not in value
+        isinstance(key, str)
+        and bool(key)
+        and "=" not in key
+        and "\0" not in key
+        and isinstance(value, str)
+        and "\0" not in value
         for key, value in env_overrides.items()
     )
     cwd_path = Path(cwd) if isinstance(cwd, str) and cwd.strip() else None
@@ -513,25 +570,37 @@ def audit_mcp_client_config(
         cwd_ok = bool(cwd_path and cwd_path.exists())
     except OSError:
         cwd_ok = False
-    checks.append(_check(
-        "cwd_exists", cwd_ok,
-        cwd[:256] if isinstance(cwd, str) else None,
-    ))
+    checks.append(
+        _check(
+            "cwd_exists",
+            cwd_ok,
+            cwd[:256] if isinstance(cwd, str) else None,
+        )
+    )
     command_resolved = _resolve_command(command) if command_valid else None
-    checks.append(_check(
-        "command_resolves", command_resolved is not None,
-        command[:256] if isinstance(command, str) else None,
-    ))
+    checks.append(
+        _check(
+            "command_resolves",
+            command_resolved is not None,
+            command[:256] if isinstance(command, str) else None,
+        )
+    )
     checks.append(_check("command_characters_valid", command_valid, "NUL-free nonempty command required."))
     checks.append(_check("args_are_strings", args_valid, "Arguments must be strings without NUL."))
-    checks.append(_check(
-        "args_include_mcp_server", args_valid and "mcp-server" in args,
-        {"argument_count": len(args) if isinstance(args, list) else None},
-    ))
-    checks.append(_check(
-        "env_overrides_are_strings", env_valid,
-        "Environment must map valid string keys to NUL-free string values.",
-    ))
+    checks.append(
+        _check(
+            "args_include_mcp_server",
+            args_valid and "mcp-server" in args,
+            {"argument_count": len(args) if isinstance(args, list) else None},
+        )
+    )
+    checks.append(
+        _check(
+            "env_overrides_are_strings",
+            env_valid,
+            "Environment must map valid string keys to NUL-free string values.",
+        )
+    )
     checks.append(
         _check(
             "env_pythonpath_present",
@@ -662,9 +731,14 @@ def audit_mcp_client_config(
                 try:
                     response = json.loads(raw_response)
                 except RecursionError as exc:
-                    raise ValueError("Configured server returned an invalid JSON-RPC response (nesting too deep).") from exc
-                if (not isinstance(response, dict) or response.get("jsonrpc") != "2.0"
-                        or response.get("id") != request_id):
+                    raise ValueError(
+                        "Configured server returned an invalid JSON-RPC response (nesting too deep)."
+                    ) from exc
+                if (
+                    not isinstance(response, dict)
+                    or response.get("jsonrpc") != "2.0"
+                    or response.get("id") != request_id
+                ):
                     raise ValueError("Configured server returned an invalid JSON-RPC response or request ID.")
                 if isinstance(response.get("error"), dict):
                     raise ValueError(f"Configured server returned a JSON-RPC error for {method}.")
@@ -681,27 +755,39 @@ def audit_mcp_client_config(
                     "clientInfo": {"name": "wps-ai-agent-cli-config-audit", "version": "1"},
                 },
             )["result"]
-            if (initialize.get("protocolVersion") != "2025-11-25"
-                    or not isinstance(initialize.get("capabilities"), dict)):
+            if initialize.get("protocolVersion") != "2025-11-25" or not isinstance(
+                initialize.get("capabilities"), dict
+            ):
                 raise ValueError("Configured server returned an invalid initialize result.")
             server_info = initialize.get("serverInfo")
             capabilities = initialize["capabilities"]
             tools_capability = capabilities.get("tools")
-            if (not isinstance(server_info, dict)
-                    or not isinstance(server_info.get("name"), str) or not server_info["name"].strip()
-                    or not isinstance(server_info.get("version"), str) or not server_info["version"].strip()
-                    or not isinstance(tools_capability, dict)
-                    or isinstance(tools_capability, dict) and "listChanged" in tools_capability
-                    and not isinstance(tools_capability["listChanged"], bool)):
+            if (
+                not isinstance(server_info, dict)
+                or not isinstance(server_info.get("name"), str)
+                or not server_info["name"].strip()
+                or not isinstance(server_info.get("version"), str)
+                or not server_info["version"].strip()
+                or not isinstance(tools_capability, dict)
+                or isinstance(tools_capability, dict)
+                and "listChanged" in tools_capability
+                and not isinstance(tools_capability["listChanged"], bool)
+            ):
                 raise ValueError("Configured server returned invalid initialize metadata.")
             optional_metadata_issue = _implementation_metadata_issue(server_info)
             if optional_metadata_issue is not None:
                 raise ValueError(f"Configured server returned invalid metadata at {optional_metadata_issue}.")
 
             assert process.stdin is not None
-            process.stdin.write(json.dumps({
-                "jsonrpc": "2.0", "method": "notifications/initialized",
-            }) + "\n")
+            process.stdin.write(
+                json.dumps(
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "notifications/initialized",
+                    }
+                )
+                + "\n"
+            )
             process.stdin.flush()
 
             tools = []
@@ -716,7 +802,7 @@ def audit_mcp_client_config(
                     raise ValueError("Configured server returned an invalid tools/list page.")
                 page_issues = _tool_descriptor_issues(page_tools, page_count + 1)
                 descriptor_issue_count += len(page_issues)
-                descriptor_issues.extend(page_issues[:max(0, 20 - len(descriptor_issues))])
+                descriptor_issues.extend(page_issues[: max(0, 20 - len(descriptor_issues))])
                 tools.extend(page_tools)
                 page_count += 1
                 next_cursor = page.get("nextCursor")
@@ -763,16 +849,20 @@ def audit_mcp_client_config(
             checks.append(
                 _check(
                     "configured_tools_list_smoke",
-                    exit_code == 0 and tool_count >= expected_min_tools
-                    and invalid_tool_count == 0 and duplicate_tool_count == 0,
+                    exit_code == 0
+                    and tool_count >= expected_min_tools
+                    and invalid_tool_count == 0
+                    and duplicate_tool_count == 0,
                     smoke,
                 )
             )
-            checks.append(_check(
-                "configured_tool_descriptors",
-                descriptor_issue_count == 0,
-                {"invalid_count": descriptor_issue_count, "issues": descriptor_issues},
-            ))
+            checks.append(
+                _check(
+                    "configured_tool_descriptors",
+                    descriptor_issue_count == 0,
+                    {"invalid_count": descriptor_issue_count, "issues": descriptor_issues},
+                )
+            )
         except (subprocess.SubprocessError, OSError, json.JSONDecodeError, RecursionError, ValueError) as exc:
             smoke = {"error": str(exc), "page_count": page_count, "stderr": "".join(stderr_chunks).strip()}
             checks.append(_check("configured_tools_list_smoke", False, smoke))
@@ -793,10 +883,13 @@ def audit_mcp_client_config(
                 if process.stderr is not None:
                     process.stderr.close()
     else:
-        checks.append(_check(
-            "configured_tools_list_smoke", False,
-            "Skipped because command, cwd, args, env or launch-line checks failed; nothing was executed.",
-        ))
+        checks.append(
+            _check(
+                "configured_tools_list_smoke",
+                False,
+                "Skipped because command, cwd, args, env or launch-line checks failed; nothing was executed.",
+            )
+        )
 
     ok = all(check["passed"] for check in checks)
     result = {
@@ -806,11 +899,15 @@ def audit_mcp_client_config(
         "checks": checks,
         "smoke": smoke,
     }
-    errors = [] if ok else [
-        {
-            "code": "MCP_CONFIG_AUDIT_FAILED",
-            "message": "One or more MCP client configuration audit checks failed.",
-            "details": [check for check in checks if not check["passed"]],
-        }
-    ]
+    errors = (
+        []
+        if ok
+        else [
+            {
+                "code": "MCP_CONFIG_AUDIT_FAILED",
+                "message": "One or more MCP client configuration audit checks failed.",
+                "details": [check for check in checks if not check["passed"]],
+            }
+        ]
+    )
     return ok, result, errors

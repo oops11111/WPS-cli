@@ -2,6 +2,7 @@
 
 usage: python make_c2_fixtures.py <work_dir>        (needs openpyxl; pip install -e ".[test]" covers it)
 """
+
 import sys
 from pathlib import Path
 

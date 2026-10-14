@@ -100,8 +100,7 @@ def _validate_mcp_envelope(message: Any) -> tuple[dict[str, Any] | None, bool]:
         return _error_response(None, -32600, "MCP requests require a string or integer ID."), False
 
     request_id = message["id"]
-    if (method.startswith("notifications/") or isinstance(request_id, bool)
-            or not isinstance(request_id, (str, int))):
+    if method.startswith("notifications/") or isinstance(request_id, bool) or not isinstance(request_id, (str, int)):
         return _error_response(None, -32600, "Invalid JSON-RPC request."), False
     if "params" in message and not isinstance(message["params"], dict):
         return _error_response(None, -32600, "MCP request params must be an object."), False
@@ -157,8 +156,7 @@ def _tools_list_result(cursor: Any = _CURSOR_OMITTED) -> dict[str, Any]:
     tools = list(cached_tools)
     offset = 0
     if cursor is not _CURSOR_OMITTED:
-        if (not isinstance(cursor, str) or not cursor
-                or len(cursor) > MCP_TOOLS_CURSOR_MAX_LENGTH):
+        if not isinstance(cursor, str) or not cursor or len(cursor) > MCP_TOOLS_CURSOR_MAX_LENGTH:
             raise ValueError("Invalid tools/list cursor.")
         try:
             encoded = cursor.encode("ascii")
@@ -167,14 +165,18 @@ def _tools_list_result(cursor: Any = _CURSOR_OMITTED) -> dict[str, Any]:
         except (UnicodeEncodeError, UnicodeDecodeError, ValueError):
             raise ValueError("Invalid tools/list cursor.") from None
         prefix, separator, offset_text = decoded.rpartition(":")
-        if (prefix != fingerprint or not separator or not offset_text.isdecimal()
-                or (len(offset_text) > 1 and offset_text.startswith("0"))):
+        if (
+            prefix != fingerprint
+            or not separator
+            or not offset_text.isdecimal()
+            or (len(offset_text) > 1 and offset_text.startswith("0"))
+        ):
             raise ValueError("Invalid tools/list cursor.")
         offset = int(offset_text)
         if offset <= 0 or offset >= len(tools) or offset % MCP_TOOLS_PAGE_SIZE:
             raise ValueError("Invalid tools/list cursor.")
 
-    page = tools[offset:offset + MCP_TOOLS_PAGE_SIZE]
+    page = tools[offset : offset + MCP_TOOLS_PAGE_SIZE]
     result = {
         "resultType": "complete",
         "tools": page,
@@ -251,14 +253,22 @@ def handle_mcp_request(message: dict[str, Any]) -> dict[str, Any] | None:
         requested_version = params.get("protocolVersion")
         capabilities = params.get("capabilities")
         client_info = params.get("clientInfo")
-        if (not isinstance(requested_version, str) or not requested_version
-                or not isinstance(capabilities, dict)
-                or not isinstance(client_info, dict)
-                or not isinstance(client_info.get("name"), str) or not client_info["name"]
-                or not isinstance(client_info.get("version"), str) or not client_info["version"]):
-            return _error_response(request_id, -32602, "initialize requires protocolVersion, capabilities, and clientInfo name/version.")
+        if (
+            not isinstance(requested_version, str)
+            or not requested_version
+            or not isinstance(capabilities, dict)
+            or not isinstance(client_info, dict)
+            or not isinstance(client_info.get("name"), str)
+            or not client_info["name"]
+            or not isinstance(client_info.get("version"), str)
+            or not client_info["version"]
+        ):
+            return _error_response(
+                request_id, -32602, "initialize requires protocolVersion, capabilities, and clientInfo name/version."
+            )
         selected_version = (
-            requested_version if requested_version in SUPPORTED_MCP_PROTOCOL_VERSIONS
+            requested_version
+            if requested_version in SUPPORTED_MCP_PROTOCOL_VERSIONS
             else SUPPORTED_MCP_PROTOCOL_VERSIONS[0]
         )
         return _response(request_id, _initialize_result(selected_version))
@@ -337,8 +347,10 @@ def serve_stdio(input_stream: TextIO | None = None, output_stream: TextIO | None
     # Tool calls can block on WPS COM for minutes. They run on a worker so the reader keeps
     # answering ping/tools/list; a single worker keeps tool calls in request order, and the
     # separate batch executor lets task-status updates cancel a running batch.
-    with ThreadPoolExecutor(max_workers=1, thread_name_prefix="mcp-html-batch") as executor, \
-            ThreadPoolExecutor(max_workers=1, thread_name_prefix="mcp-tool-call") as tool_executor:
+    with (
+        ThreadPoolExecutor(max_workers=1, thread_name_prefix="mcp-html-batch") as executor,
+        ThreadPoolExecutor(max_workers=1, thread_name_prefix="mcp-tool-call") as tool_executor,
+    ):
         pending: Future[None] | None = None
         tool_futures: list[Future[None]] = []
         lifecycle = "awaiting_initialize"
@@ -368,18 +380,21 @@ def serve_stdio(input_stream: TextIO | None = None, output_stream: TextIO | None
                 write_response(validation_error)
                 continue
             if is_notification:
-                initialized_params_valid = (
-                    "params" not in message or isinstance(message["params"], dict)
-                )
-                if (message.get("method") == "notifications/initialized"
-                        and lifecycle == "awaiting_initialized" and initialized_params_valid):
+                initialized_params_valid = "params" not in message or isinstance(message["params"], dict)
+                if (
+                    message.get("method") == "notifications/initialized"
+                    and lifecycle == "awaiting_initialized"
+                    and initialized_params_valid
+                ):
                     lifecycle = "ready"
                 handle_mcp_request(message)
                 continue
             request_id = message["id"]
             request_id_key = (type(request_id), request_id)
             if request_id_key in seen_request_ids:
-                write_response(_error_response(request_id, -32600, "Request ID has already been used in this MCP session."))
+                write_response(
+                    _error_response(request_id, -32600, "Request ID has already been used in this MCP session.")
+                )
                 continue
             seen_request_ids.add(request_id_key)
             method = message["method"]
@@ -393,7 +408,9 @@ def serve_stdio(input_stream: TextIO | None = None, output_stream: TextIO | None
                     lifecycle = "awaiting_initialized"
                 continue
             if lifecycle == "awaiting_initialized":
-                write_response(_error_response(message["id"], -32600, "MCP session is awaiting notifications/initialized."))
+                write_response(
+                    _error_response(message["id"], -32600, "MCP session is awaiting notifications/initialized.")
+                )
                 continue
             if method == "initialize":
                 write_response(_error_response(message["id"], -32600, "MCP session is already initialized."))
@@ -406,7 +423,9 @@ def serve_stdio(input_stream: TextIO | None = None, output_stream: TextIO | None
                 and params.get("name") == "wps_agent_html_batch_convert"
             ):
                 if pending is not None and not pending.done():
-                    write_response(_error_response(message.get("id"), -32000, "An HTML batch conversion is already in progress."))
+                    write_response(
+                        _error_response(message.get("id"), -32000, "An HTML batch conversion is already in progress.")
+                    )
                 else:
                     if pending is not None:
                         pending.result()

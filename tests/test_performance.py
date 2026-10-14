@@ -18,8 +18,10 @@ class PerformanceBaselineTests(unittest.TestCase):
 
         with patch("wps_ai_agent_cli.performance._run_cli", side_effect=completed) as runner:
             ok, result, errors = capture_performance_baseline()
-        self.assertEqual([call.args[0] for call in runner.call_args_list],
-                         [item["command"] for item in PERFORMANCE_BASELINE_COMMANDS])
+        self.assertEqual(
+            [call.args[0] for call in runner.call_args_list],
+            [item["command"] for item in PERFORMANCE_BASELINE_COMMANDS],
+        )
 
         self.assertTrue(ok)
         self.assertEqual(errors, [])

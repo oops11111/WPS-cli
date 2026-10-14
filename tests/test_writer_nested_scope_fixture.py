@@ -37,32 +37,55 @@ class WriterNestedScopeFixtureTests(unittest.TestCase):
         self.assertEqual(bookmarks["FooterMark"]["start"]["scope"], "header_footer")
         self.assertTrue(all(item["status"] == "paired" for item in bookmarks.values()))
         self.assertTrue(bookmarks["BodyMark"]["body_paragraph_range_supported"])
-        self.assertFalse(any(bookmarks[name]["body_paragraph_range_supported"] for name in ("CellMark", "HeaderMark", "FooterMark")))
+        self.assertFalse(
+            any(bookmarks[name]["body_paragraph_range_supported"] for name in ("CellMark", "HeaderMark", "FooterMark"))
+        )
         self.assertTrue(all(item["text_range_supported"] for item in bookmarks.values()))
         self.assertEqual(read_body_bookmark_text(FIXTURE, "BodyMark")[1], "BodyValue")
         self.assertIsNone(read_body_bookmark_text(FIXTURE, "CellMark")[1])
-        expected = {"BodyMark": "BodyValue", "CellMark": "CellValue",
-                    "HeaderMark": "HeaderValue", "FooterMark": "FooterValue"}
+        expected = {
+            "BodyMark": "BodyValue",
+            "CellMark": "CellValue",
+            "HeaderMark": "HeaderValue",
+            "FooterMark": "FooterValue",
+        }
         self.assertEqual({name: read_supported_bookmark_text(FIXTURE, name)[1] for name in bookmarks}, expected)
         document = {"component": "writer", "path": str(FIXTURE.resolve())}
         with patch("wps_ai_agent_cli.writer_inspect.get_document", return_value=document):
             for name in bookmarks:
                 with self.subTest(name=name):
                     ok, result, errors = inspect_writer_structure(
-                        "fixture", section="bookmarks", bookmark_name=name, include_text=True,
+                        "fixture",
+                        section="bookmarks",
+                        bookmark_name=name,
+                        include_text=True,
                     )
                     self.assertTrue(ok, errors)
                     self.assertEqual(result["bookmark_value"]["status"], "available")
                     self.assertEqual(result["bookmark_value"]["text"], expected[name])
                     self.assertFalse(result["wps_validated"])
                     output = io.StringIO()
-                    args = ["writer-structure", "--document-id", "fixture", "--section", "bookmarks",
-                            "--bookmark-name", name, "--include-text"]
+                    args = [
+                        "writer-structure",
+                        "--document-id",
+                        "fixture",
+                        "--section",
+                        "bookmarks",
+                        "--bookmark-name",
+                        name,
+                        "--include-text",
+                    ]
                     self.assertEqual(run(args, output_stream=output), 0)
                     cli = json.loads(output.getvalue())
-                    mcp_ok, mcp, mcp_errors = call_mcp_tool("wps_agent_writer_structure", {
-                        "document_id": "fixture", "section": "bookmarks", "bookmark_name": name, "include_text": True,
-                    })
+                    mcp_ok, mcp, mcp_errors = call_mcp_tool(
+                        "wps_agent_writer_structure",
+                        {
+                            "document_id": "fixture",
+                            "section": "bookmarks",
+                            "bookmark_name": name,
+                            "include_text": True,
+                        },
+                    )
                     self.assertTrue(mcp_ok, mcp_errors)
                     self.assertEqual(cli["data"]["writer_structure"], mcp["response"]["data"]["writer_structure"])
         self.assertEqual(hashlib.sha256(FIXTURE.read_bytes()).hexdigest(), before)
@@ -76,8 +99,12 @@ class WriterNestedScopeFixtureTests(unittest.TestCase):
                 for name in ("CellMark", "HeaderMark", "FooterMark"):
                     with self.subTest(name=name):
                         filled, _, fill_errors, _ = writer_fill_bookmark(
-                            record["document_id"], name, "replacement", f"read-only-{name}",
-                            dry_run=True, workspace=tmp,
+                            record["document_id"],
+                            name,
+                            "replacement",
+                            f"read-only-{name}",
+                            dry_run=True,
+                            workspace=tmp,
                         )
                         if name == "CellMark":
                             self.assertTrue(filled, fill_errors)
@@ -87,13 +114,28 @@ class WriterNestedScopeFixtureTests(unittest.TestCase):
                 mutation.assert_not_called()
         self.assertEqual(hashlib.sha256(FIXTURE.read_bytes()).hexdigest(), before)
 
-    @unittest.skipUnless(os.environ.get("WPS_AGENT_RUN_INTEGRATION") == "1", "set WPS_AGENT_RUN_INTEGRATION=1 to launch local WPS Writer")
+    @unittest.skipUnless(
+        os.environ.get("WPS_AGENT_RUN_INTEGRATION") == "1", "set WPS_AGENT_RUN_INTEGRATION=1 to launch local WPS Writer"
+    )
     def test_wps_read_only_bookmark_observations(self):
         before = hashlib.sha256(FIXTURE.read_bytes()).hexdigest().upper()
         completed = subprocess.run(
-            [powershell_executable(), "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(SCRIPT.resolve()),
-             "-Path", str(FIXTURE.resolve())],
-            capture_output=True, text=True, encoding="utf-8", errors="replace", check=False, timeout=90,
+            [
+                powershell_executable(),
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                str(SCRIPT.resolve()),
+                "-Path",
+                str(FIXTURE.resolve()),
+            ],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            check=False,
+            timeout=90,
         )
         self.assertEqual(completed.returncode, 0, completed.stderr or completed.stdout)
         observed = json.loads(completed.stdout)
@@ -102,27 +144,54 @@ class WriterNestedScopeFixtureTests(unittest.TestCase):
         self.assertTrue(observed["file_unchanged"])
         self.assertEqual(observed["sha256_before"], before)
         self.assertEqual(observed["sha256_after"], before)
-        self.assertEqual({item["name"]: item["text"] for item in observed["bookmarks"]}, {
-            "BodyMark": "BodyValue", "CellMark": "CellValue",
-            "HeaderMark": "HeaderValue", "FooterMark": "FooterValue",
-        })
+        self.assertEqual(
+            {item["name"]: item["text"] for item in observed["bookmarks"]},
+            {
+                "BodyMark": "BodyValue",
+                "CellMark": "CellValue",
+                "HeaderMark": "HeaderValue",
+                "FooterMark": "FooterValue",
+            },
+        )
         document = {"component": "writer", "path": str(FIXTURE.resolve())}
         with patch("wps_ai_agent_cli.writer_inspect.get_document", return_value=document):
             for item in observed["bookmarks"]:
                 name = item["name"]
                 ok, result, errors = inspect_writer_structure(
-                    "fixture", section="bookmarks", bookmark_name=name, include_text=True,
+                    "fixture",
+                    section="bookmarks",
+                    bookmark_name=name,
+                    include_text=True,
                 )
                 self.assertTrue(ok, errors)
                 self.assertEqual(result["bookmark_value"]["text"], item["text"])
                 output = io.StringIO()
-                self.assertEqual(run(["writer-structure", "--document-id", "fixture", "--section", "bookmarks",
-                                      "--bookmark-name", name, "--include-text"], output_stream=output), 0)
+                self.assertEqual(
+                    run(
+                        [
+                            "writer-structure",
+                            "--document-id",
+                            "fixture",
+                            "--section",
+                            "bookmarks",
+                            "--bookmark-name",
+                            name,
+                            "--include-text",
+                        ],
+                        output_stream=output,
+                    ),
+                    0,
+                )
                 cli = json.loads(output.getvalue())
-                mcp_ok, mcp, mcp_errors = call_mcp_tool("wps_agent_writer_structure", {
-                    "document_id": "fixture", "section": "bookmarks", "bookmark_name": name,
-                    "include_text": True,
-                })
+                mcp_ok, mcp, mcp_errors = call_mcp_tool(
+                    "wps_agent_writer_structure",
+                    {
+                        "document_id": "fixture",
+                        "section": "bookmarks",
+                        "bookmark_name": name,
+                        "include_text": True,
+                    },
+                )
                 self.assertTrue(mcp_ok, mcp_errors)
                 self.assertEqual(cli["data"]["writer_structure"], mcp["response"]["data"]["writer_structure"])
                 self.assertEqual(cli["data"]["writer_structure"]["bookmark_value"]["text"], item["text"])

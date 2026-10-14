@@ -28,8 +28,10 @@ class BatchConversionTests(unittest.TestCase):
                 destination.write_bytes(b"PDF")
                 return True, {}, []
 
-            with patch("wps_ai_agent_cli.task_status.task_status_state_path", return_value=root / "statuses.json"), \
-                 patch("wps_ai_agent_cli.batch_conversion.render_html", side_effect=render):
+            with (
+                patch("wps_ai_agent_cli.task_status.task_status_state_path", return_value=root / "statuses.json"),
+                patch("wps_ai_agent_cli.batch_conversion.render_html", side_effect=render),
+            ):
                 ok, converted, _ = convert_html_batch(source, output, "pdf", request_id="verify-me")
                 self.assertTrue(ok)
                 record = _request_record_path("verify-me")
@@ -60,11 +62,21 @@ class BatchConversionTests(unittest.TestCase):
 
                 record_path = _request_record_path("current")
                 record_path.parent.mkdir()
-                record_path.write_text(json.dumps({
-                    "request_id": "current", "state": "succeeded",
-                    "arguments": {"source_directory": "input", "output_directory": str(root / "out"),
-                                  "mode": "docx", "recursive": False},
-                }), encoding="utf-8")
+                record_path.write_text(
+                    json.dumps(
+                        {
+                            "request_id": "current",
+                            "state": "succeeded",
+                            "arguments": {
+                                "source_directory": "input",
+                                "output_directory": str(root / "out"),
+                                "mode": "docx",
+                                "recursive": False,
+                            },
+                        }
+                    ),
+                    encoding="utf-8",
+                )
                 before = record_path.read_bytes()
                 ok, record, errors = inspect_batch_request("current")
                 self.assertTrue(ok, errors)
@@ -74,9 +86,19 @@ class BatchConversionTests(unittest.TestCase):
                 self.assertEqual(record_path.read_bytes(), before)
 
                 legacy_path = root / "html_batch_requests.json"
-                legacy_path.write_text(json.dumps({"requests": {"legacy": {
-                    "state": "cancelled", "arguments": {"output_directory": str(root / "legacy-output")},
-                }}}), encoding="utf-8")
+                legacy_path.write_text(
+                    json.dumps(
+                        {
+                            "requests": {
+                                "legacy": {
+                                    "state": "cancelled",
+                                    "arguments": {"output_directory": str(root / "legacy-output")},
+                                }
+                            }
+                        }
+                    ),
+                    encoding="utf-8",
+                )
                 ok, legacy, errors = inspect_batch_request("legacy")
                 self.assertTrue(ok, errors)
                 self.assertEqual(legacy["record_origin"], "legacy")
@@ -95,11 +117,27 @@ class BatchConversionTests(unittest.TestCase):
             env = dict(os.environ, PYTHONPATH=str(Path(__file__).resolve().parents[1] / "src"))
 
             def invoke(destination):
-                completed = subprocess.run([
-                    sys.executable, "-m", "wps_ai_agent_cli", "html-batch-convert",
-                    "--input-dir", str(source), "--output-dir", str(destination),
-                    "--mode", "docx", "--request-id", "cross-process-request",
-                ], cwd=root, env=env, capture_output=True, text=True, timeout=20)
+                completed = subprocess.run(
+                    [
+                        sys.executable,
+                        "-m",
+                        "wps_ai_agent_cli",
+                        "html-batch-convert",
+                        "--input-dir",
+                        str(source),
+                        "--output-dir",
+                        str(destination),
+                        "--mode",
+                        "docx",
+                        "--request-id",
+                        "cross-process-request",
+                    ],
+                    cwd=root,
+                    env=env,
+                    capture_output=True,
+                    text=True,
+                    timeout=20,
+                )
                 return completed, json.loads(completed.stdout)
 
             first, initial = invoke(output)
@@ -135,9 +173,13 @@ class BatchConversionTests(unittest.TestCase):
                 destination.write_bytes(b"PDF")
                 return True, {}, []
 
-            with patch("wps_ai_agent_cli.task_status.task_status_state_path", return_value=root / "statuses.json"), \
-                 patch("wps_ai_agent_cli.batch_conversion.render_html", side_effect=render):
-                with patch.object(batch_conversion, "_store_request_record", side_effect=OSError("storage unavailable")):
+            with (
+                patch("wps_ai_agent_cli.task_status.task_status_state_path", return_value=root / "statuses.json"),
+                patch("wps_ai_agent_cli.batch_conversion.render_html", side_effect=render),
+            ):
+                with patch.object(
+                    batch_conversion, "_store_request_record", side_effect=OSError("storage unavailable")
+                ):
                     ok, _, errors = convert_html_batch(source, output, "pdf", request_id="recover")
                 self.assertFalse(ok)
                 self.assertEqual(errors[0]["code"], "BATCH_REQUEST_REGISTRY_WRITE_FAILED")
@@ -159,7 +201,9 @@ class BatchConversionTests(unittest.TestCase):
                 self.assertFalse(ok)
                 self.assertEqual(errors[0]["code"], "BATCH_REQUEST_REGISTRY_WRITE_FAILED")
                 self.assertTrue(Path(manifest["manifest_path"]).is_file())
-                self.assertEqual(json.loads(_request_record_path("recover").read_text(encoding="utf-8"))["state"], "running")
+                self.assertEqual(
+                    json.loads(_request_record_path("recover").read_text(encoding="utf-8"))["state"], "running"
+                )
 
                 ok, replayed, errors = convert_html_batch(source, output, "pdf", request_id="recover")
                 self.assertTrue(ok, errors)
@@ -177,8 +221,10 @@ class BatchConversionTests(unittest.TestCase):
                 destination.write_bytes(b"PDF")
                 return True, {}, []
 
-            with patch("wps_ai_agent_cli.task_status.task_status_state_path", return_value=root / "statuses.json"), \
-                 patch("wps_ai_agent_cli.batch_conversion.render_html", side_effect=render):
+            with (
+                patch("wps_ai_agent_cli.task_status.task_status_state_path", return_value=root / "statuses.json"),
+                patch("wps_ai_agent_cli.batch_conversion.render_html", side_effect=render),
+            ):
                 with patch("wps_ai_agent_cli.batch_conversion._MAX_REQUEST_RECORD_BYTES", 20):
                     ok, _, errors = convert_html_batch(source, output, "pdf", request_id="bounded")
                 self.assertFalse(ok)
@@ -192,14 +238,26 @@ class BatchConversionTests(unittest.TestCase):
                 record = json.loads(record_path.read_text(encoding="utf-8"))
                 record_path.unlink()
                 legacy_path = root / "html_batch_requests.json"
-                legacy_path.write_text(json.dumps({"requests": {"legacy": {
-                    "arguments": record["arguments"], "state": "running",
-                }}}), encoding="utf-8")
+                legacy_path.write_text(
+                    json.dumps(
+                        {
+                            "requests": {
+                                "legacy": {
+                                    "arguments": record["arguments"],
+                                    "state": "running",
+                                }
+                            }
+                        }
+                    ),
+                    encoding="utf-8",
+                )
                 ok, replayed, errors = convert_html_batch(source, output, "pdf", request_id="legacy")
                 self.assertTrue(ok, errors)
                 self.assertTrue(replayed["replayed"])
                 self.assertEqual(json.loads(record_path.read_text(encoding="utf-8"))["state"], "succeeded")
-                self.assertEqual(json.loads(legacy_path.read_text(encoding="utf-8"))["requests"]["legacy"]["state"], "running")
+                self.assertEqual(
+                    json.loads(legacy_path.read_text(encoding="utf-8"))["requests"]["legacy"]["state"], "running"
+                )
 
     def test_corrupt_request_record_blocks_replay_without_touching_manifest(self):
         with TemporaryDirectory() as directory:
@@ -212,8 +270,10 @@ class BatchConversionTests(unittest.TestCase):
                 destination.write_bytes(b"PDF")
                 return True, {}, []
 
-            with patch("wps_ai_agent_cli.task_status.task_status_state_path", return_value=root / "statuses.json"), \
-                 patch("wps_ai_agent_cli.batch_conversion.render_html", side_effect=render):
+            with (
+                patch("wps_ai_agent_cli.task_status.task_status_state_path", return_value=root / "statuses.json"),
+                patch("wps_ai_agent_cli.batch_conversion.render_html", side_effect=render),
+            ):
                 ok, result, _ = convert_html_batch(source, output, "pdf", request_id="damaged")
                 self.assertTrue(ok)
                 manifest = Path(result["manifest_path"])
@@ -237,8 +297,10 @@ class BatchConversionTests(unittest.TestCase):
                 destination.write_bytes(b"PDF")
                 return True, {}, []
 
-            with patch("wps_ai_agent_cli.task_status.task_status_state_path", return_value=root / "statuses.json"), \
-                 patch("wps_ai_agent_cli.batch_conversion.render_html", side_effect=render):
+            with (
+                patch("wps_ai_agent_cli.task_status.task_status_state_path", return_value=root / "statuses.json"),
+                patch("wps_ai_agent_cli.batch_conversion.render_html", side_effect=render),
+            ):
                 registry = _request_record_path("stranded")
                 ok, result, _ = convert_html_batch(source, output, "pdf", request_id="stranded")
                 self.assertTrue(ok)
@@ -282,8 +344,10 @@ class BatchConversionTests(unittest.TestCase):
             def worker():
                 result["first"] = convert_html_batch(source, output, "pdf", request_id="active")
 
-            with patch("wps_ai_agent_cli.task_status.task_status_state_path", return_value=root / "statuses.json"), \
-                 patch("wps_ai_agent_cli.batch_conversion.render_html", side_effect=render):
+            with (
+                patch("wps_ai_agent_cli.task_status.task_status_state_path", return_value=root / "statuses.json"),
+                patch("wps_ai_agent_cli.batch_conversion.render_html", side_effect=render),
+            ):
                 thread = Thread(target=worker)
                 thread.start()
                 try:
@@ -312,8 +376,10 @@ class BatchConversionTests(unittest.TestCase):
                 destination.write_bytes(b"PDF")
                 return True, {}, []
 
-            with patch("wps_ai_agent_cli.task_status.task_status_state_path", return_value=root / "statuses.json"), \
-                 patch("wps_ai_agent_cli.batch_conversion.render_html", side_effect=render):
+            with (
+                patch("wps_ai_agent_cli.task_status.task_status_state_path", return_value=root / "statuses.json"),
+                patch("wps_ai_agent_cli.batch_conversion.render_html", side_effect=render),
+            ):
                 ok, first, errors = convert_html_batch(source, output, "pdf", request_id="same")
                 self.assertTrue(ok, errors)
                 manifest = Path(first["manifest_path"])
@@ -357,8 +423,10 @@ class BatchConversionTests(unittest.TestCase):
                 destination.write_bytes(b"PDF")
                 return True, {}, []
 
-            with patch("wps_ai_agent_cli.task_status.task_status_state_path", return_value=root / "statuses.json"), \
-                 patch("wps_ai_agent_cli.batch_conversion.render_html", side_effect=render):
+            with (
+                patch("wps_ai_agent_cli.task_status.task_status_state_path", return_value=root / "statuses.json"),
+                patch("wps_ai_agent_cli.batch_conversion.render_html", side_effect=render),
+            ):
                 ok, result, _ = convert_html_batch(source, output, "pdf", request_id="same")
                 self.assertTrue(ok)
                 (source / "b.html").write_text("B", encoding="utf-8")
@@ -395,7 +463,9 @@ class BatchConversionTests(unittest.TestCase):
             self.assertFalse(ok)
             self.assertEqual(errors, [])
             self.assertEqual(calls, ["a.html", "b.html"])
-            self.assertEqual(result["summary"], {"total": 2, "processed": 2, "passed": 1, "failed": 1, "cancelled": False})
+            self.assertEqual(
+                result["summary"], {"total": 2, "processed": 2, "passed": 1, "failed": 1, "cancelled": False}
+            )
             manifest = json.loads(Path(result["manifest_path"]).read_text(encoding="utf-8"))
             self.assertEqual([item["status"] for item in manifest["files"]], ["failed", "passed"])
             self.assertEqual(len(manifest["files"][1]["output_sha256"]), 64)
@@ -423,7 +493,9 @@ class BatchConversionTests(unittest.TestCase):
             self.assertEqual(errors, [])
             self.assertEqual(converted, ["a.html"])
             self.assertTrue(result["cancelled"])
-            self.assertEqual(result["summary"], {"total": 2, "processed": 1, "passed": 1, "failed": 0, "cancelled": True})
+            self.assertEqual(
+                result["summary"], {"total": 2, "processed": 1, "passed": 1, "failed": 0, "cancelled": True}
+            )
             stored = json.loads(Path(result["manifest_path"]).read_text(encoding="utf-8"))
             self.assertEqual([entry["relative_source"] for entry in stored["files"]], ["a.html"])
 
@@ -449,7 +521,10 @@ class BatchConversionTests(unittest.TestCase):
             self.assertEqual(errors[0]["code"], "INVALID_OUTPUT")
 
 
-@unittest.skipUnless(os.environ.get("WPS_AGENT_RUN_BROWSER_INTEGRATION") == "1", "set WPS_AGENT_RUN_BROWSER_INTEGRATION=1 to launch local Edge")
+@unittest.skipUnless(
+    os.environ.get("WPS_AGENT_RUN_BROWSER_INTEGRATION") == "1",
+    "set WPS_AGENT_RUN_BROWSER_INTEGRATION=1 to launch local Edge",
+)
 class BatchConversionBrowserIntegrationTests(unittest.TestCase):
     def test_batch_pdf_and_png_outputs_are_verified_and_network_isolated(self):
         with TemporaryDirectory() as directory:
@@ -481,12 +556,15 @@ class BatchConversionBrowserIntegrationTests(unittest.TestCase):
                         import io
 
                         from PIL import Image
+
                         image = Image.open(io.BytesIO(artifact.read_bytes()))
                         self.assertEqual(image.format, "PNG")
                         self.assertGreater(image.width, 320)
 
 
-@unittest.skipUnless(os.environ.get("WPS_AGENT_RUN_INTEGRATION") == "1", "set WPS_AGENT_RUN_INTEGRATION=1 to launch local WPS Writer")
+@unittest.skipUnless(
+    os.environ.get("WPS_AGENT_RUN_INTEGRATION") == "1", "set WPS_AGENT_RUN_INTEGRATION=1 to launch local WPS Writer"
+)
 class BatchConversionWpsIntegrationTests(unittest.TestCase):
     def test_batch_docx_outputs_open_save_and_retain_text_in_wps(self):
         with TemporaryDirectory() as directory:

@@ -41,10 +41,7 @@ def scan_directory(
             [{"code": "NOT_A_DIRECTORY", "message": f"Not a directory: {directory}"}],
         )
 
-    registered_by_path = {
-        str(Path(record["path"]).resolve()).lower(): record
-        for record in list_documents(workspace)
-    }
+    registered_by_path = {str(Path(record["path"]).resolve()).lower(): record for record in list_documents(workspace)}
     iterator = root.rglob("*") if recursive else root.iterdir()
     files = []
     for item in iterator:

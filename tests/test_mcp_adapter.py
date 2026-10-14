@@ -20,8 +20,15 @@ class McpAdapterTests(unittest.TestCase):
     def test_catalog_input_schemas_use_only_supported_validation_keywords(self):
         supported_types = {"string", "integer", "number", "boolean", "array", "object"}
         supported_property_keywords = {
-            "type", "description", "enum", "minimum", "maximum", "items",
-            "minLength", "maxLength", "pattern",
+            "type",
+            "description",
+            "enum",
+            "minimum",
+            "maximum",
+            "items",
+            "minLength",
+            "maxLength",
+            "pattern",
         }
         for tool in list_mcp_tool_schemas():
             input_schema = tool["input_schema"]
@@ -37,12 +44,24 @@ class McpAdapterTests(unittest.TestCase):
 
     def test_validate_arguments_enforces_type_enum_bounds_and_array_items(self):
         cases = (
-            ("wps_agent_spreadsheet_copy_sheet", {"document_id": "doc", "source_name": "A", "new_name": "B", "index": True}, "MCP_ARGUMENT_TYPE_INVALID"),
+            (
+                "wps_agent_spreadsheet_copy_sheet",
+                {"document_id": "doc", "source_name": "A", "new_name": "B", "index": True},
+                "MCP_ARGUMENT_TYPE_INVALID",
+            ),
             ("wps_agent_com_smoke", {"component": "word"}, "MCP_ARGUMENT_ENUM_INVALID"),
             ("wps_agent_writer_structure", {"limit": 201}, "MCP_ARGUMENT_ABOVE_MAXIMUM"),
             ("wps_agent_writer_structure", {"offset": -1}, "MCP_ARGUMENT_BELOW_MINIMUM"),
-            ("wps_agent_task_status_create", {"task_id": "task", "recovery_guidance": ["ok", 2]}, "MCP_ARGUMENT_ARRAY_ITEM_INVALID"),
-            ("wps_agent_spreadsheet_set_sheet_visibility", {"document_id": "doc", "sheet_name": "S", "visible": False}, "MCP_ARGUMENT_TYPE_INVALID"),
+            (
+                "wps_agent_task_status_create",
+                {"task_id": "task", "recovery_guidance": ["ok", 2]},
+                "MCP_ARGUMENT_ARRAY_ITEM_INVALID",
+            ),
+            (
+                "wps_agent_spreadsheet_set_sheet_visibility",
+                {"document_id": "doc", "sheet_name": "S", "visible": False},
+                "MCP_ARGUMENT_TYPE_INVALID",
+            ),
             ("wps_agent_mcp_config_audit", {"server_name": "   "}, "MCP_ARGUMENT_PATTERN_MISMATCH"),
             ("wps_agent_mcp_config_audit", {"server_name": ""}, "MCP_ARGUMENT_STRING_TOO_SHORT"),
             ("wps_agent_mcp_config_audit", {"server_name": "x" * 257}, "MCP_ARGUMENT_STRING_TOO_LONG"),
@@ -54,7 +73,8 @@ class McpAdapterTests(unittest.TestCase):
 
     def test_string_constraints_accept_exact_server_name_boundary(self):
         errors = validate_mcp_tool_arguments(
-            "wps_agent_mcp_config_audit", {"server_name": "x" * 256},
+            "wps_agent_mcp_config_audit",
+            {"server_name": "x" * 256},
         )
         error_codes = {error["code"] for error in errors}
         self.assertNotIn("MCP_ARGUMENT_STRING_TOO_SHORT", error_codes)
@@ -191,22 +211,36 @@ class McpAdapterTests(unittest.TestCase):
             with patch("wps_ai_agent_cli.task_status.task_status_state_path", return_value=root / "statuses.json"):
                 path = _request_record_path("inspect-me")
                 path.parent.mkdir()
-                path.write_text(json.dumps({
-                    "request_id": "inspect-me", "state": "running",
-                    "arguments": {"output_directory": str(root / "output")},
-                }), encoding="utf-8")
+                path.write_text(
+                    json.dumps(
+                        {
+                            "request_id": "inspect-me",
+                            "state": "running",
+                            "arguments": {"output_directory": str(root / "output")},
+                        }
+                    ),
+                    encoding="utf-8",
+                )
                 before = {entry: entry.read_bytes() for entry in path.parent.rglob("*") if entry.is_file()}
                 output = io.StringIO()
-                self.assertEqual(run(["html-batch-request", "--batch-request-id", "inspect-me"], output_stream=output), 0)
+                self.assertEqual(
+                    run(["html-batch-request", "--batch-request-id", "inspect-me"], output_stream=output), 0
+                )
                 cli_record = json.loads(output.getvalue())["data"]["batch_request"]
-                ok, mcp_result, errors = call_mcp_tool("wps_agent_html_batch_request", {"batch_request_id": "inspect-me"})
+                ok, mcp_result, errors = call_mcp_tool(
+                    "wps_agent_html_batch_request", {"batch_request_id": "inspect-me"}
+                )
                 self.assertTrue(ok, errors)
                 self.assertEqual(mcp_result["response"]["data"]["batch_request"], cli_record)
-                verified, verified_result, errors = call_mcp_tool("wps_agent_html_batch_request", {"batch_request_id": "inspect-me", "verify": True})
+                verified, verified_result, errors = call_mcp_tool(
+                    "wps_agent_html_batch_request", {"batch_request_id": "inspect-me", "verify": True}
+                )
                 self.assertTrue(verified, errors)
                 self.assertEqual(verified_result["response"]["validation"]["status"], "warning")
                 self.assertEqual(verified_result["response"]["data"]["batch_request"]["evidence_status"], "failed")
-                self.assertEqual({entry: entry.read_bytes() for entry in path.parent.rglob("*") if entry.is_file()}, before)
+                self.assertEqual(
+                    {entry: entry.read_bytes() for entry in path.parent.rglob("*") if entry.is_file()}, before
+                )
                 self.assertFalse((root / "statuses.json").exists())
 
     def test_completed_batch_replays_through_mcp_without_rendering_again(self):
@@ -222,10 +256,17 @@ class McpAdapterTests(unittest.TestCase):
                 destination.write_bytes(b"PDF")
                 return True, {}, []
 
-            args = {"input_dir": str(source), "output_dir": str(output), "mode": "pdf",
-                    "task_id": "mcp-replay", "request_id": "request-replay"}
-            with patch("wps_ai_agent_cli.task_status.task_status_state_path", return_value=root / "statuses.json"), \
-                 patch("wps_ai_agent_cli.batch_conversion.render_html", side_effect=render):
+            args = {
+                "input_dir": str(source),
+                "output_dir": str(output),
+                "mode": "pdf",
+                "task_id": "mcp-replay",
+                "request_id": "request-replay",
+            }
+            with (
+                patch("wps_ai_agent_cli.task_status.task_status_state_path", return_value=root / "statuses.json"),
+                patch("wps_ai_agent_cli.batch_conversion.render_html", side_effect=render),
+            ):
                 first_ok, first, first_errors = call_mcp_tool("wps_agent_html_batch_convert", args)
                 replay_ok, replay, replay_errors = call_mcp_tool("wps_agent_html_batch_convert", args)
                 changed = {**args, "output_dir": str(root / "changed-output")}
@@ -257,30 +298,71 @@ class McpAdapterTests(unittest.TestCase):
         self.assertIn('"command": "tasks"', direct_output.getvalue())
 
     def test_controlled_html_import_and_verify_tools_map(self):
-        ok, argv, schema, errors = build_cli_argv("wps_agent_html_controlled_import", {"input": "owned.html", "output": "owned.docx"})
+        ok, argv, schema, errors = build_cli_argv(
+            "wps_agent_html_controlled_import", {"input": "owned.html", "output": "owned.docx"}
+        )
         self.assertTrue(ok, errors)
         self.assertTrue(schema["mutates_document"])
         self.assertEqual(argv, ["html-controlled-import", "--input", "owned.html", "--output", "owned.docx"])
-        ok, argv, schema, errors = build_cli_argv("wps_agent_html_roundtrip_verify", {"docx": "owned.docx", "mapping": "owned.docx.wpsmap.json"})
+        ok, argv, schema, errors = build_cli_argv(
+            "wps_agent_html_roundtrip_verify", {"docx": "owned.docx", "mapping": "owned.docx.wpsmap.json"}
+        )
         self.assertTrue(ok, errors)
         self.assertFalse(schema["mutates_document"])
         self.assertEqual(argv[0], "html-roundtrip-verify")
-        ok, argv, schema, errors = build_cli_argv("wps_agent_html_roundtrip_export", {"docx": "owned.docx", "mapping": "owned.docx.wpsmap.json", "output": "owned.html", "task_id": "export_1"})
+        ok, argv, schema, errors = build_cli_argv(
+            "wps_agent_html_roundtrip_export",
+            {"docx": "owned.docx", "mapping": "owned.docx.wpsmap.json", "output": "owned.html", "task_id": "export_1"},
+        )
         self.assertTrue(ok, errors)
         self.assertTrue(schema["mutates_document"])
-        self.assertEqual(argv, ["html-roundtrip-export", "--docx", "owned.docx", "--mapping", "owned.docx.wpsmap.json", "--output", "owned.html", "--task-id", "export_1"])
+        self.assertEqual(
+            argv,
+            [
+                "html-roundtrip-export",
+                "--docx",
+                "owned.docx",
+                "--mapping",
+                "owned.docx.wpsmap.json",
+                "--output",
+                "owned.html",
+                "--task-id",
+                "export_1",
+            ],
+        )
+
     def test_html_batch_convert_maps_limits_and_runs_through_adapter(self):
         with TemporaryDirectory() as directory:
             root = Path(directory)
             source, output = root / "input", root / "output"
             source.mkdir()
             (source / "brief.html").write_text("<h1>Batch test</h1><p>Content</p>", encoding="utf-8")
-            args = {"input_dir": str(source), "output_dir": str(output), "mode": "docx", "recursive": True, "task_id": "batch_mcp_test"}
+            args = {
+                "input_dir": str(source),
+                "output_dir": str(output),
+                "mode": "docx",
+                "recursive": True,
+                "task_id": "batch_mcp_test",
+            }
             ok, argv, schema, errors = build_cli_argv("wps_agent_html_batch_convert", args)
             self.assertTrue(ok, errors)
             self.assertTrue(schema["mutates_document"])
             self.assertFalse(schema["requires_wps"])
-            self.assertEqual(argv, ["html-batch-convert", "--input-dir", str(source), "--output-dir", str(output), "--mode", "docx", "--recursive", "--task-id", "batch_mcp_test"])
+            self.assertEqual(
+                argv,
+                [
+                    "html-batch-convert",
+                    "--input-dir",
+                    str(source),
+                    "--output-dir",
+                    str(output),
+                    "--mode",
+                    "docx",
+                    "--recursive",
+                    "--task-id",
+                    "batch_mcp_test",
+                ],
+            )
             with patch("wps_ai_agent_cli.task_status.task_status_state_path", return_value=root / "statuses.json"):
                 ok, result, errors = call_mcp_tool("wps_agent_html_batch_convert", args)
             self.assertTrue(ok, errors)
@@ -302,19 +384,54 @@ class McpAdapterTests(unittest.TestCase):
             output_file.write_bytes(b"docx")
             source_hash = hashlib.sha256(source_file.read_bytes()).hexdigest()
             output_hash = hashlib.sha256(output_file.read_bytes()).hexdigest()
-            manifest.write_text(json.dumps({
-                "schema_version": "wps-agent-batch-conversion/v1", "mode": "docx",
-                "source_directory": str(source_root), "output_directory": str(output_root),
-                "summary": {"total": 1, "passed": 1, "failed": 0},
-                "files": [{"status": "passed", "relative_source": "a.html", "source": str(source_file), "output": str(output_file), "source_sha256": source_hash, "output_sha256": output_hash, "errors": []}],
-            }), encoding="utf-8")
+            manifest.write_text(
+                json.dumps(
+                    {
+                        "schema_version": "wps-agent-batch-conversion/v1",
+                        "mode": "docx",
+                        "source_directory": str(source_root),
+                        "output_directory": str(output_root),
+                        "summary": {"total": 1, "passed": 1, "failed": 0},
+                        "files": [
+                            {
+                                "status": "passed",
+                                "relative_source": "a.html",
+                                "source": str(source_file),
+                                "output": str(output_file),
+                                "source_sha256": source_hash,
+                                "output_sha256": output_hash,
+                                "errors": [],
+                            }
+                        ],
+                    }
+                ),
+                encoding="utf-8",
+            )
             template.write_text("{{total}} files\n{{files_table}}", encoding="utf-8")
-            args = {"manifest": str(manifest), "template": str(template), "output": str(output), "task_id": "report_mcp_test"}
+            args = {
+                "manifest": str(manifest),
+                "template": str(template),
+                "output": str(output),
+                "task_id": "report_mcp_test",
+            }
             ok, argv, schema, errors = build_cli_argv("wps_agent_batch_template_report", args)
             self.assertTrue(ok, errors)
             self.assertTrue(schema["mutates_document"])
             self.assertFalse(schema["requires_wps"])
-            self.assertEqual(argv, ["batch-template-report", "--manifest", str(manifest), "--template", str(template), "--output", str(output), "--task-id", "report_mcp_test"])
+            self.assertEqual(
+                argv,
+                [
+                    "batch-template-report",
+                    "--manifest",
+                    str(manifest),
+                    "--template",
+                    str(template),
+                    "--output",
+                    str(output),
+                    "--task-id",
+                    "report_mcp_test",
+                ],
+            )
             with patch("wps_ai_agent_cli.task_status.task_status_state_path", return_value=root / "statuses.json"):
                 ok, result, errors = call_mcp_tool("wps_agent_batch_template_report", args)
             self.assertTrue(ok, errors)
@@ -338,17 +455,31 @@ class McpAdapterTests(unittest.TestCase):
 
             def worker():
                 with patch("wps_ai_agent_cli.batch_conversion.render_html", side_effect=render):
-                    outcome["result"] = call_mcp_tool("wps_agent_html_batch_convert", {
-                        "input_dir": str(source), "output_dir": str(output), "mode": "pdf", "task_id": "mcp_batch_cancel",
-                    })
+                    outcome["result"] = call_mcp_tool(
+                        "wps_agent_html_batch_convert",
+                        {
+                            "input_dir": str(source),
+                            "output_dir": str(output),
+                            "mode": "pdf",
+                            "task_id": "mcp_batch_cancel",
+                        },
+                    )
 
-            with patch("wps_ai_agent_cli.task_status.task_status_state_path", side_effect=lambda workspace=".": root / "statuses.json"):
+            with patch(
+                "wps_ai_agent_cli.task_status.task_status_state_path",
+                side_effect=lambda workspace=".": root / "statuses.json",
+            ):
                 thread = Thread(target=worker)
                 thread.start()
                 self.assertTrue(started.wait(5))
-                cancelled, update_result, errors = call_mcp_tool("wps_agent_task_status_update", {
-                    "task_id": "mcp_batch_cancel", "state": "cancelled", "message": "cancelled from MCP",
-                })
+                cancelled, update_result, errors = call_mcp_tool(
+                    "wps_agent_task_status_update",
+                    {
+                        "task_id": "mcp_batch_cancel",
+                        "state": "cancelled",
+                        "message": "cancelled from MCP",
+                    },
+                )
                 self.assertTrue(cancelled, errors)
                 self.assertTrue(update_result["response"]["ok"])
                 release.set()
@@ -361,11 +492,13 @@ class McpAdapterTests(unittest.TestCase):
             self.assertEqual(result["response"]["data"]["summary"]["processed"], 1)
             self.assertEqual(result["response"]["data"]["task_status"]["state"], "cancelled")
             self.assertTrue(Path(result["response"]["data"]["manifest_path"]).is_file())
+
     def test_html_roundtrip_plan_tool_is_read_only_and_maps_input(self):
         ok, argv, schema, errors = build_cli_argv("wps_agent_html_roundtrip_plan", {"input": "owned.html"})
         self.assertTrue(ok, errors)
         self.assertFalse(schema["mutates_document"])
         self.assertEqual(argv, ["html-roundtrip-plan", "--input", "owned.html"])
+
     def test_html_editable_tool_maps_to_cli_with_task_id(self):
         ok, argv, schema, errors = build_cli_argv(
             "wps_agent_html_editable",
@@ -373,32 +506,105 @@ class McpAdapterTests(unittest.TestCase):
         )
         self.assertTrue(ok, errors)
         self.assertEqual(schema["cli_command"], "html-editable")
-        self.assertEqual(argv, ["html-editable", "--input", "page.html", "--output", "page.docx", "--task-id", "html_task", "--request-id", "html_req"])
+        self.assertEqual(
+            argv,
+            [
+                "html-editable",
+                "--input",
+                "page.html",
+                "--output",
+                "page.docx",
+                "--task-id",
+                "html_task",
+                "--request-id",
+                "html_req",
+            ],
+        )
+
     def test_spreadsheet_tab_color_tool_maps_to_cli(self):
-        ok, argv, schema, errors = build_cli_argv("wps_agent_spreadsheet_set_sheet_tab_color", {"document_id": "sheet_1", "sheet_name": "Summary", "color": "#12ABEF", "dry_run": True})
+        ok, argv, schema, errors = build_cli_argv(
+            "wps_agent_spreadsheet_set_sheet_tab_color",
+            {"document_id": "sheet_1", "sheet_name": "Summary", "color": "#12ABEF", "dry_run": True},
+        )
         self.assertTrue(ok, errors)
         self.assertEqual(schema["cli_command"], "spreadsheet-set-sheet-tab-color")
-        self.assertEqual(argv, ["spreadsheet-set-sheet-tab-color", "--document-id", "sheet_1", "--sheet-name", "Summary", "--color", "#12ABEF", "--dry-run"])
+        self.assertEqual(
+            argv,
+            [
+                "spreadsheet-set-sheet-tab-color",
+                "--document-id",
+                "sheet_1",
+                "--sheet-name",
+                "Summary",
+                "--color",
+                "#12ABEF",
+                "--dry-run",
+            ],
+        )
+
     def test_spreadsheet_copy_sheet_tool_maps_to_cli(self):
-        ok, argv, schema, errors = build_cli_argv("wps_agent_spreadsheet_copy_sheet", {"document_id": "sheet_1", "source_name": "Source", "new_name": "Copy", "index": 2, "dry_run": True})
+        ok, argv, schema, errors = build_cli_argv(
+            "wps_agent_spreadsheet_copy_sheet",
+            {"document_id": "sheet_1", "source_name": "Source", "new_name": "Copy", "index": 2, "dry_run": True},
+        )
         self.assertTrue(ok, errors)
         self.assertEqual(schema["cli_command"], "spreadsheet-copy-sheet")
-        self.assertEqual(argv, ["spreadsheet-copy-sheet", "--document-id", "sheet_1", "--source-name", "Source", "--new-name", "Copy", "--index", "2", "--dry-run"])
+        self.assertEqual(
+            argv,
+            [
+                "spreadsheet-copy-sheet",
+                "--document-id",
+                "sheet_1",
+                "--source-name",
+                "Source",
+                "--new-name",
+                "Copy",
+                "--index",
+                "2",
+                "--dry-run",
+            ],
+        )
+
     def test_spreadsheet_delete_sheet_tool_maps_to_cli(self):
-        ok, argv, schema, errors = build_cli_argv("wps_agent_spreadsheet_delete_sheet", {"document_id": "sheet_1", "sheet_name": "Remove", "dry_run": True})
+        ok, argv, schema, errors = build_cli_argv(
+            "wps_agent_spreadsheet_delete_sheet", {"document_id": "sheet_1", "sheet_name": "Remove", "dry_run": True}
+        )
         self.assertTrue(ok, errors)
         self.assertEqual(schema["cli_command"], "spreadsheet-delete-sheet")
-        self.assertEqual(argv, ["spreadsheet-delete-sheet", "--document-id", "sheet_1", "--sheet-name", "Remove", "--dry-run"])
+        self.assertEqual(
+            argv, ["spreadsheet-delete-sheet", "--document-id", "sheet_1", "--sheet-name", "Remove", "--dry-run"]
+        )
+
     def test_spreadsheet_visibility_tool_maps_to_cli(self):
-        ok, argv, schema, errors = build_cli_argv("wps_agent_spreadsheet_set_sheet_visibility", {"document_id": "sheet_1", "sheet_name": "Hidden", "visible": "false"})
+        ok, argv, schema, errors = build_cli_argv(
+            "wps_agent_spreadsheet_set_sheet_visibility",
+            {"document_id": "sheet_1", "sheet_name": "Hidden", "visible": "false"},
+        )
         self.assertTrue(ok, errors)
         self.assertEqual(schema["cli_command"], "spreadsheet-set-sheet-visibility")
-        self.assertEqual(argv, ["spreadsheet-set-sheet-visibility", "--document-id", "sheet_1", "--sheet-name", "Hidden", "--visible", "false"])
+        self.assertEqual(
+            argv,
+            [
+                "spreadsheet-set-sheet-visibility",
+                "--document-id",
+                "sheet_1",
+                "--sheet-name",
+                "Hidden",
+                "--visible",
+                "false",
+            ],
+        )
+
     def test_spreadsheet_create_sheet_tool_maps_to_cli(self):
-        ok, argv, schema, errors = build_cli_argv("wps_agent_spreadsheet_create_sheet", {"document_id": "sheet_1", "name": "New", "index": 2, "dry_run": True})
+        ok, argv, schema, errors = build_cli_argv(
+            "wps_agent_spreadsheet_create_sheet", {"document_id": "sheet_1", "name": "New", "index": 2, "dry_run": True}
+        )
         self.assertTrue(ok, errors)
         self.assertEqual(schema["cli_command"], "spreadsheet-create-sheet")
-        self.assertEqual(argv, ["spreadsheet-create-sheet", "--document-id", "sheet_1", "--name", "New", "--index", "2", "--dry-run"])
+        self.assertEqual(
+            argv, ["spreadsheet-create-sheet", "--document-id", "sheet_1", "--name", "New", "--index", "2", "--dry-run"]
+        )
+
     def test_spreadsheet_rename_sheet_tool_maps_to_cli(self):
         ok, argv, schema, errors = build_cli_argv(
             "wps_agent_spreadsheet_rename_sheet",
@@ -407,14 +613,24 @@ class McpAdapterTests(unittest.TestCase):
         self.assertTrue(ok)
         self.assertEqual(errors, [])
         self.assertEqual(schema["cli_command"], "spreadsheet-rename-sheet")
-        self.assertEqual(argv, [
-            "spreadsheet-rename-sheet", "--document-id", "sheet_1", "--old-name", "Current",
-            "--new-name", "Archive", "--dry-run",
-        ])
+        self.assertEqual(
+            argv,
+            [
+                "spreadsheet-rename-sheet",
+                "--document-id",
+                "sheet_1",
+                "--old-name",
+                "Current",
+                "--new-name",
+                "Archive",
+                "--dry-run",
+            ],
+        )
 
     def test_spreadsheet_sheets_tool_maps_to_cli(self):
         ok, argv, schema, errors = build_cli_argv(
-            "wps_agent_spreadsheet_sheets", {"document_id": "sheet_1"},
+            "wps_agent_spreadsheet_sheets",
+            {"document_id": "sheet_1"},
         )
         self.assertTrue(ok)
         self.assertEqual(errors, [])
@@ -432,23 +648,48 @@ class McpAdapterTests(unittest.TestCase):
         self.assertTrue(ok)
         self.assertEqual(errors, [])
         self.assertEqual(schema["cli_command"], "spreadsheet-inspect")
-        self.assertEqual(argv, [
-            "spreadsheet-inspect", "--document-id", "sheet_1", "--range", "A1:F1",
-            "--sheet", "Contract",
-        ])
+        self.assertEqual(
+            argv,
+            [
+                "spreadsheet-inspect",
+                "--document-id",
+                "sheet_1",
+                "--range",
+                "A1:F1",
+                "--sheet",
+                "Contract",
+            ],
+        )
 
     def test_bookmark_tool_maps_to_cli_and_keeps_request_id(self):
         ok, argv, schema, errors = build_cli_argv(
             "wps_agent_writer_fill_bookmark",
-            {"document_id": "doc_1", "bookmark_name": "Client", "text": "Northwind", "dry_run": True, "request_id": "bookmark-1"},
+            {
+                "document_id": "doc_1",
+                "bookmark_name": "Client",
+                "text": "Northwind",
+                "dry_run": True,
+                "request_id": "bookmark-1",
+            },
         )
         self.assertTrue(ok)
         self.assertEqual(errors, [])
         self.assertEqual(schema["cli_command"], "writer-fill-bookmark")
-        self.assertEqual(argv, [
-            "writer-fill-bookmark", "--document-id", "doc_1", "--bookmark-name", "Client",
-            "--text", "Northwind", "--dry-run", "--request-id", "bookmark-1",
-        ])
+        self.assertEqual(
+            argv,
+            [
+                "writer-fill-bookmark",
+                "--document-id",
+                "doc_1",
+                "--bookmark-name",
+                "Client",
+                "--text",
+                "Northwind",
+                "--dry-run",
+                "--request-id",
+                "bookmark-1",
+            ],
+        )
 
     def test_build_cli_argv_maps_json_arguments_to_cli_flags(self):
         ok, argv, schema, errors = build_cli_argv(
@@ -498,11 +739,14 @@ class McpAdapterTests(unittest.TestCase):
         )
 
         self.assertTrue(ok, errors)
-        self.assertEqual([arg for arg in argv if arg.startswith("--recovery-guidance")], [
-            "--recovery-guidance=-retry later",
-            "--recovery-guidance=--state",
-            "--recovery-guidance=plain",
-        ])
+        self.assertEqual(
+            [arg for arg in argv if arg.startswith("--recovery-guidance")],
+            [
+                "--recovery-guidance=-retry later",
+                "--recovery-guidance=--state",
+                "--recovery-guidance=plain",
+            ],
+        )
         args = build_parser().parse_args(argv)
         self.assertEqual(args.recovery_guidance, items)
 

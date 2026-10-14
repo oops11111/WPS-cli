@@ -72,7 +72,9 @@ class StrictExitTests(unittest.TestCase):
         self.assertEqual(code, 0)
 
     def test_strict_exit_returns_one_on_failure(self):
-        code, payload = self.run_in_tmp(["--strict-exit", "backup-document", "--document-id", "nope", "--request-id", "x"])
+        code, payload = self.run_in_tmp(
+            ["--strict-exit", "backup-document", "--document-id", "nope", "--request-id", "x"]
+        )
         self.assertFalse(payload["ok"])
         self.assertEqual(code, 1)
 

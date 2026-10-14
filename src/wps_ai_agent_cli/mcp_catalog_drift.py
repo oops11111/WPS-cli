@@ -12,13 +12,23 @@ DEFAULT_MCP_CATALOG_GUARD = "config/mcp_catalog_guard.json"
 def _load_guard(path: str | Path) -> tuple[bool, dict[str, Any], list[dict[str, Any]], Path]:
     guard_path = Path(path)
     if not guard_path.exists():
-        return False, {}, [{"code": "MCP_CATALOG_GUARD_NOT_FOUND", "message": f"Guard config not found: {guard_path}"}], guard_path
+        return (
+            False,
+            {},
+            [{"code": "MCP_CATALOG_GUARD_NOT_FOUND", "message": f"Guard config not found: {guard_path}"}],
+            guard_path,
+        )
     try:
         guard = json.loads(guard_path.read_text(encoding="utf-8"))
     except json.JSONDecodeError as exc:
         return False, {}, [{"code": "MCP_CATALOG_GUARD_INVALID_JSON", "message": str(exc)}], guard_path
     if not isinstance(guard, dict):
-        return False, {}, [{"code": "MCP_CATALOG_GUARD_INVALID", "message": "Guard config must be a JSON object."}], guard_path
+        return (
+            False,
+            {},
+            [{"code": "MCP_CATALOG_GUARD_INVALID", "message": "Guard config must be a JSON object."}],
+            guard_path,
+        )
     return True, guard, [], guard_path
 
 
@@ -68,12 +78,16 @@ def build_mcp_catalog_drift_report(
     snapshot = build_mcp_catalog_snapshot()
     expected_category_counts = guard.get("expected_category_counts", {})
     if not isinstance(expected_category_counts, dict):
-        return False, {}, [
-            {
-                "code": "MCP_CATALOG_GUARD_INVALID",
-                "message": "expected_category_counts must be a JSON object.",
-            }
-        ]
+        return (
+            False,
+            {},
+            [
+                {
+                    "code": "MCP_CATALOG_GUARD_INVALID",
+                    "message": "expected_category_counts must be a JSON object.",
+                }
+            ],
+        )
 
     drifts: list[dict[str, Any]] = []
     comparisons = {

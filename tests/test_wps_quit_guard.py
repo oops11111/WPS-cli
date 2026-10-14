@@ -27,8 +27,10 @@ def capture_scripts(module, call):
         scripts.append(Path(command[-1]).read_text(encoding="utf-8-sig"))
         return FakeCompleted()
 
-    with patch.object(module, "probe_wps_capabilities", return_value=CAPABILITIES), \
-            patch("subprocess.run", side_effect=fake_run):
+    with (
+        patch.object(module, "probe_wps_capabilities", return_value=CAPABILITIES),
+        patch("subprocess.run", side_effect=fake_run),
+    ):
         try:
             call()
         except Exception:

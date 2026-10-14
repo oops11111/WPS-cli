@@ -99,16 +99,18 @@ def read_spreadsheet_range(
             selected = ((selected,),)
         for row_index, row in enumerate(selected):
             rows.append([cell.value for cell in row])
-            cell_metadata.append([
-                {
-                    "address": f"{get_column_letter(min_col + column_index)}{min_row + row_index}",
-                    "value_type": cell.data_type,
-                    "number_format": cell.number_format,
-                    "is_date": bool(cell.is_date or is_date_format(cell.number_format)),
-                    "format_category": _format_category(cell),
-                }
-                for column_index, cell in enumerate(row)
-            ])
+            cell_metadata.append(
+                [
+                    {
+                        "address": f"{get_column_letter(min_col + column_index)}{min_row + row_index}",
+                        "value_type": cell.data_type,
+                        "number_format": cell.number_format,
+                        "is_date": bool(cell.is_date or is_date_format(cell.number_format)),
+                        "format_category": _format_category(cell),
+                    }
+                    for column_index, cell in enumerate(row)
+                ]
+            )
         return (
             True,
             {
@@ -136,10 +138,18 @@ def list_spreadsheet_sheets(
     if not document:
         return False, {}, [{"code": "DOCUMENT_NOT_FOUND", "message": f"Document not registered: {document_id}"}]
     if document["component"] != "spreadsheets":
-        return False, {"document": document}, [{"code": "UNSUPPORTED_COMPONENT", "message": "spreadsheet-sheets requires a spreadsheet document."}]
+        return (
+            False,
+            {"document": document},
+            [{"code": "UNSUPPORTED_COMPONENT", "message": "spreadsheet-sheets requires a spreadsheet document."}],
+        )
     path = Path(document["path"])
     if not path.exists():
-        return False, {"document": document}, [{"code": INPUT_FILE_NOT_FOUND, "message": f"Input file not found: {path}"}]
+        return (
+            False,
+            {"document": document},
+            [{"code": INPUT_FILE_NOT_FOUND, "message": f"Input file not found: {path}"}],
+        )
 
     workbook = load_workbook(path, data_only=False, read_only=False, keep_vba=path.suffix.casefold() == ".xlsm")
     try:
@@ -164,7 +174,9 @@ def list_spreadsheet_sheets(
                                 formula_count += 1
                         if sheet.protection.sheet and cell.protection.locked:
                             protected_cell_count += 1
-            sorted_merged_ranges = sorted(sheet.merged_cells.ranges, key=lambda item: (item.min_row, item.min_col, item.max_row, item.max_col))
+            sorted_merged_ranges = sorted(
+                sheet.merged_cells.ranges, key=lambda item: (item.min_row, item.min_col, item.max_row, item.max_col)
+            )
             merged_range_count = len(sorted_merged_ranges)
             merged_ranges_truncated = merged_range_count > 1_000
             merged_ranges = [str(item) for item in sorted_merged_ranges[:1_000]]
@@ -175,102 +187,121 @@ def list_spreadsheet_sheets(
                 key=lambda item: (str(item.sqref), item.type or "", item.operator or ""),
             )
             validation_count = len(validations)
-            validation_records = [{
-                "ranges": str(item.sqref),
-                "type": item.type,
-                "operator": item.operator,
-                "allow_blank": bool(item.allow_blank),
-            } for item in validations[:1_000]]
+            validation_records = [
+                {
+                    "ranges": str(item.sqref),
+                    "type": item.type,
+                    "operator": item.operator,
+                    "allow_blank": bool(item.allow_blank),
+                }
+                for item in validations[:1_000]
+            ]
             conditional_rules = []
             for conditional_formatting in sheet.conditional_formatting:
                 for rule in conditional_formatting.rules:
-                    conditional_rules.append({
-                        "ranges": str(conditional_formatting.sqref),
-                        "type": rule.type,
-                        "operator": rule.operator,
-                        "priority": rule.priority,
-                    })
-            conditional_rules.sort(key=lambda item: (item["ranges"], item["priority"] or 0, item["type"] or "", item["operator"] or ""))
+                    conditional_rules.append(
+                        {
+                            "ranges": str(conditional_formatting.sqref),
+                            "type": rule.type,
+                            "operator": rule.operator,
+                            "priority": rule.priority,
+                        }
+                    )
+            conditional_rules.sort(
+                key=lambda item: (item["ranges"], item["priority"] or 0, item["type"] or "", item["operator"] or "")
+            )
             conditional_rule_count = len(conditional_rules)
             ignored_error = ignored_errors.get(sheet.title, {"records": [], "count": 0, "truncated": False})
-            sheets.append({
-                "sheet_index": index,
-                "name": sheet.title,
-                "visibility": sheet.sheet_state,
-                "visible": sheet.sheet_state == "visible",
-                "tab_color": _tab_color_from_cell(sheet.sheet_properties.tabColor),
-                "protection_enabled": bool(sheet.protection.sheet),
-                "protected_cell_count": protected_cell_count,
-                "protection_scan_truncated": inventory_scan_truncated and bool(sheet.protection.sheet),
-                "populated_cell_count": populated_cell_count,
-                "formula_count": formula_count,
-                "inventory_scan_truncated": inventory_scan_truncated,
-                "freeze_panes": sheet.freeze_panes.coordinate if hasattr(sheet.freeze_panes, "coordinate") else sheet.freeze_panes,
-                "autofilter_range": sheet.auto_filter.ref,
-                "print_area": str(sheet.print_area) if sheet.print_area else None,
-                "print_title_rows": sheet.print_title_rows,
-                "print_title_columns": sheet.print_title_cols,
-                "page_orientation": sheet.page_setup.orientation,
-                "paper_size": str(sheet.page_setup.paperSize) if sheet.page_setup.paperSize is not None else None,
-                "row_breaks": row_breaks[:1_000],
-                "row_break_count": len(row_breaks),
-                "row_breaks_truncated": len(row_breaks) > 1_000,
-                "column_breaks": column_breaks[:1_000],
-                "column_break_count": len(column_breaks),
-                "column_breaks_truncated": len(column_breaks) > 1_000,
-                "data_validations": validation_records,
-                "data_validation_count": validation_count,
-                "data_validations_truncated": validation_count > 1_000,
-                "conditional_formatting": conditional_rules[:1_000],
-                "conditional_formatting_rule_count": conditional_rule_count,
-                "conditional_formatting_truncated": conditional_rule_count > 1_000,
-                "ignored_errors": ignored_error["records"],
-                "ignored_error_count": ignored_error["count"],
-                "ignored_errors_truncated": ignored_error["truncated"],
-                "merged_ranges": merged_ranges,
-                "merged_range_count": merged_range_count,
-                "merged_ranges_truncated": merged_ranges_truncated,
-                "dimension": dimension,
-                "max_row": sheet.max_row or 0,
-                "max_column": sheet.max_column or 0,
-            })
+            sheets.append(
+                {
+                    "sheet_index": index,
+                    "name": sheet.title,
+                    "visibility": sheet.sheet_state,
+                    "visible": sheet.sheet_state == "visible",
+                    "tab_color": _tab_color_from_cell(sheet.sheet_properties.tabColor),
+                    "protection_enabled": bool(sheet.protection.sheet),
+                    "protected_cell_count": protected_cell_count,
+                    "protection_scan_truncated": inventory_scan_truncated and bool(sheet.protection.sheet),
+                    "populated_cell_count": populated_cell_count,
+                    "formula_count": formula_count,
+                    "inventory_scan_truncated": inventory_scan_truncated,
+                    "freeze_panes": sheet.freeze_panes.coordinate
+                    if hasattr(sheet.freeze_panes, "coordinate")
+                    else sheet.freeze_panes,
+                    "autofilter_range": sheet.auto_filter.ref,
+                    "print_area": str(sheet.print_area) if sheet.print_area else None,
+                    "print_title_rows": sheet.print_title_rows,
+                    "print_title_columns": sheet.print_title_cols,
+                    "page_orientation": sheet.page_setup.orientation,
+                    "paper_size": str(sheet.page_setup.paperSize) if sheet.page_setup.paperSize is not None else None,
+                    "row_breaks": row_breaks[:1_000],
+                    "row_break_count": len(row_breaks),
+                    "row_breaks_truncated": len(row_breaks) > 1_000,
+                    "column_breaks": column_breaks[:1_000],
+                    "column_break_count": len(column_breaks),
+                    "column_breaks_truncated": len(column_breaks) > 1_000,
+                    "data_validations": validation_records,
+                    "data_validation_count": validation_count,
+                    "data_validations_truncated": validation_count > 1_000,
+                    "conditional_formatting": conditional_rules[:1_000],
+                    "conditional_formatting_rule_count": conditional_rule_count,
+                    "conditional_formatting_truncated": conditional_rule_count > 1_000,
+                    "ignored_errors": ignored_error["records"],
+                    "ignored_error_count": ignored_error["count"],
+                    "ignored_errors_truncated": ignored_error["truncated"],
+                    "merged_ranges": merged_ranges,
+                    "merged_range_count": merged_range_count,
+                    "merged_ranges_truncated": merged_ranges_truncated,
+                    "dimension": dimension,
+                    "max_row": sheet.max_row or 0,
+                    "max_column": sheet.max_column or 0,
+                }
+            )
         defined_names = []
         for defined_name in workbook.defined_names.values():
-            defined_names.append({
-                "name": defined_name.name,
-                "scope": "workbook",
-                "target": defined_name.attr_text,
-                "hidden": bool(defined_name.hidden),
-            })
-        for sheet in workbook.worksheets:
-            for defined_name in sheet.defined_names.values():
-                defined_names.append({
+            defined_names.append(
+                {
                     "name": defined_name.name,
-                    "scope": sheet.title,
+                    "scope": "workbook",
                     "target": defined_name.attr_text,
                     "hidden": bool(defined_name.hidden),
-                })
+                }
+            )
+        for sheet in workbook.worksheets:
+            for defined_name in sheet.defined_names.values():
+                defined_names.append(
+                    {
+                        "name": defined_name.name,
+                        "scope": sheet.title,
+                        "target": defined_name.attr_text,
+                        "hidden": bool(defined_name.hidden),
+                    }
+                )
         defined_names.sort(key=lambda item: (item["scope"].casefold(), item["name"].casefold(), item["target"] or ""))
         defined_name_count = len(defined_names)
-        return True, {
-            "document_id": document_id,
-            "component": "spreadsheets",
-            "path": str(path),
-            "read_only": True,
-            "saved": False,
-            "sheet_count": len(sheets),
-            "sheets": sheets,
-            "defined_names": defined_names[:1_000],
-            "defined_name_count": defined_name_count,
-            "defined_names_truncated": defined_name_count > 1_000,
-            "calculation": {
-                "mode": workbook.calculation.calcMode,
-                "full_calc_on_load": workbook.calculation.fullCalcOnLoad,
-                "force_full_calc": workbook.calculation.forceFullCalc,
-                "calc_on_save": workbook.calculation.calcOnSave,
-                "iterate": workbook.calculation.iterate,
+        return (
+            True,
+            {
+                "document_id": document_id,
+                "component": "spreadsheets",
+                "path": str(path),
+                "read_only": True,
+                "saved": False,
+                "sheet_count": len(sheets),
+                "sheets": sheets,
+                "defined_names": defined_names[:1_000],
+                "defined_name_count": defined_name_count,
+                "defined_names_truncated": defined_name_count > 1_000,
+                "calculation": {
+                    "mode": workbook.calculation.calcMode,
+                    "full_calc_on_load": workbook.calculation.fullCalcOnLoad,
+                    "force_full_calc": workbook.calculation.forceFullCalc,
+                    "calc_on_save": workbook.calculation.calcOnSave,
+                    "iterate": workbook.calculation.iterate,
+                },
             },
-        }, []
+            [],
+        )
     finally:
         workbook.close()
         if workbook.vba_archive is not None:
@@ -282,8 +313,16 @@ def _validate_sheet_title(title: str) -> dict[str, str] | None:
         return {"code": "INVALID_SHEET_NAME", "message": "Worksheet name must not be empty."}
     if len(title) > 31:
         return {"code": "INVALID_SHEET_NAME", "message": "Worksheet names are limited to 31 characters."}
-    if any(character in title for character in ":\\/?*[]") or any(ord(character) < 32 for character in title) or title.startswith("'") or title.endswith("'"):
-        return {"code": "INVALID_SHEET_NAME", "message": "Worksheet name contains a forbidden character or boundary apostrophe."}
+    if (
+        any(character in title for character in ":\\/?*[]")
+        or any(ord(character) < 32 for character in title)
+        or title.startswith("'")
+        or title.endswith("'")
+    ):
+        return {
+            "code": "INVALID_SHEET_NAME",
+            "message": "Worksheet name contains a forbidden character or boundary apostrophe.",
+        }
     if title.casefold() == "history":
         return {"code": "INVALID_SHEET_NAME", "message": "The reserved worksheet name 'History' is not allowed."}
     return None
@@ -293,8 +332,16 @@ def _run_spreadsheet_rename_sheet_com(path: str, old_name: str, new_name: str) -
     capabilities = probe_wps_capabilities()
     prog_id = capabilities["components"]["spreadsheets"]["selected_prog_id"]
     if not prog_id:
-        return {"ok": False, "errors": [{"code": COM_BACKEND_UNAVAILABLE, "message": "No registered WPS ProgID detected for spreadsheets."}], "data": {"capabilities": capabilities}}
-    params_json = json.dumps({"prog_id": prog_id, "path": str(Path(path).resolve()), "old_name": old_name, "new_name": new_name})
+        return {
+            "ok": False,
+            "errors": [
+                {"code": COM_BACKEND_UNAVAILABLE, "message": "No registered WPS ProgID detected for spreadsheets."}
+            ],
+            "data": {"capabilities": capabilities},
+        }
+    params_json = json.dumps(
+        {"prog_id": prog_id, "path": str(Path(path).resolve()), "old_name": old_name, "new_name": new_name}
+    )
     script = f"""
 $ErrorActionPreference = 'Stop'
 $params = @'
@@ -330,7 +377,13 @@ try {{
     if failure is not None:
         return failure
     if not payload.get("ok"):
-        return {"ok": False, "errors": [{"code": COM_OPERATION_FAILED, "message": payload.get("error_message", "WPS worksheet rename failed.")}], "data": {"diagnostic": payload}}
+        return {
+            "ok": False,
+            "errors": [
+                {"code": COM_OPERATION_FAILED, "message": payload.get("error_message", "WPS worksheet rename failed.")}
+            ],
+            "data": {"diagnostic": payload},
+        }
     if isinstance(payload.get("sheet_names"), str):
         payload["sheet_names"] = [payload["sheet_names"]]
     return {"ok": True, "errors": [], "data": payload}
@@ -347,7 +400,8 @@ def rename_spreadsheet_sheet(
     workspace: str | Path = ".",
 ) -> tuple[bool, dict[str, Any], list[dict[str, str]], bool]:
     replay = replay_operation(
-        request_id, "spreadsheet-rename-sheet",
+        request_id,
+        "spreadsheet-rename-sheet",
         {"document_id": document_id, "old_name": old_name, "new_name": new_name, "dry_run": dry_run},
         workspace,
     )
@@ -360,10 +414,20 @@ def rename_spreadsheet_sheet(
     if not document:
         return False, {}, [{"code": "DOCUMENT_NOT_FOUND", "message": f"Document not registered: {document_id}"}], False
     if document["component"] != "spreadsheets":
-        return False, {"document": document}, [{"code": "UNSUPPORTED_COMPONENT", "message": "spreadsheet-rename-sheet requires a spreadsheet document."}], False
+        return (
+            False,
+            {"document": document},
+            [{"code": "UNSUPPORTED_COMPONENT", "message": "spreadsheet-rename-sheet requires a spreadsheet document."}],
+            False,
+        )
     path = Path(document["path"])
     if not path.exists():
-        return False, {"document": document}, [{"code": INPUT_FILE_NOT_FOUND, "message": f"Input file not found: {path}"}], False
+        return (
+            False,
+            {"document": document},
+            [{"code": INPUT_FILE_NOT_FOUND, "message": f"Input file not found: {path}"}],
+            False,
+        )
 
     workbook = load_workbook(path, data_only=False, read_only=True)
     try:
@@ -371,14 +435,28 @@ def rename_spreadsheet_sheet(
     finally:
         workbook.close()
     if old_name not in names:
-        return False, {"document_id": document_id, "sheet_names": names}, [{"code": "SHEET_NOT_FOUND", "message": f"Worksheet not found: {old_name}"}], False
+        return (
+            False,
+            {"document_id": document_id, "sheet_names": names},
+            [{"code": "SHEET_NOT_FOUND", "message": f"Worksheet not found: {old_name}"}],
+            False,
+        )
     if old_name != new_name and any(name.casefold() == new_name.casefold() for name in names):
-        return False, {"document_id": document_id, "sheet_names": names}, [{"code": "SHEET_NAME_CONFLICT", "message": f"Worksheet name already exists: {new_name}"}], False
+        return (
+            False,
+            {"document_id": document_id, "sheet_names": names},
+            [{"code": "SHEET_NAME_CONFLICT", "message": f"Worksheet name already exists: {new_name}"}],
+            False,
+        )
     expected_names = [new_name if name == old_name else name for name in names]
     preview = {
-        "document_id": document_id, "path": str(path), "old_name": old_name,
-        "new_name": new_name, "sheet_names_before": names,
-        "sheet_names_after": expected_names, "would_modify": old_name != new_name,
+        "document_id": document_id,
+        "path": str(path),
+        "old_name": old_name,
+        "new_name": new_name,
+        "sheet_names_before": names,
+        "sheet_names_after": expected_names,
+        "would_modify": old_name != new_name,
         "dry_run": dry_run,
     }
     if dry_run:
@@ -389,15 +467,24 @@ def rename_spreadsheet_sheet(
         return True, result, [], False
 
     backup_ok, backup_result, backup_errors, backup_replayed = create_backup(
-        document_id, f"{request_id}:backup", workspace=workspace,
+        document_id,
+        f"{request_id}:backup",
+        workspace=workspace,
     )
     if not backup_ok:
         return False, {"preview": preview, "backup": backup_result}, backup_errors, False
     rename_result = guarded_com_mutation(
-        path, backup_result, lambda: _run_spreadsheet_rename_sheet_com(str(path), old_name, new_name),
+        path,
+        backup_result,
+        lambda: _run_spreadsheet_rename_sheet_com(str(path), old_name, new_name),
     )
     if not rename_result["ok"]:
-        return False, {"preview": preview, "backup": backup_result, "rename": rename_result["data"]}, rename_result["errors"], False
+        return (
+            False,
+            {"preview": preview, "backup": backup_result, "rename": rename_result["data"]},
+            rename_result["errors"],
+            False,
+        )
     readback = load_workbook(path, data_only=False, read_only=True)
     try:
         actual_names = list(readback.sheetnames)
@@ -405,12 +492,22 @@ def rename_spreadsheet_sheet(
         readback.close()
     validation_passed = actual_names == expected_names and rename_result["data"].get("sheet_names") == expected_names
     result = {
-        **preview, "dry_run": False, "saved": True, "backup": backup_result,
-        "backup_replayed": backup_replayed, "rename_backend": rename_result["data"].get("backend"),
-        "sheet_names_read_back": actual_names, "validation_passed": validation_passed,
+        **preview,
+        "dry_run": False,
+        "saved": True,
+        "backup": backup_result,
+        "backup_replayed": backup_replayed,
+        "rename_backend": rename_result["data"].get("backend"),
+        "sheet_names_read_back": actual_names,
+        "validation_passed": validation_passed,
     }
     if not validation_passed:
-        return False, result, [{"code": "VALIDATION_FAILED", "message": "Worksheet rename order did not match the expected sheet list."}], False
+        return (
+            False,
+            result,
+            [{"code": "VALIDATION_FAILED", "message": "Worksheet rename order did not match the expected sheet list."}],
+            False,
+        )
     post_error = verify_post_com_source(path, rename_result)
     if post_error is not None:
         return False, result, [post_error], False
@@ -422,7 +519,13 @@ def _run_spreadsheet_create_sheet_com(path: str, name: str, index: int) -> dict[
     capabilities = probe_wps_capabilities()
     prog_id = capabilities["components"]["spreadsheets"]["selected_prog_id"]
     if not prog_id:
-        return {"ok": False, "errors": [{"code": COM_BACKEND_UNAVAILABLE, "message": "No registered WPS ProgID detected for spreadsheets."}], "data": {"capabilities": capabilities}}
+        return {
+            "ok": False,
+            "errors": [
+                {"code": COM_BACKEND_UNAVAILABLE, "message": "No registered WPS ProgID detected for spreadsheets."}
+            ],
+            "data": {"capabilities": capabilities},
+        }
     params_json = json.dumps({"prog_id": prog_id, "path": str(Path(path).resolve()), "name": name, "index": index})
     script = f"""
 $ErrorActionPreference = 'Stop'
@@ -464,7 +567,16 @@ try {{
     if failure is not None:
         return failure
     if not payload.get("ok"):
-        return {"ok": False, "errors": [{"code": COM_OPERATION_FAILED, "message": payload.get("error_message", "WPS worksheet creation failed.")}], "data": {"diagnostic": payload}}
+        return {
+            "ok": False,
+            "errors": [
+                {
+                    "code": COM_OPERATION_FAILED,
+                    "message": payload.get("error_message", "WPS worksheet creation failed."),
+                }
+            ],
+            "data": {"diagnostic": payload},
+        }
     if isinstance(payload.get("sheet_names"), str):
         payload["sheet_names"] = [payload["sheet_names"]]
     return {"ok": True, "errors": [], "data": payload}
@@ -481,7 +593,8 @@ def create_spreadsheet_sheet(
     workspace: str | Path = ".",
 ) -> tuple[bool, dict[str, Any], list[dict[str, str]], bool]:
     replay = replay_operation(
-        request_id, "spreadsheet-create-sheet",
+        request_id,
+        "spreadsheet-create-sheet",
         {"document_id": document_id, "name": name, "index": index, "dry_run": dry_run},
         workspace,
     )
@@ -494,40 +607,78 @@ def create_spreadsheet_sheet(
     if not document:
         return False, {}, [{"code": "DOCUMENT_NOT_FOUND", "message": f"Document not registered: {document_id}"}], False
     if document["component"] != "spreadsheets":
-        return False, {"document": document}, [{"code": "UNSUPPORTED_COMPONENT", "message": "spreadsheet-create-sheet requires a spreadsheet document."}], False
+        return (
+            False,
+            {"document": document},
+            [{"code": "UNSUPPORTED_COMPONENT", "message": "spreadsheet-create-sheet requires a spreadsheet document."}],
+            False,
+        )
     path = Path(document["path"])
     if not path.exists():
-        return False, {"document": document}, [{"code": INPUT_FILE_NOT_FOUND, "message": f"Input file not found: {path}"}], False
+        return (
+            False,
+            {"document": document},
+            [{"code": INPUT_FILE_NOT_FOUND, "message": f"Input file not found: {path}"}],
+            False,
+        )
     workbook = load_workbook(path, data_only=False, read_only=True)
     try:
         names = list(workbook.sheetnames)
     finally:
         workbook.close()
     if any(existing.casefold() == name.casefold() for existing in names):
-        return False, {"document_id": document_id, "sheet_names": names}, [{"code": "SHEET_NAME_CONFLICT", "message": f"Worksheet name already exists: {name}"}], False
+        return (
+            False,
+            {"document_id": document_id, "sheet_names": names},
+            [{"code": "SHEET_NAME_CONFLICT", "message": f"Worksheet name already exists: {name}"}],
+            False,
+        )
     insertion_index = len(names) + 1 if index is None else index
-    if isinstance(insertion_index, bool) or not isinstance(insertion_index, int) or insertion_index < 1 or insertion_index > len(names) + 1:
-        return False, {"document_id": document_id, "sheet_count": len(names), "index": insertion_index}, [{"code": "INVALID_SHEET_INDEX", "message": f"index must be between 1 and {len(names) + 1}."}], False
+    if (
+        isinstance(insertion_index, bool)
+        or not isinstance(insertion_index, int)
+        or insertion_index < 1
+        or insertion_index > len(names) + 1
+    ):
+        return (
+            False,
+            {"document_id": document_id, "sheet_count": len(names), "index": insertion_index},
+            [{"code": "INVALID_SHEET_INDEX", "message": f"index must be between 1 and {len(names) + 1}."}],
+            False,
+        )
     expected_names = list(names)
     expected_names.insert(insertion_index - 1, name)
     preview = {
-        "document_id": document_id, "path": str(path), "name": name,
-        "index": insertion_index, "requested_index": index,
-        "sheet_names_before": names, "sheet_names_after": expected_names,
+        "document_id": document_id,
+        "path": str(path),
+        "name": name,
+        "index": insertion_index,
+        "requested_index": index,
+        "sheet_names_before": names,
+        "sheet_names_after": expected_names,
         "dry_run": dry_run,
     }
     if dry_run:
         return True, preview, [], False
     backup_ok, backup_result, backup_errors, backup_replayed = create_backup(
-        document_id, f"{request_id}:backup", workspace=workspace,
+        document_id,
+        f"{request_id}:backup",
+        workspace=workspace,
     )
     if not backup_ok:
         return False, {"preview": preview, "backup": backup_result}, backup_errors, False
     creation = guarded_com_mutation(
-        path, backup_result, lambda: _run_spreadsheet_create_sheet_com(str(path), name, insertion_index),
+        path,
+        backup_result,
+        lambda: _run_spreadsheet_create_sheet_com(str(path), name, insertion_index),
     )
     if not creation["ok"]:
-        return False, {"preview": preview, "backup": backup_result, "creation": creation["data"]}, creation["errors"], False
+        return (
+            False,
+            {"preview": preview, "backup": backup_result, "creation": creation["data"]},
+            creation["errors"],
+            False,
+        )
     readback = load_workbook(path, data_only=False, read_only=True)
     try:
         actual_names = list(readback.sheetnames)
@@ -535,12 +686,26 @@ def create_spreadsheet_sheet(
         readback.close()
     validation_passed = actual_names == expected_names and creation["data"].get("sheet_names") == expected_names
     result = {
-        **preview, "dry_run": False, "backup": backup_result,
-        "backup_replayed": backup_replayed, "create_backend": creation["data"].get("backend"),
-        "sheet_names_read_back": actual_names, "validation_passed": validation_passed,
+        **preview,
+        "dry_run": False,
+        "backup": backup_result,
+        "backup_replayed": backup_replayed,
+        "create_backend": creation["data"].get("backend"),
+        "sheet_names_read_back": actual_names,
+        "validation_passed": validation_passed,
     }
     if not validation_passed:
-        return False, result, [{"code": "VALIDATION_FAILED", "message": "Created worksheet order did not match the expected sheet list."}], False
+        return (
+            False,
+            result,
+            [
+                {
+                    "code": "VALIDATION_FAILED",
+                    "message": "Created worksheet order did not match the expected sheet list.",
+                }
+            ],
+            False,
+        )
     post_error = verify_post_com_source(path, creation)
     if post_error is not None:
         return False, result, [post_error], False
@@ -552,7 +717,13 @@ def _run_spreadsheet_visibility_com(path: str, name: str, visible: bool) -> dict
     capabilities = probe_wps_capabilities()
     prog_id = capabilities["components"]["spreadsheets"]["selected_prog_id"]
     if not prog_id:
-        return {"ok": False, "errors": [{"code": COM_BACKEND_UNAVAILABLE, "message": "No registered WPS ProgID detected for spreadsheets."}], "data": {"capabilities": capabilities}}
+        return {
+            "ok": False,
+            "errors": [
+                {"code": COM_BACKEND_UNAVAILABLE, "message": "No registered WPS ProgID detected for spreadsheets."}
+            ],
+            "data": {"capabilities": capabilities},
+        }
     params_json = json.dumps({"prog_id": prog_id, "path": str(Path(path).resolve()), "name": name, "visible": visible})
     script = f"""
 $ErrorActionPreference = 'Stop'
@@ -590,7 +761,16 @@ try {{
     if failure is not None:
         return failure
     if not payload.get("ok"):
-        return {"ok": False, "errors": [{"code": COM_OPERATION_FAILED, "message": payload.get("error_message", "WPS worksheet visibility update failed.")}], "data": {"diagnostic": payload}}
+        return {
+            "ok": False,
+            "errors": [
+                {
+                    "code": COM_OPERATION_FAILED,
+                    "message": payload.get("error_message", "WPS worksheet visibility update failed."),
+                }
+            ],
+            "data": {"diagnostic": payload},
+        }
     if isinstance(payload.get("sheet_states"), dict):
         payload["sheet_states"] = [payload["sheet_states"]]
     return {"ok": True, "errors": [], "data": payload}
@@ -599,12 +779,24 @@ try {{
 @coordinated_mutation
 @atomic_mutation
 def set_spreadsheet_sheet_visibility(
-    document_id: str, sheet_name: str, visible: bool, request_id: str,
-    dry_run: bool = False, workspace: str | Path = ".",
+    document_id: str,
+    sheet_name: str,
+    visible: bool,
+    request_id: str,
+    dry_run: bool = False,
+    workspace: str | Path = ".",
 ) -> tuple[bool, dict[str, Any], list[dict[str, str]], bool]:
-    replay = replay_operation(request_id, "spreadsheet-set-sheet-visibility", {
-        "document_id": document_id, "sheet_name": sheet_name, "visible": visible, "dry_run": dry_run,
-    }, workspace)
+    replay = replay_operation(
+        request_id,
+        "spreadsheet-set-sheet-visibility",
+        {
+            "document_id": document_id,
+            "sheet_name": sheet_name,
+            "visible": visible,
+            "dry_run": dry_run,
+        },
+        workspace,
+    )
     if replay is not None:
         return replay
     if not isinstance(visible, bool):
@@ -613,10 +805,25 @@ def set_spreadsheet_sheet_visibility(
     if not document:
         return False, {}, [{"code": "DOCUMENT_NOT_FOUND", "message": f"Document not registered: {document_id}"}], False
     if document["component"] != "spreadsheets":
-        return False, {"document": document}, [{"code": "UNSUPPORTED_COMPONENT", "message": "spreadsheet-set-sheet-visibility requires a spreadsheet document."}], False
+        return (
+            False,
+            {"document": document},
+            [
+                {
+                    "code": "UNSUPPORTED_COMPONENT",
+                    "message": "spreadsheet-set-sheet-visibility requires a spreadsheet document.",
+                }
+            ],
+            False,
+        )
     path = Path(document["path"])
     if not path.exists():
-        return False, {"document": document}, [{"code": INPUT_FILE_NOT_FOUND, "message": f"Input file not found: {path}"}], False
+        return (
+            False,
+            {"document": document},
+            [{"code": INPUT_FILE_NOT_FOUND, "message": f"Input file not found: {path}"}],
+            False,
+        )
     workbook = load_workbook(path, data_only=False, read_only=True)
     try:
         states = [{"name": sheet.title, "visible": sheet.sheet_state == "visible"} for sheet in workbook.worksheets]
@@ -624,35 +831,81 @@ def set_spreadsheet_sheet_visibility(
         workbook.close()
     target = next((sheet for sheet in states if sheet["name"] == sheet_name), None)
     if target is None:
-        return False, {"document_id": document_id, "sheet_states": states}, [{"code": "SHEET_NOT_FOUND", "message": f"Worksheet not found: {sheet_name}"}], False
+        return (
+            False,
+            {"document_id": document_id, "sheet_states": states},
+            [{"code": "SHEET_NOT_FOUND", "message": f"Worksheet not found: {sheet_name}"}],
+            False,
+        )
     current_visible_count = sum(item["visible"] for item in states)
     if not visible and target["visible"] and current_visible_count <= 1:
-        return False, {"document_id": document_id, "sheet_states": states}, [{"code": "LAST_VISIBLE_SHEET", "message": "At least one worksheet must remain visible."}], False
+        return (
+            False,
+            {"document_id": document_id, "sheet_states": states},
+            [{"code": "LAST_VISIBLE_SHEET", "message": "At least one worksheet must remain visible."}],
+            False,
+        )
     expected = [dict(item, visible=(visible if item["name"] == sheet_name else item["visible"])) for item in states]
-    preview = {"document_id": document_id, "path": str(path), "sheet_name": sheet_name, "visible": visible, "sheet_states_before": states, "sheet_states_after": expected, "dry_run": dry_run}
+    preview = {
+        "document_id": document_id,
+        "path": str(path),
+        "sheet_name": sheet_name,
+        "visible": visible,
+        "sheet_states_before": states,
+        "sheet_states_after": expected,
+        "dry_run": dry_run,
+    }
     if dry_run:
         return True, preview, [], False
     if target["visible"] == visible:
         result = {**preview, "dry_run": False, "saved": False, "validation_passed": True}
         record_operation(request_id, "spreadsheet-set-sheet-visibility", result, workspace)
         return True, result, [], False
-    backup_ok, backup_result, backup_errors, backup_replayed = create_backup(document_id, f"{request_id}:backup", workspace=workspace)
+    backup_ok, backup_result, backup_errors, backup_replayed = create_backup(
+        document_id, f"{request_id}:backup", workspace=workspace
+    )
     if not backup_ok:
         return False, {"preview": preview, "backup": backup_result}, backup_errors, False
     mutation = guarded_com_mutation(
-        path, backup_result, lambda: _run_spreadsheet_visibility_com(str(path), sheet_name, visible),
+        path,
+        backup_result,
+        lambda: _run_spreadsheet_visibility_com(str(path), sheet_name, visible),
     )
     if not mutation["ok"]:
-        return False, {"preview": preview, "backup": backup_result, "mutation": mutation["data"]}, mutation["errors"], False
+        return (
+            False,
+            {"preview": preview, "backup": backup_result, "mutation": mutation["data"]},
+            mutation["errors"],
+            False,
+        )
     readback = load_workbook(path, data_only=False, read_only=True)
     try:
         actual = [{"name": sheet.title, "visible": sheet.sheet_state == "visible"} for sheet in readback.worksheets]
     finally:
         readback.close()
     validation_passed = actual == expected and mutation["data"].get("sheet_states") == expected
-    result = {**preview, "dry_run": False, "saved": True, "backup": backup_result, "backup_replayed": backup_replayed, "visibility_backend": mutation["data"].get("backend"), "sheet_states_read_back": actual, "validation_passed": validation_passed}
+    result = {
+        **preview,
+        "dry_run": False,
+        "saved": True,
+        "backup": backup_result,
+        "backup_replayed": backup_replayed,
+        "visibility_backend": mutation["data"].get("backend"),
+        "sheet_states_read_back": actual,
+        "validation_passed": validation_passed,
+    }
     if not validation_passed:
-        return False, result, [{"code": "VALIDATION_FAILED", "message": "Worksheet visibility state did not match the expected ordered state list."}], False
+        return (
+            False,
+            result,
+            [
+                {
+                    "code": "VALIDATION_FAILED",
+                    "message": "Worksheet visibility state did not match the expected ordered state list.",
+                }
+            ],
+            False,
+        )
     post_error = verify_post_com_source(path, mutation)
     if post_error is not None:
         return False, result, [post_error], False
@@ -664,7 +917,13 @@ def _run_spreadsheet_delete_sheet_com(path: str, name: str) -> dict[str, Any]:
     capabilities = probe_wps_capabilities()
     prog_id = capabilities["components"]["spreadsheets"]["selected_prog_id"]
     if not prog_id:
-        return {"ok": False, "errors": [{"code": COM_BACKEND_UNAVAILABLE, "message": "No registered WPS ProgID detected for spreadsheets."}], "data": {"capabilities": capabilities}}
+        return {
+            "ok": False,
+            "errors": [
+                {"code": COM_BACKEND_UNAVAILABLE, "message": "No registered WPS ProgID detected for spreadsheets."}
+            ],
+            "data": {"capabilities": capabilities},
+        }
     params_json = json.dumps({"prog_id": prog_id, "path": str(Path(path).resolve()), "name": name})
     script = f"""
 $ErrorActionPreference = 'Stop'
@@ -698,7 +957,16 @@ try {{
     if failure is not None:
         return failure
     if not payload.get("ok"):
-        return {"ok": False, "errors": [{"code": COM_OPERATION_FAILED, "message": payload.get("error_message", "WPS worksheet deletion failed.")}], "data": {"diagnostic": payload}}
+        return {
+            "ok": False,
+            "errors": [
+                {
+                    "code": COM_OPERATION_FAILED,
+                    "message": payload.get("error_message", "WPS worksheet deletion failed."),
+                }
+            ],
+            "data": {"diagnostic": payload},
+        }
     if isinstance(payload.get("sheet_names"), str):
         payload["sheet_names"] = [payload["sheet_names"]]
     return {"ok": True, "errors": [], "data": payload}
@@ -707,52 +975,117 @@ try {{
 @coordinated_mutation
 @atomic_mutation
 def delete_spreadsheet_sheet(
-    document_id: str, sheet_name: str, request_id: str,
-    dry_run: bool = False, workspace: str | Path = ".",
+    document_id: str,
+    sheet_name: str,
+    request_id: str,
+    dry_run: bool = False,
+    workspace: str | Path = ".",
 ) -> tuple[bool, dict[str, Any], list[dict[str, str]], bool]:
-    replay = replay_operation(request_id, "spreadsheet-delete-sheet", {
-        "document_id": document_id, "sheet_name": sheet_name, "dry_run": dry_run,
-    }, workspace)
+    replay = replay_operation(
+        request_id,
+        "spreadsheet-delete-sheet",
+        {
+            "document_id": document_id,
+            "sheet_name": sheet_name,
+            "dry_run": dry_run,
+        },
+        workspace,
+    )
     if replay is not None:
         return replay
     document = get_document(document_id, workspace)
     if not document:
         return False, {}, [{"code": "DOCUMENT_NOT_FOUND", "message": f"Document not registered: {document_id}"}], False
     if document["component"] != "spreadsheets":
-        return False, {"document": document}, [{"code": "UNSUPPORTED_COMPONENT", "message": "spreadsheet-delete-sheet requires a spreadsheet document."}], False
+        return (
+            False,
+            {"document": document},
+            [{"code": "UNSUPPORTED_COMPONENT", "message": "spreadsheet-delete-sheet requires a spreadsheet document."}],
+            False,
+        )
     path = Path(document["path"])
     if not path.exists():
-        return False, {"document": document}, [{"code": INPUT_FILE_NOT_FOUND, "message": f"Input file not found: {path}"}], False
+        return (
+            False,
+            {"document": document},
+            [{"code": INPUT_FILE_NOT_FOUND, "message": f"Input file not found: {path}"}],
+            False,
+        )
     workbook = load_workbook(path, data_only=False, read_only=True)
     try:
         names = list(workbook.sheetnames)
     finally:
         workbook.close()
     if sheet_name not in names:
-        return False, {"document_id": document_id, "sheet_names": names}, [{"code": "SHEET_NOT_FOUND", "message": f"Worksheet not found: {sheet_name}"}], False
+        return (
+            False,
+            {"document_id": document_id, "sheet_names": names},
+            [{"code": "SHEET_NOT_FOUND", "message": f"Worksheet not found: {sheet_name}"}],
+            False,
+        )
     if len(names) <= 1:
-        return False, {"document_id": document_id, "sheet_names": names}, [{"code": "LAST_WORKSHEET", "message": "A workbook must retain at least one worksheet."}], False
+        return (
+            False,
+            {"document_id": document_id, "sheet_names": names},
+            [{"code": "LAST_WORKSHEET", "message": "A workbook must retain at least one worksheet."}],
+            False,
+        )
     expected = [name for name in names if name != sheet_name]
-    preview = {"document_id": document_id, "path": str(path), "sheet_name": sheet_name, "sheet_names_before": names, "sheet_names_after": expected, "dry_run": dry_run}
+    preview = {
+        "document_id": document_id,
+        "path": str(path),
+        "sheet_name": sheet_name,
+        "sheet_names_before": names,
+        "sheet_names_after": expected,
+        "dry_run": dry_run,
+    }
     if dry_run:
         return True, preview, [], False
-    backup_ok, backup_result, backup_errors, backup_replayed = create_backup(document_id, f"{request_id}:backup", workspace=workspace)
+    backup_ok, backup_result, backup_errors, backup_replayed = create_backup(
+        document_id, f"{request_id}:backup", workspace=workspace
+    )
     if not backup_ok:
         return False, {"preview": preview, "backup": backup_result}, backup_errors, False
     mutation = guarded_com_mutation(
-        path, backup_result, lambda: _run_spreadsheet_delete_sheet_com(str(path), sheet_name),
+        path,
+        backup_result,
+        lambda: _run_spreadsheet_delete_sheet_com(str(path), sheet_name),
     )
     if not mutation["ok"]:
-        return False, {"preview": preview, "backup": backup_result, "mutation": mutation["data"]}, mutation["errors"], False
+        return (
+            False,
+            {"preview": preview, "backup": backup_result, "mutation": mutation["data"]},
+            mutation["errors"],
+            False,
+        )
     readback = load_workbook(path, data_only=False, read_only=True)
     try:
         actual = list(readback.sheetnames)
     finally:
         readback.close()
     validation_passed = actual == expected and mutation["data"].get("sheet_names") == expected
-    result = {**preview, "dry_run": False, "saved": True, "backup": backup_result, "backup_replayed": backup_replayed, "delete_backend": mutation["data"].get("backend"), "sheet_names_read_back": actual, "validation_passed": validation_passed}
+    result = {
+        **preview,
+        "dry_run": False,
+        "saved": True,
+        "backup": backup_result,
+        "backup_replayed": backup_replayed,
+        "delete_backend": mutation["data"].get("backend"),
+        "sheet_names_read_back": actual,
+        "validation_passed": validation_passed,
+    }
     if not validation_passed:
-        return False, result, [{"code": "VALIDATION_FAILED", "message": "Worksheet deletion order did not match the expected sheet list."}], False
+        return (
+            False,
+            result,
+            [
+                {
+                    "code": "VALIDATION_FAILED",
+                    "message": "Worksheet deletion order did not match the expected sheet list.",
+                }
+            ],
+            False,
+        )
     post_error = verify_post_com_source(path, mutation)
     if post_error is not None:
         return False, result, [post_error], False
@@ -764,8 +1097,22 @@ def _run_spreadsheet_copy_sheet_com(path: str, source_name: str, new_name: str, 
     capabilities = probe_wps_capabilities()
     prog_id = capabilities["components"]["spreadsheets"]["selected_prog_id"]
     if not prog_id:
-        return {"ok": False, "errors": [{"code": COM_BACKEND_UNAVAILABLE, "message": "No registered WPS ProgID detected for spreadsheets."}], "data": {"capabilities": capabilities}}
-    params_json = json.dumps({"prog_id": prog_id, "path": str(Path(path).resolve()), "source_name": source_name, "new_name": new_name, "index": index})
+        return {
+            "ok": False,
+            "errors": [
+                {"code": COM_BACKEND_UNAVAILABLE, "message": "No registered WPS ProgID detected for spreadsheets."}
+            ],
+            "data": {"capabilities": capabilities},
+        }
+    params_json = json.dumps(
+        {
+            "prog_id": prog_id,
+            "path": str(Path(path).resolve()),
+            "source_name": source_name,
+            "new_name": new_name,
+            "index": index,
+        }
+    )
     script = f"""
 $ErrorActionPreference = 'Stop'
 $params = @'
@@ -806,7 +1153,13 @@ try {{
     if failure is not None:
         return failure
     if not payload.get("ok"):
-        return {"ok": False, "errors": [{"code": COM_OPERATION_FAILED, "message": payload.get("error_message", "WPS worksheet copy failed.")}], "data": {"diagnostic": payload}}
+        return {
+            "ok": False,
+            "errors": [
+                {"code": COM_OPERATION_FAILED, "message": payload.get("error_message", "WPS worksheet copy failed.")}
+            ],
+            "data": {"diagnostic": payload},
+        }
     if isinstance(payload.get("sheet_names"), str):
         payload["sheet_names"] = [payload["sheet_names"]]
     return {"ok": True, "errors": [], "data": payload}
@@ -815,12 +1168,26 @@ try {{
 @coordinated_mutation
 @atomic_mutation
 def copy_spreadsheet_sheet(
-    document_id: str, source_name: str, new_name: str, request_id: str,
-    index: int | None = None, dry_run: bool = False, workspace: str | Path = ".",
+    document_id: str,
+    source_name: str,
+    new_name: str,
+    request_id: str,
+    index: int | None = None,
+    dry_run: bool = False,
+    workspace: str | Path = ".",
 ) -> tuple[bool, dict[str, Any], list[dict[str, str]], bool]:
-    replay = replay_operation(request_id, "spreadsheet-copy-sheet", {
-        "document_id": document_id, "source_name": source_name, "new_name": new_name, "index": index, "dry_run": dry_run,
-    }, workspace)
+    replay = replay_operation(
+        request_id,
+        "spreadsheet-copy-sheet",
+        {
+            "document_id": document_id,
+            "source_name": source_name,
+            "new_name": new_name,
+            "index": index,
+            "dry_run": dry_run,
+        },
+        workspace,
+    )
     if replay is not None:
         return replay
     title_error = _validate_sheet_title(new_name)
@@ -830,36 +1197,84 @@ def copy_spreadsheet_sheet(
     if not document:
         return False, {}, [{"code": "DOCUMENT_NOT_FOUND", "message": f"Document not registered: {document_id}"}], False
     if document["component"] != "spreadsheets":
-        return False, {"document": document}, [{"code": "UNSUPPORTED_COMPONENT", "message": "spreadsheet-copy-sheet requires a spreadsheet document."}], False
+        return (
+            False,
+            {"document": document},
+            [{"code": "UNSUPPORTED_COMPONENT", "message": "spreadsheet-copy-sheet requires a spreadsheet document."}],
+            False,
+        )
     path = Path(document["path"])
     if not path.exists():
-        return False, {"document": document}, [{"code": INPUT_FILE_NOT_FOUND, "message": f"Input file not found: {path}"}], False
+        return (
+            False,
+            {"document": document},
+            [{"code": INPUT_FILE_NOT_FOUND, "message": f"Input file not found: {path}"}],
+            False,
+        )
     workbook = load_workbook(path, data_only=False, read_only=True)
     try:
         names = list(workbook.sheetnames)
     finally:
         workbook.close()
     if source_name not in names:
-        return False, {"document_id": document_id, "sheet_names": names}, [{"code": "SHEET_NOT_FOUND", "message": f"Worksheet not found: {source_name}"}], False
+        return (
+            False,
+            {"document_id": document_id, "sheet_names": names},
+            [{"code": "SHEET_NOT_FOUND", "message": f"Worksheet not found: {source_name}"}],
+            False,
+        )
     if any(existing.casefold() == new_name.casefold() for existing in names):
-        return False, {"document_id": document_id, "sheet_names": names}, [{"code": "SHEET_NAME_CONFLICT", "message": f"Worksheet name already exists: {new_name}"}], False
+        return (
+            False,
+            {"document_id": document_id, "sheet_names": names},
+            [{"code": "SHEET_NAME_CONFLICT", "message": f"Worksheet name already exists: {new_name}"}],
+            False,
+        )
     insertion_index = len(names) + 1 if index is None else index
-    if isinstance(insertion_index, bool) or not isinstance(insertion_index, int) or insertion_index < 1 or insertion_index > len(names) + 1:
-        return False, {"document_id": document_id, "sheet_count": len(names), "index": insertion_index}, [{"code": "INVALID_SHEET_INDEX", "message": f"index must be between 1 and {len(names) + 1}."}], False
+    if (
+        isinstance(insertion_index, bool)
+        or not isinstance(insertion_index, int)
+        or insertion_index < 1
+        or insertion_index > len(names) + 1
+    ):
+        return (
+            False,
+            {"document_id": document_id, "sheet_count": len(names), "index": insertion_index},
+            [{"code": "INVALID_SHEET_INDEX", "message": f"index must be between 1 and {len(names) + 1}."}],
+            False,
+        )
     expected = list(names)
     expected.insert(insertion_index - 1, new_name)
-    preview = {"document_id": document_id, "path": str(path), "source_name": source_name, "new_name": new_name, "index": insertion_index, "requested_index": index, "sheet_names_before": names, "sheet_names_after": expected, "dry_run": dry_run}
+    preview = {
+        "document_id": document_id,
+        "path": str(path),
+        "source_name": source_name,
+        "new_name": new_name,
+        "index": insertion_index,
+        "requested_index": index,
+        "sheet_names_before": names,
+        "sheet_names_after": expected,
+        "dry_run": dry_run,
+    }
     if dry_run:
         return True, preview, [], False
-    backup_ok, backup_result, backup_errors, backup_replayed = create_backup(document_id, f"{request_id}:backup", workspace=workspace)
+    backup_ok, backup_result, backup_errors, backup_replayed = create_backup(
+        document_id, f"{request_id}:backup", workspace=workspace
+    )
     if not backup_ok:
         return False, {"preview": preview, "backup": backup_result}, backup_errors, False
     mutation = guarded_com_mutation(
-        path, backup_result,
+        path,
+        backup_result,
         lambda: _run_spreadsheet_copy_sheet_com(str(path), source_name, new_name, insertion_index),
     )
     if not mutation["ok"]:
-        return False, {"preview": preview, "backup": backup_result, "mutation": mutation["data"]}, mutation["errors"], False
+        return (
+            False,
+            {"preview": preview, "backup": backup_result, "mutation": mutation["data"]},
+            mutation["errors"],
+            False,
+        )
     readback = load_workbook(path, data_only=False, read_only=True)
     try:
         actual = list(readback.sheetnames)
@@ -867,10 +1282,33 @@ def copy_spreadsheet_sheet(
         copied_value = readback[new_name]["A1"].value
     finally:
         readback.close()
-    validation_passed = actual == expected and mutation["data"].get("sheet_names") == expected and copied_value == source_value
-    result = {**preview, "dry_run": False, "saved": True, "backup": backup_result, "backup_replayed": backup_replayed, "copy_backend": mutation["data"].get("backend"), "sheet_names_read_back": actual, "source_a1_read_back": source_value, "copy_a1_read_back": copied_value, "validation_passed": validation_passed}
+    validation_passed = (
+        actual == expected and mutation["data"].get("sheet_names") == expected and copied_value == source_value
+    )
+    result = {
+        **preview,
+        "dry_run": False,
+        "saved": True,
+        "backup": backup_result,
+        "backup_replayed": backup_replayed,
+        "copy_backend": mutation["data"].get("backend"),
+        "sheet_names_read_back": actual,
+        "source_a1_read_back": source_value,
+        "copy_a1_read_back": copied_value,
+        "validation_passed": validation_passed,
+    }
     if not validation_passed:
-        return False, result, [{"code": "VALIDATION_FAILED", "message": "Copied worksheet order or sampled cell read-back did not match the source."}], False
+        return (
+            False,
+            result,
+            [
+                {
+                    "code": "VALIDATION_FAILED",
+                    "message": "Copied worksheet order or sampled cell read-back did not match the source.",
+                }
+            ],
+            False,
+        )
     post_error = verify_post_com_source(path, mutation)
     if post_error is not None:
         return False, result, [post_error], False
@@ -921,10 +1359,12 @@ def _read_ignored_errors(path: Path) -> dict[str, dict[str, Any]]:
                         count += 1
                         if len(records) < 1_000:
                             attributes = dict(element.attrib)
-                            records.append({
-                                "ranges": attributes.pop("sqref", ""),
-                                "flags": dict(sorted(attributes.items())),
-                            })
+                            records.append(
+                                {
+                                    "ranges": attributes.pop("sqref", ""),
+                                    "flags": dict(sorted(attributes.items())),
+                                }
+                            )
                         element.clear()
             records.sort(key=lambda item: (item["ranges"], tuple(item["flags"].items())))
             result[sheet.attrib["name"]] = {
@@ -939,9 +1379,17 @@ def _run_spreadsheet_tab_color_com(path: str, name: str, color: str) -> dict[str
     capabilities = probe_wps_capabilities()
     prog_id = capabilities["components"]["spreadsheets"]["selected_prog_id"]
     if not prog_id:
-        return {"ok": False, "errors": [{"code": COM_BACKEND_UNAVAILABLE, "message": "No registered WPS ProgID detected for spreadsheets."}], "data": {"capabilities": capabilities}}
+        return {
+            "ok": False,
+            "errors": [
+                {"code": COM_BACKEND_UNAVAILABLE, "message": "No registered WPS ProgID detected for spreadsheets."}
+            ],
+            "data": {"capabilities": capabilities},
+        }
     rgb = int(color[1:3], 16) + (int(color[3:5], 16) << 8) + (int(color[5:7], 16) << 16) if color != "none" else None
-    params_json = json.dumps({"prog_id": prog_id, "path": str(Path(path).resolve()), "name": name, "color": color, "rgb": rgb})
+    params_json = json.dumps(
+        {"prog_id": prog_id, "path": str(Path(path).resolve()), "name": name, "color": color, "rgb": rgb}
+    )
     script = f"""
 $ErrorActionPreference = 'Stop'
 $params = @'
@@ -979,19 +1427,37 @@ try {{
     if failure is not None:
         return failure
     if not payload.get("ok"):
-        return {"ok": False, "errors": [{"code": COM_OPERATION_FAILED, "message": payload.get("error_message", "WPS tab color update failed.")}], "data": {"diagnostic": payload}}
+        return {
+            "ok": False,
+            "errors": [
+                {"code": COM_OPERATION_FAILED, "message": payload.get("error_message", "WPS tab color update failed.")}
+            ],
+            "data": {"diagnostic": payload},
+        }
     return {"ok": True, "errors": [], "data": payload}
 
 
 @coordinated_mutation
 @atomic_mutation
 def set_spreadsheet_sheet_tab_color(
-    document_id: str, sheet_name: str, color: str, request_id: str,
-    dry_run: bool = False, workspace: str | Path = ".",
+    document_id: str,
+    sheet_name: str,
+    color: str,
+    request_id: str,
+    dry_run: bool = False,
+    workspace: str | Path = ".",
 ) -> tuple[bool, dict[str, Any], list[dict[str, str]], bool]:
-    replay = replay_operation(request_id, "spreadsheet-set-sheet-tab-color", {
-        "document_id": document_id, "sheet_name": sheet_name, "color": color, "dry_run": dry_run,
-    }, workspace)
+    replay = replay_operation(
+        request_id,
+        "spreadsheet-set-sheet-tab-color",
+        {
+            "document_id": document_id,
+            "sheet_name": sheet_name,
+            "color": color,
+            "dry_run": dry_run,
+        },
+        workspace,
+    )
     if replay is not None:
         return replay
     normalized = _normalize_sheet_tab_color(color)
@@ -1001,42 +1467,102 @@ def set_spreadsheet_sheet_tab_color(
     if not document:
         return False, {}, [{"code": "DOCUMENT_NOT_FOUND", "message": f"Document not registered: {document_id}"}], False
     if document["component"] != "spreadsheets":
-        return False, {"document": document}, [{"code": "UNSUPPORTED_COMPONENT", "message": "spreadsheet-set-sheet-tab-color requires a spreadsheet document."}], False
+        return (
+            False,
+            {"document": document},
+            [
+                {
+                    "code": "UNSUPPORTED_COMPONENT",
+                    "message": "spreadsheet-set-sheet-tab-color requires a spreadsheet document.",
+                }
+            ],
+            False,
+        )
     path = Path(document["path"])
     if not path.exists():
-        return False, {"document": document}, [{"code": INPUT_FILE_NOT_FOUND, "message": f"Input file not found: {path}"}], False
+        return (
+            False,
+            {"document": document},
+            [{"code": INPUT_FILE_NOT_FOUND, "message": f"Input file not found: {path}"}],
+            False,
+        )
     workbook = load_workbook(path, data_only=False, read_only=False)
     try:
         if sheet_name not in workbook.sheetnames:
-            return False, {"document_id": document_id, "sheet_names": workbook.sheetnames}, [{"code": "SHEET_NOT_FOUND", "message": f"Worksheet not found: {sheet_name}"}], False
+            return (
+                False,
+                {"document_id": document_id, "sheet_names": workbook.sheetnames},
+                [{"code": "SHEET_NOT_FOUND", "message": f"Worksheet not found: {sheet_name}"}],
+                False,
+            )
         current = _tab_color_from_cell(workbook[sheet_name].sheet_properties.tabColor)
     finally:
         workbook.close()
-    preview = {"document_id": document_id, "path": str(path), "sheet_name": sheet_name, "color": normalized, "previous_color": current, "dry_run": dry_run}
+    preview = {
+        "document_id": document_id,
+        "path": str(path),
+        "sheet_name": sheet_name,
+        "color": normalized,
+        "previous_color": current,
+        "dry_run": dry_run,
+    }
     if dry_run:
         return True, preview, [], False
     if current == normalized:
         result = {**preview, "dry_run": False, "saved": False, "validation_passed": True}
         record_operation(request_id, "spreadsheet-set-sheet-tab-color", result, workspace)
         return True, result, [], False
-    backup_ok, backup_result, backup_errors, backup_replayed = create_backup(document_id, f"{request_id}:backup", workspace=workspace)
+    backup_ok, backup_result, backup_errors, backup_replayed = create_backup(
+        document_id, f"{request_id}:backup", workspace=workspace
+    )
     if not backup_ok:
         return False, {"preview": preview, "backup": backup_result}, backup_errors, False
     mutation = guarded_com_mutation(
-        path, backup_result, lambda: _run_spreadsheet_tab_color_com(str(path), sheet_name, normalized),
+        path,
+        backup_result,
+        lambda: _run_spreadsheet_tab_color_com(str(path), sheet_name, normalized),
     )
     if not mutation["ok"]:
-        return False, {"preview": preview, "backup": backup_result, "mutation": mutation["data"]}, mutation["errors"], False
+        return (
+            False,
+            {"preview": preview, "backup": backup_result, "mutation": mutation["data"]},
+            mutation["errors"],
+            False,
+        )
     readback = load_workbook(path, data_only=False, read_only=False)
     try:
         actual = _tab_color_from_cell(readback[sheet_name].sheet_properties.tabColor)
     finally:
         readback.close()
     wps_color = mutation["data"].get("tab_color", "")
-    validation_passed = actual == normalized and mutation["data"].get("sheet_name") == sheet_name and isinstance(wps_color, str) and wps_color.casefold() == normalized.casefold()
-    result = {**preview, "dry_run": False, "saved": True, "backup": backup_result, "backup_replayed": backup_replayed, "tab_color_backend": mutation["data"].get("backend"), "tab_color_read_back": actual, "validation_passed": validation_passed}
+    validation_passed = (
+        actual == normalized
+        and mutation["data"].get("sheet_name") == sheet_name
+        and isinstance(wps_color, str)
+        and wps_color.casefold() == normalized.casefold()
+    )
+    result = {
+        **preview,
+        "dry_run": False,
+        "saved": True,
+        "backup": backup_result,
+        "backup_replayed": backup_replayed,
+        "tab_color_backend": mutation["data"].get("backend"),
+        "tab_color_read_back": actual,
+        "validation_passed": validation_passed,
+    }
     if not validation_passed:
-        return False, result, [{"code": "VALIDATION_FAILED", "message": "Worksheet tab color read-back did not match the requested color."}], False
+        return (
+            False,
+            result,
+            [
+                {
+                    "code": "VALIDATION_FAILED",
+                    "message": "Worksheet tab color read-back did not match the requested color.",
+                }
+            ],
+            False,
+        )
     post_error = verify_post_com_source(path, mutation)
     if post_error is not None:
         return False, result, [post_error], False
@@ -1199,7 +1725,6 @@ try {{
     return {"ok": True, "errors": [], "data": payload}
 
 
-
 def _run_spreadsheet_formula_write_com(
     path: str,
     sheet_name: str | None,
@@ -1309,7 +1834,6 @@ try {{
     return {"ok": True, "errors": [], "data": payload}
 
 
-
 @coordinated_mutation
 @atomic_mutation
 def write_spreadsheet_range(
@@ -1322,8 +1846,15 @@ def write_spreadsheet_range(
     workspace: str | Path = ".",
 ) -> tuple[bool, dict[str, Any], list[dict[str, str]], bool]:
     replay = replay_operation(
-        request_id, "spreadsheet-write",
-        {"document_id": document_id, "range": range_address, "values": values, "requested_sheet": sheet_name, "dry_run": dry_run},
+        request_id,
+        "spreadsheet-write",
+        {
+            "document_id": document_id,
+            "range": range_address,
+            "values": values,
+            "requested_sheet": sheet_name,
+            "dry_run": dry_run,
+        },
         workspace,
     )
     if replay is not None:
@@ -1369,7 +1900,12 @@ def write_spreadsheet_range(
         )
     path = Path(document["path"])
     if not path.exists():
-        return False, {"document": document}, [{"code": INPUT_FILE_NOT_FOUND, "message": f"Input file not found: {path}"}], False
+        return (
+            False,
+            {"document": document},
+            [{"code": INPUT_FILE_NOT_FOUND, "message": f"Input file not found: {path}"}],
+            False,
+        )
 
     preview = {
         "document_id": document_id,
@@ -1396,11 +1932,17 @@ def write_spreadsheet_range(
         return False, {"preview": preview, "backup": backup_result}, backup_errors, False
 
     write_result = guarded_com_mutation(
-        path, backup_result,
+        path,
+        backup_result,
         lambda: _run_spreadsheet_write_com(str(path), sheet_name, range_address, values),
     )
     if not write_result["ok"]:
-        return False, {"preview": preview, "backup": backup_result, "write": write_result["data"]}, write_result["errors"], False
+        return (
+            False,
+            {"preview": preview, "backup": backup_result, "write": write_result["data"]},
+            write_result["errors"],
+            False,
+        )
 
     read_ok, read_result, read_errors = read_spreadsheet_range(
         document_id,
@@ -1449,8 +1991,16 @@ def write_spreadsheet_formulas(
     workspace: str | Path = ".",
 ) -> tuple[bool, dict[str, Any], list[dict[str, str]], bool]:
     replay = replay_operation(
-        request_id, "spreadsheet-formula-write",
-        {"document_id": document_id, "range": range_address, "formulas": formulas, "expected_values": expected_values, "requested_sheet": sheet_name, "dry_run": dry_run},
+        request_id,
+        "spreadsheet-formula-write",
+        {
+            "document_id": document_id,
+            "range": range_address,
+            "formulas": formulas,
+            "expected_values": expected_values,
+            "requested_sheet": sheet_name,
+            "dry_run": dry_run,
+        },
         workspace,
     )
     if replay is not None:
@@ -1510,12 +2060,22 @@ def write_spreadsheet_formulas(
         return (
             False,
             {"document": document},
-            [{"code": "UNSUPPORTED_COMPONENT", "message": "spreadsheet-formula-write requires a spreadsheet document."}],
+            [
+                {
+                    "code": "UNSUPPORTED_COMPONENT",
+                    "message": "spreadsheet-formula-write requires a spreadsheet document.",
+                }
+            ],
             False,
         )
     path = Path(document["path"])
     if not path.exists():
-        return False, {"document": document}, [{"code": INPUT_FILE_NOT_FOUND, "message": f"Input file not found: {path}"}], False
+        return (
+            False,
+            {"document": document},
+            [{"code": INPUT_FILE_NOT_FOUND, "message": f"Input file not found: {path}"}],
+            False,
+        )
 
     preview = {
         "document_id": document_id,
@@ -1543,11 +2103,17 @@ def write_spreadsheet_formulas(
         return False, {"preview": preview, "backup": backup_result}, backup_errors, False
 
     write_result = guarded_com_mutation(
-        path, backup_result,
+        path,
+        backup_result,
         lambda: _run_spreadsheet_formula_write_com(str(path), sheet_name, range_address, formulas),
     )
     if not write_result["ok"]:
-        return False, {"preview": preview, "backup": backup_result, "write": write_result["data"]}, write_result["errors"], False
+        return (
+            False,
+            {"preview": preview, "backup": backup_result, "write": write_result["data"]},
+            write_result["errors"],
+            False,
+        )
 
     read_ok, read_result, read_errors = read_spreadsheet_range(
         document_id,

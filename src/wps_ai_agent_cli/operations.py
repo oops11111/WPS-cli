@@ -74,37 +74,78 @@ def replay_operation(
                     continue
                 backup_result = backup.get("result", {})
                 if backup_result.get("document_id") != expected_fields.get("document_id"):
-                    return False, {"request_id": request_id}, [{"code": "IDEMPOTENCY_CONFLICT", "message": "request_id has a backup for a different document."}], False
+                    return (
+                        False,
+                        {"request_id": request_id},
+                        [
+                            {
+                                "code": "IDEMPOTENCY_CONFLICT",
+                                "message": "request_id has a backup for a different document.",
+                            }
+                        ],
+                        False,
+                    )
                 source_path = backup_result.get("source_path")
                 source_identity = backup_result.get("source_identity")
                 try:
-                    unchanged = bool(source_path and isinstance(source_identity, dict) and file_identity(Path(source_path)) == source_identity)
+                    unchanged = bool(
+                        source_path
+                        and isinstance(source_identity, dict)
+                        and file_identity(Path(source_path)) == source_identity
+                    )
                 except OSError:
                     unchanged = False
                 if not unchanged:
-                    return False, {"request_id": request_id, "backup": backup_result}, [{"code": "UNRECORDED_MUTATION_AMBIGUOUS", "message": "A backup exists for this request, but no operation record exists and the source changed; inspect the file and backup before retrying."}], False
+                    return (
+                        False,
+                        {"request_id": request_id, "backup": backup_result},
+                        [
+                            {
+                                "code": "UNRECORDED_MUTATION_AMBIGUOUS",
+                                "message": "A backup exists for this request, but no operation record exists and the source changed; inspect the file and backup before retrying.",
+                            }
+                        ],
+                        False,
+                    )
         return None
     result = dict(existing.get("result", {}))
     conflicts = []
     if existing.get("command") != command:
         conflicts.append("command")
-    conflicts.extend(
-        field for field, expected in expected_fields.items()
-        if result.get(field) != expected
-    )
+    conflicts.extend(field for field, expected in expected_fields.items() if result.get(field) != expected)
     if conflicts:
         return (
             False,
             {"request_id": request_id, "conflicting_fields": conflicts},
-            [{"code": "IDEMPOTENCY_CONFLICT", "message": "request_id was already used with different operation arguments."}],
+            [
+                {
+                    "code": "IDEMPOTENCY_CONFLICT",
+                    "message": "request_id was already used with different operation arguments.",
+                }
+            ],
             False,
         )
     if existing.get("identity_capture_error") is not None:
-        return False, result, [{"code": "OPERATION_IDENTITY_UNVERIFIED", "message": "Operation was recorded after save, but its file identity could not be captured; inspect and re-register the file before any new mutation."}], False
+        return (
+            False,
+            result,
+            [
+                {
+                    "code": "OPERATION_IDENTITY_UNVERIFIED",
+                    "message": "Operation was recorded after save, but its file identity could not be captured; inspect and re-register the file before any new mutation.",
+                }
+            ],
+            False,
+        )
     if existing.get("source_identity_at_commit") is not None:
         document = get_document(str(result["document_id"]), workspace)
         if document is None:
-            return False, result, [{"code": "DOCUMENT_NOT_FOUND", "message": "Recorded document is no longer registered."}], False
+            return (
+                False,
+                result,
+                [{"code": "DOCUMENT_NOT_FOUND", "message": "Recorded document is no longer registered."}],
+                False,
+            )
         try:
             current_identity = file_identity(Path(document["path"]))
         except OSError as exc:
@@ -112,7 +153,17 @@ def replay_operation(
         registered_identity = {key: document.get(key) for key in current_identity}
         if registered_identity != current_identity:
             if current_identity != existing["source_identity_at_commit"]:
-                return False, result, [{"code": "OPERATION_SOURCE_CHANGED", "message": "Recorded operation cannot repair a registration for a different file identity."}], False
+                return (
+                    False,
+                    result,
+                    [
+                        {
+                            "code": "OPERATION_SOURCE_CHANGED",
+                            "message": "Recorded operation cannot repair a registration for a different file identity.",
+                        }
+                    ],
+                    False,
+                )
             try:
                 refresh_document_identity(str(result["document_id"]), workspace, current_identity)
             except (OSError, DocumentBusyError) as exc:
@@ -140,15 +191,17 @@ def inspect_mutation_request(request_id: str, workspace: str | Path = ".") -> di
                 current = file_identity(Path(source_path)) if source_path else None
             except OSError:
                 current = None
-            backups.append({
-                "request_id": backup["request_id"],
-                "document_id": result.get("document_id"),
-                "source_path": source_path,
-                "backup_path": result.get("backup_path"),
-                "source_identity": expected,
-                "current_identity": current,
-                "source_matches_backup": bool(isinstance(expected, dict) and current == expected),
-            })
+            backups.append(
+                {
+                    "request_id": backup["request_id"],
+                    "document_id": result.get("document_id"),
+                    "source_path": source_path,
+                    "backup_path": result.get("backup_path"),
+                    "source_identity": expected,
+                    "current_identity": current,
+                    "source_matches_backup": bool(isinstance(expected, dict) and current == expected),
+                }
+            )
     if operation:
         committed = operation.get("source_identity_at_commit")
         if operation.get("identity_capture_error"):

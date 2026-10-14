@@ -97,7 +97,10 @@ def create_backup(
     allow_stale_registration: bool = False,
 ) -> tuple[bool, dict[str, Any], list[dict[str, str]], bool]:
     replay = replay_operation(
-        request_id, "backup-document", {"document_id": document_id, "dry_run": dry_run}, workspace,
+        request_id,
+        "backup-document",
+        {"document_id": document_id, "dry_run": dry_run},
+        workspace,
     )
     if replay is not None:
         return replay
@@ -135,8 +138,22 @@ def create_backup(
         return False, {"document": document}, [identity_error(exc)], False
     expected_identity = {key: document.get(key) for key in source_identity}
     if not allow_stale_registration and expected_identity != source_identity:
-        code = "DOCUMENT_IDENTITY_UNVERIFIED" if any(value is None for value in expected_identity.values()) else "DOCUMENT_IDENTITY_CHANGED"
-        return False, {"document": document}, [{"code": code, "message": "Document identity differs from registration; register the current file before writing."}], False
+        code = (
+            "DOCUMENT_IDENTITY_UNVERIFIED"
+            if any(value is None for value in expected_identity.values())
+            else "DOCUMENT_IDENTITY_CHANGED"
+        )
+        return (
+            False,
+            {"document": document},
+            [
+                {
+                    "code": code,
+                    "message": "Document identity differs from registration; register the current file before writing.",
+                }
+            ],
+            False,
+        )
 
     target_path = _backup_path(document_id, source_path, workspace)
     result = {
@@ -163,9 +180,17 @@ def create_backup(
             return False, {**result, "backup_path": str(target_path)}, [share_conflict_error(exc, what)], False
         stable_copy = False
     if not stable_copy:
-        return False, {**result, "backup_path": str(target_path)}, [
-            {"code": "DOCUMENT_CHANGED_DURING_BACKUP", "message": "Source changed while creating the backup; no mutation was started."}
-        ], False
+        return (
+            False,
+            {**result, "backup_path": str(target_path)},
+            [
+                {
+                    "code": "DOCUMENT_CHANGED_DURING_BACKUP",
+                    "message": "Source changed while creating the backup; no mutation was started.",
+                }
+            ],
+            False,
+        )
     result["created"] = True
     result["backup_bytes"] = target_path.stat().st_size
     record_operation(request_id, "backup-document", result, workspace)
@@ -176,13 +201,25 @@ def verify_backup_source(path: str | Path, backup: dict[str, Any]) -> dict[str, 
     source = Path(path)
     expected = backup.get("source_identity")
     backup_path = backup.get("backup_path")
-    if not isinstance(expected, dict) or not all(key in expected for key in ("source_sha256", "file_device", "file_inode")):
-        return {"code": "BACKUP_SOURCE_UNVERIFIED", "message": "Backup lacks source identity evidence; create a new backup before writing."}
-    if not backup_path or not backup.get("created") or Path(backup.get("source_path", "")).resolve() != source.resolve():
+    if not isinstance(expected, dict) or not all(
+        key in expected for key in ("source_sha256", "file_device", "file_inode")
+    ):
+        return {
+            "code": "BACKUP_SOURCE_UNVERIFIED",
+            "message": "Backup lacks source identity evidence; create a new backup before writing.",
+        }
+    if (
+        not backup_path
+        or not backup.get("created")
+        or Path(backup.get("source_path", "")).resolve() != source.resolve()
+    ):
         return {"code": "BACKUP_SOURCE_UNVERIFIED", "message": "Backup does not identify this source file."}
     try:
         if file_identity(source) != expected:
-            return {"code": "DOCUMENT_CHANGED_AFTER_BACKUP", "message": "Source changed after the backup and before WPS mutation."}
+            return {
+                "code": "DOCUMENT_CHANGED_AFTER_BACKUP",
+                "message": "Source changed after the backup and before WPS mutation.",
+            }
         if file_identity(Path(backup_path))["source_sha256"] != expected["source_sha256"]:
             return {"code": "BACKUP_CHANGED_AFTER_CREATION", "message": "Backup bytes changed before WPS mutation."}
     except OSError as exc:
@@ -190,7 +227,9 @@ def verify_backup_source(path: str | Path, backup: dict[str, Any]) -> dict[str, 
     return None
 
 
-def guarded_com_mutation(path: str | Path, backup: dict[str, Any], operation: Callable[[], dict[str, Any]]) -> dict[str, Any]:
+def guarded_com_mutation(
+    path: str | Path, backup: dict[str, Any], operation: Callable[[], dict[str, Any]]
+) -> dict[str, Any]:
     error = verify_backup_source(path, backup)
     if error is not None:
         return {"ok": False, "errors": [error], "data": {"backend": "source-preflight"}}
@@ -199,10 +238,12 @@ def guarded_com_mutation(path: str | Path, backup: dict[str, Any], operation: Ca
     except subprocess.TimeoutExpired as exc:
         return {
             "ok": False,
-            "errors": [{
-                "code": COM_OPERATION_TIMEOUT,
-                "message": f"WPS operation timed out after {exc.timeout} seconds; the document may still be open in WPS and its state is unknown. Run mutation-request-inspect before retrying.",
-            }],
+            "errors": [
+                {
+                    "code": COM_OPERATION_TIMEOUT,
+                    "message": f"WPS operation timed out after {exc.timeout} seconds; the document may still be open in WPS and its state is unknown. Run mutation-request-inspect before retrying.",
+                }
+            ],
             "data": {"backend": "powershell-com", "timed_out": True},
         }
     except OSError as exc:
@@ -215,18 +256,27 @@ def guarded_com_mutation(path: str | Path, backup: dict[str, Any], operation: Ca
         try:
             result["data"] = {**result.get("data", {}), "source_identity_after_com": file_identity(Path(path))}
         except OSError as exc:
-            return {"ok": False, "errors": [{"code": "DOCUMENT_UNAVAILABLE_AFTER_COM", "message": str(exc)}],
-                    "data": result.get("data", {})}
+            return {
+                "ok": False,
+                "errors": [{"code": "DOCUMENT_UNAVAILABLE_AFTER_COM", "message": str(exc)}],
+                "data": result.get("data", {}),
+            }
     return result
 
 
 def verify_post_com_source(path: str | Path, mutation: dict[str, Any]) -> dict[str, str] | None:
     expected = mutation.get("data", {}).get("source_identity_after_com")
     if not isinstance(expected, dict):
-        return {"code": "POST_COM_SOURCE_UNVERIFIED", "message": "WPS mutation has no post-save source identity evidence."}
+        return {
+            "code": "POST_COM_SOURCE_UNVERIFIED",
+            "message": "WPS mutation has no post-save source identity evidence.",
+        }
     try:
         if file_identity(Path(path)) != expected:
-            return {"code": "DOCUMENT_CHANGED_AFTER_COM", "message": "Source changed after WPS saved and before validation completed."}
+            return {
+                "code": "DOCUMENT_CHANGED_AFTER_COM",
+                "message": "Source changed after WPS saved and before validation completed.",
+            }
     except OSError as exc:
         return {"code": "DOCUMENT_UNAVAILABLE_AFTER_COM", "message": str(exc)}
     return None
@@ -287,23 +337,34 @@ def _verify_backup_integrity(document_id: str, backup_file: Path, workspace: str
     except OSError as exc:
         return {"code": "BACKUP_SOURCE_UNAVAILABLE", "message": str(exc)}
     if actual != expected:
-        return {"code": "BACKUP_CHANGED_AFTER_CREATION", "message": "Backup bytes differ from the hash recorded when it was created; refusing to restore."}
+        return {
+            "code": "BACKUP_CHANGED_AFTER_CREATION",
+            "message": "Backup bytes differ from the hash recorded when it was created; refusing to restore.",
+        }
     return None
 
 
 def _restore_file_atomically(backup_file: Path, target_path: Path) -> dict[str, str] | None:
     temporary = None
     try:
-        descriptor, temporary_name = tempfile.mkstemp(prefix=f".{target_path.name}.", suffix=".restore", dir=target_path.parent)
+        descriptor, temporary_name = tempfile.mkstemp(
+            prefix=f".{target_path.name}.", suffix=".restore", dir=target_path.parent
+        )
         os.close(descriptor)
         temporary = Path(temporary_name)
         shutil.copy2(backup_file, temporary)
         if file_identity(temporary)["source_sha256"] != file_identity(backup_file)["source_sha256"]:
-            return {"code": "RESTORE_COPY_MISMATCH", "message": "Restored copy did not match the backup; the target was not modified."}
+            return {
+                "code": "RESTORE_COPY_MISMATCH",
+                "message": "Restored copy did not match the backup; the target was not modified.",
+            }
         os.replace(temporary, target_path)
         temporary = None
     except OSError as exc:
-        error = {"code": "RESTORE_TARGET_WRITE_FAILED", "message": f"Target was not modified or could not be replaced (it may be open in WPS): {exc}"}
+        error = {
+            "code": "RESTORE_TARGET_WRITE_FAILED",
+            "message": f"Target was not modified or could not be replaced (it may be open in WPS): {exc}",
+        }
         if isinstance(exc, PermissionError):
             error["reason"] = "file_locked"
         return error
@@ -329,7 +390,12 @@ def restore_backup(
     no unsaved changes; otherwise nothing is closed or restored. Without it, WPS is never touched.
     """
     requested_backup_path = str(Path(backup_path).resolve()) if backup_path else None
-    request = {"document_id": document_id, "requested_backup_name": backup_name, "requested_backup_path": requested_backup_path, "dry_run": dry_run}
+    request = {
+        "document_id": document_id,
+        "requested_backup_name": backup_name,
+        "requested_backup_path": requested_backup_path,
+        "dry_run": dry_run,
+    }
     if close_in_wps:
         # Only added when set, so requests recorded before this option existed still replay. The replay compares
         # it with the same field in the recorded result; "close_in_wps" in the result holds the close status.

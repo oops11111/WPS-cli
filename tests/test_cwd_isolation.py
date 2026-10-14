@@ -30,7 +30,10 @@ class CwdIsolationTests(unittest.TestCase):
             with self.subTest(module=module), tempfile.TemporaryDirectory() as launch:
                 completed = subprocess.run(
                     [sys.executable, "-m", "unittest", "discover", "-s", str(ROOT / "tests"), "-p", f"{module}.py"],
-                    cwd=launch, capture_output=True, text=True, timeout=300,
+                    cwd=launch,
+                    capture_output=True,
+                    text=True,
+                    timeout=300,
                     env={**os.environ, "PYTHONPATH": str(ROOT / "src") + os.pathsep + str(ROOT)},
                 )
                 self.assertEqual(completed.returncode, 0, completed.stderr[-2000:])

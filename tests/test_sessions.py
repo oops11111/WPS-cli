@@ -54,7 +54,9 @@ class SessionRegistryTests(unittest.TestCase):
             ok, second, errors = register_document("writer", str(document), workspace)
             self.assertTrue(ok, errors)
             self.assertEqual(first["document_id"], second["document_id"])
-            self.assertEqual(get_document(second["document_id"], workspace)["file_inode"], file_identity(document)["file_inode"])
+            self.assertEqual(
+                get_document(second["document_id"], workspace)["file_inode"], file_identity(document)["file_inode"]
+            )
 
 
 if __name__ == "__main__":

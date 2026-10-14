@@ -78,7 +78,7 @@ def _script_warnings(stderr: str | None) -> list[str]:
     for line in (stderr or "").splitlines():
         line = line.strip()
         if line.startswith(SCRIPT_WARNING_PREFIX):
-            message = line[len(SCRIPT_WARNING_PREFIX):].strip()
+            message = line[len(SCRIPT_WARNING_PREFIX) :].strip()
             if message and message not in found:
                 found.append(message)
     return found
@@ -144,7 +144,11 @@ def run_powershell_script(
             script_path = script_file.name
         completed = subprocess.run(
             [powershell_executable(), "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", script_path],
-            check=False, capture_output=True, encoding="utf-8", errors="replace", text=True,
+            check=False,
+            capture_output=True,
+            encoding="utf-8",
+            errors="replace",
+            text=True,
             timeout=timeout_seconds,
         )
     except subprocess.TimeoutExpired as exc:
@@ -157,11 +161,13 @@ def run_powershell_script(
             data.setdefault("stderr", exc.stderr)
         return None, {
             "ok": False,
-            "errors": [{
-                "code": COM_OPERATION_TIMEOUT,
-                "message": timeout_message
-                or f"WPS operation timed out after {timeout_seconds} seconds; WPS may still be running. Run wps-process-audit before retrying.",
-            }],
+            "errors": [
+                {
+                    "code": COM_OPERATION_TIMEOUT,
+                    "message": timeout_message
+                    or f"WPS operation timed out after {timeout_seconds} seconds; WPS may still be running. Run wps-process-audit before retrying.",
+                }
+            ],
             "data": data,
         }
     except OSError as exc:
@@ -191,7 +197,12 @@ def run_powershell_script(
             message = payload.get("error_message") or message
         return None, {
             "ok": False,
-            "errors": [{"code": DOCUMENT_HELD_OPEN if HELD_OPEN_MARKER in message else COM_OPERATION_FAILED, "message": message}],
+            "errors": [
+                {
+                    "code": DOCUMENT_HELD_OPEN if HELD_OPEN_MARKER in message else COM_OPERATION_FAILED,
+                    "message": message,
+                }
+            ],
             "data": {"backend": "powershell-com", **(failure_data or {}), "diagnostic": payload},
         }
     if warnings:

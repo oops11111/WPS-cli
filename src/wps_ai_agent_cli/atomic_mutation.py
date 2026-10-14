@@ -48,7 +48,9 @@ def _rollback_error(document_id: str, backup_file: str, reason: str) -> dict[str
     }
 
 
-def _undo_write(document_id: str, backup_file: str, workspace: str | Path) -> tuple[dict[str, Any], dict[str, str] | None]:
+def _undo_write(
+    document_id: str, backup_file: str, workspace: str | Path
+) -> tuple[dict[str, Any], dict[str, str] | None]:
     document = get_document(document_id, workspace)
     if document is None:
         return {"performed": False}, _rollback_error(document_id, backup_file, "the document is no longer registered")
@@ -69,9 +71,13 @@ def _undo_write(document_id: str, backup_file: str, workspace: str | Path) -> tu
     try:
         restored_sha = file_identity(target)["source_sha256"]
     except OSError as exc:
-        return {"performed": True}, _rollback_error(document_id, backup_file, f"the restored file could not be read ({exc})")
+        return {"performed": True}, _rollback_error(
+            document_id, backup_file, f"the restored file could not be read ({exc})"
+        )
     if restored_sha != backup_sha:
-        return {"performed": True}, _rollback_error(document_id, backup_file, "the restored file does not match the backup")
+        return {"performed": True}, _rollback_error(
+            document_id, backup_file, "the restored file does not match the backup"
+        )
     return {"performed": True, "restored_from": str(backup)}, None
 
 
@@ -107,7 +113,7 @@ def _blocked_guidance(document_id: str, backup_file: str, open_in_wps: bool | No
     return (
         f"The write was saved by WPS and could not be undone, because the file is locked; the document {state}. "
         "The file still holds the rejected value. Close the document in WPS without saving, then restore the pre-write "
-        f"backup with: restore-backup --document-id {document_id} --backup-path \"{backup_file}\" --request-id <new-id>. "
+        f'backup with: restore-backup --document-id {document_id} --backup-path "{backup_file}" --request-id <new-id>. '
         "Or add --close-in-wps to that command to have it close the document for you; it refuses if WPS has unsaved "
         "changes."
     )
@@ -166,7 +172,11 @@ def atomic_mutation(operation: Callable[..., Any]) -> Callable[..., Any]:
             outcome = operation(*args, **kwargs)
         except Exception as exc:
             # The command raised after its backup was taken: undo any write it made, then report the failure.
-            backup_file = _backup_for_request(str(request_id), workspace) if document_id is not None and request_id is not None else None
+            backup_file = (
+                _backup_for_request(str(request_id), workspace)
+                if document_id is not None and request_id is not None
+                else None
+            )
             if backup_file is None:
                 raise
             error = {"code": COM_OPERATION_FAILED, "message": f"The command raised an unexpected exception: {exc}"}

@@ -267,17 +267,28 @@ class BackupTests(unittest.TestCase):
             document.write_bytes(b"externally edited")
             with patch("wps_ai_agent_cli.backups.get_document", return_value=record):
                 output = io.StringIO()
-                self.assertEqual(run(["backup-document", "--document-id", record["document_id"],
-                                      "--request-id", "stale-cli-backup"], output_stream=output), 0)
+                self.assertEqual(
+                    run(
+                        ["backup-document", "--document-id", record["document_id"], "--request-id", "stale-cli-backup"],
+                        output_stream=output,
+                    ),
+                    0,
+                )
                 cli = json.loads(output.getvalue())
-                mcp_ok, mcp, mcp_errors = call_mcp_tool("wps_agent_backup_document", {
-                    "document_id": record["document_id"], "request_id": "stale-mcp-backup",
-                })
+                mcp_ok, mcp, mcp_errors = call_mcp_tool(
+                    "wps_agent_backup_document",
+                    {
+                        "document_id": record["document_id"],
+                        "request_id": "stale-mcp-backup",
+                    },
+                )
             self.assertFalse(cli["ok"])
             self.assertEqual(cli["errors"][0]["code"], "DOCUMENT_IDENTITY_CHANGED")
             self.assertFalse(mcp_ok)
-            self.assertEqual(mcp_errors, [{"code": error["code"], "message": error["message"]}
-                                          for error in mcp["response"]["errors"]])
+            self.assertEqual(
+                mcp_errors,
+                [{"code": error["code"], "message": error["message"]} for error in mcp["response"]["errors"]],
+            )
             self.assertFalse(mcp["response"]["ok"])
             self.assertEqual(mcp["response"]["errors"][0]["code"], "DOCUMENT_IDENTITY_CHANGED")
 

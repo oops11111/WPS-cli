@@ -71,8 +71,14 @@ for index in range(12):
             processes = []
             try:
                 for index in range(4):
-                    processes.append(subprocess.Popen([sys.executable, "-c", script, tmp, str(index)],
-                                                      stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env))
+                    processes.append(
+                        subprocess.Popen(
+                            [sys.executable, "-c", script, tmp, str(index)],
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE,
+                            env=env,
+                        )
+                    )
                 for process in processes:
                     _, stderr = process.communicate(timeout=25)
                     self.assertEqual(process.returncode, 0, stderr.decode(errors="replace"))

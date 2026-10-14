@@ -29,18 +29,24 @@ def write_docx_table(path: Path, target_text: str = "PENDING_STATUS") -> None:
 </w:document>
 """
     with ZipFile(path, "w") as archive:
-        archive.writestr("[Content_Types].xml", """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+        archive.writestr(
+            "[Content_Types].xml",
+            """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
   <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
   <Default Extension="xml" ContentType="application/xml"/>
   <Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>
 </Types>
-""")
-        archive.writestr("_rels/.rels", """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+""",
+        )
+        archive.writestr(
+            "_rels/.rels",
+            """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
   <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>
 </Relationships>
-""")
+""",
+        )
         archive.writestr("word/document.xml", xml)
 
 
@@ -59,16 +65,21 @@ class WriterTableSmokeTests(unittest.TestCase):
                 self.assertEqual(errors, [])
                 document = get_document(document_id, workspace)
                 write_docx_table(Path(document["path"]), target_text=text)
-                return True, {
-                    "document_id": document_id,
-                    "table_index": table_index,
-                    "row": row,
-                    "column": column,
-                    "replacement_text": text,
-                    "read_back_text": text,
-                    "validation_passed": True,
-                    "backup": backup,
-                }, [], False
+                return (
+                    True,
+                    {
+                        "document_id": document_id,
+                        "table_index": table_index,
+                        "row": row,
+                        "column": column,
+                        "replacement_text": text,
+                        "read_back_text": text,
+                        "validation_passed": True,
+                        "backup": backup,
+                    },
+                    [],
+                    False,
+                )
 
             with patch("wps_ai_agent_cli.writer_table_smoke.writer_table_write", side_effect=fake_write):
                 result = run_writer_table_smoke(

@@ -35,7 +35,9 @@ class RunnerTests(unittest.TestCase):
         self.assertEqual(payload["x"], 1)
 
     def test_timeout_is_structured_and_merges_data(self):
-        payload, failure = self.run_with(error=subprocess.TimeoutExpired("ps", 5), timeout_seconds=5, timeout_data={"k": "v"})
+        payload, failure = self.run_with(
+            error=subprocess.TimeoutExpired("ps", 5), timeout_seconds=5, timeout_data={"k": "v"}
+        )
         self.assertIsNone(payload)
         self.assertEqual(failure["errors"][0]["code"], "COM_OPERATION_TIMEOUT")
         self.assertTrue(failure["data"]["timed_out"])
@@ -46,7 +48,9 @@ class RunnerTests(unittest.TestCase):
         self.assertEqual(failure["errors"][0]["code"], "COM_OPERATION_FAILED")
 
     def test_nonzero_exit_uses_error_message_from_json(self):
-        _, failure = self.run_with(Completed(2, json.dumps({"ok": False, "error_message": "boom"})), failure_data={"component": "writer"})
+        _, failure = self.run_with(
+            Completed(2, json.dumps({"ok": False, "error_message": "boom"})), failure_data={"component": "writer"}
+        )
         self.assertEqual(failure["errors"][0]["message"], "boom")
         self.assertEqual(failure["data"]["component"], "writer")
         self.assertEqual(failure["data"]["diagnostic"]["error_message"], "boom")
@@ -76,11 +80,18 @@ class RunnerTests(unittest.TestCase):
     def test_converted_com_helpers_keep_their_timeout_contracts(self):
         from wps_ai_agent_cli import spreadsheet_ops, writer_ops
 
-        caps = {"components": {"spreadsheets": {"selected_prog_id": "ket.Application"}, "writer": {"selected_prog_id": "kwps.Application"}}}
+        caps = {
+            "components": {
+                "spreadsheets": {"selected_prog_id": "ket.Application"},
+                "writer": {"selected_prog_id": "kwps.Application"},
+            }
+        }
         timeout = subprocess.TimeoutExpired("ps", 120)
-        with patch.object(spreadsheet_ops, "probe_wps_capabilities", return_value=caps), \
-                patch.object(writer_ops, "probe_wps_capabilities", return_value=caps), \
-                patch("wps_ai_agent_cli.powershell_runner.subprocess.run", side_effect=timeout):
+        with (
+            patch.object(spreadsheet_ops, "probe_wps_capabilities", return_value=caps),
+            patch.object(writer_ops, "probe_wps_capabilities", return_value=caps),
+            patch("wps_ai_agent_cli.powershell_runner.subprocess.run", side_effect=timeout),
+        ):
             result = spreadsheet_ops._run_spreadsheet_rename_sheet_com("book.xlsx", "a", "b")
             self.assertEqual(result["errors"][0]["code"], "COM_OPERATION_TIMEOUT")
             self.assertTrue(result["data"]["timed_out"])

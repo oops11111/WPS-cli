@@ -25,7 +25,13 @@ class RenderedAuditConfigTests(unittest.TestCase):
 
     def test_only_the_audit_template_is_replaced(self):
         with tempfile.TemporaryDirectory() as tmp:
-            command = ["mcp-config-audit", "--config", regression.MCP_AUDIT_TEMPLATE, "--server-name", "wps-ai-agent-cli"]
+            command = [
+                "mcp-config-audit",
+                "--config",
+                regression.MCP_AUDIT_TEMPLATE,
+                "--server-name",
+                "wps-ai-agent-cli",
+            ]
             rewritten = regression._scenario_command(command, Path(tmp))
 
         self.assertEqual(rewritten[:2], ["mcp-config-audit", "--config"])

@@ -48,34 +48,58 @@ def compare_wps_versions(
 ) -> tuple[bool, dict[str, Any], list[dict[str, Any]]]:
     unknown = sorted(set(versions) - set(COMPONENT_NAMES))
     if unknown:
-        return False, {}, [{
-            "code": "WPS_VERSION_COMPONENT_UNKNOWN",
-            "message": "Version comparison only accepts writer, spreadsheets, and presentation.",
-            "details": {"components": unknown},
-        }]
+        return (
+            False,
+            {},
+            [
+                {
+                    "code": "WPS_VERSION_COMPONENT_UNKNOWN",
+                    "message": "Version comparison only accepts writer, spreadsheets, and presentation.",
+                    "details": {"components": unknown},
+                }
+            ],
+        )
 
     path = version_state_path(workspace)
     try:
         payload = read_json_state(path, {"schema_version": SCHEMA_VERSION, "components": {}})
     except StateCorruptError as exc:
-        return False, {"state_path": str(path)}, [{
-            "code": exc.code,
-            "message": "The WPS version baseline is not valid JSON and was quarantined when possible.",
-            "details": exc.details,
-        }]
+        return (
+            False,
+            {"state_path": str(path)},
+            [
+                {
+                    "code": exc.code,
+                    "message": "The WPS version baseline is not valid JSON and was quarantined when possible.",
+                    "details": exc.details,
+                }
+            ],
+        )
     except OSError:
-        return False, {"state_path": str(path)}, [{
-            "code": "WPS_VERSION_STATE_UNREADABLE",
-            "message": "The WPS version baseline could not be read.",
-        }]
+        return (
+            False,
+            {"state_path": str(path)},
+            [
+                {
+                    "code": "WPS_VERSION_STATE_UNREADABLE",
+                    "message": "The WPS version baseline could not be read.",
+                }
+            ],
+        )
 
     baseline, problem = _baseline_versions(payload)
     if baseline is None:
-        return False, {"state_path": str(path)}, [{
-            "code": "WPS_VERSION_STATE_INVALID",
-            "message": "The WPS version baseline does not use the supported object shape.",
-            "details": {"reason": problem},
-        }]
+        return (
+            False,
+            {"state_path": str(path)},
+            [
+                {
+                    "code": "WPS_VERSION_STATE_INVALID",
+                    "message": "The WPS version baseline does not use the supported object shape.",
+                    "details": {"reason": problem},
+                }
+            ],
+        )
 
     observed = {name: _blank_to_none(versions.get(name)) for name in COMPONENT_NAMES}
     comparisons = [_comparison(name, observed[name], baseline[name]) for name in COMPONENT_NAMES]
@@ -90,18 +114,28 @@ def compare_wps_versions(
             try:
                 atomic_write_json(path, {"schema_version": SCHEMA_VERSION, "components": merged})
             except OSError:
-                return False, {"state_path": str(path), "comparisons": comparisons}, [{
-                    "code": "WPS_VERSION_STATE_UNWRITABLE",
-                    "message": "The WPS version baseline could not be written.",
-                }]
+                return (
+                    False,
+                    {"state_path": str(path), "comparisons": comparisons},
+                    [
+                        {
+                            "code": "WPS_VERSION_STATE_UNWRITABLE",
+                            "message": "The WPS version baseline could not be written.",
+                        }
+                    ],
+                )
             persisted = True
 
-    return True, {
-        "state_path": str(path),
-        "record_requested": record,
-        "persisted": persisted,
-        "comparisons": comparisons,
-    }, []
+    return (
+        True,
+        {
+            "state_path": str(path),
+            "record_requested": record,
+            "persisted": persisted,
+            "comparisons": comparisons,
+        },
+        [],
+    )
 
 
 def _blank_to_none(value: str | None) -> str | None:

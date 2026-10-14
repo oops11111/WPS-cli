@@ -13,7 +13,9 @@ from wps_ai_agent_cli.writer_ops import writer_fill_bookmark
 
 
 class DocumentIdentityIntegrationTests(unittest.TestCase):
-    @unittest.skipUnless(os.environ.get("WPS_AGENT_RUN_INTEGRATION") == "1", "set WPS_AGENT_RUN_INTEGRATION=1 to launch local WPS Writer")
+    @unittest.skipUnless(
+        os.environ.get("WPS_AGENT_RUN_INTEGRATION") == "1", "set WPS_AGENT_RUN_INTEGRATION=1 to launch local WPS Writer"
+    )
     def test_wps_fill_refreshes_identity_for_next_backup(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "identity-wps.docx"
@@ -32,14 +34,20 @@ class DocumentIdentityIntegrationTests(unittest.TestCase):
             ok, record, errors = register_document("writer", str(path), tmp)
             self.assertTrue(ok, errors)
             filled, result, fill_errors, _ = writer_fill_bookmark(
-                record["document_id"], "Client", "Updated", "identity-wps-fill", workspace=tmp,
+                record["document_id"],
+                "Client",
+                "Updated",
+                "identity-wps-fill",
+                workspace=tmp,
             )
             self.assertTrue(filled, (fill_errors, result))
             self.assertTrue(result["readback_passed"])
             current = get_document(record["document_id"], tmp)
             self.assertEqual({key: current[key] for key in file_identity(path)}, file_identity(path))
             backed_up, _, backup_errors, _ = create_backup(
-                record["document_id"], "identity-post-fill-backup", workspace=tmp,
+                record["document_id"],
+                "identity-post-fill-backup",
+                workspace=tmp,
             )
             self.assertTrue(backed_up, backup_errors)
 

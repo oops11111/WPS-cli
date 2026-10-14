@@ -195,13 +195,24 @@ try {{
     return {"ok": True, "errors": [], "data": payload}
 
 
-
 def _run_writer_bookmark_fill_com(path: str, name: str, value: str, expected_text: str) -> dict[str, Any]:
     capabilities = probe_wps_capabilities()
     prog_id = capabilities["components"]["writer"]["selected_prog_id"]
     if not prog_id:
-        return {"ok": False, "errors": [{"code": COM_BACKEND_UNAVAILABLE, "message": "No registered WPS ProgID detected for writer."}], "data": {"capabilities": capabilities}}
-    params_json = json.dumps({"prog_id": prog_id, "path": str(Path(path).resolve()), "name": name, "value": value, "expected_text": expected_text})
+        return {
+            "ok": False,
+            "errors": [{"code": COM_BACKEND_UNAVAILABLE, "message": "No registered WPS ProgID detected for writer."}],
+            "data": {"capabilities": capabilities},
+        }
+    params_json = json.dumps(
+        {
+            "prog_id": prog_id,
+            "path": str(Path(path).resolve()),
+            "name": name,
+            "value": value,
+            "expected_text": expected_text,
+        }
+    )
     script = f"""
 $ErrorActionPreference = 'Stop'
 $params = @'
@@ -243,92 +254,200 @@ try {{
     return {"ok": True, "errors": [], "data": payload}
 
 
-
 @coordinated_mutation
 @atomic_mutation
 def writer_fill_bookmark(
-    document_id: str, bookmark_name: str, value: str, request_id: str,
-    dry_run: bool = False, workspace: str | Path = ".",
+    document_id: str,
+    bookmark_name: str,
+    value: str,
+    request_id: str,
+    dry_run: bool = False,
+    workspace: str | Path = ".",
 ) -> tuple[bool, dict[str, Any], list[dict[str, str]], bool]:
     replacement_digest = hashlib.sha256(value.encode("utf-8")).hexdigest()
     replay = replay_operation(
-        request_id, "writer-fill-bookmark",
-        {"document_id": document_id, "bookmark_name": bookmark_name, "replacement_digest": replacement_digest, "dry_run": dry_run},
+        request_id,
+        "writer-fill-bookmark",
+        {
+            "document_id": document_id,
+            "bookmark_name": bookmark_name,
+            "replacement_digest": replacement_digest,
+            "dry_run": dry_run,
+        },
         workspace,
     )
     if replay is not None:
         return replay
     if not bookmark_name or bookmark_name.startswith("_"):
-        return False, {}, [{"code": "INVALID_ARGUMENT", "message": "bookmark_name must be a non-reserved, non-empty name."}], False
+        return (
+            False,
+            {},
+            [{"code": "INVALID_ARGUMENT", "message": "bookmark_name must be a non-reserved, non-empty name."}],
+            False,
+        )
     document = get_document(document_id, workspace)
     if not document:
         return False, {}, [{"code": "DOCUMENT_NOT_FOUND", "message": f"Document not registered: {document_id}"}], False
     if document["component"] != "writer":
-        return False, {"document": document}, [{"code": "UNSUPPORTED_COMPONENT", "message": "writer-fill-bookmark requires a Writer document."}], False
+        return (
+            False,
+            {"document": document},
+            [{"code": "UNSUPPORTED_COMPONENT", "message": "writer-fill-bookmark requires a Writer document."}],
+            False,
+        )
     path = Path(document["path"])
     if not path.exists():
-        return False, {"document": document}, [{"code": INPUT_FILE_NOT_FOUND, "message": f"Input file not found: {path}"}], False
+        return (
+            False,
+            {"document": document},
+            [{"code": INPUT_FILE_NOT_FOUND, "message": f"Input file not found: {path}"}],
+            False,
+        )
     structure = read_writer_structure(path)
     named = [item for item in structure["bookmarks"] if item["name"] == bookmark_name]
     if not named:
-        return False, {"document_id": document_id, "bookmark_name": bookmark_name}, [{"code": "BOOKMARK_NOT_FOUND", "message": f"Bookmark not found: {bookmark_name}"}], False
+        return (
+            False,
+            {"document_id": document_id, "bookmark_name": bookmark_name},
+            [{"code": "BOOKMARK_NOT_FOUND", "message": f"Bookmark not found: {bookmark_name}"}],
+            False,
+        )
     if len(named) != 1:
-        return False, {"document_id": document_id, "bookmark_name": bookmark_name}, [{"code": "BOOKMARK_AMBIGUOUS", "message": f"Bookmark name is not unique: {bookmark_name}"}], False
+        return (
+            False,
+            {"document_id": document_id, "bookmark_name": bookmark_name},
+            [{"code": "BOOKMARK_AMBIGUOUS", "message": f"Bookmark name is not unique: {bookmark_name}"}],
+            False,
+        )
     bookmark = named[0]
     body_scope = bookmark["body_paragraph_range_supported"]
     start_location, end_location = bookmark.get("start") or {}, bookmark.get("end") or {}
     table_location_keys = ("table_index", "row", "column", "story_paragraph_index")
     table_scope = (
-        not body_scope and bookmark["text_range_supported"]
+        not body_scope
+        and bookmark["text_range_supported"]
         and bookmark["part"] == "word/document.xml"
         and start_location.get("scope") == end_location.get("scope") == "table"
-        and all(start_location.get(key) is not None and start_location.get(key) == end_location.get(key)
-                for key in table_location_keys)
+        and all(
+            start_location.get(key) is not None and start_location.get(key) == end_location.get(key)
+            for key in table_location_keys
+        )
     )
     if not body_scope and not table_scope:
-        return False, {"document_id": document_id, "bookmark": bookmark}, [{"code": "BOOKMARK_SCOPE_UNSUPPORTED", "message": "Only paired bookmarks within one direct body paragraph or direct-body table cell are supported."}], False
+        return (
+            False,
+            {"document_id": document_id, "bookmark": bookmark},
+            [
+                {
+                    "code": "BOOKMARK_SCOPE_UNSUPPORTED",
+                    "message": "Only paired bookmarks within one direct body paragraph or direct-body table cell are supported.",
+                }
+            ],
+            False,
+        )
     if table_scope and (len(value) > 4096 or "\r" in value or "\n" in value):
-        return False, {"document_id": document_id, "bookmark": bookmark}, [{"code": "INVALID_ARGUMENT", "message": "Table-cell bookmark value must be at most 4096 characters on one line."}], False
+        return (
+            False,
+            {"document_id": document_id, "bookmark": bookmark},
+            [
+                {
+                    "code": "INVALID_ARGUMENT",
+                    "message": "Table-cell bookmark value must be at most 4096 characters on one line.",
+                }
+            ],
+            False,
+        )
     _, current_text = (
-        read_body_bookmark_text(path, bookmark_name) if body_scope
+        read_body_bookmark_text(path, bookmark_name)
+        if body_scope
         else read_supported_bookmark_text(path, bookmark_name)
     )
     if current_text is None:
-        return False, {"document_id": document_id, "bookmark": bookmark}, [{"code": "BOOKMARK_SCOPE_UNSUPPORTED", "message": "Bookmark text range could not be resolved."}], False
+        return (
+            False,
+            {"document_id": document_id, "bookmark": bookmark},
+            [{"code": "BOOKMARK_SCOPE_UNSUPPORTED", "message": "Bookmark text range could not be resolved."}],
+            False,
+        )
     paragraph_index = int(start_location["paragraph_index"] if body_scope else start_location["story_paragraph_index"])
     paragraphs = docx_body_paragraphs(path) if body_scope else docx_document_paragraphs(path)
     tables_before = docx_body_tables(path)
     table_topology_before = docx_body_table_topology(path) if table_scope else None
     semantic_neighbors_before = docx_body_link_field_semantics(path) if table_scope else None
     if table_scope and (
-        semantic_neighbors_before["unresolved_links"]
-        or semantic_neighbors_before["unresolved_fields"]
+        semantic_neighbors_before["unresolved_links"] or semantic_neighbors_before["unresolved_fields"]
     ):
-        return False, {"document_id": document_id, "bookmark": bookmark}, [{"code": "BOOKMARK_SCOPE_UNSUPPORTED", "message": "Table-cell bookmark writes require well-formed, resolvable body links and fields."}], False
+        return (
+            False,
+            {"document_id": document_id, "bookmark": bookmark},
+            [
+                {
+                    "code": "BOOKMARK_SCOPE_UNSUPPORTED",
+                    "message": "Table-cell bookmark writes require well-formed, resolvable body links and fields.",
+                }
+            ],
+            False,
+        )
     drawings_before = docx_body_drawing_semantics(path) if table_scope else None
     if table_scope and drawings_before["unresolved_drawings"]:
-        return False, {"document_id": document_id, "bookmark": bookmark}, [{
-            "code": "BOOKMARK_SCOPE_UNSUPPORTED",
-            "message": "Table-cell bookmark writes require supported body drawing semantics.",
-            "details": drawings_before["unresolved_drawings"],
-        }], False
+        return (
+            False,
+            {"document_id": document_id, "bookmark": bookmark},
+            [
+                {
+                    "code": "BOOKMARK_SCOPE_UNSUPPORTED",
+                    "message": "Table-cell bookmark writes require supported body drawing semantics.",
+                    "details": drawings_before["unresolved_drawings"],
+                }
+            ],
+            False,
+        )
     trailing_table_before = _body_ends_with_table(path)
     old_paragraph = paragraphs[paragraph_index - 1]
     start_offset = int(bookmark["start"]["text_offset"])
     end_offset = int(bookmark["end"]["text_offset"])
     if table_scope and docx_bookmark_overlaps_link_or_field(
-        path, bookmark_name, paragraph_index, start_offset, end_offset,
+        path,
+        bookmark_name,
+        paragraph_index,
+        start_offset,
+        end_offset,
     ):
-        return False, {"document_id": document_id, "bookmark": bookmark}, [{"code": "BOOKMARK_SCOPE_UNSUPPORTED", "message": "Table-cell bookmark range may not overlap a hyperlink or field."}], False
+        return (
+            False,
+            {"document_id": document_id, "bookmark": bookmark},
+            [
+                {
+                    "code": "BOOKMARK_SCOPE_UNSUPPORTED",
+                    "message": "Table-cell bookmark range may not overlap a hyperlink or field.",
+                }
+            ],
+            False,
+        )
     if table_scope and docx_bookmark_precedes_character_anchor(path, bookmark_name, paragraph_index):
-        return False, {"document_id": document_id, "bookmark": bookmark}, [{"code": "BOOKMARK_SCOPE_UNSUPPORTED", "message": "Table-cell bookmark writes may not precede a character-relative drawing anchor in the same paragraph."}], False
+        return (
+            False,
+            {"document_id": document_id, "bookmark": bookmark},
+            [
+                {
+                    "code": "BOOKMARK_SCOPE_UNSUPPORTED",
+                    "message": "Table-cell bookmark writes may not precede a character-relative drawing anchor in the same paragraph.",
+                }
+            ],
+            False,
+        )
     expected_paragraph = old_paragraph[:start_offset] + value + old_paragraph[end_offset:]
     preview = {
-        "document_id": document_id, "component": "writer", "path": str(path),
-        "bookmark_name": bookmark_name, "scope": "body_paragraph" if body_scope else "table_cell",
+        "document_id": document_id,
+        "component": "writer",
+        "path": str(path),
+        "bookmark_name": bookmark_name,
+        "scope": "body_paragraph" if body_scope else "table_cell",
         "replacement_digest": replacement_digest,
-        "paragraph_index": paragraph_index, "current_text_length": len(current_text),
-        "replacement_text_length": len(value), "dry_run": dry_run,
+        "paragraph_index": paragraph_index,
+        "current_text_length": len(current_text),
+        "replacement_text_length": len(value),
+        "dry_run": dry_run,
     }
     if table_scope:
         preview["table_index"] = start_location["table_index"]
@@ -337,39 +456,51 @@ def writer_fill_bookmark(
     if dry_run:
         return True, preview, [], False
     backup_ok, backup_result, backup_errors, backup_replayed = create_backup(
-        document_id=document_id, request_id=f"{request_id}:backup", workspace=workspace,
+        document_id=document_id,
+        request_id=f"{request_id}:backup",
+        workspace=workspace,
     )
     if not backup_ok:
         return False, {"preview": preview, "backup": backup_result}, backup_errors, False
     mutation = guarded_com_mutation(
-        path, backup_result,
+        path,
+        backup_result,
         lambda: _run_writer_bookmark_fill_com(str(path), bookmark_name, value, current_text),
     )
     if not mutation["ok"]:
-        return False, {"preview": preview, "backup": backup_result, "mutation": mutation["data"]}, mutation["errors"], False
+        return (
+            False,
+            {"preview": preview, "backup": backup_result, "mutation": mutation["data"]},
+            mutation["errors"],
+            False,
+        )
     after_structure = read_writer_structure(path)
     after_named = [item for item in after_structure["bookmarks"] if item["name"] == bookmark_name]
     after_text = (
-        (read_body_bookmark_text(path, bookmark_name) if body_scope
-         else read_supported_bookmark_text(path, bookmark_name))[1]
-        if len(after_named) == 1 else None
+        (
+            read_body_bookmark_text(path, bookmark_name)
+            if body_scope
+            else read_supported_bookmark_text(path, bookmark_name)
+        )[1]
+        if len(after_named) == 1
+        else None
     )
     after_paragraphs = docx_body_paragraphs(path) if body_scope else docx_document_paragraphs(path)
     expected_paragraphs = list(paragraphs)
     expected_paragraphs[paragraph_index - 1] = expected_paragraph
     body_tail_normalized = trailing_table_before and after_paragraphs == [*expected_paragraphs, ""]
     after_location = (after_named[0].get("start") or {}) if len(after_named) == 1 else {}
-    table_location_preserved = (
-        not table_scope or (
-            all(after_location.get(key) == start_location[key] for key in table_location_keys)
-            and docx_body_table_topology(path) == table_topology_before
-            and docx_body_link_field_semantics(path) == semantic_neighbors_before
-            and docx_body_drawing_semantics(path) == drawings_before
-        )
+    table_location_preserved = not table_scope or (
+        all(after_location.get(key) == start_location[key] for key in table_location_keys)
+        and docx_body_table_topology(path) == table_topology_before
+        and docx_body_link_field_semantics(path) == semantic_neighbors_before
+        and docx_body_drawing_semantics(path) == drawings_before
     )
     readback_passed = (
-        len(after_named) == 1 and (
-            after_named[0]["body_paragraph_range_supported"] if body_scope
+        len(after_named) == 1
+        and (
+            after_named[0]["body_paragraph_range_supported"]
+            if body_scope
             else after_named[0]["text_range_supported"] and after_location.get("scope") == "table"
         )
         and after_text == value
@@ -377,8 +508,11 @@ def writer_fill_bookmark(
         and (docx_body_tables(path) == tables_before if body_scope else table_location_preserved)
     )
     result = {
-        **preview, "dry_run": False, "backup": backup_result,
-        "backup_replayed": backup_replayed, "replace_backend": mutation["data"].get("backend"),
+        **preview,
+        "dry_run": False,
+        "backup": backup_result,
+        "backup_replayed": backup_replayed,
+        "replace_backend": mutation["data"].get("backend"),
         "readback_passed": readback_passed,
         "body_tail_normalized": body_tail_normalized,
     }
@@ -386,7 +520,17 @@ def writer_fill_bookmark(
     if post_error is not None:
         return False, result, [post_error], False
     if not readback_passed:
-        return False, result, [{"code": "VALIDATION_FAILED", "message": "Bookmark fill read-back did not match the expected range and paragraph."}], False
+        return (
+            False,
+            result,
+            [
+                {
+                    "code": "VALIDATION_FAILED",
+                    "message": "Bookmark fill read-back did not match the expected range and paragraph.",
+                }
+            ],
+            False,
+        )
     record_operation(request_id, "writer-fill-bookmark", result, workspace)
     return True, result, [], False
 
@@ -489,7 +633,6 @@ try {{
     return {"ok": True, "errors": [], "data": payload}
 
 
-
 @coordinated_mutation
 @atomic_mutation
 def writer_replace(
@@ -502,8 +645,15 @@ def writer_replace(
     workspace: str | Path = ".",
 ) -> tuple[bool, dict[str, Any], list[dict[str, str]], bool]:
     replay = replay_operation(
-        request_id, "writer-replace",
-        {"document_id": document_id, "find_text": find_text, "replace_text": replace_text, "paragraph_index": paragraph_index, "dry_run": dry_run},
+        request_id,
+        "writer-replace",
+        {
+            "document_id": document_id,
+            "find_text": find_text,
+            "replace_text": replace_text,
+            "paragraph_index": paragraph_index,
+            "dry_run": dry_run,
+        },
         workspace,
     )
     if replay is not None:
@@ -520,13 +670,15 @@ def writer_replace(
         return (
             False,
             {},
-            [{
-                "code": "FIND_TEXT_TOO_LONG",
-                "message": (
-                    f"find_text is {len(find_text)} characters; Word Find.Text accepts at most "
-                    f"{WORD_FIND_TEXT_MAX_CHARS}. Shorten the search text or split the replace."
-                ),
-            }],
+            [
+                {
+                    "code": "FIND_TEXT_TOO_LONG",
+                    "message": (
+                        f"find_text is {len(find_text)} characters; Word Find.Text accepts at most "
+                        f"{WORD_FIND_TEXT_MAX_CHARS}. Shorten the search text or split the replace."
+                    ),
+                }
+            ],
             False,
         )
     if paragraph_index is not None and paragraph_index < 1:
@@ -586,10 +738,7 @@ def writer_replace(
             )
 
         if paragraph_index is None:
-            expected_texts = [
-                text.replace(find_text, replace_text)
-                for text in docx_body_story_paragraphs(path)
-            ]
+            expected_texts = [text.replace(find_text, replace_text) for text in docx_body_story_paragraphs(path)]
             before_count = count_text_in_docx(path, find_text, parts=BODY_PARTS)
             scope = "body"
         else:
@@ -633,24 +782,33 @@ def writer_replace(
         return False, {"preview": preview, "backup": backup_result}, backup_errors, False
 
     replace_result = guarded_com_mutation(
-        path, backup_result,
+        path,
+        backup_result,
         lambda: _run_writer_replace_com(
-            str(path), find_text, replace_text, paragraph_index=paragraph_index,
+            str(path),
+            find_text,
+            replace_text,
+            paragraph_index=paragraph_index,
         ),
     )
     if not replace_result["ok"]:
-        return False, {"preview": preview, "backup": backup_result, "replace": replace_result["data"]}, replace_result["errors"], False
+        return (
+            False,
+            {"preview": preview, "backup": backup_result, "replace": replace_result["data"]},
+            replace_result["errors"],
+            False,
+        )
 
-    actual_texts = (
-        docx_body_story_paragraphs(path)
-        if paragraph_index is None else docx_body_paragraphs(path)
-    )
+    actual_texts = docx_body_story_paragraphs(path) if paragraph_index is None else docx_body_paragraphs(path)
     changed_paragraphs = [
-        index for index, (expected, actual) in enumerate(zip(expected_texts, actual_texts, strict=False), 1)
+        index
+        for index, (expected, actual) in enumerate(zip(expected_texts, actual_texts, strict=False), 1)
         if expected != actual
     ]
     if len(expected_texts) != len(actual_texts):
-        changed_paragraphs.extend(range(min(len(expected_texts), len(actual_texts)) + 1, max(len(expected_texts), len(actual_texts)) + 1))
+        changed_paragraphs.extend(
+            range(min(len(expected_texts), len(actual_texts)) + 1, max(len(expected_texts), len(actual_texts)) + 1)
+        )
     remaining_find_count = (
         count_text_in_docx(path, find_text, parts=BODY_PARTS)
         if paragraph_index is None
@@ -708,7 +866,8 @@ def writer_table_write(
     workspace: str | Path = ".",
 ) -> tuple[bool, dict[str, Any], list[dict[str, str]], bool]:
     replay = replay_operation(
-        request_id, "writer-table-write",
+        request_id,
+        "writer-table-write",
         {
             "document_id": document_id,
             "table_index": table_index,
@@ -735,7 +894,12 @@ def writer_table_write(
         return (
             False,
             {},
-            [{"code": "INVALID_ARGUMENT", "message": "Table-cell text must be at most 4096 characters on one line without control characters."}],
+            [
+                {
+                    "code": "INVALID_ARGUMENT",
+                    "message": "Table-cell text must be at most 4096 characters on one line without control characters.",
+                }
+            ],
             False,
         )
 
@@ -819,14 +983,16 @@ def writer_table_write(
         return (
             False,
             preview,
-            [{
-                "code": "CELL_HAS_RICH_CONTENT",
-                "message": (
-                    "Target cell contains rich content that a text write would discard: "
-                    + ", ".join(rich_kinds)
-                    + ". Re-run with --allow-rich-content if discarding it is intentional."
-                ),
-            }],
+            [
+                {
+                    "code": "CELL_HAS_RICH_CONTENT",
+                    "message": (
+                        "Target cell contains rich content that a text write would discard: "
+                        + ", ".join(rich_kinds)
+                        + ". Re-run with --allow-rich-content if discarding it is intentional."
+                    ),
+                }
+            ],
             False,
         )
     if dry_run:
@@ -842,13 +1008,23 @@ def writer_table_write(
         return False, {"preview": preview, "backup": backup_result}, backup_errors, False
 
     write_result = guarded_com_mutation(
-        path, backup_result,
+        path,
+        backup_result,
         lambda: _run_writer_table_write_com(
-            str(path), table_index=table_index, row=row, column=column, text=text,
+            str(path),
+            table_index=table_index,
+            row=row,
+            column=column,
+            text=text,
         ),
     )
     if not write_result["ok"]:
-        return False, {"preview": preview, "backup": backup_result, "write": write_result["data"]}, write_result["errors"], False
+        return (
+            False,
+            {"preview": preview, "backup": backup_result, "write": write_result["data"]},
+            write_result["errors"],
+            False,
+        )
 
     final_tables = docx_body_tables(path)
     read_back_text = docx_table_cell_text(path, table_index, row, column)

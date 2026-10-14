@@ -50,20 +50,25 @@ class HtmlRenderTests(unittest.TestCase):
                     "Completed",
                     (),
                     {
-                        "stdout": json.dumps({
-                            "ok": True,
-                            "page_title": "P3-410 HTML visual smoke",
-                            "document_height": 800,
-                        }),
+                        "stdout": json.dumps(
+                            {
+                                "ok": True,
+                                "page_title": "P3-410 HTML visual smoke",
+                                "document_height": 800,
+                            }
+                        ),
                         "stderr": "",
                         "returncode": 0,
                     },
                 )()
 
-            with patch("wps_ai_agent_cli.html_render._resolve_browser_runtime", return_value=("node", "edge")), patch(
-                "wps_ai_agent_cli.html_render._run_renderer",
-                side_effect=fake_run,
-            ) as renderer:
+            with (
+                patch("wps_ai_agent_cli.html_render._resolve_browser_runtime", return_value=("node", "edge")),
+                patch(
+                    "wps_ai_agent_cli.html_render._run_renderer",
+                    side_effect=fake_run,
+                ) as renderer,
+            ):
                 ok, data, errors = render_html(HTML_VISUAL_SMOKE, destination, "pdf")
             self.assertTrue(ok, errors)
             self.assertEqual(data["page_title"], "P3-410 HTML visual smoke")
@@ -80,11 +85,15 @@ class HtmlRenderPublishTests(unittest.TestCase):
 
         def fake_run(_node, request, _timeout):
             Path(request["output_path"]).write_bytes(b"%PDF-1.7 body")
-            payload = stdout if stdout is not None else json.dumps({"ok": True, "page_title": "t", "document_height": 1})
+            payload = (
+                stdout if stdout is not None else json.dumps({"ok": True, "page_title": "t", "document_height": 1})
+            )
             return type("Completed", (), {"stdout": payload, "stderr": "", "returncode": 0})()
 
-        with patch("wps_ai_agent_cli.html_render._resolve_browser_runtime", return_value=("node", "edge")), \
-                patch("wps_ai_agent_cli.html_render._run_renderer", side_effect=fake_run):
+        with (
+            patch("wps_ai_agent_cli.html_render._resolve_browser_runtime", return_value=("node", "edge")),
+            patch("wps_ai_agent_cli.html_render._run_renderer", side_effect=fake_run),
+        ):
             return render_html(source, destination, "pdf"), destination
 
     def test_falls_back_to_exclusive_create_when_hard_links_are_unsupported(self):
@@ -125,7 +134,10 @@ class HtmlRenderPublishTests(unittest.TestCase):
         self.assertIn("NODE_PATH", readme)
 
 
-@unittest.skipUnless(os.environ.get("WPS_AGENT_RUN_BROWSER_INTEGRATION") == "1", "set WPS_AGENT_RUN_BROWSER_INTEGRATION=1 to launch local Edge")
+@unittest.skipUnless(
+    os.environ.get("WPS_AGENT_RUN_BROWSER_INTEGRATION") == "1",
+    "set WPS_AGENT_RUN_BROWSER_INTEGRATION=1 to launch local Edge",
+)
 class HtmlRenderBrowserIntegrationTests(unittest.TestCase):
     def test_pdf_and_png_are_nonblank_and_network_isolation_is_reported(self):
         with TemporaryDirectory() as directory:
@@ -151,6 +163,7 @@ class HtmlRenderBrowserIntegrationTests(unittest.TestCase):
                     import io
 
                     from PIL import Image, ImageStat
+
                     image = Image.open(io.BytesIO(artifact)).convert("RGB")
                     self.assertGreater(image.width, 320)
                     self.assertGreater(sum(ImageStat.Stat(image).stddev), 20)

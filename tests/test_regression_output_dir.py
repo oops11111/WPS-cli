@@ -47,17 +47,23 @@ class RunOutputDirTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp) / "outputs"
             manifest = _write_manifest(Path(tmp), scenarios)
-            with patch.object(regression, "REGRESSION_OUTPUT_ROOT", root), \
-                    patch.object(regression, "_run_cli", side_effect=fake_run_cli):
+            with (
+                patch.object(regression, "REGRESSION_OUTPUT_ROOT", root),
+                patch.object(regression, "_run_cli", side_effect=fake_run_cli),
+            ):
                 ok, result, errors = regression.run_regression_manifest(manifest, profile="wps", include_wps=True)
             created = sorted(path.name for path in root.iterdir()) if root.exists() else []
             return ok, result, errors, seen, root, created
 
     def test_a_run_writes_outputs_to_one_new_directory_and_reports_it(self):
-        ok, result, errors, seen, root, created = self.run_manifest([
-            _scenario("a", ["calc-smoke", "--input", "in.xlsx", "--output", "{output_dir}/a.xlsx"]),
-            _scenario("b", ["convert-smoke", "--input", "in.docx", "--output", "{output_dir}/b.pdf", "--format", "pdf"]),
-        ])
+        ok, result, errors, seen, root, created = self.run_manifest(
+            [
+                _scenario("a", ["calc-smoke", "--input", "in.xlsx", "--output", "{output_dir}/a.xlsx"]),
+                _scenario(
+                    "b", ["convert-smoke", "--input", "in.docx", "--output", "{output_dir}/b.pdf", "--format", "pdf"]
+                ),
+            ]
+        )
 
         self.assertTrue(ok, errors)
         self.assertEqual(len(created), 1)
@@ -91,7 +97,9 @@ class ShippedManifestTests(unittest.TestCase):
         probe = regression.REGRESSION_OUTPUT_ROOT / "20260101T000000Z-probe" / "out.pdf"
         completed = subprocess.run(
             ["git", "check-ignore", "-q", str(probe.relative_to(regression.REPO_ROOT))],
-            cwd=regression.REPO_ROOT, capture_output=True, check=False,
+            cwd=regression.REPO_ROOT,
+            capture_output=True,
+            check=False,
         )
         if completed.returncode == 128:
             self.skipTest("not a git checkout")

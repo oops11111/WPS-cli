@@ -11,11 +11,7 @@ def build_mcp_catalog_snapshot() -> dict[str, Any]:
     category_counts = Counter(schema["category"] for schema in tools)
     mutating = [schema for schema in tools if schema["mutates_document"]]
     requires_wps = [schema for schema in tools if schema["requires_wps"]]
-    safety_notes_missing = [
-        schema["name"]
-        for schema in mutating
-        if not schema.get("safety_notes")
-    ]
+    safety_notes_missing = [schema["name"] for schema in mutating if not schema.get("safety_notes")]
     maintenance_tools = [
         {
             "name": schema["name"],

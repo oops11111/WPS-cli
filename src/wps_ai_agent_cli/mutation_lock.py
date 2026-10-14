@@ -173,7 +173,9 @@ def coordinated_mutation(operation: Callable[..., Any]) -> Callable[..., Any]:
         try:
             with ExitStack() as locks:
                 if request_id is not None:
-                    locks.enter_context(document_mutation_lock(f"request:{request_id}", workspace, DEFAULT_TIMEOUT_SECONDS))
+                    locks.enter_context(
+                        document_mutation_lock(f"request:{request_id}", workspace, DEFAULT_TIMEOUT_SECONDS)
+                    )
                 locks.enter_context(document_mutation_lock(str(document_id), workspace, DEFAULT_TIMEOUT_SECONDS))
                 return _run_collecting_warnings(operation, args, kwargs)
         except DocumentBusyError as exc:

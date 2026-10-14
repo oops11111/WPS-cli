@@ -3,6 +3,7 @@
 usage: python make_fixtures.py <work_dir>
 needs: openpyxl, python-docx, python-pptx  (pip install -e ".[test]")
 """
+
 from __future__ import annotations
 
 import sys

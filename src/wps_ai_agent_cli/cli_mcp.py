@@ -191,22 +191,30 @@ def mcp_call_response(request_id: str, name: str, arguments_json: str) -> Comman
     )
 
 
-def mcp_smoke_response(request_id: str, expected_min_tools: int, tool_name: str,
-                       arguments_json: str | None = None) -> CommandResponse:
+def mcp_smoke_response(
+    request_id: str, expected_min_tools: int, tool_name: str, arguments_json: str | None = None
+) -> CommandResponse:
     try:
         tool_arguments = json.loads(arguments_json) if arguments_json is not None else None
     except json.JSONDecodeError:
         tool_arguments = None
         argument_error = {"code": "MCP_SMOKE_ARGUMENTS_INVALID_JSON", "message": "--arguments-json must be valid JSON."}
     else:
-        argument_error = None if arguments_json is None or isinstance(tool_arguments, dict) else {
-            "code": "MCP_SMOKE_ARGUMENTS_INVALID_OBJECT", "message": "--arguments-json must contain an object.",
-        }
+        argument_error = (
+            None
+            if arguments_json is None or isinstance(tool_arguments, dict)
+            else {
+                "code": "MCP_SMOKE_ARGUMENTS_INVALID_OBJECT",
+                "message": "--arguments-json must contain an object.",
+            }
+        )
     if argument_error:
         ok, result, errors = False, {}, [argument_error]
     else:
         ok, result, errors = run_mcp_server_smoke(
-            expected_min_tools=expected_min_tools, tool_name=tool_name, tool_arguments=tool_arguments,
+            expected_min_tools=expected_min_tools,
+            tool_name=tool_name,
+            tool_arguments=tool_arguments,
         )
     return CommandResponse(
         ok=ok,
@@ -264,7 +272,9 @@ def regression_manifest_response(
         command="regression-manifest",
         request_id=request_id,
         backend=BACKEND,
-        summary=f"Returned {len(scenarios)} regression scenarios." if ok else "Regression manifest could not be loaded.",
+        summary=f"Returned {len(scenarios)} regression scenarios."
+        if ok
+        else "Regression manifest could not be loaded.",
         data={
             "manifest_path": manifest_path,
             "version": manifest.get("version") if ok else None,

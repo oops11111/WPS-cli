@@ -164,9 +164,7 @@ class ProcessTreeKillTests(unittest.TestCase):
         process = MagicMock()
         process.pid = 99
         process.poll.return_value = None
-        with patch.object(html_render.sys, "platform", "win32"), patch.object(
-            html_render.subprocess, "run"
-        ) as run:
+        with patch.object(html_render.sys, "platform", "win32"), patch.object(html_render.subprocess, "run") as run:
             html_render._kill_process_tree(process)
         run.assert_called_once()
         self.assertEqual(run.call_args.args[0][:4], ["taskkill", "/F", "/T", "/PID"])

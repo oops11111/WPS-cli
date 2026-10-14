@@ -43,7 +43,10 @@ def _hold(target: Path):
             raise PermissionError(13, _SHARING_VIOLATION, str(path))
         return _REAL_ZIPFILE(path, *args, **kwargs)
 
-    return [patch("zipfile.ZipFile", side_effect=zip_open), patch("wps_ai_agent_cli.ooxml.ZipFile", side_effect=zip_open)]
+    return [
+        patch("zipfile.ZipFile", side_effect=zip_open),
+        patch("wps_ai_agent_cli.ooxml.ZipFile", side_effect=zip_open),
+    ]
 
 
 class HeldFileReadTests(unittest.TestCase):

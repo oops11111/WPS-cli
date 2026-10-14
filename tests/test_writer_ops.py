@@ -31,10 +31,7 @@ def write_minimal_docx(path: Path, text: str) -> None:
 
 
 def write_minimal_docx_paragraphs(path: Path, paragraphs: list[str]) -> None:
-    body = "\n".join(
-        f"    <w:p><w:r><w:t>{text}</w:t></w:r></w:p>"
-        for text in paragraphs
-    )
+    body = "\n".join(f"    <w:p><w:r><w:t>{text}</w:t></w:r></w:p>" for text in paragraphs)
     xml = f"""<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
   <w:body>
@@ -43,18 +40,24 @@ def write_minimal_docx_paragraphs(path: Path, paragraphs: list[str]) -> None:
 </w:document>
 """
     with ZipFile(path, "w") as archive:
-        archive.writestr("[Content_Types].xml", """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+        archive.writestr(
+            "[Content_Types].xml",
+            """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
   <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
   <Default Extension="xml" ContentType="application/xml"/>
   <Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>
 </Types>
-""")
-        archive.writestr("_rels/.rels", """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+""",
+        )
+        archive.writestr(
+            "_rels/.rels",
+            """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
   <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>
 </Relationships>
-""")
+""",
+        )
         archive.writestr("word/document.xml", xml)
 
 
@@ -63,12 +66,16 @@ def write_minimal_docx_with_table(
     target_text: str = "PENDING_STATUS",
     include_second_table: bool = True,
 ) -> None:
-    second_table = """
+    second_table = (
+        """
     <w:tbl>
       <w:tr>
         <w:tc><w:p><w:r><w:t>Second table</w:t></w:r></w:p></w:tc>
       </w:tr>
-    </w:tbl>""" if include_second_table else ""
+    </w:tbl>"""
+        if include_second_table
+        else ""
+    )
     xml = f"""<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
   <w:body>
@@ -95,18 +102,24 @@ def write_minimal_docx_with_table(
 </w:document>
 """
     with ZipFile(path, "w") as archive:
-        archive.writestr("[Content_Types].xml", """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+        archive.writestr(
+            "[Content_Types].xml",
+            """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
   <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
   <Default Extension="xml" ContentType="application/xml"/>
   <Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>
 </Types>
-""")
-        archive.writestr("_rels/.rels", """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+""",
+        )
+        archive.writestr(
+            "_rels/.rels",
+            """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
   <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>
 </Relationships>
-""")
+""",
+        )
         archive.writestr("word/document.xml", xml)
 
 

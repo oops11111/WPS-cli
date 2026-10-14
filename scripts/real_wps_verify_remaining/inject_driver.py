@@ -12,16 +12,14 @@ usage (PYTHONPATH=<repo>\\src):
   python inject_driver.py presentation-replace --document-id ... --find ALPHA --replace BETA
   python inject_driver.py spreadsheet-write --document-id ... --range A1:A1 --values-json "[[9]]"
 """
+
 from __future__ import annotations
 
 import sys
 
 PATH_OPEN_MARKER = "function Test-WpsPathOpen($collection, [string]$path) {"
 FIND_MARKER = "function Find-WpsOpenDocument($collection, [string]$path) {"
-COUNT_CHECK_MARKER = (
-    "  if ([int]$collection.Count -le $countBefore) {\n"
-    "    # Nothing new appeared in the collection"
-)
+COUNT_CHECK_MARKER = "  if ([int]$collection.Count -le $countBefore) {\n    # Nothing new appeared in the collection"
 # Presentation path uses a slightly different Count check comment-less form in some builds;
 # also patch the Workbooks Open path used by documents.
 TRACE_SNIPPET = r"""  try {

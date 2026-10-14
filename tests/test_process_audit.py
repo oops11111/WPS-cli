@@ -23,7 +23,9 @@ class ProcessAuditTests(unittest.TestCase):
         self.assertIn("Do not automatically kill", result["cleanup_guidance"][0])
 
     def test_audit_wps_processes_reports_timeout(self):
-        with patch("wps_ai_agent_cli.process_audit.run_powershell_command", side_effect=subprocess.TimeoutExpired("pwsh", 2)):
+        with patch(
+            "wps_ai_agent_cli.process_audit.run_powershell_command", side_effect=subprocess.TimeoutExpired("pwsh", 2)
+        ):
             ok, _result, errors = audit_wps_processes(timeout_seconds=2)
 
         self.assertFalse(ok)

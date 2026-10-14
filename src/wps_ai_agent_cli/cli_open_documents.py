@@ -539,10 +539,7 @@ def save_open_document_response(
                 {
                     "name": "backup_created",
                     "passed": bool(
-                        dry_run
-                        or not result.get("would_modify")
-                        or result.get("backup", {}).get("created")
-                        or replayed
+                        dry_run or not result.get("would_modify") or result.get("backup", {}).get("created") or replayed
                     ),
                     "details": (result.get("backup") or {}).get("backup_path"),
                 },
@@ -617,7 +614,9 @@ def save_as_open_document_response(
 
 def export_open_document_response(request_id: str, document_id: str, output: str) -> CommandResponse:
     ok, result, errors, replayed = export_open_document_html(
-        document_id=document_id, output=output, request_id=request_id,
+        document_id=document_id,
+        output=output,
+        request_id=request_id,
     )
     return CommandResponse(
         ok=ok,
@@ -636,7 +635,11 @@ def export_open_document_response(request_id: str, document_id: str, output: str
             status="passed" if ok else "failed",
             checks=[
                 {"name": "output_created", "passed": bool(ok), "details": result.get("output")},
-                {"name": "source_unchanged", "passed": bool(result.get("source_unchanged")), "details": result.get("source_path")},
+                {
+                    "name": "source_unchanged",
+                    "passed": bool(result.get("source_unchanged")),
+                    "details": result.get("source_path"),
+                },
             ],
         ),
         errors=errors,
@@ -645,7 +648,9 @@ def export_open_document_response(request_id: str, document_id: str, output: str
 
 def export_open_document_pdf_response(request_id: str, document_id: str, output: str) -> CommandResponse:
     ok, result, errors, replayed = export_open_document_pdf(
-        document_id=document_id, output=output, request_id=request_id,
+        document_id=document_id,
+        output=output,
+        request_id=request_id,
     )
     return CommandResponse(
         ok=ok,
@@ -664,7 +669,11 @@ def export_open_document_pdf_response(request_id: str, document_id: str, output:
             status="passed" if ok else "failed",
             checks=[
                 {"name": "output_created", "passed": bool(ok), "details": result.get("output")},
-                {"name": "source_unchanged", "passed": bool(result.get("source_unchanged")), "details": result.get("source_path")},
+                {
+                    "name": "source_unchanged",
+                    "passed": bool(result.get("source_unchanged")),
+                    "details": result.get("source_path"),
+                },
             ],
         ),
         errors=errors,
@@ -673,7 +682,9 @@ def export_open_document_pdf_response(request_id: str, document_id: str, output:
 
 def export_open_document_copy_response(request_id: str, document_id: str, output: str) -> CommandResponse:
     ok, result, errors, replayed = export_open_document_copy(
-        document_id=document_id, output=output, request_id=request_id,
+        document_id=document_id,
+        output=output,
+        request_id=request_id,
     )
     return CommandResponse(
         ok=ok,
@@ -692,7 +703,11 @@ def export_open_document_copy_response(request_id: str, document_id: str, output
             status="passed" if ok else "failed",
             checks=[
                 {"name": "output_created", "passed": bool(ok), "details": result.get("output")},
-                {"name": "source_unchanged", "passed": bool(result.get("source_unchanged")), "details": result.get("source_path")},
+                {
+                    "name": "source_unchanged",
+                    "passed": bool(result.get("source_unchanged")),
+                    "details": result.get("source_path"),
+                },
             ],
         ),
         errors=errors,
@@ -701,7 +716,9 @@ def export_open_document_copy_response(request_id: str, document_id: str, output
 
 def export_open_document_text_response(request_id: str, document_id: str, output: str) -> CommandResponse:
     ok, result, errors, replayed = export_open_document_text(
-        document_id=document_id, output=output, request_id=request_id,
+        document_id=document_id,
+        output=output,
+        request_id=request_id,
     )
     return CommandResponse(
         ok=ok,
@@ -720,7 +737,11 @@ def export_open_document_text_response(request_id: str, document_id: str, output
             status="passed" if ok else "failed",
             checks=[
                 {"name": "output_created", "passed": bool(ok), "details": result.get("output")},
-                {"name": "source_unchanged", "passed": bool(result.get("source_unchanged")), "details": result.get("source_path")},
+                {
+                    "name": "source_unchanged",
+                    "passed": bool(result.get("source_unchanged")),
+                    "details": result.get("source_path"),
+                },
             ],
         ),
         errors=errors,

@@ -24,7 +24,7 @@ class HtmlRoundtripTests(unittest.TestCase):
                 '<html data-wps-schema="wps-agent-html/v1"><body>'
                 '<p data-wps-object-id="p:1">Hello <a data-wps-object-id="link.1" href="https://example.com">world</a></p>'
                 '<table data-wps-object-id="table-1"><tr data-wps-object-id="row-1"><td data-wps-object-id="cell-1">value</td></tr></table>'
-                '</body></html>',
+                "</body></html>",
                 encoding="utf-8",
             )
             ok, first, errors = build_html_roundtrip_mapping(source)
@@ -76,7 +76,8 @@ class HtmlRoundtripTests(unittest.TestCase):
             source, document = root / "owned.html", root / "owned.docx"
             source.write_text(
                 '<html data-wps-schema="wps-agent-html/v1"><p data-wps-object-id="p1">First</p>'
-                '<p data-wps-object-id="p2">Second</p></html>', encoding="utf-8",
+                '<p data-wps-object-id="p2">Second</p></html>',
+                encoding="utf-8",
             )
             ok, data, errors = import_controlled_html(source, document)
             self.assertTrue(ok, errors)
@@ -98,7 +99,8 @@ class HtmlRoundtripTests(unittest.TestCase):
             source, document = root / "owned.html", root / "owned.docx"
             source.write_text(
                 '<html data-wps-schema="wps-agent-html/v1"><p data-wps-object-id="p1">First</p>'
-                '<p data-wps-object-id="p2">Second</p></html>', encoding="utf-8",
+                '<p data-wps-object-id="p2">Second</p></html>',
+                encoding="utf-8",
             )
             ok, data, errors = import_controlled_html(source, document)
             self.assertTrue(ok, errors)
@@ -160,7 +162,10 @@ class HtmlRoundtripTests(unittest.TestCase):
             self.assertTrue(ok, errors)
             valid, after, errors = build_html_roundtrip_mapping(output)
             self.assertTrue(valid, errors)
-            before_ids = [item["object_id"] for item in json.loads(Path(imported["mapping_path"]).read_text(encoding="utf-8"))["mappings"]]
+            before_ids = [
+                item["object_id"]
+                for item in json.loads(Path(imported["mapping_path"]).read_text(encoding="utf-8"))["mappings"]
+            ]
             after_ids = [item["object_id"] for item in after["mappings"]]
             self.assertEqual(after_ids, before_ids)
             self.assertIn("Changed", output.read_text(encoding="utf-8"))

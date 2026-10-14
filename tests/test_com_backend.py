@@ -83,8 +83,10 @@ class ComBackendTests(unittest.TestCase):
                         component: {"selected_prog_id": f"fake.{component}"},
                     }
                 }
-                with patch("wps_ai_agent_cli.com_backend.probe_wps_capabilities", return_value=capabilities), \
-                        patch("wps_ai_agent_cli.com_backend.run_powershell_script", side_effect=fake_run):
+                with (
+                    patch("wps_ai_agent_cli.com_backend.probe_wps_capabilities", return_value=capabilities),
+                    patch("wps_ai_agent_cli.com_backend.run_powershell_script", side_effect=fake_run),
+                ):
                     result = run_conversion_smoke(component, str(source), str(output), "pdf")
                 self.assertTrue(result["ok"], result)
                 self.assertEqual(captured["component"], component)
@@ -129,8 +131,10 @@ class ComBackendTests(unittest.TestCase):
                 }
             }
 
-            with patch("wps_ai_agent_cli.com_backend.probe_wps_capabilities", return_value=capabilities), \
-                    patch("wps_ai_agent_cli.com_backend.subprocess.run", side_effect=TimeoutExpired("pwsh", 3)):
+            with (
+                patch("wps_ai_agent_cli.com_backend.probe_wps_capabilities", return_value=capabilities),
+                patch("wps_ai_agent_cli.com_backend.subprocess.run", side_effect=TimeoutExpired("pwsh", 3)),
+            ):
                 result = run_spreadsheet_calc_smoke(
                     input_path=str(workbook),
                     output_path=str(output),

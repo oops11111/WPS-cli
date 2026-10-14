@@ -51,10 +51,18 @@ def inspect_spreadsheet_range(
     if not document:
         return False, {}, [{"code": "DOCUMENT_NOT_FOUND", "message": f"Document not registered: {document_id}"}]
     if document["component"] != "spreadsheets":
-        return False, {"document": document}, [{"code": "UNSUPPORTED_COMPONENT", "message": "spreadsheet-inspect requires a spreadsheet document."}]
+        return (
+            False,
+            {"document": document},
+            [{"code": "UNSUPPORTED_COMPONENT", "message": "spreadsheet-inspect requires a spreadsheet document."}],
+        )
     path = Path(document["path"])
     if not path.exists():
-        return False, {"document": document}, [{"code": INPUT_FILE_NOT_FOUND, "message": f"Input file not found: {path}"}]
+        return (
+            False,
+            {"document": document},
+            [{"code": INPUT_FILE_NOT_FOUND, "message": f"Input file not found: {path}"}],
+        )
     bounds, range_error = validate_spreadsheet_read_range(range_address)
     if range_error:
         return False, {}, [range_error]
@@ -81,7 +89,11 @@ def inspect_spreadsheet_range(
     try:
         selected_sheet = sheet_name or formulas_book.sheetnames[0]
         if selected_sheet not in formulas_book.sheetnames:
-            return False, {"document": document}, [{"code": "SHEET_NOT_FOUND", "message": f"Sheet not found: {selected_sheet}"}]
+            return (
+                False,
+                {"document": document},
+                [{"code": "SHEET_NOT_FOUND", "message": f"Sheet not found: {selected_sheet}"}],
+            )
         formula_sheet = formulas_book[selected_sheet]
         cached_sheet = cached_book[selected_sheet]
         cells = []
@@ -90,13 +102,15 @@ def inspect_spreadsheet_range(
                 formula_cell = formula_sheet.cell(row, column)
                 cached_cell = cached_sheet.cell(row, column)
                 formula = formula_cell.value if formula_cell.data_type == "f" else None
-                cells.append({
-                    "address": f"{get_column_letter(column)}{row}",
-                    "formula": formula,
-                    "saved_cached_value": _json_value(cached_cell.value),
-                    "number_format": formula_cell.number_format,
-                    "saved_value_type": cached_cell.data_type,
-                })
+                cells.append(
+                    {
+                        "address": f"{get_column_letter(column)}{row}",
+                        "formula": formula,
+                        "saved_cached_value": _json_value(cached_cell.value),
+                        "number_format": formula_cell.number_format,
+                        "saved_value_type": cached_cell.data_type,
+                    }
+                )
     finally:
         formulas_book.close()
         cached_book.close()
@@ -104,12 +118,24 @@ def inspect_spreadsheet_range(
     capabilities = probe_wps_capabilities()
     prog_id = capabilities["components"]["spreadsheets"]["selected_prog_id"]
     if not prog_id:
-        return False, {"document_id": document_id, "path": str(path)}, [{"code": COM_BACKEND_UNAVAILABLE, "message": "No registered WPS ProgID detected for spreadsheets."}]
-    params_json = json.dumps({
-        "prog_id": prog_id, "path": str(path.resolve()), "sheet": selected_sheet,
-        "range": range_address, "start_row": min_row, "start_column": min_col,
-        "row_count": max_row - min_row + 1, "column_count": max_col - min_col + 1,
-    }, ensure_ascii=True)
+        return (
+            False,
+            {"document_id": document_id, "path": str(path)},
+            [{"code": COM_BACKEND_UNAVAILABLE, "message": "No registered WPS ProgID detected for spreadsheets."}],
+        )
+    params_json = json.dumps(
+        {
+            "prog_id": prog_id,
+            "path": str(path.resolve()),
+            "sheet": selected_sheet,
+            "range": range_address,
+            "start_row": min_row,
+            "start_column": min_col,
+            "row_count": max_row - min_row + 1,
+            "column_count": max_col - min_col + 1,
+        },
+        ensure_ascii=True,
+    )
     script = f"""
 $ErrorActionPreference = 'Stop'
 $params = @'
@@ -180,24 +206,36 @@ try {{
         live = live_cells.get(saved["address"], {})
         recalculated = _json_value(live.get("recalculated_value"))
         cached = saved["saved_cached_value"]
-        result_cells.append({
-            **saved,
-            "recalculated_value": recalculated,
-            "recalculated_type": live.get("recalculated_type"),
-            "displayed_text": live.get("displayed_text"),
-            "wps_formula": live.get("formula"),
-            "formula_matches_file": live.get("formula") == saved["formula"],
-            "cache_matches_recalculated": (
-                _cache_matches(cached, recalculated, workbook_epoch) if saved["formula"] and recalculated_in_memory else None
-            ),
-        })
+        result_cells.append(
+            {
+                **saved,
+                "recalculated_value": recalculated,
+                "recalculated_type": live.get("recalculated_type"),
+                "displayed_text": live.get("displayed_text"),
+                "wps_formula": live.get("formula"),
+                "formula_matches_file": live.get("formula") == saved["formula"],
+                "cache_matches_recalculated": (
+                    _cache_matches(cached, recalculated, workbook_epoch)
+                    if saved["formula"] and recalculated_in_memory
+                    else None
+                ),
+            }
+        )
     result = {
-        "document_id": document_id, "component": "spreadsheets", "path": str(path),
-        "backend": payload.get("backend"), "sheet": selected_sheet, "range": range_address,
-        "read_only": True, "saved": False, "calculation_performed_in_memory": recalculated_in_memory,
+        "document_id": document_id,
+        "component": "spreadsheets",
+        "path": str(path),
+        "backend": payload.get("backend"),
+        "sheet": selected_sheet,
+        "range": range_address,
+        "read_only": True,
+        "saved": False,
+        "calculation_performed_in_memory": recalculated_in_memory,
         "cells": result_cells,
         "cache_mismatch_count": (
-            sum(item["cache_matches_recalculated"] is False for item in result_cells) if recalculated_in_memory else None
+            sum(item["cache_matches_recalculated"] is False for item in result_cells)
+            if recalculated_in_memory
+            else None
         ),
     }
     if payload.get("warnings"):

@@ -77,7 +77,9 @@ class Fixture:
 
 class ListOpenDocumentsTests(unittest.TestCase):
     def test_reports_missing_instance_without_launching_anything(self):
-        with patch.object(open_documents, "_run_open_documents_com", return_value=com_ok({"ok": True, "instances": []})) as com:
+        with patch.object(
+            open_documents, "_run_open_documents_com", return_value=com_ok({"ok": True, "instances": []})
+        ) as com:
             ok, data, errors = list_open_documents()
         self.assertFalse(ok)
         self.assertEqual(errors[0]["code"], "NO_RUNNING_WPS_INSTANCE")
@@ -92,8 +94,20 @@ class ListOpenDocumentsTests(unittest.TestCase):
                 "component": "writer",
                 "version": "12.1",
                 "documents": [
-                    {"name": "open.docx", "full_name": str(fixture.document), "saved": True, "read_only": False, "active": True},
-                    {"name": "Document1", "full_name": "Document1", "saved": False, "read_only": False, "active": False},
+                    {
+                        "name": "open.docx",
+                        "full_name": str(fixture.document),
+                        "saved": True,
+                        "read_only": False,
+                        "active": True,
+                    },
+                    {
+                        "name": "Document1",
+                        "full_name": "Document1",
+                        "saved": False,
+                        "read_only": False,
+                        "active": False,
+                    },
                 ],
             },
         }
@@ -117,10 +131,20 @@ class ListOpenDocumentsTests(unittest.TestCase):
         write_minimal_docx_with_table(document)
         payload = {
             "ok": True,
-            "instances": [{
-                "component": "writer",
-                "documents": [{"name": "fresh.docx", "full_name": str(document), "saved": True, "read_only": False, "active": False}],
-            }],
+            "instances": [
+                {
+                    "component": "writer",
+                    "documents": [
+                        {
+                            "name": "fresh.docx",
+                            "full_name": str(document),
+                            "saved": True,
+                            "read_only": False,
+                            "active": False,
+                        }
+                    ],
+                }
+            ],
         }
         with patch.object(open_documents, "_run_open_documents_com", return_value=com_ok(payload)):
             _ok, without, _errors = list_open_documents(workspace=workspace)
@@ -167,7 +191,9 @@ class SelectionReadTests(unittest.TestCase):
         }
         for status, code in cases.items():
             with self.subTest(status=status):
-                with patch.object(open_documents, "_run_writer_attached_com", return_value=com_ok({"ok": True, "status": status})):
+                with patch.object(
+                    open_documents, "_run_writer_attached_com", return_value=com_ok({"ok": True, "status": status})
+                ):
                     ok, _data, errors = read_writer_selection(fixture.document_id, fixture.workspace)
                 self.assertFalse(ok)
                 self.assertEqual(errors[0]["code"], code)
@@ -187,7 +213,11 @@ class SelectionReadTests(unittest.TestCase):
 
     def test_com_timeout_is_returned_as_structured_error(self):
         fixture = Fixture(self)
-        failure = {"ok": False, "errors": [{"code": "COM_OPERATION_TIMEOUT", "message": "timed out"}], "data": {"timed_out": True}}
+        failure = {
+            "ok": False,
+            "errors": [{"code": "COM_OPERATION_TIMEOUT", "message": "timed out"}],
+            "data": {"timed_out": True},
+        }
         with patch.object(open_documents, "_run_writer_attached_com", return_value=failure):
             ok, data, errors = read_writer_selection(fixture.document_id, fixture.workspace)
         self.assertFalse(ok)
@@ -198,7 +228,11 @@ class SelectionReadTests(unittest.TestCase):
 class SelectionReplaceTests(unittest.TestCase):
     def replace(self, fixture, text="APPROVED", request_id="sel-1", **kwargs):
         return replace_writer_selection(
-            document_id=fixture.document_id, text=text, request_id=request_id, workspace=fixture.workspace, **kwargs,
+            document_id=fixture.document_id,
+            text=text,
+            request_id=request_id,
+            workspace=fixture.workspace,
+            **kwargs,
         )
 
     def fake_attached(self, fixture, selection, write_status="ok", read_back=None, calls=None):
@@ -211,20 +245,27 @@ class SelectionReplaceTests(unittest.TestCase):
             fixture.document.write_bytes(fixture.document.read_bytes() + b"\0")
             if write_status != "ok":
                 return com_ok({"ok": True, "status": write_status})
-            return com_ok({
-                "ok": True,
-                "status": "ok",
-                "backend": "fake-wps",
-                "read_back_text": params["text"] if read_back is None else read_back,
-                "formatting_mode": "uniform_character",
-                "formatting_preserved": True,
-            })
+            return com_ok(
+                {
+                    "ok": True,
+                    "status": "ok",
+                    "backend": "fake-wps",
+                    "read_back_text": params["text"] if read_back is None else read_back,
+                    "formatting_mode": "uniform_character",
+                    "formatting_preserved": True,
+                }
+            )
+
         return fake
 
     def test_dry_run_previews_without_backup_or_write(self):
         fixture = Fixture(self)
         calls = []
-        with patch.object(open_documents, "_run_writer_attached_com", side_effect=self.fake_attached(fixture, selection_payload(), calls=calls)):
+        with patch.object(
+            open_documents,
+            "_run_writer_attached_com",
+            side_effect=self.fake_attached(fixture, selection_payload(), calls=calls),
+        ):
             ok, data, errors, replayed = self.replace(fixture, dry_run=True, expected_selection_text="PENDING_STATUS")
         self.assertTrue(ok, errors)
         self.assertFalse(replayed)
@@ -237,7 +278,11 @@ class SelectionReplaceTests(unittest.TestCase):
         fixture = Fixture(self)
         calls = []
         original = fixture.document.read_bytes()
-        with patch.object(open_documents, "_run_writer_attached_com", side_effect=self.fake_attached(fixture, selection_payload(), calls=calls)):
+        with patch.object(
+            open_documents,
+            "_run_writer_attached_com",
+            side_effect=self.fake_attached(fixture, selection_payload(), calls=calls),
+        ):
             ok, data, errors, _replayed = self.replace(fixture, expected_selection_text="PENDING_STATUS")
             self.assertTrue(ok, errors)
             self.assertTrue(data["validation_passed"])
@@ -265,7 +310,13 @@ class SelectionReplaceTests(unittest.TestCase):
         with patch.object(open_documents, "run_powershell_script", side_effect=fake_run):
             open_documents._run_writer_attached_com(
                 "selection-replace",
-                {"path": "C:\\docs\\a.docx", "text": "NEW", "expected_text": "OLD", "expected_start": 0, "expected_end": 3},
+                {
+                    "path": "C:\\docs\\a.docx",
+                    "text": "NEW",
+                    "expected_text": "OLD",
+                    "expected_start": 0,
+                    "expected_end": 3,
+                },
             )
         script = captured["script"]
         self.assertIn("$range.Font", script)
@@ -288,7 +339,11 @@ class SelectionReplaceTests(unittest.TestCase):
         for name, payload, kwargs, code in cases:
             with self.subTest(name=name):
                 calls = []
-                with patch.object(open_documents, "_run_writer_attached_com", side_effect=self.fake_attached(fixture, payload, calls=calls)):
+                with patch.object(
+                    open_documents,
+                    "_run_writer_attached_com",
+                    side_effect=self.fake_attached(fixture, payload, calls=calls),
+                ):
                     ok, _data, errors, _replayed = self.replace(fixture, request_id=f"sel-{name}", **kwargs)
                 self.assertFalse(ok)
                 self.assertEqual(errors[0]["code"], code)
@@ -306,7 +361,11 @@ class SelectionReplaceTests(unittest.TestCase):
 
     def test_selection_changed_between_preview_and_write_is_reported(self):
         fixture = Fixture(self)
-        with patch.object(open_documents, "_run_writer_attached_com", side_effect=self.fake_attached(fixture, selection_payload(), write_status="selection_changed")):
+        with patch.object(
+            open_documents,
+            "_run_writer_attached_com",
+            side_effect=self.fake_attached(fixture, selection_payload(), write_status="selection_changed"),
+        ):
             ok, data, errors, _replayed = self.replace(fixture, request_id="sel-race")
         self.assertFalse(ok)
         self.assertEqual(errors[0]["code"], "SELECTION_MISMATCH")
@@ -314,7 +373,11 @@ class SelectionReplaceTests(unittest.TestCase):
 
     def test_read_back_mismatch_fails_validation_and_is_not_recorded(self):
         fixture = Fixture(self)
-        with patch.object(open_documents, "_run_writer_attached_com", side_effect=self.fake_attached(fixture, selection_payload(), read_back="garbled")):
+        with patch.object(
+            open_documents,
+            "_run_writer_attached_com",
+            side_effect=self.fake_attached(fixture, selection_payload(), read_back="garbled"),
+        ):
             ok, data, errors, _replayed = self.replace(fixture, request_id="sel-bad-readback")
             self.assertFalse(ok)
             self.assertEqual(errors[0]["code"], "VALIDATION_FAILED")
@@ -342,30 +405,35 @@ class SelectionReplaceTests(unittest.TestCase):
 class Utf16SelectionLengthTests(unittest.TestCase):
     def selection(self, text, length):
         return {
-            "selection_text": text, "selection_length": length, "collapsed": False,
+            "selection_text": text,
+            "selection_length": length,
+            "collapsed": False,
             "selection_text_truncated": False,
         }
 
     def test_astral_characters_count_as_two_utf16_units(self):
         self.assertEqual(open_documents._utf16_length("a"), 1)
-        self.assertEqual(open_documents._utf16_length("\U0001F600"), 2)
-        self.assertEqual(open_documents._utf16_length("a\U0001F600b"), 4)
+        self.assertEqual(open_documents._utf16_length("\U0001f600"), 2)
+        self.assertEqual(open_documents._utf16_length("a\U0001f600b"), 4)
 
     def test_emoji_selection_is_replaceable_when_wps_reports_utf16_length(self):
-        text = "ok \U0001F600"
+        text = "ok \U0001f600"
         self.assertIsNone(open_documents._check_replaceable_selection(self.selection(text, 5), None))
 
     def test_length_mismatch_still_flags_non_text_objects(self):
         problem = open_documents._check_replaceable_selection(self.selection("abc", 4), None)
         self.assertEqual(problem["code"], "SELECTION_SPANS_STRUCTURE")
-        problem = open_documents._check_replaceable_selection(self.selection("\U0001F600", 1), None)
+        problem = open_documents._check_replaceable_selection(self.selection("\U0001f600", 1), None)
         self.assertEqual(problem["code"], "SELECTION_SPANS_STRUCTURE")
 
 
 class ExportOpenDocumentTests(unittest.TestCase):
     def export(self, fixture, output, request_id="exp-1"):
         return export_open_document_html(
-            document_id=fixture.document_id, output=str(output), request_id=request_id, workspace=fixture.workspace,
+            document_id=fixture.document_id,
+            output=str(output),
+            request_id=request_id,
+            workspace=fixture.workspace,
         )
 
     def fake_export(self, output, status="ok", write=True, touch_source=None, still_open=True, method="SaveAs2"):
@@ -377,6 +445,7 @@ class ExportOpenDocumentTests(unittest.TestCase):
             if touch_source is not None:
                 touch_source.write_bytes(touch_source.read_bytes() + b"\0")
             return com_ok({"ok": True, "status": status, "export_method": method, "source_still_open": still_open})
+
         return fake
 
     def test_exports_html_and_verifies_source_unchanged(self):
@@ -430,7 +499,9 @@ class ExportOpenDocumentTests(unittest.TestCase):
             self.assertEqual(errors[0]["code"], "EXPORT_OUTPUT_NOT_HTML")
             self.assertFalse(output.exists())
             self.assertFalse((output.parent / "deck.files").exists())
-            self.assertEqual(sorted(Path(item).name for item in data["partial_output_removed"]), ["deck.files", "deck.html"])
+            self.assertEqual(
+                sorted(Path(item).name for item in data["partial_output_removed"]), ["deck.files", "deck.html"]
+            )
             self.assertTrue(unrelated.exists())
 
             ok, data, errors, _ = self.export(fixture, output, request_id="exp-retry")
@@ -466,7 +537,9 @@ class ExportOpenDocumentTests(unittest.TestCase):
 
                 with patch.object(open_documents, "_run_writer_attached_com", side_effect=broken):
                     ok, _data, errors, _ = exporter(
-                        document_id=fixture.document_id, output=str(output), request_id="exp-com-fail",
+                        document_id=fixture.document_id,
+                        output=str(output),
+                        request_id="exp-com-fail",
                         workspace=fixture.workspace,
                     )
                 self.assertFalse(ok)
@@ -477,11 +550,14 @@ class ExportOpenDocumentTests(unittest.TestCase):
         fixture = Fixture(self, component="presentation")
         output = Path(fixture.tmp.name) / "deck.html"
         before = fixture.document.read_bytes()
-        with patch.object(
-            open_documents,
-            "_run_presentation_attached_com",
-            side_effect=self.fake_export(output, method="SaveCopyAsHtml"),
-        ) as presentation_com, patch.object(open_documents, "_run_writer_attached_com") as writer_com:
+        with (
+            patch.object(
+                open_documents,
+                "_run_presentation_attached_com",
+                side_effect=self.fake_export(output, method="SaveCopyAsHtml"),
+            ) as presentation_com,
+            patch.object(open_documents, "_run_writer_attached_com") as writer_com,
+        ):
             ok, data, errors, _replayed = self.export(fixture, output, request_id="exp-pptx")
         self.assertTrue(ok, errors)
         self.assertEqual(data["component"], "presentation")
@@ -498,12 +574,14 @@ class ExportOpenDocumentTests(unittest.TestCase):
 
         def fake(action, params):
             Path(params["output"]).write_bytes(b"PK\x03\x04not-html")
-            return com_ok({
-                "ok": True,
-                "status": "ok",
-                "export_method": "SaveCopyAsHtml",
-                "source_still_open": True,
-            })
+            return com_ok(
+                {
+                    "ok": True,
+                    "status": "ok",
+                    "export_method": "SaveCopyAsHtml",
+                    "source_still_open": True,
+                }
+            )
 
         with patch.object(open_documents, "_run_presentation_attached_com", side_effect=fake):
             ok, data, errors, _replayed = self.export(fixture, output, request_id="exp-zip")
@@ -515,12 +593,15 @@ class ExportOpenDocumentTests(unittest.TestCase):
         fixture = Fixture(self, component="spreadsheets")
         output = Path(fixture.tmp.name) / "sheet.html"
         before = fixture.document.read_bytes()
-        with patch.object(
-            open_documents,
-            "_run_spreadsheet_attached_com",
-            side_effect=self.fake_export(output, method="SaveCopyAsThenSaveAsHtml"),
-        ) as spreadsheet_com, patch.object(open_documents, "_run_writer_attached_com") as writer_com, \
-                patch.object(open_documents, "_run_presentation_attached_com") as presentation_com:
+        with (
+            patch.object(
+                open_documents,
+                "_run_spreadsheet_attached_com",
+                side_effect=self.fake_export(output, method="SaveCopyAsThenSaveAsHtml"),
+            ) as spreadsheet_com,
+            patch.object(open_documents, "_run_writer_attached_com") as writer_com,
+            patch.object(open_documents, "_run_presentation_attached_com") as presentation_com,
+        ):
             ok, data, errors, _replayed = self.export(fixture, output, request_id="exp-xlsx")
         self.assertTrue(ok, errors)
         self.assertEqual(data["component"], "spreadsheets")
@@ -538,12 +619,14 @@ class ExportOpenDocumentTests(unittest.TestCase):
 
         def fake(action, params):
             Path(params["output"]).write_bytes(b"PK\x03\x04not-html")
-            return com_ok({
-                "ok": True,
-                "status": "ok",
-                "export_method": "SaveCopyAsHtml",
-                "source_still_open": True,
-            })
+            return com_ok(
+                {
+                    "ok": True,
+                    "status": "ok",
+                    "export_method": "SaveCopyAsHtml",
+                    "source_still_open": True,
+                }
+            )
 
         with patch.object(open_documents, "_run_spreadsheet_attached_com", side_effect=fake):
             ok, data, errors, _replayed = self.export(fixture, output, request_id="exp-xlsx-zip")
@@ -592,10 +675,18 @@ class ExportOpenDocumentTests(unittest.TestCase):
 
     def test_unsaved_or_closed_documents_are_reported(self):
         fixture = Fixture(self)
-        for status, code in (("unsaved", "DOCUMENT_HAS_UNSAVED_CHANGES"), ("not_open", "DOCUMENT_NOT_OPEN"), ("no_instance", "NO_RUNNING_WPS_INSTANCE")):
+        for status, code in (
+            ("unsaved", "DOCUMENT_HAS_UNSAVED_CHANGES"),
+            ("not_open", "DOCUMENT_NOT_OPEN"),
+            ("no_instance", "NO_RUNNING_WPS_INSTANCE"),
+        ):
             with self.subTest(status=status):
                 output = Path(fixture.tmp.name) / f"{status}.html"
-                with patch.object(open_documents, "_run_writer_attached_com", side_effect=self.fake_export(output, status=status, write=False)):
+                with patch.object(
+                    open_documents,
+                    "_run_writer_attached_com",
+                    side_effect=self.fake_export(output, status=status, write=False),
+                ):
                     ok, _data, errors, _replayed = self.export(fixture, output, request_id=f"exp-{status}")
                 self.assertFalse(ok)
                 self.assertEqual(errors[0]["code"], code)
@@ -607,13 +698,19 @@ class ExportOpenDocumentTests(unittest.TestCase):
     def test_missing_output_and_changed_source_are_failures(self):
         fixture = Fixture(self)
         missing = Path(fixture.tmp.name) / "missing.html"
-        with patch.object(open_documents, "_run_writer_attached_com", side_effect=self.fake_export(missing, write=False)):
+        with patch.object(
+            open_documents, "_run_writer_attached_com", side_effect=self.fake_export(missing, write=False)
+        ):
             ok, _data, errors, _replayed = self.export(fixture, missing, request_id="exp-missing")
         self.assertFalse(ok)
         self.assertEqual(errors[0]["code"], "EXPORT_OUTPUT_MISSING")
 
         changed = Path(fixture.tmp.name) / "changed.html"
-        with patch.object(open_documents, "_run_writer_attached_com", side_effect=self.fake_export(changed, touch_source=fixture.document)):
+        with patch.object(
+            open_documents,
+            "_run_writer_attached_com",
+            side_effect=self.fake_export(changed, touch_source=fixture.document),
+        ):
             ok, data, errors, _replayed = self.export(fixture, changed, request_id="exp-changed")
         self.assertFalse(ok)
         self.assertEqual(errors[0]["code"], "DOCUMENT_CHANGED_AFTER_COM")
@@ -631,7 +728,9 @@ class ScriptRenderingTests(unittest.TestCase):
                     return {"ok": True, "status": "no_instance"}, None
 
                 with patch.object(open_documents, "run_powershell_script", side_effect=fake_run):
-                    result = open_documents._run_writer_attached_com(action, {"path": "C:\\docs\\a.docx", "text": "it's '@ tricky"})
+                    result = open_documents._run_writer_attached_com(
+                        action, {"path": "C:\\docs\\a.docx", "text": "it's '@ tricky"}
+                    )
                 script = captured["script"]
                 self.assertTrue(result["ok"])
                 self.assertNotIn("__PARAMS_JSON__", script)
@@ -1142,16 +1241,18 @@ class SpreadsheetSelectionReplaceTests(unittest.TestCase):
             self.assertEqual(action, "selection-series-values-replace")
             self.assertEqual(params["values"], ["30", "40"])
             self.assertEqual(params["expected_object_name"], "P3-447-Chart")
-            return com_ok({
-                "ok": True,
-                "status": "ok",
-                "backend": "powershell-com",
-                "object_kind": "chart",
-                "object_name": "P3-447-Chart",
-                "series_name": "系列 1",
-                "cells_matched": True,
-                "read_back_text": "30\t40",
-            })
+            return com_ok(
+                {
+                    "ok": True,
+                    "status": "ok",
+                    "backend": "powershell-com",
+                    "object_kind": "chart",
+                    "object_name": "P3-447-Chart",
+                    "series_name": "系列 1",
+                    "cells_matched": True,
+                    "read_back_text": "30\t40",
+                }
+            )
 
         with patch.object(open_documents, "_run_spreadsheet_attached_com", side_effect=fake):
             with patch.object(
@@ -1186,27 +1287,45 @@ class SpreadsheetSelectionReplaceTests(unittest.TestCase):
             with self.subTest(text=text, read_back=read_back):
                 fixture = Fixture(self, component="spreadsheets")
                 payload = self._cell_selection(
-                    text=current, selection_kind="non_range", address=None, cell_count=0,
-                    area_count=0, object_kind="chart", object_name="Chart 1",
+                    text=current,
+                    selection_kind="non_range",
+                    address=None,
+                    cell_count=0,
+                    area_count=0,
+                    object_kind="chart",
+                    object_name="Chart 1",
                     has_series_values=True,
                 )
 
                 def fake(action, params, payload=payload, read_back=read_back):
                     if action == "selection-read":
                         return com_ok(payload)
-                    return com_ok({
-                        "ok": True, "status": "ok", "backend": "powershell-com",
-                        "object_kind": "chart", "object_name": "Chart 1",
-                        "cells_matched": False, "read_back_text": read_back,
-                    })
+                    return com_ok(
+                        {
+                            "ok": True,
+                            "status": "ok",
+                            "backend": "powershell-com",
+                            "object_kind": "chart",
+                            "object_name": "Chart 1",
+                            "cells_matched": False,
+                            "read_back_text": read_back,
+                        }
+                    )
 
-                with patch.object(open_documents, "_run_spreadsheet_attached_com", side_effect=fake), \
-                        patch.object(open_documents, "create_backup",
-                                     return_value=(True, {"created": True, "backup_path": "b.xlsx"}, [], False)), \
-                        patch.object(open_documents, "guarded_com_mutation", side_effect=lambda path, backup, fn: fn()), \
-                        patch.object(open_documents, "verify_post_com_source", return_value=None):
+                with (
+                    patch.object(open_documents, "_run_spreadsheet_attached_com", side_effect=fake),
+                    patch.object(
+                        open_documents,
+                        "create_backup",
+                        return_value=(True, {"created": True, "backup_path": "b.xlsx"}, [], False),
+                    ),
+                    patch.object(open_documents, "guarded_com_mutation", side_effect=lambda path, backup, fn: fn()),
+                    patch.object(open_documents, "verify_post_com_source", return_value=None),
+                ):
                     ok, data, errors, _replayed = replace_spreadsheet_selection(
-                        fixture.document_id, text, request_id="xlsx-series-num",
+                        fixture.document_id,
+                        text,
+                        request_id="xlsx-series-num",
                         workspace=fixture.workspace,
                     )
                 self.assertEqual(ok, expected_ok, (data.get("validation_passed"), errors))
@@ -1257,15 +1376,17 @@ class SpreadsheetSelectionReplaceTests(unittest.TestCase):
                 return com_ok(read_payload)
             self.assertEqual(action, "selection-axis-title-replace")
             self.assertEqual(params["text"], "P3-446 done")
-            return com_ok({
-                "ok": True,
-                "status": "ok",
-                "backend": "powershell-com",
-                "object_kind": "chart",
-                "object_name": "Chart 1",
-                "cells_matched": True,
-                "read_back_text": "P3-446 done",
-            })
+            return com_ok(
+                {
+                    "ok": True,
+                    "status": "ok",
+                    "backend": "powershell-com",
+                    "object_kind": "chart",
+                    "object_name": "Chart 1",
+                    "cells_matched": True,
+                    "read_back_text": "P3-446 done",
+                }
+            )
 
         with patch.object(open_documents, "_run_spreadsheet_attached_com", side_effect=fake):
             with patch.object(
@@ -1310,15 +1431,17 @@ class SpreadsheetSelectionReplaceTests(unittest.TestCase):
             self.assertEqual(params["expected_object_name"], "Chart 1")
             self.assertEqual(params["text"], "P3-443 done")
             fixture.document.write_bytes(fixture.document.read_bytes() + b"\0")
-            return com_ok({
-                "ok": True,
-                "status": "ok",
-                "backend": "fake-wps",
-                "object_kind": "chart",
-                "object_name": "Chart 1",
-                "cells_matched": True,
-                "read_back_text": "P3-443 done",
-            })
+            return com_ok(
+                {
+                    "ok": True,
+                    "status": "ok",
+                    "backend": "fake-wps",
+                    "object_kind": "chart",
+                    "object_name": "Chart 1",
+                    "cells_matched": True,
+                    "read_back_text": "P3-443 done",
+                }
+            )
 
         with patch.object(open_documents, "_run_spreadsheet_attached_com", side_effect=fake):
             ok, data, errors, _replayed = replace_spreadsheet_selection(
@@ -1398,15 +1521,17 @@ class SpreadsheetSelectionReplaceTests(unittest.TestCase):
             self.assertEqual(params["expected_text"], "P3-442 mark")
             self.assertEqual(params["text"], "P3-442 done")
             fixture.document.write_bytes(fixture.document.read_bytes() + b"\0")
-            return com_ok({
-                "ok": True,
-                "status": "ok",
-                "backend": "fake-wps",
-                "object_kind": "shape",
-                "object_name": "P3-442-Rect",
-                "cells_matched": True,
-                "read_back_text": "P3-442 done",
-            })
+            return com_ok(
+                {
+                    "ok": True,
+                    "status": "ok",
+                    "backend": "fake-wps",
+                    "object_kind": "shape",
+                    "object_name": "P3-442-Rect",
+                    "cells_matched": True,
+                    "read_back_text": "P3-442 done",
+                }
+            )
 
         with patch.object(open_documents, "_run_spreadsheet_attached_com", side_effect=fake):
             ok, data, errors, _replayed = replace_spreadsheet_selection(
@@ -1466,7 +1591,8 @@ class SpreadsheetSelectionReplaceTests(unittest.TestCase):
             with self.subTest(text=text):
                 fixture = Fixture(self, component="spreadsheets")
                 with patch.object(
-                    open_documents, "_run_spreadsheet_attached_com",
+                    open_documents,
+                    "_run_spreadsheet_attached_com",
                     return_value=com_ok(self._cell_selection()),
                 ) as com:
                     with patch.object(open_documents, "create_backup") as backup:
@@ -1504,8 +1630,13 @@ class SpreadsheetSelectionReplaceTests(unittest.TestCase):
     def test_shape_text_may_start_with_formula_characters(self):
         fixture = Fixture(self, component="spreadsheets")
         payload = self._cell_selection(
-            selection_kind="non_range", object_kind="shape", object_name="Box",
-            has_text_frame=True, cell_count=0, area_count=0, address=None,
+            selection_kind="non_range",
+            object_kind="shape",
+            object_name="Box",
+            has_text_frame=True,
+            cell_count=0,
+            area_count=0,
+            address=None,
         )
         with patch.object(open_documents, "_run_spreadsheet_attached_com", return_value=com_ok(payload)):
             ok, _data, errors, _replayed = replace_spreadsheet_selection(
@@ -1527,12 +1658,19 @@ class SpreadsheetSelectionReplaceTests(unittest.TestCase):
             with self.subTest(flag=flag, text=text):
                 fixture = Fixture(self, component="spreadsheets")
                 payload = self._cell_selection(
-                    text=current, selection_kind="non_range", object_kind="chart",
-                    object_name="Chart 1", cell_count=0, area_count=0, address=None,
+                    text=current,
+                    selection_kind="non_range",
+                    object_kind="chart",
+                    object_name="Chart 1",
+                    cell_count=0,
+                    area_count=0,
+                    address=None,
                     **{flag: True},
                 )
                 with patch.object(
-                    open_documents, "_run_spreadsheet_attached_com", return_value=com_ok(payload),
+                    open_documents,
+                    "_run_spreadsheet_attached_com",
+                    return_value=com_ok(payload),
                 ):
                     ok, data, errors, _replayed = replace_spreadsheet_selection(
                         fixture.document_id,
@@ -1565,18 +1703,35 @@ class SpreadsheetSelectionReplaceTests(unittest.TestCase):
         def fake_com(action, params):
             if action == "selection-read":
                 return com_ok(self._cell_selection())
-            return com_ok({
-                "ok": True, "status": "ok", "backend": "powershell-com", "address": "$A$1",
-                "cell_count": 1, "area_count": 1, "cells_matched": False, "read_back_text": read_back,
-            })
+            return com_ok(
+                {
+                    "ok": True,
+                    "status": "ok",
+                    "backend": "powershell-com",
+                    "address": "$A$1",
+                    "cell_count": 1,
+                    "area_count": 1,
+                    "cells_matched": False,
+                    "read_back_text": read_back,
+                }
+            )
 
-        with patch.object(open_documents, "_run_spreadsheet_attached_com", side_effect=fake_com), \
-                patch.object(open_documents, "create_backup", return_value=(True, {"created": True, "backup_path": "keep/b.xlsx"}, [], False)), \
-                patch.object(open_documents, "guarded_com_mutation", side_effect=lambda path, backup, fn: fn()), \
-                patch.object(open_documents, "verify_post_com_source", return_value=None), \
-                patch.object(open_documents, "record_operation"):
+        with (
+            patch.object(open_documents, "_run_spreadsheet_attached_com", side_effect=fake_com),
+            patch.object(
+                open_documents,
+                "create_backup",
+                return_value=(True, {"created": True, "backup_path": "keep/b.xlsx"}, [], False),
+            ),
+            patch.object(open_documents, "guarded_com_mutation", side_effect=lambda path, backup, fn: fn()),
+            patch.object(open_documents, "verify_post_com_source", return_value=None),
+            patch.object(open_documents, "record_operation"),
+        ):
             return replace_spreadsheet_selection(
-                fixture.document_id, replacement, request_id=request_id, workspace=fixture.workspace,
+                fixture.document_id,
+                replacement,
+                request_id=request_id,
+                workspace=fixture.workspace,
             )
 
     def test_numeric_text_normalised_by_wps_still_validates(self):
@@ -1584,7 +1739,10 @@ class SpreadsheetSelectionReplaceTests(unittest.TestCase):
             with self.subTest(replacement=replacement):
                 fixture = Fixture(self, component="spreadsheets")
                 ok, data, errors, _replayed = self._single_cell_write(
-                    fixture, replacement, read_back, f"xlsx-num-{replacement}",
+                    fixture,
+                    replacement,
+                    read_back,
+                    f"xlsx-num-{replacement}",
                 )
                 self.assertTrue(ok, errors)
                 self.assertTrue(data["validation_passed"])
@@ -1929,20 +2087,25 @@ class SpreadsheetSelectionDeleteTests(unittest.TestCase):
                 return com_ok(self._cell_selection())
             self.assertEqual(action, "selection-delete")
             fixture.document.write_bytes(fixture.document.read_bytes() + b"\0")
-            return com_ok({
-                "ok": True,
-                "status": "ok",
-                "backend": "fake-wps",
-                "deleted_text": params["expected_text"],
-                "read_back_text": "",
-                "read_back_values": [""],
-                "cells_matched": True,
-            })
+            return com_ok(
+                {
+                    "ok": True,
+                    "status": "ok",
+                    "backend": "fake-wps",
+                    "deleted_text": params["expected_text"],
+                    "read_back_text": "",
+                    "read_back_values": [""],
+                    "cells_matched": True,
+                }
+            )
 
         with patch.object(open_documents, "_run_spreadsheet_attached_com", side_effect=fake):
             ok, data, errors, replayed = delete_spreadsheet_selection(
-                fixture.document_id, request_id="xlsx-del-1", dry_run=True,
-                expected_selection_text="P3-419 mark", workspace=fixture.workspace,
+                fixture.document_id,
+                request_id="xlsx-del-1",
+                dry_run=True,
+                expected_selection_text="P3-419 mark",
+                workspace=fixture.workspace,
             )
             self.assertTrue(ok, errors)
             self.assertFalse(replayed)
@@ -1950,8 +2113,10 @@ class SpreadsheetSelectionDeleteTests(unittest.TestCase):
             self.assertTrue(data["would_modify"])
 
             ok, data, errors, _replayed = delete_spreadsheet_selection(
-                fixture.document_id, request_id="xlsx-del-1",
-                expected_selection_text="P3-419 mark", workspace=fixture.workspace,
+                fixture.document_id,
+                request_id="xlsx-del-1",
+                expected_selection_text="P3-419 mark",
+                workspace=fixture.workspace,
             )
             self.assertTrue(ok, errors)
             self.assertTrue(data["validation_passed"])
@@ -1960,8 +2125,10 @@ class SpreadsheetSelectionDeleteTests(unittest.TestCase):
             self.assertEqual(data["deleted_text"], "P3-419 mark")
 
             ok, again, errors, replayed = delete_spreadsheet_selection(
-                fixture.document_id, request_id="xlsx-del-1",
-                expected_selection_text="P3-419 mark", workspace=fixture.workspace,
+                fixture.document_id,
+                request_id="xlsx-del-1",
+                expected_selection_text="P3-419 mark",
+                workspace=fixture.workspace,
             )
             self.assertTrue(ok, errors)
             self.assertTrue(replayed)
@@ -1969,10 +2136,14 @@ class SpreadsheetSelectionDeleteTests(unittest.TestCase):
 
     def test_rejects_unsaved_before_backup(self):
         fixture = Fixture(self, component="spreadsheets")
-        with patch.object(open_documents, "_run_spreadsheet_attached_com", return_value=com_ok(self._cell_selection(saved=False))):
+        with patch.object(
+            open_documents, "_run_spreadsheet_attached_com", return_value=com_ok(self._cell_selection(saved=False))
+        ):
             with patch.object(open_documents, "create_backup") as backup:
                 ok, _data, errors, _replayed = delete_spreadsheet_selection(
-                    fixture.document_id, request_id="xlsx-del-unsaved", workspace=fixture.workspace,
+                    fixture.document_id,
+                    request_id="xlsx-del-unsaved",
+                    workspace=fixture.workspace,
                 )
         self.assertFalse(ok)
         self.assertEqual(errors[0]["code"], "DOCUMENT_HAS_UNSAVED_CHANGES")
@@ -1985,16 +2156,28 @@ class SpreadsheetSelectionDeleteTests(unittest.TestCase):
             (
                 "chart-no-title",
                 self._cell_selection(
-                    text="", selection_kind="non_range", address=None, cell_count=0, area_count=0,
-                    object_kind="chart", object_name="Chart 1", has_chart_title=False,
+                    text="",
+                    selection_kind="non_range",
+                    address=None,
+                    cell_count=0,
+                    area_count=0,
+                    object_kind="chart",
+                    object_name="Chart 1",
+                    has_chart_title=False,
                 ),
                 "OBJECT_SELECTION_UNSUPPORTED",
             ),
             (
                 "shape-no-frame",
                 self._cell_selection(
-                    text="", selection_kind="non_range", address=None, cell_count=0, area_count=0,
-                    object_kind="shape", object_name="Rect", has_text_frame=False,
+                    text="",
+                    selection_kind="non_range",
+                    address=None,
+                    cell_count=0,
+                    area_count=0,
+                    object_kind="shape",
+                    object_name="Rect",
+                    has_text_frame=False,
                 ),
                 "OBJECT_SELECTION_UNSUPPORTED",
             ),
@@ -2004,7 +2187,9 @@ class SpreadsheetSelectionDeleteTests(unittest.TestCase):
                 with patch.object(open_documents, "_run_spreadsheet_attached_com", return_value=com_ok(payload)):
                     with patch.object(open_documents, "create_backup") as backup:
                         ok, _data, errors, _replayed = delete_spreadsheet_selection(
-                            fixture.document_id, request_id=f"xlsx-del-{name}", workspace=fixture.workspace,
+                            fixture.document_id,
+                            request_id=f"xlsx-del-{name}",
+                            workspace=fixture.workspace,
                         )
                 self.assertFalse(ok)
                 self.assertEqual(errors[0]["code"], code)
@@ -2020,27 +2205,31 @@ class SpreadsheetSelectionDeleteTests(unittest.TestCase):
         def fake(action, params):
             calls.append(action)
             if action == "selection-read":
-                return com_ok(self._cell_selection(
-                    text="P3-442 mark",
-                    selection_kind="non_range",
-                    address=None,
-                    cell_count=0,
-                    area_count=0,
-                    object_kind="shape",
-                    object_name="P3-442-Rect",
-                    has_text_frame=True,
-                ))
+                return com_ok(
+                    self._cell_selection(
+                        text="P3-442 mark",
+                        selection_kind="non_range",
+                        address=None,
+                        cell_count=0,
+                        area_count=0,
+                        object_kind="shape",
+                        object_name="P3-442-Rect",
+                        has_text_frame=True,
+                    )
+                )
             self.assertEqual(action, "selection-shape-delete")
             self.assertEqual(params["expected_object_name"], "P3-442-Rect")
             fixture.document.write_bytes(fixture.document.read_bytes() + b"\0")
-            return com_ok({
-                "ok": True,
-                "status": "ok",
-                "backend": "fake-wps",
-                "deleted_text": "P3-442 mark",
-                "read_back_text": "",
-                "cells_matched": True,
-            })
+            return com_ok(
+                {
+                    "ok": True,
+                    "status": "ok",
+                    "backend": "fake-wps",
+                    "deleted_text": "P3-442 mark",
+                    "read_back_text": "",
+                    "cells_matched": True,
+                }
+            )
 
         with patch.object(open_documents, "_run_spreadsheet_attached_com", side_effect=fake):
             ok, data, errors, _replayed = delete_spreadsheet_selection(
@@ -2062,26 +2251,30 @@ class SpreadsheetSelectionDeleteTests(unittest.TestCase):
         def fake(action, params):
             calls.append(action)
             if action == "selection-read":
-                return com_ok(self._cell_selection(
-                    text="P3-443 title",
-                    selection_kind="non_range",
-                    address=None,
-                    cell_count=0,
-                    area_count=0,
-                    object_kind="chart",
-                    object_name="Chart 1",
-                    has_chart_title=True,
-                ))
+                return com_ok(
+                    self._cell_selection(
+                        text="P3-443 title",
+                        selection_kind="non_range",
+                        address=None,
+                        cell_count=0,
+                        area_count=0,
+                        object_kind="chart",
+                        object_name="Chart 1",
+                        has_chart_title=True,
+                    )
+                )
             self.assertEqual(action, "selection-chart-title-delete")
             fixture.document.write_bytes(fixture.document.read_bytes() + b"\0")
-            return com_ok({
-                "ok": True,
-                "status": "ok",
-                "backend": "fake-wps",
-                "deleted_text": "P3-443 title",
-                "read_back_text": "",
-                "cells_matched": True,
-            })
+            return com_ok(
+                {
+                    "ok": True,
+                    "status": "ok",
+                    "backend": "fake-wps",
+                    "deleted_text": "P3-443 title",
+                    "read_back_text": "",
+                    "cells_matched": True,
+                }
+            )
 
         with patch.object(open_documents, "_run_spreadsheet_attached_com", side_effect=fake):
             ok, data, errors, _replayed = delete_spreadsheet_selection(
@@ -2102,28 +2295,32 @@ class SpreadsheetSelectionDeleteTests(unittest.TestCase):
         def fake(action, params):
             calls.append(action)
             if action == "selection-read":
-                return com_ok(self._cell_selection(
-                    text="10\t20",
-                    selection_kind="non_range",
-                    address=None,
-                    cell_count=0,
-                    area_count=0,
-                    object_kind="chart",
-                    object_name="P3-447-Chart",
-                    has_series_values=True,
-                    series_name="系列 1",
-                ))
+                return com_ok(
+                    self._cell_selection(
+                        text="10\t20",
+                        selection_kind="non_range",
+                        address=None,
+                        cell_count=0,
+                        area_count=0,
+                        object_kind="chart",
+                        object_name="P3-447-Chart",
+                        has_series_values=True,
+                        series_name="系列 1",
+                    )
+                )
             self.assertEqual(action, "selection-series-values-delete")
             self.assertEqual(params["expected_object_name"], "P3-447-Chart")
             fixture.document.write_bytes(fixture.document.read_bytes() + b"\0")
-            return com_ok({
-                "ok": True,
-                "status": "ok",
-                "backend": "fake-wps",
-                "deleted_text": "10\t20",
-                "read_back_text": "\t",
-                "cells_matched": True,
-            })
+            return com_ok(
+                {
+                    "ok": True,
+                    "status": "ok",
+                    "backend": "fake-wps",
+                    "deleted_text": "10\t20",
+                    "read_back_text": "\t",
+                    "cells_matched": True,
+                }
+            )
 
         with patch.object(open_documents, "_run_spreadsheet_attached_com", side_effect=fake):
             ok, data, errors, _replayed = delete_spreadsheet_selection(
@@ -2348,20 +2545,26 @@ class PresentationSelectionInsertTests(unittest.TestCase):
             self.assertEqual(action, "selection-insert")
             self.assertEqual(params["expected_start"], 1)
             fixture.document.write_bytes(fixture.document.read_bytes() + b"\0")
-            return com_ok({
-                "ok": True,
-                "status": "ok",
-                "backend": "fake-wps",
-                "start": 1,
-                "end": 12,
-                "read_back_text": params["text"],
-            })
+            return com_ok(
+                {
+                    "ok": True,
+                    "status": "ok",
+                    "backend": "fake-wps",
+                    "start": 1,
+                    "end": 12,
+                    "read_back_text": params["text"],
+                }
+            )
 
         original = fixture.document.read_bytes()
         with patch.object(open_documents, "_run_presentation_attached_com", side_effect=fake):
             ok, data, errors, replayed = insert_presentation_selection(
-                fixture.document_id, "P3-414 mark", request_id="pptx-ins-dry",
-                expected_start=1, dry_run=True, workspace=fixture.workspace,
+                fixture.document_id,
+                "P3-414 mark",
+                request_id="pptx-ins-dry",
+                expected_start=1,
+                dry_run=True,
+                workspace=fixture.workspace,
             )
             self.assertTrue(ok, errors)
             self.assertFalse(replayed)
@@ -2369,8 +2572,11 @@ class PresentationSelectionInsertTests(unittest.TestCase):
             self.assertTrue(data["would_modify"])
 
             ok, data, errors, _replayed = insert_presentation_selection(
-                fixture.document_id, "P3-414 mark", request_id="pptx-ins-1",
-                expected_start=1, workspace=fixture.workspace,
+                fixture.document_id,
+                "P3-414 mark",
+                request_id="pptx-ins-1",
+                expected_start=1,
+                workspace=fixture.workspace,
             )
             self.assertTrue(ok, errors)
             self.assertTrue(data["validation_passed"])
@@ -2379,8 +2585,11 @@ class PresentationSelectionInsertTests(unittest.TestCase):
             self.assertEqual(data["read_back_text"], "P3-414 mark")
 
             ok, again, errors, replayed = insert_presentation_selection(
-                fixture.document_id, "P3-414 mark", request_id="pptx-ins-1",
-                expected_start=1, workspace=fixture.workspace,
+                fixture.document_id,
+                "P3-414 mark",
+                request_id="pptx-ins-1",
+                expected_start=1,
+                workspace=fixture.workspace,
             )
             self.assertTrue(ok, errors)
             self.assertTrue(replayed)
@@ -2390,8 +2599,18 @@ class PresentationSelectionInsertTests(unittest.TestCase):
     def test_rejections_before_backup(self):
         fixture = Fixture(self, component="presentation")
         cases = [
-            ("not-collapsed", self._caret(start=1, text_range_length=3, collapsed=False, selection_text="abc"), {}, "SELECTION_NOT_COLLAPSED"),
-            ("shapes", self._caret(selection_kind="shapes", selection_type=2, collapsed=False, text_range_length=None), {}, "SELECTION_SPANS_STRUCTURE"),
+            (
+                "not-collapsed",
+                self._caret(start=1, text_range_length=3, collapsed=False, selection_text="abc"),
+                {},
+                "SELECTION_NOT_COLLAPSED",
+            ),
+            (
+                "shapes",
+                self._caret(selection_kind="shapes", selection_type=2, collapsed=False, text_range_length=None),
+                {},
+                "SELECTION_SPANS_STRUCTURE",
+            ),
             ("start-mismatch", self._caret(start=2), {"expected_start": 9}, "SELECTION_MISMATCH"),
             ("read-only", self._caret(read_only=True), {}, "DOCUMENT_READ_ONLY"),
             ("unsaved-flag", self._caret(saved=False), {}, "DOCUMENT_HAS_UNSAVED_CHANGES"),
@@ -2401,8 +2620,11 @@ class PresentationSelectionInsertTests(unittest.TestCase):
                 with patch.object(open_documents, "_run_presentation_attached_com", return_value=com_ok(payload)):
                     with patch.object(open_documents, "create_backup") as backup:
                         ok, _data, errors, _replayed = insert_presentation_selection(
-                            fixture.document_id, "X", request_id=f"pptx-ins-{name}",
-                            workspace=fixture.workspace, **kwargs,
+                            fixture.document_id,
+                            "X",
+                            request_id=f"pptx-ins-{name}",
+                            workspace=fixture.workspace,
+                            **kwargs,
                         )
                 self.assertFalse(ok)
                 self.assertEqual(errors[0]["code"], code)
@@ -2430,7 +2652,10 @@ class PresentationSelectionInsertTests(unittest.TestCase):
 class SelectionDeleteTests(unittest.TestCase):
     def delete(self, fixture, request_id="del-1", **kwargs):
         return delete_writer_selection(
-            document_id=fixture.document_id, request_id=request_id, workspace=fixture.workspace, **kwargs,
+            document_id=fixture.document_id,
+            request_id=request_id,
+            workspace=fixture.workspace,
+            **kwargs,
         )
 
     def fake_attached(self, fixture, selection, write_status="ok", probe="", calls=None):
@@ -2443,20 +2668,27 @@ class SelectionDeleteTests(unittest.TestCase):
             fixture.document.write_bytes(fixture.document.read_bytes() + b"\0")
             if write_status != "ok":
                 return com_ok({"ok": True, "status": write_status})
-            return com_ok({
-                "ok": True,
-                "status": "ok",
-                "backend": "fake-wps",
-                "deleted_text": params["expected_text"],
-                "read_back_text": probe,
-            })
+            return com_ok(
+                {
+                    "ok": True,
+                    "status": "ok",
+                    "backend": "fake-wps",
+                    "deleted_text": params["expected_text"],
+                    "read_back_text": probe,
+                }
+            )
+
         return fake
 
     def test_dry_run_and_delete_with_backup_replay(self):
         fixture = Fixture(self)
         calls = []
         original = fixture.document.read_bytes()
-        with patch.object(open_documents, "_run_writer_attached_com", side_effect=self.fake_attached(fixture, selection_payload(), calls=calls)):
+        with patch.object(
+            open_documents,
+            "_run_writer_attached_com",
+            side_effect=self.fake_attached(fixture, selection_payload(), calls=calls),
+        ):
             ok, data, errors, replayed = self.delete(fixture, dry_run=True, expected_selection_text="PENDING_STATUS")
             self.assertTrue(ok, errors)
             self.assertFalse(replayed)
@@ -2487,7 +2719,11 @@ class SelectionDeleteTests(unittest.TestCase):
         for name, payload, kwargs, code in cases:
             with self.subTest(name=name):
                 calls = []
-                with patch.object(open_documents, "_run_writer_attached_com", side_effect=self.fake_attached(fixture, payload, calls=calls)):
+                with patch.object(
+                    open_documents,
+                    "_run_writer_attached_com",
+                    side_effect=self.fake_attached(fixture, payload, calls=calls),
+                ):
                     ok, _data, errors, _replayed = self.delete(fixture, request_id=f"del-{name}", **kwargs)
                 self.assertFalse(ok)
                 self.assertEqual(errors[0]["code"], code)
@@ -2542,21 +2778,37 @@ class PresentationSelectionDeleteTests(unittest.TestCase):
                 return com_ok(self._text_selection())
             self.assertEqual(action, "selection-delete")
             fixture.document.write_bytes(fixture.document.read_bytes() + b"\0")
-            return com_ok({"ok": True, "status": "ok", "backend": "fake-wps", "deleted_text": params["expected_text"], "read_back_text": ""})
+            return com_ok(
+                {
+                    "ok": True,
+                    "status": "ok",
+                    "backend": "fake-wps",
+                    "deleted_text": params["expected_text"],
+                    "read_back_text": "",
+                }
+            )
 
         with patch.object(open_documents, "_run_presentation_attached_com", side_effect=fake):
             ok, data, errors, _replayed = delete_presentation_selection(
-                fixture.document_id, request_id="pptx-del-1",
-                expected_selection_text="P3-416 mark", workspace=fixture.workspace,
+                fixture.document_id,
+                request_id="pptx-del-1",
+                expected_selection_text="P3-416 mark",
+                workspace=fixture.workspace,
             )
         self.assertTrue(ok, errors)
         self.assertTrue(data["validation_passed"])
         self.assertEqual(calls.count("selection-delete"), 1)
 
-        with patch.object(open_documents, "_run_presentation_attached_com", return_value=com_ok(self._text_selection(text="", collapsed=True, text_range_length=0))):
+        with patch.object(
+            open_documents,
+            "_run_presentation_attached_com",
+            return_value=com_ok(self._text_selection(text="", collapsed=True, text_range_length=0)),
+        ):
             with patch.object(open_documents, "create_backup") as backup:
                 ok, _data, errors, _replayed = delete_presentation_selection(
-                    fixture.document_id, request_id="pptx-del-empty", workspace=fixture.workspace,
+                    fixture.document_id,
+                    request_id="pptx-del-empty",
+                    workspace=fixture.workspace,
                 )
         self.assertFalse(ok)
         self.assertEqual(errors[0]["code"], "SELECTION_EMPTY")
@@ -2604,7 +2856,11 @@ class PresentationSelectionDeleteTests(unittest.TestCase):
 class SelectionInsertTests(unittest.TestCase):
     def insert(self, fixture, text="INSERTED", request_id="ins-1", **kwargs):
         return insert_writer_selection(
-            document_id=fixture.document_id, text=text, request_id=request_id, workspace=fixture.workspace, **kwargs,
+            document_id=fixture.document_id,
+            text=text,
+            request_id=request_id,
+            workspace=fixture.workspace,
+            **kwargs,
         )
 
     def fake_attached(self, fixture, selection, write_status="ok", read_back=None, calls=None):
@@ -2619,14 +2875,17 @@ class SelectionInsertTests(unittest.TestCase):
             if write_status != "ok":
                 return com_ok({"ok": True, "status": write_status})
             insert = params["text"]
-            return com_ok({
-                "ok": True,
-                "status": "ok",
-                "backend": "fake-wps",
-                "start": selection["start"],
-                "end": selection["start"] + len(insert),
-                "read_back_text": insert if read_back is None else read_back,
-            })
+            return com_ok(
+                {
+                    "ok": True,
+                    "status": "ok",
+                    "backend": "fake-wps",
+                    "start": selection["start"],
+                    "end": selection["start"] + len(insert),
+                    "read_back_text": insert if read_back is None else read_back,
+                }
+            )
+
         return fake
 
     def test_dry_run_and_insert_with_backup_replay(self):
@@ -2634,7 +2893,9 @@ class SelectionInsertTests(unittest.TestCase):
         caret = selection_payload(text="", start=12, end=12)
         calls = []
         original = fixture.document.read_bytes()
-        with patch.object(open_documents, "_run_writer_attached_com", side_effect=self.fake_attached(fixture, caret, calls=calls)):
+        with patch.object(
+            open_documents, "_run_writer_attached_com", side_effect=self.fake_attached(fixture, caret, calls=calls)
+        ):
             ok, data, errors, replayed = self.insert(fixture, dry_run=True, expected_start=12)
             self.assertTrue(ok, errors)
             self.assertFalse(replayed)
@@ -2660,7 +2921,12 @@ class SelectionInsertTests(unittest.TestCase):
         fixture = Fixture(self)
         cases = [
             ("unsaved", {"ok": True, "status": "unsaved"}, {}, "DOCUMENT_HAS_UNSAVED_CHANGES"),
-            ("unsaved-flag", selection_payload(text="", start=5, end=5, saved=False), {}, "DOCUMENT_HAS_UNSAVED_CHANGES"),
+            (
+                "unsaved-flag",
+                selection_payload(text="", start=5, end=5, saved=False),
+                {},
+                "DOCUMENT_HAS_UNSAVED_CHANGES",
+            ),
             ("read-only", selection_payload(text="", start=5, end=5, read_only=True), {}, "DOCUMENT_READ_ONLY"),
             ("not-collapsed", selection_payload(text="hi", start=5), {}, "SELECTION_NOT_COLLAPSED"),
             ("start-mismatch", selection_payload(text="", start=9, end=9), {"expected_start": 3}, "SELECTION_MISMATCH"),
@@ -2668,7 +2934,11 @@ class SelectionInsertTests(unittest.TestCase):
         for name, payload, kwargs, code in cases:
             with self.subTest(name=name):
                 calls = []
-                with patch.object(open_documents, "_run_writer_attached_com", side_effect=self.fake_attached(fixture, payload, calls=calls)):
+                with patch.object(
+                    open_documents,
+                    "_run_writer_attached_com",
+                    side_effect=self.fake_attached(fixture, payload, calls=calls),
+                ):
                     ok, _data, errors, _replayed = self.insert(fixture, request_id=f"ins-{name}", **kwargs)
                 self.assertFalse(ok)
                 self.assertEqual(errors[0]["code"], code)
@@ -2707,10 +2977,21 @@ class SelectionInsertTests(unittest.TestCase):
 class ExportOpenDocumentTextTests(unittest.TestCase):
     def export(self, fixture, output, request_id="txt-1"):
         return export_open_document_text(
-            document_id=fixture.document_id, output=str(output), request_id=request_id, workspace=fixture.workspace,
+            document_id=fixture.document_id,
+            output=str(output),
+            request_id=request_id,
+            workspace=fixture.workspace,
         )
 
-    def fake_export(self, status="ok", write=True, touch_source=None, still_open=True, method="SaveAsUnicodeText", body=b"hello text\n"):
+    def fake_export(
+        self,
+        status="ok",
+        write=True,
+        touch_source=None,
+        still_open=True,
+        method="SaveAsUnicodeText",
+        body=b"hello text\n",
+    ):
         def fake(action, params):
             self.assertEqual(action, "export-text")
             if write:
@@ -2718,6 +2999,7 @@ class ExportOpenDocumentTextTests(unittest.TestCase):
             if touch_source is not None:
                 touch_source.write_bytes(touch_source.read_bytes() + b"\0")
             return com_ok({"ok": True, "status": status, "export_method": method, "source_still_open": still_open})
+
         return fake
 
     def test_exports_text_and_verifies_source_unchanged(self):
@@ -2756,13 +3038,17 @@ class ExportOpenDocumentTextTests(unittest.TestCase):
     def test_rejects_non_text_bytes_and_bad_suffix(self):
         fixture = Fixture(self)
         with patch.object(open_documents, "_run_writer_attached_com") as com:
-            ok, _data, errors, _replayed = self.export(fixture, Path(fixture.tmp.name) / "out.pdf", request_id="txt-ext")
+            ok, _data, errors, _replayed = self.export(
+                fixture, Path(fixture.tmp.name) / "out.pdf", request_id="txt-ext"
+            )
         self.assertFalse(ok)
         self.assertEqual(errors[0]["code"], "INVALID_ARGUMENT")
         com.assert_not_called()
 
         output = Path(fixture.tmp.name) / "bad.txt"
-        with patch.object(open_documents, "_run_writer_attached_com", side_effect=self.fake_export(body=b"PK\x03\x04zip")):
+        with patch.object(
+            open_documents, "_run_writer_attached_com", side_effect=self.fake_export(body=b"PK\x03\x04zip")
+        ):
             ok, data, errors, _replayed = self.export(fixture, output, request_id="txt-zip")
         self.assertFalse(ok)
         self.assertEqual(errors[0]["code"], "EXPORT_OUTPUT_NOT_TEXT")
@@ -2797,10 +3083,15 @@ class ExportOpenDocumentTextTests(unittest.TestCase):
 class ExportOpenDocumentCopyTests(unittest.TestCase):
     def export(self, fixture, output, request_id="copy-1"):
         return export_open_document_copy(
-            document_id=fixture.document_id, output=str(output), request_id=request_id, workspace=fixture.workspace,
+            document_id=fixture.document_id,
+            output=str(output),
+            request_id=request_id,
+            workspace=fixture.workspace,
         )
 
-    def fake_export(self, status="ok", write=True, touch_source=None, still_open=True, method="SaveCopyAs", body=b"PK\x03\x04native"):
+    def fake_export(
+        self, status="ok", write=True, touch_source=None, still_open=True, method="SaveCopyAs", body=b"PK\x03\x04native"
+    ):
         def fake(action, params):
             self.assertEqual(action, "export-copy")
             if write:
@@ -2808,6 +3099,7 @@ class ExportOpenDocumentCopyTests(unittest.TestCase):
             if touch_source is not None:
                 touch_source.write_bytes(touch_source.read_bytes() + b"\0")
             return com_ok({"ok": True, "status": status, "export_method": method, "source_still_open": still_open})
+
         return fake
 
     def test_exports_native_copy_and_verifies_source_unchanged(self):
@@ -2849,13 +3141,17 @@ class ExportOpenDocumentCopyTests(unittest.TestCase):
     def test_rejects_extension_mismatch_and_non_package_bytes(self):
         fixture = Fixture(self, component="spreadsheets")
         with patch.object(open_documents, "_run_spreadsheet_attached_com") as com:
-            ok, _data, errors, _replayed = self.export(fixture, Path(fixture.tmp.name) / "out.pdf", request_id="copy-ext")
+            ok, _data, errors, _replayed = self.export(
+                fixture, Path(fixture.tmp.name) / "out.pdf", request_id="copy-ext"
+            )
         self.assertFalse(ok)
         self.assertEqual(errors[0]["code"], "INVALID_ARGUMENT")
         com.assert_not_called()
 
         output = Path(fixture.tmp.name) / "bad.xlsx"
-        with patch.object(open_documents, "_run_spreadsheet_attached_com", side_effect=self.fake_export(body=b"%PDF-1.4")):
+        with patch.object(
+            open_documents, "_run_spreadsheet_attached_com", side_effect=self.fake_export(body=b"%PDF-1.4")
+        ):
             ok, data, errors, _replayed = self.export(fixture, output, request_id="copy-bad")
         self.assertFalse(ok)
         self.assertEqual(errors[0]["code"], "EXPORT_OUTPUT_NOT_PACKAGE")
@@ -2890,10 +3186,21 @@ class ExportOpenDocumentCopyTests(unittest.TestCase):
 class ExportOpenDocumentPdfTests(unittest.TestCase):
     def export(self, fixture, output, request_id="pdf-1"):
         return export_open_document_pdf(
-            document_id=fixture.document_id, output=str(output), request_id=request_id, workspace=fixture.workspace,
+            document_id=fixture.document_id,
+            output=str(output),
+            request_id=request_id,
+            workspace=fixture.workspace,
         )
 
-    def fake_export(self, status="ok", write=True, touch_source=None, still_open=True, method="ExportAsFixedFormat", body=b"%PDF-1.4\n"):
+    def fake_export(
+        self,
+        status="ok",
+        write=True,
+        touch_source=None,
+        still_open=True,
+        method="ExportAsFixedFormat",
+        body=b"%PDF-1.4\n",
+    ):
         def fake(action, params):
             self.assertEqual(action, "export-pdf")
             if write:
@@ -2901,6 +3208,7 @@ class ExportOpenDocumentPdfTests(unittest.TestCase):
             if touch_source is not None:
                 touch_source.write_bytes(touch_source.read_bytes() + b"\0")
             return com_ok({"ok": True, "status": status, "export_method": method, "source_still_open": still_open})
+
         return fake
 
     def test_exports_pdf_and_verifies_source_unchanged(self):
@@ -2944,7 +3252,9 @@ class ExportOpenDocumentPdfTests(unittest.TestCase):
     def test_rejects_non_pdf_bytes(self):
         fixture = Fixture(self, component="spreadsheets")
         output = Path(fixture.tmp.name) / "sheet.pdf"
-        with patch.object(open_documents, "_run_spreadsheet_attached_com", side_effect=self.fake_export(body=b"PK\x03\x04not-pdf")):
+        with patch.object(
+            open_documents, "_run_spreadsheet_attached_com", side_effect=self.fake_export(body=b"PK\x03\x04not-pdf")
+        ):
             ok, data, errors, _replayed = self.export(fixture, output, request_id="pdf-zip")
         self.assertFalse(ok)
         self.assertEqual(errors[0]["code"], "EXPORT_OUTPUT_NOT_PDF")
@@ -2973,7 +3283,9 @@ class ExportOpenDocumentPdfTests(unittest.TestCase):
     def test_changed_source_is_a_failure(self):
         fixture = Fixture(self)
         output = Path(fixture.tmp.name) / "changed.pdf"
-        with patch.object(open_documents, "_run_writer_attached_com", side_effect=self.fake_export(touch_source=fixture.document)):
+        with patch.object(
+            open_documents, "_run_writer_attached_com", side_effect=self.fake_export(touch_source=fixture.document)
+        ):
             ok, data, errors, _replayed = self.export(fixture, output, request_id="pdf-changed")
         self.assertFalse(ok)
         self.assertEqual(errors[0]["code"], "DOCUMENT_CHANGED_AFTER_COM")
@@ -3016,18 +3328,33 @@ class SaveOpenDocumentTests(unittest.TestCase):
             if read_only:
                 return com_ok({"ok": True, "status": "read_only", "saved": saved, "read_only": True})
             if not params.get("do_save"):
-                return com_ok({
-                    "ok": True, "status": "ok", "backend": "fake-wps",
-                    "saved": saved, "read_only": False, "wrote": False, "source_still_open": True,
-                })
+                return com_ok(
+                    {
+                        "ok": True,
+                        "status": "ok",
+                        "backend": "fake-wps",
+                        "saved": saved,
+                        "read_only": False,
+                        "wrote": False,
+                        "source_still_open": True,
+                    }
+                )
             if touch is not None:
                 touch.write_bytes(touch.read_bytes() + b"\0")
             saved_after = True
             wrote_after = wrote if wrote is not None else (not saved)
-            return com_ok({
-                "ok": True, "status": "ok", "backend": "fake-wps",
-                "saved": saved_after, "read_only": False, "wrote": wrote_after, "source_still_open": True,
-            })
+            return com_ok(
+                {
+                    "ok": True,
+                    "status": "ok",
+                    "backend": "fake-wps",
+                    "saved": saved_after,
+                    "read_only": False,
+                    "wrote": wrote_after,
+                    "source_still_open": True,
+                }
+            )
+
         return fake
 
     def test_dry_run_and_save_with_backup_replay(self):
@@ -3040,7 +3367,10 @@ class SaveOpenDocumentTests(unittest.TestCase):
             side_effect=self.fake_status(saved=False, calls=calls, touch=fixture.document),
         ):
             ok, data, errors, replayed = save_open_document(
-                fixture.document_id, request_id="save-1", dry_run=True, workspace=fixture.workspace,
+                fixture.document_id,
+                request_id="save-1",
+                dry_run=True,
+                workspace=fixture.workspace,
             )
             self.assertTrue(ok, errors)
             self.assertFalse(replayed)
@@ -3048,7 +3378,9 @@ class SaveOpenDocumentTests(unittest.TestCase):
             self.assertEqual(calls, [("save", False)])
 
             ok, data, errors, _replayed = save_open_document(
-                fixture.document_id, request_id="save-1", workspace=fixture.workspace,
+                fixture.document_id,
+                request_id="save-1",
+                workspace=fixture.workspace,
             )
             self.assertTrue(ok, errors)
             self.assertTrue(data["validation_passed"])
@@ -3057,7 +3389,9 @@ class SaveOpenDocumentTests(unittest.TestCase):
             self.assertEqual(Path(data["backup"]["backup_path"]).read_bytes(), original)
 
             ok, again, errors, replayed = save_open_document(
-                fixture.document_id, request_id="save-1", workspace=fixture.workspace,
+                fixture.document_id,
+                request_id="save-1",
+                workspace=fixture.workspace,
             )
             self.assertTrue(ok, errors)
             self.assertTrue(replayed)
@@ -3069,7 +3403,9 @@ class SaveOpenDocumentTests(unittest.TestCase):
         with patch.object(open_documents, "_run_writer_attached_com", side_effect=self.fake_status(saved=True)):
             with patch.object(open_documents, "create_backup") as backup:
                 ok, data, errors, _replayed = save_open_document(
-                    fixture.document_id, request_id="save-clean", workspace=fixture.workspace,
+                    fixture.document_id,
+                    request_id="save-clean",
+                    workspace=fixture.workspace,
                 )
         self.assertTrue(ok, errors)
         self.assertFalse(data["would_modify"])
@@ -3081,7 +3417,9 @@ class SaveOpenDocumentTests(unittest.TestCase):
         with patch.object(open_documents, "_run_writer_attached_com", side_effect=self.fake_status(read_only=True)):
             with patch.object(open_documents, "create_backup") as backup:
                 ok, _data, errors, _replayed = save_open_document(
-                    fixture.document_id, request_id="save-ro", workspace=fixture.workspace,
+                    fixture.document_id,
+                    request_id="save-ro",
+                    workspace=fixture.workspace,
                 )
         self.assertFalse(ok)
         self.assertEqual(errors[0]["code"], "DOCUMENT_READ_ONLY")
@@ -3133,15 +3471,18 @@ class SaveAsOpenDocumentTests(unittest.TestCase):
                 return com_ok(base)
             if do_save_effect is not None:
                 do_save_effect(output)
-            return com_ok({
-                **base,
-                "wrote": True,
-                "saved": True,
-                "full_name": str(Path(output).resolve()),
-                "path_matched": True,
-                "output_exists": True,
-                "source_still_open": True,
-            })
+            return com_ok(
+                {
+                    **base,
+                    "wrote": True,
+                    "saved": True,
+                    "full_name": str(Path(output).resolve()),
+                    "path_matched": True,
+                    "output_exists": True,
+                    "source_still_open": True,
+                }
+            )
+
         return fake
 
     def test_dry_run_write_register_and_replay(self):
@@ -3200,7 +3541,11 @@ class SaveAsOpenDocumentTests(unittest.TestCase):
         self.output.write_bytes(b"exists")
         with patch.object(open_documents, "_run_save_as_untitled_com") as com:
             ok, _data, errors, _replayed = save_as_open_document(
-                "writer", "Document1", str(self.output), request_id="save-as-exists", workspace=self.workspace,
+                "writer",
+                "Document1",
+                str(self.output),
+                request_id="save-as-exists",
+                workspace=self.workspace,
             )
         self.assertFalse(ok)
         self.assertEqual(errors[0]["code"], "OUTPUT_EXISTS")
@@ -3209,7 +3554,11 @@ class SaveAsOpenDocumentTests(unittest.TestCase):
         missing = Path(self.tmp.name) / "bad.txt"
         with patch.object(open_documents, "_run_save_as_untitled_com") as com:
             ok, _data, errors, _replayed = save_as_open_document(
-                "writer", "Document1", str(missing), request_id="save-as-ext", workspace=self.workspace,
+                "writer",
+                "Document1",
+                str(missing),
+                request_id="save-as-ext",
+                workspace=self.workspace,
             )
         self.assertFalse(ok)
         self.assertEqual(errors[0]["code"], "UNSUPPORTED_OUTPUT_EXTENSION")
@@ -3222,7 +3571,11 @@ class SaveAsOpenDocumentTests(unittest.TestCase):
             return_value=com_ok({"ok": True, "status": "already_pathed", "match_count": 1, "name": "Document1"}),
         ):
             ok, _data, errors, _replayed = save_as_open_document(
-                "writer", "Document1", str(self.output), request_id="save-as-pathed", workspace=self.workspace,
+                "writer",
+                "Document1",
+                str(self.output),
+                request_id="save-as-pathed",
+                workspace=self.workspace,
             )
         self.assertFalse(ok)
         self.assertEqual(errors[0]["code"], "DOCUMENT_ALREADY_PATHED")
@@ -3233,7 +3586,11 @@ class SaveAsOpenDocumentTests(unittest.TestCase):
             return_value=com_ok({"ok": True, "status": "ambiguous", "match_count": 2, "name": "Document1"}),
         ):
             ok, _data, errors, _replayed = save_as_open_document(
-                "writer", "Document1", str(self.output), request_id="save-as-amb", workspace=self.workspace,
+                "writer",
+                "Document1",
+                str(self.output),
+                request_id="save-as-amb",
+                workspace=self.workspace,
             )
         self.assertFalse(ok)
         self.assertEqual(errors[0]["code"], "AMBIGUOUS_OPEN_DOCUMENT")
@@ -3261,7 +3618,9 @@ class CliWiringTests(unittest.TestCase):
         return code, json.loads(output.getvalue())
 
     def test_open_documents_command_reports_missing_instance(self):
-        with patch.object(open_documents, "_run_open_documents_com", return_value=com_ok({"ok": True, "instances": []})):
+        with patch.object(
+            open_documents, "_run_open_documents_com", return_value=com_ok({"ok": True, "instances": []})
+        ):
             code, response = self.run_cli(["open-documents", "--component", "writer", "--request-id", "cli-open"])
         self.assertEqual(code, 0)
         self.assertFalse(response["ok"])

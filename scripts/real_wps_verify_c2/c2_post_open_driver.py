@@ -15,14 +15,12 @@ before/after and the returned object's ``Saved`` and ``B2``; that proves Open() 
 usage (PYTHONPATH=<repo>\\src):
     python c2_post_open_driver.py spreadsheet-write --document-id doc_xxx --range A1:A1 --values-json "[[6]]"
 """
+
 import sys
 
 PATH_OPEN_MARKER = "function Test-WpsPathOpen($collection, [string]$path) {"
 FIND_MARKER = "function Find-WpsOpenDocument($collection, [string]$path) {"
-COUNT_CHECK_MARKER = (
-    "  if ([int]$collection.Count -le $countBefore) {\n"
-    "    # Nothing new appeared in the collection"
-)
+COUNT_CHECK_MARKER = "  if ([int]$collection.Count -le $countBefore) {\n    # Nothing new appeared in the collection"
 TRACE_SNIPPET = r"""  try {
     $c2File = [string]$env:C2_TRACE_FILE
     if ($c2File) {

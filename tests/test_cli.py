@@ -37,7 +37,9 @@ class CliParsingTests(unittest.TestCase):
 
         for state in ("failed", "cancelled"):
             with self.subTest(state=state), TemporaryDirectory() as tmp:
-                with patch("wps_ai_agent_cli.task_status.task_status_state_path", return_value=Path(tmp) / "status.json"):
+                with patch(
+                    "wps_ai_agent_cli.task_status.task_status_state_path", return_value=Path(tmp) / "status.json"
+                ):
                     create_task_status("html-batch-convert", "original", task_id="owned")
                     update_task_status("owned", state)
                     factory = Mock()
@@ -50,12 +52,15 @@ class CliParsingTests(unittest.TestCase):
         from wps_ai_agent_cli.task_status import update_task_status
 
         with TemporaryDirectory() as tmp:
+
             def cancel_before_start(task_id, state_value, **kwargs):
                 self.assertTrue(update_task_status(task_id, "cancelled")[0])
                 return update_task_status(task_id, state_value, **kwargs)
 
-            with patch("wps_ai_agent_cli.task_status.task_status_state_path", return_value=Path(tmp) / "status.json"), \
-                 patch("wps_ai_agent_cli.cli.update_task_status", side_effect=cancel_before_start):
+            with (
+                patch("wps_ai_agent_cli.task_status.task_status_state_path", return_value=Path(tmp) / "status.json"),
+                patch("wps_ai_agent_cli.cli.update_task_status", side_effect=cancel_before_start),
+            ):
                 factory = Mock()
                 result = _with_optional_task_status(factory, "owned", "html-batch-convert", "original")
                 factory.assert_not_called()
@@ -89,8 +94,13 @@ class CliParsingTests(unittest.TestCase):
                 create_task_status("backup-document", "original", task_id="owned")
                 update_task_status("owned", "succeeded")
                 before = path.read_bytes()
-                response = CommandResponse(ok=True, command="backup-document", request_id="original",
-                                           backend="local-python", summary="Replayed operation")
+                response = CommandResponse(
+                    ok=True,
+                    command="backup-document",
+                    request_id="original",
+                    backend="local-python",
+                    summary="Replayed operation",
+                )
                 factory = Mock(return_value=response)
                 result = _with_optional_task_status(factory, "owned", "backup-document", "original")
                 factory.assert_called_once_with()
@@ -105,7 +115,9 @@ class CliParsingTests(unittest.TestCase):
         self.assertEqual(args.viewport_width, 1280)
 
     def test_html_editable_parser_accepts_task_tracking(self):
-        args = build_parser().parse_args(["html-editable", "--input", "a.html", "--output", "a.docx", "--task-id", "html_1"])
+        args = build_parser().parse_args(
+            ["html-editable", "--input", "a.html", "--output", "a.docx", "--task-id", "html_1"]
+        )
         self.assertEqual(args.task_id, "html_1")
 
     def test_html_roundtrip_plan_parser(self):
@@ -115,23 +127,53 @@ class CliParsingTests(unittest.TestCase):
 
     def test_html_controlled_import_and_verify_parsers(self):
         parser = build_parser()
-        imported = parser.parse_args(["html-controlled-import", "--input", "owned.html", "--output", "owned.docx", "--task-id", "roundtrip_1"])
-        verified = parser.parse_args(["html-roundtrip-verify", "--docx", "owned.docx", "--mapping", "owned.docx.wpsmap.json"])
+        imported = parser.parse_args(
+            ["html-controlled-import", "--input", "owned.html", "--output", "owned.docx", "--task-id", "roundtrip_1"]
+        )
+        verified = parser.parse_args(
+            ["html-roundtrip-verify", "--docx", "owned.docx", "--mapping", "owned.docx.wpsmap.json"]
+        )
         self.assertEqual(imported.task_id, "roundtrip_1")
         self.assertEqual(verified.mapping, "owned.docx.wpsmap.json")
 
     def test_html_roundtrip_export_parser(self):
-        args = build_parser().parse_args(["html-roundtrip-export", "--docx", "edited.docx", "--mapping", "edited.docx.wpsmap.json", "--output", "roundtrip.html", "--task-id", "export_1"])
+        args = build_parser().parse_args(
+            [
+                "html-roundtrip-export",
+                "--docx",
+                "edited.docx",
+                "--mapping",
+                "edited.docx.wpsmap.json",
+                "--output",
+                "roundtrip.html",
+                "--task-id",
+                "export_1",
+            ]
+        )
         self.assertEqual(args.output, "roundtrip.html")
         self.assertEqual(args.task_id, "export_1")
 
     def test_html_batch_convert_parser(self):
-        args = build_parser().parse_args(["html-batch-convert", "--input-dir", "in", "--output-dir", "out", "--mode", "pdf", "--recursive"])
+        args = build_parser().parse_args(
+            ["html-batch-convert", "--input-dir", "in", "--output-dir", "out", "--mode", "pdf", "--recursive"]
+        )
         self.assertTrue(args.recursive)
         self.assertEqual(args.mode, "pdf")
 
     def test_batch_template_report_parser(self):
-        args = build_parser().parse_args(["batch-template-report", "--manifest", "batch.json", "--template", "report.md", "--output", "result.md", "--task-id", "report_1"])
+        args = build_parser().parse_args(
+            [
+                "batch-template-report",
+                "--manifest",
+                "batch.json",
+                "--template",
+                "report.md",
+                "--output",
+                "result.md",
+                "--task-id",
+                "report_1",
+            ]
+        )
         self.assertEqual(args.task_id, "report_1")
 
     def test_html_batch_convert_cli_writes_per_file_manifest(self):
@@ -142,7 +184,9 @@ class CliParsingTests(unittest.TestCase):
             (source / "brief.html").write_text("<h1>Brief</h1><p>Editable</p>", encoding="utf-8")
             stdout = io.StringIO()
             with redirect_stdout(stdout):
-                code = run(["html-batch-convert", "--input-dir", str(source), "--output-dir", str(output), "--mode", "docx"])
+                code = run(
+                    ["html-batch-convert", "--input-dir", str(source), "--output-dir", str(output), "--mode", "docx"]
+                )
             response = json.loads(stdout.getvalue())
             self.assertEqual(code, 0)
             self.assertTrue(response["ok"])
@@ -155,15 +199,33 @@ class CliParsingTests(unittest.TestCase):
             manifest = root / "batch.json"
             template = root / "report.md"
             output = root / "result.md"
-            manifest.write_text(json.dumps({
-                "schema_version": "wps-agent-batch-conversion/v1", "mode": "docx",
-                "source_directory": "in", "output_directory": "out",
-                "summary": {"total": 0, "passed": 0, "failed": 0}, "files": [],
-            }), encoding="utf-8")
+            manifest.write_text(
+                json.dumps(
+                    {
+                        "schema_version": "wps-agent-batch-conversion/v1",
+                        "mode": "docx",
+                        "source_directory": "in",
+                        "output_directory": "out",
+                        "summary": {"total": 0, "passed": 0, "failed": 0},
+                        "files": [],
+                    }
+                ),
+                encoding="utf-8",
+            )
             template.write_text("Batch {{mode}}: {{total}} {{files_table}}", encoding="utf-8")
             stdout = io.StringIO()
             with redirect_stdout(stdout):
-                code = run(["batch-template-report", "--manifest", str(manifest), "--template", str(template), "--output", str(output)])
+                code = run(
+                    [
+                        "batch-template-report",
+                        "--manifest",
+                        str(manifest),
+                        "--template",
+                        str(template),
+                        "--output",
+                        str(output),
+                    ]
+                )
             response = json.loads(stdout.getvalue())
             self.assertEqual(code, 0)
             self.assertTrue(response["ok"])
@@ -177,14 +239,26 @@ class CliParsingTests(unittest.TestCase):
             (source / "brief.html").write_text("<h1>Brief</h1>", encoding="utf-8")
             stdout = io.StringIO()
             with redirect_stdout(stdout):
-                code = run(["html-batch-convert", "--input-dir", str(source), "--output-dir", str(converted), "--mode", "docx"])
+                code = run(
+                    ["html-batch-convert", "--input-dir", str(source), "--output-dir", str(converted), "--mode", "docx"]
+                )
             self.assertEqual(code, 0)
             manifest = json.loads(stdout.getvalue())["data"]["manifest_path"]
             template, report = root / "template.md", root / "report.md"
             template.write_text("# Batch {{mode}}\n{{files_table}}", encoding="utf-8")
             stdout = io.StringIO()
             with redirect_stdout(stdout):
-                code = run(["batch-template-report", "--manifest", manifest, "--template", str(template), "--output", str(report)])
+                code = run(
+                    [
+                        "batch-template-report",
+                        "--manifest",
+                        manifest,
+                        "--template",
+                        str(template),
+                        "--output",
+                        str(report),
+                    ]
+                )
             self.assertEqual(code, 0)
             self.assertIn("brief.html", report.read_text(encoding="utf-8"))
             self.assertIn("passed", report.read_text(encoding="utf-8"))
@@ -208,12 +282,26 @@ class CliParsingTests(unittest.TestCase):
                 return True, {}, []
 
             stdout = io.StringIO()
-            with patch("wps_ai_agent_cli.cli.create_task_status", return_value=(True, {"terminal": False}, [], False)), \
-                 patch("wps_ai_agent_cli.cli.update_task_status", return_value=(True, {}, [])), \
-                 patch("wps_ai_agent_cli.cli.get_task_status", side_effect=status), \
-                 patch("wps_ai_agent_cli.batch_conversion.render_html", side_effect=render), \
-                 redirect_stdout(stdout):
-                code = run(["html-batch-convert", "--input-dir", str(source), "--output-dir", str(output), "--mode", "pdf", "--task-id", "batch_cancel"])
+            with (
+                patch("wps_ai_agent_cli.cli.create_task_status", return_value=(True, {"terminal": False}, [], False)),
+                patch("wps_ai_agent_cli.cli.update_task_status", return_value=(True, {}, [])),
+                patch("wps_ai_agent_cli.cli.get_task_status", side_effect=status),
+                patch("wps_ai_agent_cli.batch_conversion.render_html", side_effect=render),
+                redirect_stdout(stdout),
+            ):
+                code = run(
+                    [
+                        "html-batch-convert",
+                        "--input-dir",
+                        str(source),
+                        "--output-dir",
+                        str(output),
+                        "--mode",
+                        "pdf",
+                        "--task-id",
+                        "batch_cancel",
+                    ]
+                )
             response = json.loads(stdout.getvalue())
             self.assertEqual(code, 0)
             self.assertFalse(response["ok"])
@@ -242,10 +330,28 @@ class CliParsingTests(unittest.TestCase):
                 return True, {}, []
 
             def worker():
-                with patch("wps_ai_agent_cli.batch_conversion.render_html", side_effect=render), redirect_stdout(stdout):
-                    outcome["exit_code"] = run(["html-batch-convert", "--input-dir", str(source), "--output-dir", str(output), "--mode", "pdf", "--task-id", "live_cancel"])
+                with (
+                    patch("wps_ai_agent_cli.batch_conversion.render_html", side_effect=render),
+                    redirect_stdout(stdout),
+                ):
+                    outcome["exit_code"] = run(
+                        [
+                            "html-batch-convert",
+                            "--input-dir",
+                            str(source),
+                            "--output-dir",
+                            str(output),
+                            "--mode",
+                            "pdf",
+                            "--task-id",
+                            "live_cancel",
+                        ]
+                    )
 
-            with patch("wps_ai_agent_cli.task_status.task_status_state_path", side_effect=lambda workspace=".": root / "task-statuses.json"):
+            with patch(
+                "wps_ai_agent_cli.task_status.task_status_state_path",
+                side_effect=lambda workspace=".": root / "task-statuses.json",
+            ):
                 thread = Thread(target=worker)
                 thread.start()
                 self.assertTrue(started.wait(5))
@@ -266,17 +372,32 @@ class CliParsingTests(unittest.TestCase):
         with TemporaryDirectory() as directory:
             root = Path(directory)
             source, document, output_path = root / "owned.html", root / "owned.docx", root / "roundtrip.html"
-            source.write_text('<html data-wps-schema="wps-agent-html/v1"><p data-wps-object-id="p1">Before</p></html>', encoding="utf-8")
+            source.write_text(
+                '<html data-wps-schema="wps-agent-html/v1"><p data-wps-object-id="p1">Before</p></html>',
+                encoding="utf-8",
+            )
             from wps_ai_agent_cli.html_roundtrip import import_controlled_html
+
             ok, imported, errors = import_controlled_html(source, document)
             self.assertTrue(ok, errors)
             stdout = io.StringIO()
             with redirect_stdout(stdout):
-                code = run(["html-roundtrip-export", "--docx", str(document), "--mapping", imported["mapping_path"], "--output", str(output_path)])
+                code = run(
+                    [
+                        "html-roundtrip-export",
+                        "--docx",
+                        str(document),
+                        "--mapping",
+                        imported["mapping_path"],
+                        "--output",
+                        str(output_path),
+                    ]
+                )
             response = json.loads(stdout.getvalue())
             self.assertEqual(code, 0)
             self.assertTrue(response["ok"])
             from wps_ai_agent_cli.html_roundtrip import build_html_roundtrip_mapping
+
             valid, mapping, errors = build_html_roundtrip_mapping(output_path)
             self.assertTrue(valid, errors)
             self.assertEqual(mapping["mappings"][0]["object_id"], "p1")
@@ -312,9 +433,23 @@ class CliParsingTests(unittest.TestCase):
 
     def test_spreadsheet_inventory_cli_preserves_extended_read_only_metadata(self):
         inventory = {
-            "document_id": "doc_1", "component": "spreadsheets", "read_only": True, "saved": False,
-            "sheet_count": 1, "sheets": [{"name": "Data", "tab_color": "#123456", "formula_count": 2, "freeze_panes": "B2", "merged_ranges": ["A1:B1"]}],
-            "defined_names": [], "defined_name_count": 0, "defined_names_truncated": False,
+            "document_id": "doc_1",
+            "component": "spreadsheets",
+            "read_only": True,
+            "saved": False,
+            "sheet_count": 1,
+            "sheets": [
+                {
+                    "name": "Data",
+                    "tab_color": "#123456",
+                    "formula_count": 2,
+                    "freeze_panes": "B2",
+                    "merged_ranges": ["A1:B1"],
+                }
+            ],
+            "defined_names": [],
+            "defined_name_count": 0,
+            "defined_names_truncated": False,
             "calculation": {"mode": "manual"},
         }
         output = io.StringIO()
@@ -327,10 +462,9 @@ class CliParsingTests(unittest.TestCase):
         self.assertEqual(response["data"]["sheets"][0]["tab_color"], "#123456")
         self.assertEqual(response["data"]["sheets"][0]["merged_ranges"], ["A1:B1"])
         self.assertEqual(response["data"]["calculation"]["mode"], "manual")
+
     def test_extract_request_id_after_subcommand(self):
-        argv, request_id = _extract_request_id(
-            ["backup-document", "--document-id", "doc_1", "--request-id", "req-1"]
-        )
+        argv, request_id = _extract_request_id(["backup-document", "--document-id", "doc_1", "--request-id", "req-1"])
 
         self.assertEqual(request_id, "req-1")
         self.assertEqual(argv, ["backup-document", "--document-id", "doc_1"])
@@ -350,13 +484,15 @@ class CliParsingTests(unittest.TestCase):
     def test_mutating_command_parsers_accept_task_id(self):
         parser = build_parser()
 
-        args = parser.parse_args([
-            "backup-document",
-            "--document-id",
-            "doc_1",
-            "--task-id",
-            "task_1",
-        ])
+        args = parser.parse_args(
+            [
+                "backup-document",
+                "--document-id",
+                "doc_1",
+                "--task-id",
+                "task_1",
+            ]
+        )
 
         self.assertEqual(args.command, "backup-document")
         self.assertEqual(args.task_id, "task_1")
@@ -386,9 +522,19 @@ class CliParsingTests(unittest.TestCase):
                 self.assertNotIn("--page", option_strings)
                 self.assertNotIn("--page-number", option_strings)
                 self.assertNotIn("--page-index", option_strings)
-        html_args = parser.parse_args([
-            "html-render", "--input", "a.html", "--output", "a.pdf", "--format", "pdf", "--page-size", "A4",
-        ])
+        html_args = parser.parse_args(
+            [
+                "html-render",
+                "--input",
+                "a.html",
+                "--output",
+                "a.pdf",
+                "--format",
+                "pdf",
+                "--page-size",
+                "A4",
+            ]
+        )
         self.assertEqual(html_args.page_size, "A4")
 
     def test_task_recovery_parser_accepts_task_id(self):
@@ -406,55 +552,126 @@ class CliParsingTests(unittest.TestCase):
         catalog_args = parser.parse_args(["mcp-catalog-snapshot"])
         drift_args = parser.parse_args(["mcp-catalog-drift", "--guard", "config/mcp_catalog_guard.json"])
         schema_args = parser.parse_args(["mcp-tool-schema", "--name", "wps_agent_writer_replace"])
-        bookmark_args = parser.parse_args(["writer-fill-bookmark", "--document-id", "doc_1", "--bookmark-name", "Client", "--text", "Northwind", "--dry-run"])
-        inspect_args = parser.parse_args(["spreadsheet-inspect", "--document-id", "doc_1", "--sheet", "Sheet1", "--range", "A1:F1"])
+        bookmark_args = parser.parse_args(
+            [
+                "writer-fill-bookmark",
+                "--document-id",
+                "doc_1",
+                "--bookmark-name",
+                "Client",
+                "--text",
+                "Northwind",
+                "--dry-run",
+            ]
+        )
+        inspect_args = parser.parse_args(
+            ["spreadsheet-inspect", "--document-id", "doc_1", "--sheet", "Sheet1", "--range", "A1:F1"]
+        )
         sheets_args = parser.parse_args(["spreadsheet-sheets", "--document-id", "doc_1"])
-        rename_sheet_args = parser.parse_args(["spreadsheet-rename-sheet", "--document-id", "doc_1", "--old-name", "Sheet1", "--new-name", "Archive", "--dry-run"])
-        create_sheet_args = parser.parse_args(["spreadsheet-create-sheet", "--document-id", "doc_1", "--name", "Archive", "--index", "2", "--dry-run"])
-        visibility_args = parser.parse_args(["spreadsheet-set-sheet-visibility", "--document-id", "doc_1", "--sheet-name", "Archive", "--visible", "false", "--dry-run"])
-        delete_sheet_args = parser.parse_args(["spreadsheet-delete-sheet", "--document-id", "doc_1", "--sheet-name", "Archive", "--dry-run"])
-        copy_sheet_args = parser.parse_args(["spreadsheet-copy-sheet", "--document-id", "doc_1", "--source-name", "Sheet1", "--new-name", "Copy", "--index", "2", "--dry-run"])
-        tab_color_args = parser.parse_args(["spreadsheet-set-sheet-tab-color", "--document-id", "doc_1", "--sheet-name", "Sheet1", "--color", "#12ABEF", "--dry-run"])
-        call_args = parser.parse_args(["mcp-call", "--name", "wps_agent_tasks", "--arguments-json", "{\"phase\":\"phase2\"}"])
-        server_args = parser.parse_args(["mcp-server", "--once-json", "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"tools/list\"}"])
+        rename_sheet_args = parser.parse_args(
+            [
+                "spreadsheet-rename-sheet",
+                "--document-id",
+                "doc_1",
+                "--old-name",
+                "Sheet1",
+                "--new-name",
+                "Archive",
+                "--dry-run",
+            ]
+        )
+        create_sheet_args = parser.parse_args(
+            ["spreadsheet-create-sheet", "--document-id", "doc_1", "--name", "Archive", "--index", "2", "--dry-run"]
+        )
+        visibility_args = parser.parse_args(
+            [
+                "spreadsheet-set-sheet-visibility",
+                "--document-id",
+                "doc_1",
+                "--sheet-name",
+                "Archive",
+                "--visible",
+                "false",
+                "--dry-run",
+            ]
+        )
+        delete_sheet_args = parser.parse_args(
+            ["spreadsheet-delete-sheet", "--document-id", "doc_1", "--sheet-name", "Archive", "--dry-run"]
+        )
+        copy_sheet_args = parser.parse_args(
+            [
+                "spreadsheet-copy-sheet",
+                "--document-id",
+                "doc_1",
+                "--source-name",
+                "Sheet1",
+                "--new-name",
+                "Copy",
+                "--index",
+                "2",
+                "--dry-run",
+            ]
+        )
+        tab_color_args = parser.parse_args(
+            [
+                "spreadsheet-set-sheet-tab-color",
+                "--document-id",
+                "doc_1",
+                "--sheet-name",
+                "Sheet1",
+                "--color",
+                "#12ABEF",
+                "--dry-run",
+            ]
+        )
+        call_args = parser.parse_args(
+            ["mcp-call", "--name", "wps_agent_tasks", "--arguments-json", '{"phase":"phase2"}']
+        )
+        server_args = parser.parse_args(["mcp-server", "--once-json", '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'])
         smoke_args = parser.parse_args(["mcp-smoke", "--expected-min-tools", "10", "--tool-name", "wps_agent_tasks"])
         audit_args = parser.parse_args(["mcp-config-audit", "--config", "config/mcp_client_config.example.json"])
         manifest_args = parser.parse_args(["regression-manifest", "--profile", "safe"])
         run_args = parser.parse_args(["regression-run", "--profile", "safe"])
-        run_artifact_args = parser.parse_args(["regression-run", "--profile", "safe", "--artifact-dir", "artifacts/regression"])
+        run_artifact_args = parser.parse_args(
+            ["regression-run", "--profile", "safe", "--artifact-dir", "artifacts/regression"]
+        )
         security_args = parser.parse_args(["security-audit"])
         performance_args = parser.parse_args(["performance-baseline"])
         process_audit_args = parser.parse_args(["wps-process-audit", "--timeout-seconds", "4"])
         cleanup_plan_args = parser.parse_args(["cleanup-plan", "--workspace", "."])
         cleanup_approval_args = parser.parse_args(["cleanup-approval-manifest", "--workspace", "."])
-        writer_table_args = parser.parse_args([
-            "writer-table-write",
-            "--document-id",
-            "doc_1",
-            "--table-index",
-            "1",
-            "--row",
-            "2",
-            "--column",
-            "3",
-            "--text",
-            "Approved",
-        ])
-        writer_table_smoke_args = parser.parse_args([
-            "writer-table-smoke",
-            "--input",
-            "fixtures/phase3/writer_table_fixture.docx",
-            "--output",
-            "fixtures/phase3/writer_table_regression_smoke.docx",
-            "--table-index",
-            "1",
-            "--row",
-            "2",
-            "--column",
-            "3",
-            "--text",
-            "Regression",
-        ])
+        writer_table_args = parser.parse_args(
+            [
+                "writer-table-write",
+                "--document-id",
+                "doc_1",
+                "--table-index",
+                "1",
+                "--row",
+                "2",
+                "--column",
+                "3",
+                "--text",
+                "Approved",
+            ]
+        )
+        writer_table_smoke_args = parser.parse_args(
+            [
+                "writer-table-smoke",
+                "--input",
+                "fixtures/phase3/writer_table_fixture.docx",
+                "--output",
+                "fixtures/phase3/writer_table_regression_smoke.docx",
+                "--table-index",
+                "1",
+                "--row",
+                "2",
+                "--column",
+                "3",
+                "--text",
+                "Regression",
+            ]
+        )
 
         self.assertEqual(list_args.command, "mcp-tools")
         self.assertEqual(list_args.category, "spreadsheet")
@@ -486,7 +703,9 @@ class CliParsingTests(unittest.TestCase):
         self.assertEqual(call_args.name, "wps_agent_tasks")
         self.assertEqual(server_args.command, "mcp-server")
         self.assertIn("tools/list", server_args.once_json)
-        calc_args = parser.parse_args(["calc-smoke", "--input", "in.xlsx", "--output", "out.xlsx", "--timeout-seconds", "3"])
+        calc_args = parser.parse_args(
+            ["calc-smoke", "--input", "in.xlsx", "--output", "out.xlsx", "--timeout-seconds", "3"]
+        )
 
         self.assertEqual(smoke_args.command, "mcp-smoke")
         self.assertEqual(smoke_args.expected_min_tools, 10)
@@ -497,22 +716,43 @@ class CliParsingTests(unittest.TestCase):
         self.assertEqual(audit_args.config, "config/mcp_client_config.example.json")
         self.assertEqual(audit_args.timeout_seconds, 15)
         for timeout in (1, 120):
-            self.assertEqual(parser.parse_args([
-                "mcp-config-audit", "--timeout-seconds", str(timeout),
-            ]).timeout_seconds, timeout)
+            self.assertEqual(
+                parser.parse_args(
+                    [
+                        "mcp-config-audit",
+                        "--timeout-seconds",
+                        str(timeout),
+                    ]
+                ).timeout_seconds,
+                timeout,
+            )
         for timeout in (0, -1, 121):
             with self.subTest(timeout=timeout), self.assertRaises(SystemExit):
                 parser.parse_args(["mcp-config-audit", "--timeout-seconds", str(timeout)])
         for count in (1, 10000):
-            self.assertEqual(parser.parse_args([
-                "mcp-config-audit", "--expected-min-tools", str(count),
-            ]).expected_min_tools, count)
+            self.assertEqual(
+                parser.parse_args(
+                    [
+                        "mcp-config-audit",
+                        "--expected-min-tools",
+                        str(count),
+                    ]
+                ).expected_min_tools,
+                count,
+            )
         for count in (0, -1, 10001):
             with self.subTest(expected_min_tools=count), self.assertRaises(SystemExit):
                 parser.parse_args(["mcp-config-audit", "--expected-min-tools", str(count)])
-        self.assertEqual(parser.parse_args([
-            "mcp-config-audit", "--server-name", "n" * 256,
-        ]).server_name, "n" * 256)
+        self.assertEqual(
+            parser.parse_args(
+                [
+                    "mcp-config-audit",
+                    "--server-name",
+                    "n" * 256,
+                ]
+            ).server_name,
+            "n" * 256,
+        )
         for name in ("", "   ", "n" * 257):
             with self.subTest(server_name=repr(name)), self.assertRaises(SystemExit):
                 parser.parse_args(["mcp-config-audit", "--server-name", name])

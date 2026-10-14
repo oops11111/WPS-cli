@@ -79,7 +79,9 @@ class OperationLedgerTests(unittest.TestCase):
             request_id = "req-interrupted"
             ok, backup, errors, _ = create_backup(document["document_id"], f"{request_id}:backup", workspace=tmp)
             self.assertTrue(ok, errors)
-            self.assertIsNone(replay_operation(request_id, "writer-replace", {"document_id": document["document_id"]}, tmp))
+            self.assertIsNone(
+                replay_operation(request_id, "writer-replace", {"document_id": document["document_id"]}, tmp)
+            )
             path.write_bytes(b"saved but not recorded")
             replay = replay_operation(request_id, "writer-replace", {"document_id": document["document_id"]}, tmp)
             self.assertFalse(replay[0])
@@ -96,7 +98,9 @@ class OperationLedgerTests(unittest.TestCase):
             path.write_bytes(b"saved")
             with patch("wps_ai_agent_cli.operations.file_identity", side_effect=OSError("unavailable")):
                 with self.assertRaises(OSError):
-                    record_operation("req-save", "writer-replace", {"document_id": document["document_id"], "saved": True}, tmp)
+                    record_operation(
+                        "req-save", "writer-replace", {"document_id": document["document_id"], "saved": True}, tmp
+                    )
             self.assertEqual(get_operation("req-save", tmp)["identity_capture_error"], "unavailable")
             replay = replay_operation("req-save", "writer-replace", {"document_id": document["document_id"]}, tmp)
             self.assertFalse(replay[0])
@@ -111,7 +115,9 @@ class OperationLedgerTests(unittest.TestCase):
             path.write_bytes(b"after")
             with patch("wps_ai_agent_cli.operations.refresh_document_identity", side_effect=OSError("refresh failed")):
                 with self.assertRaises(OSError):
-                    record_operation("req-save", "writer-replace", {"document_id": document["document_id"], "saved": True}, tmp)
+                    record_operation(
+                        "req-save", "writer-replace", {"document_id": document["document_id"], "saved": True}, tmp
+                    )
             self.assertEqual(get_document(document["document_id"], tmp)["source_sha256"], document["source_sha256"])
             self.assertIsNotNone(get_operation("req-save", tmp)["source_identity_at_commit"])
             inspection = inspect_mutation_request("req-save", tmp)
@@ -133,7 +139,9 @@ class OperationLedgerTests(unittest.TestCase):
             path.write_bytes(b"saved")
             with patch("wps_ai_agent_cli.operations.refresh_document_identity", side_effect=OSError("refresh failed")):
                 with self.assertRaises(OSError):
-                    record_operation("req-save", "writer-replace", {"document_id": document["document_id"], "saved": True}, tmp)
+                    record_operation(
+                        "req-save", "writer-replace", {"document_id": document["document_id"], "saved": True}, tmp
+                    )
             path.write_bytes(b"external change")
             self.assertEqual(inspect_mutation_request("req-save", tmp)["status"], "recorded_changed")
             replay = replay_operation("req-save", "writer-replace", {"document_id": document["document_id"]}, tmp)
@@ -160,11 +168,20 @@ class OperationLedgerTests(unittest.TestCase):
             self.assertIsNone(replay_operation("req-1", "write", {"document_id": "doc"}, workspace))
             record_operation("req-1", "write", {"document_id": "doc", "value": [[1, 2]], "dry_run": False}, workspace)
 
-            self.assertEqual(replay_operation("req-1", "write", {"document_id": "doc", "value": [[1, 2]], "dry_run": False}, workspace), (True, {"document_id": "doc", "value": [[1, 2]], "dry_run": False}, [], True))
-            conflict = replay_operation("req-1", "write", {"document_id": "doc", "value": [[1, 3]], "dry_run": False}, workspace)
+            self.assertEqual(
+                replay_operation(
+                    "req-1", "write", {"document_id": "doc", "value": [[1, 2]], "dry_run": False}, workspace
+                ),
+                (True, {"document_id": "doc", "value": [[1, 2]], "dry_run": False}, [], True),
+            )
+            conflict = replay_operation(
+                "req-1", "write", {"document_id": "doc", "value": [[1, 3]], "dry_run": False}, workspace
+            )
             self.assertFalse(conflict[0])
             self.assertEqual(conflict[1]["conflicting_fields"], ["value"])
-            command_conflict = replay_operation("req-1", "delete", {"document_id": "doc", "value": [[1, 2]], "dry_run": False}, workspace)
+            command_conflict = replay_operation(
+                "req-1", "delete", {"document_id": "doc", "value": [[1, 2]], "dry_run": False}, workspace
+            )
             self.assertFalse(command_conflict[0])
             self.assertIn("command", command_conflict[1]["conflicting_fields"])
             self.assertEqual(command_conflict[2][0]["code"], "IDEMPOTENCY_CONFLICT")
