@@ -36,7 +36,7 @@
       "exit_criteria": [
         "Cross-component conversion is verified between HTML and Office formats (Writer, Spreadsheets, Presentation)",
         "Mutations are atomic transactions: a change is either fully applied and verified or fully rolled back",
-        "Automated regression suite runs safe and WPS profiles with recorded artifacts",
+        "MET: automated regression suite runs safe and WPS profiles with recorded artifacts. Windows run on main@b1a4b31 (2026-10-14): safe 7/7 (artifacts/regression/safe/regression-run-20261014T003140284929Z-0c8ae0f4-c225-48ba-b0ea-9db42b32a852.json), wps 4/4 (artifacts/regression/wps/regression-run-20261014T003207822953Z-b92e49b9-6389-482e-a069-230c2b5a23cf.json)",
         "MET: a real Agent end-to-end evaluation pipeline runs and records results (scripts/agent_eval, PR #21, docs/AGENT_E2E_EVAL.md)",
         "MET: ecosystem extension evaluation is written up (docs/ECOSYSTEM_EVALUATION.md, PR #22). Codex integration is tracked as a separate follow-up, not a condition for this criterion"
       ]
