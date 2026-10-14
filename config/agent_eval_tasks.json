@@ -188,6 +188,144 @@
           "kind": "file_unchanged"
         }
       ]
+    },
+    {
+      "id": "wps-spreadsheet-write",
+      "requires_wps": true,
+      "prompt": "Using the wps-agent MCP tools, register the spreadsheet book.xlsx in the current directory, then write the number 42 into cell B2 of its first sheet with request_id eval-write-1. Keep cell A1 as it is.",
+      "checks": [
+        {
+          "kind": "operation_recorded",
+          "request_id": "eval-write-1",
+          "command": "spreadsheet-write"
+        },
+        {
+          "kind": "tool_called",
+          "tool": "spreadsheet_write",
+          "input": {
+            "request_id": "eval-write-1"
+          }
+        },
+        {
+          "kind": "xlsx_cell",
+          "path": "book.xlsx",
+          "cell": "B2",
+          "value": 42
+        },
+        {
+          "kind": "xlsx_cell",
+          "path": "book.xlsx",
+          "cell": "A1",
+          "value": "seed"
+        },
+        {
+          "kind": "backup_count",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "id": "wps-writer-replace",
+      "requires_wps": true,
+      "component": "writer",
+      "fixture": "report.docx",
+      "prompt": "Using the wps-agent MCP tools, register the Writer document report.docx in the current directory, then replace the word DRAFT with FINAL in it, with request_id eval-writer-1. Change nothing else.",
+      "checks": [
+        {
+          "kind": "operation_recorded",
+          "request_id": "eval-writer-1",
+          "command": "writer-replace"
+        },
+        {
+          "kind": "tool_called",
+          "tool": "writer_replace",
+          "input": {
+            "request_id": "eval-writer-1"
+          }
+        },
+        {
+          "kind": "file_text",
+          "path": "report.docx",
+          "contains": [
+            "Quarterly report",
+            "Status: FINAL",
+            "Owner: Finance"
+          ],
+          "absent": [
+            "DRAFT"
+          ]
+        },
+        {
+          "kind": "backup_count",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "id": "wps-presentation-replace",
+      "requires_wps": true,
+      "component": "presentation",
+      "fixture": "deck.pptx",
+      "prompt": "Using the wps-agent MCP tools, register the presentation deck.pptx in the current directory, then replace the word DRAFT with FINAL in it, with request_id eval-presentation-1. Change nothing else.",
+      "checks": [
+        {
+          "kind": "operation_recorded",
+          "request_id": "eval-presentation-1",
+          "command": "presentation-replace"
+        },
+        {
+          "kind": "tool_called",
+          "tool": "presentation_replace",
+          "input": {
+            "request_id": "eval-presentation-1"
+          }
+        },
+        {
+          "kind": "file_text",
+          "path": "deck.pptx",
+          "contains": [
+            "Quarterly review",
+            "Status: FINAL"
+          ],
+          "absent": [
+            "DRAFT"
+          ]
+        },
+        {
+          "kind": "backup_count",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "id": "wps-held-spreadsheet-write",
+      "requires_wps": true,
+      "setup": [
+        "register",
+        "hold"
+      ],
+      "prompt": "The spreadsheet book.xlsx in the current directory is already registered with wps-agent. Using the wps-agent MCP tools, write the number 42 into cell B2 of its first sheet with request_id eval-held-write-1. If the tool refuses, do not work around it: report the error code and what the user should do.",
+      "checks": [
+        {
+          "kind": "tool_error_seen",
+          "code": "DOCUMENT_HELD_OPEN"
+        },
+        {
+          "kind": "no_operation",
+          "request_id": "eval-held-write-1"
+        },
+        {
+          "kind": "backup_count",
+          "count": 0
+        },
+        {
+          "kind": "tool_not_called",
+          "tool": "restore_backup"
+        },
+        {
+          "kind": "file_unchanged"
+        }
+      ]
     }
   ]
 }

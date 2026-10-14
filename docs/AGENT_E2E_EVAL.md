@@ -4,7 +4,7 @@ This pipeline runs fixed tasks through the real `claude -p` CLI with the `wps-ag
 
 ## What it covers
 
-Tasks are in `config/agent_eval_tasks.json`. Each task runs in its own workspace, which is also the MCP server's working directory. The fixture is `book.xlsx`, with `seed` in A1.
+Tasks are in `config/agent_eval_tasks.json`. Each task runs in its own workspace, which is also the MCP server's working directory. The default fixture is `book.xlsx`, with `seed` in A1. A task can name its own `fixture` and `component`: `report.docx` (Writer) holds the paragraphs `Quarterly report`, `Status: DRAFT` and `Owner: Finance`, and `deck.pptx` (Presentation) holds one slide with `Quarterly review` and `Status: DRAFT`.
 
 A task can list `setup` steps that prepare the workspace before the agent starts:
 
@@ -26,6 +26,10 @@ A task can list `setup` steps that prepare the workspace before the agent starts
 | `restore-dry-run` | preview a restore without changing the file | a `restore_backup` call with `dry_run: true`; file unchanged; still one backup (a real restore adds a safety backup) |
 | `held-document-backup` | back up a file that another handle holds | `DOCUMENT_HELD_OPEN` seen in a tool result; no operation recorded; no backup; no `restore_backup` call; file unchanged |
 | `html-table-to-xlsx` | convert `table.html` into `table.xlsx` | an `html_editable` call with `format: "xlsx"`; `table.xlsx` has `Region` in A1 and `120` in B2; `book.xlsx` unchanged |
+| `wps-spreadsheet-write` (WPS) | write 42 into B2 of `book.xlsx` | operation `eval-write-1` recorded as `spreadsheet-write`; a `spreadsheet_write` call with that request id; B2 is 42 and A1 still `seed`; one backup (taken before the write) |
+| `wps-writer-replace` (WPS) | replace DRAFT with FINAL in `report.docx` | operation `eval-writer-1` recorded as `writer-replace`; a `writer_replace` call; the text has `Status: FINAL` and the other two paragraphs, and no `DRAFT`; one backup |
+| `wps-presentation-replace` (WPS) | replace DRAFT with FINAL in `deck.pptx` | operation `eval-presentation-1` recorded as `presentation-replace`; a `presentation_replace` call; the text has `Quarterly review` and `Status: FINAL`, and no `DRAFT`; one backup |
+| `wps-held-spreadsheet-write` (WPS) | write into a held `book.xlsx` | `DOCUMENT_HELD_OPEN` seen; no operation recorded; no backup; no `restore_backup` call; file unchanged |
 
 Only offline tools are used. None of these tasks needs WPS, so they run on any machine with the `claude` CLI logged in. WPS-dependent write paths are not covered here.
 
@@ -33,7 +37,7 @@ Only offline tools are used. None of these tasks needs WPS, so they run on any m
 
 ## Check kinds
 
-State checks: `document_registered`, `operation_recorded`, `no_operation`, `backup_count`, `file_unchanged` (the file as the agent received it, after setup), `file_matches_seed` (the file before setup), `xlsx_cell`.
+State checks: `document_registered`, `operation_recorded`, `no_operation`, `backup_count`, `file_unchanged` (the file as the agent received it, after setup), `file_matches_seed` (the file before setup), `xlsx_cell`, `file_text` (text that a `.docx` or `.pptx` must contain, and text it must not).
 
 Transcript checks, read from the tool calls, not from the reply: `tool_called` (optionally with `input` values and a `min` count), `tool_not_called`, `tool_error_seen` (an error code in a tool result), `max_tool_calls` (calls to `wps-agent` tools only).
 
@@ -78,7 +82,9 @@ Run 2026-10-13 with `claude` 2.1.296 (CLI default model), on a Linux container a
 
 ## Limits
 
-- Eight tasks are still a small set, not a benchmark. They cover registration, backup, idempotent retry, restore, dry run, a held file and HTML conversion. They do not cover the 85-tool surface.
+- Twelve tasks are still a small set, not a benchmark. Eight run offline (registration, backup, idempotent retry, restore, dry run, a held file, HTML conversion); four marked (WPS) need WPS on Windows and are skipped elsewhere. They do not cover the 85-tool surface.
+- The WPS tasks have only been checked offline, against a stand-in agent. Their first real runs are P4-007.
+- The held-file recovery task (a rollback blocked by an open document, then recovered from the CLI) is added with the opt-in close-and-restore, P4-010.
 - The judge checks state and tool calls, so a correct-sounding reply with the wrong state fails. A failure to report the result accurately is not detected here.
 - Results depend on the model the CLI uses. Record it with `--model` when comparing runs.
 - Runs are not deterministic. A failing run should be rerun before it is treated as a regression.
