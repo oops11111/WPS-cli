@@ -4,7 +4,7 @@ This pipeline runs fixed tasks through the real `claude -p` CLI with the `wps-ag
 
 ## What it covers
 
-Tasks are in `config/agent_eval_tasks.json`. Each task runs in its own workspace, which is also the MCP server's working directory. The default fixture is `book.xlsx`, with `seed` in A1. A task can name its own `fixture` and `component`: `report.docx` (Writer) holds the paragraphs `Quarterly report`, `Status: DRAFT` and `Owner: Finance`, and `deck.pptx` (Presentation) holds one slide with `Quarterly review` and `Status: DRAFT`.
+Tasks are in `config/agent_eval_tasks.json`. Each task runs in its own workspace, which is also the MCP server's working directory. The default fixture is `book.xlsx`, with `seed` in A1. A task can name its own `fixture` and `component`: `report.docx` (Writer) holds the paragraphs `Quarterly report`, `Status: DRAFT` and `Owner: Finance`, `deck.pptx` (Presentation) holds one slide with `Quarterly review` and `Status: DRAFT`, and `table_report.docx` (Writer) holds the paragraph `Regional status` and one table with the rows `Region, Q1, Status`, `North, 120, DRAFT` and `South, 95, DRAFT`.
 
 A task can list `setup` steps that prepare the workspace before the agent starts:
 
@@ -14,7 +14,8 @@ A task can list `setup` steps that prepare the workspace before the agent starts
 | `backup` | backs it up with request id `setup-backup` |
 | `modify` | changes A1 to `changed by mistake` and saves the file |
 | `html_table` | writes `table.html` with a two-column table |
-| `hold` | holds `book.xlsx` the way WPS holds an open document. Must be the last step. |
+| `hold` | holds the fixture the way WPS holds an open document. Must be the last step. |
+| `open_in_wps` | opens the fixture with its default app on Windows, as a user would, and waits until WPS lists it as open (up to 45 s). After the agent, the runner closes it without saving, and only when WPS reports no unsaved changes. Must be the last step; the task must be marked (WPS). Elsewhere the task is skipped. |
 
 | Task | Asks the agent to | Judged by |
 | --- | --- | --- |
@@ -30,14 +31,21 @@ A task can list `setup` steps that prepare the workspace before the agent starts
 | `wps-writer-replace` (WPS) | replace DRAFT with FINAL in `report.docx` | operation `eval-writer-1` recorded as `writer-replace`; a `writer_replace` call; the text has `Status: FINAL` and the other two paragraphs, and no `DRAFT`; one backup |
 | `wps-presentation-replace` (WPS) | replace DRAFT with FINAL in `deck.pptx` | operation `eval-presentation-1` recorded as `presentation-replace`; a `presentation_replace` call; the text has `Quarterly review` and `Status: FINAL`, and no `DRAFT`; one backup |
 | `wps-held-spreadsheet-write` (WPS) | write into a held `book.xlsx` | `DOCUMENT_HELD_OPEN` seen; no operation recorded; no backup; no `restore_backup` call; file unchanged |
+| `spreadsheet-sheets-and-read` | list the sheets of `book.xlsx` and read A1 | document registered; `spreadsheet_sheets` and `spreadsheet_read` calls; no backup; file unchanged |
+| `html-table-to-docx` | convert `table.html` into `table.docx` | an `html_editable` call; `table.docx` has every cell of the table; `book.xlsx` unchanged |
+| `wps-spreadsheet-rename-sheet` (WPS) | rename the sheet `Sheet` to `Summary` | operation `eval-rename-1` recorded as `spreadsheet-rename-sheet`; a `spreadsheet_rename_sheet` call; the only sheet is `Summary`; A1 still `seed`; one backup |
+| `wps-spreadsheet-create-sheet` (WPS) | add a sheet `Q4` after the existing one | operation `eval-create-1` recorded as `spreadsheet-create-sheet`; a `spreadsheet_create_sheet` call; the sheets are `Sheet`, `Q4` in that order; A1 of `Sheet` still `seed`; one backup |
+| `wps-writer-table-write` (WPS) | set the Status of the North row to FINAL in `table_report.docx` | operation `eval-table-1` recorded as `writer-table-write`; a `writer_table_write` call; that cell is `FINAL`, the South row and the header unchanged; one backup |
+| `wps-docx-to-pdf` (WPS) | convert `report.docx` to `report.pdf` | a `convert_smoke` call with `format: "pdf"`; `report.pdf` starts with `%PDF-` and has at least 1000 bytes; `report.docx` unchanged |
+| `wps-open-document-export-text` (WPS) | find `report.docx`, opened in WPS by the `open_in_wps` step, and export its text to `report.txt` | `open_documents` and `export_open_document_text` calls; `report.txt` has the three paragraphs; no `save_open_document` call; `report.docx` unchanged |
 
-The eight tasks without (WPS) use only offline tools and run on any machine with the `claude` CLI logged in. The four (WPS) tasks need WPS on Windows; their results are under "P4-007 Windows WPS write tasks" below.
+The ten tasks without (WPS) use only offline tools and run on any machine with the `claude` CLI logged in. The nine (WPS) tasks need WPS on Windows. The first four were run in P4-007 (results below); the last five, added in P5-005, have only been checked offline against a stand-in agent until P5-006 runs them on Windows.
 
 `held-document-backup` needs a machine that can hold the file. On Windows the runner opens it with no sharing. On other systems it removes all permissions, which does not work for root. When the file cannot be held, the task is reported as skipped, not as passed or failed.
 
 ## Check kinds
 
-State checks: `document_registered`, `operation_recorded`, `no_operation`, `backup_count`, `file_unchanged` (the file as the agent received it, after setup), `file_matches_seed` (the file before setup), `xlsx_cell`, `file_text` (text that a `.docx` or `.pptx` must contain, and text it must not).
+State checks: `document_registered`, `operation_recorded`, `no_operation`, `backup_count`, `file_unchanged` (the file as the agent received it, after setup), `file_matches_seed` (the file before setup), `xlsx_cell` (the first sheet, or the one named by `sheet`), `xlsx_sheets` (the exact sheet names, in order), `docx_table_cell` (the text of one cell, 1-based table, row and column), `pdf_file` (a file that starts with `%PDF-`, with an optional `min_bytes`), `file_text` (text that a `.docx`, `.pptx` or `.txt` must contain, and text it must not; a `.txt` from WPS is read as UTF-16 when it has a byte order mark, otherwise as UTF-8).
 
 Each task also lists `expected_tools`: the `wps-agent` tools a correct run needs, without the `wps_agent_` prefix. The runner counts calls to any other `wps-agent` tool as off-path calls and reports them for each run (`off_path_calls`, `off_path_tools`), for each repeated task and in the summary. Off-path calls are reported only; a task passes or fails on its checks. The task-file test requires every task to list its expected tools, and every `tool_called` check to name one of them.
 
@@ -119,7 +127,7 @@ Every run saw `DOCUMENT_HELD_OPEN` on `spreadsheet_write` (run 1 also on `spread
 
 ## Limits
 
-- Twelve tasks are still a small set, not a benchmark. Eight run offline (registration, backup, idempotent retry, restore, dry run, a held file, HTML conversion); four marked (WPS) need WPS on Windows and are skipped elsewhere. They do not cover the 85-tool surface.
+- Nineteen tasks are still a small set, not a benchmark. Ten run offline (registration, backup, idempotent retry, restore, dry run, a held file, HTML to xlsx and docx, reading sheets); nine marked (WPS) need WPS on Windows and are skipped elsewhere. Together they use 18 of the 85 tools.
 - The WPS tasks were run on one Windows machine with one WPS version (P4-007). All four pass 3/3: the three write tasks on `4999b77`, `wps-held-spreadsheet-write` on `6484151`. The first runs of the held task failed because of two server bugs, fixed in PRs #55 and #56. Those fixes change only what a failed call returns, so the three passing write tasks were not rerun.
 - There is no held-file recovery task. The runner cannot make WPS open a document and block a rollback, so recovery with `restore-backup --close-in-wps` is checked by hand in P4-011 instead.
 - The judge checks state and tool calls, so a correct-sounding reply with the wrong state fails. A failure to report the result accurately is not detected here.

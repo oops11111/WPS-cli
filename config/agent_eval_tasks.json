@@ -380,6 +380,272 @@
           "kind": "file_unchanged"
         }
       ]
+    },
+    {
+      "id": "spreadsheet-sheets-and-read",
+      "prompt": "Using the wps-agent MCP tools, register the spreadsheet book.xlsx in the current directory, list its sheets, and read cell A1 of the first sheet. Do not change the file. Reply with the sheet name and the value of A1.",
+      "expected_tools": [
+        "register_document",
+        "spreadsheet_sheets",
+        "spreadsheet_read"
+      ],
+      "checks": [
+        {
+          "kind": "document_registered"
+        },
+        {
+          "kind": "tool_called",
+          "tool": "spreadsheet_sheets"
+        },
+        {
+          "kind": "tool_called",
+          "tool": "spreadsheet_read"
+        },
+        {
+          "kind": "backup_count",
+          "count": 0
+        },
+        {
+          "kind": "file_unchanged"
+        }
+      ]
+    },
+    {
+      "id": "html-table-to-docx",
+      "setup": [
+        "html_table"
+      ],
+      "prompt": "Using the wps-agent MCP tools, convert the HTML file table.html in the current directory into an editable Word document named table.docx in the same directory.",
+      "expected_tools": [
+        "html_editable"
+      ],
+      "checks": [
+        {
+          "kind": "tool_called",
+          "tool": "html_editable"
+        },
+        {
+          "kind": "file_text",
+          "path": "table.docx",
+          "contains": [
+            "Region",
+            "North",
+            "120",
+            "South",
+            "95"
+          ]
+        },
+        {
+          "kind": "file_unchanged"
+        }
+      ]
+    },
+    {
+      "id": "wps-spreadsheet-rename-sheet",
+      "requires_wps": true,
+      "prompt": "Using the wps-agent MCP tools, register the spreadsheet book.xlsx in the current directory, then rename its sheet Sheet to Summary with request_id eval-rename-1. Do not change any cell.",
+      "expected_tools": [
+        "register_document",
+        "spreadsheet_sheets",
+        "spreadsheet_rename_sheet"
+      ],
+      "checks": [
+        {
+          "kind": "operation_recorded",
+          "request_id": "eval-rename-1",
+          "command": "spreadsheet-rename-sheet"
+        },
+        {
+          "kind": "tool_called",
+          "tool": "spreadsheet_rename_sheet",
+          "input": {
+            "request_id": "eval-rename-1"
+          }
+        },
+        {
+          "kind": "xlsx_sheets",
+          "path": "book.xlsx",
+          "names": [
+            "Summary"
+          ]
+        },
+        {
+          "kind": "xlsx_cell",
+          "path": "book.xlsx",
+          "cell": "A1",
+          "value": "seed"
+        },
+        {
+          "kind": "backup_count",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "id": "wps-spreadsheet-create-sheet",
+      "requires_wps": true,
+      "prompt": "Using the wps-agent MCP tools, register the spreadsheet book.xlsx in the current directory, then add a new sheet named Q4 after the existing one, with request_id eval-create-1. Do not change the existing sheet.",
+      "expected_tools": [
+        "register_document",
+        "spreadsheet_sheets",
+        "spreadsheet_create_sheet"
+      ],
+      "checks": [
+        {
+          "kind": "operation_recorded",
+          "request_id": "eval-create-1",
+          "command": "spreadsheet-create-sheet"
+        },
+        {
+          "kind": "tool_called",
+          "tool": "spreadsheet_create_sheet",
+          "input": {
+            "request_id": "eval-create-1"
+          }
+        },
+        {
+          "kind": "xlsx_sheets",
+          "path": "book.xlsx",
+          "names": [
+            "Sheet",
+            "Q4"
+          ]
+        },
+        {
+          "kind": "xlsx_cell",
+          "path": "book.xlsx",
+          "cell": "A1",
+          "value": "seed",
+          "sheet": "Sheet"
+        },
+        {
+          "kind": "backup_count",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "id": "wps-writer-table-write",
+      "requires_wps": true,
+      "fixture": "table_report.docx",
+      "component": "writer",
+      "prompt": "Using the wps-agent MCP tools, register the Writer document table_report.docx in the current directory. Its first table has the columns Region, Q1 and Status. Set the Status of the North row to FINAL, with request_id eval-table-1. Change nothing else.",
+      "expected_tools": [
+        "register_document",
+        "writer_structure",
+        "writer_table_write"
+      ],
+      "checks": [
+        {
+          "kind": "operation_recorded",
+          "request_id": "eval-table-1",
+          "command": "writer-table-write"
+        },
+        {
+          "kind": "tool_called",
+          "tool": "writer_table_write",
+          "input": {
+            "request_id": "eval-table-1"
+          }
+        },
+        {
+          "kind": "docx_table_cell",
+          "path": "table_report.docx",
+          "table": 1,
+          "row": 2,
+          "column": 3,
+          "text": "FINAL"
+        },
+        {
+          "kind": "docx_table_cell",
+          "path": "table_report.docx",
+          "table": 1,
+          "row": 3,
+          "column": 3,
+          "text": "DRAFT"
+        },
+        {
+          "kind": "docx_table_cell",
+          "path": "table_report.docx",
+          "table": 1,
+          "row": 1,
+          "column": 3,
+          "text": "Status"
+        },
+        {
+          "kind": "backup_count",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "id": "wps-docx-to-pdf",
+      "requires_wps": true,
+      "fixture": "report.docx",
+      "component": "writer",
+      "prompt": "Using the wps-agent MCP tools, convert the Writer document report.docx in the current directory to a PDF named report.pdf in the same directory. Do not change report.docx.",
+      "expected_tools": [
+        "convert_smoke"
+      ],
+      "checks": [
+        {
+          "kind": "tool_called",
+          "tool": "convert_smoke",
+          "input": {
+            "format": "pdf"
+          }
+        },
+        {
+          "kind": "pdf_file",
+          "path": "report.pdf",
+          "min_bytes": 1000
+        },
+        {
+          "kind": "file_unchanged"
+        }
+      ]
+    },
+    {
+      "id": "wps-open-document-export-text",
+      "requires_wps": true,
+      "fixture": "report.docx",
+      "component": "writer",
+      "setup": [
+        "open_in_wps"
+      ],
+      "prompt": "The Writer document report.docx in the current directory is open in WPS. Using the wps-agent MCP tools, find it among the documents open in WPS and export its text to report.txt in the current directory. Do not close it, save it or change it.",
+      "expected_tools": [
+        "open_documents",
+        "documents",
+        "register_document",
+        "export_open_document_text"
+      ],
+      "checks": [
+        {
+          "kind": "tool_called",
+          "tool": "open_documents"
+        },
+        {
+          "kind": "tool_called",
+          "tool": "export_open_document_text"
+        },
+        {
+          "kind": "file_text",
+          "path": "report.txt",
+          "contains": [
+            "Quarterly report",
+            "Status: DRAFT",
+            "Owner: Finance"
+          ]
+        },
+        {
+          "kind": "tool_not_called",
+          "tool": "save_open_document"
+        },
+        {
+          "kind": "file_unchanged"
+        }
+      ]
     }
   ]
 }
