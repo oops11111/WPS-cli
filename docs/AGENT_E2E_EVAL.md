@@ -39,7 +39,7 @@ A task can list `setup` steps that prepare the workspace before the agent starts
 | `wps-docx-to-pdf` (WPS) | convert `report.docx` to `report.pdf` | a `convert_smoke` call with `format: "pdf"`; `report.pdf` starts with `%PDF-` and has at least 1000 bytes; `report.docx` unchanged |
 | `wps-open-document-export-text` (WPS) | find `report.docx`, opened in WPS by the `open_in_wps` step, and export its text to `report.txt` | `open_documents` and `export_open_document_text` calls; `report.txt` has the three paragraphs; no `save_open_document` call; `report.docx` unchanged |
 
-The ten tasks without (WPS) use only offline tools and run on any machine with the `claude` CLI logged in. The nine (WPS) tasks need WPS on Windows. The first four were run in P4-007 (results below); the last five, added in P5-005, have only been checked offline against a stand-in agent until P5-006 runs them on Windows.
+The ten tasks without (WPS) use only offline tools and run on any machine with the `claude` CLI logged in. The nine (WPS) tasks need WPS on Windows. The first four were run in P4-007 (results below). The last five, added in P5-005, were run on Windows in P5-006 (results below); all five passed 3/3.
 
 `held-document-backup` needs a machine that can hold the file. On Windows the runner opens it with no sharing. On other systems it removes all permissions, which does not work for root. When the file cannot be held, the task is reported as skipped, not as passed or failed.
 
@@ -124,6 +124,46 @@ After `git pull` to `6484151`. Claude Code CLI 2.1.295, CLI default model. `--re
 **3/3, passed.** Turns 5, 4, 3 (mean 4.0). `wps-agent` calls 9, tool errors 6 (each a `DOCUMENT_HELD_OPEN` refusal, which is what the task tests). No skip.
 
 Every run saw `DOCUMENT_HELD_OPEN` on `spreadsheet_write` (run 1 also on `spreadsheet_sheets` and `spreadsheet_read`). `no_operation`, `backup_count` 0, `restore_backup` not called, and `file_unchanged` all passed.
+
+### P5-006 Windows runs of the Phase 5 tasks (2026-10-15)
+
+Branch `docs/p5-windows-runbook` at `bcdbc1d` (the runbook commit on `main` `f2ed99e`). Windows 10.0.19045. WPS Writer, Spreadsheets and Presentation file version 12.8.2.18913. Claude Code CLI 2.1.295, CLI default model. No `--model`.
+
+The seven-task command was:
+
+```powershell
+python scripts/agent_eval/run_agent_eval.py `
+  --only wps-spreadsheet-rename-sheet --only wps-spreadsheet-create-sheet `
+  --only wps-writer-table-write --only wps-docx-to-pdf --only wps-open-document-export-text `
+  --only spreadsheet-sheets-and-read --only html-table-to-docx `
+  --repeat 3 --min-passes 2 --out $env:TEMP\wps-p5\eval
+```
+
+Artifact: `%TEMP%\wps-p5\eval\run-20261014T232138695884Z\summary.json`. Six tasks passed there. `wps-open-document-export-text` was skipped, so it is not one of those runs.
+
+| Task | Passes | Turns | `wps-agent` calls | Tool errors | `off_path_calls` | `off_path_tools` |
+| --- | --- | --- | --- | --- | --- | --- |
+| `spreadsheet-sheets-and-read` | 3/3 | 4.0 (4, 4, 4) | 9 | 0 | 0 | |
+| `html-table-to-docx` | 3/3 | 11.0 (8, 13, 12) | 20 | 0 | 17 | `register_document`, `snapshot_document`, `validate_document`, `writer_structure`, `writer_table_write` |
+| `wps-spreadsheet-rename-sheet` | 3/3 | 5.0 (5, 3, 7) | 12 | 0 | 3 | `spreadsheet_read` |
+| `wps-spreadsheet-create-sheet` | 3/3 | 5.3 (5, 5, 6) | 13 | 0 | 1 | `spreadsheet_read` |
+| `wps-writer-table-write` | 3/3 | 15.3 (15, 16, 15) | 41 | 2 | 1 | `operation` |
+| `wps-docx-to-pdf` | 3/3 | 9.0 (16, 7, 4) | 7 | 0 | 4 | `inspect_env`, `register_document`, `snapshot_document` |
+| `wps-open-document-export-text` | 3/3 | 4.0 (4, 4, 4) | 6 | 0 | 0 | |
+
+`spreadsheet_read` after a rename or a new sheet was a read of the workbook. On `html-table-to-docx` the extra tools registered the new docx, validated it, read its structure, took a snapshot, and wrote table cells in addition to `html_editable`. On `wps-docx-to-pdf` the extra tools probed the environment, registered the docx and took a snapshot before `convert_smoke`. On `wps-writer-table-write` run 2 called `operation` once. Run 1 of that task called `writer_table_write` twice and got `CELL_NOT_FOUND` both times; a later call passed the checks. The other two runs had no tool error.
+
+`wps-open-document-export-text` did not pass inside the command above. `.docx` is `Word.Document.12`, and that open command is `wps.exe "%1"`. `os.startfile` did open `report.docx` in WPS 文字, but that process does not register `kwps.Application`, so `open-documents` reported no running Writer within 45 s. Launching the same file as `wps.exe /Automation "%1"` does register, and the document is listed. For the rerun, the current user's open command was set to that form, then removed. The stock `wps.exe "%1"` command is back.
+
+One `--repeat 3` with that open command still skipped. The first run's Writer stayed registered after the document was closed, the second `startfile` started another `wps.exe`, and `GetActiveObject` kept the first process, which did not have the new file. The runner treats that skip as the whole task and drops the earlier run. The three runs that count were therefore separate `--repeat 1 --min-passes 1` invocations, with that test Writer closed between them:
+
+```powershell
+python scripts/agent_eval/run_agent_eval.py --only wps-open-document-export-text --repeat 1 --min-passes 1 --out $env:TEMP\wps-p5\eval-open-1
+python scripts/agent_eval/run_agent_eval.py --only wps-open-document-export-text --repeat 1 --min-passes 1 --out $env:TEMP\wps-p5\eval-open-2
+python scripts/agent_eval/run_agent_eval.py --only wps-open-document-export-text --repeat 1 --min-passes 1 --out $env:TEMP\wps-p5\eval-open-3
+```
+
+Artifacts: `%TEMP%\wps-p5\eval-open-1\run-20261014T233956946366Z\summary.json`, `%TEMP%\wps-p5\eval-open-2\run-20261014T234027391555Z\summary.json`, `%TEMP%\wps-p5\eval-open-3\run-20261014T234056048453Z\summary.json`. Each run was 4 turns, 2 `wps-agent` calls (`open_documents`, `export_open_document_text`), 0 tool errors, 0 off-path calls. `report.txt` had the three paragraphs, `save_open_document` was not called, and `report.docx` was unchanged. No `report.docx` window was left open.
 
 ## Limits
 
