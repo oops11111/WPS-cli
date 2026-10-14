@@ -135,6 +135,7 @@ PYTHONPATH=src python3 -m unittest discover -s tests
 - 当前实测: WPS Writer、Spreadsheets、Presentation 均已通过 PowerShell COM fallback 完成打开、保存副本和关闭；表格公式计算验证和 DOCX 到 PDF 转换验证已通过
 - Phase 1: 已完成 release candidate 审计，详见 `docs/PHASE1_RELEASE_CANDIDATE_REPORT.md`
 - Phase 3: 已完成，5 项出口标准均已满足，证据见 `config/project_plan.json`。原子事务有一个例外：WPS 打开着文档时自动回滚被文件锁拒绝，需按提示手动恢复（见上文"修改失败与回滚"）。仍待在 Windows 上补做的验证：`DOCUMENT_HELD_OPEN` 真机检查、agent 评测任务 `held-document-backup`、回归输出写到 `artifacts\regression\outputs\`
+- 当前 Phase 4（active）: 多环境与 Agent 工作流就绪，出口标准与任务见 `docs/PHASE4_PLAN.md`，`wps-agent tasks --phase phase4` 可列出任务
 
 ## 命令速查
 

@@ -55,7 +55,7 @@
 - 真实 Agent 端到端评测流水线
 - 生态扩展评估
 
-### Phase 4 多环境与 Agent 工作流就绪（planned）
+### Phase 4 多环境与 Agent 工作流就绪（active）
 
 目标是让这套工具在多个 WPS 版本、多个 Agent 客户端上可用，Agent 能安全完成真实的 WPS 写入任务，出错时可在 CLI 内恢复，并且可以发布。
 
