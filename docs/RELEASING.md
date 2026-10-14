@@ -25,12 +25,25 @@ Phase 4 出口标准 E6 的一部分（P4-012）。
 1. 按上面的规则定版本号，改 `__version__`。
 2. 把 `CHANGELOG.md` 的 `[Unreleased]` 改成 `[<版本号>] - <日期>`，上面再加一个空的 `[Unreleased]`。
 3. 提交、合并到 `main`，等 CI 通过。
-4. 在合并提交上打标签 `v<版本号>` 并推送。
-5. 从该提交的 CI 运行里下载 `dist` 产物（wheel 和源码包）。
+4. 在 `main` 的合并提交上打标签并推送：
 
-`tests/test_release.py` 检查 `CHANGELOG.md` 有 `[Unreleased]` 和当前版本号的标题，并检查 MCP 返回的版本号与包版本一致。
+   ```bash
+   git checkout main && git pull
+   git tag v<版本号>
+   git push origin v<版本号>
+   ```
 
-目前不发布到 PyPI，也不自动打标签。
+5. 推送标签会触发 `.github/workflows/release.yml`：
+   - 用 `scripts/release_notes.py` 检查标签等于 `v<__version__>`，并取出 `CHANGELOG.md` 里这个版本的一节作为发布说明；标签不对、这一节没有日期或是空的，就停下，不发布；
+   - 构建 wheel 和源码包，在新的虚拟环境里只装 wheel，在仓库以外跑 `inspect-env` 和 safe 档回归；
+   - 都通过后，用 `gh release create` 建 GitHub Release，附上 wheel 和源码包。
+6. 在 GitHub 的 Releases 页面确认发布内容，再按 P5-009 在 Windows 上只装这个 wheel 检查一次。
+
+标签打错了：在 Release 发布前，删掉远端标签（`git push origin :refs/tags/v<版本号>`）重打即可；Release 已发布的，先在 GitHub 上删除 Release，再删标签。
+
+`tests/test_release.py` 检查 `CHANGELOG.md` 有 `[Unreleased]` 和当前版本号的标题、当前版本那一节有日期且不为空、发布说明的提取和标签检查，以及发布流程先检查、再跑回归、最后发布的顺序。
+
+目前不发布到 PyPI。标签由你推送，CI 不会自动打标签。
 
 ## CI 构建
 
