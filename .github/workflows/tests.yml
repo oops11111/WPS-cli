@@ -52,3 +52,37 @@ jobs:
         run: |
           pwsh -NoProfile -Command '$PSVersionTable.PSVersion.ToString()'
           python -m unittest discover -s tests
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Build the wheel and the source distribution
+        run: |
+          python -m pip install build
+          python -m build
+      - name: Install the wheel in a clean virtual environment and run it
+        run: |
+          python -m venv /tmp/wheel-check
+          /tmp/wheel-check/bin/pip install dist/*.whl
+          cd /tmp
+          /tmp/wheel-check/bin/wps-agent inspect-env > inspect-env.json
+          /tmp/wheel-check/bin/wps-agent tasks --phase phase4 > tasks.json
+          /tmp/wheel-check/bin/wps-agent mcp-server --once-json '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-11-25","capabilities":{},"clientInfo":{"name":"ci","version":"1"}}}' > initialize.json
+          /tmp/wheel-check/bin/python - <<'PY'
+          import json
+          import wps_ai_agent_cli
+          for name in ("inspect-env.json", "tasks.json"):
+              assert json.load(open(name))["ok"] is True, name
+          server_info = json.load(open("initialize.json"))["result"]["serverInfo"]
+          assert server_info["version"] == wps_ai_agent_cli.__version__, server_info
+          print("wheel", wps_ai_agent_cli.__version__, "ok")
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+          retention-days: 30

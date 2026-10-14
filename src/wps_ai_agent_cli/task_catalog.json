@@ -2817,7 +2817,7 @@
     "id": "P4-012",
     "phase": "phase4",
     "title": "Release process",
-    "status": "todo",
+    "status": "done",
     "acceptance": "E6: a versioning rule, CHANGELOG.md and a CI job that builds the wheel and keeps it as an artifact."
   },
   {

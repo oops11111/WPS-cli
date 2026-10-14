@@ -122,6 +122,7 @@ PYTHONPATH=src python3 -m unittest discover -s tests
 - 路线与任务：[docs/ROADMAP.md](docs/ROADMAP.md)、[docs/TASK_BOARD.md](docs/TASK_BOARD.md)
 - MCP：[docs/MCP_TOOL_SCHEMA_DRAFT.md](docs/MCP_TOOL_SCHEMA_DRAFT.md)、[docs/MCP_SERVER_CLIENT_CONFIG.md](docs/MCP_SERVER_CLIENT_CONFIG.md)
 - 回归与 CI：[docs/REGRESSION_MANIFEST.md](docs/REGRESSION_MANIFEST.md)、[docs/REGRESSION_CI_HANDOFF.md](docs/REGRESSION_CI_HANDOFF.md)、[docs/TEST_STRATEGY.md](docs/TEST_STRATEGY.md)
+- 版本与发布：[docs/RELEASING.md](docs/RELEASING.md)、[CHANGELOG.md](CHANGELOG.md)
 - 转换能力：[docs/CONVERSION_MATRIX.md](docs/CONVERSION_MATRIX.md)
 - 代码审查：[批次 1-2](docs/CODE_REVIEW_BATCH_1_2.md)、[批次 3](docs/CODE_REVIEW_BATCH_3.md)、[批次 4-5](docs/CODE_REVIEW_BATCH_4_5.md)、[批次 6](docs/CODE_REVIEW_BATCH_6.md)
 - 阶段报告：`docs/PHASE*.md`；迭代流水记录（已归档）：`docs/archive/P3_*.md`、`docs/TASK_BOARD.md`（按迭代追加，是历史记录，可能提到已删除的命令，见批次 6 报告 G-07）
