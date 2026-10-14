@@ -95,6 +95,14 @@ Each passing run recorded the expected command (`spreadsheet-write`, `writer-rep
 
 `wps-held-spreadsheet-write` failed the same check on all three runs: `tool_error_seen` did not find `DOCUMENT_HELD_OPEN`. The other checks passed (no operation, no backup, `restore_backup` not called, file unchanged). `spreadsheet_write` was marked `is_error` true, but the parsed tool result had an empty `error_codes` list, so the judge did not see the code. Later calls in those runs included `MCP_TOOL_EXECUTION_FAILED` and `MCP_ADAPTER_CALL_REJECTED`, not `DOCUMENT_HELD_OPEN`.
 
+### P4-007 rerun of `wps-held-spreadsheet-write` (2026-10-14)
+
+Same branch, still `3d9c831` (`git pull` was already up to date). Claude Code CLI 2.1.295, CLI default model. `--repeat 3 --min-passes 2`. Artifact: `%TEMP%\wps-p4\eval-held-rerun\run-20261014T131756639971Z\summary.json`.
+
+**0/3, not passed.** Turns 16, 16, 16. `wps-agent` calls 34, tool errors 15. No skip.
+
+Each run failed only `tool_error_seen` (`DOCUMENT_HELD_OPEN` not seen). `no_operation`, `backup_count` 0, `restore_backup` not called, and `file_unchanged` passed. `spreadsheet_write` was `is_error` true with an empty `error_codes` list. Codes that did appear: run 1 `MCP_ADAPTER_CALL_REJECTED` (`mcp_call`) and `MCP_TOOL_EXECUTION_FAILED` (`spreadsheet_read`, `spreadsheet_sheets`); run 2 `MCP_TOOL_EXECUTION_FAILED` (`spreadsheet_read`); run 3 `MCP_TOOL_EXECUTION_FAILED` (`spreadsheet_sheets`, `spreadsheet_read`).
+
 ## Limits
 
 - Twelve tasks are still a small set, not a benchmark. Eight run offline (registration, backup, idempotent retry, restore, dry run, a held file, HTML conversion); four marked (WPS) need WPS on Windows and are skipped elsewhere. They do not cover the 85-tool surface.
