@@ -226,6 +226,14 @@ def _add_document_commands(subparsers: argparse._SubParsersAction) -> None:
     backup_selector.add_argument("--backup-name", help="Backup filename from list-backups.")
     backup_selector.add_argument("--backup-path", help="Backup path from list-backups.")
     restore_backup_parser.add_argument("--dry-run", action="store_true", help="Preview restore without copying.")
+    restore_backup_parser.add_argument(
+        "--close-in-wps",
+        action="store_true",
+        help=(
+            "If the document is open in WPS with no unsaved changes, close it there without saving before restoring. "
+            "Refused when WPS has unsaved changes. Without this flag WPS is never touched."
+        ),
+    )
     restore_backup_parser.add_argument("--task-id", help="Optional long-running task status id to update.")
 
     replace_parser = subparsers.add_parser(

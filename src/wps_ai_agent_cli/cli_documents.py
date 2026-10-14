@@ -127,6 +127,7 @@ def restore_backup_response(
     backup_name: str | None,
     backup_path: str | None,
     dry_run: bool,
+    close_in_wps: bool = False,
 ) -> CommandResponse:
     ok, result, errors, replayed = restore_backup(
         document_id=document_id,
@@ -134,6 +135,7 @@ def restore_backup_response(
         backup_name=backup_name,
         backup_path=backup_path,
         dry_run=dry_run,
+        close_in_wps=close_in_wps,
     )
     return CommandResponse(
         ok=ok,

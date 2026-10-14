@@ -56,16 +56,37 @@ Phase 3 证明了这套工具在一台 Windows 机器、一个 WPS 版本、一�
 | P4-002 | E2 | 定出兼容矩阵的检查项和记录格式，新建 `docs/COMPATIBILITY_MATRIX.md` | 本地 |
 | P4-003 | E2 | 在第二个 WPS 版本上跑 wps 回归档和转换检查，写入矩阵 | Windows |
 | P4-004 | E3 | 评测 runner 支持需要 WPS 的任务：标记 `requires_wps`，没有 WPS 时跳过 | 本地 |
-| P4-005 | E3 | 编写 4 个写入任务（表格写入、Writer 替换、演示替换、被占用文件写入被拒），并为每个任务补离线判定测试。被占用文件的"恢复"任务依赖 E5 的显式同意恢复，随 P4-010 一起加 | 本地 |
+| P4-005 | E3 | 编写 4 个写入任务（表格写入、Writer 替换、演示替换、被占用文件写入被拒），并为每个任务补离线判定测试。被占用文件的"恢复"任务见下方 E5 设计里的说明 | 本地 |
 | P4-006 | E3 | runner 支持同一任务连跑 N 次，汇总通过率 | 本地 |
 | P4-007 | E3 | 在 Windows 上每个写入任务跑 3 次，记录结果 | Windows |
 | P4-008 | E4 | 用 Codex CLI 或 Claude Desktop 完成 MCP 检查，记录结果 | 客户端所在机器 |
 | P4-009 | E5 | 设计"需显式同意的关闭再恢复"方式：参数名、提示文字、错误码；默认行为不变 | 本地 |
 | P4-010 | E5 | 实现并补离线测试（包括未同意时绝不关闭文档） | 本地 |
-| P4-011 | E5 | 在 Windows 上验证打开状态下的恢复 | Windows |
+| P4-011 | E5 | 在 Windows 上验证打开状态下的恢复：写入失败、回滚被拒后，用 `--close-in-wps` 恢复，文件哈希等于备份；再验证有未保存改动时被拒 | Windows |
 | P4-012 | E6 | 定版本号规则，加 `CHANGELOG.md`，CI 构建 wheel 并上传为产物 | 本地 |
 | P4-013 | E6 | 在干净的 Windows 上按 README 安装并跑 safe 档回归，记录结果 | Windows |
 | P4-014 | 决定 | 根据 E3、E4 的结果，写下是否支持 HTTP 传输、是否收缩工具面 | 本地 |
+
+## E5 设计（P4-009）
+
+文档在 WPS 里打开时，自动回滚会被文件锁拒绝，返回 `MUTATION_ROLLBACK_BLOCKED`。E5 让用户在 CLI 里就能把恢复做完。
+
+| 项 | 设计 |
+| --- | --- |
+| 入口 | `restore-backup --close-in-wps`；MCP 工具 `wps_agent_restore_backup` 的参数 `close_in_wps` |
+| 默认行为 | 不变。不加这个选项时，`restore-backup` 绝不碰 WPS |
+| 加了选项、文档没打开或 WPS 没运行 | 没什么可关，照常恢复；结果里 `close_in_wps` 为 `not_open` 或 `no_instance` |
+| 加了选项、文档打开且 WPS 里没有未保存的改动 | 在正在运行的 WPS 里不保存地关闭这一个文档，再恢复；`close_in_wps` 为 `closed` |
+| 加了选项、文档打开且有未保存的改动 | 拒绝，错误码 `DOCUMENT_HAS_UNSAVED_CHANGES`；不关闭、不恢复、不建恢复前备份 |
+| 关闭失败 | 报错（通常为 `COM_OPERATION_FAILED`），不恢复 |
+| 顺序 | 先关闭，再建恢复前备份，最后恢复。WPS 占着文件时，备份会被拒绝 |
+| `--dry-run` | 只检查不关闭：可以关时 `close_in_wps` 为 `would_close` |
+| 幂等 | 同一个 `request_id` 重放时直接返回上次结果，不会再关一次；不带这个选项的旧请求照常重放 |
+| 提示 | `MUTATION_ROLLBACK_BLOCKED` 的提示文字写明可以加 `--close-in-wps`，以及有未保存改动时会被拒绝 |
+
+关闭文档只用 WPS 自己报告的"是否已保存"来判断，所以不会丢掉用户在 WPS 里输入但没保存的内容。
+
+Agent 评测里的"被占用文件恢复"任务暂不做：需要 runner 先让 WPS 真的打开文档并让一次写入的回滚被拒，runner 目前做不到。用文件锁模拟也不对，因为关闭脚本只会关 WPS 打开的文档。E5 的验证改为 P4-011 在 Windows 上手动走一遍。
 
 ## 建议顺序
 

@@ -58,7 +58,7 @@ namespace WpsAgent {
     public void Save() { State.SaveCalls++; State.Saved = true; }
     public void SaveAs2(string p, int fmt) { File.WriteAllText(p, "<html>" + State.Text + "</html>"); }
     public void SaveAs(string p, int fmt) { SaveAs2(p, fmt); }
-    public void Close(bool save) { }
+    public void Close(bool save) { if (!IsCopy) { File.WriteAllText(State.Path + ".closed", save ? "saved" : "discarded"); } }
   }
   public class FakeDocs {
     public int Count { get { return 1; } }
@@ -153,6 +153,28 @@ class GeneratedScriptBehaviourTests(unittest.TestCase):
 
         changed = self.attached("selection-replace", text="x", expected_start=6, expected_end=11, expected_text="BRAVE")
         self.assertEqual(changed["data"]["status"], "selection_changed")
+
+    def test_close_unchanged_closes_a_saved_document_without_saving(self):
+        result = self.attached("close-unchanged", component="writer", do_close=True)
+        self.assertTrue(result["ok"], result)
+        self.assertEqual(result["data"]["status"], "closed")
+        self.assertEqual(Path(str(self.document) + ".closed").read_text(encoding="utf-8"), "discarded")
+
+    def test_close_unchanged_never_closes_a_document_with_unsaved_changes(self):
+        with patch.dict(os.environ, {"WPSFAKE_SAVED": "0"}):
+            result = self.attached("close-unchanged", component="writer", do_close=True)
+        self.assertEqual(result["data"]["status"], "unsaved")
+        self.assertFalse(Path(str(self.document) + ".closed").exists())
+
+    def test_close_unchanged_only_reports_when_asked_not_to_close(self):
+        result = self.attached("close-unchanged", component="writer", do_close=False)
+        self.assertEqual(result["data"]["status"], "open")
+        self.assertFalse(Path(str(self.document) + ".closed").exists())
+
+    def test_close_unchanged_reports_a_document_that_is_not_open(self):
+        other = self.dir / "other.docx"
+        result = open_documents._run_writer_attached_com("close-unchanged", {"path": str(other), "component": "writer", "do_close": True})
+        self.assertEqual(result["data"]["status"], "not_open")
 
     def test_export_saves_a_copy_and_leaves_source_open(self):
         output = self.dir / "out.html"

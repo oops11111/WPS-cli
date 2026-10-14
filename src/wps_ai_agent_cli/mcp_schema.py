@@ -465,6 +465,9 @@ MCP_TOOL_SCHEMAS: tuple[dict[str, Any], ...] = (
             "backup_name": _string("Backup filename from list-backups."),
             "backup_path": _string("Backup path from list-backups."),
             "dry_run": _boolean("Preview restore without copying."),
+            "close_in_wps": _boolean(
+                "If the document is open in WPS with no unsaved changes, close it there without saving before restoring."
+            ),
             "task_id": _string("Optional long-running task status id."),
         },
         mutates_document=True,
@@ -472,6 +475,7 @@ MCP_TOOL_SCHEMAS: tuple[dict[str, Any], ...] = (
         safety_notes=[
             "Restores a registered document from a backup and creates a pre-restore backup before overwriting.",
             "Provide either backup_name or backup_path; dry_run previews without copying.",
+            "close_in_wps closes the document in the running WPS without saving, and only when WPS reports no unsaved changes; with unsaved changes it refuses with DOCUMENT_HAS_UNSAVED_CHANGES and nothing is closed or restored. Without it, WPS is never touched. With dry_run it only reports whether it would close the document.",
         ],
     ),
     _tool(

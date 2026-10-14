@@ -7,6 +7,7 @@ The scripts are split by component; this package re-exports every name so caller
 """
 
 from .common import (  # noqa: F401
+    _CLOSE_UNCHANGED_BODY,
     _DOCUMENT_SAVE_BODY,
     _LIST_SCRIPT,
     _SAVE_AS_UNTITLED_SCRIPT,

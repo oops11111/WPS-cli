@@ -107,7 +107,9 @@ def _blocked_guidance(document_id: str, backup_file: str, open_in_wps: bool | No
     return (
         f"The write was saved by WPS and could not be undone, because the file is locked; the document {state}. "
         "The file still holds the rejected value. Close the document in WPS without saving, then restore the pre-write "
-        f"backup with: restore-backup --document-id {document_id} --backup-path \"{backup_file}\" --request-id <new-id>."
+        f"backup with: restore-backup --document-id {document_id} --backup-path \"{backup_file}\" --request-id <new-id>. "
+        "Or add --close-in-wps to that command to have it close the document for you; it refuses if WPS has unsaved "
+        "changes."
     )
 
 
