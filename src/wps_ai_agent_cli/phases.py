@@ -59,7 +59,7 @@ PHASES: tuple[Phase, ...] = (
     Phase(
         id="phase4",
         name="Multi-environment and agent workflow readiness",
-        status="planned",
+        status="active",
         goal=(
             "Prove the tools across WPS versions and agent clients, let agents complete real WPS "
             "write tasks safely with in-CLI recovery, and make the package releasable."

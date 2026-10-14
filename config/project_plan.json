@@ -1,7 +1,7 @@
 {
   "product": "WPS AI Agent CLI",
   "source_prd": "WPS_AI_Agent_CLI_PRD_v1.1.docx",
-  "current_phase": "phase3",
+  "current_phase": "phase4",
   "phases": [
     {
       "id": "phase0",
@@ -45,7 +45,7 @@
       "id": "phase4",
       "name": "Multi-environment and agent workflow readiness",
       "goal": "Prove the tools across WPS versions and agent clients, let agents complete real WPS write tasks safely with in-CLI recovery, and make the package releasable.",
-      "status": "planned",
+      "status": "active",
       "exit_criteria": [
         "E1: the three Phase 3 Windows checks are recorded (DOCUMENT_HELD_OPEN on real WPS, the held-document-backup agent-eval task, regression outputs under artifacts/regression/outputs)",
         "E2: a compatibility matrix covers at least two WPS versions: the wps regression profile plus open, save and PDF/HTML export for all three components, per version, in docs/COMPATIBILITY_MATRIX.md",
