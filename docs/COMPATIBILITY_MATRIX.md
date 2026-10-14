@@ -2,7 +2,7 @@
 
 Phase 4 出口标准 E2：至少两个 WPS 版本，每个版本跑通 wps 回归档，并完成三个组件的打开、保存、导出 PDF 和 HTML。本文定出检查项和每个版本的记录格式（P4-002），结果由 P4-003 填入。
 
-状态：**检查项已定，两个版本都还没有按本流程跑过。** 12.0 上有分散的旧证据（见下文），但没有在同一次提交上按本流程完整跑过，所以 12.0 也要重跑一次。
+状态：**12.0 已按本流程跑过一次，C3 不是 4/4。第二个版本未跑。** E2 未达成。
 
 ## 检查项
 
@@ -73,14 +73,30 @@ E2 达成的条件：两个版本的 C1 到 C6 都是 pass（C2、C3 都是 4/4�
 
 ## 结果
 
-### WPS 12.0
+### WPS 12.8.2.18913
 
-未按本流程跑。已有的分散证据，仅供对照，不计入 E2：
+- 日期：2026-10-14
+- 提交：`82c7a88`
+- 机器：Windows 10.0.19045；Python 3.12.14
+- 版本号：Writer `12.8.2.18913`，表格 `12.8.2.18913`，演示 `12.8.2.18913`（来源：`office6` 下三个 exe 的 FileVersion，没有点开“关于”）
+- ProgID（`inspect-env`）：writer `kwps.Application`，spreadsheets `ket.Application`，presentation `kwpp.Application`
 
-- wps 档 4/4：`main@b1a4b31`，2026-10-14，见 `docs/REGRESSION_CI_HANDOFF.md`。
-- 表格、演示导出 HTML：`main@4898428`，见 `scripts/real_wps_verify_remaining/RESULTS-4898428.md` 第 4 节。
-- Writer 导出 HTML：P3-424、P3-440，见 `docs/CONVERSION_MATRIX.md` 的 DOCX 到 HTML 行。
-- 表格、演示转 PDF：2026-10-09 用 `convert-smoke` 对临时文件跑过，见 `docs/CONVERSION_MATRIX.md`；没有在当前代码上用回归档跑过。
+| # | 结果 | 证据 |
+| --- | --- | --- |
+| C1 | pass | `wps-version-compare --record`：`ok: true`，三个组件 `current` 都是 `12.8.2.18913`，`relation` 为 `absent_baseline` |
+| C2 | 4/4 | `artifacts\regression\outputs\20261014T141843Z-98b3f95b`；结果 JSON `artifacts\regression\wps\regression-run-20261014T141904798431Z-03e76dfa-98a4-4651-a47e-eddfee47d6b4.json`。`git status --short` 列出了这份 JSON，见 `RESULTS-82c7a88.md` 的 1c |
+| C3 | 3/4 | `artifacts\regression\outputs\20261014T141928Z-ee4603bc`。失败：`presentation-com-smoke` |
+| C4 | pass | `compat-writer.html` 315117 字节，含 `COMPAT-WRITER`；源 SHA-256 前后都是 `E81C1E14EC5E7B05CDF0A8AAA54248E1A0428B6C9419C854703A7077CEB01924`；`open-documents` 仍列出 `compat.docx` |
+| C5 | pass | `compat-sheet.html` 19478 字节，含 `COMPAT-SHEET`；源 SHA-256 前后都是 `32DE844609E4D4909955A8E518B82E8DBFF8CE5B27226C2776AEA30286924291`；仍列出 `compat.xlsx` |
+| C6 | pass | `slide0001.htm` 8692 字节，含 `COMPAT-SLIDE`；源 SHA-256 前后都是 `2E3258C8999BF8C6DFF119C0D468A618AE784EB967904AFC96C58A8882C14D9C`；仍列出 `compat.pptx` |
+
+与其他版本的差异：还没有第二个版本。C3 的 `presentation-com-smoke` 失败原文：
+
+```json
+[{"code": "COM_OPERATION_FAILED", "message": "(-2147352567, '发生意外。', (0, None, None, None, 0, -2147467259), None)"}]
+```
+
+其余三项 compat 场景通过：`spreadsheets-com-smoke`、`spreadsheets-convert-smoke`、`presentation-convert-smoke`。
 
 ### 第二个版本
 
