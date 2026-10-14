@@ -43,6 +43,8 @@ $env:PYTHONPATH='src'
 & 'C:\Users\admin\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe' -m wps_ai_agent_cli regression-run --profile wps --include-wps --artifact-dir artifacts\regression\wps --request-id ci-wps-$env:BUILD_BUILDID
 ```
 
+The `compat` profile covers open, save and PDF conversion for Spreadsheets and Presentation, which the `wps` profile covers only for Writer. It is part of the WPS compatibility matrix (`docs/COMPATIBILITY_MATRIX.md`) and runs the same way, with `--profile compat --include-wps --artifact-dir artifacts\regression\compat`.
+
 Required gate:
 
 - Process exit code is `0`.

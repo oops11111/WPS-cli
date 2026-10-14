@@ -261,6 +261,106 @@
           "equals": true
         }
       ]
+    },
+    {
+      "id": "spreadsheets-com-smoke",
+      "title": "WPS Spreadsheets open/save/close smoke",
+      "category": "wps",
+      "profile": "compat",
+      "risk_level": "medium",
+      "requires_wps": true,
+      "command": [
+        "com-smoke",
+        "--component",
+        "spreadsheets",
+        "--input",
+        "fixtures/phase0/phase0_calculation_fixture.xlsx",
+        "--output",
+        "{output_dir}/spreadsheets_smoke_copy.xlsx"
+      ],
+      "expected_ok": true,
+      "required_checks": [
+        {
+          "path": "validation.status",
+          "equals": "passed"
+        }
+      ]
+    },
+    {
+      "id": "spreadsheets-convert-smoke",
+      "title": "WPS Spreadsheets PDF conversion smoke",
+      "category": "wps",
+      "profile": "compat",
+      "risk_level": "medium",
+      "requires_wps": true,
+      "command": [
+        "convert-smoke",
+        "--component",
+        "spreadsheets",
+        "--input",
+        "fixtures/phase0/phase0_calculation_fixture.xlsx",
+        "--output",
+        "{output_dir}/spreadsheets_smoke.pdf",
+        "--format",
+        "pdf"
+      ],
+      "expected_ok": true,
+      "required_checks": [
+        {
+          "path": "validation.status",
+          "equals": "passed"
+        }
+      ]
+    },
+    {
+      "id": "presentation-com-smoke",
+      "title": "WPS Presentation open/save/close smoke",
+      "category": "wps",
+      "profile": "compat",
+      "risk_level": "medium",
+      "requires_wps": true,
+      "command": [
+        "com-smoke",
+        "--component",
+        "presentation",
+        "--input",
+        "fixtures/phase0/phase0_presentation_fixture_v2.pptx",
+        "--output",
+        "{output_dir}/presentation_smoke_copy.pptx"
+      ],
+      "expected_ok": true,
+      "required_checks": [
+        {
+          "path": "validation.status",
+          "equals": "passed"
+        }
+      ]
+    },
+    {
+      "id": "presentation-convert-smoke",
+      "title": "WPS Presentation PDF conversion smoke",
+      "category": "wps",
+      "profile": "compat",
+      "risk_level": "medium",
+      "requires_wps": true,
+      "command": [
+        "convert-smoke",
+        "--component",
+        "presentation",
+        "--input",
+        "fixtures/phase0/phase0_presentation_fixture_v2.pptx",
+        "--output",
+        "{output_dir}/presentation_smoke.pdf",
+        "--format",
+        "pdf"
+      ],
+      "expected_ok": true,
+      "required_checks": [
+        {
+          "path": "validation.status",
+          "equals": "passed"
+        }
+      ]
     }
   ]
 }

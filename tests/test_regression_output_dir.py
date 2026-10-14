@@ -83,7 +83,7 @@ class ShippedManifestTests(unittest.TestCase):
             command = scenario["command"]
             outputs += [command[index + 1] for index, part in enumerate(command[:-1]) if part == "--output"]
 
-        self.assertEqual(len(outputs), 4)
+        self.assertEqual(len(outputs), 8)
         for output in outputs:
             self.assertTrue(output.startswith(regression.OUTPUT_DIR_PLACEHOLDER + "/"), output)
 

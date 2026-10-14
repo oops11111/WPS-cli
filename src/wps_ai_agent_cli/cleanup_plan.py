@@ -64,7 +64,7 @@ def build_cleanup_plan(workspace: Path | str = ".") -> dict[str, Any]:
                 )
             )
 
-    for profile in ("safe", "wps"):
+    for profile in ("safe", "wps", "compat"):
         profile_dir = workspace_path / "artifacts" / "regression" / profile
         artifacts = _existing_files(profile_dir, "regression-run-*.json")
         if artifacts:
