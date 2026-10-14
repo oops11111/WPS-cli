@@ -34,7 +34,7 @@
       "goal": "Strengthen recovery, security, performance, regression testing, and ecosystem integration.",
       "status": "active",
       "exit_criteria": [
-        "Cross-component conversion is verified between HTML and Office formats (Writer, Spreadsheets, Presentation)",
+        "MET: cross-component conversion is verified between HTML and Office formats (Writer, Spreadsheets, Presentation). HTML to DOCX opened and saved in WPS Writer (docs/archive/P3_HTML_EDITABLE_FIRST.md); HTML to XLSX and PPTX opened in WPS and exported back to HTML with content kept (scripts/real_wps_verify_remaining/RESULTS-4898428.md, section 4); DOCX, XLSX and PPTX to HTML verified locally (docs/CONVERSION_MATRIX.md). Structural editability on one WPS version; no visual-equivalence or cross-version claim",
         "Mutations are atomic transactions: a change is either fully applied and verified or fully rolled back",
         "MET: automated regression suite runs safe and WPS profiles with recorded artifacts. Windows run on main@b1a4b31 (2026-10-14): safe 7/7 (artifacts/regression/safe/regression-run-20261014T003140284929Z-0c8ae0f4-c225-48ba-b0ea-9db42b32a852.json), wps 4/4 (artifacts/regression/wps/regression-run-20261014T003207822953Z-b92e49b9-6389-482e-a069-230c2b5a23cf.json)",
         "MET: a real Agent end-to-end evaluation pipeline runs and records results (scripts/agent_eval, PR #21, docs/AGENT_E2E_EVAL.md)",

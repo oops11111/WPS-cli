@@ -103,8 +103,11 @@ text. Cells that start with `=` are written as text, not formulas, and reported
 as a warning. `pptx` maps each `<section>`, and each `<h1>` or `<h2>`, to a
 slide: the heading is the title, and paragraphs and list items are the body.
 Tables and images are reported as not converted. The xlsx and pptx converters
-run offline and do not use WPS. Both are covered by offline tests only; they
-have not been checked by opening the output in WPS.
+run offline and do not use WPS. Their output has been opened in WPS on one
+machine: the xlsx in WPS Spreadsheets and the pptx in WPS Presentation, and
+both exported back to HTML with their sheet name, cell text, slide titles and
+bodies kept (`scripts/real_wps_verify_remaining/RESULTS-4898428.md`, section
+4). No visual-fidelity or cross-version matrix has been run.
 
 ```powershell
 python -m wps_ai_agent_cli html-editable --input .\page.html --output .\page.xlsx --format xlsx
