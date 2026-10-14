@@ -71,6 +71,8 @@ These were run against the server directly, not through a client.
 
 The raw JSONL log stayed on this machine and is not in the repository.
 
+Note for P4-014: Codex asked for `2025-06-18` and the server, which supports only `2025-11-25`, answered with that version. Codex accepted it and continued, as the MCP version negotiation allows. A client that refuses a newer version than it asked for would not connect; supporting `2025-06-18` as well is a decision for P4-014, not a fix for this run.
+
 ## Follow-up
 
 Codex CLI over stdio has been run. Claude Desktop remains unverified.

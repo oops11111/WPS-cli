@@ -59,7 +59,7 @@ Phase 3 证明了这套工具在一台 Windows 机器、一个 WPS 版本、一�
 | P4-005 | E3 | 编写 4 个写入任务（表格写入、Writer 替换、演示替换、被占用文件写入被拒），并为每个任务补离线判定测试。被占用文件的"恢复"任务见下方 E5 设计里的说明 | 本地 |
 | P4-006 | E3 | runner 支持同一任务连跑 N 次，汇总通过率 | 本地 |
 | P4-007 | E3 | 在 Windows 上每个写入任务跑 3 次，记录结果 | Windows |
-| P4-008 | E4 | 用 Codex CLI 或 Claude Desktop 完成 MCP 检查，记录结果；Codex 的步骤见 `docs/PHASE4_WINDOWS_RUNBOOK.md` 第 6 节 | 客户端所在机器 |
+| P4-008 | E4 | 用 Codex CLI 或 Claude Desktop 完成 MCP 检查，记录结果；Codex 的步骤见 `docs/PHASE4_WINDOWS_RUNBOOK.md` 第 6 节（已完成：2026-10-14 Codex CLI 0.162.1 通过，见 `docs/ECOSYSTEM_EVALUATION.md`；E4 达成） | 客户端所在机器 |
 | P4-009 | E5 | 设计"需显式同意的关闭再恢复"方式：参数名、提示文字、错误码；默认行为不变 | 本地 |
 | P4-010 | E5 | 实现并补离线测试（包括未同意时绝不关闭文档） | 本地 |
 | P4-011 | E5 | 在 Windows 上验证打开状态下的恢复：写入失败、回滚被拒后，用 `--close-in-wps` 恢复，文件哈希等于备份；再验证有未保存改动时被拒 | Windows |
