@@ -72,6 +72,17 @@ Artifact retention:
 
 ## Current Verified Evidence
 
+Latest Windows run, on `main@b1a4b31` (2026-10-14), with WPS installed:
+
+| Profile | Result | Artifact |
+| --- | --- | --- |
+| safe | 7/7 passed | `artifacts/regression/safe/regression-run-20261014T003140284929Z-0c8ae0f4-c225-48ba-b0ea-9db42b32a852.json` |
+| wps | 4/4 passed | `artifacts/regression/wps/regression-run-20261014T003207822953Z-b92e49b9-6389-482e-a069-230c2b5a23cf.json` |
+
+The four WPS scenarios write their outputs to tracked files under `fixtures/phase3/`, so each Windows run changes them. The outputs from this run were checked: the calculation total is 18 (7 + 11), table cell row 2 column 3 reads `REGRESSION_STATUS`, and the Writer copy and PDF match the current input `fixtures/phase3/writer_table_fixture.docx`.
+
+Earlier evidence:
+
 - Safe profile artifact export passed with request id `regression-artifact-p3-004-001`.
 - MCP adapter artifact export passed with request id `mcp-regression-artifact-p3-004-002`.
 - WPS profile passed previously with request id `regression-run-wps-p3-003-001`.
