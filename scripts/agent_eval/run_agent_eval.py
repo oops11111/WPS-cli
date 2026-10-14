@@ -287,8 +287,20 @@ def judge(task: dict[str, Any], workspace: Path, fixture: Path, fixture_sha: str
     return results
 
 
+def wps_available(component: str) -> bool:
+    """True when this machine has a registered WPS ProgID for the component (the project's own probe)."""
+    from wps_ai_agent_cli.capabilities import probe_wps_capabilities
+
+    selected = probe_wps_capabilities().get("components", {}).get(component, {}).get("selected_prog_id")
+    return bool(selected)
+
+
 def run_task(task: dict[str, Any], fixture_name: str, component: str, root: Path, model: str | None,
-             max_turns: int, timeout: int, runner: Callable[..., dict[str, Any]] = run_claude) -> dict[str, Any]:
+             max_turns: int, timeout: int, runner: Callable[..., dict[str, Any]] = run_claude,
+             has_wps: Callable[[str], bool] = wps_available) -> dict[str, Any]:
+    if task.get("requires_wps") and not has_wps(component):
+        return {"id": task["id"], "passed": False, "skipped": f"needs WPS {component}, which is not available here",
+                "agent": {}, "checks": []}
     workspace = root / task["id"]
     if workspace.exists():
         shutil.rmtree(workspace)
@@ -315,6 +327,37 @@ def run_task(task: dict[str, Any], fixture_name: str, component: str, root: Path
     }
 
 
+def run_task_repeated(task: dict[str, Any], fixture_name: str, component: str, root: Path, model: str | None,
+                      max_turns: int, timeout: int, repeat: int = 1, min_passes: int = 1,
+                      runner: Callable[..., dict[str, Any]] = run_claude,
+                      has_wps: Callable[[str], bool] = wps_available) -> dict[str, Any]:
+    """Run a task `repeat` times, each in its own workspace. It passes when at least `min_passes` runs pass.
+
+    A skip (no WPS, or a file that cannot be held) does not depend on the run, so the first one ends the task.
+    """
+    runs = []
+    for index in range(1, repeat + 1):
+        result = run_task(task, fixture_name, component, root / f"run-{index}", model, max_turns, timeout,
+                          runner=runner, has_wps=has_wps)
+        if result.get("skipped"):
+            return {"id": task["id"], "passed": False, "skipped": result["skipped"], "runs": []}
+        runs.append(result)
+    passes = sum(run["passed"] for run in runs)
+    return {
+        "id": task["id"],
+        "passed": passes >= min_passes,
+        "repeat": repeat,
+        "min_passes": min_passes,
+        "passes": passes,
+        "pass_rate": passes / repeat,
+        "metrics": {
+            "wps_tool_calls": sum(run["metrics"]["wps_tool_calls"] for run in runs),
+            "wps_tool_errors": sum(run["metrics"]["wps_tool_errors"] for run in runs),
+        },
+        "runs": runs,
+    }
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--tasks", default=str(REPO_ROOT / "config" / "agent_eval_tasks.json"))
@@ -323,7 +366,15 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--model", default=None)
     parser.add_argument("--max-turns", type=int, default=15)
     parser.add_argument("--timeout", type=int, default=600)
+    parser.add_argument("--repeat", type=int, default=1, help="Run each task this many times (default 1).")
+    parser.add_argument("--min-passes", type=int, default=None,
+                        help="Runs that must pass for a task to pass (default: all of them).")
     args = parser.parse_args(argv)
+    if args.repeat < 1:
+        parser.error("--repeat must be at least 1")
+    min_passes = args.repeat if args.min_passes is None else args.min_passes
+    if not 1 <= min_passes <= args.repeat:
+        parser.error("--min-passes must be between 1 and --repeat")
 
     if shutil.which("claude") is None:
         print("claude CLI not found on PATH.", file=sys.stderr)
@@ -335,7 +386,11 @@ def main(argv: list[str] | None = None) -> int:
     root = Path(args.out) / f"run-{stamp}"
     root.mkdir(parents=True, exist_ok=True)
 
-    results = [run_task(task, spec["fixture"], spec["component"], root / "work", args.model, args.max_turns, args.timeout) for task in tasks]
+    results = [
+        run_task_repeated(task, spec["fixture"], spec["component"], root / "work", args.model, args.max_turns,
+                          args.timeout, repeat=args.repeat, min_passes=min_passes)
+        for task in tasks
+    ]
     summary = summarize(results, stamp, args.model)
     artifact = root / "summary.json"
     artifact.write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
@@ -345,9 +400,12 @@ def main(argv: list[str] | None = None) -> int:
             continue
         metrics = result.get("metrics", {})
         print(f"{'PASS' if result['passed'] else 'FAIL'} {result['id']} "
-              f"(wps-agent calls {metrics.get('wps_tool_calls')}, errors {metrics.get('wps_tool_errors')})")
-        for check in result["checks"]:
-            print(f"    {'ok ' if check['passed'] else 'BAD'} {check['kind']}: {check['detail']}")
+              f"({result['passes']}/{result['repeat']} runs passed, need {result['min_passes']}; "
+              f"wps-agent calls {metrics.get('wps_tool_calls')}, errors {metrics.get('wps_tool_errors')})")
+        for index, run in enumerate(result["runs"], 1):
+            label = f"  run {index}: " if result["repeat"] > 1 else ""
+            for check in run["checks"]:
+                print(f"    {label}{'ok ' if check['passed'] else 'BAD'} {check['kind']}: {check['detail']}")
     print(f"{summary['passed']}/{summary['total']} passed, {summary['skipped']} skipped; artifact: {artifact}")
     return 0 if summary["passed"] == summary["total"] else 1
 

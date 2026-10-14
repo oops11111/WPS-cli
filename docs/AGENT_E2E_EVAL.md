@@ -42,9 +42,14 @@ Transcript checks, read from the tool calls, not from the reply: `tool_called` (
 ```bash
 python scripts/agent_eval/run_agent_eval.py --out artifacts/agent-eval
 python scripts/agent_eval/run_agent_eval.py --only register-and-backup --model <model-id>
+python scripts/agent_eval/run_agent_eval.py --repeat 3 --min-passes 2
 ```
 
 The runner needs `claude` on `PATH`. It runs the CLI with `--output-format stream-json --verbose` so that it can read each tool call. It exits with 0 when every task that ran passes, 1 when any fails, and 2 when the CLI is missing. Skipped tasks do not change the exit code.
+
+`--repeat N` runs each task N times, each in its own workspace under `run-<n>/`. A task passes when at least `--min-passes` runs pass; by default every run must pass. The summary records each run, the number of passes and the pass rate. Phase 4 judges WPS write tasks with `--repeat 3 --min-passes 2`.
+
+A task with `"requires_wps": true` runs only when this machine has a registered WPS ProgID for the task's component, found with the project's own capability probe. Otherwise it is reported as skipped with the reason. A skip ends the task after the first attempt, because it does not depend on the run.
 
 Each run writes `summary.json` under `<out>/run-<timestamp>/`. For each task it holds the agent's turns, duration, cost, reply excerpt, every tool call with its input and error codes, the tool metrics and every check result. The summary also totals `wps-agent` calls and calls that returned an error.
 
