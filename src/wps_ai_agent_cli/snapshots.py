@@ -6,6 +6,7 @@ from typing import Any
 
 from .document_text import docx_body_paragraphs
 from .errors import INPUT_FILE_NOT_FOUND
+from .file_hold import is_share_conflict, share_conflict_error
 from .ooxml import load_workbook_guarded as load_workbook
 from .presentation_text import (
     PresentationStructureError,
@@ -175,15 +176,22 @@ def snapshot_document(
             [{"code": INPUT_FILE_NOT_FOUND, "message": f"Input file not found: {path}"}],
         )
 
-    if document["component"] == "writer":
-        return True, _writer_snapshot(document_id, path), []
-    if document["component"] == "spreadsheets":
-        return True, _spreadsheet_snapshot(document_id, path), []
-    if document["component"] == "presentation":
-        try:
-            return True, _presentation_snapshot(document_id, path), []
-        except PresentationStructureError as exc:
-            return False, {"document": document}, [{"code": "INVALID_PRESENTATION_STRUCTURE", "message": str(exc)}]
+    try:
+        if document["component"] == "writer":
+            return True, _writer_snapshot(document_id, path), []
+        if document["component"] == "spreadsheets":
+            return True, _spreadsheet_snapshot(document_id, path), []
+        if document["component"] == "presentation":
+            try:
+                return True, _presentation_snapshot(document_id, path), []
+            except PresentationStructureError as exc:
+                return False, {"document": document}, [{"code": "INVALID_PRESENTATION_STRUCTURE", "message": str(exc)}]
+    except OSError as exc:
+        # A file held open by another handle (most likely WPS) cannot be read; report it for this document
+        # instead of raising, so callers such as batch-report can carry on with the other files.
+        if not is_share_conflict(exc):
+            raise
+        return False, {"document": document}, [share_conflict_error(exc, "document")]
 
     return (
         False,

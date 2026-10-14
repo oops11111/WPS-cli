@@ -201,7 +201,7 @@ def batch_report_response(
         ),
         data=result,
         validation=ValidationResult(
-            status="passed" if ok and not summary.get("snapshot_failed") else "failed",
+            status="passed" if ok and not summary.get("snapshot_failed") and not summary.get("snapshot_held") else "failed",
             checks=[
                 {
                     "name": "directory_scanned",
@@ -218,12 +218,13 @@ def batch_report_response(
                 },
                 {
                     "name": "snapshots_collected",
-                    "passed": bool(ok and (not include_snapshots or summary.get("snapshot_failed") == 0)),
+                    "passed": bool(ok and (not include_snapshots or (summary.get("snapshot_failed") == 0 and summary.get("snapshot_held") == 0))),
                     "details": {
                         "enabled": include_snapshots,
                         "passed": summary.get("snapshot_passed"),
                         "failed": summary.get("snapshot_failed"),
                         "skipped": summary.get("snapshot_skipped"),
+                        "held": summary.get("snapshot_held"),
                     },
                 },
             ],

@@ -4,6 +4,7 @@ from collections import Counter
 from pathlib import Path
 from typing import Any
 
+from .errors import DOCUMENT_HELD_OPEN
 from .file_scan import scan_directory
 from .snapshots import snapshot_document
 
@@ -49,6 +50,7 @@ def build_batch_report(
     snapshot_passed_count = 0
     snapshot_failed_count = 0
     snapshot_skipped_count = 0
+    snapshot_held_count = 0
     component_counts: Counter[str] = Counter()
     registered_count = 0
 
@@ -77,6 +79,11 @@ def build_batch_report(
             entry["snapshot_status"] = "passed"
             entry["snapshot_summary"] = _snapshot_summary(snapshot)
             entry["snapshot"] = snapshot
+        elif any(error.get("code") == DOCUMENT_HELD_OPEN for error in snapshot_errors):
+            # The file is held open (most likely in WPS): report it and go on with the other files.
+            snapshot_held_count += 1
+            entry["snapshot_status"] = "held"
+            entry["snapshot_errors"] = snapshot_errors
         else:
             snapshot_failed_count += 1
             entry["snapshot_status"] = "failed"
@@ -93,6 +100,7 @@ def build_batch_report(
         "snapshot_passed": snapshot_passed_count,
         "snapshot_failed": snapshot_failed_count,
         "snapshot_skipped": snapshot_skipped_count,
+        "snapshot_held": snapshot_held_count,
     }
     return (
         True,

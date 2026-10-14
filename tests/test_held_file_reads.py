@@ -2,6 +2,7 @@
 
 Found in the P4-007 Windows run: spreadsheet_read, spreadsheet_sheets, snapshot_document and batch_report on a
 workbook held by another handle raised PermissionError, which MCP reported as MCP_TOOL_EXECUTION_FAILED.
+snapshot_document reports the held file itself, so batch-report marks that file as held and goes on.
 """
 
 import io
@@ -68,8 +69,6 @@ class HeldFileReadTests(unittest.TestCase):
         for argv in (
             ["spreadsheet-read", "--document-id", self.document_id, "--range", "A1:B2"],
             ["spreadsheet-sheets", "--document-id", self.document_id],
-            ["snapshot-document", "--document-id", self.document_id],
-            ["batch-report", "--path", str(self.book.parent)],
         ):
             with self.subTest(command=argv[0]):
                 exit_code, envelope = self.run_cli(argv)
@@ -82,6 +81,40 @@ class HeldFileReadTests(unittest.TestCase):
                 self.assertIn(_SHARING_VIOLATION, message)
                 self.assertIn("no document was changed", message)
                 self.assertFalse(envelope["data"]["mutates_document"])
+
+    def test_snapshot_document_reports_document_held_open(self):
+        exit_code, envelope = self.run_cli(["snapshot-document", "--document-id", self.document_id])
+
+        self.assertEqual(exit_code, 0)
+        self.assertFalse(envelope["ok"])
+        self.assertEqual([error["code"] for error in envelope["errors"]], ["DOCUMENT_HELD_OPEN"])
+        self.assertIn(_SHARING_VIOLATION, envelope["errors"][0]["message"])
+
+    def test_batch_report_marks_the_held_file_and_reports_the_others(self):
+        other = self.book.parent / "other.xlsx"
+        workbook = Workbook()
+        workbook.active["A1"] = "free"
+        workbook.save(other)
+        ok, _record, errors = register_document("spreadsheets", str(other))
+        self.assertTrue(ok, errors)
+
+        exit_code, envelope = self.run_cli(["batch-report", "--path", str(self.book.parent)])
+
+        self.assertEqual(exit_code, 0)
+        self.assertTrue(envelope["ok"])
+        self.assertEqual(envelope["errors"], [])
+        summary = envelope["data"]["summary"]
+        self.assertEqual((summary["snapshot_passed"], summary["snapshot_held"], summary["snapshot_failed"]), (1, 1, 0))
+        by_name = {item["name"]: item for item in envelope["data"]["files"]}
+        self.assertEqual(by_name["other.xlsx"]["snapshot_status"], "passed")
+        held = by_name["book.xlsx"]
+        self.assertEqual(held["snapshot_status"], "held")
+        self.assertEqual([error["code"] for error in held["snapshot_errors"]], ["DOCUMENT_HELD_OPEN"])
+        # The report is complete but one snapshot is missing, so validation does not pass.
+        self.assertEqual(envelope["validation"]["status"], "failed")
+        check = {item["name"]: item for item in envelope["validation"]["checks"]}["snapshots_collected"]
+        self.assertFalse(check["passed"])
+        self.assertEqual(check["details"]["held"], 1)
 
     def test_strict_exit_returns_one(self):
         exit_code, envelope = self.run_cli(
