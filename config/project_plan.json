@@ -32,10 +32,10 @@
       "id": "phase3",
       "name": "Production-ready automation infrastructure",
       "goal": "Strengthen recovery, security, performance, regression testing, and ecosystem integration.",
-      "status": "active",
+      "status": "done",
       "exit_criteria": [
         "MET: cross-component conversion is verified between HTML and Office formats (Writer, Spreadsheets, Presentation). HTML to DOCX opened and saved in WPS Writer (docs/archive/P3_HTML_EDITABLE_FIRST.md); HTML to XLSX and PPTX opened in WPS and exported back to HTML with content kept (scripts/real_wps_verify_remaining/RESULTS-4898428.md, section 4); DOCX, XLSX and PPTX to HTML verified locally (docs/CONVERSION_MATRIX.md). Structural editability on one WPS version; no visual-equivalence or cross-version claim",
-        "Mutations are atomic transactions: a change is either fully applied and verified or fully rolled back",
+        "MET: mutations are atomic transactions; a change is either fully applied and verified or fully rolled back, with one exception below. A failed mutation is undone from its pre-write backup and the restored hash is checked (PR #15). Verified on Windows with the document closed: rollback performed, A1 back to the seed (scripts/real_wps_verify_remaining/RESULTS-4898428.md, section 1). The exception: while WPS holds the document open, the file lock refuses the automatic undo. The command then returns MUTATION_ROLLBACK_BLOCKED with the backup path and the steps to restore it (PR #30); the file keeps the rejected value until the user closes the document without saving and runs restore-backup. Verified on Windows: after the close, restore-backup returned ok and A1 was back to the seed (scripts/real_wps_verify_remaining/RESULTS-3a40da6.md, Case D). Documented in README, \"修改失败与回滚\"",
         "MET: automated regression suite runs safe and WPS profiles with recorded artifacts. Windows run on main@b1a4b31 (2026-10-14): safe 7/7 (artifacts/regression/safe/regression-run-20261014T003140284929Z-0c8ae0f4-c225-48ba-b0ea-9db42b32a852.json), wps 4/4 (artifacts/regression/wps/regression-run-20261014T003207822953Z-b92e49b9-6389-482e-a069-230c2b5a23cf.json)",
         "MET: a real Agent end-to-end evaluation pipeline runs and records results (scripts/agent_eval, PR #21, docs/AGENT_E2E_EVAL.md)",
         "MET: ecosystem extension evaluation is written up (docs/ECOSYSTEM_EVALUATION.md, PR #22). Codex integration is tracked as a separate follow-up, not a condition for this criterion"

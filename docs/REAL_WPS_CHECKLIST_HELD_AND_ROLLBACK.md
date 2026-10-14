@@ -115,4 +115,4 @@ These steps have no results yet. Record each one in a new results file, using th
 
    Open both in WPS, check that the sheets and slides look as the converter reported, then export each to HTML with `export-open-document --document-id <id> --output <name>.html` and record what survives. These files were checked only with openpyxl and python-pptx.
 
-Phase 3 item 1 needs step 4 before it can be closed. Phase 3 stays active until steps 1 to 3 are recorded too.
+All four runs are recorded: steps 1 and 4 in `scripts/real_wps_verify_remaining/RESULTS-4898428.md`, step 2 in `scripts/real_wps_verify_remaining/RESULTS-3a40da6.md`, and step 3 in `docs/REGRESSION_CI_HANDOFF.md` (2026-10-14, safe 7/7 and wps 4/4). Phase 3 is done.

@@ -27,7 +27,7 @@ python -m wps_ai_agent_cli regression-run --profile wps --include-wps --artifact
 
 | ID | Category | Evidence |
 | --- | --- | --- |
-| `cli-plan` | CLI | Phase 3 is active |
+| `cli-plan` | CLI | Phase 3 is done |
 | `cli-phase3-next` | CLI | P3-307 is recorded as done |
 | `mcp-tools-count` | MCP | At least 70 tools are listed |
 | `mcp-catalog-drift` | MCP | current catalog matches the reviewed baseline with zero drift |
