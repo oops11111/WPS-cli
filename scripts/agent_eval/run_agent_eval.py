@@ -241,14 +241,27 @@ def parse_transcript(lines: list[str]) -> tuple[dict[str, Any], list[dict[str, A
     return result, calls
 
 
-def tool_metrics(calls: list[dict[str, Any]]) -> dict[str, Any]:
+def tool_metrics(calls: list[dict[str, Any]], expected_tools: list[str] | None = None) -> dict[str, Any]:
+    """Counts for one run. With expected_tools, also the wps-agent calls to any other tool (off-path calls).
+
+    Off-path calls are reported, not judged: a task passes or fails on its checks alone.
+    """
     wps_calls = [call for call in calls if str(call["name"]).startswith(TOOL_PREFIX)]
-    return {
+    used = [str(call["name"]).removeprefix(TOOL_PREFIX) for call in wps_calls]
+    metrics = {
         "wps_tool_calls": len(wps_calls),
         "wps_tool_errors": sum(bool(call["is_error"]) for call in wps_calls),
         "other_tool_calls": len(calls) - len(wps_calls),
-        "tools_used": sorted({str(call["name"]).removeprefix(TOOL_PREFIX) for call in wps_calls}),
+        "tools_used": sorted(set(used)),
+        "expected_tools": sorted(expected_tools) if expected_tools is not None else None,
+        "off_path_calls": None,
+        "off_path_tools": None,
     }
+    if expected_tools is not None:
+        off_path = [tool for tool in used if tool not in expected_tools]
+        metrics["off_path_calls"] = len(off_path)
+        metrics["off_path_tools"] = sorted(set(off_path))
+    return metrics
 
 
 def run_claude(
@@ -429,7 +442,7 @@ def run_task(
         "id": task["id"],
         "passed": bool(agent.get("ran")) and all(check["passed"] for check in checks),
         "agent": agent,
-        "metrics": tool_metrics(calls),
+        "metrics": tool_metrics(calls, task.get("expected_tools")),
         "checks": checks,
     }
 
@@ -478,6 +491,14 @@ def run_task_repeated(
         "metrics": {
             "wps_tool_calls": sum(run["metrics"]["wps_tool_calls"] for run in runs),
             "wps_tool_errors": sum(run["metrics"]["wps_tool_errors"] for run in runs),
+            "off_path_calls": (
+                sum(run["metrics"]["off_path_calls"] for run in runs) if "expected_tools" in task else None
+            ),
+            "off_path_tools": (
+                sorted({tool for run in runs for tool in run["metrics"]["off_path_tools"]})
+                if "expected_tools" in task
+                else None
+            ),
         },
         "runs": runs,
     }
@@ -537,7 +558,8 @@ def main(argv: list[str] | None = None) -> int:
         print(
             f"{'PASS' if result['passed'] else 'FAIL'} {result['id']} "
             f"({result['passes']}/{result['repeat']} runs passed, need {result['min_passes']}; "
-            f"wps-agent calls {metrics.get('wps_tool_calls')}, errors {metrics.get('wps_tool_errors')})"
+            f"wps-agent calls {metrics.get('wps_tool_calls')}, errors {metrics.get('wps_tool_errors')}, "
+            f"off-path calls {metrics.get('off_path_calls')})"
         )
         for index, run in enumerate(result["runs"], 1):
             label = f"  run {index}: " if result["repeat"] > 1 else ""
@@ -558,6 +580,10 @@ def summarize(results: list[dict[str, Any]], stamp: str, model: str | None) -> d
         "skipped": len(results) - len(ran),
         "wps_tool_calls": sum(result.get("metrics", {}).get("wps_tool_calls", 0) for result in ran),
         "wps_tool_errors": sum(result.get("metrics", {}).get("wps_tool_errors", 0) for result in ran),
+        "off_path_calls": sum(result.get("metrics", {}).get("off_path_calls") or 0 for result in ran),
+        "tasks_without_expected_tools": [
+            result["id"] for result in ran if result.get("metrics", {}).get("off_path_calls") is None
+        ],
         "results": results,
     }
 

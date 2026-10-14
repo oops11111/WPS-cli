@@ -91,6 +91,22 @@ class AgentEvalTaskFileTests(unittest.TestCase):
         self.assertLessEqual(kinds, KNOWN_CHECK_KINDS)
         self.assertEqual(len({task["id"] for task in spec["tasks"]}), len(spec["tasks"]))
 
+    def test_every_task_names_real_expected_tools_that_cover_its_tool_checks(self):
+        from wps_ai_agent_cli.mcp_schema import list_mcp_tool_schemas
+
+        tools = {schema["name"].removeprefix("wps_agent_") for schema in list_mcp_tool_schemas()}
+        spec = json.loads(TASKS_PATH.read_text(encoding="utf-8"))
+        for task in spec["tasks"]:
+            with self.subTest(task=task["id"]):
+                expected = task.get("expected_tools")
+                self.assertTrue(expected, "every task lists the tools a correct run needs")
+                self.assertLessEqual(set(expected), tools)
+                for check in task["checks"]:
+                    if check["kind"] == "tool_called":
+                        self.assertIn(check["tool"], expected)
+                    if check["kind"] == "tool_not_called":
+                        self.assertNotIn(check["tool"], expected)
+
     def test_wps_write_tasks_require_wps_and_name_a_supported_fixture(self):
         spec = json.loads(TASKS_PATH.read_text(encoding="utf-8"))
         tasks = {task["id"]: task for task in spec["tasks"]}
@@ -518,6 +534,57 @@ class AgentEvalJudgeTests(unittest.TestCase):
         self.assertEqual(
             [check["detail"] for check in missing["checks"] if check["kind"] == "xlsx_cell"], ["output missing"] * 2
         )
+
+    def test_off_path_calls_are_counted_against_the_expected_tools(self):
+        calls = [
+            _call("register_document"),
+            _call("documents"),
+            _call("backup_document"),
+            _call("documents"),
+            {"name": "ToolSearch", "input": {}, "is_error": False, "error_codes": []},
+        ]
+
+        metrics = run_agent_eval.tool_metrics(calls, ["register_document", "backup_document"])
+
+        self.assertEqual(metrics["wps_tool_calls"], 4)
+        self.assertEqual(metrics["other_tool_calls"], 1)
+        self.assertEqual(metrics["off_path_calls"], 2)
+        self.assertEqual(metrics["off_path_tools"], ["documents"])
+        self.assertEqual(metrics["expected_tools"], ["backup_document", "register_document"])
+
+    def test_without_expected_tools_off_path_calls_are_not_counted(self):
+        metrics = run_agent_eval.tool_metrics([_call("documents")])
+
+        self.assertIsNone(metrics["off_path_calls"])
+        self.assertIsNone(metrics["off_path_tools"])
+
+    def test_off_path_calls_are_reported_but_do_not_fail_a_task(self):
+        def agent(workspace):
+            document_id = _register(workspace)
+            create_backup(document_id, "eval-backup-1", workspace=workspace)
+
+        calls = [_call("register_document"), _call("operations"), _call("backup_document", request_id="eval-backup-1")]
+        with tempfile.TemporaryDirectory() as tmp:
+            result = run_agent_eval.run_task_repeated(
+                _task("register-and-backup"),
+                "book.xlsx",
+                "spreadsheets",
+                Path(tmp),
+                None,
+                15,
+                60,
+                repeat=2,
+                min_passes=2,
+                runner=_fake_agent(agent, calls),
+            )
+        summary = run_agent_eval.summarize([result], "stamp", None)
+
+        self.assertTrue(result["passed"])
+        self.assertEqual([run["metrics"]["off_path_calls"] for run in result["runs"]], [1, 1])
+        self.assertEqual(result["metrics"]["off_path_calls"], 2)
+        self.assertEqual(result["metrics"]["off_path_tools"], ["operations"])
+        self.assertEqual(summary["off_path_calls"], 2)
+        self.assertEqual(summary["tasks_without_expected_tools"], [])
 
     def test_summary_counts_skipped_tasks_separately(self):
         results = [
