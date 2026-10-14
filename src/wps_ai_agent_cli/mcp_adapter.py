@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import argparse
 import io
 import json
 import math
@@ -314,6 +315,33 @@ def build_cli_argv(
     return True, argv, schema, []
 
 
+class _ArgumentRejected(Exception):
+    pass
+
+
+def _argparse_error(argv: list[str]) -> str | None:
+    """The message argparse gives for argv, which it otherwise prints only to stderr before exiting."""
+    from .cli_parser import build_parser
+
+    def reject(message: str):
+        raise _ArgumentRejected(message)
+
+    parser = build_parser()
+    parsers = [parser]
+    for action in parser._actions:
+        if isinstance(action, argparse._SubParsersAction):
+            parsers.extend(action.choices.values())
+    for each in parsers:
+        each.error = reject
+    try:
+        parser.parse_args(argv)
+    except _ArgumentRejected as exc:
+        return str(exc)
+    except SystemExit:
+        return None
+    return None
+
+
 def call_mcp_tool(tool_name: str, arguments: dict[str, Any]) -> tuple[bool, dict[str, Any], list[dict[str, Any]]]:
     ok, argv, schema, errors = build_cli_argv(tool_name, arguments)
     if not ok:
@@ -348,7 +376,8 @@ def call_mcp_tool(tool_name: str, arguments: dict[str, Any]) -> tuple[bool, dict
             [
                 _error(
                     "MCP_CLI_ARGUMENTS_REJECTED",
-                    "The CLI parser rejected the arguments; see the server's stderr for the usage message.",
+                    "The CLI rejected the arguments: "
+                    + (_argparse_error(argv) or "see the server's stderr for the usage message."),
                     {"exit_code": exc.code},
                 )
             ],
