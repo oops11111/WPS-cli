@@ -276,7 +276,8 @@ class BackupTests(unittest.TestCase):
             self.assertFalse(cli["ok"])
             self.assertEqual(cli["errors"][0]["code"], "DOCUMENT_IDENTITY_CHANGED")
             self.assertFalse(mcp_ok)
-            self.assertEqual(mcp_errors, [])
+            self.assertEqual(mcp_errors, [{"code": error["code"], "message": error["message"]}
+                                          for error in mcp["response"]["errors"]])
             self.assertFalse(mcp["response"]["ok"])
             self.assertEqual(mcp["response"]["errors"][0]["code"], "DOCUMENT_IDENTITY_CHANGED")
 

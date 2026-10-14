@@ -773,7 +773,8 @@ class WriterParagraphMappingTests(unittest.TestCase):
             self.assertEqual(cli_response["errors"][0]["code"], "BOOKMARK_SCOPE_UNSUPPORTED")
             self.assertIn(expected_detail, cli_response["errors"][0]["details"])
             self.assertFalse(mcp_ok)
-            self.assertEqual(mcp_errors, [])
+            self.assertEqual(mcp_errors, [{"code": error["code"], "message": error["message"]}
+                                          for error in mcp_result["response"]["errors"]])
             self.assertEqual(
                 mcp_result["response"]["errors"][0]["code"], "BOOKMARK_SCOPE_UNSUPPORTED",
             )
@@ -852,7 +853,8 @@ class WriterParagraphMappingTests(unittest.TestCase):
             self.assertEqual(cli_response["errors"][0]["code"], "BOOKMARK_SCOPE_UNSUPPORTED")
             self.assertEqual(cli_response["errors"][0]["details"], expected)
             self.assertFalse(mcp_ok)
-            self.assertEqual(mcp_errors, [])
+            self.assertEqual(mcp_errors, [{"code": error["code"], "message": error["message"]}
+                                          for error in mcp_result["response"]["errors"]])
             self.assertEqual(
                 mcp_result["response"]["errors"][0]["code"], "BOOKMARK_SCOPE_UNSUPPORTED",
             )
@@ -981,7 +983,8 @@ class WriterParagraphMappingTests(unittest.TestCase):
             cli_response = json.loads(cli_output.getvalue())
             self.assertEqual(cli_response["errors"][0]["details"], expected)
             self.assertFalse(mcp_ok)
-            self.assertEqual(mcp_errors, [])
+            self.assertEqual(mcp_errors, [{"code": error["code"], "message": error["message"]}
+                                          for error in mcp_result["response"]["errors"]])
             self.assertEqual(
                 mcp_result["response"]["errors"][0]["details"], expected,
             )
@@ -1148,7 +1151,8 @@ class WriterParagraphMappingTests(unittest.TestCase):
             mcp_details = mcp_result["response"]["errors"][0]["details"]
             self.assertEqual(cli_details, expected)
             self.assertFalse(mcp_ok)
-            self.assertEqual(mcp_errors, [])
+            self.assertEqual(mcp_errors, [{"code": error["code"], "message": error["message"]}
+                                          for error in mcp_result["response"]["errors"]])
             self.assertEqual(mcp_details, expected)
             serialized = json.dumps({"cli": cli_details, "mcp": mcp_details})
             self.assertNotIn(tmp, serialized)
@@ -1487,7 +1491,8 @@ class WriterParagraphMappingTests(unittest.TestCase):
                 self.assertEqual(cli_response["errors"][0]["code"], "BOOKMARK_SCOPE_UNSUPPORTED")
                 self.assertEqual(cli_response["errors"][0]["details"], [expected])
                 self.assertFalse(mcp_ok)
-                self.assertEqual(mcp_errors, [])
+                self.assertEqual(mcp_errors, [{"code": error["code"], "message": error["message"]}
+                                              for error in mcp_result["response"]["errors"]])
                 self.assertEqual(
                     mcp_result["response"]["errors"][0]["code"], "BOOKMARK_SCOPE_UNSUPPORTED",
                 )
@@ -1576,7 +1581,8 @@ class WriterParagraphMappingTests(unittest.TestCase):
             cli_response = json.loads(cli_output.getvalue())
             self.assertEqual(cli_response["errors"][0]["details"], expected)
             self.assertFalse(mcp_ok)
-            self.assertEqual(mcp_errors, [])
+            self.assertEqual(mcp_errors, [{"code": error["code"], "message": error["message"]}
+                                          for error in mcp_result["response"]["errors"]])
             self.assertEqual(mcp_result["response"]["errors"][0]["details"], expected)
             self.assertEqual(path.read_bytes(), before_bytes)
 
@@ -1712,7 +1718,8 @@ class WriterParagraphMappingTests(unittest.TestCase):
             cli_response = json.loads(cli_output.getvalue())
             self.assertEqual(cli_response["errors"][0]["details"], [expected])
             self.assertFalse(mcp_ok)
-            self.assertEqual(mcp_errors, [])
+            self.assertEqual(mcp_errors, [{"code": error["code"], "message": error["message"]}
+                                          for error in mcp_result["response"]["errors"]])
             self.assertEqual(mcp_result["response"]["errors"][0]["details"], [expected])
             self.assertEqual(path.read_bytes(), before_bytes)
 
@@ -1808,7 +1815,8 @@ class WriterParagraphMappingTests(unittest.TestCase):
             cli_response = json.loads(cli_output.getvalue())
             self.assertEqual(cli_response["errors"][0]["details"], expected)
             self.assertFalse(mcp_ok)
-            self.assertEqual(mcp_errors, [])
+            self.assertEqual(mcp_errors, [{"code": error["code"], "message": error["message"]}
+                                          for error in mcp_result["response"]["errors"]])
             self.assertEqual(mcp_result["response"]["errors"][0]["details"], expected)
             self.assertEqual(path.read_bytes(), before_bytes)
 
@@ -1912,7 +1920,8 @@ class WriterParagraphMappingTests(unittest.TestCase):
             self.assertEqual(cli_response["validation"]["status"], "failed")
             self.assertEqual(cli_response["errors"][0]["details"], expected)
             self.assertFalse(mcp_ok)
-            self.assertEqual(mcp_errors, [])
+            self.assertEqual(mcp_errors, [{"code": error["code"], "message": error["message"]}
+                                          for error in mcp_result["response"]["errors"]])
             self.assertEqual(mcp_result["response"]["validation"]["status"], "failed")
             self.assertEqual(mcp_result["response"]["errors"][0]["details"], expected)
             self.assertEqual(path.read_bytes(), before_bytes)

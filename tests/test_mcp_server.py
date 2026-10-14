@@ -613,6 +613,56 @@ class McpServerTests(unittest.TestCase):
             self.assertIsInstance(error["code"], str)
             self.assertIsInstance(error["message"], str)
 
+    def test_a_failed_command_reports_its_error_codes_in_the_text_the_agent_reads(self):
+        # Agents read the text content. Before this was fixed it held "errors": [] for a failed command,
+        # and the code (for example DOCUMENT_HELD_OPEN) was only in the nested response.
+        response = handle_mcp_request({
+            "jsonrpc": "2.0", "id": "command-error", "method": "tools/call",
+            "params": {"name": "wps_agent_restore_backup",
+                       "arguments": {"document_id": "doc_missing", "backup_name": "x.xlsx"}},
+        })
+
+        result = response["result"]
+        self.assertTrue(result["isError"])
+        text = json.loads(result["content"][0]["text"])
+        self.assertFalse(text["ok"])
+        self.assertEqual([error["code"] for error in text["errors"]], ["DOCUMENT_NOT_FOUND"])
+        self.assertIn("doc_missing", text["errors"][0]["message"])
+        self.assertEqual(result["structuredContent"]["errors"], text["errors"])
+        self.assertEqual(result["structuredContent"]["mcp_call"]["response"]["errors"], text["errors"])
+
+    def test_copied_errors_leave_details_in_the_response_and_cap_the_message(self):
+        envelope = {"ok": False, "summary": "failed", "errors": [
+            {"code": "BIG", "message": "m" * 5000, "details": {"diagnostics": ["x" * 100] * 1000}},
+        ]}
+
+        def fake_run(argv, output_stream=None):
+            output_stream.write(json.dumps(envelope))
+            return 1
+
+        with patch("wps_ai_agent_cli.cli.run", side_effect=fake_run):
+            response = handle_mcp_request({
+                "jsonrpc": "2.0", "id": "big-error", "method": "tools/call",
+                "params": {"name": "wps_agent_tasks", "arguments": {}},
+            })
+
+        result = response["result"]
+        text = json.loads(result["content"][0]["text"])
+        self.assertEqual(text["errors"], [{"code": "BIG", "message": "m" * 1000}])
+        self.assertEqual(result["structuredContent"]["errors"], text["errors"])
+        self.assertEqual(result["structuredContent"]["mcp_call"]["response"], envelope)
+
+    def test_a_successful_command_reports_no_errors(self):
+        response = handle_mcp_request({
+            "jsonrpc": "2.0", "id": "command-ok", "method": "tools/call",
+            "params": {"name": "wps_agent_tasks", "arguments": {"phase": "phase4"}},
+        })
+
+        result = response["result"]
+        self.assertFalse(result["isError"])
+        self.assertEqual(json.loads(result["content"][0]["text"])["errors"], [])
+        self.assertEqual(result["structuredContent"]["errors"], [])
+
     def test_tools_call_unknown_name_returns_protocol_error_without_adapter_dispatch(self):
         with patch("wps_ai_agent_cli.mcp_server.call_mcp_tool") as call_tool:
             response = handle_mcp_request({
