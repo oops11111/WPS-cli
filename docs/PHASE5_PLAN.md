@@ -1,6 +1,6 @@
 # Phase 5 计划：首个正式版本与覆盖扩展
 
-状态：**planned**（待确认；下方“待确认的决定”确认后改为 active）。
+状态：**active**（2026-10-14 确认，五项决定均按默认建议）。
 
 ## 目标
 
@@ -31,9 +31,11 @@ Phase 4 证明了这套工具在一台 Windows、一个 WPS 版本、两个 Agen
 | F3 | 发布首个正式版本 | 按 `docs/RELEASING.md` 定版本号，打标签，GitHub Release 附 wheel 和源码包；在新的虚拟环境里只装这个 wheel，`inspect-env` 和 safe 档回归都通过 |
 | F4 | 格式统一 | 全仓库按 `ruff format` 统一一次，CI 检查格式 |
 
-## 待确认的决定
+## 已做的决定
 
-| 决定 | 默认建议 | 依据 |
+2026-10-14 确认，均按默认建议：
+
+| 决定 | 结论 | 依据 |
 | --- | --- | --- |
 | 首个版本号 | `0.2.0` | 相对 0.1.0 有新功能（`--close-in-wps`、compat 档）和 MCP 行为变化，按版本规则升次版本号 |
 | 发布渠道 | 只发 GitHub Release，不发 PyPI | 目标用户在 Windows 上配合 WPS 使用，先保证 Release 可装可用；PyPI 等有外部用户需求再做 |

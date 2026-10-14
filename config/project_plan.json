@@ -1,7 +1,7 @@
 {
   "product": "WPS AI Agent CLI",
   "source_prd": "WPS_AI_Agent_CLI_PRD_v1.1.docx",
-  "current_phase": "phase4",
+  "current_phase": "phase5",
   "phases": [
     {
       "id": "phase0",
@@ -59,7 +59,7 @@
       "id": "phase5",
       "name": "First release and broader coverage",
       "goal": "Make every tool failure visible to agents, widen the agent evaluation beyond the four write tasks, and publish a first release that works without the repository.",
-      "status": "planned",
+      "status": "active",
       "exit_criteria": [
         "F1: every one of the 85 MCP tools has an offline test that makes it fail and checks that the agent-facing result carries an error code (or a JSON-RPC argument error), never MCP_TOOL_EXECUTION_FAILED or an empty errors list; the tests run in CI and the problems they find are fixed",
         "F2: the agent evaluation adds at least six tasks covering open-document reads and writes, HTML and Office conversion, Writer tables, sheet management and PDF export; each task names its expected tools and the runner reports calls outside them; tasks that need WPS pass at least 2 of 3 runs on Windows",
