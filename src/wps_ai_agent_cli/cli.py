@@ -105,6 +105,8 @@ from .cli_writer import (  # noqa: F401
     writer_table_smoke_response,
     writer_table_write_response,
 )
+from .errors import DOCUMENT_HELD_OPEN
+from .file_hold import is_share_conflict
 from .jsonio import dumps_json
 
 # cli_handlers reaches these through this module (cli.handle_mcp_json, cli.serve_stdio).
@@ -401,6 +403,49 @@ def run(argv: list[str] | None = None, output_stream: TextIO | None = None) -> i
         )
         print(dumps_json(response.to_dict()), file=output_stream or sys.stdout)
         return 1 if strict_exit else 0
+    except OSError as exc:
+        # A command that does not check for a held file itself (for example spreadsheet-read or batch-report)
+        # still answers with a DOCUMENT_HELD_OPEN envelope, not an uncaught PermissionError.
+        if not is_share_conflict(exc):
+            raise
+        command = next((item for item in argv if not item.startswith("-")), "unknown")
+        _, request_id = _extract_request_id(argv)
+        mutating = _command_mutates_document(command)
+        response = CommandResponse(
+            ok=False,
+            command=command,
+            request_id=request_id or "unknown",
+            backend=BACKEND,
+            summary="A file the command needed is held open by another handle; the command stopped.",
+            data={"path": getattr(exc, "filename", None), "mutates_document": mutating},
+            validation=ValidationResult(status="failed"),
+            errors=[{"code": DOCUMENT_HELD_OPEN, "message": _held_during_command_message(exc, mutating)}],
+        )
+        print(dumps_json(response.to_dict()), file=output_stream or sys.stdout)
+        return 1 if strict_exit else 0
+
+
+def _command_mutates_document(command: str) -> bool:
+    """True unless the MCP catalog marks the command as read-only; unknown commands count as mutating."""
+    from .mcp_schema import list_mcp_tool_schemas
+
+    for schema in list_mcp_tool_schemas():
+        if schema["cli_command"] == command:
+            return bool(schema.get("mutates_document"))
+    return True
+
+
+def _held_during_command_message(exc: OSError, mutating: bool) -> str:
+    message = (
+        f"A file the command needed is held open by another handle ({exc}), most likely because it is open in WPS. "
+        "Save or close the document in WPS (or the program that holds the file) and retry."
+    )
+    if mutating:
+        return message + (
+            " This command can change documents and stopped part way, so check what was applied with "
+            "mutation-request-inspect before retrying."
+        )
+    return message + " This command does not change documents, so no document was changed."
 
 
 def main() -> int:
