@@ -2,7 +2,7 @@
 
 Phase 4 出口标准 E2：至少两个 WPS 版本，每个版本跑通 wps 回归档，并完成三个组件的打开、保存、导出 PDF 和 HTML。本文定出检查项和每个版本的记录格式（P4-002），结果由 P4-003 填入。
 
-状态：**12.0 已按本流程跑过一次，C3 不是 4/4。第二个版本未跑。** E2 未达成。
+状态：**12.8.2.18913 的 C1 到 C6 全部通过（`main@cbc93ca`）。第二个版本拿不到，按 2026-10-14 确认的风险预案，E2 改为单版本记录并写明缺口，E2 达成。**
 
 ## 检查项
 
@@ -69,7 +69,11 @@ compat 档的四个场景都写在 `config/regression_manifest.json` 里，`requ
 
 ## 判定
 
-E2 达成的条件：两个版本的 C1 到 C6 都是 pass（C2、C3 都是 4/4），并且两个版本之间的差异都已写明。某项只在一个版本上失败时，E2 不算达成，要么修好，要么写清楚这个版本不支持哪一项，并由你确认。
+E2 原来的达成条件：两个版本的 C1 到 C6 都是 pass（C2、C3 都是 4/4），并且两个版本之间的差异都已写明。某项只在一个版本上失败时，E2 不算达成，要么修好，要么写清楚这个版本不支持哪一项，并由你确认。
+
+2026-10-14 确认：上机的机器上只有 12.8.2.18913，拿不到第二个正式版。按 `docs/PHASE4_PLAN.md` 风险表的预案，E2 改为“一个版本的 C1 到 C6 全部通过，并写明缺口”。
+
+**缺口**：没有在第二个 WPS 版本上跑过，跨版本的兼容性没有证据。拿到另一个版本时，按本文流程补一节即可，不需要改检查项。
 
 ## 结果
 
@@ -85,21 +89,15 @@ E2 达成的条件：两个版本的 C1 到 C6 都是 pass（C2、C3 都是 4/4�
 | --- | --- | --- |
 | C1 | pass | `wps-version-compare --record`：`ok: true`，三个组件 `current` 都是 `12.8.2.18913`，`relation` 为 `absent_baseline` |
 | C2 | 4/4 | `artifacts\regression\outputs\20261014T141843Z-98b3f95b`；结果 JSON `artifacts\regression\wps\regression-run-20261014T141904798431Z-03e76dfa-98a4-4651-a47e-eddfee47d6b4.json`。`git status --short` 列出了这份 JSON，见 `RESULTS-82c7a88.md` 的 1c |
-| C3 | 3/4 | `artifacts\regression\outputs\20261014T141928Z-ee4603bc`。失败：`presentation-com-smoke` |
+| C3 | 4/4 | 在 `cbc93ca` 重跑：`artifacts\regression\outputs\20261014T145908Z-eef9dcb7`。`82c7a88` 上 `presentation-com-smoke` 曾失败，这次四项都通过 |
 | C4 | pass | `compat-writer.html` 315117 字节，含 `COMPAT-WRITER`；源 SHA-256 前后都是 `E81C1E14EC5E7B05CDF0A8AAA54248E1A0428B6C9419C854703A7077CEB01924`；`open-documents` 仍列出 `compat.docx` |
 | C5 | pass | `compat-sheet.html` 19478 字节，含 `COMPAT-SHEET`；源 SHA-256 前后都是 `32DE844609E4D4909955A8E518B82E8DBFF8CE5B27226C2776AEA30286924291`；仍列出 `compat.xlsx` |
 | C6 | pass | `slide0001.htm` 8692 字节，含 `COMPAT-SLIDE`；源 SHA-256 前后都是 `2E3258C8999BF8C6DFF119C0D468A618AE784EB967904AFC96C58A8882C14D9C`；仍列出 `compat.pptx` |
 
-与其他版本的差异：还没有第二个版本。C3 的 `presentation-com-smoke` 失败原文：
+与其他版本的差异：还没有第二个版本。`82c7a88` 上 C3 的 `presentation-com-smoke` 曾返回 `COM_OPERATION_FAILED`（`(-2147352567, '发生意外。', …, -2147467259)`）。`cbc93ca` 重跑后该项通过。
 
-```json
-[{"code": "COM_OPERATION_FAILED", "message": "(-2147352567, '发生意外。', (0, None, None, None, 0, -2147467259), None)"}]
-```
-
-其余三项 compat 场景通过：`spreadsheets-com-smoke`、`spreadsheets-convert-smoke`、`presentation-convert-smoke`。
-
-复核：失败出在装了 pywin32 时 `com-smoke` 走的 pywin32 分支（命名参数 `WithWindow`、没有占用检查），不是演示组件本身；同一个文件的 `convert-smoke` 走 PowerShell 脚本通过。修复见分支 `fix/com-smoke-powershell`，合并后在这一版本上重跑 compat 档并更新 C3。
+复核：`82c7a88` 的失败出在装了 pywin32 时 `com-smoke` 走的 pywin32 分支。`cbc93ca` 已包含该修复，compat 档重跑为 4/4。
 
 ### 第二个版本
 
-未跑。版本待定（见 `docs/PHASE4_PLAN.md` 的决定：12.0 之外再加一个更新或更旧的正式版）。
+未跑。2026-10-14 在这台 Windows 10.0.19045 机器上只找到 `C:\Program Files (x86)\Kingsoft\WPS Office\12.8.2.18913`。正在运行的 `et.exe`、`wps.exe`、`wpp.exe` 都来自这个目录。没有第二个正式版可按第 3 节重跑。
