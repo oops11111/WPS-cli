@@ -4,12 +4,17 @@ All notable changes to `wps-ai-agent-cli`. The versioning rule and release steps
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-14
+
+First release. Phases 4 and 5 so far: in-CLI recovery for documents open in WPS, a WPS compatibility profile, an MCP failure contract for every tool, and a wheel that runs on its own.
+
 ### Added
 
 - `restore-backup --close-in-wps` and the MCP `close_in_wps` argument: after a rollback blocked by an open document, close that document in WPS without saving and restore the backup, in one call. WPS must have no unsaved changes, otherwise the call refuses with `DOCUMENT_HAS_UNSAVED_CHANGES`. Without the flag nothing changes. (P4-009, P4-010)
 - Agent evaluation: tasks can be marked `requires_wps` and are skipped without WPS; `--repeat N --min-passes M` runs each task N times; four WPS write tasks. (P4-004 to P4-006)
 - Regression profile `compat`: open, save and PDF conversion for Spreadsheets and Presentation, part of the WPS compatibility matrix (`docs/COMPATIBILITY_MATRIX.md`). (P4-002)
 - CI builds the wheel and the source distribution and keeps them as a workflow artifact. (P4-012)
+- Pushing a tag `v<version>` publishes a GitHub Release with the wheel and the sdist, after checking the tag against the package version and running the safe regression profile from the built wheel. (P5-008)
 - An installed wheel runs the safe regression profile on its own: the regression manifest, the MCP catalog guard and the MCP audit template ship inside the package and are used when the default `config/` paths do not exist. CI runs the safe profile from the installed wheel outside the repository. (P5-007)
 
 ### Changed

@@ -1,0 +1,48 @@
+name: release
+
+# Pushing a tag v<version> on main publishes that version as a GitHub Release with the wheel and the sdist.
+# The steps are in docs/RELEASING.md; the maintainer pushes the tag.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Check the tag against the package version and take the notes from CHANGELOG.md
+        run: python scripts/release_notes.py --tag "$GITHUB_REF_NAME" > release-notes.md
+      - name: Build the wheel and the source distribution
+        run: |
+          python -m pip install build
+          python -m build
+      - name: Install the wheel in a clean virtual environment and run the safe regression profile outside the repository
+        run: |
+          python -m venv /tmp/release-check
+          /tmp/release-check/bin/pip install dist/*.whl
+          mkdir -p /tmp/release-run
+          cd /tmp/release-run
+          /tmp/release-check/bin/wps-agent inspect-env > inspect-env.json
+          /tmp/release-check/bin/wps-agent regression-run --profile safe --artifact-dir /tmp/release-run/artifacts > result.json
+          /tmp/release-check/bin/python - <<'PY'
+          import json
+          import wps_ai_agent_cli
+          assert json.load(open("inspect-env.json"))["ok"] is True
+          payload = json.load(open("result.json"))
+          regression = payload["data"]["regression"]
+          assert payload["ok"] is True, payload["errors"]
+          assert regression["failed_count"] == 0 and regression["scenario_count"] >= 7, regression
+          assert "site-packages" in regression["manifest_path"], regression["manifest_path"]
+          print("release", wps_ai_agent_cli.__version__, "safe profile", regression["passed_count"], "of", regression["scenario_count"])
+          PY
+      - name: Publish the GitHub Release with the wheel and the sdist
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" dist/* --title "$GITHUB_REF_NAME" --notes-file release-notes.md --verify-tag
