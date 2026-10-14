@@ -51,7 +51,7 @@
         "E2: a compatibility matrix covers at least two WPS versions: the wps regression profile plus open, save and PDF/HTML export for all three components, per version, in docs/COMPATIBILITY_MATRIX.md",
         "E3: the agent evaluation covers WPS write paths: at least four write tasks on Windows (spreadsheet write with verification, Writer replace, presentation replace, held-file refusal and recovery), each run three times and passing at least two, with pass rate, turns and tool calls recorded",
         "E4: a second MCP client (Codex CLI or Claude Desktop) completes initialize, paginated tools/list and a safe tools/call, with client version, transport and negotiated protocol recorded",
-        "E5: a rollback blocked by an open document can be completed from the CLI through an explicit opt-in that has WPS close the document without saving and then restores the backup; the default never closes a user's document; verified on Windows by the file hash matching the backup",
+        "E5: a backup can be restored from the CLI while the document is open in WPS (the recovery a blocked rollback asks for), through an explicit opt-in that has WPS close the document without saving; the default never closes a user's document and unsaved WPS changes are refused; verified on Windows by the file hash matching the backup (docs/PHASE4_WINDOWS_RUNBOOK.md section 2, confirmed 2026-10-14)",
         "E6: releasable: a versioning rule and CHANGELOG, a wheel built in CI, and a clean Windows install that follows the README and passes inspect-env and the safe regression profile"
       ]
     }
