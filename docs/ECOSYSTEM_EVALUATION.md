@@ -29,7 +29,7 @@ These were run against the server directly, not through a client.
 ## Known gaps
 
 1. **Desktop client integration is unverified.** The P3-263 gate needs a configured server, a working desktop inspection channel, and a real `initialize`, paginated `tools/list` and a safe `tools/call` from the desktop client. None of this has been observed.
-2. **Only stdio.** Clients that need HTTP or SSE cannot connect.
+2. **Only stdio.** Clients that need HTTP or SSE cannot connect. P4-014 decided not to add HTTP until a target client needs it (see `docs/PHASE4_PLAN.md`).
 3. **Twelve evaluation tasks are still a small set.** Eight run offline; four exercise WPS write paths (spreadsheet write, Writer and presentation replace, a held file) and were run on Windows in P4-007, passing 3/3 each (see `docs/AGENT_E2E_EVAL.md`). The full tool surface is not covered.
 
 ## What would close the gaps
@@ -71,7 +71,7 @@ These were run against the server directly, not through a client.
 
 The raw JSONL log stayed on this machine and is not in the repository.
 
-Note for P4-014: Codex asked for `2025-06-18` and the server, which supports only `2025-11-25`, answered with that version. Codex accepted it and continued, as the MCP version negotiation allows. A client that refuses a newer version than it asked for would not connect; supporting `2025-06-18` as well is a decision for P4-014, not a fix for this run.
+Codex asked for `2025-06-18` and the server, which supports only `2025-11-25`, answered with that version. Codex accepted it and continued, as the MCP version negotiation allows. A client that refuses a newer version than it asked for would not connect. P4-014 decided not to add `2025-06-18` until a target client fails on this; see "P4-014 决定" in `docs/PHASE4_PLAN.md`.
 
 ## Follow-up
 
