@@ -32,7 +32,7 @@
       "id": "phase3",
       "name": "Production-ready automation infrastructure",
       "goal": "Strengthen recovery, security, performance, regression testing, and ecosystem integration.",
-      "status": "active",
+      "status": "done",
       "exit_criteria": [
         "MET: cross-component conversion is verified between HTML and Office formats (Writer, Spreadsheets, Presentation). HTML to DOCX opened and saved in WPS Writer (docs/archive/P3_HTML_EDITABLE_FIRST.md); HTML to XLSX and PPTX opened in WPS and exported back to HTML with content kept (scripts/real_wps_verify_remaining/RESULTS-4898428.md, section 4); DOCX, XLSX and PPTX to HTML verified locally (docs/CONVERSION_MATRIX.md). Structural editability on one WPS version; no visual-equivalence or cross-version claim",
         "MET: mutations are atomic transactions; a change is either fully applied and verified or fully rolled back, with one exception below. A failed mutation is undone from its pre-write backup and the restored hash is checked (PR #15). Verified on Windows with the document closed: rollback performed, A1 back to the seed (scripts/real_wps_verify_remaining/RESULTS-4898428.md, section 1). The exception: while WPS holds the document open, the file lock refuses the automatic undo. The command then returns MUTATION_ROLLBACK_BLOCKED with the backup path and the steps to restore it (PR #30); the file keeps the rejected value until the user closes the document without saving and runs restore-backup. Verified on Windows: after the close, restore-backup returned ok and A1 was back to the seed (scripts/real_wps_verify_remaining/RESULTS-3a40da6.md, Case D). Documented in README, \"修改失败与回滚\"",

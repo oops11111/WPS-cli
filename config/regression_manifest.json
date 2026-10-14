@@ -4,7 +4,7 @@
   "scenarios": [
     {
       "id": "cli-plan",
-      "title": "Roadmap exposes Phase 3 active state",
+      "title": "Roadmap exposes Phase 3 done state",
       "category": "cli",
       "profile": "safe",
       "risk_level": "low",
@@ -18,7 +18,7 @@
           "path": "data.phases",
           "contains_item": {
             "id": "phase3",
-            "status": "active"
+            "status": "done"
           }
         }
       ]
