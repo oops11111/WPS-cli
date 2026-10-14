@@ -1,0 +1,170 @@
+# Phase 4 Windows 上机手册
+
+把 Phase 4 需要 Windows 的任务合到一次上机：P4-001、P4-003（12.0 部分）、P4-007、P4-011、P4-013。第二个 WPS 版本的 P4-003 要在装了那个版本的机器上再跑一遍第 3 节。
+
+每一步写明命令、通过条件和结果记到哪里。结果只按实测记录；没跑或没复现的写明原因，不要推断。
+
+## 0. 准备
+
+```powershell
+cd C:\path\to\WPS-cli
+git pull
+git rev-parse --short HEAD          # 记下提交号，所有结果都按这个提交记录
+python --version                    # 必须是真正的解释器，不能是 WindowsApps 下的商店别名
+pip install -e ".[test,wps]"
+python -m wps_ai_agent_cli inspect-env
+```
+
+`inspect-env` 要报告三个组件的 ProgID 都已注册。记下 WPS“关于”里的版本号。
+
+所有临时文件放在 `$env:TEMP\wps-p4\` 下，不要用仓库里的文件，也不要用正在编辑的文档。不要结束不是自己启动的 WPS 进程。
+
+结果文件：
+
+| 任务 | 写到 |
+| --- | --- |
+| P4-001、P4-011 | `scripts/real_wps_verify_remaining/RESULTS-<提交号>.md`（新文件，不改旧的） |
+| P4-003 | `docs/COMPATIBILITY_MATRIX.md` 里该版本的一节 |
+| P4-007 | `docs/AGENT_E2E_EVAL.md` 的“Results”下新加一节 |
+| P4-013 | `scripts/real_wps_verify_remaining/RESULTS-<提交号>.md` 里单独一节 |
+
+## 1. P4-001：Phase 3 遗留的三项
+
+### 1a. `DOCUMENT_HELD_OPEN` 真机检查
+
+按 `docs/REAL_WPS_CHECKLIST_HELD_AND_ROLLBACK.md` 的 Case A 和 Case B 跑。
+
+通过条件：两个 case 都返回一个 JSON，`ok: false`，`errors` 里是 `DOCUMENT_HELD_OPEN`；没有 Python traceback；文件 SHA-256 不变；Case B 没有为 `checklist-b` 建备份。
+
+### 1b. 评测任务 `held-document-backup`
+
+需要 `claude` CLI 已登录。在 Windows 上 runner 用不共享方式打开文件来模拟占用，不需要 WPS。
+
+```powershell
+python scripts/agent_eval/run_agent_eval.py --only held-document-backup --out $env:TEMP\wps-p4\eval-held
+```
+
+通过条件：该任务为 pass，不是 skipped。记下 `summary.json` 里的轮数、`wps-agent` 调用数和工具错误数（`DOCUMENT_HELD_OPEN` 是预期的拒绝）。
+
+### 1c. 回归输出不写进仓库
+
+```powershell
+python -m wps_ai_agent_cli regression-run --profile wps --include-wps --artifact-dir artifacts\regression\wps
+git status --short
+```
+
+通过条件：4/4 通过；`data.regression.output_dir` 在 `artifacts\regression\outputs\` 下，输出文件都在那里；`git status --short` 没有列出任何文件。
+
+这一步的回归结果也就是第 3 节的 C2，不用再跑一次。
+
+## 2. P4-011：文档开着时用 `--close-in-wps` 恢复
+
+用的是已经在 12.0 上复现过的场景（`RESULTS-3a40da6.md` 的 Case D）：WPS 打开着工作簿时写入 `"001"`，WPS 读回 `1`，校验失败，回滚被文件锁拒绝。
+
+### 准备
+
+1. 新建 `$env:TEMP\wps-p4\close.xlsx`，A1 写 `seed`，保存。
+2. `python -m wps_ai_agent_cli register-document --component spreadsheets --path $env:TEMP\wps-p4\close.xlsx`，记下 `document_id`。
+3. 在 WPS 里打开 `close.xlsx`，不做任何改动。
+
+### 2a. 有未保存改动时拒绝
+
+1. 写入，让回滚被拒：
+
+   ```powershell
+   python -m wps_ai_agent_cli spreadsheet-write --document-id <id> --range A1 --values-json "[[\"001\"]]" --request-id p4-011-write-1
+   ```
+
+   预期：`ok: false`，`errors` 里有 `VALIDATION_FAILED` 和 `MUTATION_ROLLBACK_BLOCKED`；提示文字提到 `--close-in-wps`；记下提示里的 `--backup-path`。如果没有出现 `MUTATION_ROLLBACK_BLOCKED`，停下记录实际结果，不要继续。
+2. 在 WPS 里随便改一个单元格，不保存。记下 `close.xlsx` 的 SHA-256。
+3. 运行：
+
+   ```powershell
+   python -m wps_ai_agent_cli restore-backup --document-id <id> --backup-path "<备份路径>" --close-in-wps --request-id p4-011-refuse
+   ```
+
+   通过条件：`ok: false`，错误码 `DOCUMENT_HAS_UNSAVED_CHANGES`；WPS 里文档仍开着，刚才的改动还在；文件 SHA-256 不变；`list-backups --document-id <id>` 没有多出恢复前备份。
+4. 收尾：在 WPS 里关闭 `close.xlsx`，选择不保存；再不带 `--close-in-wps` 运行一次 `restore-backup`，恢复到 `seed`。
+
+### 2b. 已保存时关闭并恢复
+
+1. 在 WPS 里重新打开 `close.xlsx`，不做任何改动。
+2. 重复 2a 第 1 步的写入，`--request-id` 改为 `p4-011-write-2`，记下新的备份路径和备份文件的 SHA-256。
+3. 预演：
+
+   ```powershell
+   python -m wps_ai_agent_cli restore-backup --document-id <id> --backup-path "<备份路径>" --close-in-wps --dry-run --request-id p4-011-dry
+   ```
+
+   通过条件：`ok: true`，`data.close_in_wps` 为 `would_close`；WPS 里文档仍开着；文件未变。
+4. 正式恢复：
+
+   ```powershell
+   python -m wps_ai_agent_cli restore-backup --document-id <id> --backup-path "<备份路径>" --close-in-wps --request-id p4-011-restore
+   ```
+
+   通过条件：`ok: true`，`data.close_in_wps` 为 `closed`；`open-documents --component spreadsheets` 不再列出 `close.xlsx`；`close.xlsx` 的 SHA-256 等于备份的 SHA-256；A1 为 `seed`。
+5. 用同一个 `--request-id p4-011-restore` 再运行一次：返回上次的结果，WPS 不受影响。
+
+## 3. P4-003：兼容矩阵（12.0）
+
+按 `docs/COMPATIBILITY_MATRIX.md` 跑 C1 到 C6，用本手册第 0 节的提交号。C2 用 1c 的结果。
+
+```powershell
+python -m wps_ai_agent_cli wps-version-compare --record --writer-version <v> --spreadsheets-version <v> --presentation-version <v>
+python -m wps_ai_agent_cli regression-run --profile compat --include-wps --artifact-dir artifacts\regression\compat
+```
+
+C4 到 C6 按矩阵文档的“HTML 导出”一节手动做。按该文档的模板把结果写进“WPS 12.0”一节。
+
+## 4. P4-007：WPS 写入评测，每个任务 3 次
+
+需要 `claude` CLI 已登录，WPS 已安装，并且没有打开 `book.xlsx`、`report.docx`、`deck.pptx` 这几个名字的文档。
+
+```powershell
+python scripts/agent_eval/run_agent_eval.py --only wps-spreadsheet-write --only wps-writer-replace --only wps-presentation-replace --only wps-held-spreadsheet-write --repeat 3 --min-passes 2 --out $env:TEMP\wps-p4\eval-wps
+```
+
+通过条件：四个任务都至少 2/3 通过，没有 skipped。每个任务记下通过次数、平均轮数、`wps-agent` 调用数和工具错误数，以及 CLI 版本和模型（用了 `--model` 就记下）。有失败的运行，把 `summary.json` 里该次的工具调用和失败的检查贴进结果。
+
+## 5. P4-013：干净机器安装
+
+在一台没装过本项目的 Windows 上（可以没有 WPS）：
+
+```powershell
+git clone https://github.com/oops11111/WPS-cli.git
+cd WPS-cli
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+pip install -e ".[test]"
+python -m wps_ai_agent_cli inspect-env
+python -m wps_ai_agent_cli regression-run --profile safe --artifact-dir artifacts\regression\safe
+```
+
+通过条件：安装无报错；`inspect-env` 返回 `ok: true`；safe 档 7/7。只照 README 做；README 里缺的步骤或写错的地方，记下来，不要靠经验补上。
+
+只装 wheel 不能跑回归，见 `docs/RELEASING.md`，所以这里从源码目录安装。
+
+## 记录模板
+
+```markdown
+# Phase 4 Windows results — main@<提交号>
+
+- 日期：
+- 机器：Windows 版本；Python 版本
+- WPS：Writer <v>，表格 <v>，演示 <v>
+- 操作人：
+
+## P4-001
+### 1a DOCUMENT_HELD_OPEN：pass / fail
+### 1b held-document-backup：pass / fail / skipped
+### 1c 回归输出：pass / fail
+
+## P4-011
+### 2a 未保存时拒绝：pass / fail
+### 2b 关闭并恢复：pass / fail（哈希：文件 … 备份 …）
+
+## P4-013（机器：…）
+```
+
+每一项贴上 JSON 返回里的 `ok`、`errors` 和相关字段，以及前后的 SHA-256。
