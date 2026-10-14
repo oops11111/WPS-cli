@@ -137,6 +137,7 @@ PYTHONPATH=src python3 -m unittest discover -s tests
 - Phase 1: 已完成 release candidate 审计，详见 `docs/PHASE1_RELEASE_CANDIDATE_REPORT.md`
 - Phase 3: 已完成，5 项出口标准均已满足，证据见 `config/project_plan.json`。原子事务有一个例外：WPS 打开着文档时自动回滚被文件锁拒绝，需按提示恢复（Phase 4 起可用 `restore-backup --close-in-wps` 在 CLI 内完成）。遗留的三项 Windows 验证已在 Phase 4 完成（`scripts/real_wps_verify_remaining/RESULTS-82c7a88.md`）
 - Phase 4: 已完成（多环境与 Agent 工作流就绪），6 项出口标准均已达成，例外见 `docs/PHASE4_PLAN.md` 开头：兼容矩阵只有一个 WPS 版本（12.8.2.18913），安装检查不是在全新机器上做的
+- Phase 5（planned）: 首个正式版本与覆盖扩展，计划与待确认的决定见 `docs/PHASE5_PLAN.md`，`wps-agent tasks --phase phase5` 可列出任务
 
 ## 命令速查
 
