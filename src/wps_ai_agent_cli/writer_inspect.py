@@ -7,6 +7,7 @@ from typing import Any
 from zipfile import BadZipFile
 
 from .document_text import docx_body_paragraphs
+from .file_hold import is_share_conflict, share_conflict_error
 from .sessions import get_document
 from .writer_structure import read_supported_bookmark_text, read_writer_structure
 
@@ -109,6 +110,9 @@ def inspect_writer_structure(
                 [{"code": "WRITER_SOURCE_CHANGED", "message": "Document changed during structure inspection."}],
             )
     except (BadZipFile, KeyError, ET.ParseError, ValueError, OSError) as exc:
+        if isinstance(exc, OSError) and is_share_conflict(exc):
+            # Held open by another handle (most likely WPS): the document is fine, it just cannot be read now.
+            return False, {}, [share_conflict_error(exc, "document")]
         return False, {}, [{"code": "WRITER_STRUCTURE_INVALID", "message": str(exc)}]
     headings = [
         {**item, "preview": " ".join(texts[item["paragraph_index"] - 1].split())[:120]}

@@ -2845,14 +2845,14 @@
     "id": "P5-002",
     "phase": "phase5",
     "title": "MCP failure contract tests for every tool",
-    "status": "todo",
+    "status": "done",
     "acceptance": "F1: an offline test makes each of the 85 tools fail through MCP tools/call and checks that the result text carries an error code or that a JSON-RPC argument error is returned; never MCP_TOOL_EXECUTION_FAILED or an empty errors list."
   },
   {
     "id": "P5-003",
     "phase": "phase5",
     "title": "Fix the failures the contract tests find",
-    "status": "todo",
+    "status": "done",
     "acceptance": "F1: every problem found by P5-002 is fixed with a regression test, and the contract tests pass in CI."
   },
   {

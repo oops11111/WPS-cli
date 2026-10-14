@@ -22,6 +22,12 @@ Get-Process |
 """
     try:
         completed = run_powershell_command(script, timeout_seconds=timeout_seconds)
+    except OSError as exc:
+        return (
+            False,
+            {"process_names": list(WPS_PROCESS_NAMES)},
+            [{"code": "WPS_PROCESS_AUDIT_FAILED", "message": f"PowerShell could not be started: {exc}"}],
+        )
     except subprocess.TimeoutExpired:
         return (
             False,
