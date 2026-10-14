@@ -60,17 +60,16 @@ class QuitGuardTests(unittest.TestCase):
                 (com_backend, lambda: com_backend.run_conversion_smoke("writer", p, str(out / "a.pdf"), "pdf")),
                 (com_backend, lambda: com_backend.run_spreadsheet_calc_smoke(p, str(out / "a.xlsx"))),
             ]
-            with patch.object(com_backend, "_load_win32com", return_value=None):
-                for module, call in cases:
-                    scripts = capture_scripts(module, call)
-                    self.assertEqual(len(scripts), 1, call)
-                    script = scripts[0]
-                    self.assertIn("$app.Quit()", script)
-                    self.assertEqual(
-                        script.count("$app.Quit()"),
-                        script.count("if ($wpsIdle) { $app.Quit() }"),
-                        "unguarded Quit in script",
-                    )
+            for module, call in cases:
+                scripts = capture_scripts(module, call)
+                self.assertEqual(len(scripts), 1, call)
+                script = scripts[0]
+                self.assertIn("$app.Quit()", script)
+                self.assertEqual(
+                    script.count("$app.Quit()"),
+                    script.count("if ($wpsIdle) { $app.Quit() }"),
+                    "unguarded Quit in script",
+                )
 
 
 if __name__ == "__main__":
