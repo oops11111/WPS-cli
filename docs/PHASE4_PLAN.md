@@ -54,7 +54,7 @@ Phase 3 证明了这套工具在一台 Windows 机器、一个 WPS 版本、一�
 | --- | --- | --- | --- |
 | P4-001 | E1 | 跑完三项遗留的 Windows 验证并记录结果 | Windows |
 | P4-002 | E2 | 定出兼容矩阵的检查项和记录格式，新建 `docs/COMPATIBILITY_MATRIX.md` | 本地 |
-| P4-003 | E2 | 在第二个 WPS 版本上跑 wps 回归档和转换检查，写入矩阵 | Windows |
+| P4-003 | E2 | 在 12.0 和第二个 WPS 版本上按 `docs/COMPATIBILITY_MATRIX.md` 跑 C1 到 C6（wps 档、compat 档、三个组件导出 HTML），写入矩阵 | Windows |
 | P4-004 | E3 | 评测 runner 支持需要 WPS 的任务：标记 `requires_wps`，没有 WPS 时跳过 | 本地 |
 | P4-005 | E3 | 编写 4 个写入任务（表格写入、Writer 替换、演示替换、被占用文件写入被拒），并为每个任务补离线判定测试。被占用文件的"恢复"任务见下方 E5 设计里的说明 | 本地 |
 | P4-006 | E3 | runner 支持同一任务连跑 N 次，汇总通过率 | 本地 |
@@ -92,7 +92,7 @@ Agent 评测里的"被占用文件恢复"任务暂不做：需要 runner 先让 
 
 1. 先做 P4-001：它关闭 Phase 3 的遗留，也确认现有 Windows 环境还能用。
 2. 本地任务可以并行：P4-002、P4-004 至 P4-006、P4-009 和 P4-010、P4-012。
-3. Windows 任务尽量合并到同一次上机：P4-003、P4-007、P4-011、P4-013。
+3. Windows 任务尽量合并到同一次上机：P4-001、P4-003、P4-007、P4-011、P4-013。步骤见 `docs/PHASE4_WINDOWS_RUNBOOK.md`。
 4. P4-008 和 P4-014 最后做。
 
 ## 主要风险

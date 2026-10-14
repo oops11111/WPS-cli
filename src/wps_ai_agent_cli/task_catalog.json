@@ -2747,15 +2747,15 @@
     "id": "P4-002",
     "phase": "phase4",
     "title": "Define the WPS compatibility matrix",
-    "status": "todo",
+    "status": "done",
     "acceptance": "E2: docs/COMPATIBILITY_MATRIX.md lists the checks (wps regression profile; open, save, PDF and HTML export per component) and the record format per WPS version."
   },
   {
     "id": "P4-003",
     "phase": "phase4",
-    "title": "Run the matrix on a second WPS version",
+    "title": "Run the matrix on WPS 12.0 and a second WPS version",
     "status": "todo",
-    "acceptance": "E2: the wps regression profile and the conversion checks pass or their differences are recorded for a second WPS version."
+    "acceptance": "E2: checks C1 to C6 in docs/COMPATIBILITY_MATRIX.md (wps and compat regression profiles, HTML export per component) pass or their differences are recorded, for WPS 12.0 and a second WPS version."
   },
   {
     "id": "P4-004",
