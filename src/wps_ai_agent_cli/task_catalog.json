@@ -2789,7 +2789,7 @@
     "id": "P4-008",
     "phase": "phase4",
     "title": "Second MCP client check",
-    "status": "todo",
+    "status": "done",
     "acceptance": "E4: Codex CLI or Claude Desktop completes initialize, paginated tools/list and a safe tools/call; version, transport and protocol are recorded."
   },
   {

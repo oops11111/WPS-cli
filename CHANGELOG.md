@@ -18,6 +18,7 @@ All notable changes to `wps-ai-agent-cli`. The versioning rule and release steps
 
 ### Fixed
 
+- MCP `tools/call`: when a command fails, its error codes and messages (for example `DOCUMENT_HELD_OPEN`) are now in the tool result text and in `structuredContent.errors`. Before, both held an empty list and the codes were only in `structuredContent.mcp_call.response`, which agents do not read. Error details stay only in the nested response. Found by the P4-007 Windows evaluation.
 - Commands without their own held-file check (for example `spreadsheet-read`, `spreadsheet-sheets`, `snapshot-document`, `batch-report`) raised `PermissionError` on a file held open by another handle, which MCP reported as `MCP_TOOL_EXECUTION_FAILED`. They now answer with a `DOCUMENT_HELD_OPEN` envelope. For commands that can change documents, the message points to `mutation-request-inspect` instead of saying nothing changed. Found by the P4-007 Windows evaluation.
 
 ## [0.1.0]
