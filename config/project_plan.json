@@ -40,6 +40,20 @@
         "MET: a real Agent end-to-end evaluation pipeline runs and records results (scripts/agent_eval, PR #21, docs/AGENT_E2E_EVAL.md)",
         "MET: ecosystem extension evaluation is written up (docs/ECOSYSTEM_EVALUATION.md, PR #22). Codex integration is tracked as a separate follow-up, not a condition for this criterion"
       ]
+    },
+    {
+      "id": "phase4",
+      "name": "Multi-environment and agent workflow readiness",
+      "goal": "Prove the tools across WPS versions and agent clients, let agents complete real WPS write tasks safely with in-CLI recovery, and make the package releasable.",
+      "status": "planned",
+      "exit_criteria": [
+        "E1: the three Phase 3 Windows checks are recorded (DOCUMENT_HELD_OPEN on real WPS, the held-document-backup agent-eval task, regression outputs under artifacts/regression/outputs)",
+        "E2: a compatibility matrix covers at least two WPS versions: the wps regression profile plus open, save and PDF/HTML export for all three components, per version, in docs/COMPATIBILITY_MATRIX.md",
+        "E3: the agent evaluation covers WPS write paths: at least four write tasks on Windows (spreadsheet write with verification, Writer replace, presentation replace, held-file refusal and recovery), each run three times and passing at least two, with pass rate, turns and tool calls recorded",
+        "E4: a second MCP client (Codex CLI or Claude Desktop) completes initialize, paginated tools/list and a safe tools/call, with client version, transport and negotiated protocol recorded",
+        "E5: a rollback blocked by an open document can be completed from the CLI through an explicit opt-in that has WPS close the document without saving and then restores the backup; the default never closes a user's document; verified on Windows by the file hash matching the backup",
+        "E6: releasable: a versioning rule and CHANGELOG, a wheel built in CI, and a clean Windows install that follows the README and passes inspect-env and the safe regression profile"
+      ]
     }
   ]
 }
