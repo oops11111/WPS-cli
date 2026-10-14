@@ -65,6 +65,15 @@ PHASES: tuple[Phase, ...] = (
             "write tasks safely with in-CLI recovery, and make the package releasable."
         ),
     ),
+    Phase(
+        id="phase5",
+        name="First release and broader coverage",
+        status="active",
+        goal=(
+            "Make every tool failure visible to agents, widen the agent evaluation beyond the four "
+            "write tasks, and publish a first release that works without the repository."
+        ),
+    ),
 )
 
 

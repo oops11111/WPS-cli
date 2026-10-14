@@ -2833,5 +2833,75 @@
     "title": "Record the transport and tool-surface decisions",
     "status": "done",
     "acceptance": "Whether to add HTTP/SSE transport and whether to reduce the 85-tool surface are decided from the E3 and E4 results and written down."
+  },
+  {
+    "id": "P5-001",
+    "phase": "phase5",
+    "title": "Format the repository and check formatting in CI",
+    "status": "todo",
+    "acceptance": "F4: ruff format applied to the whole repository in a format-only change; the CI lint job runs ruff format --check."
+  },
+  {
+    "id": "P5-002",
+    "phase": "phase5",
+    "title": "MCP failure contract tests for every tool",
+    "status": "todo",
+    "acceptance": "F1: an offline test makes each of the 85 tools fail through MCP tools/call and checks that the result text carries an error code or that a JSON-RPC argument error is returned; never MCP_TOOL_EXECUTION_FAILED or an empty errors list."
+  },
+  {
+    "id": "P5-003",
+    "phase": "phase5",
+    "title": "Fix the failures the contract tests find",
+    "status": "todo",
+    "acceptance": "F1: every problem found by P5-002 is fixed with a regression test, and the contract tests pass in CI."
+  },
+  {
+    "id": "P5-004",
+    "phase": "phase5",
+    "title": "Agent eval: expected tools and off-path calls",
+    "status": "todo",
+    "acceptance": "F2: a task can list expected_tools; the runner reports calls outside them per run and in the summary, without failing the task on them."
+  },
+  {
+    "id": "P5-005",
+    "phase": "phase5",
+    "title": "Agent eval: at least six new tasks",
+    "status": "todo",
+    "acceptance": "F2: at least six new tasks covering open-document reads and writes, HTML and Office conversion, Writer tables, sheet management and PDF export, each with offline judge tests."
+  },
+  {
+    "id": "P5-006",
+    "phase": "phase5",
+    "title": "Agent eval: Windows runs of the new tasks",
+    "status": "todo",
+    "acceptance": "F2: each new task that needs WPS is run three times on Windows and passes at least twice; pass rate, turns, tool calls and off-path calls are recorded."
+  },
+  {
+    "id": "P5-007",
+    "phase": "phase5",
+    "title": "Safe regression from an installed wheel",
+    "status": "todo",
+    "acceptance": "F3: with only the wheel installed, regression-run --profile safe finds its manifest and configuration inside the package and passes; running from the repository is unchanged."
+  },
+  {
+    "id": "P5-008",
+    "phase": "phase5",
+    "title": "Publish the first release",
+    "status": "todo",
+    "acceptance": "F3: the version is set by docs/RELEASING.md, CHANGELOG.md has the release section, and a tag publishes the wheel and sdist to a GitHub Release from CI; the tag is pushed by the maintainer."
+  },
+  {
+    "id": "P5-009",
+    "phase": "phase5",
+    "title": "Windows check of the released wheel",
+    "status": "todo",
+    "acceptance": "F3: in a new virtual environment on Windows with only the released wheel installed, inspect-env and the safe regression profile pass; the result is recorded."
+  },
+  {
+    "id": "P5-010",
+    "phase": "phase5",
+    "title": "Second WPS version and clean-machine install, when available",
+    "status": "todo",
+    "acceptance": "Gap from Phase 4, not an exit criterion: when a second WPS version or a clean machine is available, add a section to docs/COMPATIBILITY_MATRIX.md or rerun the install check."
   }
 ]
