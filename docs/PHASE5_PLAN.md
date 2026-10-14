@@ -52,10 +52,10 @@ Phase 4 证明了这套工具在一台 Windows、一个 WPS 版本、两个 Agen
 | P5-003 | F1 | 修复 P5-002 找到的问题，每个修复带回归测试（已完成：找到 3 个，均已修复；F1 达成） | 本地 |
 | P5-004 | F2 | runner 支持任务声明 `expected_tools`，汇总预期之外的调用（只统计，不判失败）（已完成，现有 12 个任务都已声明） | 本地 |
 | P5-005 | F2 | 编写至少 6 个新任务，每个补离线判定测试（已完成：7 个，其中 5 个需要 WPS，含一个由 runner 在 WPS 里打开文档的任务） | 本地 |
-| P5-006 | F2 | 在 Windows 上每个需要 WPS 的新任务跑 3 次，记录结果 | Windows |
+| P5-006 | F2 | 在 Windows 上每个需要 WPS 的新任务跑 3 次，记录结果（步骤见 `docs/PHASE5_WINDOWS_RUNBOOK.md` 第 1 节） | Windows |
 | P5-007 | F3 | 让只装 wheel 时 safe 档回归能跑：把清单和它用到的配置放进包里，按包内路径查找；仓库内运行不受影响（已完成：CI 在仓库外用安装的 wheel 跑 safe 档） | 本地 |
 | P5-008 | F3 | 定版本号，整理 `CHANGELOG.md`，CI 在打标签时把 wheel 和源码包挂到 GitHub Release；打标签由你执行（已完成：`v0.2.0` 于 2026-10-14 发布，Release 附 wheel 和源码包；发布流程在 CI 里只装 wheel 跑过 safe 档，从 Release 下载的 wheel 在 Linux 新虚拟环境里 safe 档 7/7 通过；Windows 检查见 P5-009） | 本地 + 你 |
-| P5-009 | F3 | 在 Windows 的新虚拟环境里只装 Release 的 wheel，跑 `inspect-env` 和 safe 档，记录结果 | Windows |
+| P5-009 | F3 | 在 Windows 的新虚拟环境里只装 Release 的 wheel，跑 `inspect-env` 和 safe 档，记录结果（步骤见 `docs/PHASE5_WINDOWS_RUNBOOK.md` 第 2 节） | Windows |
 | P5-010 | 缺口 | 拿到第二个 WPS 版本或干净机器时补做兼容矩阵和安装检查；不影响 Phase 5 完成 | Windows |
 
 ## 建议顺序
@@ -63,7 +63,7 @@ Phase 4 证明了这套工具在一台 Windows、一个 WPS 版本、两个 Agen
 1. 先做 P5-001：趁没有进行中的改动，一次改完格式。
 2. 本地任务：P5-002 和 P5-003，P5-004 和 P5-005，P5-007。
 3. P5-008 放在本地任务之后，让版本包含这些修复。
-4. Windows 任务合到一次上机：P5-006、P5-009。
+4. Windows 任务合到一次上机：P5-006、P5-009，按 `docs/PHASE5_WINDOWS_RUNBOOK.md`。
 
 ## 主要风险
 
