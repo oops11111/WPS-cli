@@ -2866,7 +2866,7 @@
     "id": "P5-005",
     "phase": "phase5",
     "title": "Agent eval: at least six new tasks",
-    "status": "todo",
+    "status": "done",
     "acceptance": "F2: at least six new tasks covering open-document reads and writes, HTML and Office conversion, Writer tables, sheet management and PDF export, each with offline judge tests."
   },
   {

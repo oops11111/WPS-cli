@@ -22,6 +22,7 @@ import os
 import shutil
 import subprocess
 import sys
+import time
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
@@ -54,6 +55,9 @@ def file_sha256(path: Path) -> str:
 
 WRITER_FIXTURE_PARAGRAPHS = ("Quarterly report", "Status: DRAFT", "Owner: Finance")
 PRESENTATION_FIXTURE_TEXTS = ("Quarterly review", "Status: DRAFT")
+# table_report.docx: one heading paragraph and one table.
+WRITER_TABLE_HEADING = "Regional status"
+WRITER_TABLE_ROWS = (("Region", "Q1", "Status"), ("North", "120", "DRAFT"), ("South", "95", "DRAFT"))
 
 
 def write_fixture(workspace: Path, name: str) -> str:
@@ -66,6 +70,16 @@ def write_fixture(workspace: Path, name: str) -> str:
         workbook = Workbook()
         workbook.active["A1"] = "seed"
         workbook.save(path)
+    elif suffix == ".docx" and path.name == "table_report.docx":
+        from docx import Document
+
+        document = Document()
+        document.add_paragraph(WRITER_TABLE_HEADING)
+        table = document.add_table(rows=len(WRITER_TABLE_ROWS), cols=len(WRITER_TABLE_ROWS[0]))
+        for row, values in zip(table.rows, WRITER_TABLE_ROWS, strict=True):
+            for cell, value in zip(row.cells, values, strict=True):
+                cell.text = value
+        document.save(path)
     elif suffix == ".docx":
         from docx import Document
 
@@ -89,8 +103,16 @@ def write_fixture(workspace: Path, name: str) -> str:
 
 
 def document_text(path: Path) -> str:
-    """All text in a .docx (paragraphs and tables) or .pptx (every shape), joined by newlines."""
+    """All text in a .docx (paragraphs and tables), a .pptx (every shape) or a .txt, joined by newlines.
+
+    A .txt from WPS is UTF-16 with a byte order mark (Unicode text) or, as a fallback, the system code page.
+    """
     suffix = path.suffix.lower()
+    if suffix == ".txt":
+        raw = path.read_bytes()
+        if raw[:2] in (b"\xff\xfe", b"\xfe\xff"):
+            return raw.decode("utf-16")
+        return raw.decode("utf-8-sig", errors="replace")
     if suffix == ".docx":
         from docx import Document
 
@@ -157,6 +179,34 @@ def hold_file(path: Path) -> tuple[Callable[[], None] | None, str | None]:
     return (lambda: path.chmod(mode)), None
 
 
+def open_in_wps(
+    path: Path, component: str, timeout: float = 45.0, poll: float = 2.0
+) -> tuple[Callable[[], None] | None, str | None]:
+    """Open the file the way a user does (its default app, expected to be WPS) and wait until WPS lists it.
+
+    Returns (release, None), where release closes the document without saving and only if WPS reports no
+    unsaved changes, or (None, reason) when this machine cannot do it.
+    """
+    if os.name != "nt":
+        return None, "opening a document in WPS needs Windows"
+    from wps_ai_agent_cli.open_documents import close_unchanged_document, list_open_documents
+
+    target = str(path.resolve()).casefold()
+    os.startfile(str(path))  # the fixture the runner wrote, opened with its default app
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        ok, data, _errors = list_open_documents(component)
+        listed = {str(Path(item.get("full_name") or "").resolve()).casefold() for item in data.get("documents", [])}
+        if ok and target in listed:
+            return (lambda: close_unchanged_document(component, path, do_close=True)), None
+        time.sleep(poll)
+    close_unchanged_document(component, path, do_close=True)
+    return (
+        None,
+        f"WPS did not list {path.name} as open within {timeout:.0f} s; is WPS the default app for {path.suffix}?",
+    )
+
+
 def run_setup(
     steps: list[str], workspace: Path, fixture: Path, component: str
 ) -> tuple[str, Callable[[], None] | None, str | None]:
@@ -183,9 +233,9 @@ def run_setup(
             workbook.save(fixture)
         elif step == "html_table":
             (workspace / "table.html").write_text(HTML_TABLE, encoding="utf-8")
-        elif step == "hold":
+        elif step in ("hold", "open_in_wps"):
             start_sha = file_sha256(fixture)
-            release, reason = hold_file(fixture)
+            release, reason = hold_file(fixture) if step == "hold" else open_in_wps(fixture, component)
             if release is None:
                 return start_sha, None, reason
             return start_sha, release, None
@@ -373,6 +423,41 @@ def judge(
                 present = [item for item in check.get("absent", []) if item in text]
                 passed = not missing and not present
                 detail = "ok" if passed else {"missing": missing, "present": present}
+        elif kind == "xlsx_sheets":
+            from openpyxl import load_workbook
+
+            path = workspace / check["path"]
+            if not path.is_file():
+                passed, detail = False, "file missing"
+            else:
+                workbook = load_workbook(path, read_only=True)
+                try:
+                    names = list(workbook.sheetnames)
+                finally:
+                    workbook.close()
+                passed, detail = names == check["names"], names
+        elif kind == "docx_table_cell":
+            from docx import Document
+
+            path = workspace / check["path"]
+            if not path.is_file():
+                passed, detail = False, "file missing"
+            else:
+                tables = Document(path).tables
+                try:
+                    value = tables[check["table"] - 1].cell(check["row"] - 1, check["column"] - 1).text
+                except IndexError:
+                    value = None
+                passed, detail = value == check["text"], value
+        elif kind == "pdf_file":
+            path = workspace / check["path"]
+            if not path.is_file():
+                passed, detail = False, "file missing"
+            else:
+                head = path.read_bytes()[:5]
+                size = path.stat().st_size
+                passed = head == b"%PDF-" and size >= check.get("min_bytes", 1)
+                detail = {"bytes": size, "starts_with_pdf_header": head == b"%PDF-"}
         elif kind == "xlsx_cell":
             from openpyxl import load_workbook
 
@@ -382,10 +467,14 @@ def judge(
             else:
                 workbook = load_workbook(path, read_only=True)
                 try:
-                    value = workbook.worksheets[0][check["cell"]].value
+                    if "sheet" in check and check["sheet"] not in workbook.sheetnames:
+                        value, detail = None, f"sheet {check['sheet']} missing"
+                    else:
+                        sheet = workbook[check["sheet"]] if "sheet" in check else workbook.worksheets[0]
+                        value = detail = sheet[check["cell"]].value
                 finally:
                     workbook.close()
-                passed, detail = value == check["value"], value
+                passed = value == check["value"]
         else:
             passed, detail = False, f"unknown check kind {kind}"
         results.append(

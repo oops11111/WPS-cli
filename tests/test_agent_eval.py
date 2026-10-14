@@ -34,14 +34,24 @@ KNOWN_CHECK_KINDS = {
     "max_tool_calls",
     "xlsx_cell",
     "file_text",
+    "xlsx_sheets",
+    "docx_table_cell",
+    "pdf_file",
 }
 WPS_WRITE_TASKS = (
     "wps-spreadsheet-write",
     "wps-writer-replace",
     "wps-presentation-replace",
     "wps-held-spreadsheet-write",
+    "wps-spreadsheet-rename-sheet",
+    "wps-spreadsheet-create-sheet",
+    "wps-writer-table-write",
+    "wps-docx-to-pdf",
+    "wps-open-document-export-text",
 )
-KNOWN_SETUP_STEPS = {"register", "backup", "modify", "html_table", "hold"}
+KNOWN_SETUP_STEPS = {"register", "backup", "modify", "html_table", "hold", "open_in_wps"}
+# Setup steps that leave the fixture held or open for the agent; they must come last.
+FINAL_SETUP_STEPS = {"hold", "open_in_wps"}
 
 
 def _task(task_id: str) -> dict:
@@ -129,8 +139,22 @@ class AgentEvalTaskFileTests(unittest.TestCase):
         for task in spec["tasks"]:
             steps = task.get("setup", [])
             self.assertLessEqual(set(steps), KNOWN_SETUP_STEPS, task["id"])
-            if "hold" in steps:
-                self.assertEqual(steps[-1], "hold", task["id"])
+            final = [step for step in steps if step in FINAL_SETUP_STEPS]
+            self.assertLessEqual(len(final), 1, task["id"])
+            if final:
+                self.assertEqual(steps[-1], final[0], task["id"])
+            if "open_in_wps" in steps:
+                self.assertTrue(task.get("requires_wps"), task["id"])
+
+    def test_the_table_fixture_holds_the_table_the_task_edits(self):
+        from docx import Document
+
+        with tempfile.TemporaryDirectory() as tmp:
+            run_agent_eval.write_fixture(Path(tmp), "table_report.docx")
+            table = Document(Path(tmp) / "table_report.docx").tables[0]
+            rows = [[cell.text for cell in row.cells] for row in table.rows]
+        self.assertEqual(rows, [list(row) for row in run_agent_eval.WRITER_TABLE_ROWS])
+        self.assertEqual(rows[1], ["North", "120", "DRAFT"])
 
 
 class TranscriptTests(unittest.TestCase):
@@ -918,6 +942,226 @@ class AgentEvalJudgeTests(unittest.TestCase):
                     has_wps=lambda component: False,
                 )
                 self.assertIn("needs WPS", result["skipped"], task_id)
+
+    def test_sheets_and_read_passes_when_both_reads_were_made_and_nothing_changed(self):
+        calls = [_call("register_document"), _call("spreadsheet_sheets"), _call("spreadsheet_read", range="A1")]
+        with tempfile.TemporaryDirectory() as tmp:
+            result = self.run_wps_task("spreadsheet-sheets-and-read", Path(tmp), _register, calls)
+            missing_read = self.run_wps_task("spreadsheet-sheets-and-read", Path(tmp) / "b", _register, calls[:2])
+        self.assertTrue(result["passed"], result)
+        self.assertEqual(result["metrics"]["off_path_calls"], 0)
+        self.assertEqual(
+            [check["tool"] for check in missing_read["checks"] if not check["passed"]], ["spreadsheet_read"]
+        )
+
+    def test_html_table_to_docx_is_judged_from_the_output_document(self):
+        from docx import Document
+
+        def convert(workspace, rows):
+            document = Document()
+            table = document.add_table(rows=len(rows), cols=2)
+            for row, values in zip(table.rows, rows, strict=True):
+                for cell, value in zip(row.cells, values, strict=True):
+                    cell.text = value
+            document.save(workspace / "table.docx")
+
+        calls = [_call("html_editable", format="docx")]
+        rows = [("Region", "Q1"), ("North", "120"), ("South", "95")]
+        with tempfile.TemporaryDirectory() as tmp:
+            passed = self.run_wps_task("html-table-to-docx", Path(tmp), lambda ws: convert(ws, rows), calls)
+            lost_row = self.run_wps_task("html-table-to-docx", Path(tmp) / "b", lambda ws: convert(ws, rows[:2]), calls)
+        self.assertTrue(passed["passed"], passed)
+        failed = [check for check in lost_row["checks"] if not check["passed"]]
+        self.assertEqual([check["kind"] for check in failed], ["file_text"])
+        self.assertEqual(failed[0]["detail"]["missing"], ["South", "95"])
+
+    def test_rename_sheet_passes_when_only_the_sheet_name_changed(self):
+        from openpyxl import load_workbook
+
+        def rename(path, value="seed"):
+            workbook = load_workbook(path)
+            workbook.active.title = "Summary"
+            workbook.active["A1"] = value
+            workbook.save(path)
+
+        calls = [_call("spreadsheet_rename_sheet", request_id="eval-rename-1", old_name="Sheet", new_name="Summary")]
+        with tempfile.TemporaryDirectory() as tmp:
+            passed = self.run_wps_task(
+                "wps-spreadsheet-rename-sheet",
+                Path(tmp),
+                lambda ws: self.simulate_write(
+                    ws, "spreadsheets", "book.xlsx", "eval-rename-1", "spreadsheet-rename-sheet", rename
+                ),
+                calls,
+            )
+            changed_cell = self.run_wps_task(
+                "wps-spreadsheet-rename-sheet",
+                Path(tmp) / "b",
+                lambda ws: self.simulate_write(
+                    ws,
+                    "spreadsheets",
+                    "book.xlsx",
+                    "eval-rename-1",
+                    "spreadsheet-rename-sheet",
+                    lambda path: rename(path, "lost"),
+                ),
+                calls,
+            )
+        self.assertTrue(passed["passed"], passed)
+        self.assertEqual([c["kind"] for c in changed_cell["checks"] if not c["passed"]], ["xlsx_cell"])
+
+    def test_create_sheet_needs_the_new_sheet_after_the_existing_one(self):
+        from openpyxl import load_workbook
+
+        def add(path, index=None):
+            workbook = load_workbook(path)
+            workbook.create_sheet("Q4", index)
+            workbook.save(path)
+
+        calls = [_call("spreadsheet_create_sheet", request_id="eval-create-1", name="Q4")]
+        with tempfile.TemporaryDirectory() as tmp:
+            passed = self.run_wps_task(
+                "wps-spreadsheet-create-sheet",
+                Path(tmp),
+                lambda ws: self.simulate_write(
+                    ws, "spreadsheets", "book.xlsx", "eval-create-1", "spreadsheet-create-sheet", add
+                ),
+                calls,
+            )
+            first = self.run_wps_task(
+                "wps-spreadsheet-create-sheet",
+                Path(tmp) / "b",
+                lambda ws: self.simulate_write(
+                    ws,
+                    "spreadsheets",
+                    "book.xlsx",
+                    "eval-create-1",
+                    "spreadsheet-create-sheet",
+                    lambda path: add(path, 0),
+                ),
+                calls,
+            )
+        self.assertTrue(passed["passed"], passed)
+        failed = [check for check in first["checks"] if not check["passed"]]
+        self.assertEqual([check["kind"] for check in failed], ["xlsx_sheets"])
+        self.assertEqual(failed[0]["detail"], ["Q4", "Sheet"])
+
+    def test_writer_table_write_passes_when_only_the_north_status_changed(self):
+        from docx import Document
+
+        def set_cells(path, cells):
+            document = Document(path)
+            for row, column in cells:
+                document.tables[0].cell(row, column).text = "FINAL"
+            document.save(path)
+
+        calls = [_call("writer_table_write", request_id="eval-table-1", table_index=1, row=2, column=3)]
+        with tempfile.TemporaryDirectory() as tmp:
+            passed = self.run_wps_task(
+                "wps-writer-table-write",
+                Path(tmp),
+                lambda ws: self.simulate_write(
+                    ws,
+                    "writer",
+                    "table_report.docx",
+                    "eval-table-1",
+                    "writer-table-write",
+                    lambda path: set_cells(path, [(1, 2)]),
+                ),
+                calls,
+            )
+            too_much = self.run_wps_task(
+                "wps-writer-table-write",
+                Path(tmp) / "b",
+                lambda ws: self.simulate_write(
+                    ws,
+                    "writer",
+                    "table_report.docx",
+                    "eval-table-1",
+                    "writer-table-write",
+                    lambda path: set_cells(path, [(1, 2), (2, 2)]),
+                ),
+                calls,
+            )
+        self.assertTrue(passed["passed"], passed)
+        failed = [(check["kind"], check.get("row")) for check in too_much["checks"] if not check["passed"]]
+        self.assertEqual(failed, [("docx_table_cell", 3)])
+
+    def test_docx_to_pdf_needs_a_real_pdf_and_an_unchanged_source(self):
+        calls = [_call("convert_smoke", component="writer", format="pdf")]
+
+        def write(workspace, data):
+            (workspace / "report.pdf").write_bytes(data)
+
+        with tempfile.TemporaryDirectory() as tmp:
+            passed = self.run_wps_task(
+                "wps-docx-to-pdf", Path(tmp), lambda ws: write(ws, b"%PDF-1.7\n" + b"0" * 2000), calls
+            )
+            not_pdf = self.run_wps_task(
+                "wps-docx-to-pdf", Path(tmp) / "b", lambda ws: write(ws, b"<html>" * 400), calls
+            )
+            too_small = self.run_wps_task(
+                "wps-docx-to-pdf", Path(tmp) / "c", lambda ws: write(ws, b"%PDF-1.7\n"), calls
+            )
+        self.assertTrue(passed["passed"], passed)
+        for result in (not_pdf, too_small):
+            self.assertEqual([check["kind"] for check in result["checks"] if not check["passed"]], ["pdf_file"])
+
+    def test_open_document_text_export_is_read_as_unicode_text(self):
+        text = "\r\n".join(run_agent_eval.WRITER_FIXTURE_PARAGRAPHS)
+        calls = [_call("open_documents"), _call("export_open_document_text", output="report.txt")]
+
+        def export(workspace, data):
+            (workspace / "report.txt").write_bytes(data)
+
+        task = _task("wps-open-document-export-text")
+        with (
+            tempfile.TemporaryDirectory() as tmp,
+            patch.object(run_agent_eval, "open_in_wps", return_value=(lambda: None, None)) as opened,
+        ):
+            utf16 = self.run_wps_task(
+                task["id"],
+                Path(tmp),
+                lambda ws: export(ws, "\ufeff".encode("utf-16-le") + text.encode("utf-16-le")),
+                calls,
+            )
+            ansi = self.run_wps_task(task["id"], Path(tmp) / "b", lambda ws: export(ws, text.encode("ascii")), calls)
+            saved = self.run_wps_task(
+                task["id"],
+                Path(tmp) / "c",
+                lambda ws: export(ws, text.encode("ascii")),
+                [*calls, _call("save_open_document")],
+            )
+        self.assertTrue(utf16["passed"], utf16)
+        self.assertTrue(ansi["passed"], ansi)
+        self.assertEqual([c["kind"] for c in saved["checks"] if not c["passed"]], ["tool_not_called"])
+        self.assertEqual(opened.call_count, 3)
+
+    def test_open_in_wps_is_a_skip_off_windows(self):
+        if os.name == "nt":
+            self.skipTest("Windows opens the file for real")
+        with tempfile.TemporaryDirectory() as tmp:
+            result = run_agent_eval.run_task(
+                _task("wps-open-document-export-text"),
+                "report.docx",
+                "writer",
+                Path(tmp),
+                None,
+                15,
+                60,
+                runner=_fake_agent(lambda ws: self.fail("agent must not run")),
+                has_wps=lambda component: True,
+            )
+        self.assertIn("needs Windows", result["skipped"])
+
+    def test_the_open_document_is_closed_after_the_agent_ran(self):
+        released = []
+        with (
+            tempfile.TemporaryDirectory() as tmp,
+            patch.object(run_agent_eval, "open_in_wps", return_value=(lambda: released.append(True), None)),
+        ):
+            self.run_wps_task("wps-open-document-export-text", Path(tmp), lambda ws: None, [])
+        self.assertEqual(released, [True])
 
     def test_mcp_config_runs_the_server_in_the_task_workspace(self):
         with tempfile.TemporaryDirectory() as tmp:
