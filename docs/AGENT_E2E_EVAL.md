@@ -15,7 +15,7 @@ A task can list `setup` steps that prepare the workspace before the agent starts
 | `modify` | changes A1 to `changed by mistake` and saves the file |
 | `html_table` | writes `table.html` with a two-column table |
 | `hold` | holds the fixture the way WPS holds an open document. Must be the last step. |
-| `open_in_wps` | opens the fixture in WPS on Windows and waits until WPS lists it as open (up to 45 s). It runs the open command registered for the extension (for example `wps.exe "%1"`), the command a double-click runs, rather than going through the shell, which on some machines shows the "Open with" chooser instead. `--wps-launch automation` adds `/Automation` to that command. Neither changes the system's open command. It records the WPS processes (`wps`, `et`, `wpp`) that appeared while opening. After the agent, the runner closes the document without saving, and only when WPS reports no unsaved changes; then it ends the processes it recorded, but only while WPS lists no other document for the component, so that the next `--repeat` run starts from the same state. Only `select_text` and `append_unsaved` may follow it; the task must be marked (WPS). Elsewhere the task is skipped. |
+| `open_in_wps` | opens the fixture in WPS on Windows and waits until WPS lists it as open (up to 45 s). It runs the open command registered for the extension (for example `wps.exe "%1"`), the command a double-click runs, rather than going through the shell, which on some machines shows the "Open with" chooser instead. `--wps-launch automation` adds `/Automation` to that command. Neither changes the system's open command. When the agent left the fixture with unsaved changes, the runner closes it without saving: it is the runner's own file. It records the WPS processes (`wps`, `et`, `wpp`) that appeared while opening. After the agent, the runner closes the document without saving, and only when WPS reports no unsaved changes; then it ends the processes it recorded, but only while WPS lists no other document for the component, so that the next `--repeat` run starts from the same state. Only `select_text` and `append_unsaved` may follow it; the task must be marked (WPS). Elsewhere the task is skipped. |
 | `select_text` | after `open_in_wps`: selects the first occurrence of the task's `selection.text` in WPS (Writer or Presentation), or, with `"collapse": "end"`, puts the caret right after it (Writer). It reads the selection back; when WPS selected something else, the run is a setup failure, not an agent failure. |
 | `append_unsaved` | after `open_in_wps`: appends the task's `unsaved_text` as a new paragraph in WPS (Writer) without saving, and checks that WPS reports the document as unsaved. |
 
@@ -65,7 +65,7 @@ python scripts/agent_eval/run_agent_eval.py --only register-and-backup --model <
 python scripts/agent_eval/run_agent_eval.py --repeat 3 --min-passes 2
 ```
 
-The runner needs `claude` on `PATH`. It runs the CLI with `--output-format stream-json --verbose` so that it can read each tool call. It exits with 0 when every task that ran passes, 1 when any fails, and 2 when the CLI is missing. Skipped tasks do not change the exit code.
+The runner needs `claude` on `PATH`. It runs the CLI with `--output-format stream-json --verbose` so that it can read each tool call. It exits with 0 when every task that ran passes, 1 when any fails, and 2 when the CLI is missing. Skipped tasks do not change the exit code. A run where the CLI itself failed, for example with an API error, is marked `agent_error`; it still counts as a failed run.
 
 `--repeat N` runs each task N times, each in its own workspace under `run-<n>/`. A task passes when at least `--min-passes` runs pass; by default every run must pass. The summary records each run, the number of passes and the pass rate. Phase 4 judges WPS write tasks with `--repeat 3 --min-passes 2`.
 
@@ -269,6 +269,14 @@ Artifact: `%TEMP%\wps-p6\eval-open-174f04e\run-20261015T022144989017Z\summary.js
 `wps-open-save-document` did not reach a tool call. Each run is one turn and the reply is `API Error: 402 Insufficient Balance`, request ids `b5368d85-48a7-4118-ba2d-5328356343d5`, `7ad472de-4869-4d73-a356-e912f35faf82`, `453ed9a7-5f1e-434b-a9f4-bef2a0350b04`. Failed checks on every run: no operation, `tool_called` 0, `Reviewed in WPS` missing, `backup_count` 0. `tool_not_called` for `save_as_open_document` passed.
 
 After the command, Writer pid 46568 was still open, title `report.docx * - WPS 文字`, command line the run-2 export fixture. It was ended before the table comparison. No `et.exe` or `wpp.exe` was left.
+
+**Review (2026-10-15).**
+
+- **The write fix works.** Writer selection replace passed 3/3 at 5.3 turns with no off-path calls. Before the fix it was 0/3 at 16 turns. Selection insert passed runs 1 and 2. Its run 3 never reached the tools: the Claude API answered `402 Insufficient Balance`.
+- **The save task and the P6-007 table rerun below were not evaluated.** Every run is one turn with the same 402 and no tool call. The judge failed them, but they say nothing about the tools. The runner now marks such a run with `agent_error` and prints it, so they stand out.
+- **The presentation skip came from the runner's own setup.** `TextRange.Find` fails on WPS 12.8 with an unexpected HRESULT. `select_text` now finds the text in PowerShell and selects it with `TextRange.Characters(start, length)`.
+- **The Writer left open was the runner's own fixture.** It had unsaved changes from a run that stopped early, and the runner only closed unchanged documents. It now closes its own fixture without saving in that case, then ends the WPS process it started.
+- G2 is still open. The five tasks are rerun in one command once the API balance is restored.
 
 ### P6-007 rerun on 174f04e
 
