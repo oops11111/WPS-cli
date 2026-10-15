@@ -2957,7 +2957,7 @@
     "id": "P6-007",
     "phase": "phase6",
     "title": "CELL_NOT_FOUND names the table size",
-    "status": "todo",
+    "status": "done",
     "acceptance": "Gap from P5-006: the CELL_NOT_FOUND message gives the table's row and column counts and its header row; the cause of the P5-006 out-of-range calls is found; wps-writer-table-write turns are compared in P6-008."
   },
   {

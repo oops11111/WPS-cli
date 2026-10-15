@@ -320,6 +320,15 @@ Export, selection replace, selection insert, and save passed at least 2/3. Inser
 
 After the command, two runner processes were still up: Writer pid 7376, title `report.docx * - WPS 文字`, command line the run-1 export fixture; Presentation pid 44480, title `deck.pptx - WPS 演示`, command line the run-1 deck. Both were ended before the table comparison.
 
+**Review (2026-10-15).**
+
+- Four of the five tasks now pass, with no API errors this time. Selection insert passed 3/3 but needed 13.7 turns. Run 3's extra `validate_document` used two spaces (`Finance  (reviewed)`); that call failed, but the file itself was right.
+- **Presentation selection replace failed on a product bug in its read-back.** In runs 1 and 3, `file_text` and `backup_count` passed. WPS made the change and saved it, but the tool reported `VALIDATION_FAILED`. After assigning `TextRange.Text`, the script read the text back through the selection. On WPS 12.8 the selection then covers other text, for example the whole shape, so the read-back did not match. The tool then tried to roll back by restoring the backup file. WPS holds that file, so the rollback was blocked (`MUTATION_ROLLBACK_BLOCKED`) and the operation was not recorded.
+- **Fix:** the replace script now records the shape's text and the selection's start before the write. After the write, the shape's text must equal the old text with exactly the selected part replaced. If the position does not match the text, it falls back to the old read-back. A fake-COM test reproduces the moved selection and fails on the old script. Selection insert already read back this way, which is why it passed.
+- **Run 2's `SELECTION_SPANS_STRUCTURE`** means the selection was not a text selection when the agent looked. The runner's `select_text` now checks the selection type (3) as well as its text. A non-text selection becomes a setup failure, not an agent failure.
+- **Remaining gap:** when an open-document write does fail validation, rollback restores the backup file, and WPS holds that file. So the rollback is blocked and the change stays in WPS. Undoing it inside WPS would be the right fix; it is not done here.
+- G2 is not met yet. All five tasks are rerun in one command on a `main` that has this fix.
+
 ### P6-007 rerun on 98d8dcd
 
 ```powershell
@@ -330,7 +339,7 @@ Artifact: `%TEMP%\wps-p6\eval-table\run-20261015T030032883900Z\summary.json`.
 
 **3/3.** Turns 13.7 (10, 14, 17). `wps-agent` calls 38, tool errors 5, `off_path_calls` 2 (`validate_document`, `wps_process_audit`). P5-006 was 3/3, mean 15.3 turns (15, 16, 15), 41 calls, 2 tool errors. No `CELL_NOT_FOUND`.
 
-Run 2 reused request id `eval-table-1` on four dry-run `writer_table_write` calls (row 2 column 2, and row 3 columns 1, 2, and 3, text `FINAL`) and each returned `IDEMPOTENCY_CONFLICT`. The real write still passed, with one backup. Run 1's error was `validate_document` with `INVALID_ARGUMENT` (`request_id` `verify-eval-table-1` and no `contains`). No `wps.exe` was left.
+**P6-007 is done:** 3/3, fewer turns than P5-006 (13.7 against 15.3) and no `CELL_NOT_FOUND`. The dry runs now show the table's size. Run 2 reused request id `eval-table-1` on four dry-run `writer_table_write` calls (row 2 column 2, and row 3 columns 1, 2, and 3, text `FINAL`) and each returned `IDEMPOTENCY_CONFLICT`. The real write still passed, with one backup. Run 1's error was `validate_document` with `INVALID_ARGUMENT` (`request_id` `verify-eval-table-1` and no `contains`). No `wps.exe` was left.
 
 ## Limits
 
