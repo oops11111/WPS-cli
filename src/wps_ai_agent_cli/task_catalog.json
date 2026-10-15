@@ -2908,7 +2908,7 @@
     "id": "P5-011",
     "phase": "phase5",
     "title": "Open-document tools and a normally opened WPS Writer",
-    "status": "todo",
+    "status": "done",
     "acceptance": "Gap found in P5-006, not an exit criterion: a WPS Writer opened the usual way does not register kwps.Application, so the open-document commands cannot see its documents. Find out why on Windows (ROT, start options, whether Presentation is affected) and either fix it or document how to start WPS so that it works."
   },
   {
@@ -2978,7 +2978,7 @@
     "id": "P6-010",
     "phase": "phase6",
     "title": "Windows check of the 0.3.0 wheel",
-    "status": "todo",
+    "status": "done",
     "acceptance": "G3: in a new Windows virtual environment with only the released wheel, inspect-env and the safe regression profile pass; result recorded."
   }
 ]
