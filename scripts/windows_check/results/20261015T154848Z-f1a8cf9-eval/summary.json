@@ -1,0 +1,740 @@
+{
+  "generated_at": "20261015T155329Z",
+  "claude_cli": "claude",
+  "model": "CLI default",
+  "wps_launch": "default",
+  "passed": 2,
+  "total": 2,
+  "skipped": 0,
+  "wps_tool_calls": 23,
+  "wps_tool_errors": 0,
+  "off_path_calls": 6,
+  "tasks_without_expected_tools": [],
+  "results": [
+    {
+      "id": "wps-open-spreadsheet-selection-replace",
+      "passed": true,
+      "repeat": 3,
+      "min_passes": 2,
+      "passes": 2,
+      "pass_rate": 0.6666666666666666,
+      "metrics": {
+        "wps_tool_calls": 10,
+        "wps_tool_errors": 0,
+        "off_path_calls": 3,
+        "off_path_tools": [
+          "save_open_document",
+          "spreadsheet_read"
+        ]
+      },
+      "runs": [
+        {
+          "id": "wps-open-spreadsheet-selection-replace",
+          "passed": true,
+          "agent": {
+            "ran": true,
+            "exit_code": 0,
+            "is_error": false,
+            "num_turns": 6,
+            "duration_ms": 26472,
+            "total_cost_usd": 0.378354,
+            "result_excerpt": "Done. Cells `C2:C3` on the **Status** sheet of `status.xlsx` are now `FINAL`.\n\n**What I did:**\n1. `open_documents` — attached to the running WPS instance (without launching it), registered `status.xlsx` as `doc_d9e1d5c0f5609dbf`.\n2. `spreadsheet_selection_read` — confirmed the live selection was `$C$2:$C$3`, sheet `Status`, holding `DRAFT` / `DRAFT`.\n3. `spreadsheet_selection_replace` with `request_id: eval-cells-1`, constant text `FINAL`, guarded by `expected_selection_text: \"DRAFT\\tDRAFT\"`.\n\n*",
+            "stderr_excerpt": "",
+            "tool_calls": [
+              {
+                "name": "mcp__wps-agent__wps_agent_open_documents",
+                "input": {
+                  "component": "spreadsheets",
+                  "register": true
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_spreadsheet_selection_read",
+                "input": {
+                  "document_id": "doc_d9e1d5c0f5609dbf",
+                  "request_id": "eval-cells-1"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_spreadsheet_selection_replace",
+                "input": {
+                  "document_id": "doc_d9e1d5c0f5609dbf",
+                  "text": "FINAL",
+                  "expected_selection_text": "DRAFT\tDRAFT",
+                  "request_id": "eval-cells-1"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_spreadsheet_read",
+                "input": {
+                  "document_id": "doc_d9e1d5c0f5609dbf",
+                  "range": "A1:C5",
+                  "request_id": "eval-cells-1-verify",
+                  "sheet": "Status"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_save_open_document",
+                "input": {
+                  "document_id": "doc_d9e1d5c0f5609dbf",
+                  "dry_run": true,
+                  "request_id": "eval-cells-1-savecheck"
+                },
+                "is_error": false,
+                "error_codes": []
+              }
+            ]
+          },
+          "metrics": {
+            "wps_tool_calls": 5,
+            "wps_tool_errors": 0,
+            "other_tool_calls": 0,
+            "tools_used": [
+              "open_documents",
+              "save_open_document",
+              "spreadsheet_read",
+              "spreadsheet_selection_read",
+              "spreadsheet_selection_replace"
+            ],
+            "expected_tools": [
+              "documents",
+              "open_documents",
+              "register_document",
+              "spreadsheet_selection_read",
+              "spreadsheet_selection_replace"
+            ],
+            "off_path_calls": 2,
+            "off_path_tools": [
+              "save_open_document",
+              "spreadsheet_read"
+            ]
+          },
+          "checks": [
+            {
+              "kind": "operation_recorded",
+              "passed": true,
+              "detail": "spreadsheet-selection-replace",
+              "request_id": "eval-cells-1",
+              "command": "spreadsheet-selection-replace"
+            },
+            {
+              "kind": "tool_called",
+              "passed": true,
+              "detail": "1 matching call(s)",
+              "tool": "spreadsheet_selection_replace",
+              "input": {
+                "request_id": "eval-cells-1"
+              }
+            },
+            {
+              "kind": "xlsx_cell",
+              "passed": true,
+              "detail": "FINAL",
+              "path": "status.xlsx",
+              "sheet": "Status",
+              "cell": "C2",
+              "value": "FINAL"
+            },
+            {
+              "kind": "xlsx_cell",
+              "passed": true,
+              "detail": "FINAL",
+              "path": "status.xlsx",
+              "sheet": "Status",
+              "cell": "C3",
+              "value": "FINAL"
+            },
+            {
+              "kind": "xlsx_cell",
+              "passed": true,
+              "detail": 120,
+              "path": "status.xlsx",
+              "sheet": "Status",
+              "cell": "B2",
+              "value": 120
+            },
+            {
+              "kind": "xlsx_cell",
+              "passed": true,
+              "detail": "Status",
+              "path": "status.xlsx",
+              "sheet": "Status",
+              "cell": "C1",
+              "value": "Status"
+            },
+            {
+              "kind": "backup_count",
+              "passed": true,
+              "detail": 1,
+              "count": 1
+            },
+            {
+              "kind": "tool_not_called",
+              "passed": true,
+              "detail": "0 call(s)",
+              "tool": "spreadsheet_write"
+            }
+          ],
+          "cleanup": "fixture COM_OPERATION_FAILED; processes stopped 26368"
+        },
+        {
+          "id": "wps-open-spreadsheet-selection-replace",
+          "passed": true,
+          "agent": {
+            "ran": true,
+            "exit_code": 0,
+            "is_error": false,
+            "num_turns": 6,
+            "duration_ms": 20281,
+            "total_cost_usd": 0.34529100000000007,
+            "result_excerpt": "Done. Both selected cells are now `FINAL` in WPS.\n\n**What was done:**\n- Attached to the running WPS instance (no launch) and registered the open workbook — `status.xlsx`, active document in the Spreadsheets instance.\n- Confirmed the live selection: `$C$2:$C$3` on sheet `Status`, one area, 2 cells, previously `DRAFT`/`DRAFT`.\n- Dry run first, then the real replacement with a constant fill of `FINAL` and `request_id` `eval-cells-1`. The tool reported `cells_matched: true`, `fill_mode: constant`, r",
+            "stderr_excerpt": "",
+            "tool_calls": [
+              {
+                "name": "mcp__wps-agent__wps_agent_open_documents",
+                "input": {
+                  "component": "spreadsheets",
+                  "register": true
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_spreadsheet_selection_read",
+                "input": {
+                  "document_id": "doc_f2e649e5f5ffe285"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_spreadsheet_selection_replace",
+                "input": {
+                  "document_id": "doc_f2e649e5f5ffe285",
+                  "text": "FINAL",
+                  "request_id": "eval-cells-1",
+                  "dry_run": true
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_spreadsheet_selection_replace",
+                "input": {
+                  "document_id": "doc_f2e649e5f5ffe285",
+                  "request_id": "eval-cells-1",
+                  "text": "FINAL"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_spreadsheet_read",
+                "input": {
+                  "document_id": "doc_f2e649e5f5ffe285",
+                  "range": "A1:D6",
+                  "sheet": "Status"
+                },
+                "is_error": false,
+                "error_codes": []
+              }
+            ]
+          },
+          "metrics": {
+            "wps_tool_calls": 5,
+            "wps_tool_errors": 0,
+            "other_tool_calls": 0,
+            "tools_used": [
+              "open_documents",
+              "spreadsheet_read",
+              "spreadsheet_selection_read",
+              "spreadsheet_selection_replace"
+            ],
+            "expected_tools": [
+              "documents",
+              "open_documents",
+              "register_document",
+              "spreadsheet_selection_read",
+              "spreadsheet_selection_replace"
+            ],
+            "off_path_calls": 1,
+            "off_path_tools": [
+              "spreadsheet_read"
+            ]
+          },
+          "checks": [
+            {
+              "kind": "operation_recorded",
+              "passed": true,
+              "detail": "spreadsheet-selection-replace",
+              "request_id": "eval-cells-1",
+              "command": "spreadsheet-selection-replace"
+            },
+            {
+              "kind": "tool_called",
+              "passed": true,
+              "detail": "2 matching call(s)",
+              "tool": "spreadsheet_selection_replace",
+              "input": {
+                "request_id": "eval-cells-1"
+              }
+            },
+            {
+              "kind": "xlsx_cell",
+              "passed": true,
+              "detail": "FINAL",
+              "path": "status.xlsx",
+              "sheet": "Status",
+              "cell": "C2",
+              "value": "FINAL"
+            },
+            {
+              "kind": "xlsx_cell",
+              "passed": true,
+              "detail": "FINAL",
+              "path": "status.xlsx",
+              "sheet": "Status",
+              "cell": "C3",
+              "value": "FINAL"
+            },
+            {
+              "kind": "xlsx_cell",
+              "passed": true,
+              "detail": 120,
+              "path": "status.xlsx",
+              "sheet": "Status",
+              "cell": "B2",
+              "value": 120
+            },
+            {
+              "kind": "xlsx_cell",
+              "passed": true,
+              "detail": "Status",
+              "path": "status.xlsx",
+              "sheet": "Status",
+              "cell": "C1",
+              "value": "Status"
+            },
+            {
+              "kind": "backup_count",
+              "passed": true,
+              "detail": 1,
+              "count": 1
+            },
+            {
+              "kind": "tool_not_called",
+              "passed": true,
+              "detail": "0 call(s)",
+              "tool": "spreadsheet_write"
+            }
+          ],
+          "cleanup": "fixture COM_OPERATION_FAILED; processes stopped 3768,47552"
+        },
+        {
+          "id": "wps-open-spreadsheet-selection-replace",
+          "passed": false,
+          "setup_failed": "WPS did not list status.xlsx as open within 45 s (launch mode default); is WPS the default app for .xlsx?",
+          "agent": {},
+          "metrics": {
+            "wps_tool_calls": 0,
+            "wps_tool_errors": 0,
+            "other_tool_calls": 0,
+            "tools_used": [],
+            "expected_tools": [
+              "documents",
+              "open_documents",
+              "register_document",
+              "spreadsheet_selection_read",
+              "spreadsheet_selection_replace"
+            ],
+            "off_path_calls": 0,
+            "off_path_tools": []
+          },
+          "checks": []
+        }
+      ]
+    },
+    {
+      "id": "wps-open-spreadsheet-selection-delete",
+      "passed": true,
+      "repeat": 3,
+      "min_passes": 2,
+      "passes": 2,
+      "pass_rate": 0.6666666666666666,
+      "metrics": {
+        "wps_tool_calls": 13,
+        "wps_tool_errors": 0,
+        "off_path_calls": 3,
+        "off_path_tools": [
+          "spreadsheet_read",
+          "spreadsheet_sheets"
+        ]
+      },
+      "runs": [
+        {
+          "id": "wps-open-spreadsheet-selection-delete",
+          "passed": true,
+          "agent": {
+            "ran": true,
+            "exit_code": 0,
+            "is_error": false,
+            "num_turns": 8,
+            "duration_ms": 26864,
+            "total_cost_usd": 0.367674,
+            "result_excerpt": "Done. `C3` on sheet `Status` is cleared.\n\n**What was executed** (`request_id: eval-clear-1`, `document_id: doc_8b211f3a128440c9`):\n\n1. **Read the selection first** — confirmed `$C$3` on sheet `Status`, single cell, containing `DRAFT`. Matched the task description.\n2. **Dry run** — reported `would_modify: true`, `fill_mode: clear_cells`, validation passed.\n3. **Clear** — succeeded with `deleted_text: \"DRAFT\"` and `read_back_text: \"\"`.\n   - Backup created: `.wps-agent\\backups\\doc_8b211f3a128440c9\\",
+            "stderr_excerpt": "",
+            "tool_calls": [
+              {
+                "name": "mcp__wps-agent__wps_agent_open_documents",
+                "input": {
+                  "register": true,
+                  "component": "spreadsheets"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "ls -la \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261015T154848Z-f1a8cf9-eval/run-1/wps-open-spreadsheet-selection-delete\"",
+                  "description": "List files in working directory"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_spreadsheet_selection_read",
+                "input": {
+                  "document_id": "doc_8b211f3a128440c9"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_spreadsheet_selection_delete",
+                "input": {
+                  "document_id": "doc_8b211f3a128440c9",
+                  "dry_run": true,
+                  "expected_selection_text": "DRAFT",
+                  "request_id": "eval-clear-1"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_spreadsheet_selection_delete",
+                "input": {
+                  "document_id": "doc_8b211f3a128440c9",
+                  "expected_selection_text": "DRAFT",
+                  "request_id": "eval-clear-1"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_open_documents",
+                "input": {
+                  "component": "spreadsheets"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_spreadsheet_read",
+                "input": {
+                  "document_id": "doc_8b211f3a128440c9",
+                  "range": "A1:F10",
+                  "sheet": "Status"
+                },
+                "is_error": false,
+                "error_codes": []
+              }
+            ]
+          },
+          "metrics": {
+            "wps_tool_calls": 6,
+            "wps_tool_errors": 0,
+            "other_tool_calls": 1,
+            "tools_used": [
+              "open_documents",
+              "spreadsheet_read",
+              "spreadsheet_selection_delete",
+              "spreadsheet_selection_read"
+            ],
+            "expected_tools": [
+              "documents",
+              "open_documents",
+              "register_document",
+              "spreadsheet_selection_delete",
+              "spreadsheet_selection_read"
+            ],
+            "off_path_calls": 1,
+            "off_path_tools": [
+              "spreadsheet_read"
+            ]
+          },
+          "checks": [
+            {
+              "kind": "operation_recorded",
+              "passed": true,
+              "detail": "spreadsheet-selection-delete",
+              "request_id": "eval-clear-1",
+              "command": "spreadsheet-selection-delete"
+            },
+            {
+              "kind": "tool_called",
+              "passed": true,
+              "detail": "2 matching call(s)",
+              "tool": "spreadsheet_selection_delete",
+              "input": {
+                "request_id": "eval-clear-1"
+              }
+            },
+            {
+              "kind": "xlsx_cell",
+              "passed": true,
+              "detail": null,
+              "path": "status.xlsx",
+              "sheet": "Status",
+              "cell": "C3",
+              "value": null
+            },
+            {
+              "kind": "xlsx_cell",
+              "passed": true,
+              "detail": "DRAFT",
+              "path": "status.xlsx",
+              "sheet": "Status",
+              "cell": "C2",
+              "value": "DRAFT"
+            },
+            {
+              "kind": "xlsx_cell",
+              "passed": true,
+              "detail": 95,
+              "path": "status.xlsx",
+              "sheet": "Status",
+              "cell": "B3",
+              "value": 95
+            },
+            {
+              "kind": "backup_count",
+              "passed": true,
+              "detail": 1,
+              "count": 1
+            },
+            {
+              "kind": "tool_not_called",
+              "passed": true,
+              "detail": "0 call(s)",
+              "tool": "spreadsheet_write"
+            }
+          ],
+          "cleanup": "fixture COM_OPERATION_FAILED; processes stopped 47964"
+        },
+        {
+          "id": "wps-open-spreadsheet-selection-delete",
+          "passed": true,
+          "agent": {
+            "ran": true,
+            "exit_code": 0,
+            "is_error": false,
+            "num_turns": 9,
+            "duration_ms": 22937,
+            "total_cost_usd": 0.35680100000000003,
+            "result_excerpt": "Done. Cell C3 on sheet `Status` is cleared in the open WPS instance.\n\n**What happened:**\n- Attached to the already-running WPS instance (no launch) and registered `status.xlsx` as `doc_1007b699f3af92f7`.\n- Verified the live selection: `$C$3` on sheet `Status`, containing `DRAFT`, single cell.\n- Dry run confirmed the target and `would_modify: true`.\n- Executed the clear with `request_id: eval-clear-1`. A backup was written to `.wps-agent\\backups\\doc_1007b699f3af92f7\\status.20261015T155220228276Z.",
+            "stderr_excerpt": "",
+            "tool_calls": [
+              {
+                "name": "mcp__wps-agent__wps_agent_open_documents",
+                "input": {
+                  "component": "spreadsheets",
+                  "register": true
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "ls -la \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261015T154848Z-f1a8cf9-eval/run-2/wps-open-spreadsheet-selection-delete\"",
+                  "description": "List working directory contents"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_spreadsheet_selection_read",
+                "input": {
+                  "document_id": "doc_1007b699f3af92f7"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_spreadsheet_sheets",
+                "input": {
+                  "document_id": "doc_1007b699f3af92f7"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_spreadsheet_selection_delete",
+                "input": {
+                  "document_id": "doc_1007b699f3af92f7",
+                  "dry_run": true,
+                  "expected_selection_text": "DRAFT",
+                  "request_id": "eval-clear-1"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_spreadsheet_selection_delete",
+                "input": {
+                  "document_id": "doc_1007b699f3af92f7",
+                  "expected_selection_text": "DRAFT",
+                  "request_id": "eval-clear-1"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_spreadsheet_read",
+                "input": {
+                  "document_id": "doc_1007b699f3af92f7",
+                  "range": "A1:C3",
+                  "sheet": "Status"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_open_documents",
+                "input": {
+                  "component": "spreadsheets",
+                  "register": true
+                },
+                "is_error": false,
+                "error_codes": []
+              }
+            ]
+          },
+          "metrics": {
+            "wps_tool_calls": 7,
+            "wps_tool_errors": 0,
+            "other_tool_calls": 1,
+            "tools_used": [
+              "open_documents",
+              "spreadsheet_read",
+              "spreadsheet_selection_delete",
+              "spreadsheet_selection_read",
+              "spreadsheet_sheets"
+            ],
+            "expected_tools": [
+              "documents",
+              "open_documents",
+              "register_document",
+              "spreadsheet_selection_delete",
+              "spreadsheet_selection_read"
+            ],
+            "off_path_calls": 2,
+            "off_path_tools": [
+              "spreadsheet_read",
+              "spreadsheet_sheets"
+            ]
+          },
+          "checks": [
+            {
+              "kind": "operation_recorded",
+              "passed": true,
+              "detail": "spreadsheet-selection-delete",
+              "request_id": "eval-clear-1",
+              "command": "spreadsheet-selection-delete"
+            },
+            {
+              "kind": "tool_called",
+              "passed": true,
+              "detail": "2 matching call(s)",
+              "tool": "spreadsheet_selection_delete",
+              "input": {
+                "request_id": "eval-clear-1"
+              }
+            },
+            {
+              "kind": "xlsx_cell",
+              "passed": true,
+              "detail": null,
+              "path": "status.xlsx",
+              "sheet": "Status",
+              "cell": "C3",
+              "value": null
+            },
+            {
+              "kind": "xlsx_cell",
+              "passed": true,
+              "detail": "DRAFT",
+              "path": "status.xlsx",
+              "sheet": "Status",
+              "cell": "C2",
+              "value": "DRAFT"
+            },
+            {
+              "kind": "xlsx_cell",
+              "passed": true,
+              "detail": 95,
+              "path": "status.xlsx",
+              "sheet": "Status",
+              "cell": "B3",
+              "value": 95
+            },
+            {
+              "kind": "backup_count",
+              "passed": true,
+              "detail": 1,
+              "count": 1
+            },
+            {
+              "kind": "tool_not_called",
+              "passed": true,
+              "detail": "0 call(s)",
+              "tool": "spreadsheet_write"
+            }
+          ],
+          "cleanup": "fixture COM_OPERATION_FAILED; processes stopped 3084,18544"
+        },
+        {
+          "id": "wps-open-spreadsheet-selection-delete",
+          "passed": false,
+          "setup_failed": "WPS did not list status.xlsx as open within 45 s (launch mode default); is WPS the default app for .xlsx?",
+          "agent": {},
+          "metrics": {
+            "wps_tool_calls": 0,
+            "wps_tool_errors": 0,
+            "other_tool_calls": 0,
+            "tools_used": [],
+            "expected_tools": [
+              "documents",
+              "open_documents",
+              "register_document",
+              "spreadsheet_selection_delete",
+              "spreadsheet_selection_read"
+            ],
+            "off_path_calls": 0,
+            "off_path_tools": []
+          },
+          "checks": []
+        }
+      ]
+    }
+  ]
+}
