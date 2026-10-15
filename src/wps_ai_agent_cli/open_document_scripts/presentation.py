@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from ..wps_script_snippets import ATTACH_RUNNING_INSTANCE
 from .common import _SCRIPT_HEAD
+from .revert import PRESENTATION_CAPTURE_REVERT_TARGET
 
 _ATTACHED_PRESENTATION_WRAPPER = (
     _SCRIPT_HEAD
@@ -174,6 +175,7 @@ _PRESENTATION_SELECTION_REPLACE_BODY = """
       try { $snapColor = $f.Color } catch { }
     }
   } catch { }
+__CAPTURE_REVERT_TARGET__
   $tr.Text = $replacement
   # WPS may invalidate the original TextRange/selection after assignment or Save.
   $readBack = ''
@@ -252,8 +254,12 @@ _PRESENTATION_SELECTION_REPLACE_BODY = """
     read_back_from_shape = [bool]$frameChecked
     formatting_mode = 'uniform_character'
     formatting_preserved = [bool]$formattingApplied
+    slide_index = $revertSlideIndex
+    shape_name = $revertShapeName
+    text_start = $revertStart
+    shape_text_before = $revertFrameBefore
   } | ConvertTo-Json -Depth 5
-"""
+""".replace("__CAPTURE_REVERT_TARGET__", PRESENTATION_CAPTURE_REVERT_TARGET)
 
 _PRESENTATION_SELECTION_INSERT_BODY = """
   if (-not [bool]$doc.Saved) {
@@ -305,6 +311,7 @@ _PRESENTATION_SELECTION_INSERT_BODY = """
   $shape = $null
   try { $shape = $sel.ShapeRange.Item(1) } catch { }
   $insert = [string]$params.text
+__CAPTURE_REVERT_TARGET__
   # Collapsed TextRange.Text assignment inserts at the caret on WPS builds where Insert-After hangs.
   $tr.Text = $insert
   $doc.Save()
@@ -334,8 +341,12 @@ _PRESENTATION_SELECTION_INSERT_BODY = """
     start = $start
     end = $start + $insert.Length
     read_back_text = $readBack
+    slide_index = $revertSlideIndex
+    shape_name = $revertShapeName
+    text_start = $revertStart
+    shape_text_before = $revertFrameBefore
   } | ConvertTo-Json -Depth 5
-"""
+""".replace("__CAPTURE_REVERT_TARGET__", PRESENTATION_CAPTURE_REVERT_TARGET)
 
 _PRESENTATION_SELECTION_DELETE_BODY = """
   if (-not [bool]$doc.Saved) {
@@ -381,6 +392,7 @@ _PRESENTATION_SELECTION_DELETE_BODY = """
   $shape = $null
   try { $shape = $sel.ShapeRange.Item(1) } catch { }
   $expected = [string]$params.expected_text
+__CAPTURE_REVERT_TARGET__
   $tr.Text = ''
   $doc.Save()
   $probe = ''
@@ -398,8 +410,12 @@ _PRESENTATION_SELECTION_DELETE_BODY = """
     component = 'presentation'
     deleted_text = $expected
     read_back_text = $probe
+    slide_index = $revertSlideIndex
+    shape_name = $revertShapeName
+    text_start = $revertStart
+    shape_text_before = $revertFrameBefore
   } | ConvertTo-Json -Depth 5
-"""
+""".replace("__CAPTURE_REVERT_TARGET__", PRESENTATION_CAPTURE_REVERT_TARGET)
 
 _PRESENTATION_EXPORT_HTML_BODY = """
   if (-not [bool]$doc.Saved) {

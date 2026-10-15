@@ -2985,7 +2985,7 @@
     "id": "P7-001",
     "phase": "phase7",
     "title": "Undo a failed open-document write inside WPS",
-    "status": "todo",
+    "status": "done",
     "acceptance": "H1: the 8 open-document selection writes undo a change WPS made when a later check fails, by the inverse edit, save and read-back; the result reports rolled_back_in_wps; a failed undo returns a new error code; fake-COM tests per component."
   },
   {

@@ -279,12 +279,20 @@ class SelectionReplaceTests(unittest.TestCase):
             **kwargs,
         )
 
-    def fake_attached(self, fixture, selection, write_status="ok", read_back=None, calls=None):
+    def fake_attached(self, fixture, selection, write_status="ok", read_back=None, calls=None, revert=None):
+        original = fixture.document.read_bytes()
+
         def fake(action, params):
             if calls is not None:
                 calls.append(action)
             if action == "selection-read":
                 return com_ok(selection)
+            if action == "selection-revert":
+                if revert is not None:
+                    revert.append(params)
+                # WPS puts the original text back and saves.
+                fixture.document.write_bytes(original)
+                return com_ok({"ok": True, "status": "reverted", "read_back_text": params["original_text"]})
             self.assertEqual(action, "selection-replace")
             fixture.document.write_bytes(fixture.document.read_bytes() + b"\0")
             if write_status != "ok":
@@ -435,15 +443,31 @@ class SelectionReplaceTests(unittest.TestCase):
 
     def test_read_back_mismatch_fails_validation_and_is_not_recorded(self):
         fixture = Fixture(self)
+        revert = []
         with patch.object(
             open_documents,
             "_run_writer_attached_com",
-            side_effect=self.fake_attached(fixture, selection_payload(), read_back="garbled"),
+            side_effect=self.fake_attached(fixture, selection_payload(), read_back="garbled", revert=revert),
         ):
             ok, data, errors, _replayed = self.replace(fixture, request_id="sel-bad-readback")
             self.assertFalse(ok)
             self.assertEqual(errors[0]["code"], "VALIDATION_FAILED")
             self.assertFalse(data["validation_passed"])
+        # P7-001: the write is undone in WPS: the replacement is swapped back for the original at the same place.
+        self.assertEqual(
+            revert,
+            [
+                {
+                    "path": str(fixture.document),
+                    "start": 10,
+                    "written_text": "APPROVED",
+                    "original_text": "PENDING_STATUS",
+                }
+            ],
+        )
+        self.assertEqual([error["code"] for error in errors], ["VALIDATION_FAILED", "MUTATION_ROLLED_BACK"])
+        self.assertTrue(data["rollback"]["rolled_back_in_wps"])
+        self.assertTrue(data["rollback"]["content_matches_backup"])
         from wps_ai_agent_cli.operations import get_operation
 
         self.assertIsNone(get_operation("sel-bad-readback", fixture.workspace))
@@ -1816,7 +1840,7 @@ class SpreadsheetSelectionReplaceTests(unittest.TestCase):
         self.assertFalse(ok)
         self.assertEqual(errors[0]["code"], "VALIDATION_FAILED")
         self.assertIn("keep/b.xlsx", errors[0]["message"])
-        self.assertIn("undone from the pre-write backup", errors[0]["message"])
+        self.assertIn("whether it was undone in WPS", errors[0]["message"])
         self.assertFalse(data["validation_passed"])
 
     def test_cell_text_matches_only_equal_plain_numbers(self):

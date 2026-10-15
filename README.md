@@ -71,6 +71,13 @@ wps-agent --strict-exit backup-document --document-id doc_xxx --request-id r1 ||
 
 文件未被改动的失败不会回滚，原有错误照常返回。
 
+### 已打开文档的写入
+
+已打开文档的选区写入（Writer、演示、表格的选区替换、插入和删除）改的是 WPS 里打开着的文档，WPS 持有文件，备份无法覆盖回去。这些命令在写入被 WPS 保存、但后续检查失败时，在同一个 WPS 实例里撤回：把原来的文字或单元格写回被改动的位置，读回核对，保存，再把保存后的文件内容和写入前的备份比较（Writer 和演示比文字，表格比每个非空单元格）。撤回只在那个位置上仍然正好是这次写入的内容时才进行，所以不会覆盖用户在这期间的编辑。
+
+- `MUTATION_ROLLED_BACK`：已在 WPS 里撤回。`data.rollback.method` 为 `in_wps`，`data.rollback.rolled_back_in_wps` 为 `true`，`data.rollback.content_matches_backup` 表示保存后的内容是否和备份一致（无法比较时为 `null`）。文档仍在 WPS 中打开，不需要再做什么。
+- `MUTATION_ROLLBACK_IN_WPS_FAILED`：没有撤回，或撤回无法确认。`data.rollback.status` 说明原因：`revert_mismatch`（被改动的位置已经不是这次写入的内容，撤回没有改任何东西）、`revert_target_missing`（找不到那个图形或工作表）、`revert_read_back_failed`（撤回后读回不对，没有保存，WPS 里留有未保存的改动）、`saved_content_differs`（已保存，但内容和备份不一致）、`unsupported`（表格里的图表和图形选区不支持这种撤回）、`script_failed`（撤回脚本没能运行）。文档不会被关闭；只有读回正确时才会保存。要回到写入前的版本，请在 WPS 中不保存地关闭文档，再用信封里给出的备份路径执行 `restore-backup`（或加 `--close-in-wps`）。
+
 限制：
 
 - WPS 本身的保存不是原子的。回滚只保证文件恢复到修改前的内容，不改变 WPS 中已经打开的文档。如果 `open_in_wps` 为 `true` 或 `null`，请在 WPS 中不保存地关闭文档或重新加载，否则 WPS 可能把被拒绝的内容写回去。
