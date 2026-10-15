@@ -51,7 +51,7 @@ Phase 6 让已打开文档的命令能看到用户打开的文档，并证明 Ag
 | P7-002 | H1 | 写进程内注入脚本：让读回校验失败，触发撤回，记录前后哈希。Writer 和演示各一个场景 | 本地 |
 | P7-003 | H2 | runner 的 `select_text` 支持表格（单元格区域）；新增 `untitled_document` 准备步骤（在 WPS 里新建一个未命名文档并写入文字），供另存为任务使用 | 本地 |
 | P7-004 | H2 | 编写至少 5 个新任务，每个补离线判定测试 | 本地 |
-| P7-005 | H3 | `scripts/windows_check/`：前提检查、调用评测或 wheel 检查、生成结果文件；离线测试覆盖前提检查和结果格式 | 本地 |
+| P7-005 | H3 | `scripts/windows_check/`：前提检查、调用评测或 wheel 检查、生成结果文件；离线测试覆盖前提检查和结果格式（已完成：`scripts/windows_check/run_windows_check.py`，子命令 `prereq`、`eval`、`wheel`，用法见同目录 README） | 本地 |
 | P7-006 | 缺口 | 查清 Agent 为什么常用错 `validate_document`，改进它的参数说明和 `INVALID_ARGUMENT` 的错误信息 | 本地 |
 | P7-007 | H1、H2 | 在 Windows 上用 P7-005 的脚本：跑 P7-002 的注入场景，再把所有已打开文档任务各跑 3 次 | Windows |
 | P7-008 | H4 | 定版本 0.4.0，整理 `CHANGELOG.md`，合并后由你推送 `v0.4.0` 标签 | 本地 + 你 |
