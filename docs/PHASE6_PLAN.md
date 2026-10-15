@@ -50,13 +50,13 @@ Phase 6 要回答两个问题：
 | 任务 | 对应标准 | 内容 | 在哪做 |
 | --- | --- | --- | --- |
 | P6-001 | G1 | 写一个只读的诊断脚本：列出 ROT 里的所有登记项（显示名、类型），对每个组件分别试 `GetActiveObject` 和按文件路径 `GetObject`，记录 WPS 进程的命令行。它不打开、不关闭、不保存任何东西（已完成：`scripts/real_wps_verify_p6/automation-diagnostic.ps1`，测试检查它不含打开、保存、关闭、启动或结束进程的调用） | 本地 |
-| P6-002 | G1 | 在 Windows 上，分别双击打开三个组件的文档，各跑一次诊断脚本；再用 `/Automation` 打开 Writer 跑一次做对照。记录结果（步骤见 `docs/PHASE6_WINDOWS_RUNBOOK.md` 第 1 节） | Windows |
+| P6-002 | G1 | 在 Windows 上，分别双击打开三个组件的文档，各跑一次诊断脚本；再用 `/Automation` 打开 Writer 跑一次做对照。记录结果（步骤见 `docs/PHASE6_WINDOWS_RUNBOOK.md` 第 1 节）（已完成：三个组件都只登记了文档，没有登记程序对象，见 `RESULTS-655d76c.md`） | Windows |
 | P6-003 | G1 | 按 P6-002 的结果修改附着方式：能通过 ROT 或文件路径拿到的，就让 `open-documents` 和已打开文档命令用上它；拿不到的，返回新的错误码，并带上处理办法。用假 COM 做离线测试，更新 README 的已知限制（已在 P6-002 之前完成，两种结果都实现了：`GetActiveObject` 拿不到时经 ROT 附着，只认 WPS；还是拿不到但有本组件带窗口的 WPS 进程时，返回 `WPS_INSTANCE_NOT_AUTOMATABLE`。P6-002 和 P6-004 确认实际走哪一条） | 本地 |
-| P6-004 | G1 | 在 Windows 上，按 G1 对三个组件各验证一次，记录结果（步骤见手册第 2 节） | Windows |
+| P6-004 | G1 | 在 Windows 上，按 G1 对三个组件各验证一次，记录结果（步骤见手册第 2 节）（已完成：三个组件都经 ROT 列出文档并导出了文本，G1 达成） | Windows |
 | P6-005 | G2 | runner 改进：`open_in_wps` 记下自己启动的 WPS 进程，结束时只关它们（并且只在没有其他文档时关）；新增 `select_text` 设置步骤，在 Writer 和演示里选中给定的文字（已完成：另加 `--wps-launch automation`，由 runner 带 `/Automation` 启动 WPS，不改系统的打开命令；以及 `append_unsaved` 步骤，给保存任务准备未保存的改动） | 本地 |
 | P6-006 | G2 | 编写至少 4 个已打开文档的写入任务，每个补离线判定测试（已完成：4 个任务，都有离线判定测试） | 本地 |
-| P6-007 | 缺口 | `CELL_NOT_FOUND` 的错误信息带上表格的行数和列数，以及第一行的表头；查清 P5-006 那次运行为什么越界。在 P6-008 里重跑 `wps-writer-table-write`，对比轮数（已完成错误信息部分；越界的原因要等 P6-008 的运行记录，因为 P5-006 的 `summary.json` 不在仓库里） | 本地 |
-| P6-008 | G2 | 在 Windows 上用一条命令把新任务和 `wps-open-document-export-text` 各跑 3 次，记录结果（步骤见手册第 3 节） | Windows |
+| P6-007 | 缺口 | `CELL_NOT_FOUND` 的错误信息带上表格的行数和列数，以及第一行的表头；查清 P5-006 那次运行为什么越界。在 P6-008 里重跑 `wps-writer-table-write`，对比轮数（已完成错误信息部分；越界的原因要等 P6-008 的运行记录，因为 P5-006 的 `summary.json` 不在仓库里）（2026-10-15：越界是 Agent 故意试探表格边界，因为没有工具报告表格大小；`writer_table_write` 的预演现在返回行数、列数和表头。在 P6-008 重跑时对比） | 本地 |
+| P6-008 | G2 | 在 Windows 上用一条命令把新任务和 `wps-open-document-export-text` 各跑 3 次，记录结果（步骤见手册第 3 节）（第一次运行写入任务全失败：备份前的独占检查必然拒绝开着的文档，已修复；runner 改为直接运行注册的打开命令。要重跑） | Windows |
 | P6-009 | G3 | 定版本 0.3.0，整理 `CHANGELOG.md`，合并后由你推送 `v0.3.0` 标签（变更已写进 `CHANGELOG.md` 的 `[Unreleased]`；版本号等 P6-004 和 P6-008 通过后再改，免得发布没在 Windows 上验证过的附着方式） | 本地 + 你 |
 | P6-010 | G3 | 在 Windows 的新虚拟环境里只装 Release 的 wheel，跑 `inspect-env` 和 safe 档，记录结果（步骤见手册第 4 节） | Windows |
 

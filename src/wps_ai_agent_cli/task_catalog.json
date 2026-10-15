@@ -2922,7 +2922,7 @@
     "id": "P6-002",
     "phase": "phase6",
     "title": "Windows run of the automation diagnostic",
-    "status": "todo",
+    "status": "done",
     "acceptance": "G1: the diagnostic is run on Windows for a document of each component opened by double-click, plus Writer started with /Automation for comparison; results recorded."
   },
   {
@@ -2936,7 +2936,7 @@
     "id": "P6-004",
     "phase": "phase6",
     "title": "Windows check of G1 for all three components",
-    "status": "todo",
+    "status": "done",
     "acceptance": "G1: on Windows, each component is checked per G1 with the stock open command and the result is recorded."
   },
   {

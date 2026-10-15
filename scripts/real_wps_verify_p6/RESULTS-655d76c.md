@@ -73,3 +73,13 @@
 紧接着的 `open-documents --component writer`：`ok: true`，`errors` 为空，列出这份 `report.docx`。`attached_via` 是 `active_object`。
 
 关闭返回 `closed`，随后结束了这个 `wps.exe`。
+
+## 复核（2026-10-15）
+
+以上是上机时记录的原文，没有改动。复核结论：
+
+- **P6-002 和 P6-004 完成，G1 达成。** 三个组件都走 (a)：`GetActiveObject` 拿不到，经 ROT 附着后列出了文档，文本也导出了。没有出现 `NO_RUNNING_WPS_INSTANCE`，也不需要 `WPS_INSTANCE_NOT_AUTOMATABLE`。
+- **表格和演示没有经过 shell。** 在这台机器上，对 `.xlsx`、`.pptx` 用 `Invoke-Item` 打开时弹出的是“打开方式”（`OpenWith.exe`），不会启动 WPS。所以这两个组件改为直接运行注册表里的打开命令（`et.exe "%1"`、`wpp.exe "%1"`）。这和双击运行的是同一条命令，打开命令也没有改，所以计入 G1。双击在这台机器上会先弹出选择框，这是 Windows 的默认程序设置，不是本项目的问题。
+- **WPS 通过 COM 报的名字是 `Microsoft Word`、`Microsoft Excel`、`Microsoft PowerPoint`。** 判断是不是 WPS 的条件（`Test-WpsApplication`）这次是靠安装路径里的 `Kingsoft`、`WPS` 通过的。为了照顾装在别的目录的情况，现在也接受路径里带 `office6`（WPS 12 的程序目录名）。Microsoft Office 的路径是 `Office16` 之类，不会误判。
+- **登记开着的文档时读到了文件内容**（`register` 会计算 SHA-256）。这说明 WPS 允许别的程序在它开着文档时读取文件。P6-008 的修复就是以此为依据。
+- **`close_unchanged_document` 关闭文档后，WPS 进程不会退出。** 这和 runner 的设计一致：runner 只结束自己启动的进程。手动步骤里由操作人结束进程，也是对的。
