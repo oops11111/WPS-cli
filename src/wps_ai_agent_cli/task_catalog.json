@@ -2999,7 +2999,7 @@
     "id": "P7-003",
     "phase": "phase7",
     "title": "Runner: spreadsheet selection and untitled documents",
-    "status": "todo",
+    "status": "done",
     "acceptance": "H2: select_text selects a cell range in Spreadsheets and reads the address back; an untitled_document setup step creates an untitled document with text in WPS for the save-as task."
   },
   {

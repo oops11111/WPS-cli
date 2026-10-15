@@ -58,13 +58,25 @@ PRESENTATION_FIXTURE_TEXTS = ("Quarterly review", "Status: DRAFT")
 # table_report.docx: one heading paragraph and one table.
 WRITER_TABLE_HEADING = "Regional status"
 WRITER_TABLE_ROWS = (("Region", "Q1", "Status"), ("North", "120", "DRAFT"), ("South", "95", "DRAFT"))
+# status.xlsx: the same table on one sheet, for the spreadsheet selection tasks (P7-003).
+SPREADSHEET_STATUS_SHEET = "Status"
+SPREADSHEET_STATUS_ROWS = (("Region", "Q1", "Status"), ("North", 120, "DRAFT"), ("South", 95, "DRAFT"))
 
 
 def write_fixture(workspace: Path, name: str) -> str:
     """Write the task's fixture, chosen by its suffix: .xlsx, .docx or .pptx."""
     path = workspace / name
     suffix = path.suffix.lower()
-    if suffix == ".xlsx":
+    if suffix == ".xlsx" and path.name == "status.xlsx":
+        from openpyxl import Workbook
+
+        workbook = Workbook()
+        sheet = workbook.active
+        sheet.title = SPREADSHEET_STATUS_SHEET
+        for row in SPREADSHEET_STATUS_ROWS:
+            sheet.append(list(row))
+        workbook.save(path)
+    elif suffix == ".xlsx":
         from openpyxl import Workbook
 
         workbook = Workbook()
@@ -196,6 +208,59 @@ __ATTACH__
 function Out-Result($value) { $value | ConvertTo-Json -Depth 5; exit 0 }
 $app = Get-RunningWpsApp @($params.prog_ids)
 if ($null -eq $app) { Out-Result ([pscustomobject]@{ ok = $true; status = (Get-WpsMissingStatus @($params.prog_ids)) }) }
+$collectionName = @{ writer = 'Documents'; spreadsheets = 'Workbooks'; presentation = 'Presentations' }[[string]$params.component]
+if ($params.action -eq 'new_untitled') {
+  # A new document that has never been saved, with some text, for the Save As tasks (P7-003).
+  $text = [string]$params.text
+  $new = $app.($collectionName).Add()
+  if ($params.component -eq 'writer') {
+    $new.Content.Text = $text
+  } elseif ($params.component -eq 'spreadsheets') {
+    $new.Worksheets.Item(1).Range('A1').Value2 = $text
+  } else {
+    $slide = $new.Slides.Add(1, 12)
+    $box = $slide.Shapes.AddTextbox(1, 50, 50, 600, 60)
+    $box.TextFrame.TextRange.Text = $text
+  }
+  Out-Result ([pscustomobject]@{
+    ok = $true; status = 'ok'; name = [string]$new.Name; full_name = [string]$new.FullName; saved = [bool]$new.Saved
+  })
+}
+if ($params.action -eq 'close_untitled') {
+  $collection = $app.($collectionName)
+  for ($i = [int]$collection.Count; $i -ge 1; $i--) {
+    $item = $collection.Item($i)
+    if ([string]$item.Name -ne [string]$params.name) { continue }
+    $onDisk = $false
+    try { $onDisk = [System.IO.File]::Exists([string]$item.FullName) } catch { }
+    if ($onDisk) { continue }
+    if ($params.component -eq 'writer') { $item.Close(0) }
+    elseif ($params.component -eq 'spreadsheets') { $item.Close($false) }
+    else { $item.Saved = -1; $item.Close() }
+    Out-Result ([pscustomobject]@{ ok = $true; status = 'closed' })
+  }
+  Out-Result ([pscustomobject]@{ ok = $true; status = 'not_found' })
+}
+if ($params.component -eq 'spreadsheets') {
+  $doc = Find-OpenWorkbook $app $params.path
+  if ($null -eq $doc) { Out-Result ([pscustomobject]@{ ok = $true; status = 'not_open' }) }
+  if ($params.action -eq 'close_discard') {
+    $doc.Close($false)
+    Out-Result ([pscustomobject]@{ ok = $true; status = 'closed' })
+  }
+  if ($params.action -ne 'select') { Out-Result ([pscustomobject]@{ ok = $true; status = 'unsupported' }) }
+  # Select a cell range through COM and read its address back (P7-003).
+  try { $doc.Activate() } catch { }
+  if ([string]::IsNullOrEmpty([string]$params.sheet)) { $sheet = $doc.Worksheets.Item(1) }
+  else { $sheet = $doc.Worksheets.Item([string]$params.sheet) }
+  $sheet.Activate()
+  $sheet.Range([string]$params.range).Select()
+  $selection = $app.ActiveWindow.Selection
+  Out-Result ([pscustomobject]@{
+    ok = $true; status = 'ok'; address = [string]$selection.Address($false, $false)
+    sheet = [string]$selection.Worksheet.Name; saved = [bool]$doc.Saved
+  })
+}
 if ($params.component -eq 'presentation') {
   $doc = Find-OpenPresentation $app $params.path
   if ($null -eq $doc) { Out-Result ([pscustomobject]@{ ok = $true; status = 'not_open' }) }
@@ -408,8 +473,35 @@ def release_opened_fixture(component: str, path: Path, started: set[int]) -> str
     return f"fixture {closed}; processes {stop_started_wps(component, started)}"
 
 
-def prepare_open_document(step: str, fixture: Path, component: str, options: dict[str, Any]) -> str | None:
-    """Run a step that needs the document open in WPS. Returns a reason when it could not be done."""
+def prepare_open_document(
+    step: str, fixture: Path, component: str, options: dict[str, Any], state: dict[str, Any] | None = None
+) -> str | None:
+    """Run a step that needs the document open in WPS. Returns a reason when it could not be done.
+
+    `state` collects what a step made that the run needs later: the name of an untitled document.
+    """
+    state = {} if state is None else state
+    if step == "select_text" and component == "spreadsheets":
+        selection = options.get("selection") or {}
+        wanted = str(selection.get("range") or "").replace("$", "").upper()
+        payload = wps_document_action(component, fixture, "select", range=wanted, sheet=selection.get("sheet"))
+        if payload.get("status") != "ok":
+            return f"select_text: {payload.get('status')} {payload.get('errors') or ''}".strip()
+        got = str(payload.get("address") or "").replace("$", "").upper()
+        if got != wanted:
+            return f"select_text: WPS selected {got!r}, expected {wanted!r}"
+        sheet = selection.get("sheet")
+        if sheet and payload.get("sheet") != sheet:
+            return f"select_text: WPS selected cells on sheet {payload.get('sheet')!r}, expected {sheet!r}"
+        return None
+    if step == "untitled_document":
+        text = str(options.get("untitled_text") or "Draft notes")
+        payload = wps_document_action(component, fixture, "new_untitled", text=text)
+        name = str(payload.get("name") or "")
+        if payload.get("status") != "ok" or not name:
+            return f"untitled_document: {payload.get('status')} {payload.get('errors') or ''}".strip()
+        state["untitled_name"] = name
+        return None
     if step == "select_text":
         selection = options.get("selection") or {}
         text = str(selection.get("text") or "")
@@ -436,18 +528,50 @@ def prepare_open_document(step: str, fixture: Path, component: str, options: dic
     raise ValueError(f"unknown setup step {step}")
 
 
-OPEN_DOCUMENT_STEPS = ("select_text", "append_unsaved")
+OPEN_DOCUMENT_STEPS = ("select_text", "append_unsaved", "untitled_document")
+
+
+def close_workspace_documents(component: str, workspace: Path, fixture: Path, untitled_name: str | None) -> str:
+    """Close what a run left open in WPS besides the fixture: the untitled document, or the file it was saved as.
+
+    Both are the runner's own: the untitled document was made by the untitled_document step, and anything else
+    WPS lists inside the task workspace was saved there during the run. They are closed without saving.
+    """
+    from wps_ai_agent_cli.open_documents import list_open_documents
+
+    notes = []
+    if untitled_name:
+        payload = wps_document_action(component, fixture, "close_untitled", name=untitled_name)
+        notes.append(f"untitled {untitled_name} {payload.get('status')}")
+    root = str(workspace.resolve()).casefold()
+    _ok, data, _errors = list_open_documents(component)
+    for item in data.get("documents", []):
+        full = str(item.get("full_name") or "")
+        if not full:
+            continue
+        path = Path(full)
+        resolved = str(path.resolve()).casefold()
+        if resolved.startswith(root) and resolved != str(fixture.resolve()).casefold():
+            notes.append(f"{path.name} {wps_document_action(component, path, 'close_discard').get('status')}")
+    return "; ".join(notes) or "no other documents"
 
 
 def run_setup(
-    steps: list[str], workspace: Path, fixture: Path, component: str, options: dict[str, Any] | None = None
+    steps: list[str],
+    workspace: Path,
+    fixture: Path,
+    component: str,
+    options: dict[str, Any] | None = None,
+    state: dict[str, Any] | None = None,
 ) -> tuple[str, Callable[[], None] | None, str | None]:
     """Prepare the workspace.
 
     Returns (hash of the file as the agent receives it, release for a held or opened file, skip reason). The
     hash is taken before a hold or an open, because a held file cannot be read; "hold" must be the last step,
-    and only steps that work on the open document (select_text, append_unsaved) may follow "open_in_wps".
+    and only steps that work on the open document (select_text, append_unsaved, untitled_document) may follow
+    "open_in_wps". `state` receives what the steps made, such as untitled_name.
     """
+    state = {} if state is None else state
     for index, step in enumerate(steps):
         if step == "register":
             ok, record, errors = register_document(component, str(fixture), workspace)
@@ -472,11 +596,18 @@ def run_setup(
             if any(item not in allowed for item in later):
                 raise ValueError(f"setup step {step} can only be followed by {list(allowed)}, not {later}")
             start_sha = file_sha256(fixture)
-            release, reason = hold_file(fixture) if step == "hold" else open_in_wps(fixture, component)
-            if release is None:
+            opened, reason = hold_file(fixture) if step == "hold" else open_in_wps(fixture, component)
+            if opened is None:
                 return start_sha, None, reason
+            release = opened
+            if "untitled_document" in later:
+
+                def release(opened: Callable[[], Any] = opened) -> str:
+                    others = close_workspace_documents(component, workspace, fixture, state.get("untitled_name"))
+                    return f"{others}; {opened()}"
+
             for item in later:
-                reason = prepare_open_document(item, fixture, component, options or {})
+                reason = prepare_open_document(item, fixture, component, options or {}, state)
                 if reason:
                     release()
                     return start_sha, None, reason
@@ -776,13 +907,18 @@ def run_task(
     workspace.mkdir(parents=True)
     fixture = workspace / fixture_name
     seed_sha = write_fixture(workspace, fixture_name)
-    fixture_sha, release, skip_reason = run_setup(task.get("setup", []), workspace, fixture, component, task)
+    state: dict[str, Any] = {}
+    fixture_sha, release, skip_reason = run_setup(
+        task.get("setup", []), workspace, fixture, component, task, state=state
+    )
     if skip_reason:
         return {"id": task["id"], "passed": False, "skipped": skip_reason, "agent": {}, "checks": []}
+    # WPS names an untitled document itself (for example "文字文稿2"), so the prompt can only name it now.
+    prompt = task["prompt"].replace("{untitled_name}", state.get("untitled_name", "{untitled_name}"))
     cleanup = None
     try:
         mcp_config = write_mcp_config(workspace)
-        agent = runner(task["prompt"], mcp_config, workspace, model, max_turns, timeout)
+        agent = runner(prompt, mcp_config, workspace, model, max_turns, timeout)
     finally:
         if release is not None:
             cleanup = release()
@@ -800,6 +936,8 @@ def run_task(
         result["agent_error"] = error
     if cleanup:
         result["cleanup"] = cleanup
+    if state.get("untitled_name"):
+        result["untitled_name"] = state["untitled_name"]
     return result
 
 
