@@ -65,7 +65,7 @@ PHASES: tuple[Phase, ...] = (
     Phase(
         id="phase5",
         name="First release and broader coverage",
-        status="active",
+        status="done",
         goal=(
             "Make every tool failure visible to agents, widen the agent evaluation beyond the four "
             "write tasks, and publish a first release that works without the repository."

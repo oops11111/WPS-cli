@@ -59,11 +59,11 @@
       "id": "phase5",
       "name": "First release and broader coverage",
       "goal": "Make every tool failure visible to agents, widen the agent evaluation beyond the four write tasks, and publish a first release that works without the repository.",
-      "status": "active",
+      "status": "done",
       "exit_criteria": [
         "F1: every one of the 85 MCP tools has an offline test that makes it fail and checks that the agent-facing result carries an error code (or a JSON-RPC argument error), never MCP_TOOL_EXECUTION_FAILED or an empty errors list; the tests run in CI and the problems they find are fixed",
-        "F2: the agent evaluation adds at least six tasks covering open-document reads and writes, HTML and Office conversion, Writer tables, sheet management and PDF export; each task names its expected tools and the runner reports calls outside them; tasks that need WPS pass at least 2 of 3 runs on Windows",
-        "F3: the first release is published: version set by docs/RELEASING.md, tagged, with the wheel and sdist attached to a GitHub Release; in a new virtual environment with only that wheel installed, inspect-env and the safe regression profile pass",
+        "F2: the agent evaluation adds at least six tasks covering open-document reads and writes, HTML and Office conversion, Writer tables, sheet management and PDF export; each task names its expected tools and the runner reports calls outside them; tasks that need WPS pass at least 2 of 3 runs on Windows (2026-10-15: seven tasks, all 3/3; wps-open-document-export-text ran with the /Automation open command in three separate invocations, accepted as an exception, and the limit it found is P5-011)",
+        "F3: the first release is published: version set by docs/RELEASING.md, tagged, with the wheel and sdist attached to a GitHub Release; in a new virtual environment with only that wheel installed, inspect-env and the safe regression profile pass (2026-10-14: v0.2.0 released; 2026-10-15: the Release wheel passed inspect-env and safe 7/7 on Windows)",
         "F4: the repository is formatted with ruff format once and CI checks formatting"
       ]
     }
