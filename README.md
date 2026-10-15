@@ -140,7 +140,7 @@ PYTHONPATH=src python3 -m unittest discover -s tests
 - Phase 4: 已完成（多环境与 Agent 工作流就绪），6 项出口标准均已达成，例外见 `docs/PHASE4_PLAN.md` 开头：兼容矩阵只有一个 WPS 版本（12.8.2.18913），安装检查不是在全新机器上做的
 - Phase 5: 已完成（首个正式版本与覆盖扩展），4 项出口标准均已达成：85 个工具的失败都能被 Agent 看到，评测增至 19 个任务，`v0.2.0` 已发布到 GitHub Release（只装 wheel 即可跑 safe 档回归）。例外和遗留缺口（P5-010 第二个 WPS 版本、P5-011 常规打开的 WPS 文字不注册 COM）见 `docs/PHASE5_PLAN.md` 开头
 - Phase 6: 已完成（用户打开的文档），3 项出口标准均已达成：常规打开的文字、表格、演示都能被已打开文档命令看到；Agent 能在已打开的文档上替换、插入、保存；`v0.3.0` 已发布。遗留缺口见 `docs/PHASE6_PLAN.md` 开头
-- Phase 7（planned）: 已打开文档的写入可撤回、全覆盖，计划与待确认的决定见 `docs/PHASE7_PLAN.md`，`wps-agent tasks --phase phase7` 可列出任务
+- 当前 Phase 7（active）: 已打开文档的写入可撤回、全覆盖，出口标准与任务见 `docs/PHASE7_PLAN.md`，`wps-agent tasks --phase phase7` 可列出任务
 
 ## 命令速查
 

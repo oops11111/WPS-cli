@@ -83,7 +83,7 @@ PHASES: tuple[Phase, ...] = (
     Phase(
         id="phase7",
         name="Open-document writes: undo in WPS and full coverage",
-        status="planned",
+        status="active",
         goal=(
             "Undo a failed open-document write inside WPS instead of a blocked file rollback, evaluate every "
             "open-document write command on Windows, run the Windows checks with one command, and release 0.4.0."

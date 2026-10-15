@@ -1,7 +1,7 @@
 {
   "product": "WPS AI Agent CLI",
   "source_prd": "WPS_AI_Agent_CLI_PRD_v1.1.docx",
-  "current_phase": "phase6",
+  "current_phase": "phase7",
   "phases": [
     {
       "id": "phase0",
@@ -82,7 +82,7 @@
       "id": "phase7",
       "name": "Open-document writes: undo in WPS and full coverage",
       "goal": "Undo a failed open-document write inside WPS instead of a blocked file rollback, evaluate every open-document write command on Windows, run the Windows checks with one command, and release 0.4.0.",
-      "status": "planned",
+      "status": "active",
       "exit_criteria": [
         "H1: when one of the 8 open-document selection writes has changed the document in WPS and a later check fails, the command undoes the change in the same WPS instance, reads it back and reports rolled_back_in_wps, never MUTATION_ROLLBACK_BLOCKED because WPS holds the file; if the undo itself fails, a dedicated error code says what state the document is in and what to do, and the user's document is not closed or saved; fake-COM tests per component and an in-process injected read-back failure verified on Windows for Writer and Presentation",
         "H2: at least five new agent-eval tasks cover at least five of writer_selection_delete, presentation_selection_insert, presentation_selection_delete, spreadsheet_selection_replace, spreadsheet_selection_delete and save_as_open_document, each naming its expected tools; all WPS open-document tasks pass at least 2 of 3 runs on Windows in one --repeat 3 invocation without changing the system open command",
