@@ -39,7 +39,7 @@ A task can list `setup` steps that prepare the workspace before the agent starts
 | `wps-docx-to-pdf` (WPS) | convert `report.docx` to `report.pdf` | a `convert_smoke` call with `format: "pdf"`; `report.pdf` starts with `%PDF-` and has at least 1000 bytes; `report.docx` unchanged |
 | `wps-open-document-export-text` (WPS) | find `report.docx`, opened in WPS by the `open_in_wps` step, and export its text to `report.txt` | `open_documents` and `export_open_document_text` calls; `report.txt` has the three paragraphs; no `save_open_document` call; `report.docx` unchanged |
 
-The ten tasks without (WPS) use only offline tools and run on any machine with the `claude` CLI logged in. The nine (WPS) tasks need WPS on Windows. The first four were run in P4-007 (results below); the last five, added in P5-005, have only been checked offline against a stand-in agent until P5-006 runs them on Windows.
+The ten tasks without (WPS) use only offline tools and run on any machine with the `claude` CLI logged in. The nine (WPS) tasks need WPS on Windows. The first four were run in P4-007 (results below). The last five, added in P5-005, were run on Windows in P5-006 (results below); all five passed 3/3.
 
 `held-document-backup` needs a machine that can hold the file. On Windows the runner opens it with no sharing. On other systems it removes all permissions, which does not work for root. When the file cannot be held, the task is reported as skipped, not as passed or failed.
 
@@ -63,7 +63,7 @@ The runner needs `claude` on `PATH`. It runs the CLI with `--output-format strea
 
 `--repeat N` runs each task N times, each in its own workspace under `run-<n>/`. A task passes when at least `--min-passes` runs pass; by default every run must pass. The summary records each run, the number of passes and the pass rate. Phase 4 judges WPS write tasks with `--repeat 3 --min-passes 2`.
 
-A task with `"requires_wps": true` runs only when this machine has a registered WPS ProgID for the task's component, found with the project's own capability probe. Otherwise it is reported as skipped with the reason. A skip ends the task after the first attempt, because it does not depend on the run.
+A task with `"requires_wps": true` runs only when this machine has a registered WPS ProgID for the task's component, found with the project's own capability probe. Otherwise it is reported as skipped with the reason. A skip on the first attempt ends the task, because it does not depend on the run. When setup fails only on a later attempt (for example `open_in_wps` timing out after an earlier run passed), that attempt counts as a failed run with `setup_failed` and the reason, and the earlier runs are kept.
 
 Each run writes `summary.json` under `<out>/run-<timestamp>/`. For each task it holds the agent's turns, duration, cost, reply excerpt, every tool call with its input and error codes, the tool metrics and every check result. The summary also totals `wps-agent` calls and calls that returned an error.
 
@@ -125,10 +125,55 @@ After `git pull` to `6484151`. Claude Code CLI 2.1.295, CLI default model. `--re
 
 Every run saw `DOCUMENT_HELD_OPEN` on `spreadsheet_write` (run 1 also on `spreadsheet_sheets` and `spreadsheet_read`). `no_operation`, `backup_count` 0, `restore_backup` not called, and `file_unchanged` all passed.
 
+### P5-006 Windows runs of the Phase 5 tasks (2026-10-15)
+
+Branch `docs/p5-windows-runbook` at `bcdbc1d` (the runbook commit on `main` `f2ed99e`). Windows 10.0.19045. WPS Writer, Spreadsheets and Presentation file version 12.8.2.18913. Claude Code CLI 2.1.295, CLI default model. No `--model`.
+
+The seven-task command was:
+
+```powershell
+python scripts/agent_eval/run_agent_eval.py `
+  --only wps-spreadsheet-rename-sheet --only wps-spreadsheet-create-sheet `
+  --only wps-writer-table-write --only wps-docx-to-pdf --only wps-open-document-export-text `
+  --only spreadsheet-sheets-and-read --only html-table-to-docx `
+  --repeat 3 --min-passes 2 --out $env:TEMP\wps-p5\eval
+```
+
+Artifact: `%TEMP%\wps-p5\eval\run-20261014T232138695884Z\summary.json`. Six tasks passed there. `wps-open-document-export-text` was skipped, so it is not one of those runs.
+
+| Task | Passes | Turns | `wps-agent` calls | Tool errors | `off_path_calls` | `off_path_tools` |
+| --- | --- | --- | --- | --- | --- | --- |
+| `spreadsheet-sheets-and-read` | 3/3 | 4.0 (4, 4, 4) | 9 | 0 | 0 | |
+| `html-table-to-docx` | 3/3 | 11.0 (8, 13, 12) | 20 | 0 | 17 | `register_document`, `snapshot_document`, `validate_document`, `writer_structure`, `writer_table_write` |
+| `wps-spreadsheet-rename-sheet` | 3/3 | 5.0 (5, 3, 7) | 12 | 0 | 3 | `spreadsheet_read` |
+| `wps-spreadsheet-create-sheet` | 3/3 | 5.3 (5, 5, 6) | 13 | 0 | 1 | `spreadsheet_read` |
+| `wps-writer-table-write` | 3/3 | 15.3 (15, 16, 15) | 41 | 2 | 1 | `operation` |
+| `wps-docx-to-pdf` | 3/3 | 9.0 (16, 7, 4) | 7 | 0 | 4 | `inspect_env`, `register_document`, `snapshot_document` |
+| `wps-open-document-export-text` | 3/3 | 4.0 (4, 4, 4) | 6 | 0 | 0 | |
+
+`spreadsheet_read` after a rename or a new sheet was a read of the workbook. On `html-table-to-docx` the extra tools registered the new docx, validated it, read its structure, took a snapshot, and wrote table cells in addition to `html_editable`. On `wps-docx-to-pdf` the extra tools probed the environment, registered the docx and took a snapshot before `convert_smoke`. On `wps-writer-table-write` run 2 called `operation` once. Run 1 of that task called `writer_table_write` twice and got `CELL_NOT_FOUND` both times; a later call passed the checks. The other two runs had no tool error.
+
+`wps-open-document-export-text` did not pass inside the command above. `.docx` is `Word.Document.12`, and that open command is `wps.exe "%1"`. `os.startfile` did open `report.docx` in WPS 文字, but that process does not register `kwps.Application`, so `open-documents` reported no running Writer within 45 s. Launching the same file as `wps.exe /Automation "%1"` does register, and the document is listed. For the rerun, the current user's open command was set to that form, then removed. The stock `wps.exe "%1"` command is back.
+
+One `--repeat 3` with that open command still skipped. The first run's Writer stayed registered after the document was closed, the second `startfile` started another `wps.exe`, and `GetActiveObject` kept the first process, which did not have the new file. The runner treats that skip as the whole task and drops the earlier run. The three runs that count were therefore separate `--repeat 1 --min-passes 1` invocations, with that test Writer closed between them:
+
+```powershell
+python scripts/agent_eval/run_agent_eval.py --only wps-open-document-export-text --repeat 1 --min-passes 1 --out $env:TEMP\wps-p5\eval-open-1
+python scripts/agent_eval/run_agent_eval.py --only wps-open-document-export-text --repeat 1 --min-passes 1 --out $env:TEMP\wps-p5\eval-open-2
+python scripts/agent_eval/run_agent_eval.py --only wps-open-document-export-text --repeat 1 --min-passes 1 --out $env:TEMP\wps-p5\eval-open-3
+```
+
+Artifacts: `%TEMP%\wps-p5\eval-open-1\run-20261014T233956946366Z\summary.json`, `%TEMP%\wps-p5\eval-open-2\run-20261014T234027391555Z\summary.json`, `%TEMP%\wps-p5\eval-open-3\run-20261014T234056048453Z\summary.json`. Each run was 4 turns, 2 `wps-agent` calls (`open_documents`, `export_open_document_text`), 0 tool errors, 0 off-path calls. `report.txt` had the three paragraphs, `save_open_document` was not called, and `report.docx` was unchanged. No `report.docx` window was left open.
+
+**Accepted with an exception (2026-10-15).** P5-006 counts these three runs: the task passes 3/3, so F2 is met. The exception is how they were run: the current user's `.docx` open command was changed to `wps.exe /Automation "%1"` for the runs and then restored, and each run was its own invocation. A run that skipped after an earlier one had passed no longer drops the earlier run: the runner now records it as a failed run with `setup_failed`.
+
+What this found about the product is in Limits below: the open-document tools cannot see a Writer that the user opened normally on this machine.
+
 ## Limits
 
 - Nineteen tasks are still a small set, not a benchmark. Ten run offline (registration, backup, idempotent retry, restore, dry run, a held file, HTML to xlsx and docx, reading sheets); nine marked (WPS) need WPS on Windows and are skipped elsewhere. Together they use 18 of the 85 tools.
-- The WPS tasks were run on one Windows machine with one WPS version (P4-007). All four pass 3/3: the three write tasks on `4999b77`, `wps-held-spreadsheet-write` on `6484151`. The first runs of the held task failed because of two server bugs, fixed in PRs #55 and #56. Those fixes change only what a failed call returns, so the three passing write tasks were not rerun.
+- The WPS tasks were run on one Windows machine with one WPS version: the first four in P4-007, the five Phase 5 tasks in P5-006, all 3/3. The P4-007 tasks pass on these commits: the three write tasks on `4999b77`, `wps-held-spreadsheet-write` on `6484151`. The first runs of the held task failed because of two server bugs, fixed in PRs #55 and #56. Those fixes change only what a failed call returns, so the three passing write tasks were not rerun.
+- The open-document tools attach with `GetActiveObject`. On the P5-006 machine (WPS 12.8.2.18913), a WPS Writer started by opening a `.docx` the usual way (`wps.exe "%1"`) does not register `kwps.Application`, so `open_documents` does not list its documents; a Writer started with `/Automation` does. Spreadsheets opened the usual way were seen in P4-011. `wps-open-document-export-text` therefore needs the `/Automation` open command, and running it with `--repeat` needs the Writer from the earlier run closed first. P5-011 looks into this.
 - There is no held-file recovery task. The runner cannot make WPS open a document and block a rollback, so recovery with `restore-backup --close-in-wps` is checked by hand in P4-011 instead.
 - The judge checks state and tool calls, so a correct-sounding reply with the wrong state fails. A failure to report the result accurately is not detected here.
 - Results depend on the model the CLI uses. Record it with `--model` when comparing runs.

@@ -754,6 +754,44 @@ class AgentEvalJudgeTests(unittest.TestCase):
         summary = run_agent_eval.summarize([result], "stamp", None)
         self.assertEqual((summary["total"], summary["skipped"]), (0, 1))
 
+    def test_a_setup_that_fails_on_a_later_run_is_a_failed_run_and_keeps_the_earlier_ones(self):
+        # On Windows, a WPS Writer from run 1 can stay registered and hide the document run 2 opens (P5-006).
+        reasons = iter([None, "WPS did not list report.docx as open within 45 s", None])
+        released = []
+
+        def setup(steps, workspace, fixture, component):
+            reason = next(reasons)
+            sha = run_agent_eval.file_sha256(fixture)
+            if reason:
+                return sha, None, reason
+            return sha, (lambda: released.append(workspace)), None
+
+        def agent(workspace):
+            create_backup(_register(workspace), "eval-backup-1", workspace=workspace)
+
+        with tempfile.TemporaryDirectory() as tmp, patch.object(run_agent_eval, "run_setup", side_effect=setup):
+            result = run_agent_eval.run_task_repeated(
+                _task("register-and-backup"),
+                "book.xlsx",
+                "spreadsheets",
+                Path(tmp),
+                None,
+                15,
+                60,
+                repeat=3,
+                min_passes=2,
+                runner=_fake_agent(agent),
+            )
+
+        self.assertNotIn("skipped", result)
+        self.assertEqual([run["passed"] for run in result["runs"]], [True, False, True])
+        self.assertIn("did not list", result["runs"][1]["setup_failed"])
+        self.assertEqual(result["runs"][1]["metrics"]["wps_tool_calls"], 0)
+        self.assertEqual((result["passes"], result["passed"]), (2, True))
+        self.assertEqual(len(released), 2)
+        summary = run_agent_eval.summarize([result], "stamp", None)
+        self.assertEqual((summary["passed"], summary["total"], summary["skipped"]), (1, 1, 0))
+
     def test_repeat_options_are_validated(self):
         for argv in (["--repeat", "0"], ["--repeat", "2", "--min-passes", "3"], ["--min-passes", "0"]):
             with self.subTest(argv=argv), self.assertRaises(SystemExit) as raised:

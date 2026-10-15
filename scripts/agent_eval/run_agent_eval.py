@@ -551,7 +551,9 @@ def run_task_repeated(
 ) -> dict[str, Any]:
     """Run a task `repeat` times, each in its own workspace. It passes when at least `min_passes` runs pass.
 
-    A skip (no WPS, or a file that cannot be held) does not depend on the run, so the first one ends the task.
+    A skip on the first run (no WPS, or a file that cannot be held) does not depend on the run, so it ends the
+    task. A setup that fails only on a later run (for example WPS not listing a document it opened before) is
+    that run failing: it counts as a failed run with `setup_failed`, and the earlier runs are kept.
     """
     runs = []
     for index in range(1, repeat + 1):
@@ -567,7 +569,16 @@ def run_task_repeated(
             has_wps=has_wps,
         )
         if result.get("skipped"):
-            return {"id": task["id"], "passed": False, "skipped": result["skipped"], "runs": []}
+            if not runs:
+                return {"id": task["id"], "passed": False, "skipped": result["skipped"], "runs": []}
+            result = {
+                "id": task["id"],
+                "passed": False,
+                "setup_failed": result["skipped"],
+                "agent": {},
+                "metrics": tool_metrics([], task.get("expected_tools")),
+                "checks": [],
+            }
         runs.append(result)
     passes = sum(run["passed"] for run in runs)
     return {
@@ -652,6 +663,8 @@ def main(argv: list[str] | None = None) -> int:
         )
         for index, run in enumerate(result["runs"], 1):
             label = f"  run {index}: " if result["repeat"] > 1 else ""
+            if run.get("setup_failed"):
+                print(f"    {label}BAD setup: {run['setup_failed']}")
             for check in run["checks"]:
                 print(f"    {label}{'ok ' if check['passed'] else 'BAD'} {check['kind']}: {check['detail']}")
     print(f"{summary['passed']}/{summary['total']} passed, {summary['skipped']} skipped; artifact: {artifact}")
