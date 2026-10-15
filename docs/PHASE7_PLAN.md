@@ -48,7 +48,7 @@ Phase 6 让已打开文档的命令能看到用户打开的文档，并证明 Ag
 | 任务 | 对应标准 | 内容 | 在哪做 |
 | --- | --- | --- | --- |
 | P7-001 | H1 | 8 个已打开文档写入命令在 WPS 改动后失败时，改为在 WPS 里做反向操作撤回、保存、读回核对；结果写明 `rolled_back_in_wps`；撤回失败时返回新错误码。每个组件补假 COM 测试（已完成：`open_documents._undo_in_wps` 和 `open_document_scripts/revert.py`；撤回失败的错误码是 `MUTATION_ROLLBACK_IN_WPS_FAILED`。WPS 重新保存的文件和备份的字节不会相同，所以核对的是文件内容：Writer 和演示比文字，表格比每个非空单元格；表格里的图表和图形选区没有记录原值，不撤回，返回这个错误码并说明怎么恢复） | 本地 |
-| P7-002 | H1 | 写进程内注入脚本：让读回校验失败，触发撤回，记录前后哈希。Writer 和演示各一个场景 | 本地 |
+| P7-002 | H1 | 写进程内注入脚本：让读回校验失败，触发撤回，记录前后哈希。Writer 和演示各一个场景（已完成：`scripts/windows_check/undo_injection.py`，由 `run_windows_check.py undo` 运行并写出结果） | 本地 |
 | P7-003 | H2 | runner 的 `select_text` 支持表格（单元格区域）；新增 `untitled_document` 准备步骤（在 WPS 里新建一个未命名文档并写入文字），供另存为任务使用 | 本地 |
 | P7-004 | H2 | 编写至少 5 个新任务，每个补离线判定测试 | 本地 |
 | P7-005 | H3 | `scripts/windows_check/`：前提检查、调用评测或 wheel 检查、生成结果文件；离线测试覆盖前提检查和结果格式（已完成：`scripts/windows_check/run_windows_check.py`，子命令 `prereq`、`eval`、`wheel`，用法见同目录 README） | 本地 |
