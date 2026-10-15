@@ -4,14 +4,18 @@ All notable changes to `wps-ai-agent-cli`. The versioning rule and release steps
 
 ## [Unreleased]
 
-### Changed
+## [0.4.0] - 2026-10-15
 
-- `validate-document` (MCP `validate_document`) says what it needs. Agents kept calling it with only a `document_id`, as a general check, and got `INVALID_ARGUMENT` with `writer validation requires --contains.` (P6-008). The tool description now says it checks one expected value: `contains` for Writer, `cell` and `equals` for Spreadsheets. Each parameter says which component requires it, and the description says to use `snapshot_document` to read a document. The `INVALID_ARGUMENT` messages name the missing argument, give an example and point to `snapshot_document`. A cell that is not one A1 address, such as `Sheet1!B2`, is now `INVALID_ARGUMENT` instead of an unexpected error. `VALIDATION_FAILED` says what was compared: the text that was not found and that the match is exact, or the value the cell holds. (P7-006)
-- The eight open-document selection writes (Writer, Presentation and Spreadsheets selection replace, insert and delete) undo a failed write inside WPS. When WPS has saved the write but a later check rejects it, the command puts the original text or cells back in the same WPS instance with the inverse edit, reads them back, saves, and compares the saved file's content with the pre-write backup. It then returns `MUTATION_ROLLED_BACK` with `data.rollback.rolled_back_in_wps` set to `true`. Before, it tried to copy the backup over the file, which WPS holds, so these commands always ended in `MUTATION_ROLLBACK_BLOCKED` (seen in P6-008). The undo only changes the place the write changed, and only if that place still holds exactly what the write left there. (P7-001)
+Phase 7: a failed write to a document open in WPS is undone inside WPS, and `validate-document` says what it needs.
 
 ### Added
 
 - New error code `MUTATION_ROLLBACK_IN_WPS_FAILED`: the undo inside WPS did not happen or could not be confirmed. The message says what state the document is in and how to get back to the pre-write backup. The document is never closed, and it is not saved unless the undo read back as the original. Chart and shape selections in Spreadsheets are not undone this way and also return this code. (P7-001)
+
+### Changed
+
+- The eight open-document selection writes (Writer, Presentation and Spreadsheets selection replace, insert and delete) undo a failed write inside WPS. When WPS has saved the write but a later check rejects it, the command puts the original text or cells back in the same WPS instance with the inverse edit, reads them back, saves, and compares the saved file's content with the pre-write backup. It then returns `MUTATION_ROLLED_BACK` with `data.rollback.rolled_back_in_wps` set to `true`. Before, it tried to copy the backup over the file, which WPS holds, so these commands always ended in `MUTATION_ROLLBACK_BLOCKED` (seen in P6-008). The undo only changes the place the write changed, and only if that place still holds exactly what the write left there. (P7-001)
+- `validate-document` (MCP `validate_document`) says what it needs. Agents kept calling it with only a `document_id`, as a general check, and got `INVALID_ARGUMENT` with `writer validation requires --contains.` (P6-008). The tool description now says it checks one expected value: `contains` for Writer, `cell` and `equals` for Spreadsheets. Each parameter says which component requires it, and the description says to use `snapshot_document` to read a document. The `INVALID_ARGUMENT` messages name the missing argument, give an example and point to `snapshot_document`. A cell that is not one A1 address, such as `Sheet1!B2`, is now `INVALID_ARGUMENT` instead of an unexpected error. `VALIDATION_FAILED` says what was compared: the text that was not found and that the match is exact, or the value the cell holds. (P7-006)
 
 ## [0.3.0] - 2026-10-15
 

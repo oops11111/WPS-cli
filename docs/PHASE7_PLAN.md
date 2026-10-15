@@ -54,7 +54,7 @@ Phase 6 让已打开文档的命令能看到用户打开的文档，并证明 Ag
 | P7-005 | H3 | `scripts/windows_check/`：前提检查、调用评测或 wheel 检查、生成结果文件；离线测试覆盖前提检查和结果格式（已完成：`scripts/windows_check/run_windows_check.py`，子命令 `prereq`、`eval`、`wheel`，用法见同目录 README） | 本地 |
 | P7-006 | 缺口 | 查清 Agent 为什么常用错 `validate_document`，改进它的参数说明和 `INVALID_ARGUMENT` 的错误信息（已完成：原因是工具说明只写“Run basic validation checks”、只要求 `document_id`，Agent 把它当成通用检查，只传 `document_id`；现在说明写明它只核对一个值、每个组件要传什么、只传 `document_id` 会失败、读文档用 `snapshot_document`，错误信息写出缺哪个参数并给例子） | 本地 |
 | P7-007 | H1、H2 | 在 Windows 上用 P7-005 的脚本：跑 P7-002 的注入场景，再把所有已打开文档任务各跑 3 次 | Windows |
-| P7-008 | H4 | 定版本 0.4.0，整理 `CHANGELOG.md`，合并后由你推送 `v0.4.0` 标签 | 本地 + 你 |
+| P7-008 | H4 | 定版本 0.4.0，整理 `CHANGELOG.md`，合并后由你推送 `v0.4.0` 标签（已准备：`__version__` 为 `0.4.0`，`CHANGELOG.md` 有 `[0.4.0] - 2026-10-15` 一节，包含 P7-001 和 P7-006；标签待推送） | 本地 + 你 |
 | P7-009 | H4 | 在 Windows 上用 P7-005 的脚本检查 Release 的 wheel | Windows |
 
 P5-010 仍留在 Phase 5 的缺口里，不在这里重复列出。
