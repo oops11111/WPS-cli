@@ -1,0 +1,204 @@
+{
+  "backend": "local-python",
+  "command": "regression-run",
+  "data": {
+    "regression": {
+      "failed_count": 1,
+      "include_wps": true,
+      "manifest_path": "config/regression_manifest.json",
+      "output_dir": "C:\\Users\\admin\\wps cli\\artifacts\\regression\\outputs\\20261014T141928Z-ee4603bc",
+      "passed_count": 3,
+      "profile": "compat",
+      "results": [
+        {
+          "category": "wps",
+          "checks": [
+            {
+              "details": {
+                "actual": "passed",
+                "expected": "passed"
+              },
+              "passed": true,
+              "path": "validation.status"
+            }
+          ],
+          "command": [
+            "com-smoke",
+            "--component",
+            "spreadsheets",
+            "--input",
+            "fixtures/phase0/phase0_calculation_fixture.xlsx",
+            "--output",
+            "{output_dir}/spreadsheets_smoke_copy.xlsx"
+          ],
+          "errors": [],
+          "exit_code": 0,
+          "id": "spreadsheets-com-smoke",
+          "ok": true,
+          "profile": "compat",
+          "raw_output": null,
+          "requires_wps": true,
+          "response_ok": true,
+          "risk_level": "medium",
+          "summary": "Minimal COM smoke run completed.",
+          "title": "WPS Spreadsheets open/save/close smoke"
+        },
+        {
+          "category": "wps",
+          "checks": [
+            {
+              "details": {
+                "actual": "passed",
+                "expected": "passed"
+              },
+              "passed": true,
+              "path": "validation.status"
+            }
+          ],
+          "command": [
+            "convert-smoke",
+            "--component",
+            "spreadsheets",
+            "--input",
+            "fixtures/phase0/phase0_calculation_fixture.xlsx",
+            "--output",
+            "{output_dir}/spreadsheets_smoke.pdf",
+            "--format",
+            "pdf"
+          ],
+          "errors": [],
+          "exit_code": 0,
+          "id": "spreadsheets-convert-smoke",
+          "ok": true,
+          "profile": "compat",
+          "raw_output": null,
+          "requires_wps": true,
+          "response_ok": true,
+          "risk_level": "medium",
+          "summary": "Conversion smoke run completed.",
+          "title": "WPS Spreadsheets PDF conversion smoke"
+        },
+        {
+          "category": "wps",
+          "checks": [
+            {
+              "details": {
+                "actual": "failed",
+                "expected": "passed"
+              },
+              "passed": false,
+              "path": "validation.status"
+            }
+          ],
+          "command": [
+            "com-smoke",
+            "--component",
+            "presentation",
+            "--input",
+            "fixtures/phase0/phase0_presentation_fixture_v2.pptx",
+            "--output",
+            "{output_dir}/presentation_smoke_copy.pptx"
+          ],
+          "errors": [
+            {
+              "code": "COM_OPERATION_FAILED",
+              "message": "(-2147352567, '发生意外。', (0, None, None, None, 0, -2147467259), None)"
+            }
+          ],
+          "exit_code": 0,
+          "id": "presentation-com-smoke",
+          "ok": false,
+          "profile": "compat",
+          "raw_output": null,
+          "requires_wps": true,
+          "response_ok": false,
+          "risk_level": "medium",
+          "summary": "Minimal COM smoke run could not complete.",
+          "title": "WPS Presentation open/save/close smoke"
+        },
+        {
+          "category": "wps",
+          "checks": [
+            {
+              "details": {
+                "actual": "passed",
+                "expected": "passed"
+              },
+              "passed": true,
+              "path": "validation.status"
+            }
+          ],
+          "command": [
+            "convert-smoke",
+            "--component",
+            "presentation",
+            "--input",
+            "fixtures/phase0/phase0_presentation_fixture_v2.pptx",
+            "--output",
+            "{output_dir}/presentation_smoke.pdf",
+            "--format",
+            "pdf"
+          ],
+          "errors": [],
+          "exit_code": 0,
+          "id": "presentation-convert-smoke",
+          "ok": true,
+          "profile": "compat",
+          "raw_output": null,
+          "requires_wps": true,
+          "response_ok": true,
+          "risk_level": "medium",
+          "summary": "Conversion smoke run completed.",
+          "title": "WPS Presentation PDF conversion smoke"
+        }
+      ],
+      "scenario_count": 4,
+      "version": "phase3-regression-2026-10-03"
+    }
+  },
+  "errors": [
+    {
+      "code": "REGRESSION_RUN_FAILED",
+      "details": [
+        {
+          "checks": [
+            {
+              "details": {
+                "actual": "failed",
+                "expected": "passed"
+              },
+              "passed": false,
+              "path": "validation.status"
+            }
+          ],
+          "errors": [
+            {
+              "code": "COM_OPERATION_FAILED",
+              "message": "(-2147352567, '发生意外。', (0, None, None, None, 0, -2147467259), None)"
+            }
+          ],
+          "id": "presentation-com-smoke",
+          "summary": "Minimal COM smoke run could not complete."
+        }
+      ],
+      "message": "One or more regression scenarios failed."
+    }
+  ],
+  "ok": false,
+  "request_id": "80804c5d-ee2c-4914-8756-812882fa9f14",
+  "summary": "Regression scenarios failed.",
+  "validation": {
+    "checks": [
+      {
+        "details": {
+          "failed_count": 1,
+          "passed_count": 3,
+          "scenario_count": 4
+        },
+        "name": "regression_scenarios_passed",
+        "passed": false
+      }
+    ],
+    "status": "failed"
+  }
+}
