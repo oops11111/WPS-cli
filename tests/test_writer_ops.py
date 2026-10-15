@@ -284,6 +284,11 @@ class WriterOpsTests(unittest.TestCase):
             self.assertFalse(ok)
             self.assertFalse(replayed)
             self.assertEqual(errors[0]["code"], "CELL_NOT_FOUND")
+            # The agent reads only the message, so it carries the table's size and header (P6-007).
+            self.assertRegex(
+                errors[0]["message"], r"Table 1 has \d+ rows and \d+ columns; rows and columns count from 1"
+            )
+            self.assertIn("Row 1 is: ", errors[0]["message"])
             self.assertFalse((workspace / ".wps-agent" / "backups").exists())
 
     def test_writer_table_write_accepts_table_count_normalization_when_cell_matches(self):
