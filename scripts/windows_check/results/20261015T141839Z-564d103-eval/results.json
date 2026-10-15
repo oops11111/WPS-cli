@@ -1,0 +1,1287 @@
+{
+  "prerequisites": {
+    "passed": true,
+    "checks": [
+      {
+        "name": "commit",
+        "ok": true,
+        "detail": "564d103 on main",
+        "required": true
+      },
+      {
+        "name": "python",
+        "ok": true,
+        "detail": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\.venv\\Scripts\\python.exe",
+        "required": true
+      },
+      {
+        "name": "windows",
+        "ok": true,
+        "detail": "Windows-10-10.0.19045-SP0",
+        "required": true
+      },
+      {
+        "name": "claude answers",
+        "ok": true,
+        "detail": "OK",
+        "required": true
+      },
+      {
+        "name": "no WPS process running",
+        "ok": true,
+        "detail": "none",
+        "required": true
+      },
+      {
+        "name": "open command .docx",
+        "ok": true,
+        "detail": "\"C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\wps.exe\" \"%1\"",
+        "required": true
+      },
+      {
+        "name": "open command .xlsx",
+        "ok": true,
+        "detail": "\"C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\et.exe\" \"%1\"",
+        "required": true
+      },
+      {
+        "name": "open command .pptx",
+        "ok": true,
+        "detail": "\"C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\wpp.exe\" \"%1\"",
+        "required": true
+      },
+      {
+        "name": "inspect-env",
+        "ok": true,
+        "detail": "{\"presentation\": \"kwpp.Application\", \"spreadsheets\": \"ket.Application\", \"writer\": \"kwps.Application\"}",
+        "required": true
+      }
+    ],
+    "info": {
+      "commit": "564d103",
+      "branch": "main",
+      "python": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\.venv\\Scripts\\python.exe",
+      "platform": "Windows-10-10.0.19045-SP0",
+      "wps_versions": {
+        "wps.exe": "12,8,2,18913",
+        "et.exe": "12,8,2,18913",
+        "wpp.exe": "12,8,2,18913"
+      }
+    }
+  },
+  "settings": {
+    "only": [
+      "wps-open-document-export-text",
+      "wps-open-writer-selection-replace",
+      "wps-open-writer-selection-insert",
+      "wps-open-writer-selection-delete",
+      "wps-open-presentation-selection-replace",
+      "wps-open-presentation-selection-insert",
+      "wps-open-presentation-selection-delete",
+      "wps-open-spreadsheet-selection-replace",
+      "wps-open-spreadsheet-selection-delete",
+      "wps-open-save-document",
+      "wps-open-save-as-untitled"
+    ],
+    "repeat": 3,
+    "min_passes": 2,
+    "model": null,
+    "wps_launch": "default",
+    "tasks": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\config\\agent_eval_tasks.json",
+    "workspaces": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261015T141839Z-564d103-eval"
+  },
+  "results": [
+    {
+      "id": "wps-open-document-export-text",
+      "passed": true,
+      "repeat": 3,
+      "min_passes": 2,
+      "passes": 3,
+      "pass_rate": 1.0,
+      "metrics": {
+        "wps_tool_calls": 7,
+        "wps_tool_errors": 0,
+        "off_path_calls": 0,
+        "off_path_tools": []
+      },
+      "runs": [
+        {
+          "id": "wps-open-document-export-text",
+          "passed": true,
+          "agent": {
+            "ran": true,
+            "exit_code": 0,
+            "is_error": false,
+            "num_turns": 6,
+            "duration_ms": 14532,
+            "total_cost_usd": 0.285621,
+            "result_excerpt": "Done.\n\n**Document found:** `report.docx` — open in WPS Writer (version 12.0), registered as `doc_8a5c3a17cb867767`, saved state, not read-only.\n\n**Export:** `report.txt` written to the working directory (47 bytes) via `SaveAsUnicodeText`.\n\nContents:\n```\nQuarterly report\nStatus: DRAFT\nOwner: Finance\n```\n\n**Source left untouched:** the tool reported `source_unchanged: true` and `source_still_open: true`, with validation checks `output_created` and `source_unchanged` both passing. Re-querying open ",
+            "stderr_excerpt": "",
+            "tool_calls": [
+              {
+                "name": "mcp__wps-agent__wps_agent_open_documents",
+                "input": {
+                  "register": true
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "ls -la \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261015T141839Z-564d103-eval/run-1/wps-open-document-export-text\"",
+                  "description": "List working directory contents"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_export_open_document_text",
+                "input": {
+                  "document_id": "doc_8a5c3a17cb867767",
+                  "output": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261015T141839Z-564d103-eval\\run-1\\wps-open-document-export-text\\report.txt"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Read",
+                "input": {
+                  "file_path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261015T141839Z-564d103-eval\\run-1\\wps-open-document-export-text\\report.txt"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_open_documents",
+                "input": {
+                  "component": "writer"
+                },
+                "is_error": false,
+                "error_codes": []
+              }
+            ]
+          },
+          "metrics": {
+            "wps_tool_calls": 3,
+            "wps_tool_errors": 0,
+            "other_tool_calls": 2,
+            "tools_used": [
+              "export_open_document_text",
+              "open_documents"
+            ],
+            "expected_tools": [
+              "documents",
+              "export_open_document_text",
+              "open_documents",
+              "register_document"
+            ],
+            "off_path_calls": 0,
+            "off_path_tools": []
+          },
+          "checks": [
+            {
+              "kind": "tool_called",
+              "passed": true,
+              "detail": "2 matching call(s)",
+              "tool": "open_documents"
+            },
+            {
+              "kind": "tool_called",
+              "passed": true,
+              "detail": "1 matching call(s)",
+              "tool": "export_open_document_text"
+            },
+            {
+              "kind": "file_text",
+              "passed": true,
+              "detail": "ok",
+              "path": "report.txt",
+              "contains": [
+                "Quarterly report",
+                "Status: DRAFT",
+                "Owner: Finance"
+              ]
+            },
+            {
+              "kind": "tool_not_called",
+              "passed": true,
+              "detail": "0 call(s)",
+              "tool": "save_open_document"
+            },
+            {
+              "kind": "file_unchanged",
+              "passed": true,
+              "detail": "unchanged"
+            }
+          ],
+          "cleanup": "fixture closed; processes left running: WPS still lists open documents"
+        },
+        {
+          "id": "wps-open-document-export-text",
+          "passed": true,
+          "agent": {
+            "ran": true,
+            "exit_code": 0,
+            "is_error": false,
+            "num_turns": 4,
+            "duration_ms": 11309,
+            "total_cost_usd": 0.28186800000000006,
+            "result_excerpt": "Done. The export succeeded.\n\n**What happened:**\n1. `open-documents` (attached to the running WPS, no new instance) found **two** Writer documents both named `report.docx` — one from an unrelated eval run (`wps-p6\\eval-open-174f04e\\...\\wps-open-save-document\\report.docx`) and one matching the current directory. I selected the latter by its full path: `doc_bea270a4796abb41`.\n2. `export-open-document-text` wrote the text out.\n\n**Result** — `report.txt` created in the current directory (47 bytes):\n\n",
+            "stderr_excerpt": "",
+            "tool_calls": [
+              {
+                "name": "mcp__wps-agent__wps_agent_open_documents",
+                "input": {
+                  "component": "writer",
+                  "register": true
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_export_open_document_text",
+                "input": {
+                  "document_id": "doc_bea270a4796abb41",
+                  "output": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261015T141839Z-564d103-eval\\run-2\\wps-open-document-export-text\\report.txt"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Read",
+                "input": {
+                  "file_path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261015T141839Z-564d103-eval\\run-2\\wps-open-document-export-text\\report.txt"
+                },
+                "is_error": false,
+                "error_codes": []
+              }
+            ]
+          },
+          "metrics": {
+            "wps_tool_calls": 2,
+            "wps_tool_errors": 0,
+            "other_tool_calls": 1,
+            "tools_used": [
+              "export_open_document_text",
+              "open_documents"
+            ],
+            "expected_tools": [
+              "documents",
+              "export_open_document_text",
+              "open_documents",
+              "register_document"
+            ],
+            "off_path_calls": 0,
+            "off_path_tools": []
+          },
+          "checks": [
+            {
+              "kind": "tool_called",
+              "passed": true,
+              "detail": "1 matching call(s)",
+              "tool": "open_documents"
+            },
+            {
+              "kind": "tool_called",
+              "passed": true,
+              "detail": "1 matching call(s)",
+              "tool": "export_open_document_text"
+            },
+            {
+              "kind": "file_text",
+              "passed": true,
+              "detail": "ok",
+              "path": "report.txt",
+              "contains": [
+                "Quarterly report",
+                "Status: DRAFT",
+                "Owner: Finance"
+              ]
+            },
+            {
+              "kind": "tool_not_called",
+              "passed": true,
+              "detail": "0 call(s)",
+              "tool": "save_open_document"
+            },
+            {
+              "kind": "file_unchanged",
+              "passed": true,
+              "detail": "unchanged"
+            }
+          ],
+          "cleanup": "fixture closed; processes none started"
+        },
+        {
+          "id": "wps-open-document-export-text",
+          "passed": true,
+          "agent": {
+            "ran": true,
+            "exit_code": 0,
+            "is_error": false,
+            "num_turns": 4,
+            "duration_ms": 13002,
+            "total_cost_usd": 0.28259300000000004,
+            "result_excerpt": "Done. Exported `report.docx` to `report.txt`.\n\n- **Document found:** two Writer documents named `report.docx` were open in WPS; I selected the one matching the current directory — `doc_875652284e9070a3` at `...\\run-3\\wps-open-document-export-text\\report.docx` (the other lives under a different temp path).\n- **Output:** `report.txt` (47 bytes) in the current directory, via plain-text SaveAs export.\n- **Source untouched:** the tool reported `source_still_open: true` and `source_unchanged: true`, w",
+            "stderr_excerpt": "",
+            "tool_calls": [
+              {
+                "name": "mcp__wps-agent__wps_agent_open_documents",
+                "input": {
+                  "component": "writer",
+                  "register": true
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_export_open_document_text",
+                "input": {
+                  "document_id": "doc_875652284e9070a3",
+                  "output": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261015T141839Z-564d103-eval\\run-3\\wps-open-document-export-text\\report.txt"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Read",
+                "input": {
+                  "file_path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261015T141839Z-564d103-eval\\run-3\\wps-open-document-export-text\\report.txt"
+                },
+                "is_error": false,
+                "error_codes": []
+              }
+            ]
+          },
+          "metrics": {
+            "wps_tool_calls": 2,
+            "wps_tool_errors": 0,
+            "other_tool_calls": 1,
+            "tools_used": [
+              "export_open_document_text",
+              "open_documents"
+            ],
+            "expected_tools": [
+              "documents",
+              "export_open_document_text",
+              "open_documents",
+              "register_document"
+            ],
+            "off_path_calls": 0,
+            "off_path_tools": []
+          },
+          "checks": [
+            {
+              "kind": "tool_called",
+              "passed": true,
+              "detail": "1 matching call(s)",
+              "tool": "open_documents"
+            },
+            {
+              "kind": "tool_called",
+              "passed": true,
+              "detail": "1 matching call(s)",
+              "tool": "export_open_document_text"
+            },
+            {
+              "kind": "file_text",
+              "passed": true,
+              "detail": "ok",
+              "path": "report.txt",
+              "contains": [
+                "Quarterly report",
+                "Status: DRAFT",
+                "Owner: Finance"
+              ]
+            },
+            {
+              "kind": "tool_not_called",
+              "passed": true,
+              "detail": "0 call(s)",
+              "tool": "save_open_document"
+            },
+            {
+              "kind": "file_unchanged",
+              "passed": true,
+              "detail": "unchanged"
+            }
+          ],
+          "cleanup": "fixture closed; processes none started"
+        }
+      ]
+    },
+    {
+      "id": "wps-open-writer-selection-replace",
+      "passed": true,
+      "repeat": 3,
+      "min_passes": 2,
+      "passes": 3,
+      "pass_rate": 1.0,
+      "metrics": {
+        "wps_tool_calls": 18,
+        "wps_tool_errors": 1,
+        "off_path_calls": 4,
+        "off_path_tools": [
+          "mutation_request_inspect",
+          "validate_document"
+        ]
+      },
+      "runs": [
+        {
+          "id": "wps-open-writer-selection-replace",
+          "passed": true,
+          "agent": {
+            "ran": true,
+            "exit_code": 0,
+            "is_error": false,
+            "num_turns": 10,
+            "duration_ms": 42070,
+            "total_cost_usd": 0.500026,
+            "result_excerpt": "Done. `DRAFT` → `FINAL` replaced in place in the open WPS Writer document.\n\n**What happened:**\n1. **Located the document** — two Writer documents were open in the WPS instance; the active one matching the current directory was `report.docx` → `doc_122c7a94516a1a30`.\n2. **Read the selection** — confirmed non-collapsed selection `DRAFT`, 5 chars, offsets 25–30, paragraph 2.\n3. **Dry run** — reported `would_modify: true` for `DRAFT` → `FINAL`.\n4. **Replaced** with `request_id: eval-selection-1` and",
+            "stderr_excerpt": "",
+            "tool_calls": [
+              {
+                "name": "mcp__wps-agent__wps_agent_open_documents",
+                "input": {
+                  "component": "writer",
+                  "register": true
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_writer_selection_read",
+                "input": {
+                  "document_id": "doc_122c7a94516a1a30"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_writer_selection_replace",
+                "input": {
+                  "document_id": "doc_122c7a94516a1a30",
+                  "text": "FINAL",
+                  "expected_selection_text": "DRAFT",
+                  "dry_run": true,
+                  "request_id": "eval-selection-1"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_writer_selection_replace",
+                "input": {
+                  "document_id": "doc_122c7a94516a1a30",
+                  "expected_selection_text": "DRAFT",
+                  "request_id": "eval-selection-1",
+                  "text": "FINAL"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_writer_selection_read",
+                "input": {
+                  "document_id": "doc_122c7a94516a1a30"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_mutation_request_inspect",
+                "input": {
+                  "request": "eval-selection-1"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_validate_document",
+                "input": {
+                  "document_id": "doc_122c7a94516a1a30",
+                  "contains": "FINAL"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_validate_document",
+                "input": {
+                  "contains": "DRAFT",
+                  "document_id": "doc_122c7a94516a1a30"
+                },
+                "is_error": true,
+                "error_codes": [
+                  "VALIDATION_FAILED"
+                ]
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_open_documents",
+                "input": {
+                  "component": "writer"
+                },
+                "is_error": false,
+                "error_codes": []
+              }
+            ]
+          },
+          "metrics": {
+            "wps_tool_calls": 9,
+            "wps_tool_errors": 1,
+            "other_tool_calls": 0,
+            "tools_used": [
+              "mutation_request_inspect",
+              "open_documents",
+              "validate_document",
+              "writer_selection_read",
+              "writer_selection_replace"
+            ],
+            "expected_tools": [
+              "documents",
+              "open_documents",
+              "register_document",
+              "writer_selection_read",
+              "writer_selection_replace"
+            ],
+            "off_path_calls": 3,
+            "off_path_tools": [
+              "mutation_request_inspect",
+              "validate_document"
+            ]
+          },
+          "checks": [
+            {
+              "kind": "operation_recorded",
+              "passed": true,
+              "detail": "writer-selection-replace",
+              "request_id": "eval-selection-1",
+              "command": "writer-selection-replace"
+            },
+            {
+              "kind": "tool_called",
+              "passed": true,
+              "detail": "2 matching call(s)",
+              "tool": "writer_selection_replace",
+              "input": {
+                "request_id": "eval-selection-1"
+              }
+            },
+            {
+              "kind": "file_text",
+              "passed": true,
+              "detail": "ok",
+              "path": "report.docx",
+              "contains": [
+                "Quarterly report",
+                "Status: FINAL",
+                "Owner: Finance"
+              ],
+              "absent": [
+                "DRAFT"
+              ]
+            },
+            {
+              "kind": "backup_count",
+              "passed": true,
+              "detail": 1,
+              "count": 1
+            },
+            {
+              "kind": "tool_not_called",
+              "passed": true,
+              "detail": "0 call(s)",
+              "tool": "writer_replace"
+            }
+          ],
+          "cleanup": "fixture closed; processes none started"
+        },
+        {
+          "id": "wps-open-writer-selection-replace",
+          "passed": true,
+          "agent": {
+            "ran": true,
+            "exit_code": 0,
+            "is_error": false,
+            "num_turns": 6,
+            "duration_ms": 20908,
+            "total_cost_usd": 0.324804,
+            "result_excerpt": "Done. The selection `DRAFT` was replaced with `FINAL`.\n\n**What happened:**\n- Targeted `doc_062ebe5b293571c9` — the *active* Writer document, whose path matches this working directory. A second `report.docx` from an unrelated temp directory (`wps-p6\\...`) was also open; I did not touch it.\n- Guarded the write with `expected_selection_text: \"DRAFT\"`, so it would have refused if the selection had changed between my read and the write.\n- Request id used: `eval-selection-1`.\n\n**Evidence:**\n- Read-bac",
+            "stderr_excerpt": "",
+            "tool_calls": [
+              {
+                "name": "mcp__wps-agent__wps_agent_open_documents",
+                "input": {
+                  "component": "writer",
+                  "register": true
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_writer_selection_read",
+                "input": {
+                  "document_id": "doc_062ebe5b293571c9"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_writer_selection_replace",
+                "input": {
+                  "document_id": "doc_062ebe5b293571c9",
+                  "expected_selection_text": "DRAFT",
+                  "request_id": "eval-selection-1",
+                  "text": "FINAL"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_open_documents",
+                "input": {
+                  "component": "writer",
+                  "register": false
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_validate_document",
+                "input": {
+                  "document_id": "doc_062ebe5b293571c9",
+                  "contains": "FINAL"
+                },
+                "is_error": false,
+                "error_codes": []
+              }
+            ]
+          },
+          "metrics": {
+            "wps_tool_calls": 5,
+            "wps_tool_errors": 0,
+            "other_tool_calls": 0,
+            "tools_used": [
+              "open_documents",
+              "validate_document",
+              "writer_selection_read",
+              "writer_selection_replace"
+            ],
+            "expected_tools": [
+              "documents",
+              "open_documents",
+              "register_document",
+              "writer_selection_read",
+              "writer_selection_replace"
+            ],
+            "off_path_calls": 1,
+            "off_path_tools": [
+              "validate_document"
+            ]
+          },
+          "checks": [
+            {
+              "kind": "operation_recorded",
+              "passed": true,
+              "detail": "writer-selection-replace",
+              "request_id": "eval-selection-1",
+              "command": "writer-selection-replace"
+            },
+            {
+              "kind": "tool_called",
+              "passed": true,
+              "detail": "1 matching call(s)",
+              "tool": "writer_selection_replace",
+              "input": {
+                "request_id": "eval-selection-1"
+              }
+            },
+            {
+              "kind": "file_text",
+              "passed": true,
+              "detail": "ok",
+              "path": "report.docx",
+              "contains": [
+                "Quarterly report",
+                "Status: FINAL",
+                "Owner: Finance"
+              ],
+              "absent": [
+                "DRAFT"
+              ]
+            },
+            {
+              "kind": "backup_count",
+              "passed": true,
+              "detail": 1,
+              "count": 1
+            },
+            {
+              "kind": "tool_not_called",
+              "passed": true,
+              "detail": "0 call(s)",
+              "tool": "writer_replace"
+            }
+          ],
+          "cleanup": "fixture closed; processes none started"
+        },
+        {
+          "id": "wps-open-writer-selection-replace",
+          "passed": true,
+          "agent": {
+            "ran": true,
+            "exit_code": 0,
+            "is_error": false,
+            "num_turns": 5,
+            "duration_ms": 21404,
+            "total_cost_usd": 0.31868700000000005,
+            "result_excerpt": "Done. The selection was replaced in place.\n\n**What happened:**\n- Attached to the already-running WPS instance (no launch), found two Writer docs open; the active one was the target `report.docx` in the working directory (`doc_f8b25703aa6345a9`).\n- Read the selection first: `DRAFT`, 5 chars, not collapsed, paragraph 2.\n- Replaced it with `FINAL` under `request_id: eval-selection-1`, guarded by `expected_selection_text: DRAFT` so it would have refused the write if the selection had changed.\n- Veri",
+            "stderr_excerpt": "",
+            "tool_calls": [
+              {
+                "name": "mcp__wps-agent__wps_agent_open_documents",
+                "input": {
+                  "component": "writer",
+                  "register": true
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_writer_selection_read",
+                "input": {
+                  "document_id": "doc_f8b25703aa6345a9"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_writer_selection_replace",
+                "input": {
+                  "document_id": "doc_f8b25703aa6345a9",
+                  "text": "FINAL",
+                  "expected_selection_text": "DRAFT",
+                  "request_id": "eval-selection-1"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_open_documents",
+                "input": {
+                  "component": "writer"
+                },
+                "is_error": false,
+                "error_codes": []
+              }
+            ]
+          },
+          "metrics": {
+            "wps_tool_calls": 4,
+            "wps_tool_errors": 0,
+            "other_tool_calls": 0,
+            "tools_used": [
+              "open_documents",
+              "writer_selection_read",
+              "writer_selection_replace"
+            ],
+            "expected_tools": [
+              "documents",
+              "open_documents",
+              "register_document",
+              "writer_selection_read",
+              "writer_selection_replace"
+            ],
+            "off_path_calls": 0,
+            "off_path_tools": []
+          },
+          "checks": [
+            {
+              "kind": "operation_recorded",
+              "passed": true,
+              "detail": "writer-selection-replace",
+              "request_id": "eval-selection-1",
+              "command": "writer-selection-replace"
+            },
+            {
+              "kind": "tool_called",
+              "passed": true,
+              "detail": "1 matching call(s)",
+              "tool": "writer_selection_replace",
+              "input": {
+                "request_id": "eval-selection-1"
+              }
+            },
+            {
+              "kind": "file_text",
+              "passed": true,
+              "detail": "ok",
+              "path": "report.docx",
+              "contains": [
+                "Quarterly report",
+                "Status: FINAL",
+                "Owner: Finance"
+              ],
+              "absent": [
+                "DRAFT"
+              ]
+            },
+            {
+              "kind": "backup_count",
+              "passed": true,
+              "detail": 1,
+              "count": 1
+            },
+            {
+              "kind": "tool_not_called",
+              "passed": true,
+              "detail": "0 call(s)",
+              "tool": "writer_replace"
+            }
+          ],
+          "cleanup": "fixture closed; processes none started"
+        }
+      ]
+    },
+    {
+      "id": "wps-open-writer-selection-insert",
+      "passed": true,
+      "repeat": 3,
+      "min_passes": 2,
+      "passes": 3,
+      "pass_rate": 1.0,
+      "metrics": {
+        "wps_tool_calls": 22,
+        "wps_tool_errors": 0,
+        "off_path_calls": 7,
+        "off_path_tools": [
+          "snapshot_document",
+          "validate_document"
+        ]
+      },
+      "runs": [
+        {
+          "id": "wps-open-writer-selection-insert",
+          "passed": true,
+          "agent": {
+            "ran": true,
+            "exit_code": 0,
+            "is_error": false,
+            "num_turns": 10,
+            "duration_ms": 42961,
+            "total_cost_usd": 0.5048969999999999,
+            "result_excerpt": "Done. The text was inserted at the caret in WPS.\n\n**What happened**\n\n- Target: `doc_e861d62185667543` — `report.docx` in the working directory, the active document in the running WPS instance (a second unrelated `report.docx` from another session was also open; I left it untouched).\n- Pre-flight read: caret collapsed (`start == end == 45`) in paragraph 3, which the snapshot confirmed was `Owner: Finance`.\n- Dry run: `would_modify: true`, insert text preserved verbatim as `\" (reviewed)\"` with its",
+            "stderr_excerpt": "",
+            "tool_calls": [
+              {
+                "name": "mcp__wps-agent__wps_agent_open_documents",
+                "input": {
+                  "register": true
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_writer_selection_read",
+                "input": {
+                  "document_id": "doc_e861d62185667543"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_snapshot_document",
+                "input": {
+                  "document_id": "doc_e861d62185667543"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_writer_selection_insert",
+                "input": {
+                  "document_id": "doc_e861d62185667543",
+                  "text": " (reviewed)",
+                  "dry_run": true,
+                  "request_id": "eval-insert-1"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_writer_selection_insert",
+                "input": {
+                  "document_id": "doc_e861d62185667543",
+                  "expected_start": 45,
+                  "request_id": "eval-insert-1",
+                  "text": " (reviewed)"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_writer_selection_read",
+                "input": {
+                  "document_id": "doc_e861d62185667543"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_validate_document",
+                "input": {
+                  "document_id": "doc_e861d62185667543",
+                  "contains": "Owner: Finance (reviewed)"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_snapshot_document",
+                "input": {
+                  "document_id": "doc_e861d62185667543"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_open_documents",
+                "input": {},
+                "is_error": false,
+                "error_codes": []
+              }
+            ]
+          },
+          "metrics": {
+            "wps_tool_calls": 9,
+            "wps_tool_errors": 0,
+            "other_tool_calls": 0,
+            "tools_used": [
+              "open_documents",
+              "snapshot_document",
+              "validate_document",
+              "writer_selection_insert",
+              "writer_selection_read"
+            ],
+            "expected_tools": [
+              "documents",
+              "open_documents",
+              "register_document",
+              "writer_selection_insert",
+              "writer_selection_read"
+            ],
+            "off_path_calls": 3,
+            "off_path_tools": [
+              "snapshot_document",
+              "validate_document"
+            ]
+          },
+          "checks": [
+            {
+              "kind": "operation_recorded",
+              "passed": true,
+              "detail": "writer-selection-insert",
+              "request_id": "eval-insert-1",
+              "command": "writer-selection-insert"
+            },
+            {
+              "kind": "tool_called",
+              "passed": true,
+              "detail": "2 matching call(s)",
+              "tool": "writer_selection_insert",
+              "input": {
+                "request_id": "eval-insert-1"
+              }
+            },
+            {
+              "kind": "file_text",
+              "passed": true,
+              "detail": "ok",
+              "path": "report.docx",
+              "contains": [
+                "Quarterly report",
+                "Status: DRAFT",
+                "Owner: Finance (reviewed)"
+              ]
+            },
+            {
+              "kind": "backup_count",
+              "passed": true,
+              "detail": 1,
+              "count": 1
+            }
+          ],
+          "cleanup": "fixture closed; processes none started"
+        },
+        {
+          "id": "wps-open-writer-selection-insert",
+          "passed": true,
+          "agent": {
+            "ran": true,
+            "exit_code": 0,
+            "is_error": false,
+            "num_turns": 6,
+            "duration_ms": 19509,
+            "total_cost_usd": 0.33989899999999995,
+            "result_excerpt": "Done. `\" (reviewed)\"` — leading space included — was inserted at the caret in WPS.\n\n**What happened:**\n- Attached to the running WPS Writer instance without launching a new one; two `report.docx` documents were open, so I selected the active one whose path matches the working directory: `doc_a6eeaf1db1d4a22a`.\n- Pre-flight check: selection was collapsed (length 0) at offset 45, paragraph 3, which is exactly the end of `Owner: Finance` (14 chars).\n- Inserted with `expected_start=45` and `request_",
+            "stderr_excerpt": "",
+            "tool_calls": [
+              {
+                "name": "mcp__wps-agent__wps_agent_open_documents",
+                "input": {
+                  "register": true,
+                  "component": "writer"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_writer_selection_read",
+                "input": {
+                  "document_id": "doc_a6eeaf1db1d4a22a"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_snapshot_document",
+                "input": {
+                  "document_id": "doc_a6eeaf1db1d4a22a"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_writer_selection_insert",
+                "input": {
+                  "document_id": "doc_a6eeaf1db1d4a22a",
+                  "text": " (reviewed)",
+                  "expected_start": 45,
+                  "request_id": "eval-insert-1"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_validate_document",
+                "input": {
+                  "contains": "Owner: Finance (reviewed)",
+                  "document_id": "doc_a6eeaf1db1d4a22a"
+                },
+                "is_error": false,
+                "error_codes": []
+              }
+            ]
+          },
+          "metrics": {
+            "wps_tool_calls": 5,
+            "wps_tool_errors": 0,
+            "other_tool_calls": 0,
+            "tools_used": [
+              "open_documents",
+              "snapshot_document",
+              "validate_document",
+              "writer_selection_insert",
+              "writer_selection_read"
+            ],
+            "expected_tools": [
+              "documents",
+              "open_documents",
+              "register_document",
+              "writer_selection_insert",
+              "writer_selection_read"
+            ],
+            "off_path_calls": 2,
+            "off_path_tools": [
+              "snapshot_document",
+              "validate_document"
+            ]
+          },
+          "checks": [
+            {
+              "kind": "operation_recorded",
+              "passed": true,
+              "detail": "writer-selection-insert",
+              "request_id": "eval-insert-1",
+              "command": "writer-selection-insert"
+            },
+            {
+              "kind": "tool_called",
+              "passed": true,
+              "detail": "1 matching call(s)",
+              "tool": "writer_selection_insert",
+              "input": {
+                "request_id": "eval-insert-1"
+              }
+            },
+            {
+              "kind": "file_text",
+              "passed": true,
+              "detail": "ok",
+              "path": "report.docx",
+              "contains": [
+                "Quarterly report",
+                "Status: DRAFT",
+                "Owner: Finance (reviewed)"
+              ]
+            },
+            {
+              "kind": "backup_count",
+              "passed": true,
+              "detail": 1,
+              "count": 1
+            }
+          ],
+          "cleanup": "fixture closed; processes none started"
+        },
+        {
+          "id": "wps-open-writer-selection-insert",
+          "passed": true,
+          "agent": {
+            "ran": true,
+            "exit_code": 0,
+            "is_error": false,
+            "num_turns": 9,
+            "duration_ms": 48596,
+            "total_cost_usd": 0.5008279999999999,
+            "result_excerpt": "Done. The text was inserted at the caret in the live WPS Writer session.\n\n**What I did**\n1. `open_documents` — found two open Writer documents. The task's target is the one in the working directory, `...\\run-3\\wps-open-writer-selection-insert\\report.docx` → `document_id: doc_143f9bdde760759a` (the active document). The other `report.docx` is from an unrelated earlier run directory; I left it untouched.\n2. `writer_selection_read` — caret collapsed at offset 45, paragraph 3.\n3. `snapshot_document`",
+            "stderr_excerpt": "",
+            "tool_calls": [
+              {
+                "name": "mcp__wps-agent__wps_agent_open_documents",
+                "input": {
+                  "register": true
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_writer_selection_read",
+                "input": {
+                  "document_id": "doc_143f9bdde760759a"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_writer_selection_insert",
+                "input": {
+                  "document_id": "doc_143f9bdde760759a",
+                  "text": " (reviewed)",
+                  "dry_run": true,
+                  "request_id": "eval-insert-1"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_snapshot_document",
+                "input": {
+                  "document_id": "doc_143f9bdde760759a"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_writer_selection_insert",
+                "input": {
+                  "document_id": "doc_143f9bdde760759a",
+                  "expected_start": 45,
+                  "request_id": "eval-insert-1",
+                  "text": " (reviewed)"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_writer_selection_read",
+                "input": {
+                  "document_id": "doc_143f9bdde760759a"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_validate_document",
+                "input": {
+                  "document_id": "doc_143f9bdde760759a",
+                  "contains": "Owner: Finance (reviewed)"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_open_documents",
+                "input": {},
+                "is_error": false,
+                "error_codes": []
+              }
+            ]
+          },
+          "metrics": {
+            "wps_tool_calls": 8,
+            "wps_tool_errors": 0,
+            "other_tool_calls": 0,
+            "tools_used": [
+              "open_documents",
+              "snapshot_document",
+              "validate_document",
+              "writer_selection_insert",
+              "writer_selection_read"
+            ],
+            "expected_tools": [
+              "documents",
+              "open_documents",
+              "register_document",
+              "writer_selection_insert",
+              "writer_selection_read"
+            ],
+            "off_path_calls": 2,
+            "off_path_tools": [
+              "snapshot_document",
+              "validate_document"
+            ]
+          },
+          "checks": [
+            {
+              "kind": "operation_recorded",
+              "passed": true,
+              "detail": "writer-selection-insert",
+              "request_id": "eval-insert-1",
+              "command": "writer-selection-insert"
+            },
+            {
+              "kind": "tool_called",
+              "passed": true,
+              "detail": "2 matching call(s)",
+              "tool": "writer_selection_insert",
+              "input": {
+                "request_id": "eval-insert-1"
+              }
+            },
+            {
+              "kind": "file_text",
+              "passed": true,
+              "detail": "ok",
+              "path": "report.docx",
+              "contains": [
+                "Quarterly report",
+                "Status: DRAFT",
+                "Owner: Finance (reviewed)"
+              ]
+            },
+            {
+              "kind": "backup_count",
+              "passed": true,
+              "detail": 1,
+              "count": 1
+            }
+          ],
+          "cleanup": "fixture closed; processes none started"
+        }
+      ]
+    }
+  ],
+  "complete": false
+}
