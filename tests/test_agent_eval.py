@@ -1924,13 +1924,14 @@ class OpenDocumentScriptParseTests(unittest.TestCase):
                 )
                 self.assertEqual(completed.stdout.strip(), "0", completed.stdout + completed.stderr)
 class OpenDocumentScriptStdoutTests(unittest.TestCase):
-    def test_the_script_swallows_the_return_value_of_activate(self):
-        # The Windows check on 564d103 skipped both spreadsheet selection tasks: their select_text
-        # preparation ran $doc.Activate() and $sheet.Activate() bare, PowerShell wrote "True" to stdout
-        # ahead of the JSON, and _run_script read the whole output as script_failed / COM_OPERATION_FAILED
-        # even though the payload it printed said the range was selected.
+    def test_the_spreadsheet_select_swallows_the_result_of_select(self):
+        # The Windows check on 564d103 skipped both spreadsheet selection tasks: preparing them selects a
+        # range, so PowerShell wrote "True" ahead of the JSON and _run_script read the whole output as
+        # script_failed / COM_OPERATION_FAILED, although the payload it printed said the range was
+        # selected. Measured on WPS 12.8.2.18913: Range.Select() returns True and is the only statement
+        # in this script that puts a value on stdout. Activate() returns nothing, and the writer and
+        # presentation branches select through a Range whose Select() returns nothing either.
         script = run_agent_eval._WPS_DOCUMENT_SCRIPT
-        for call in ("$doc.Activate()", "$sheet.Activate()"):
-            with self.subTest(call=call):
-                self.assertEqual(script.count(call), 1)
-                self.assertIn(f"[void]{call}", script)
+        call = "$sheet.Range([string]$params.range).Select()"
+        self.assertEqual(script.count(call), 1)
+        self.assertIn(f"[void]{call}", script)

@@ -250,12 +250,14 @@ if ($params.component -eq 'spreadsheets') {
   }
   if ($params.action -ne 'select') { Out-Result ([pscustomobject]@{ ok = $true; status = 'unsupported' }) }
   # Select a cell range through COM and read its address back (P7-003).
-  # [void]: Activate() returns True, and a bare call would put it on stdout ahead of the JSON.
-  try { [void]$doc.Activate() } catch { }
+  try { $doc.Activate() } catch { }
   if ([string]::IsNullOrEmpty([string]$params.sheet)) { $sheet = $doc.Worksheets.Item(1) }
   else { $sheet = $doc.Worksheets.Item([string]$params.sheet) }
-  [void]$sheet.Activate()
-  $sheet.Range([string]$params.range).Select()
+  $sheet.Activate()
+  # [void]: WPS Spreadsheets returns True from Range.Select(), and a bare call puts it on stdout
+  # ahead of the JSON, which _run_script then reads as a failure. Measured on WPS 12.8.2.18913;
+  # Activate() above puts nothing there.
+  [void]$sheet.Range([string]$params.range).Select()
   $selection = $app.ActiveWindow.Selection
   Out-Result ([pscustomobject]@{
     ok = $true; status = 'ok'; address = [string]$selection.Address($false, $false)
