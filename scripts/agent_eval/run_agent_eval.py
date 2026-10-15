@@ -218,8 +218,13 @@ if ($params.component -eq 'presentation') {
       if ($at -lt 0) { continue }
       try { $app.ActiveWindow.View.GotoSlide($s) } catch { }
       $range.Characters($at + 1, $wanted.Length).Select()
-      $selected = $app.ActiveWindow.Selection.TextRange
-      Out-Result ([pscustomobject]@{ ok = $true; status = 'ok'; selection_text = [string]$selected.Text; saved = [bool]$doc.Saved })
+      $selection = $app.ActiveWindow.Selection
+      $selectionType = $null
+      try { $selectionType = [int]$selection.Type } catch { }
+      Out-Result ([pscustomobject]@{
+        ok = $true; status = 'ok'; selection_text = [string]$selection.TextRange.Text
+        selection_type = $selectionType; saved = [bool]$doc.Saved
+      })
     }
   }
   Out-Result ([pscustomobject]@{ ok = $true; status = 'text_not_found' })
@@ -415,6 +420,9 @@ def prepare_open_document(step: str, fixture: Path, component: str, options: dic
             if payload.get("start") is None or payload.get("start") != payload.get("end"):
                 return f"select_text: expected a caret, WPS reports {payload.get('start')}..{payload.get('end')}"
             return None
+        if component == "presentation" and payload.get("selection_type") != 3:
+            # The selection tools take only a text selection (type 3); anything else is a setup failure.
+            return f"select_text: WPS reports selection type {payload.get('selection_type')}, not a text selection"
         if str(payload.get("selection_text") or "").rstrip("\r") != text:
             return f"select_text: WPS selected {payload.get('selection_text')!r}, expected {text!r}"
         return None

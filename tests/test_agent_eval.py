@@ -1414,6 +1414,28 @@ class OpenDocumentSetupTests(unittest.TestCase):
         self.assertIn("expected 'DRAFT'", reason)
         self.assertEqual(self.released, ["report.docx"])
 
+    def test_a_presentation_selection_must_be_a_text_selection(self):
+        deck = self.workspace / "deck.pptx"
+        run_agent_eval.write_fixture(self.workspace, "deck.pptx")
+        options = {"selection": {"text": "DRAFT"}}
+        payloads = [
+            {"status": "ok", "selection_text": "DRAFT", "selection_type": 3},
+            {"status": "ok", "selection_text": "DRAFT", "selection_type": 2},
+        ]
+        outcomes = []
+        for payload in payloads:
+            with (
+                patch.object(run_agent_eval, "open_in_wps", side_effect=self.open_ok),
+                patch.object(run_agent_eval, "wps_document_action", return_value=payload),
+            ):
+                outcomes.append(
+                    run_agent_eval.run_setup(
+                        ["open_in_wps", "select_text"], self.workspace, deck, "presentation", options
+                    )
+                )
+        self.assertIsNone(outcomes[0][2])
+        self.assertIn("selection type 2", outcomes[1][2])
+
     def test_a_collapsed_caret_is_checked_by_position(self):
         options = {"selection": {"text": "Owner: Finance", "collapse": "end"}}
         with (
