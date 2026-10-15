@@ -324,9 +324,16 @@ class WheelTests(unittest.TestCase):
             def __exit__(self, *exc):
                 return False
 
-        with patch.object(windows_check.urllib.request, "urlopen", return_value=Response(json.dumps(release).encode())):
+        with (
+            patch.object(
+                windows_check.urllib.request, "urlopen", return_value=Response(json.dumps(release).encode())
+            ) as urlopen,
+            patch.dict(windows_check.os.environ, {"GITHUB_TOKEN": "t0ken"}),
+        ):
             url, digest = windows_check.release_wheel("0.4.0")
         self.assertEqual((url, digest), ("https://example.invalid/w.whl", "870dd38d"))
+        # A token, when there is one, avoids the unauthenticated quota that once failed the P7-009 run.
+        self.assertEqual(urlopen.call_args.args[0].get_header("Authorization"), "Bearer t0ken")
 
 
 if __name__ == "__main__":

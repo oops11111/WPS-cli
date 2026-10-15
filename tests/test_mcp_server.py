@@ -1639,3 +1639,55 @@ class McpServerTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class RealStdioEncodingTests(unittest.TestCase):
+    """The server process itself, not serve_stdio() with in-memory streams.
+
+    P7-007: on a Chinese Windows (cp936) Python decodes a piped stdin as GBK, but MCP stdio is UTF-8, so every
+    non-ASCII argument reached the tools garbled; 文字文稿1 arrived as 鏂囧瓧鏂囩??1. PYTHONIOENCODING=gbk
+    reproduces that locale on any machine.
+    """
+
+    def test_a_chinese_argument_reaches_the_tool_intact_when_the_locale_is_gbk(self):
+        src = Path(__file__).resolve().parents[1] / "src"
+        requests = [
+            {
+                "jsonrpc": "2.0",
+                "id": 0,
+                "method": "initialize",
+                "params": {
+                    "protocolVersion": "2025-06-18",
+                    "capabilities": {},
+                    "clientInfo": {"name": "t", "version": "1"},
+                },
+            },
+            {"jsonrpc": "2.0", "method": "notifications/initialized"},
+            {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "tools/call",
+                "params": {
+                    "name": "wps_agent_register_document",
+                    "arguments": {"component": "writer", "path": "文字文稿1.docx"},
+                },
+            },
+        ]
+        payload = "".join(json.dumps(item, ensure_ascii=False) + "\n" for item in requests).encode("utf-8")
+        env = {**os.environ, "PYTHONIOENCODING": "gbk", "PYTHONPATH": str(src)}
+        env.pop("PYTHONUTF8", None)
+        with TemporaryDirectory() as workspace:
+            completed = subprocess.run(
+                [sys.executable, "-m", "wps_ai_agent_cli", "mcp-server"],
+                input=payload,
+                capture_output=True,
+                cwd=workspace,
+                env=env,
+                timeout=120,
+                check=False,
+            )
+        self.assertEqual(completed.returncode, 0, completed.stderr.decode("utf-8", "replace"))
+        responses = [json.loads(line) for line in completed.stdout.decode("utf-8").splitlines() if line.strip()]
+        call = next(item for item in responses if item.get("id") == 1)
+        argv = call["result"]["structuredContent"]["mcp_call"]["cli_argv"]
+        self.assertEqual(argv[-1], "文字文稿1.docx")

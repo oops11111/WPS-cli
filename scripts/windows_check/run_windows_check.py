@@ -424,7 +424,12 @@ def release_wheel(version: str) -> tuple[str, str]:
     """The wheel's download URL and the SHA-256 the Release lists for it."""
     name = f"wps_ai_agent_cli-{version}-py3-none-any.whl"
     api = f"https://api.github.com/repos/{REPOSITORY}/releases/tags/v{version}"
-    with urllib.request.urlopen(api, timeout=60) as response:  # noqa: S310 - a fixed https URL
+    request = urllib.request.Request(api, headers={"Accept": "application/vnd.github+json"})
+    # Unauthenticated calls share a small hourly quota; the P7-009 run once got HTTP 403 rate limit exceeded.
+    token = os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN")
+    if token:
+        request.add_header("Authorization", f"Bearer {token}")
+    with urllib.request.urlopen(request, timeout=60) as response:  # noqa: S310 - a fixed https URL
         release = json.load(response)
     for asset in release.get("assets", []):
         if asset.get("name") == name:

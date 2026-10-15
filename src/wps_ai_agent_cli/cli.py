@@ -123,8 +123,16 @@ from .task_status import (
 
 
 def _configure_stdout() -> None:
+    """Read and write UTF-8 on the standard streams, whatever the console code page.
+
+    stdin matters for mcp-server: an MCP client sends its JSON-RPC requests as UTF-8, and Python on a Chinese
+    Windows reads stdin as GBK by default, so every non-ASCII argument reached the tools garbled; the untitled
+    document name 文字文稿1 could not be found (P7-007).
+    """
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    if hasattr(sys.stdin, "reconfigure"):
+        sys.stdin.reconfigure(encoding="utf-8", errors="replace")
 
 
 def _request_id(value: str | None) -> str:

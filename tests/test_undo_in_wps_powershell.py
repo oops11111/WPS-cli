@@ -159,6 +159,9 @@ namespace WpsAgent {
     public FakeSheets Worksheets { get { return new FakeSheets(); } }
     public FakeWindows Windows { get { return new FakeWindows(); } }
     public void Save() { Book.Saves++; }
+    // Like the workbook reached through the Running Object Table in P7-007: Close(false) faults, Close() works.
+    public void Close() { }
+    public void Close(object saveChanges) { throw new System.Runtime.InteropServices.COMException("RPC_E_SERVERFAULT", unchecked((int)0x80010105)); }
   }
   public class FakeWorkbooks { public int Count = 1; public FakeWorkbook Item(int i) { return new FakeWorkbook(); } }
   public class FakeApp {
@@ -351,6 +354,12 @@ class UndoScriptTests(unittest.TestCase):
         self.assertEqual(data["status"], "reverted", data)
         self.assertEqual(data["read_back_formulas"], ["label", "007", "42", "=A3*2", ""])
         self.assertTrue(data["saved"])
+
+    def test_an_unchanged_workbook_is_closed_without_the_argument_that_faulted(self):
+        data = self.book(
+            ["'a"], {"component": "spreadsheets", "do_close": True}, action="close-unchanged", WPSFAKE_SAVES="1"
+        )
+        self.assertEqual(data["status"], "closed", data)
 
     def test_spreadsheet_leaves_cells_that_changed_since_the_write(self):
         params = self.cell_params([("a", True), ("b", True)], ["NEW", "NEW"])

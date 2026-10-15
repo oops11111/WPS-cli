@@ -3034,14 +3034,14 @@
     "id": "P7-008",
     "phase": "phase7",
     "title": "Release 0.4.0",
-    "status": "todo",
+    "status": "done",
     "acceptance": "H4: version 0.4.0 per docs/RELEASING.md and a CHANGELOG section, merged before the maintainer pushes the v0.4.0 tag."
   },
   {
     "id": "P7-009",
     "phase": "phase7",
     "title": "Windows check of the 0.4.0 wheel",
-    "status": "todo",
+    "status": "done",
     "acceptance": "H4: the Release wheel checked on Windows with the P7-005 script; result recorded."
   }
 ]

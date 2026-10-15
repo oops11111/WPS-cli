@@ -233,7 +233,9 @@ _CLOSE_UNCHANGED_BODY = """
   }
   switch ([string]$params.component) {
     'writer' { [void]$doc.Close(0) }
-    'spreadsheets' { [void]$doc.Close($false) }
+    # Close($false) on a workbook reached through the Running Object Table failed with RPC_E_SERVERFAULT on
+    # WPS 12.8 (P7-007). The document has no unsaved changes here, so Close() with no argument cannot prompt.
+    'spreadsheets' { try { [void]$doc.Close() } catch { [void]$doc.Close($false) } }
     default { [void]$doc.Close() }
   }
   [pscustomobject]@{ ok = $true; status = 'closed'; saved = $true; closed = $true } | ConvertTo-Json -Depth 5

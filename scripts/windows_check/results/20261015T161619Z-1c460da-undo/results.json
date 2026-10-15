@@ -1,0 +1,187 @@
+{
+  "prerequisites": {
+    "passed": true,
+    "checks": [
+      {
+        "name": "commit",
+        "ok": true,
+        "detail": "1c460da on main",
+        "required": true
+      },
+      {
+        "name": "python",
+        "ok": true,
+        "detail": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\.venv\\Scripts\\python.exe",
+        "required": true
+      },
+      {
+        "name": "windows",
+        "ok": true,
+        "detail": "Windows-10-10.0.19045-SP0",
+        "required": true
+      },
+      {
+        "name": "no WPS process running",
+        "ok": true,
+        "detail": "none",
+        "required": true
+      },
+      {
+        "name": "open command .docx",
+        "ok": true,
+        "detail": "\"C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\wps.exe\" \"%1\"",
+        "required": true
+      },
+      {
+        "name": "open command .xlsx",
+        "ok": true,
+        "detail": "\"C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\et.exe\" \"%1\"",
+        "required": true
+      },
+      {
+        "name": "open command .pptx",
+        "ok": true,
+        "detail": "\"C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\wpp.exe\" \"%1\"",
+        "required": true
+      },
+      {
+        "name": "inspect-env",
+        "ok": true,
+        "detail": "{\"presentation\": \"kwpp.Application\", \"spreadsheets\": \"ket.Application\", \"writer\": \"kwps.Application\"}",
+        "required": true
+      }
+    ],
+    "info": {
+      "commit": "1c460da",
+      "branch": "main",
+      "python": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\.venv\\Scripts\\python.exe",
+      "platform": "Windows-10-10.0.19045-SP0",
+      "wps_versions": {
+        "wps.exe": "12,8,2,18913",
+        "et.exe": "12,8,2,18913",
+        "wpp.exe": "12,8,2,18913"
+      }
+    }
+  },
+  "settings": {
+    "scenarios": [
+      "writer-replace",
+      "presentation-replace"
+    ],
+    "wps_launch": "default"
+  },
+  "results": [
+    {
+      "scenario": "writer-replace",
+      "component": "writer",
+      "workspace": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261015T161619Z-1c460da-undo\\writer-replace-k7z19t8m",
+      "text_before": "Quarterly report\nStatus: DRAFT\nOwner: Finance",
+      "hashes": {
+        "before_write": "878f73ed6e23f0ac8cce02c547dc6dcf9ca513b4855e249d28feef9ffb917902",
+        "before_undo": "29AC373480EE994B136A67CEAEE72857C28A9FA535F91E533B21A25C8564FB3D",
+        "after_undo": "03BD549636BE8026FE9D0A9CC0D0F187FC55D46B4464DA650A7C5FEE82255694",
+        "now": "03bd549636be8026fe9d0a9cc0d0f187fc55d46b4464da650a7c5fee82255694"
+      },
+      "ok": false,
+      "injected": true,
+      "real_read_back_text": "FINAL",
+      "com_actions": [
+        "selection-read",
+        "selection-replace",
+        "selection-revert"
+      ],
+      "error_codes": [
+        "VALIDATION_FAILED",
+        "MUTATION_ROLLED_BACK"
+      ],
+      "errors": [
+        {
+          "code": "VALIDATION_FAILED",
+          "message": "Selection replacement read-back did not match the replacement text."
+        },
+        {
+          "code": "MUTATION_ROLLED_BACK",
+          "message": "The write was undone in WPS: the command put the original back, read it back and saved it, and the saved file's content matches the pre-write backup. The document stays open in WPS and nothing else needs to be done."
+        }
+      ],
+      "rollback": {
+        "method": "in_wps",
+        "rolled_back_in_wps": true,
+        "backup_path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261015T161619Z-1c460da-undo\\writer-replace-k7z19t8m\\.wps-agent\\backups\\doc_31f5374b5c7a45cf\\report.20261015T161629101282Z.docx",
+        "file_sha256_before_undo": "29AC373480EE994B136A67CEAEE72857C28A9FA535F91E533B21A25C8564FB3D",
+        "status": "reverted",
+        "read_back_text": "DRAFT",
+        "saved": true,
+        "file_sha256_after_undo": "03BD549636BE8026FE9D0A9CC0D0F187FC55D46B4464DA650A7C5FEE82255694",
+        "content_matches_backup": true
+      },
+      "text_after": "Quarterly report\nStatus: DRAFT\nOwner: Finance",
+      "wps_saved_after": true,
+      "cleanup": "fixture closed; processes left running: WPS still lists 文字文稿3",
+      "passed": true
+    },
+    {
+      "scenario": "presentation-replace",
+      "component": "presentation",
+      "workspace": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261015T161619Z-1c460da-undo\\presentation-replace-y20qi1qd",
+      "text_before": "Quarterly review\nStatus: DRAFT",
+      "hashes": {
+        "before_write": "858a45ab5b54c287d86670ee43850c0ae7e4a4bd233b8285a4927a94de20903c",
+        "before_undo": "955DCE138405905B103854E19650C80A9270870CC56DD2F5FCC3185076BBAAEB",
+        "after_undo": "36DB8B8DF2E19527B2ABCE38E9B8A62A1169B59CE5BFCFC5EBBFBAFC23D334D5",
+        "now": "36db8b8df2e19527b2abce38e9b8a62a1169b59ce5bfcfc5ebbfbafc23d334d5"
+      },
+      "ok": false,
+      "injected": true,
+      "real_read_back_text": "FINAL",
+      "com_actions": [
+        "selection-read",
+        "selection-replace",
+        "selection-revert"
+      ],
+      "error_codes": [
+        "VALIDATION_FAILED",
+        "MUTATION_ROLLED_BACK"
+      ],
+      "errors": [
+        {
+          "code": "VALIDATION_FAILED",
+          "message": "Selection replacement read-back did not match the replacement text."
+        },
+        {
+          "code": "MUTATION_ROLLED_BACK",
+          "message": "The write was undone in WPS: the command put the original back, read it back and saved it, and the saved file's content matches the pre-write backup. The document stays open in WPS and nothing else needs to be done."
+        }
+      ],
+      "rollback": {
+        "method": "in_wps",
+        "rolled_back_in_wps": true,
+        "backup_path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261015T161619Z-1c460da-undo\\presentation-replace-y20qi1qd\\.wps-agent\\backups\\doc_d46bc8fdbc5f5f30\\deck.20261015T161645939382Z.pptx",
+        "file_sha256_before_undo": "955DCE138405905B103854E19650C80A9270870CC56DD2F5FCC3185076BBAAEB",
+        "status": "reverted",
+        "read_back_text": "Status: DRAFT",
+        "saved": true,
+        "file_sha256_after_undo": "36DB8B8DF2E19527B2ABCE38E9B8A62A1169B59CE5BFCFC5EBBFBAFC23D334D5",
+        "content_matches_backup": true
+      },
+      "text_after": "Quarterly review\nStatus: DRAFT",
+      "wps_saved_after": true,
+      "cleanup": "fixture closed; processes left running: WPS still lists deck.pptx",
+      "passed": true
+    }
+  ],
+  "leftover_processes": [
+    {
+      "id": 19088,
+      "name": "wps.exe",
+      "command_line": "\"C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\wps.exe\" \"C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261015T161619Z-1c460da-undo\\writer-replace-k7z19t8m\\report.docx\"",
+      "title": "文字文稿3 * - WPS 文字"
+    },
+    {
+      "id": 24236,
+      "name": "wpp.exe",
+      "command_line": "\"C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\wpp.exe\" \"C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261015T161619Z-1c460da-undo\\presentation-replace-y20qi1qd\\deck.pptx\"",
+      "title": "deck.pptx - WPS 演示"
+    }
+  ]
+}

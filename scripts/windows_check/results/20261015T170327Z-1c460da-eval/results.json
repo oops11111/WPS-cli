@@ -1,0 +1,314 @@
+{
+  "prerequisites": {
+    "passed": true,
+    "checks": [
+      {
+        "name": "commit",
+        "ok": true,
+        "detail": "1c460da on main",
+        "required": true
+      },
+      {
+        "name": "python",
+        "ok": true,
+        "detail": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\.venv\\Scripts\\python.exe",
+        "required": true
+      },
+      {
+        "name": "windows",
+        "ok": true,
+        "detail": "Windows-10-10.0.19045-SP0",
+        "required": true
+      },
+      {
+        "name": "claude answers",
+        "ok": true,
+        "detail": "OK",
+        "required": true
+      },
+      {
+        "name": "no WPS process running",
+        "ok": true,
+        "detail": "none",
+        "required": true
+      },
+      {
+        "name": "open command .docx",
+        "ok": true,
+        "detail": "\"C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\wps.exe\" \"%1\"",
+        "required": true
+      },
+      {
+        "name": "open command .xlsx",
+        "ok": true,
+        "detail": "\"C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\et.exe\" \"%1\"",
+        "required": true
+      },
+      {
+        "name": "open command .pptx",
+        "ok": true,
+        "detail": "\"C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\wpp.exe\" \"%1\"",
+        "required": true
+      },
+      {
+        "name": "inspect-env",
+        "ok": true,
+        "detail": "{\"presentation\": \"kwpp.Application\", \"spreadsheets\": \"ket.Application\", \"writer\": \"kwps.Application\"}",
+        "required": true
+      }
+    ],
+    "info": {
+      "commit": "1c460da",
+      "branch": "main",
+      "python": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\.venv\\Scripts\\python.exe",
+      "platform": "Windows-10-10.0.19045-SP0",
+      "wps_versions": {
+        "wps.exe": "12,8,2,18913",
+        "et.exe": "12,8,2,18913",
+        "wpp.exe": "12,8,2,18913"
+      }
+    }
+  },
+  "settings": {
+    "only": [
+      "wps-open-spreadsheet-selection-replace",
+      "wps-open-spreadsheet-selection-delete"
+    ],
+    "repeat": 3,
+    "min_passes": 2,
+    "model": null,
+    "wps_launch": "default",
+    "tasks": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\config\\agent_eval_tasks.json",
+    "workspaces": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261015T170327Z-1c460da-eval"
+  },
+  "results": [
+    {
+      "id": "wps-open-spreadsheet-selection-replace",
+      "passed": false,
+      "repeat": 3,
+      "min_passes": 2,
+      "passes": 1,
+      "pass_rate": 0.3333333333333333,
+      "metrics": {
+        "wps_tool_calls": 5,
+        "wps_tool_errors": 0,
+        "off_path_calls": 1,
+        "off_path_tools": [
+          "spreadsheet_read"
+        ]
+      },
+      "runs": [
+        {
+          "id": "wps-open-spreadsheet-selection-replace",
+          "passed": true,
+          "agent": {
+            "ran": true,
+            "exit_code": 0,
+            "is_error": false,
+            "num_turns": 6,
+            "duration_ms": 17561,
+            "total_cost_usd": 0.316997,
+            "result_excerpt": "Done. Both selected cells are now `FINAL` in the open WPS window.\n\n**What happened**\n- Attached to the running WPS instance (no launch) and registered `status.xlsx` as `doc_f79c35616ea35a70`.\n- Read the live selection first: `$C$2:$C$3`, sheet `Status`, both cells `DRAFT`.\n- Ran `spreadsheet_selection_replace` with `request_id: eval-cells-1`, using `expected_selection_text: \"DRAFT\\tDRAFT\"` as a guard so the write would abort if the selection had shifted.\n\n**Verification**\n| Cell | Before | After",
+            "stderr_excerpt": "",
+            "tool_calls": [
+              {
+                "name": "mcp__wps-agent__wps_agent_open_documents",
+                "input": {
+                  "component": "spreadsheets",
+                  "register": true
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_spreadsheet_selection_read",
+                "input": {
+                  "document_id": "doc_f79c35616ea35a70"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_spreadsheet_selection_replace",
+                "input": {
+                  "document_id": "doc_f79c35616ea35a70",
+                  "text": "FINAL",
+                  "expected_selection_text": "DRAFT\tDRAFT",
+                  "request_id": "eval-cells-1"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_spreadsheet_read",
+                "input": {
+                  "document_id": "doc_f79c35616ea35a70",
+                  "range": "A1:D5",
+                  "sheet": "Status"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_open_documents",
+                "input": {
+                  "component": "spreadsheets"
+                },
+                "is_error": false,
+                "error_codes": []
+              }
+            ]
+          },
+          "metrics": {
+            "wps_tool_calls": 5,
+            "wps_tool_errors": 0,
+            "other_tool_calls": 0,
+            "tools_used": [
+              "open_documents",
+              "spreadsheet_read",
+              "spreadsheet_selection_read",
+              "spreadsheet_selection_replace"
+            ],
+            "expected_tools": [
+              "documents",
+              "open_documents",
+              "register_document",
+              "spreadsheet_selection_read",
+              "spreadsheet_selection_replace"
+            ],
+            "off_path_calls": 1,
+            "off_path_tools": [
+              "spreadsheet_read"
+            ]
+          },
+          "checks": [
+            {
+              "kind": "operation_recorded",
+              "passed": true,
+              "detail": "spreadsheet-selection-replace",
+              "request_id": "eval-cells-1",
+              "command": "spreadsheet-selection-replace"
+            },
+            {
+              "kind": "tool_called",
+              "passed": true,
+              "detail": "1 matching call(s)",
+              "tool": "spreadsheet_selection_replace",
+              "input": {
+                "request_id": "eval-cells-1"
+              }
+            },
+            {
+              "kind": "xlsx_cell",
+              "passed": true,
+              "detail": "FINAL",
+              "path": "status.xlsx",
+              "sheet": "Status",
+              "cell": "C2",
+              "value": "FINAL"
+            },
+            {
+              "kind": "xlsx_cell",
+              "passed": true,
+              "detail": "FINAL",
+              "path": "status.xlsx",
+              "sheet": "Status",
+              "cell": "C3",
+              "value": "FINAL"
+            },
+            {
+              "kind": "xlsx_cell",
+              "passed": true,
+              "detail": 120,
+              "path": "status.xlsx",
+              "sheet": "Status",
+              "cell": "B2",
+              "value": 120
+            },
+            {
+              "kind": "xlsx_cell",
+              "passed": true,
+              "detail": "Status",
+              "path": "status.xlsx",
+              "sheet": "Status",
+              "cell": "C1",
+              "value": "Status"
+            },
+            {
+              "kind": "backup_count",
+              "passed": true,
+              "detail": 1,
+              "count": 1
+            },
+            {
+              "kind": "tool_not_called",
+              "passed": true,
+              "detail": "0 call(s)",
+              "tool": "spreadsheet_write"
+            }
+          ],
+          "cleanup": "fixture COM_OPERATION_FAILED (服务器出现意外情况。 (0x80010105 (RPC_E_SERVERFAULT))); processes stopped 48976"
+        },
+        {
+          "id": "wps-open-spreadsheet-selection-replace",
+          "passed": false,
+          "setup_failed": "WPS did not list status.xlsx as open within 45 s (launch mode default): WPS_INSTANCE_NOT_AUTOMATABLE: WPS Spreadsheets is running with a window, but it did not register for automation, so its open documents cannot be reached. This happens when WPS was started by opening a file directly, for example by double-clicking it. Save your work in WPS, close every WPS Spreadsheets window, then reopen the document with the /Automation option, for example: wps.exe /Automation \"<path to the document>\". Nothing was launched, closed or changed.",
+          "agent": {},
+          "metrics": {
+            "wps_tool_calls": 0,
+            "wps_tool_errors": 0,
+            "other_tool_calls": 0,
+            "tools_used": [],
+            "expected_tools": [
+              "documents",
+              "open_documents",
+              "register_document",
+              "spreadsheet_selection_read",
+              "spreadsheet_selection_replace"
+            ],
+            "off_path_calls": 0,
+            "off_path_tools": []
+          },
+          "checks": []
+        },
+        {
+          "id": "wps-open-spreadsheet-selection-replace",
+          "passed": false,
+          "setup_failed": "WPS did not list status.xlsx as open within 45 s (launch mode default): WPS_INSTANCE_NOT_AUTOMATABLE: WPS Spreadsheets is running with a window, but it did not register for automation, so its open documents cannot be reached. This happens when WPS was started by opening a file directly, for example by double-clicking it. Save your work in WPS, close every WPS Spreadsheets window, then reopen the document with the /Automation option, for example: wps.exe /Automation \"<path to the document>\". Nothing was launched, closed or changed.",
+          "agent": {},
+          "metrics": {
+            "wps_tool_calls": 0,
+            "wps_tool_errors": 0,
+            "other_tool_calls": 0,
+            "tools_used": [],
+            "expected_tools": [
+              "documents",
+              "open_documents",
+              "register_document",
+              "spreadsheet_selection_read",
+              "spreadsheet_selection_replace"
+            ],
+            "off_path_calls": 0,
+            "off_path_tools": []
+          },
+          "checks": []
+        }
+      ]
+    },
+    {
+      "id": "wps-open-spreadsheet-selection-delete",
+      "passed": false,
+      "skipped": "WPS did not list status.xlsx as open within 45 s (launch mode default): WPS_INSTANCE_NOT_AUTOMATABLE: WPS Spreadsheets is running with a window, but it did not register for automation, so its open documents cannot be reached. This happens when WPS was started by opening a file directly, for example by double-clicking it. Save your work in WPS, close every WPS Spreadsheets window, then reopen the document with the /Automation option, for example: wps.exe /Automation \"<path to the document>\". Nothing was launched, closed or changed.",
+      "runs": []
+    }
+  ],
+  "complete": true,
+  "leftover_processes": [
+    {
+      "id": 27488,
+      "name": "et.exe",
+      "command_line": "\"C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\et.exe\"  recover1 -cpid=48976 /w",
+      "title": "status.xlsx - [ 工作区261016@010412 ] - WPS 表格"
+    }
+  ]
+}
