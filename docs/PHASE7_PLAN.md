@@ -63,8 +63,18 @@ Phase 6 让已打开文档的命令能看到用户打开的文档，并证明 Ag
   - `wps-open-save-as-untitled` 0/3。原因是编码：Windows PowerShell 把重定向的 stdout 按控制台代码页（GBK）输出，而所有调用方按 UTF-8 解码，未命名文档的名字 `文字文稿1` 变成乱码。提示里的名字、`open_documents` 列出的名字都是乱码，Agent 只能得到 `UNTITLED_DOCUMENT_NOT_FOUND`；runner 也按乱码名字关不掉未命名文档，三次运行的未命名文档留在同一个 WPS 里。
 - **修复（本轮之后）。** 产品里所有 PowerShell 脚本和命令先把输出编码设为 UTF-8（`powershell_runner.UTF8_OUTPUT_PREAMBLE`）；`close_unchanged_document` 关闭失败时先看 WPS 是否还列出该文档，不再列出就算已关闭；runner 在结束进程后等它们退出，留下进程时写出 WPS 还列出哪些文档，关闭失败时记下错误信息。
 - **下一步。** 在合并修复后的 `main` 上用一条命令把 11 个任务重跑一次（H2 要求一条命令），再跑一次 `undo` 确认编码修改没有影响撤回。
-| P7-008 | H4 | 定版本 0.4.0，整理 `CHANGELOG.md`，合并后由你推送 `v0.4.0` 标签（已准备：`__version__` 为 `0.4.0`，`CHANGELOG.md` 有 `[0.4.0] - 2026-10-15` 一节，包含 P7-001 和 P7-006；标签待推送） | 本地 + 你 |
-| P7-009 | H4 | 在 Windows 上用 P7-005 的脚本检查 Release 的 wheel | Windows |
+
+### P7-007 第二轮（`1c460da`）
+
+- **H1 仍然达成。** `undo` 2/2（`20261015T161619Z-1c460da-undo`）。
+- **H4 达成（P7-008、P7-009）。** `v0.4.0` 从 `564d103` 发布；`wheel --version 0.4.0` 在 Windows 上通过全部 7 个条件，wheel 的 SHA-256 等于 Release 列出的 `7d50cce6…`，safe 档 7/7，清单来自安装的包（`20261015T170715Z-wheel-0.4.0`）。
+- **H2 仍未达成。** 一条命令里 11 个任务 8 个 3/3（`20261015T161731Z-1c460da-eval`）：
+  - `wps-open-save-as-untitled` 0/3。未命名文档的名字现在正确（`文字文稿1`），Agent 第一次调用 `save_as_open_document` 就用了这个名字，仍然得到 `UNTITLED_DOCUMENT_NOT_FOUND`。原因是 MCP 服务器用区域编码（GBK）读 stdin，而 MCP 客户端发的是 UTF-8，所有经 MCP 传进来的非 ASCII 参数都变成乱码。只有 stdout 设成了 UTF-8，stdin 没有。
+  - 表格替换 1/3，表格删除被跳过。第 1 次清理时关闭工作簿报 `RPC_E_SERVERFAULT`（`Close($false)`，工作簿是通过 Running Object Table 拿到的）；之后每次启动的 WPS 表格都连不上（`WPS_INSTANCE_NOT_AUTOMATABLE`），单独重跑这两个任务结果一样。P4-011 在真实 WPS 上验证过关闭工作簿，但那次是 `/Automation` 启动、经 `GetActiveObject` 拿到的。
+- **修复（本轮之后）。** CLI 把 stdin 也设成 UTF-8；关闭未改动的工作簿先用不带参数的 `Close()`（文档已保存，不会弹框），失败再用 `Close($false)`；runner 丢弃工作簿时同样处理；runner 打开文档超时时记下当时有哪些 WPS 进程、哪些是这次启动的；`wheel` 有 `GITHUB_TOKEN` 时带上它，避开未认证的配额（这次运行前一次失败于 HTTP 403）。`Close()` 能否避免表格的问题，要下一轮才知道。
+- **下一步。** 合并后在新的 `main` 上再用一条命令跑 11 个任务。如果表格任务仍然连不上，H2 的表格任务改用 `--wps-launch automation` 跑（不改系统打开命令，只在命令行加 `/Automation`），由你决定。
+| P7-008 | H4 | 定版本 0.4.0，整理 `CHANGELOG.md`，合并后由你推送 `v0.4.0` 标签（已完成：`v0.4.0` 从 `564d103` 发布） | 本地 + 你 |
+| P7-009 | H4 | 在 Windows 上用 P7-005 的脚本检查 Release 的 wheel（已完成：`20261015T170715Z-wheel-0.4.0`，7 个条件全部通过） | Windows |
 
 P5-010 仍留在 Phase 5 的缺口里，不在这里重复列出。
 

@@ -245,7 +245,9 @@ if ($params.component -eq 'spreadsheets') {
   $doc = Find-OpenWorkbook $app $params.path
   if ($null -eq $doc) { Out-Result ([pscustomobject]@{ ok = $true; status = 'not_open' }) }
   if ($params.action -eq 'close_discard') {
-    $doc.Close($false)
+    # Close($false) failed with RPC_E_SERVERFAULT on WPS 12.8 (P7-007): mark it saved and close with no argument.
+    $doc.Saved = $true
+    try { [void]$doc.Close() } catch { [void]$doc.Close($false) }
     Out-Result ([pscustomobject]@{ ok = $true; status = 'closed' })
   }
   if ($params.action -ne 'select') { Out-Result ([pscustomobject]@{ ok = $true; status = 'unsupported' }) }
@@ -467,10 +469,17 @@ def open_in_wps(
     started.update(wps_process_ids() - before)
     release()
     detail = "; ".join(f"{error.get('code')}: {error.get('message')}" for error in last_errors)
+    # Which WPS processes were there: in P7-007 the runs after a stopped Spreadsheets instance could not reach
+    # the new one, and the record could not say what was running.
+    running = ",".join(map(str, sorted(wps_process_ids()))) or "none"
+    ours = ",".join(map(str, sorted(started))) or "none"
+    earlier = ",".join(map(str, sorted(before))) or "none"
+    processes = f" [WPS processes: {running}; started for this run: {ours}; running before it: {earlier}]"
     return (
         None,
         f"WPS did not list {path.name} as open within {timeout:.0f} s (launch mode {WPS_LAUNCH})"
-        + (f": {detail}" if detail else f"; is WPS the default app for {path.suffix}?"),
+        + (f": {detail}" if detail else f"; is WPS the default app for {path.suffix}?")
+        + processes,
     )
 
 

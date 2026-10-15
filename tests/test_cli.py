@@ -481,6 +481,15 @@ class CliParsingTests(unittest.TestCase):
             _configure_stdout()
             self.assertEqual(stream.encoding.lower().replace("_", "-"), "utf-8")
 
+    def test_configure_stdout_reads_stdin_as_utf8_whatever_the_console_code_page(self):
+        # P7-007: the MCP server read UTF-8 requests through a GBK stdin, so 文字文稿1 reached the tool garbled.
+        request = json.dumps({"name": "文字文稿1"}, ensure_ascii=False).encode("utf-8")
+        stdin = io.TextIOWrapper(io.BytesIO(request), encoding="gbk")
+        stdout = io.TextIOWrapper(io.BytesIO(), encoding="gbk")
+        with patch("sys.stdin", stdin), patch("sys.stdout", stdout):
+            _configure_stdout()
+            self.assertEqual(json.loads(stdin.read())["name"], "文字文稿1")
+
     def test_mutating_command_parsers_accept_task_id(self):
         parser = build_parser()
 
