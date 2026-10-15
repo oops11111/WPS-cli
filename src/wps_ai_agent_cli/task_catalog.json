@@ -2910,5 +2910,75 @@
     "title": "Open-document tools and a normally opened WPS Writer",
     "status": "todo",
     "acceptance": "Gap found in P5-006, not an exit criterion: a WPS Writer opened the usual way does not register kwps.Application, so the open-document commands cannot see its documents. Find out why on Windows (ROT, start options, whether Presentation is affected) and either fix it or document how to start WPS so that it works."
+  },
+  {
+    "id": "P6-001",
+    "phase": "phase6",
+    "title": "Read-only diagnostic of how WPS registers for automation",
+    "status": "todo",
+    "acceptance": "G1: a script that lists every Running Object Table entry, tries GetActiveObject per component and GetObject on registered file monikers only, and records WPS process command lines; it opens, closes and saves nothing."
+  },
+  {
+    "id": "P6-002",
+    "phase": "phase6",
+    "title": "Windows run of the automation diagnostic",
+    "status": "todo",
+    "acceptance": "G1: the diagnostic is run on Windows for a document of each component opened by double-click, plus Writer started with /Automation for comparison; results recorded."
+  },
+  {
+    "id": "P6-003",
+    "phase": "phase6",
+    "title": "Attach to normally opened documents or report why not",
+    "status": "todo",
+    "acceptance": "G1: based on P6-002, open-documents and the open-document commands attach through the ROT or file path where possible; otherwise they return a new error code with the cause and a remedy; offline fake-COM tests; README known limit updated."
+  },
+  {
+    "id": "P6-004",
+    "phase": "phase6",
+    "title": "Windows check of G1 for all three components",
+    "status": "todo",
+    "acceptance": "G1: on Windows, each component is checked per G1 with the stock open command and the result is recorded."
+  },
+  {
+    "id": "P6-005",
+    "phase": "phase6",
+    "title": "Agent eval runner: own WPS processes and a select_text step",
+    "status": "todo",
+    "acceptance": "G2: open_in_wps records the WPS processes it started and closes only those, only when they hold no other document; a select_text setup step selects given text in Writer or Presentation and reads it back."
+  },
+  {
+    "id": "P6-006",
+    "phase": "phase6",
+    "title": "Agent eval: open-document write tasks",
+    "status": "todo",
+    "acceptance": "G2: at least four tasks (Writer selection replace and insert, Presentation selection replace, save_open_document), each with expected_tools and offline judge tests."
+  },
+  {
+    "id": "P6-007",
+    "phase": "phase6",
+    "title": "CELL_NOT_FOUND names the table size",
+    "status": "todo",
+    "acceptance": "Gap from P5-006: the CELL_NOT_FOUND message gives the table's row and column counts and its header row; the cause of the P5-006 out-of-range calls is found; wps-writer-table-write turns are compared in P6-008."
+  },
+  {
+    "id": "P6-008",
+    "phase": "phase6",
+    "title": "Windows runs of the open-document tasks",
+    "status": "todo",
+    "acceptance": "G2: the new tasks and wps-open-document-export-text run in one --repeat 3 --min-passes 2 invocation on Windows with the stock open command; pass rate, turns, tool calls and off-path calls recorded."
+  },
+  {
+    "id": "P6-009",
+    "phase": "phase6",
+    "title": "Release 0.3.0",
+    "status": "todo",
+    "acceptance": "G3: version 0.3.0 per docs/RELEASING.md, CHANGELOG section, merged; the maintainer pushes the v0.3.0 tag and the release workflow publishes it."
+  },
+  {
+    "id": "P6-010",
+    "phase": "phase6",
+    "title": "Windows check of the 0.3.0 wheel",
+    "status": "todo",
+    "acceptance": "G3: in a new Windows virtual environment with only the released wheel, inspect-env and the safe regression profile pass; result recorded."
   }
 ]

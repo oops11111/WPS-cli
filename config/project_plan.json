@@ -66,6 +66,17 @@
         "F3: the first release is published: version set by docs/RELEASING.md, tagged, with the wheel and sdist attached to a GitHub Release; in a new virtual environment with only that wheel installed, inspect-env and the safe regression profile pass (2026-10-14: v0.2.0 released; 2026-10-15: the Release wheel passed inspect-env and safe 7/7 on Windows)",
         "F4: the repository is formatted with ruff format once and CI checks formatting"
       ]
+    },
+    {
+      "id": "phase6",
+      "name": "Documents the user opened",
+      "goal": "Make the open-document tools work on documents the user opened the usual way, or say clearly when they cannot; prove agents can write to open documents; and release it as 0.3.0.",
+      "status": "planned",
+      "exit_criteria": [
+        "G1: on Windows, for each of Writer, Spreadsheets and Presentation, a document opened by double-click with the stock open command is either listed by open-documents and exported by export-open-document-text, or the commands return a dedicated error code whose message gives the cause and what the user can do, never 'no running WPS'; both outcomes have offline fake-COM tests and the Windows results are recorded",
+        "G2: the agent evaluation adds at least four open-document write tasks (Writer selection replace, Writer selection insert, Presentation selection replace, save_open_document), each naming its expected tools; the WPS open-document tasks, including wps-open-document-export-text, pass at least 2 of 3 runs on Windows in one --repeat 3 invocation without changing the system open command",
+        "G3: v0.3.0 is released per docs/RELEASING.md with the G1 and G2 changes; in a new Windows virtual environment with only that wheel installed, inspect-env and the safe regression profile pass"
+      ]
     }
   ]
 }

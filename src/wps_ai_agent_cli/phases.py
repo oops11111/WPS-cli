@@ -71,6 +71,15 @@ PHASES: tuple[Phase, ...] = (
             "write tasks, and publish a first release that works without the repository."
         ),
     ),
+    Phase(
+        id="phase6",
+        name="Documents the user opened",
+        status="planned",
+        goal=(
+            "Make the open-document tools work on documents the user opened the usual way, or say clearly "
+            "when they cannot; prove agents can write to open documents; and release it as 0.3.0."
+        ),
+    ),
 )
 
 
