@@ -1116,6 +1116,7 @@ def replace_writer_selection(
         request_id=f"{request_id}:backup",
         dry_run=False,
         workspace=workspace,
+        source_open_in_wps=True,
     )
     if not backup_ok:
         return False, {"preview": preview, "backup": backup_result}, backup_errors, False
@@ -1272,6 +1273,7 @@ def insert_writer_selection(
         request_id=f"{request_id}:backup",
         dry_run=False,
         workspace=workspace,
+        source_open_in_wps=True,
     )
     if not backup_ok:
         return False, {"preview": preview, "backup": backup_result}, backup_errors, False
@@ -1399,6 +1401,7 @@ def delete_writer_selection(
         request_id=f"{request_id}:backup",
         dry_run=False,
         workspace=workspace,
+        source_open_in_wps=True,
     )
     if not backup_ok:
         return False, {"preview": preview, "backup": backup_result}, backup_errors, False
@@ -1532,6 +1535,7 @@ def replace_presentation_selection(
         request_id=f"{request_id}:backup",
         dry_run=False,
         workspace=workspace,
+        source_open_in_wps=True,
     )
     if not backup_ok:
         return False, {"preview": preview, "backup": backup_result}, backup_errors, False
@@ -1709,6 +1713,7 @@ def insert_presentation_selection(
         request_id=f"{request_id}:backup",
         dry_run=False,
         workspace=workspace,
+        source_open_in_wps=True,
     )
     if not backup_ok:
         return False, {"preview": preview, "backup": backup_result}, backup_errors, False
@@ -1841,6 +1846,7 @@ def delete_presentation_selection(
         request_id=f"{request_id}:backup",
         dry_run=False,
         workspace=workspace,
+        source_open_in_wps=True,
     )
     if not backup_ok:
         return False, {"preview": preview, "backup": backup_result}, backup_errors, False
@@ -2158,6 +2164,7 @@ def replace_spreadsheet_selection(
         request_id=f"{request_id}:backup",
         dry_run=False,
         workspace=workspace,
+        source_open_in_wps=True,
     )
     if not backup_ok:
         return False, {"preview": preview, "backup": backup_result}, backup_errors, False
@@ -2473,6 +2480,7 @@ def delete_spreadsheet_selection(
         request_id=f"{request_id}:backup",
         dry_run=False,
         workspace=workspace,
+        source_open_in_wps=True,
     )
     if not backup_ok:
         return False, {"preview": preview, "backup": backup_result}, backup_errors, False
@@ -2715,6 +2723,7 @@ def save_open_document(
         request_id=f"{request_id}:backup",
         dry_run=False,
         workspace=workspace,
+        source_open_in_wps=True,
     )
     if not backup_ok:
         return False, {"preview": preview, "backup": backup_result}, backup_errors, False

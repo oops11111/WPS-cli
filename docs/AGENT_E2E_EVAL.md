@@ -15,7 +15,7 @@ A task can list `setup` steps that prepare the workspace before the agent starts
 | `modify` | changes A1 to `changed by mistake` and saves the file |
 | `html_table` | writes `table.html` with a two-column table |
 | `hold` | holds the fixture the way WPS holds an open document. Must be the last step. |
-| `open_in_wps` | opens the fixture in WPS on Windows and waits until WPS lists it as open (up to 45 s). With `--wps-launch default` (the default) it opens the file with its default app, as a double-click does; with `--wps-launch automation` it starts the program associated with the extension with `/Automation` and the file, without changing the system's open command. It records the WPS processes (`wps`, `et`, `wpp`) that appeared while opening. After the agent, the runner closes the document without saving, and only when WPS reports no unsaved changes; then it ends the processes it recorded, but only while WPS lists no other document for the component, so that the next `--repeat` run starts from the same state. Only `select_text` and `append_unsaved` may follow it; the task must be marked (WPS). Elsewhere the task is skipped. |
+| `open_in_wps` | opens the fixture in WPS on Windows and waits until WPS lists it as open (up to 45 s). It runs the open command registered for the extension (for example `wps.exe "%1"`), the command a double-click runs, rather than going through the shell, which on some machines shows the "Open with" chooser instead. `--wps-launch automation` adds `/Automation` to that command. Neither changes the system's open command. It records the WPS processes (`wps`, `et`, `wpp`) that appeared while opening. After the agent, the runner closes the document without saving, and only when WPS reports no unsaved changes; then it ends the processes it recorded, but only while WPS lists no other document for the component, so that the next `--repeat` run starts from the same state. Only `select_text` and `append_unsaved` may follow it; the task must be marked (WPS). Elsewhere the task is skipped. |
 | `select_text` | after `open_in_wps`: selects the first occurrence of the task's `selection.text` in WPS (Writer or Presentation), or, with `"collapse": "end"`, puts the caret right after it (Writer). It reads the selection back; when WPS selected something else, the run is a setup failure, not an agent failure. |
 | `append_unsaved` | after `open_in_wps`: appends the task's `unsaved_text` as a new paragraph in WPS (Writer) without saving, and checks that WPS reports the document as unsaved. |
 
@@ -45,7 +45,7 @@ A task can list `setup` steps that prepare the workspace before the agent starts
 | `wps-open-presentation-selection-replace` (WPS) | replace the selected word DRAFT on the open slide with FINAL | operation `eval-slide-selection-1` recorded as `presentation-selection-replace`; a `presentation_selection_replace` call; the saved file has `Quarterly review` and `Status: FINAL`, and no `DRAFT`; one backup; no `presentation_replace` call |
 | `wps-open-save-document` (WPS) | save the open `report.docx`, which has an unsaved paragraph `Reviewed in WPS` added by `append_unsaved` | operation `eval-save-1` recorded as `save-open-document`; a `save_open_document` call; the file now has `Reviewed in WPS` and the original paragraphs; one backup (taken before the save); no `save_as_open_document` call |
 
-The ten tasks without (WPS) use only offline tools and run on any machine with the `claude` CLI logged in. The thirteen (WPS) tasks need WPS on Windows; the last four, added in P6-006, write to a document open in WPS and have only been checked offline against a stand-in agent until P6-008 runs them on Windows. The first four were run in P4-007 (results below). The last five, added in P5-005, were run on Windows in P5-006 (results below); all five passed 3/3.
+The ten tasks without (WPS) use only offline tools and run on any machine with the `claude` CLI logged in. The thirteen (WPS) tasks need WPS on Windows. The first four were run in P4-007 (results below). The five added in P5-005 were run on Windows in P5-006 (results below); all five passed 3/3. The four added in P6-006, which write to a document open in WPS, were run on Windows in P6-008 (results below).
 
 `held-document-backup` needs a machine that can hold the file. On Windows the runner opens it with no sharing. On other systems it removes all permissions, which does not work for root. When the file cannot be held, the task is reported as skipped, not as passed or failed.
 
@@ -175,11 +175,72 @@ Artifacts: `%TEMP%\wps-p5\eval-open-1\run-20261014T233956946366Z\summary.json`, 
 
 What this found about the product is in Limits below: the open-document tools cannot see a Writer that the user opened normally on this machine.
 
+### P6-008 Windows runs of the open-document tasks (2026-10-15)
+
+`main` at `655d76c`. Windows 10.0.19045. WPS 12.8.2.18913. Claude Code CLI 2.1.295, CLI default model. No `--model`. The runner was started with `claude` resolved to `claude.CMD` and UTF-8 stdout, because a bare `claude` launch and the console code page fail on this machine. The system open command was not changed.
+
+```powershell
+python scripts/agent_eval/run_agent_eval.py `
+  --only wps-open-document-export-text --only wps-open-writer-selection-replace `
+  --only wps-open-writer-selection-insert --only wps-open-presentation-selection-replace `
+  --only wps-open-save-document `
+  --repeat 3 --min-passes 2 --out $env:TEMP\wps-p6\eval-open
+```
+
+Artifact: `%TEMP%\wps-p6\eval-open\run-20261015T013214070478Z\summary.json`. This is the default launch (`--wps-launch default`). G2 is judged on this command. It is not met: three tasks are 0/3 and one was skipped. The skip is `NO_RUNNING_WPS_INSTANCE`, not `WPS_INSTANCE_NOT_AUTOMATABLE`, so it was not rerun with `--wps-launch automation`.
+
+| Task | Passes | Turns | `wps-agent` calls | Tool errors | `off_path_calls` | `off_path_tools` |
+| --- | --- | --- | --- | --- | --- | --- |
+| `wps-open-document-export-text` | 3/3 | 4.3 (5, 4, 4) | 7 | 0 | 0 | |
+| `wps-open-writer-selection-replace` | 0/3 | 16, 16, 16 | 46 | 10 | 30 | `backup_document`, `inspect_env`, `list_backups`, `mcp_call`, `mcp_tool_schema`, `mcp_tools`, `operation`, `operations`, `regression_manifest`, `save_open_document`, `scan_dir`, `snapshot_document`, `task_recovery_playbooks`, `wps_process_audit`, `writer_structure` |
+| `wps-open-writer-selection-insert` | 0/3 | 16, 16, 16 | 41 | 12 | 24 | `backup_document`, `export_open_document_text`, `inspect_env`, `list_backups`, `mcp_tool_schema`, `mutation_request_inspect`, `operation`, `operations`, `save_open_document`, `security_audit`, `snapshot_document`, `task_recovery_playbooks`, `tasks`, `wps_process_audit`, `writer_selection_replace`, `writer_structure` |
+| `wps-open-presentation-selection-replace` | skipped | | | | | |
+| `wps-open-save-document` | 0/3 | 16, 16, 16 | 32 | 10 | 19 | `backup_document`, `list_backups`, `mcp_tool_schema`, `mcp_tools`, `operation`, `operations`, `snapshot_document`, `task_recovery_playbooks`, `wps_process_audit` |
+
+`wps-open-document-export-text` passed all three runs. Each run called `open_documents` and `export_open_document_text`, wrote the three paragraphs to `report.txt`, did not call `save_open_document`, and left `report.docx` unchanged.
+
+`wps-open-writer-selection-replace` failed the same checks on all three runs: `operation_recorded` (no record), `file_text` (`Status: FINAL` missing, `DRAFT` still present), `backup_count` 0. `tool_called` for `writer_selection_replace` passed. The `wps-agent` errors were `DOCUMENT_HELD_OPEN` on `writer_selection_replace` (every run; request id `eval-selection-1`, text `FINAL`, expected selection `DRAFT`) and on `backup_document`. Run 1 also had `MCP_TOOL_SCHEMA_NOT_FOUND` for `writer_selection_replace`. Run 2 also had `OPERATION_NOT_FOUND` and `MCP_ADAPTER_CALL_REJECTED` on `mcp_call` for `writer-selection-replace`. The other errors were shell and file-lock probes, not `wps-agent` calls.
+
+`wps-open-writer-selection-insert` failed the same way on all three runs: no operation, `Owner: Finance (reviewed)` missing, `backup_count` 0. `writer_selection_insert` returned `DOCUMENT_HELD_OPEN` (request id `eval-insert-1`, text ` (reviewed)`). Each run also had `OPERATION_NOT_FOUND`. Runs 1 and 2 then called `writer_selection_replace` and got `SELECTION_EMPTY`. Run 3 also got `DOCUMENT_HELD_OPEN` from `backup_document` and `SELECTION_EMPTY` from `writer_selection_replace`.
+
+`wps-open-presentation-selection-replace` was skipped on the first run: `WPS did not list deck.pptx as open within 45 s (launch mode default): NO_RUNNING_WPS_INSTANCE: No running WPS instance was found for the probed components; nothing was launched.` Opening a `.pptx` with the shell on this machine starts `OpenWith.exe -Embedding` and does not start `wpp.exe` (see `RESULTS-655d76c.md`). That is not (b).
+
+`wps-open-save-document` failed all three runs: no operation, `Reviewed in WPS` missing, `backup_count` 0. `save_open_document` with request id `eval-save-1` returned `DOCUMENT_HELD_OPEN` (runs 2 and 3 twice). Each run also had `OPERATION_NOT_FOUND`. Runs 2 and 3 also got `DOCUMENT_HELD_OPEN` from a dry-run `backup_document`.
+
+After the command, one Writer was still open: pid 2608, title `report.docx * - WPS 文字`, command line the run-1 export fixture. It was ended before the table comparison. No `et.exe` or `wpp.exe` was left.
+
+**Review (2026-10-15).** The run is recorded above as it happened. Findings:
+
+- **Every write failed for one product reason, not because of the agent.** The open-document write commands (selection replace, insert and delete; `save_open_document`) take a backup first. Since `6e941d7` (2026-10-12) the backup has started with an exclusive-share probe (`FileShare.None`). A document these commands work on is open in WPS by definition, so the probe always failed with `DOCUMENT_HELD_OPEN`. The bug was released in 0.2.0. It went unnoticed because no real-WPS run had covered these commands before this one. The probe protects file-based commands from calling `Open()` on a document the user has open; open-document commands never do that. Their backup now skips the probe and only needs the file to be readable alongside WPS. P6-004 shows WPS allows that: registering the open documents read and hashed them.
+- **The Presentation skip came from the runner.** It opened the file through the shell, which on this machine shows the "Open with" chooser for `.pptx` and `.xlsx`. The runner now runs the registered open command directly, the command a double-click runs. It also starts `claude.CMD` by its full path and reads the transcript as UTF-8, which this run had to work around.
+- The off-path calls (`backup_document`, `wps_process_audit`, `mcp_call`, ...) are the agent trying to get past `DOCUMENT_HELD_OPEN`. They are not a tool-choice problem.
+- G2 is not met yet. It is judged on a rerun with these fixes.
+
+### P6-007 comparison: `wps-writer-table-write`
+
+```powershell
+python scripts/agent_eval/run_agent_eval.py --only wps-writer-table-write --repeat 3 --min-passes 2 --out $env:TEMP\wps-p6\eval-table
+```
+
+Artifact: `%TEMP%\wps-p6\eval-table\run-20261015T015418345259Z\summary.json`. Same CLI and model as above.
+
+**2/3, passed the 2-of-3 bar.** Turns 16.0 (16, 20, 12). `wps-agent` calls 31, tool errors 2, `off_path_calls` 7 (`mcp_tools`, `operation`, `snapshot_document`). P5-006 on the same task was 3/3, mean 15.3 turns (15, 16, 15), 41 calls, 2 tool errors.
+
+Run 1 failed: `operation_recorded` no record, `tool_called` 0 (the only `writer_table_write` was `dry_run: true`, row 2 column 3, text `FINAL`, and `is_error` was false), North status still `DRAFT`, `backup_count` 0. No `CELL_NOT_FOUND`.
+
+Run 2 passed after probing cells. Two dry-run `writer_table_write` calls returned `CELL_NOT_FOUND`: row 4 column 1, and row 5 column 1, both `dry_run: true`, text `x`. The summary stores the code only, not the error message. The real write (request id `eval-table-1`, row 2 column 3, `FINAL`) passed, with one backup.
+
+Run 3 passed. One off-path `operation` call. No tool error.
+
+No `wps.exe` was left after this command.
+
+**Review (2026-10-15).** The `CELL_NOT_FOUND` calls were deliberate dry-run probes of rows 4 and 5. The agent was looking for the edge of the table, because no tool reported the table's size. So the cause of the P5-006 out-of-range calls is the same. The P6-007 message only helps after the agent goes out of range. `writer_table_write`'s dry run now also returns `row_count`, `column_count` and `header_row`, and the tool description says so, so one dry run shows the whole table. Run 1's failure (it stopped after the dry run) is a separate issue. The comparison is rerun together with P6-008.
+
 ## Limits
 
 - Twenty-three tasks are still a small set, not a benchmark. Ten run offline (registration, backup, idempotent retry, restore, dry run, a held file, HTML to xlsx and docx, reading sheets); thirteen marked (WPS) need WPS on Windows and are skipped elsewhere. Together they use 24 of the 85 tools.
 - The WPS tasks were run on one Windows machine with one WPS version: the first four in P4-007, the five Phase 5 tasks in P5-006, all 3/3. The P4-007 tasks pass on these commits: the three write tasks on `4999b77`, `wps-held-spreadsheet-write` on `6484151`. The first runs of the held task failed because of two server bugs, fixed in PRs #55 and #56. Those fixes change only what a failed call returns, so the three passing write tasks were not rerun.
-- The open-document tools attach with `GetActiveObject`. On the P5-006 machine (WPS 12.8.2.18913), a WPS Writer started by opening a `.docx` the usual way (`wps.exe "%1"`) did not register `kwps.Application`, so `open_documents` did not list its documents; a Writer started with `/Automation` did. Since P6-003 the tools also look for the document in the Running Object Table and attach through it, and when a WPS window of the component is running but nothing can be reached they answer `WPS_INSTANCE_NOT_AUTOMATABLE` with the remedy instead of `NO_RUNNING_WPS_INSTANCE`. Whether the Running Object Table route reaches a double-clicked Writer is what P6-002 and P6-004 check on Windows. Until then, `--wps-launch automation` runs the open-document tasks without depending on it. Since P6-005 the runner ends the WPS processes it started after each run, so `--repeat` no longer needs the earlier run's Writer closed by hand.
+- The open-document tools attach with `GetActiveObject`, and since P6-003 also through the Running Object Table. On this machine (WPS 12.8.2.18913) a Writer started by `wps.exe "%1"` does not register `kwps.Application`; P6-004 still listed that document with `attached_via` `running_object_table`. The same was true for Spreadsheets and Presentation when those processes were started with their registered open command. A Writer started with `/Automation` lists the document with `attached_via` `active_object`. P6-008's first writes into an open document returned `DOCUMENT_HELD_OPEN` because of the backup's exclusive-share probe; that is fixed (see the P6-008 review). Since P6-005 the runner ends the WPS processes it started after each run; one Writer from the P6-008 command was still open afterward and was ended before the table comparison.
 - There is no held-file recovery task. The runner cannot make WPS open a document and block a rollback, so recovery with `restore-backup --close-in-wps` is checked by hand in P4-011 instead.
 - The judge checks state and tool calls, so a correct-sounding reply with the wrong state fails. A failure to report the result accurately is not detected here.
 - Results depend on the model the CLI uses. Record it with `--model` when comparing runs.

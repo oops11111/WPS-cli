@@ -179,8 +179,10 @@ def hold_file(path: Path) -> tuple[Callable[[], None] | None, str | None]:
     return (lambda: path.chmod(mode)), None
 
 
-# How open_in_wps starts WPS: "default" opens the file with its default app, as a double-click does;
-# "automation" starts that same app with /Automation, without changing the system's open command (P6-005).
+# How open_in_wps starts WPS. Both run the open command registered for the file's extension, the command a
+# double-click runs; "automation" adds /Automation to it. Neither changes the system's open command. The shell
+# (os.startfile) is not used: on the P6-008 machine it showed the "Open with" chooser for .xlsx and .pptx
+# instead of running that command.
 WPS_LAUNCH_MODES = ("default", "automation")
 WPS_LAUNCH = "default"
 WPS_DOCUMENT_PROCESSES = ("wps", "et", "wpp")
@@ -231,31 +233,6 @@ Out-Result ([pscustomobject]@{
 })
 """
 
-_START_WITH_AUTOMATION_SCRIPT = """
-$ErrorActionPreference = 'Stop'
-$path = @'
-__PATH__
-'@ | ForEach-Object { $_.Trim() }
-Add-Type -TypeDefinition @"
-using System;
-using System.Runtime.InteropServices;
-using System.Text;
-public static class EvalAssoc {
-  [DllImport("shlwapi.dll", CharSet = CharSet.Unicode)]
-  private static extern int AssocQueryString(int flags, int str, string assoc, string extra, StringBuilder output, ref int size);
-  public static string Executable(string extension) {
-    int size = 1024;
-    StringBuilder output = new StringBuilder(size);
-    return AssocQueryString(0, 2, extension, "open", output, ref size) == 0 ? output.ToString() : null;
-  }
-}
-"@
-$exe = [EvalAssoc]::Executable([System.IO.Path]::GetExtension($path))
-if ([string]::IsNullOrEmpty($exe)) { throw "No program is associated with $([System.IO.Path]::GetExtension($path))" }
-Start-Process -FilePath $exe -ArgumentList @('/Automation', ('"' + $path + '"')) | Out-Null
-$exe
-"""
-
 
 def wps_process_ids() -> set[int]:
     """Ids of the WPS document processes (wps, et, wpp) running now."""
@@ -283,15 +260,52 @@ def stop_started_wps(component: str, started: set[int]) -> str:
     return f"stopped {ids}"
 
 
-def start_with_automation(path: Path) -> None:
-    """Start the program associated with the file's extension with /Automation and the file."""
-    from wps_ai_agent_cli.powershell_runner import run_powershell_command
+def registered_open_command(extension: str) -> str:
+    """The open command registered for an extension, for example: "C:\\...\\wps.exe" "%1"."""
+    import ctypes
+    from ctypes import wintypes
 
-    completed = run_powershell_command(
-        _START_WITH_AUTOMATION_SCRIPT.replace("__PATH__", str(path.resolve())), timeout_seconds=60
+    assoc_str_command = 1
+    size = wintypes.DWORD(2048)
+    buffer = ctypes.create_unicode_buffer(size.value)
+    result = ctypes.windll.shlwapi.AssocQueryStringW(
+        0, assoc_str_command, extension, "open", buffer, ctypes.byref(size)
     )
-    if completed.returncode != 0:
-        raise RuntimeError(f"could not start WPS with /Automation: {completed.stderr.strip()}")
+    if result != 0 or not buffer.value:
+        raise RuntimeError(f"no open command is registered for {extension} (HRESULT {result & 0xFFFFFFFF:#010x})")
+    return buffer.value
+
+
+def launch_command_line(template: str, path: Path, automation: bool) -> str:
+    """Turn a registered open command into the command line to run for the file.
+
+    %1 (or %L) becomes the file, other %-placeholders are dropped, and with automation /Automation goes right
+    after the program, as in: wps.exe /Automation "<file>".
+    """
+    template = template.strip()
+    if template.startswith('"'):
+        end = template.index('"', 1)
+        program, rest = template[: end + 1], template[end + 1 :]
+    else:
+        program, _, rest = template.partition(" ")
+        rest = " " + rest if rest else ""
+    file = str(path)
+    if "%1" in rest or "%L" in rest or "%l" in rest:
+        for token in ("%1", "%L", "%l"):
+            rest = rest.replace(token, file)
+    else:
+        rest += f' "{file}"'
+    rest = " ".join(word for word in rest.split(" ") if not (word.startswith("%") or word.startswith('"%')))
+    command = program + (" /Automation" if automation else "") + (" " + rest.strip() if rest.strip() else "")
+    return command
+
+
+def start_registered_command(path: Path, automation: bool) -> str:
+    """Run the file's registered open command, as a double-click does; returns the command line."""
+    command = launch_command_line(registered_open_command(path.suffix), path.resolve(), automation)
+    flags = getattr(subprocess, "DETACHED_PROCESS", 0) | getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)
+    subprocess.Popen(command, creationflags=flags, close_fds=True)  # noqa: S603 - the registered WPS command
+    return command
 
 
 def wps_document_action(component: str, path: Path, action: str, **params: Any) -> dict[str, Any]:
@@ -332,10 +346,7 @@ def open_in_wps(
 
     before = wps_process_ids()
     target = str(path.resolve()).casefold()
-    if WPS_LAUNCH == "automation":
-        start_with_automation(path)
-    else:
-        os.startfile(str(path))  # the fixture the runner wrote, opened with its default app
+    start_registered_command(path, automation=WPS_LAUNCH == "automation")
     started: set[int] = set()
 
     def release() -> None:
@@ -510,7 +521,8 @@ def run_claude(
     prompt: str, mcp_config: Path, workspace: Path, model: str | None, max_turns: int, timeout: int
 ) -> dict[str, Any]:
     command = [
-        "claude",
+        # On Windows the CLI is claude.CMD, which subprocess only finds by its full name (P6-008).
+        shutil.which("claude") or "claude",
         "-p",
         prompt,
         "--output-format",
@@ -527,7 +539,15 @@ def run_claude(
     if model:
         command += ["--model", model]
     try:
-        completed = subprocess.run(command, cwd=workspace, capture_output=True, text=True, timeout=timeout)
+        # The transcript is UTF-8 whatever the console code page is (P6-008).
+        completed = subprocess.run(
+            command,
+            cwd=workspace,
+            capture_output=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=timeout,
+        )
     except subprocess.TimeoutExpired:
         return {"ran": False, "error": f"timed out after {timeout}s"}
     payload, calls = parse_transcript(completed.stdout.splitlines())
@@ -827,6 +847,10 @@ def main(argv: list[str] | None = None) -> int:
     if shutil.which("claude") is None:
         print("claude CLI not found on PATH.", file=sys.stderr)
         return 2
+    for stream in (sys.stdout, sys.stderr):
+        # Check details can hold text the console code page cannot encode; never fail on printing them.
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(errors="replace")
 
     spec = json.loads(Path(args.tasks).read_text(encoding="utf-8"))
     tasks = [task for task in spec["tasks"] if not args.only or task["id"] in args.only]

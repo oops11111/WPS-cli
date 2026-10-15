@@ -4,9 +4,9 @@
 
 | 节 | 任务 | 对应标准 | 状态 |
 | --- | --- | --- | --- |
-| 1 | P6-002：用诊断脚本记录 WPS 在自动化接口上登记了什么 | G1 | 待做 |
-| 2 | P6-004：三个组件分别用双击打开，检查已打开文档命令 | G1 | 待做 |
-| 3 | P6-008：已打开文档的评测任务，一条命令跑 3 次 | G2 | 待做 |
+| 1 | P6-002：用诊断脚本记录 WPS 在自动化接口上登记了什么 | G1 | 已完成（2026-10-15，`main@655d76c`，见 `scripts/real_wps_verify_p6/RESULTS-655d76c.md`） |
+| 2 | P6-004：三个组件分别用双击打开，检查已打开文档命令 | G1 | 已完成，三个组件都是 (a)，G1 达成 |
+| 3 | P6-008：已打开文档的评测任务，一条命令跑 3 次 | G2 | 要重跑：第一次（`655d76c`）写入任务都被备份时的独占检查拒绝，已修复，见下文 |
 | 4 | P6-010：只装 `v0.3.0` 的 wheel，跑 `inspect-env` 和 safe 档 | G3 | 发布后做 |
 
 P6-003（经 ROT 附着，或返回 `WPS_INSTANCE_NOT_AUTOMATABLE`）已经在本地做完，所以第 1 节和第 2 节可以一起做：第 1 节记录 WPS 实际登记了什么，第 2 节检查命令在这种情况下的表现。
@@ -108,6 +108,15 @@ Writer 的对照组也写一节。诊断 JSON 里有用户名和路径，提交�
 
 ## 3. P6-008：已打开文档的评测任务
 
+**2026-10-15 重跑说明。** 第一次运行（`main@655d76c`）的 4 个写入任务全部失败或被 skip，原因有两个，都已修复：
+
+1. 已打开文档的写入命令先建备份，备份前做了独占（`FileShare.None`）检查。文档在 WPS 里开着，这个检查必然失败，于是都返回 `DOCUMENT_HELD_OPEN`。现在这些命令建备份时不做独占检查，只要文件能和 WPS 同时读取就行。P6-004 里登记文档时已经读过开着的文件，说明 WPS 允许别人读取。
+2. runner 用 shell 打开文件。在这台机器上，`.xlsx` 和 `.pptx` 会弹出“打开方式”，不会启动 WPS，所以演示任务被 skip 了。现在 runner 直接运行注册表里的打开命令，和第 2 节手动做的一样。`--wps-launch automation` 是在同一条命令上加 `/Automation`。
+
+runner 现在会自己找到 `claude.CMD`，并按 UTF-8 读取输出，不需要再手动处理。
+
+重跑时用包含这些修复的 `main`，命令不变。
+
 先确认没有 WPS 在运行。然后用一条命令，把 4 个新任务和 `wps-open-document-export-text` 各跑 3 次：
 
 ```powershell
@@ -120,7 +129,7 @@ python scripts/agent_eval/run_agent_eval.py `
 
 通过条件（G2）：5 个任务都至少 2/3 通过，并且都没有被 skip。这条命令用的是系统的默认打开命令（`--wps-launch default`）。
 
-如果第 2 节里 Writer 或演示的结果是 (b)，即双击打开的 WPS 连 ROT 也拿不到，这条命令里对应的任务会在第一次运行时 skip，原因写着 `WPS_INSTANCE_NOT_AUTOMATABLE`。这时改用 runner 自己带 `/Automation` 启动 WPS，再跑一次（不改系统的打开命令）：
+第 2 节三个组件都是 (a)，所以按这条命令判定 G2。如果任务因为 `WPS_INSTANCE_NOT_AUTOMATABLE` 被 skip，就改用 runner 自己带 `/Automation` 启动 WPS，再跑一次（不改系统的打开命令）：
 
 ```powershell
 python scripts/agent_eval/run_agent_eval.py `

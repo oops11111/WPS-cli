@@ -9,8 +9,13 @@ All notable changes to `wps-ai-agent-cli`. The versioning rule and release steps
 - Open-document commands (`open-documents`, selection read and edit, `save-open-document`, the exports, `restore-backup --close-in-wps`) reach a WPS that did not register its application object: when `GetActiveObject` finds nothing, they look for a document of the component in the Running Object Table and attach through its application, but only when it is WPS. Nothing is launched. The pre-open guard of the file-based write and conversion commands uses the same lookup, so it also sees a document open in such a WPS and refuses instead of opening it a second time. (P6-003)
 - New error code `WPS_INSTANCE_NOT_AUTOMATABLE`. A WPS window of the component is running, but neither route reaches it, as with a WPS Writer opened by double-click on 12.8 (P5-011). The message gives the cause and the remedy: reopen the document with `wps.exe /Automation`. These commands answered `NO_RUNNING_WPS_INSTANCE` before. `open-documents` also reports such a component in `data.not_automatable` and `data.warnings` while listing the others. (P6-003)
 
+### Fixed
+
+- Open-document write commands (Writer, Presentation and Spreadsheets selection replace, insert and delete; `save-open-document`) always refused on real WPS with `DOCUMENT_HELD_OPEN`, in 0.2.0 too. Their backup began with the exclusive-share probe that file-based commands use. That probe always fails on a document that is open in WPS, which is what these commands work on. Their backup now only needs the file to be readable alongside WPS; WPS allows that. Found by the P6-008 Windows evaluation.
+
 ### Changed
 
+- `writer-table-write`: a dry run also returns the table's `row_count`, `column_count` and `header_row`, so an agent can see the table in one call instead of probing cells. (P6-007)
 - `writer-table-write`: the `CELL_NOT_FOUND` message gives the table's row and column counts, that rows and columns count from 1, and the header row, so an agent can correct the address in one step. (P6-007)
 
 ## [0.2.0] - 2026-10-14

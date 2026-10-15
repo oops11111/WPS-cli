@@ -1,0 +1,160 @@
+{
+    "tool":  "automation-diagnostic",
+    "generated_at":  "2026-10-15T01:20:57.4124734Z",
+    "platform":  "Win32NT",
+    "os_version":  "Microsoft Windows NT 10.0.19045.0",
+    "powershell":  "5.1.19041.6456",
+    "prog_ids":  [
+                     {
+                         "component":  "writer",
+                         "prog_id":  "kwps.Application",
+                         "clsid":  "{000209ff-0000-4b30-a977-d214852036ff}",
+                         "active_object":  false,
+                         "hresult":  "0x800401E3",
+                         "error":  null,
+                         "app_name":  "",
+                         "app_path":  "",
+                         "version":  "",
+                         "documents":  [
+
+                                       ]
+                     },
+                     {
+                         "component":  "writer",
+                         "prog_id":  "wps.Application",
+                         "clsid":  null,
+                         "active_object":  false,
+                         "hresult":  "0x800401F3",
+                         "error":  null,
+                         "app_name":  "",
+                         "app_path":  "",
+                         "version":  "",
+                         "documents":  [
+
+                                       ]
+                     },
+                     {
+                         "component":  "writer",
+                         "prog_id":  "Kingsoft Writer.Application",
+                         "clsid":  null,
+                         "active_object":  false,
+                         "hresult":  "0x800401F3",
+                         "error":  null,
+                         "app_name":  "",
+                         "app_path":  "",
+                         "version":  "",
+                         "documents":  [
+
+                                       ]
+                     },
+                     {
+                         "component":  "spreadsheets",
+                         "prog_id":  "ket.Application",
+                         "clsid":  "{45540001-5750-5300-4b49-4e47534f4655}",
+                         "active_object":  false,
+                         "hresult":  "0x800401E3",
+                         "error":  null,
+                         "app_name":  "",
+                         "app_path":  "",
+                         "version":  "",
+                         "documents":  [
+
+                                       ]
+                     },
+                     {
+                         "component":  "spreadsheets",
+                         "prog_id":  "et.Application",
+                         "clsid":  null,
+                         "active_object":  false,
+                         "hresult":  "0x800401F3",
+                         "error":  null,
+                         "app_name":  "",
+                         "app_path":  "",
+                         "version":  "",
+                         "documents":  [
+
+                                       ]
+                     },
+                     {
+                         "component":  "spreadsheets",
+                         "prog_id":  "Kingsoft Spreadsheets.Application",
+                         "clsid":  null,
+                         "active_object":  false,
+                         "hresult":  "0x800401F3",
+                         "error":  null,
+                         "app_name":  "",
+                         "app_path":  "",
+                         "version":  "",
+                         "documents":  [
+
+                                       ]
+                     },
+                     {
+                         "component":  "presentation",
+                         "prog_id":  "kwpp.Application",
+                         "clsid":  "{44720441-94bf-4940-926d-4f38fecf2a48}",
+                         "active_object":  false,
+                         "hresult":  "0x800401E3",
+                         "error":  null,
+                         "app_name":  "",
+                         "app_path":  "",
+                         "version":  "",
+                         "documents":  [
+
+                                       ]
+                     },
+                     {
+                         "component":  "presentation",
+                         "prog_id":  "wpp.Application",
+                         "clsid":  null,
+                         "active_object":  false,
+                         "hresult":  "0x800401F3",
+                         "error":  null,
+                         "app_name":  "",
+                         "app_path":  "",
+                         "version":  "",
+                         "documents":  [
+
+                                       ]
+                     },
+                     {
+                         "component":  "presentation",
+                         "prog_id":  "Kingsoft Presentation.Application",
+                         "clsid":  null,
+                         "active_object":  false,
+                         "hresult":  "0x800401F3",
+                         "error":  null,
+                         "app_name":  "",
+                         "app_path":  "",
+                         "version":  "",
+                         "documents":  [
+
+                                       ]
+                     }
+                 ],
+    "running_object_table":  {
+                                 "error":  null,
+                                 "entries":  [
+                                                 {
+                                                     "display_name":  "C:\\Users\\<user>\\AppData\\Local\\Temp\\wps-p6\\report.docx",
+                                                     "error":  null,
+                                                     "is_wps_extension":  true,
+                                                     "document_full_name":  "C:\\Users\\<user>\\AppData\\Local\\Temp\\wps-p6\\report.docx",
+                                                     "app_name":  "Microsoft Word",
+                                                     "app_path":  "C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6",
+                                                     "app_version":  "12.0"
+                                                 }
+                                             ]
+                             },
+    "processes":  [
+                      {
+                          "name":  "wps",
+                          "id":  25836,
+                          "session":  1,
+                          "same_session":  true,
+                          "has_main_window":  true,
+                          "window_title":  "report.docx - WPS 文字",
+                          "command_line":  "\"C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\wps.exe\" \"C:\\Users\\<user>\\AppData\\Local\\Temp\\wps-p6\\report.docx\""
+                      }
+                  ]
+}

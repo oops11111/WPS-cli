@@ -982,12 +982,17 @@ def writer_table_write(
         )
 
     rich_kinds = docx_table_cell_rich_content(path, table_index, row, column) or []
+    selected_table = tables[table_index - 1]
     preview = {
         "document_id": document_id,
         "component": "writer",
         "path": str(path),
         "table_index": table_index,
         "table_count": table_count,
+        # A dry run is how an agent looks at a table before writing; give it the shape so it does not probe (P6-008).
+        "row_count": len(selected_table),
+        "column_count": max((len(item) for item in selected_table), default=0),
+        "header_row": [cell.strip() for cell in selected_table[0]][:20] if selected_table else [],
         "row": row,
         "column": column,
         "current_text": current_text,
