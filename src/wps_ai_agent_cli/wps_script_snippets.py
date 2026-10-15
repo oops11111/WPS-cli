@@ -96,11 +96,13 @@ function Get-WpsComponentKind([string[]]$progIds) {
   return 'writer'
 }
 function Test-WpsApplication($candidate) {
-  # A document moniker can belong to another office suite; only accept an application that says it is WPS.
+  # A document moniker can belong to another office suite; only accept an application that is WPS. WPS 12
+  # names itself "Microsoft Word" (Excel, PowerPoint) through COM (P6-002), so its install path decides: it
+  # contains Kingsoft or WPS by default and always ends in office6, which Microsoft Office paths never contain.
   $label = ''
   try { $label += [string]$candidate.Name } catch { }
   try { $label += ' ' + [string]$candidate.Path } catch { }
-  return $label -match '(?i)wps|kingsoft|\u91d1\u5c71'
+  return $label -match '(?i)wps|kingsoft|office6|\u91d1\u5c71'
 }
 function Get-RunningWpsApp([string[]]$progIds) {
   $script:WpsAttachedVia = $null

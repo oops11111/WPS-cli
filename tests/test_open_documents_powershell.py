@@ -284,7 +284,8 @@ class AttachSnippetTests(unittest.TestCase):
   missing = (Get-WpsMissingStatus @('ket.Application'))
   wps_by_name = (Test-WpsApplication ([pscustomobject]@{ Name = 'WPS Office'; Path = 'C:\\x' }))
   wps_by_chinese_name = (Test-WpsApplication ([pscustomobject]@{ Name = ([string][char]0x91d1 + [char]0x5c71); Path = 'C:\\x' }))
-  word = (Test-WpsApplication ([pscustomobject]@{ Name = 'Microsoft Word'; Path = 'C:\\Office' }))
+  word = (Test-WpsApplication ([pscustomobject]@{ Name = 'Microsoft Word'; Path = 'C:\\Program Files\\Microsoft Office\\root\\Office16' }))
+  wps_named_word = (Test-WpsApplication ([pscustomobject]@{ Name = 'Microsoft Word'; Path = 'D:\\Apps\\Suite\\12.8.2.18913\\office6' }))
 } | ConvertTo-Json -Compress
 """
         )
@@ -298,7 +299,14 @@ class AttachSnippetTests(unittest.TestCase):
         result = json.loads(completed.stdout)
         self.assertEqual(
             result,
-            {"rot": 0, "missing": "no_instance", "wps_by_name": True, "wps_by_chinese_name": True, "word": False},
+            {
+                "rot": 0,
+                "missing": "no_instance",
+                "wps_by_name": True,
+                "wps_by_chinese_name": True,
+                "word": False,
+                "wps_named_word": True,
+            },
         )
 
 

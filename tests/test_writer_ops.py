@@ -256,6 +256,10 @@ class WriterOpsTests(unittest.TestCase):
             self.assertFalse(replayed)
             self.assertEqual(errors, [])
             self.assertEqual(result["table_count"], 2)
+            # The dry run shows the table's shape, so an agent need not probe cells to find it (P6-008).
+            self.assertGreaterEqual(result["row_count"], 2)
+            self.assertGreaterEqual(result["column_count"], 3)
+            self.assertEqual(len(result["header_row"]), result["column_count"])
             self.assertEqual(result["current_text"], "PENDING_STATUS")
             self.assertEqual(result["replacement_text"], "APPROVED_STATUS")
             self.assertTrue(result["would_modify"])

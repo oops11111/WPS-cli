@@ -557,7 +557,8 @@ MCP_TOOL_SCHEMAS: tuple[dict[str, Any], ...] = (
         "wps_agent_writer_table_write",
         "writer-table-write",
         "Write Writer table cell",
-        "Write text to a table cell in a registered WPS Writer document with backup, dry-run, and validation.",
+        "Write text to a table cell in a registered WPS Writer document with backup, dry-run, and validation. "
+        "A dry run returns the cell's current text and the table's row count, column count and header row.",
         "writer",
         required=["document_id", "table_index", "row", "column", "text"],
         properties={
