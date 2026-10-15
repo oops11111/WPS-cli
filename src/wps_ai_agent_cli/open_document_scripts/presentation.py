@@ -156,6 +156,11 @@ _PRESENTATION_SELECTION_REPLACE_BODY = """
   $replacement = [string]$params.text
   $shape = $null
   try { $shape = $sel.ShapeRange.Item(1) } catch { }
+  # The shape's whole text and where the selection starts in it, for the read-back below.
+  $frameBefore = $null
+  $start = $null
+  try { $start = [int]$tr.Start } catch { }
+  if ($null -ne $shape) { try { $frameBefore = [string]$shape.TextFrame.TextRange.Text } catch { } }
   $wdUndefined = 9999999
   $snapName = $null; $snapSize = $null; $snapBold = $null; $snapItalic = $null; $snapUnderline = $null; $snapColor = $null
   try {
@@ -217,6 +222,21 @@ _PRESENTATION_SELECTION_REPLACE_BODY = """
     try { $readBack = [string]$shape.TextFrame.TextRange.Text } catch { }
   }
   $doc.Save()
+  # After the assignment WPS 12.8 does not keep the selection on the new text (P6-008), so reading the
+  # selection back can report other text. When the selection's position is known, check the shape's whole
+  # text instead: it must be the old text with exactly the selected part replaced.
+  $frameChecked = $false
+  if ($null -ne $shape -and $null -ne $start -and $null -ne $frameBefore) {
+    $zero = [Math]::Max(0, $start - 1)
+    if ($frameBefore.Length -ge ($zero + $before.Length) -and $frameBefore.Substring($zero, $before.Length) -ceq $before) {
+      try {
+        $frameAfter = [string]$shape.TextFrame.TextRange.Text
+        $expectedFrame = $frameBefore.Substring(0, $zero) + $replacement + $frameBefore.Substring($zero + $before.Length)
+        $frameChecked = $true
+        if ($frameAfter -ceq $expectedFrame) { $readBack = $replacement } else { $readBack = $frameAfter }
+      } catch { }
+    }
+  }
   if ([string]::IsNullOrEmpty($readBack)) {
     try { $readBack = [string]$window.Selection.TextRange.Text } catch { }
   }
@@ -229,6 +249,7 @@ _PRESENTATION_SELECTION_REPLACE_BODY = """
     backend = 'powershell-com'
     component = 'presentation'
     read_back_text = $readBack
+    read_back_from_shape = [bool]$frameChecked
     formatting_mode = 'uniform_character'
     formatting_preserved = [bool]$formattingApplied
   } | ConvertTo-Json -Depth 5
