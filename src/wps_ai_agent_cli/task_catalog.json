@@ -3013,7 +3013,7 @@
     "id": "P7-005",
     "phase": "phase7",
     "title": "One-command Windows check",
-    "status": "todo",
+    "status": "done",
     "acceptance": "H3: scripts/windows_check checks prerequisites, runs the requested evaluation or wheel check and writes the results file; offline tests cover the prerequisite checks and the results format."
   },
   {
