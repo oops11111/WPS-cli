@@ -1473,6 +1473,33 @@ class OpenDocumentSetupTests(unittest.TestCase):
             self.assertEqual(run_agent_eval.stop_started_wps("writer", set()), "none started")
         command.assert_not_called()
 
+    def test_the_registered_open_command_becomes_the_launch_command_line(self):
+        path = Path("C:/Users/a b/report.docx")
+        cases = {
+            ('"C:\\WPS\\office6\\wps.exe" "%1"', False): f'"C:\\WPS\\office6\\wps.exe" "{path}"',
+            ('"C:\\WPS\\office6\\wps.exe" "%1"', True): f'"C:\\WPS\\office6\\wps.exe" /Automation "{path}"',
+            ('"C:\\WPS\\office6\\et.exe" "%1" %*', False): f'"C:\\WPS\\office6\\et.exe" "{path}"',
+            ("C:\\WPS\\wpp.exe %1", True): f"C:\\WPS\\wpp.exe /Automation {path}",
+            ('"C:\\WPS\\wps.exe"', False): f'"C:\\WPS\\wps.exe" "{path}"',
+        }
+        for (template, automation), expected in cases.items():
+            with self.subTest(template=template, automation=automation):
+                self.assertEqual(run_agent_eval.launch_command_line(template, path, automation), expected)
+
+    def test_the_cli_is_started_by_its_resolved_path_and_read_as_utf8(self):
+        import subprocess
+
+        completed = subprocess.CompletedProcess([], 0, stdout="", stderr="")
+        with (
+            patch.object(run_agent_eval.shutil, "which", return_value="C:\\npm\\claude.CMD"),
+            patch.object(run_agent_eval.subprocess, "run", return_value=completed) as run,
+        ):
+            run_agent_eval.run_claude("prompt", Path("mcp.json"), Path("."), None, 5, 60)
+        command = run.call_args.args[0]
+        self.assertEqual(command[0], "C:\\npm\\claude.CMD")
+        self.assertEqual(run.call_args.kwargs["encoding"], "utf-8")
+        self.assertEqual(run.call_args.kwargs["errors"], "replace")
+
     def test_the_wps_launch_mode_is_an_option_and_recorded_in_the_summary(self):
         with self.assertRaises(SystemExit):
             run_agent_eval.main(["--wps-launch", "elsewhere"])
@@ -1491,7 +1518,6 @@ class OpenDocumentScriptParseTests(unittest.TestCase):
 
         scripts = {
             "document": run_agent_eval._WPS_DOCUMENT_SCRIPT.replace("__ATTACH__", ATTACH_RUNNING_INSTANCE),
-            "automation": run_agent_eval._START_WITH_AUTOMATION_SCRIPT.replace("__PATH__", "C:\\x\\report.docx"),
         }
         for name, script in scripts.items():
             with self.subTest(script=name), tempfile.TemporaryDirectory() as tmp:
