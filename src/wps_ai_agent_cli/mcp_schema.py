@@ -835,14 +835,18 @@ MCP_TOOL_SCHEMAS: tuple[dict[str, Any], ...] = (
         "wps_agent_validate_document",
         "validate-document",
         "Validate document",
-        "Run basic validation checks against a registered document.",
+        "Check one expected value in a registered document and fail when it is not there: for Writer, pass contains (text that must appear in the body); for Spreadsheets, pass cell and equals (a cell on the first sheet and the value it must hold). document_id alone is not enough and returns INVALID_ARGUMENT. Presentation is not supported. To read a document's content, use snapshot_document.",
         "validation",
         required=["document_id"],
         properties={
             "document_id": _string("Registered document_id."),
-            "contains": _string("Expected body text for writer documents."),
-            "cell": _string("Cell address for spreadsheet validation."),
-            "equals": _string("Expected cell value for spreadsheet validation."),
+            "contains": _string(
+                "Writer: required. Text that must appear in the document body, matched exactly within one paragraph."
+            ),
+            "cell": _string("Spreadsheets: required with equals. One A1 cell address on the first sheet, such as B2."),
+            "equals": _string(
+                "Spreadsheets: required with cell. The value the cell must hold, as text; 42.0 is compared as 42."
+            ),
         },
     ),
     _tool(
