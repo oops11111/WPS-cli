@@ -640,12 +640,17 @@ def _add_document_commands(subparsers: argparse._SubParsersAction) -> None:
 
     validate_parser = subparsers.add_parser(
         "validate-document",
-        help="Run basic validation checks against a registered document.",
+        help=(
+            "Check one expected value in a registered document: --contains for Writer, --cell and --equals for "
+            "Spreadsheets. Use snapshot-document to read a document."
+        ),
     )
     validate_parser.add_argument("--document-id", required=True, help="Registered document_id.")
-    validate_parser.add_argument("--contains", help="Expected body text for writer documents.")
-    validate_parser.add_argument("--cell", help="Cell address for spreadsheet validation.")
-    validate_parser.add_argument("--equals", help="Expected cell value for spreadsheet validation.")
+    validate_parser.add_argument(
+        "--contains", help="Writer: required. Text that must appear in the body, matched within one paragraph."
+    )
+    validate_parser.add_argument("--cell", help="Spreadsheets: required with --equals. One A1 cell on the first sheet.")
+    validate_parser.add_argument("--equals", help="Spreadsheets: required with --cell. The value the cell must hold.")
 
     snapshot_parser = subparsers.add_parser(
         "snapshot-document",

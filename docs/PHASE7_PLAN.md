@@ -52,7 +52,7 @@ Phase 6 让已打开文档的命令能看到用户打开的文档，并证明 Ag
 | P7-003 | H2 | runner 的 `select_text` 支持表格（单元格区域）；新增 `untitled_document` 准备步骤（在 WPS 里新建一个未命名文档并写入文字），供另存为任务使用（已完成：表格按 `selection.range` 和 `selection.sheet` 选中并读回地址；未命名文档的名字由 WPS 决定，任务的提示里写 `{untitled_name}`，runner 在开始前填入；新增表格测试文档 `status.xlsx`） | 本地 |
 | P7-004 | H2 | 编写至少 5 个新任务，每个补离线判定测试（已完成：6 个任务，6 个命令都覆盖：`wps-open-writer-selection-delete`、`wps-open-presentation-selection-insert`、`wps-open-presentation-selection-delete`、`wps-open-spreadsheet-selection-replace`、`wps-open-spreadsheet-selection-delete`、`wps-open-save-as-untitled`；runner 的 `select_text` 也能在演示里放插入点） | 本地 |
 | P7-005 | H3 | `scripts/windows_check/`：前提检查、调用评测或 wheel 检查、生成结果文件；离线测试覆盖前提检查和结果格式（已完成：`scripts/windows_check/run_windows_check.py`，子命令 `prereq`、`eval`、`wheel`，用法见同目录 README） | 本地 |
-| P7-006 | 缺口 | 查清 Agent 为什么常用错 `validate_document`，改进它的参数说明和 `INVALID_ARGUMENT` 的错误信息 | 本地 |
+| P7-006 | 缺口 | 查清 Agent 为什么常用错 `validate_document`，改进它的参数说明和 `INVALID_ARGUMENT` 的错误信息（已完成：原因是工具说明只写“Run basic validation checks”、只要求 `document_id`，Agent 把它当成通用检查，只传 `document_id`；现在说明写明它只核对一个值、每个组件要传什么、只传 `document_id` 会失败、读文档用 `snapshot_document`，错误信息写出缺哪个参数并给例子） | 本地 |
 | P7-007 | H1、H2 | 在 Windows 上用 P7-005 的脚本：跑 P7-002 的注入场景，再把所有已打开文档任务各跑 3 次 | Windows |
 | P7-008 | H4 | 定版本 0.4.0，整理 `CHANGELOG.md`，合并后由你推送 `v0.4.0` 标签 | 本地 + 你 |
 | P7-009 | H4 | 在 Windows 上用 P7-005 的脚本检查 Release 的 wheel | Windows |

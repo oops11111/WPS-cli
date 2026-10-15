@@ -3020,7 +3020,7 @@
     "id": "P7-006",
     "phase": "phase7",
     "title": "validate_document parameter guidance",
-    "status": "todo",
+    "status": "done",
     "acceptance": "Gap from P6-008: find out why agents call validate_document with invalid arguments and improve its parameter descriptions and INVALID_ARGUMENT messages."
   },
   {
