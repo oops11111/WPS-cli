@@ -852,6 +852,24 @@ def writer_replace(
     return True, result, [], False
 
 
+def _cell_not_found_message(table: list[list[str]], table_index: int, row: int, column: int) -> str:
+    """Say how big the table is, so that an agent can correct the cell address in one step."""
+    row_count = len(table)
+    column_count = max((len(item) for item in table), default=0)
+    message = (
+        f"Cell out of range: row {row}, column {column}. Table {table_index} has {row_count} rows and "
+        f"{column_count} columns; rows and columns count from 1"
+    )
+    if 1 <= row <= row_count and column > len(table[row - 1]):
+        message += f", and row {row} has {len(table[row - 1])} cells"
+    if table:
+        header = " | ".join(cell.strip() for cell in table[0])
+        if len(header) > 200:
+            header = header[:197] + "..."
+        message += f". Row 1 is: {header}"
+    return message + "."
+
+
 @coordinated_mutation
 @atomic_mutation
 def writer_table_write(
@@ -959,7 +977,7 @@ def writer_table_write(
                 "row_count": len(selected_table),
                 "column_count": max((len(item) for item in selected_table), default=0),
             },
-            [{"code": "CELL_NOT_FOUND", "message": f"Cell out of range: row {row}, column {column}"}],
+            [{"code": "CELL_NOT_FOUND", "message": _cell_not_found_message(selected_table, table_index, row, column)}],
             False,
         )
 

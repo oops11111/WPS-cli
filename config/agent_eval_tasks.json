@@ -646,6 +646,214 @@
           "kind": "file_unchanged"
         }
       ]
+    },
+    {
+      "id": "wps-open-writer-selection-replace",
+      "requires_wps": true,
+      "component": "writer",
+      "fixture": "report.docx",
+      "setup": [
+        "open_in_wps",
+        "select_text"
+      ],
+      "selection": {
+        "text": "DRAFT"
+      },
+      "prompt": "The Writer document report.docx in the current directory is open in WPS, and the word DRAFT in it is selected. Using the wps-agent MCP tools, replace the selected text with FINAL in WPS, with request_id eval-selection-1. Do not close the document and change nothing else.",
+      "expected_tools": [
+        "open_documents",
+        "documents",
+        "register_document",
+        "writer_selection_read",
+        "writer_selection_replace"
+      ],
+      "checks": [
+        {
+          "kind": "operation_recorded",
+          "request_id": "eval-selection-1",
+          "command": "writer-selection-replace"
+        },
+        {
+          "kind": "tool_called",
+          "tool": "writer_selection_replace",
+          "input": {
+            "request_id": "eval-selection-1"
+          }
+        },
+        {
+          "kind": "file_text",
+          "path": "report.docx",
+          "contains": [
+            "Quarterly report",
+            "Status: FINAL",
+            "Owner: Finance"
+          ],
+          "absent": [
+            "DRAFT"
+          ]
+        },
+        {
+          "kind": "backup_count",
+          "count": 1
+        },
+        {
+          "kind": "tool_not_called",
+          "tool": "writer_replace"
+        }
+      ]
+    },
+    {
+      "id": "wps-open-writer-selection-insert",
+      "requires_wps": true,
+      "component": "writer",
+      "fixture": "report.docx",
+      "setup": [
+        "open_in_wps",
+        "select_text"
+      ],
+      "selection": {
+        "text": "Owner: Finance",
+        "collapse": "end"
+      },
+      "prompt": "The Writer document report.docx in the current directory is open in WPS, and the caret is at the end of the line Owner: Finance. Using the wps-agent MCP tools, insert the text \" (reviewed)\" at the caret in WPS, including its leading space, with request_id eval-insert-1. Do not close the document and change nothing else.",
+      "expected_tools": [
+        "open_documents",
+        "documents",
+        "register_document",
+        "writer_selection_read",
+        "writer_selection_insert"
+      ],
+      "checks": [
+        {
+          "kind": "operation_recorded",
+          "request_id": "eval-insert-1",
+          "command": "writer-selection-insert"
+        },
+        {
+          "kind": "tool_called",
+          "tool": "writer_selection_insert",
+          "input": {
+            "request_id": "eval-insert-1"
+          }
+        },
+        {
+          "kind": "file_text",
+          "path": "report.docx",
+          "contains": [
+            "Quarterly report",
+            "Status: DRAFT",
+            "Owner: Finance (reviewed)"
+          ]
+        },
+        {
+          "kind": "backup_count",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "id": "wps-open-presentation-selection-replace",
+      "requires_wps": true,
+      "component": "presentation",
+      "fixture": "deck.pptx",
+      "setup": [
+        "open_in_wps",
+        "select_text"
+      ],
+      "selection": {
+        "text": "DRAFT"
+      },
+      "prompt": "The presentation deck.pptx in the current directory is open in WPS, and the word DRAFT on its slide is selected. Using the wps-agent MCP tools, replace the selected text with FINAL in WPS, with request_id eval-slide-selection-1. Do not close the presentation and change nothing else.",
+      "expected_tools": [
+        "open_documents",
+        "documents",
+        "register_document",
+        "presentation_selection_read",
+        "presentation_selection_replace"
+      ],
+      "checks": [
+        {
+          "kind": "operation_recorded",
+          "request_id": "eval-slide-selection-1",
+          "command": "presentation-selection-replace"
+        },
+        {
+          "kind": "tool_called",
+          "tool": "presentation_selection_replace",
+          "input": {
+            "request_id": "eval-slide-selection-1"
+          }
+        },
+        {
+          "kind": "file_text",
+          "path": "deck.pptx",
+          "contains": [
+            "Quarterly review",
+            "Status: FINAL"
+          ],
+          "absent": [
+            "DRAFT"
+          ]
+        },
+        {
+          "kind": "backup_count",
+          "count": 1
+        },
+        {
+          "kind": "tool_not_called",
+          "tool": "presentation_replace"
+        }
+      ]
+    },
+    {
+      "id": "wps-open-save-document",
+      "requires_wps": true,
+      "component": "writer",
+      "fixture": "report.docx",
+      "setup": [
+        "open_in_wps",
+        "append_unsaved"
+      ],
+      "unsaved_text": "Reviewed in WPS",
+      "prompt": "The Writer document report.docx in the current directory is open in WPS with unsaved changes. Using the wps-agent MCP tools, save it in WPS with request_id eval-save-1. Do not close it and do not change its text.",
+      "expected_tools": [
+        "open_documents",
+        "documents",
+        "register_document",
+        "save_open_document"
+      ],
+      "checks": [
+        {
+          "kind": "operation_recorded",
+          "request_id": "eval-save-1",
+          "command": "save-open-document"
+        },
+        {
+          "kind": "tool_called",
+          "tool": "save_open_document",
+          "input": {
+            "request_id": "eval-save-1"
+          }
+        },
+        {
+          "kind": "file_text",
+          "path": "report.docx",
+          "contains": [
+            "Quarterly report",
+            "Status: DRAFT",
+            "Owner: Finance",
+            "Reviewed in WPS"
+          ]
+        },
+        {
+          "kind": "backup_count",
+          "count": 1
+        },
+        {
+          "kind": "tool_not_called",
+          "tool": "save_as_open_document"
+        }
+      ]
     }
   ]
 }

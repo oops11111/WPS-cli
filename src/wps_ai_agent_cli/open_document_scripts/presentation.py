@@ -14,7 +14,7 @@ $doc = $null
 try {
   $app = Get-RunningWpsApp @($params.prog_ids)
   if ($null -eq $app) {
-    [pscustomobject]@{ ok = $true; status = 'no_instance' } | ConvertTo-Json -Depth 5
+    [pscustomobject]@{ ok = $true; status = (Get-WpsMissingStatus @($params.prog_ids)) } | ConvertTo-Json -Depth 5
     exit 0
   }
   $doc = Find-OpenPresentation $app $params.path

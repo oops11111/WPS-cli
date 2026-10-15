@@ -179,43 +179,226 @@ def hold_file(path: Path) -> tuple[Callable[[], None] | None, str | None]:
     return (lambda: path.chmod(mode)), None
 
 
+# How open_in_wps starts WPS: "default" opens the file with its default app, as a double-click does;
+# "automation" starts that same app with /Automation, without changing the system's open command (P6-005).
+WPS_LAUNCH_MODES = ("default", "automation")
+WPS_LAUNCH = "default"
+WPS_DOCUMENT_PROCESSES = ("wps", "et", "wpp")
+
+_WPS_DOCUMENT_SCRIPT = """
+$ErrorActionPreference = 'Stop'
+$params = @'
+__PARAMS_JSON__
+'@ | ConvertFrom-Json
+__ATTACH__
+function Out-Result($value) { $value | ConvertTo-Json -Depth 5; exit 0 }
+$app = Get-RunningWpsApp @($params.prog_ids)
+if ($null -eq $app) { Out-Result ([pscustomobject]@{ ok = $true; status = (Get-WpsMissingStatus @($params.prog_ids)) }) }
+if ($params.component -eq 'presentation') {
+  $doc = Find-OpenPresentation $app $params.path
+  if ($null -eq $doc) { Out-Result ([pscustomobject]@{ ok = $true; status = 'not_open' }) }
+  if ($params.action -ne 'select') { Out-Result ([pscustomobject]@{ ok = $true; status = 'unsupported' }) }
+  foreach ($slide in @($doc.Slides)) {
+    foreach ($shape in @($slide.Shapes)) {
+      if (-not [bool]$shape.HasTextFrame) { continue }
+      $hit = $shape.TextFrame.TextRange.Find([string]$params.text)
+      if ($null -eq $hit -or [int]$hit.Length -eq 0) { continue }
+      $slide.Select()
+      $hit.Select()
+      $selected = $app.ActiveWindow.Selection.TextRange
+      Out-Result ([pscustomobject]@{ ok = $true; status = 'ok'; selection_text = [string]$selected.Text; saved = [bool]$doc.Saved })
+    }
+  }
+  Out-Result ([pscustomobject]@{ ok = $true; status = 'text_not_found' })
+}
+$doc = Find-OpenWriterDocument $app $params.path
+if ($null -eq $doc) { Out-Result ([pscustomobject]@{ ok = $true; status = 'not_open' }) }
+if ($params.action -eq 'append_unsaved') {
+  $range = $doc.Content
+  $range.InsertParagraphAfter()
+  $range.InsertAfter([string]$params.text)
+  Out-Result ([pscustomobject]@{ ok = $true; status = 'ok'; saved = [bool]$doc.Saved })
+}
+$range = $doc.Content
+$found = $range.Find.Execute([string]$params.text)
+if (-not $found) { Out-Result ([pscustomobject]@{ ok = $true; status = 'text_not_found' }) }
+if ($params.collapse -eq 'end') { $range.Collapse(0) }
+$range.Select()
+$selection = $doc.ActiveWindow.Selection
+Out-Result ([pscustomobject]@{
+  ok = $true; status = 'ok'; selection_text = [string]$selection.Text
+  start = [int]$selection.Start; end = [int]$selection.End; saved = [bool]$doc.Saved
+})
+"""
+
+_START_WITH_AUTOMATION_SCRIPT = """
+$ErrorActionPreference = 'Stop'
+$path = @'
+__PATH__
+'@ | ForEach-Object { $_.Trim() }
+Add-Type -TypeDefinition @"
+using System;
+using System.Runtime.InteropServices;
+using System.Text;
+public static class EvalAssoc {
+  [DllImport("shlwapi.dll", CharSet = CharSet.Unicode)]
+  private static extern int AssocQueryString(int flags, int str, string assoc, string extra, StringBuilder output, ref int size);
+  public static string Executable(string extension) {
+    int size = 1024;
+    StringBuilder output = new StringBuilder(size);
+    return AssocQueryString(0, 2, extension, "open", output, ref size) == 0 ? output.ToString() : null;
+  }
+}
+"@
+$exe = [EvalAssoc]::Executable([System.IO.Path]::GetExtension($path))
+if ([string]::IsNullOrEmpty($exe)) { throw "No program is associated with $([System.IO.Path]::GetExtension($path))" }
+Start-Process -FilePath $exe -ArgumentList @('/Automation', ('"' + $path + '"')) | Out-Null
+$exe
+"""
+
+
+def wps_process_ids() -> set[int]:
+    """Ids of the WPS document processes (wps, et, wpp) running now."""
+    from wps_ai_agent_cli.powershell_runner import run_powershell_command
+
+    names = ",".join(WPS_DOCUMENT_PROCESSES)
+    completed = run_powershell_command(
+        f"Get-Process -Name {names} -ErrorAction SilentlyContinue | ForEach-Object {{ $_.Id }}", timeout_seconds=30
+    )
+    return {int(token) for token in completed.stdout.split() if token.strip().isdigit()}
+
+
+def stop_started_wps(component: str, started: set[int]) -> str:
+    """End the WPS processes this runner started, but only while WPS lists no document for the component."""
+    if not started:
+        return "none started"
+    from wps_ai_agent_cli.open_documents import list_open_documents
+    from wps_ai_agent_cli.powershell_runner import run_powershell_command
+
+    _ok, data, _errors = list_open_documents(component)
+    if data.get("documents"):
+        return "left running: WPS still lists open documents"
+    ids = ",".join(str(pid) for pid in sorted(started))
+    run_powershell_command(f"Stop-Process -Id {ids} -ErrorAction SilentlyContinue", timeout_seconds=30)
+    return f"stopped {ids}"
+
+
+def start_with_automation(path: Path) -> None:
+    """Start the program associated with the file's extension with /Automation and the file."""
+    from wps_ai_agent_cli.powershell_runner import run_powershell_command
+
+    completed = run_powershell_command(
+        _START_WITH_AUTOMATION_SCRIPT.replace("__PATH__", str(path.resolve())), timeout_seconds=60
+    )
+    if completed.returncode != 0:
+        raise RuntimeError(f"could not start WPS with /Automation: {completed.stderr.strip()}")
+
+
+def wps_document_action(component: str, path: Path, action: str, **params: Any) -> dict[str, Any]:
+    """Select text in, or add unsaved text to, a document open in WPS. Returns the script's JSON."""
+    from wps_ai_agent_cli.capabilities import WPS_COMPONENTS
+    from wps_ai_agent_cli.open_documents import _run_script
+    from wps_ai_agent_cli.wps_script_snippets import ATTACH_RUNNING_INSTANCE
+
+    script = _WPS_DOCUMENT_SCRIPT.replace("__ATTACH__", ATTACH_RUNNING_INSTANCE)
+    result = _run_script(
+        script,
+        {
+            "component": component,
+            "prog_ids": list(WPS_COMPONENTS[component]),
+            "path": str(path.resolve()),
+            "action": action,
+            **params,
+        },
+        timeout_seconds=60,
+    )
+    if not result["ok"]:
+        return {"ok": False, "status": "script_failed", "errors": result["errors"]}
+    return result["data"] or {"ok": False, "status": "no_output"}
+
+
 def open_in_wps(
     path: Path, component: str, timeout: float = 45.0, poll: float = 2.0
 ) -> tuple[Callable[[], None] | None, str | None]:
-    """Open the file the way a user does (its default app, expected to be WPS) and wait until WPS lists it.
+    """Open the file in WPS (see WPS_LAUNCH) and wait until WPS lists it.
 
-    Returns (release, None), where release closes the document without saving and only if WPS reports no
-    unsaved changes, or (None, reason) when this machine cannot do it.
+    Returns (release, None) or (None, reason) when this machine cannot do it. Release closes the document
+    without saving, and only if WPS reports no unsaved changes; then it ends the WPS processes that were
+    started for it, if WPS lists no other document, so that the next run starts from the same state.
     """
     if os.name != "nt":
         return None, "opening a document in WPS needs Windows"
     from wps_ai_agent_cli.open_documents import close_unchanged_document, list_open_documents
 
+    before = wps_process_ids()
     target = str(path.resolve()).casefold()
-    os.startfile(str(path))  # the fixture the runner wrote, opened with its default app
+    if WPS_LAUNCH == "automation":
+        start_with_automation(path)
+    else:
+        os.startfile(str(path))  # the fixture the runner wrote, opened with its default app
+    started: set[int] = set()
+
+    def release() -> None:
+        close_unchanged_document(component, path, do_close=True)
+        stop_started_wps(component, started)
+
     deadline = time.monotonic() + timeout
+    last_errors: list[dict[str, Any]] = []
     while time.monotonic() < deadline:
-        ok, data, _errors = list_open_documents(component)
+        ok, data, last_errors = list_open_documents(component)
         listed = {str(Path(item.get("full_name") or "").resolve()).casefold() for item in data.get("documents", [])}
         if ok and target in listed:
-            return (lambda: close_unchanged_document(component, path, do_close=True)), None
+            started.update(wps_process_ids() - before)
+            return release, None
         time.sleep(poll)
-    close_unchanged_document(component, path, do_close=True)
+    started.update(wps_process_ids() - before)
+    release()
+    detail = "; ".join(f"{error.get('code')}: {error.get('message')}" for error in last_errors)
     return (
         None,
-        f"WPS did not list {path.name} as open within {timeout:.0f} s; is WPS the default app for {path.suffix}?",
+        f"WPS did not list {path.name} as open within {timeout:.0f} s (launch mode {WPS_LAUNCH})"
+        + (f": {detail}" if detail else f"; is WPS the default app for {path.suffix}?"),
     )
 
 
+def prepare_open_document(step: str, fixture: Path, component: str, options: dict[str, Any]) -> str | None:
+    """Run a step that needs the document open in WPS. Returns a reason when it could not be done."""
+    if step == "select_text":
+        selection = options.get("selection") or {}
+        text = str(selection.get("text") or "")
+        collapse = selection.get("collapse")
+        payload = wps_document_action(component, fixture, "select", text=text, collapse=collapse)
+        if payload.get("status") != "ok":
+            return f"select_text: {payload.get('status')} {payload.get('errors') or ''}".strip()
+        if collapse == "end":
+            # A collapsed selection reports the character after the caret as its text, so compare positions.
+            if payload.get("start") is None or payload.get("start") != payload.get("end"):
+                return f"select_text: expected a caret, WPS reports {payload.get('start')}..{payload.get('end')}"
+            return None
+        if str(payload.get("selection_text") or "").rstrip("\r") != text:
+            return f"select_text: WPS selected {payload.get('selection_text')!r}, expected {text!r}"
+        return None
+    if step == "append_unsaved":
+        payload = wps_document_action(component, fixture, "append_unsaved", text=str(options.get("unsaved_text") or ""))
+        if payload.get("status") != "ok" or payload.get("saved") is not False:
+            return f"append_unsaved: {payload.get('status')}, saved={payload.get('saved')}"
+        return None
+    raise ValueError(f"unknown setup step {step}")
+
+
+OPEN_DOCUMENT_STEPS = ("select_text", "append_unsaved")
+
+
 def run_setup(
-    steps: list[str], workspace: Path, fixture: Path, component: str
+    steps: list[str], workspace: Path, fixture: Path, component: str, options: dict[str, Any] | None = None
 ) -> tuple[str, Callable[[], None] | None, str | None]:
     """Prepare the workspace.
 
-    Returns (hash of the file as the agent receives it, release for a held file, skip reason). The hash is
-    taken before a hold, because a held file cannot be read; "hold" must therefore be the last step.
+    Returns (hash of the file as the agent receives it, release for a held or opened file, skip reason). The
+    hash is taken before a hold or an open, because a held file cannot be read; "hold" must be the last step,
+    and only steps that work on the open document (select_text, append_unsaved) may follow "open_in_wps".
     """
-    for step in steps:
+    for index, step in enumerate(steps):
         if step == "register":
             ok, record, errors = register_document(component, str(fixture), workspace)
             if not ok:
@@ -234,10 +417,19 @@ def run_setup(
         elif step == "html_table":
             (workspace / "table.html").write_text(HTML_TABLE, encoding="utf-8")
         elif step in ("hold", "open_in_wps"):
+            later = steps[index + 1 :]
+            allowed = OPEN_DOCUMENT_STEPS if step == "open_in_wps" else ()
+            if any(item not in allowed for item in later):
+                raise ValueError(f"setup step {step} can only be followed by {list(allowed)}, not {later}")
             start_sha = file_sha256(fixture)
             release, reason = hold_file(fixture) if step == "hold" else open_in_wps(fixture, component)
             if release is None:
                 return start_sha, None, reason
+            for item in later:
+                reason = prepare_open_document(item, fixture, component, options or {})
+                if reason:
+                    release()
+                    return start_sha, None, reason
             return start_sha, release, None
         else:
             raise ValueError(f"unknown setup step {step}")
@@ -516,7 +708,7 @@ def run_task(
     workspace.mkdir(parents=True)
     fixture = workspace / fixture_name
     seed_sha = write_fixture(workspace, fixture_name)
-    fixture_sha, release, skip_reason = run_setup(task.get("setup", []), workspace, fixture, component)
+    fixture_sha, release, skip_reason = run_setup(task.get("setup", []), workspace, fixture, component, task)
     if skip_reason:
         return {"id": task["id"], "passed": False, "skipped": skip_reason, "agent": {}, "checks": []}
     try:
@@ -616,7 +808,16 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--min-passes", type=int, default=None, help="Runs that must pass for a task to pass (default: all of them)."
     )
+    parser.add_argument(
+        "--wps-launch",
+        choices=WPS_LAUNCH_MODES,
+        default="default",
+        help="How the open_in_wps step starts WPS: default opens the file like a double-click; automation "
+        "starts the associated program with /Automation (the system open command is not changed).",
+    )
     args = parser.parse_args(argv)
+    global WPS_LAUNCH
+    WPS_LAUNCH = args.wps_launch
     if args.repeat < 1:
         parser.error("--repeat must be at least 1")
     min_passes = args.repeat if args.min_passes is None else args.min_passes
@@ -677,6 +878,7 @@ def summarize(results: list[dict[str, Any]], stamp: str, model: str | None) -> d
         "generated_at": stamp,
         "claude_cli": "claude",
         "model": model or "CLI default",
+        "wps_launch": WPS_LAUNCH,
         "passed": sum(result["passed"] for result in ran),
         "total": len(ran),
         "skipped": len(results) - len(ran),

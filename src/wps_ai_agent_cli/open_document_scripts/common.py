@@ -17,9 +17,13 @@ _LIST_SCRIPT = (
     + """
 function Get-Safe([scriptblock]$block) { try { return & $block } catch { return $null } }
 $instances = @()
+$unreachable = @()
 foreach ($spec in $params.components) {
   $app = Get-RunningWpsApp @($spec.prog_ids)
-  if ($null -eq $app) { continue }
+  if ($null -eq $app) {
+    if ((Get-WpsMissingStatus @($spec.prog_ids)) -eq 'not_automatable') { $unreachable += [string]$spec.component }
+    continue
+  }
   try {
     $collection = $app.($spec.collection)
     $activeFullName = Get-Safe { [string]$app.($spec.active).FullName }
@@ -39,13 +43,14 @@ foreach ($spec in $params.components) {
     $instances += [pscustomobject]@{
       component = $spec.component
       version = Get-Safe { [string]$app.Version }
+      attached_via = $script:WpsAttachedVia
       documents = $documents
     }
   } finally {
     try { [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($app) } catch { }
   }
 }
-[pscustomobject]@{ ok = $true; backend = 'powershell-com'; instances = $instances } | ConvertTo-Json -Depth 6
+[pscustomobject]@{ ok = $true; backend = 'powershell-com'; instances = $instances; not_automatable = @($unreachable) } | ConvertTo-Json -Depth 6
 """
 )
 
@@ -58,7 +63,7 @@ $doc = $null
 try {
   $app = Get-RunningWpsApp @($params.prog_ids)
   if ($null -eq $app) {
-    [pscustomobject]@{ ok = $true; status = 'no_instance' } | ConvertTo-Json -Depth 5
+    [pscustomobject]@{ ok = $true; status = (Get-WpsMissingStatus @($params.prog_ids)) } | ConvertTo-Json -Depth 5
     exit 0
   }
   $collection = $app.($params.collection)

@@ -36,12 +36,98 @@ namespace WpsAgent {
 }
 "@
 }
+if (-not ('WpsAgent.Rot' -as [type])) {
+Add-Type -TypeDefinition @"
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.ComTypes;
+namespace WpsAgent {
+  public static class Rot {
+    [DllImport("ole32.dll")]
+    private static extern int GetRunningObjectTable(int reserved, out IRunningObjectTable rot);
+    [DllImport("ole32.dll")]
+    private static extern int CreateBindCtx(int reserved, out IBindCtx context);
+    // Objects already registered in the Running Object Table under a display name that ends with one of the
+    // extensions. Reading the table never starts a server; GetObject only returns what is registered.
+    public static object[] Find(string[] extensions) {
+      List<object> found = new List<object>();
+      try {
+        IRunningObjectTable rot;
+        IBindCtx context;
+        if (GetRunningObjectTable(0, out rot) != 0 || CreateBindCtx(0, out context) != 0) { return found.ToArray(); }
+        IEnumMoniker monikers;
+        rot.EnumRunning(out monikers);
+        IMoniker[] one = new IMoniker[1];
+        while (monikers.Next(1, one, IntPtr.Zero) == 0) {
+          string name = null;
+          try { one[0].GetDisplayName(context, null, out name); } catch { continue; }
+          if (name == null) { continue; }
+          foreach (string extension in extensions) {
+            if (!name.EndsWith(extension, StringComparison.OrdinalIgnoreCase)) { continue; }
+            object item;
+            if (rot.GetObject(one[0], out item) == 0 && item != null) { found.Add(item); }
+            break;
+          }
+        }
+      } catch { }
+      return found.ToArray();
+    }
+    // Processes of this user session with a main window: the ones a user can have a document open in.
+    public static int WindowedProcessCount(string processName) {
+      int count = 0;
+      try {
+        int session = Process.GetCurrentProcess().SessionId;
+        foreach (Process process in Process.GetProcessesByName(processName)) {
+          try { if (process.SessionId == session && process.MainWindowHandle != IntPtr.Zero) { count++; } } catch { }
+        }
+      } catch { }
+      return count;
+    }
+  }
+}
+"@
+}
+function Get-WpsComponentKind([string[]]$progIds) {
+  $id = ([string]($progIds | Select-Object -First 1)).ToLowerInvariant()
+  if ($id.Contains('wpp') -or $id.Contains('presentation')) { return 'presentation' }
+  if ($id.Contains('ket') -or $id.StartsWith('et.') -or $id.Contains('spreadsheet')) { return 'spreadsheets' }
+  return 'writer'
+}
+function Test-WpsApplication($candidate) {
+  # A document moniker can belong to another office suite; only accept an application that says it is WPS.
+  $label = ''
+  try { $label += [string]$candidate.Name } catch { }
+  try { $label += ' ' + [string]$candidate.Path } catch { }
+  return $label -match '(?i)wps|kingsoft|\u91d1\u5c71'
+}
 function Get-RunningWpsApp([string[]]$progIds) {
+  $script:WpsAttachedVia = $null
   foreach ($progId in $progIds) {
     $candidate = [WpsAgent.Running]::Get($progId)
-    if ($null -ne $candidate) { return $candidate }
+    if ($null -ne $candidate) { $script:WpsAttachedVia = 'active_object'; return $candidate }
+  }
+  # A WPS started by opening a file may not register its application object (seen with Writer on 12.8,
+  # P5-011) while the document itself can still be registered. Reach the application through it.
+  $extensions = @{
+    writer = @('.docx', '.doc', '.wps', '.wpt', '.dotx', '.dot', '.rtf', '.docm')
+    spreadsheets = @('.xlsx', '.xls', '.et', '.ett', '.xlsm', '.xltx', '.csv')
+    presentation = @('.pptx', '.ppt', '.dps', '.dpt', '.pptm', '.potx')
+  }[(Get-WpsComponentKind $progIds)]
+  foreach ($registered in @([WpsAgent.Rot]::Find([string[]]$extensions))) {
+    $candidate = $null
+    try { $candidate = $registered.Application } catch { continue }
+    if ($null -ne $candidate -and (Test-WpsApplication $candidate)) { $script:WpsAttachedVia = 'running_object_table'; return $candidate }
   }
   return $null
+}
+function Get-WpsMissingStatus([string[]]$progIds) {
+  # Called when no application could be attached. A WPS window of this component that is not reachable means
+  # WPS runs without automation, which is not the same as WPS not running.
+  $processName = @{ writer = 'wps'; spreadsheets = 'et'; presentation = 'wpp' }[(Get-WpsComponentKind $progIds)]
+  if ([WpsAgent.Rot]::WindowedProcessCount($processName) -gt 0) { return 'not_automatable' }
+  return 'no_instance'
 }
 function ConvertTo-WpsLocalPath([string]$fullPath) {
   # Pure string step: \\?\C:\x -> C:\x, \\?\UNC\h\s -> \\h\s, and admin shares of this machine

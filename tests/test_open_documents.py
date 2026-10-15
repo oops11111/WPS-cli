@@ -86,6 +86,38 @@ class ListOpenDocumentsTests(unittest.TestCase):
         self.assertEqual(data["probed_components"], ["writer", "spreadsheets", "presentation"])
         com.assert_called_once()
 
+    def test_a_wps_window_without_automation_is_reported_with_a_remedy(self):
+        payload = {"ok": True, "instances": [], "not_automatable": ["writer"]}
+        with patch.object(open_documents, "_run_open_documents_com", return_value=com_ok(payload)):
+            ok, data, errors = list_open_documents()
+        self.assertFalse(ok)
+        self.assertEqual([error["code"] for error in errors], ["WPS_INSTANCE_NOT_AUTOMATABLE"])
+        self.assertIn("did not register for automation", errors[0]["message"])
+        self.assertIn("/Automation", errors[0]["message"])
+        self.assertEqual(data["not_automatable"], ["writer"])
+
+    def test_documents_of_other_components_are_listed_with_a_warning_for_an_unreachable_one(self):
+        payload = {
+            "ok": True,
+            "instances": {"component": "spreadsheets", "version": "12.1", "documents": []},
+            "not_automatable": "writer",
+        }
+        with patch.object(open_documents, "_run_open_documents_com", return_value=com_ok(payload)):
+            ok, data, errors = list_open_documents()
+        self.assertTrue(ok, errors)
+        self.assertEqual(data["not_automatable"], ["writer"])
+        self.assertIn("WPS Writer is running with a window", data["warnings"][0])
+
+    def test_close_in_wps_refuses_when_wps_is_not_automatable(self):
+        with patch.object(
+            open_documents,
+            "_run_component_attached_com",
+            return_value=com_ok({"ok": True, "status": "not_automatable"}),
+        ):
+            status, error = open_documents.close_unchanged_document("writer", "report.docx", do_close=True)
+        self.assertIsNone(status)
+        self.assertEqual(error["code"], "WPS_INSTANCE_NOT_AUTOMATABLE")
+
     def test_lists_documents_with_registered_id_and_untitled_documents(self):
         fixture = Fixture(self)
         payload = {
@@ -186,6 +218,7 @@ class SelectionReadTests(unittest.TestCase):
         fixture = Fixture(self)
         cases = {
             "no_instance": "NO_RUNNING_WPS_INSTANCE",
+            "not_automatable": "WPS_INSTANCE_NOT_AUTOMATABLE",
             "not_open": "DOCUMENT_NOT_OPEN",
             "no_window": "SELECTION_UNAVAILABLE",
         }
@@ -679,6 +712,7 @@ class ExportOpenDocumentTests(unittest.TestCase):
             ("unsaved", "DOCUMENT_HAS_UNSAVED_CHANGES"),
             ("not_open", "DOCUMENT_NOT_OPEN"),
             ("no_instance", "NO_RUNNING_WPS_INSTANCE"),
+            ("not_automatable", "WPS_INSTANCE_NOT_AUTOMATABLE"),
         ):
             with self.subTest(status=status):
                 output = Path(fixture.tmp.name) / f"{status}.html"
