@@ -2964,7 +2964,7 @@
     "id": "P6-008",
     "phase": "phase6",
     "title": "Windows runs of the open-document tasks",
-    "status": "todo",
+    "status": "done",
     "acceptance": "G2: the new tasks and wps-open-document-export-text run in one --repeat 3 --min-passes 2 invocation on Windows with the stock open command; pass rate, turns, tool calls and off-path calls recorded."
   },
   {

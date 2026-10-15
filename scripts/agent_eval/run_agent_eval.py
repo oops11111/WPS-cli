@@ -369,8 +369,8 @@ def open_in_wps(
     start_registered_command(path, automation=WPS_LAUNCH == "automation")
     started: set[int] = set()
 
-    def release() -> None:
-        release_opened_fixture(component, path, started)
+    def release() -> str:
+        return release_opened_fixture(component, path, started)
 
     deadline = time.monotonic() + timeout
     last_errors: list[dict[str, Any]] = []
@@ -391,7 +391,7 @@ def open_in_wps(
     )
 
 
-def release_opened_fixture(component: str, path: Path, started: set[int]) -> None:
+def release_opened_fixture(component: str, path: Path, started: set[int]) -> str:
     """Close the fixture open_in_wps opened, then end the WPS processes started for it.
 
     A run that stopped early can leave the fixture with unsaved changes (P6-008 rerun). It is the runner's own
@@ -400,10 +400,12 @@ def release_opened_fixture(component: str, path: Path, started: set[int]) -> Non
     """
     from wps_ai_agent_cli.open_documents import close_unchanged_document
 
-    _status, error = close_unchanged_document(component, path, do_close=True)
+    status, error = close_unchanged_document(component, path, do_close=True)
+    closed = status or (error or {}).get("code")
     if error and error.get("code") == "DOCUMENT_HAS_UNSAVED_CHANGES":
-        wps_document_action(component, path, "close_discard")
-    stop_started_wps(component, started)
+        closed = "discarded: " + str(wps_document_action(component, path, "close_discard").get("status"))
+    # Recorded with the run, so that a WPS process left running afterwards can be explained (P6-008 rerun).
+    return f"fixture {closed}; processes {stop_started_wps(component, started)}"
 
 
 def prepare_open_document(step: str, fixture: Path, component: str, options: dict[str, Any]) -> str | None:
@@ -777,12 +779,13 @@ def run_task(
     fixture_sha, release, skip_reason = run_setup(task.get("setup", []), workspace, fixture, component, task)
     if skip_reason:
         return {"id": task["id"], "passed": False, "skipped": skip_reason, "agent": {}, "checks": []}
+    cleanup = None
     try:
         mcp_config = write_mcp_config(workspace)
         agent = runner(task["prompt"], mcp_config, workspace, model, max_turns, timeout)
     finally:
         if release is not None:
-            release()
+            cleanup = release()
     calls = agent.get("tool_calls") or []
     checks = judge(task, workspace, fixture, fixture_sha, component, seed_sha=seed_sha, calls=calls)
     result = {
@@ -795,6 +798,8 @@ def run_task(
     error = agent_error(agent)
     if error:
         result["agent_error"] = error
+    if cleanup:
+        result["cleanup"] = cleanup
     return result
 
 

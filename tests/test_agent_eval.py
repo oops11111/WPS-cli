@@ -1489,8 +1489,12 @@ class OpenDocumentSetupTests(unittest.TestCase):
                 patch.object(run_agent_eval, "wps_document_action") as action,
                 patch.object(run_agent_eval, "stop_started_wps") as stop,
             ):
-                run_agent_eval.release_opened_fixture("writer", self.fixture, {42})
+                stop.return_value = "stopped 42"
+                action.return_value = {"status": "closed"}
+                outcome = run_agent_eval.release_opened_fixture("writer", self.fixture, {42})
             self.assertEqual(action.called, discarded)
+            self.assertIn("processes stopped 42", outcome)
+            self.assertIn("discarded: closed" if discarded else "fixture closed", outcome)
             if discarded:
                 action.assert_called_once_with("writer", self.fixture, "close_discard")
             stop.assert_called_once_with("writer", {42})
@@ -1546,6 +1550,26 @@ class OpenDocumentSetupTests(unittest.TestCase):
         )
         self.assertIsNone(run_agent_eval.agent_error({"is_error": False, "result_excerpt": "Done."}))
         self.assertIsNone(run_agent_eval.agent_error({"is_error": True, "result_excerpt": "Reached max turns"}))
+
+    def test_the_cleanup_of_an_opened_fixture_is_recorded_with_the_run(self):
+        with (
+            tempfile.TemporaryDirectory() as tmp,
+            patch.object(
+                run_agent_eval, "open_in_wps", return_value=(lambda: "fixture closed; processes none started", None)
+            ),
+        ):
+            result = run_agent_eval.run_task(
+                _task("wps-open-document-export-text"),
+                "report.docx",
+                "writer",
+                Path(tmp),
+                None,
+                15,
+                60,
+                runner=_fake_agent(lambda ws: None),
+                has_wps=lambda component: True,
+            )
+        self.assertEqual(result["cleanup"], "fixture closed; processes none started")
 
     def test_the_wps_launch_mode_is_an_option_and_recorded_in_the_summary(self):
         with self.assertRaises(SystemExit):
