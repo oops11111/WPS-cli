@@ -13,6 +13,8 @@ All notable changes to `wps-ai-agent-cli`. The versioning rule and release steps
 
 - Open-document write commands (Writer, Presentation and Spreadsheets selection replace, insert and delete; `save-open-document`) always refused on real WPS with `DOCUMENT_HELD_OPEN`, in 0.2.0 too. Their backup began with the exclusive-share probe that file-based commands use. That probe always fails on a document that is open in WPS, which is what these commands work on. Their backup now only needs the file to be readable alongside WPS; WPS allows that. Found by the P6-008 Windows evaluation.
 
+- `presentation-selection-replace` reported `VALIDATION_FAILED` on WPS 12.8 after a successful write. It read the new text back through the selection, which WPS moves after the assignment. It now checks the shape's whole text instead: the old text with exactly the selected part replaced. Found by the P6-008 Windows evaluation.
+
 ### Changed
 
 - `writer-table-write`: a dry run also returns the table's `row_count`, `column_count` and `header_row`, so an agent can see the table in one call instead of probing cells. (P6-007)

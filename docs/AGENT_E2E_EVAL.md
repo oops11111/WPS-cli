@@ -288,11 +288,64 @@ Artifact: `%TEMP%\wps-p6\eval-table-174f04e\run-20261015T022924523541Z\summary.j
 
 **0/3.** Turns 1, 1, 1. `wps-agent` calls 0, tool errors 0, off-path calls 0. No `CELL_NOT_FOUND`. Each reply is `API Error: 402 Insufficient Balance`, request ids `5dea3130-a0db-4117-a8c7-44f163620706`, `c3444403-7c54-4184-9f26-cb5efb5681f1`, `721cc47d-ec76-43c4-b4cc-194b6aea0df7`. Failed checks: no operation, `tool_called` 0, North status still `DRAFT`, `backup_count` 0. The South status and the header checks passed. No `wps.exe` was left. This run does not replace the P5-006 comparison (3/3, mean 15.3 turns, 41 calls); the agent never called a tool.
 
+### P6-008 rerun on 98d8dcd (2026-10-15)
+
+`main` at `98d8dcd`. Windows 10.0.19045. WPS 12.8.2.18913. Claude Code CLI 2.1.295, CLI default model. `claude -p "hi"` succeeded before the run. No `--model`. The system open command was not changed. G2 is judged on this default-launch command. It is not met: presentation is 0/3. The task was not skipped, and the code was not `WPS_INSTANCE_NOT_AUTOMATABLE`, so it was not rerun with `--wps-launch automation`.
+
+```powershell
+python scripts/agent_eval/run_agent_eval.py `
+  --only wps-open-document-export-text --only wps-open-writer-selection-replace `
+  --only wps-open-writer-selection-insert --only wps-open-presentation-selection-replace `
+  --only wps-open-save-document `
+  --repeat 3 --min-passes 2 --out $env:TEMP\wps-p6\eval-open
+```
+
+Artifact: `%TEMP%\wps-p6\eval-open\run-20261015T024523453952Z\summary.json`.
+
+| Task | Passes | Turns | `wps-agent` calls | Tool errors | `off_path_calls` | `off_path_tools` |
+| --- | --- | --- | --- | --- | --- | --- |
+| `wps-open-document-export-text` | 3/3 | 4.0 (4, 4, 4) | 6 | 0 | 0 | |
+| `wps-open-writer-selection-replace` | 3/3 | 5.7 (5, 6, 6) | 14 | 0 | 0 | |
+| `wps-open-writer-selection-insert` | 3/3 | 13.7 (16, 9, 16) | 24 | 2 | 9 | `export_open_document_text`, `operation`, `validate_document` |
+| `wps-open-presentation-selection-replace` | 0/3 | 16.3 (16, 16, 17) | 37 | 8 | 16 | `export_open_document_text`, `inspect_env`, `mcp_tools`, `mutation_request_inspect`, `operation`, `operations`, `presentation_replace`, `snapshot_document`, `wps_process_audit`, `writer_selection_read` |
+| `wps-open-save-document` | 3/3 | 9.0 (6, 10, 11) | 16 | 1 | 4 | `operation`, `validate_document`, `writer_structure` |
+
+Export, selection replace, selection insert, and save passed at least 2/3. Insert run 3 called `export_open_document_text` and got `INVALID_ARGUMENT` (output outside the workspace) and `validate_document` with `contains` `Finance  (reviewed)` and got `VALIDATION_FAILED`; the required insert still passed. Save run 3 called `validate_document` with only a `document_id` and got `INVALID_ARGUMENT`.
+
+`wps-open-presentation-selection-replace` failed every run. The summary stores error codes, not the message text.
+
+- Run 1: `operation_recorded` no record. `file_text`, `backup_count` 1, and `tool_not_called` passed. `presentation_selection_replace` with request id `eval-slide-selection-1`, text `FINAL`, expected `DRAFT`, returned `VALIDATION_FAILED` and `MUTATION_ROLLBACK_BLOCKED`. A dry run with request id `eval-slide-selection-1-dryrun` was not an error. `operation` then returned `OPERATION_NOT_FOUND`.
+- Run 2: no operation, `Status: FINAL` missing and `DRAFT` still present, `backup_count` 0, `tool_not_called` saw 1 `presentation_replace` call. The dry-run `presentation_selection_replace` (request id `eval-slide-selection-1`) returned `SELECTION_SPANS_STRUCTURE`. The dry-run `presentation_replace` (`find` `DRAFT`, `replace` `FINAL`) returned `DOCUMENT_HELD_OPEN`.
+- Run 3: no operation, and `tool_not_called` saw 1 `presentation_replace` call. `file_text` and `backup_count` 1 passed. `presentation_selection_replace` with request id `eval-slide-selection-1` returned `VALIDATION_FAILED` and `MUTATION_ROLLBACK_BLOCKED`. A dry-run `presentation_replace` returned `DOCUMENT_HELD_OPEN`. `writer_selection_read` returned `UNSUPPORTED_COMPONENT`. `operation` returned `OPERATION_NOT_FOUND`.
+
+After the command, two runner processes were still up: Writer pid 7376, title `report.docx * - WPS 文字`, command line the run-1 export fixture; Presentation pid 44480, title `deck.pptx - WPS 演示`, command line the run-1 deck. Both were ended before the table comparison.
+
+**Review (2026-10-15).**
+
+- Four of the five tasks now pass, with no API errors this time. Selection insert passed 3/3 but needed 13.7 turns. Run 3's extra `validate_document` used two spaces (`Finance  (reviewed)`); that call failed, but the file itself was right.
+- **Presentation selection replace failed on a product bug in its read-back.** In runs 1 and 3, `file_text` and `backup_count` passed. WPS made the change and saved it, but the tool reported `VALIDATION_FAILED`. After assigning `TextRange.Text`, the script read the text back through the selection. On WPS 12.8 the selection then covers other text, for example the whole shape, so the read-back did not match. The tool then tried to roll back by restoring the backup file. WPS holds that file, so the rollback was blocked (`MUTATION_ROLLBACK_BLOCKED`) and the operation was not recorded.
+- **Fix:** the replace script now records the shape's text and the selection's start before the write. After the write, the shape's text must equal the old text with exactly the selected part replaced. If the position does not match the text, it falls back to the old read-back. A fake-COM test reproduces the moved selection and fails on the old script. Selection insert already read back this way, which is why it passed.
+- **Run 2's `SELECTION_SPANS_STRUCTURE`** means the selection was not a text selection when the agent looked. The runner's `select_text` now checks the selection type (3) as well as its text. A non-text selection becomes a setup failure, not an agent failure.
+- **Remaining gap:** when an open-document write does fail validation, rollback restores the backup file, and WPS holds that file. So the rollback is blocked and the change stays in WPS. Undoing it inside WPS would be the right fix; it is not done here.
+- G2 is not met yet. All five tasks are rerun in one command on a `main` that has this fix.
+
+### P6-007 rerun on 98d8dcd
+
+```powershell
+python scripts/agent_eval/run_agent_eval.py --only wps-writer-table-write --repeat 3 --min-passes 2 --out $env:TEMP\wps-p6\eval-table
+```
+
+Artifact: `%TEMP%\wps-p6\eval-table\run-20261015T030032883900Z\summary.json`.
+
+**3/3.** Turns 13.7 (10, 14, 17). `wps-agent` calls 38, tool errors 5, `off_path_calls` 2 (`validate_document`, `wps_process_audit`). P5-006 was 3/3, mean 15.3 turns (15, 16, 15), 41 calls, 2 tool errors. No `CELL_NOT_FOUND`.
+
+**P6-007 is done:** 3/3, fewer turns than P5-006 (13.7 against 15.3) and no `CELL_NOT_FOUND`. The dry runs now show the table's size. Run 2 reused request id `eval-table-1` on four dry-run `writer_table_write` calls (row 2 column 2, and row 3 columns 1, 2, and 3, text `FINAL`) and each returned `IDEMPOTENCY_CONFLICT`. The real write still passed, with one backup. Run 1's error was `validate_document` with `INVALID_ARGUMENT` (`request_id` `verify-eval-table-1` and no `contains`). No `wps.exe` was left.
+
 ## Limits
 
 - Twenty-three tasks are still a small set, not a benchmark. Ten run offline (registration, backup, idempotent retry, restore, dry run, a held file, HTML to xlsx and docx, reading sheets); thirteen marked (WPS) need WPS on Windows and are skipped elsewhere. Together they use 24 of the 85 tools.
 - The WPS tasks were run on one Windows machine with one WPS version: the first four in P4-007, the five Phase 5 tasks in P5-006, all 3/3. The P4-007 tasks pass on these commits: the three write tasks on `4999b77`, `wps-held-spreadsheet-write` on `6484151`. The first runs of the held task failed because of two server bugs, fixed in PRs #55 and #56. Those fixes change only what a failed call returns, so the three passing write tasks were not rerun.
-- The open-document tools attach with `GetActiveObject`, and since P6-003 also through the Running Object Table. On this machine (WPS 12.8.2.18913) a Writer started by `wps.exe "%1"` does not register `kwps.Application`; P6-004 still listed that document with `attached_via` `running_object_table`. The same was true for Spreadsheets and Presentation when those processes were started with their registered open command. A Writer started with `/Automation` lists the document with `attached_via` `active_object`. P6-008's first writes into an open document returned `DOCUMENT_HELD_OPEN` because of the backup's exclusive-share probe; that is fixed (see the P6-008 review). On the `174f04e` rerun, selection replace passed 3/3 and selection insert passed 2/3 before the Claude API returned 402 Insufficient Balance. Since P6-005 the runner ends the WPS processes it started after each run; one Writer from the P6-008 command was still open afterward and was ended before the table comparison.
+- The open-document tools attach with `GetActiveObject`, and since P6-003 also through the Running Object Table. On this machine (WPS 12.8.2.18913) a Writer started by `wps.exe "%1"` does not register `kwps.Application`; P6-004 still listed that document with `attached_via` `running_object_table`. The same was true for Spreadsheets and Presentation when those processes were started with their registered open command. A Writer started with `/Automation` lists the document with `attached_via` `active_object`. P6-008's first writes into an open document returned `DOCUMENT_HELD_OPEN` because of the backup's exclusive-share probe; that is fixed (see the P6-008 review). On the `174f04e` rerun, selection replace passed 3/3 and selection insert passed 2/3 before the Claude API returned 402 Insufficient Balance. On the `98d8dcd` rerun, export, selection replace, selection insert, and save passed, and the table comparison passed 3/3; presentation selection replace was 0/3 (`VALIDATION_FAILED` with `MUTATION_ROLLBACK_BLOCKED`, and `SELECTION_SPANS_STRUCTURE`). Since P6-005 the runner ends the WPS processes it started after each run; one Writer from the P6-008 command was still open afterward and was ended before the table comparison.
 - There is no held-file recovery task. The runner cannot make WPS open a document and block a rollback, so recovery with `restore-backup --close-in-wps` is checked by hand in P4-011 instead.
 - The judge checks state and tool calls, so a correct-sounding reply with the wrong state fails. A failure to report the result accurately is not detected here.
 - Results depend on the model the CLI uses. Record it with `--model` when comparing runs.
