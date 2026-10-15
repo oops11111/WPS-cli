@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from ..wps_script_snippets import ATTACH_RUNNING_INSTANCE
 from .common import _SCRIPT_HEAD
+from .revert import SPREADSHEET_CAPTURE_AFTER_FORMULAS, SPREADSHEET_CAPTURE_BEFORE_CELLS
 
 MAX_SPREADSHEET_SELECTION_SAMPLE_CELLS = 100
 
@@ -459,6 +460,7 @@ _SPREADSHEET_SELECTION_REPLACE_BODY = """
     [pscustomobject]@{ ok = $true; status = 'selection_changed'; current_text = $before } | ConvertTo-Json -Depth 5
     exit 0
   }
+__CAPTURE_BEFORE__
   $rowCount = 0
   $columnCount = 0
   try {
@@ -509,6 +511,7 @@ _SPREADSHEET_SELECTION_REPLACE_BODY = """
     }
   }
   $doc.Save()
+__CAPTURE_AFTER__
   $allMatch = $true
   $readBack = ''
   $readParts = New-Object System.Collections.Generic.List[string]
@@ -553,8 +556,13 @@ _SPREADSHEET_SELECTION_REPLACE_BODY = """
     cells_matched = [bool]$allMatch
     read_back_text = [string]$readBack
     read_back_values = $readParts
+    sheet_name = $sheetName
+    before_cells = $beforeCells
+    after_formulas = $afterFormulas
   } | ConvertTo-Json -Depth 5
-"""
+""".replace("__CAPTURE_BEFORE__", SPREADSHEET_CAPTURE_BEFORE_CELLS).replace(
+    "__CAPTURE_AFTER__", SPREADSHEET_CAPTURE_AFTER_FORMULAS
+)
 
 _SPREADSHEET_SELECTION_DELETE_BODY = """
   if (-not [bool]$doc.Saved) {
@@ -624,6 +632,7 @@ _SPREADSHEET_SELECTION_DELETE_BODY = """
     [pscustomobject]@{ ok = $true; status = 'selection_changed'; current_text = $before } | ConvertTo-Json -Depth 5
     exit 0
   }
+__CAPTURE_BEFORE__
   foreach ($area in $sel.Areas) {
     try { [void]$area.ClearContents() }
     catch {
@@ -631,6 +640,7 @@ _SPREADSHEET_SELECTION_DELETE_BODY = """
     }
   }
   $doc.Save()
+__CAPTURE_AFTER__
   $allEmpty = $true
   $readBack = ''
   $readParts = New-Object System.Collections.Generic.List[string]
@@ -657,8 +667,13 @@ _SPREADSHEET_SELECTION_DELETE_BODY = """
     deleted_text = [string]$params.expected_text
     read_back_text = [string]$readBack
     read_back_values = $readParts
+    sheet_name = $sheetName
+    before_cells = $beforeCells
+    after_formulas = $afterFormulas
   } | ConvertTo-Json -Depth 5
-"""
+""".replace("__CAPTURE_BEFORE__", SPREADSHEET_CAPTURE_BEFORE_CELLS).replace(
+    "__CAPTURE_AFTER__", SPREADSHEET_CAPTURE_AFTER_FORMULAS
+)
 
 _SPREADSHEET_SHAPE_TEXT_REPLACE_BODY = """
   if (-not [bool]$doc.Saved) {

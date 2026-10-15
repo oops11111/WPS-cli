@@ -4,6 +4,9 @@ WPS saves a document in place, which is not atomic, and a command can fail after
 mismatch or a failed source verification. Every mutation takes a backup before it writes. When a command
 fails after changing the file, this module restores the pre-write backup atomically and checks the restored
 bytes against the backup's hash, so the command either fully applies or is undone.
+
+Commands that write to a document WPS has open undo a failed write inside WPS instead (open_documents._undo_in_wps),
+because WPS holds the file; this module leaves their results as they are.
 """
 
 from __future__ import annotations
@@ -27,6 +30,15 @@ def _pre_write_backup(result: Any) -> str | None:
         if isinstance(candidate, dict) and candidate.get("backup_path"):
             return str(candidate["backup_path"])
     return None
+
+
+def _undone_in_wps(result: Any) -> bool:
+    """The command already handled its failed write inside WPS (P7-001): undone there, or reported why not.
+
+    Copying the backup over the file would only be blocked by WPS, which holds it, so it is not tried.
+    """
+    rollback = result.get("rollback") if isinstance(result, dict) else None
+    return isinstance(rollback, dict) and rollback.get("method") == "in_wps"
 
 
 def _backup_for_request(request_id: str, workspace: str | Path) -> str | None:
@@ -183,6 +195,8 @@ def atomic_mutation(operation: Callable[..., Any]) -> Callable[..., Any]:
             return _undo_failed(str(document_id), backup_file, workspace, {"document_id": document_id}, [error], False)
         ok, result, errors, replayed = outcome
         if ok or document_id is None:
+            return outcome
+        if _undone_in_wps(result):
             return outcome
         backup_file = _pre_write_backup(result)
         if backup_file is None:

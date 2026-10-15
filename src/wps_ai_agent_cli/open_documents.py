@@ -6,14 +6,23 @@ import inspect
 import json
 import re
 import shutil
+import subprocess
 from pathlib import Path
 from typing import Any
 
 from .atomic_mutation import atomic_mutation
 from .backups import create_backup, guarded_com_mutation, verify_post_com_source
 from .capabilities import WPS_COMPONENTS
-from .errors import COM_OPERATION_FAILED, INPUT_FILE_NOT_FOUND, identity_error
+from .document_text import docx_document_paragraphs
+from .errors import (
+    COM_OPERATION_FAILED,
+    INPUT_FILE_NOT_FOUND,
+    ROLLBACK_IN_WPS_FAILED,
+    ROLLED_BACK,
+    identity_error,
+)
 from .mutation_lock import coordinated_mutation, coordinated_request
+from .ooxml import load_workbook_guarded
 from .open_document_scripts import (  # noqa: F401  (re-exported; tests read these names from open_documents)
     _ATTACHED_PRESENTATION_WRAPPER,
     _ATTACHED_SPREADSHEET_WRAPPER,
@@ -33,12 +42,14 @@ from .open_document_scripts import (  # noqa: F401  (re-exported; tests read the
     _PRESENTATION_SELECTION_INSERT_BODY,
     _PRESENTATION_SELECTION_READ_BODY,
     _PRESENTATION_SELECTION_REPLACE_BODY,
+    _PRESENTATION_SELECTION_REVERT_BODY,
     _SAVE_AS_UNTITLED_SCRIPT,
     _SCRIPT_HEAD,
     _SELECTION_DELETE_BODY,
     _SELECTION_INSERT_BODY,
     _SELECTION_READ_BODY,
     _SELECTION_REPLACE_BODY,
+    _SELECTION_REVERT_BODY,
     _SPREADSHEET_AXIS_TITLE_DELETE_BODY,
     _SPREADSHEET_AXIS_TITLE_REPLACE_BODY,
     _SPREADSHEET_CHART_TITLE_DELETE_BODY,
@@ -50,6 +61,7 @@ from .open_document_scripts import (  # noqa: F401  (re-exported; tests read the
     _SPREADSHEET_SELECTION_DELETE_BODY,
     _SPREADSHEET_SELECTION_READ_BODY,
     _SPREADSHEET_SELECTION_REPLACE_BODY,
+    _SPREADSHEET_SELECTION_REVERT_BODY,
     _SPREADSHEET_SERIES_VALUES_DELETE_BODY,
     _SPREADSHEET_SERIES_VALUES_REPLACE_BODY,
     _SPREADSHEET_SHAPE_TEXT_DELETE_BODY,
@@ -58,6 +70,7 @@ from .open_document_scripts import (  # noqa: F401  (re-exported; tests read the
 )
 from .operations import record_operation, replay_operation
 from .powershell_runner import run_powershell_script
+from .presentation_text import pptx_slide_texts
 from .sessions import file_identity, get_document, register_document, stable_document_id
 
 MAX_SELECTION_CHARS = 4096
@@ -154,6 +167,7 @@ def _run_writer_attached_com(action: str, params: dict[str, Any]) -> dict[str, A
         "selection-replace": _SELECTION_REPLACE_BODY,
         "selection-insert": _SELECTION_INSERT_BODY,
         "selection-delete": _SELECTION_DELETE_BODY,
+        "selection-revert": _SELECTION_REVERT_BODY,
         "save": _DOCUMENT_SAVE_BODY,
         "close-unchanged": _CLOSE_UNCHANGED_BODY,
         "export-html": _EXPORT_HTML_BODY,
@@ -179,6 +193,7 @@ def _run_presentation_attached_com(action: str, params: dict[str, Any]) -> dict[
         "selection-replace": _PRESENTATION_SELECTION_REPLACE_BODY,
         "selection-insert": _PRESENTATION_SELECTION_INSERT_BODY,
         "selection-delete": _PRESENTATION_SELECTION_DELETE_BODY,
+        "selection-revert": _PRESENTATION_SELECTION_REVERT_BODY,
         "save": _DOCUMENT_SAVE_BODY,
         "close-unchanged": _CLOSE_UNCHANGED_BODY,
     }[action]
@@ -195,6 +210,7 @@ def _run_spreadsheet_attached_com(action: str, params: dict[str, Any]) -> dict[s
         "selection-read": _SPREADSHEET_SELECTION_READ_BODY,
         "selection-replace": _SPREADSHEET_SELECTION_REPLACE_BODY,
         "selection-delete": _SPREADSHEET_SELECTION_DELETE_BODY,
+        "selection-revert": _SPREADSHEET_SELECTION_REVERT_BODY,
         "selection-shape-replace": _SPREADSHEET_SHAPE_TEXT_REPLACE_BODY,
         "selection-shape-delete": _SPREADSHEET_SHAPE_TEXT_DELETE_BODY,
         "selection-chart-title-replace": _SPREADSHEET_CHART_TITLE_REPLACE_BODY,
@@ -816,6 +832,213 @@ def _utf16_length(text: str) -> int:
     return len(text.encode("utf-16-le")) // 2
 
 
+def _utf16_splice(text: str, start: int, length: int, insert: str) -> str:
+    """text with `length` UTF-16 code units at `start` (0-based) replaced by `insert`, the way WPS counts."""
+    data = text.encode("utf-16-le", errors="surrogatepass")
+    spliced = data[: start * 2] + insert.encode("utf-16-le", errors="surrogatepass") + data[(start + length) * 2 :]
+    return spliced.decode("utf-16-le", errors="surrogatepass")
+
+
+def _writer_revert(selection: dict[str, Any], written: str, original: str) -> dict[str, Any]:
+    return {"start": int(selection["start"]), "written_text": written, "original_text": original}
+
+
+def _presentation_revert(payload: dict[str, Any], written: str, original: str) -> dict[str, Any] | None:
+    """Where the write changed the shape, from what the write script recorded; None when it recorded too little."""
+    before = payload.get("shape_text_before")
+    start = payload.get("text_start")
+    if not isinstance(before, str) or not isinstance(start, int) or start < 1:
+        return None
+    if payload.get("slide_index") is None or not payload.get("shape_name"):
+        return None
+    zero = start - 1
+    original_length = _utf16_length(original)
+    if _utf16_splice(before, zero, original_length, original) != before:
+        return None
+    return {
+        "slide_index": int(payload["slide_index"]),
+        "shape_name": str(payload["shape_name"]),
+        "start": start,
+        "written_text": written,
+        "original_text": original,
+        "frame_expected": _utf16_splice(before, zero, original_length, written),
+        "frame_restored": before,
+    }
+
+
+def _spreadsheet_revert(payload: dict[str, Any]) -> dict[str, Any] | None:
+    """The cells the write changed and what they held, from what the write script recorded; None if it did not."""
+    before = _as_list(payload.get("before_cells"))
+    after = [str(item) if item is not None else "" for item in _as_list(payload.get("after_formulas"))]
+    if not payload.get("sheet_name") or not payload.get("address") or not before or len(before) != len(after):
+        return None
+    if not all(isinstance(item, dict) and "formula" in item for item in before):
+        return None
+    return {
+        "sheet_name": str(payload["sheet_name"]),
+        "address": str(payload["address"]),
+        "before_cells": [
+            {"formula": str(item.get("formula") or ""), "text_constant": bool(item.get("text_constant"))}
+            for item in before
+        ],
+        "after_formulas": after,
+    }
+
+
+def _document_content(path: Path) -> Any:
+    """What a revert must give back, read from the file: Writer and Presentation text, or every non-empty cell."""
+    suffix = path.suffix.lower()
+    if suffix == ".docx":
+        return docx_document_paragraphs(path)
+    if suffix == ".pptx":
+        return [item.get("text") for item in pptx_slide_texts(path)]
+    if suffix == ".xlsx":
+        workbook = load_workbook_guarded(path)
+        try:
+            return {
+                sheet.title: [
+                    (cell.coordinate, cell.value) for row in sheet.iter_rows() for cell in row if cell.value is not None
+                ]
+                for sheet in workbook.worksheets
+            }
+        finally:
+            workbook.close()
+    return None
+
+
+def _content_matches_backup(path: Path, backup_path: str | None) -> tuple[bool | None, str | None]:
+    if not backup_path:
+        return None, "the pre-write backup is not known"
+    try:
+        current = _document_content(path)
+        backup = _document_content(Path(backup_path))
+    except Exception as exc:  # a file the reader cannot parse leaves the answer unknown, not wrong
+        return None, f"the files could not be read for comparison ({type(exc).__name__}: {exc})"
+    if current is None or backup is None:
+        return None, f"no content reader for {path.suffix or 'this file type'}"
+    return current == backup, None
+
+
+def _sha256(path: Path) -> str | None:
+    try:
+        return file_identity(path)["source_sha256"]
+    except OSError:
+        return None
+
+
+_REVERT_FAILURE_STATES = {
+    "unsupported": (
+        "Undo inside WPS is not available for this kind of selection, so nothing was undone: the rejected write is "
+        "still in the document and saved to the file."
+    ),
+    "revert_mismatch": (
+        "The write was not undone, because the text or cells it changed no longer hold what it wrote; the document "
+        "may have been edited in the meantime. The undo changed nothing: the rejected write is still in the document "
+        "and saved to the file."
+    ),
+    "revert_target_missing": (
+        "The write was not undone, because the shape or sheet it changed could not be found again. The undo changed "
+        "nothing: the rejected write is still in the document and saved to the file."
+    ),
+    "revert_read_back_failed": (
+        "The undo was made in WPS but did not read back as the original, so it was not saved. The document in WPS now "
+        "has unsaved changes, and the file still holds the rejected write."
+    ),
+    "saved_content_differs": (
+        "The undo was made and saved in WPS, but the saved file's content does not match the pre-write backup."
+    ),
+}
+
+
+def _revert_failure_message(document_id: str, backup_path: str | None, rollback: dict[str, Any]) -> str:
+    status = str(rollback.get("status"))
+    state = _REVERT_FAILURE_STATES.get(
+        status,
+        f"The undo could not run in WPS ({rollback.get('detail') or status}), so the state of the document is unknown: "
+        "the rejected write may still be in the document and saved to the file.",
+    )
+    return (
+        f"{state} Nothing was closed. Check the document in WPS. To go back to the version before the write, close it "
+        f"in WPS without saving, then run: restore-backup --document-id {document_id} "
+        f'--backup-path "{backup_path}" --request-id <new-id> (add --close-in-wps to have it close the document; '
+        "it refuses if WPS has unsaved changes)."
+    )
+
+
+def _undo_in_wps(
+    component: str,
+    document_id: str,
+    path: Path,
+    backup: dict[str, Any],
+    result: dict[str, Any],
+    errors: list[dict[str, str]],
+    revert_params: dict[str, Any] | None,
+) -> tuple[bool, dict[str, Any], list[dict[str, str]], bool]:
+    """Undo a write that WPS saved but a later check rejected, in the same WPS instance (P7-001).
+
+    WPS holds the file, so the pre-write backup cannot be copied over it. The inverse edit puts the original back,
+    reads it back and saves; then the saved file's content is compared with the backup. atomic_mutation leaves a
+    result that carries this rollback alone.
+    """
+    backup_path = backup.get("backup_path")
+    rollback: dict[str, Any] = {
+        "method": "in_wps",
+        "rolled_back_in_wps": False,
+        "backup_path": backup_path,
+        "file_sha256_before_undo": _sha256(path),
+    }
+    if revert_params is None:
+        rollback["status"] = "unsupported"
+    else:
+        try:
+            outcome = _run_component_attached_com(component, "selection-revert", {"path": str(path), **revert_params})
+        except (OSError, subprocess.TimeoutExpired) as exc:
+            outcome = {"ok": False, "errors": [{"code": COM_OPERATION_FAILED, "message": str(exc)}], "data": {}}
+        data = outcome.get("data") or {}
+        if not outcome.get("ok"):
+            rollback["status"] = "script_failed"
+            rollback["detail"] = "; ".join(error.get("message", "") for error in outcome.get("errors") or []) or str(
+                data.get("error_message") or "the undo script failed"
+            )
+        else:
+            rollback["status"] = str(data.get("status"))
+            for key in ("read_back_text", "current_text", "read_back_formulas", "current_formulas", "saved"):
+                if key in data:
+                    rollback[key] = data[key]
+    rollback["file_sha256_after_undo"] = _sha256(path)
+    if rollback["status"] in {"reverted", "unchanged"}:
+        matches, reason = _content_matches_backup(path, backup_path)
+        rollback["content_matches_backup"] = matches
+        if reason:
+            rollback["content_check"] = reason
+        if matches is False:
+            rollback["status"] = "saved_content_differs"
+        else:
+            rollback["rolled_back_in_wps"] = True
+    result = {**result, "rollback": rollback}
+    if rollback["rolled_back_in_wps"]:
+        checked = (
+            "the saved file's content matches the pre-write backup"
+            if rollback.get("content_matches_backup")
+            else "the saved file's content could not be compared with the pre-write backup"
+        )
+        done = (
+            "put the original back, read it back and saved it"
+            if rollback["status"] == "reverted"
+            else ("found the original already in place")
+        )
+        undone = {
+            "code": ROLLED_BACK,
+            "message": (
+                f"The write was undone in WPS: the command {done}, and {checked}. The document stays open in WPS "
+                "and nothing else needs to be done."
+            ),
+        }
+        return False, result, [*errors, undone], False
+    failed = {"code": ROLLBACK_IN_WPS_FAILED, "message": _revert_failure_message(document_id, backup_path, rollback)}
+    return False, result, [*errors, failed], False
+
+
 def _check_replaceable_selection(selection: dict[str, Any], expected: str | None) -> dict[str, str] | None:
     text = selection["selection_text"]
     if selection["collapsed"]:
@@ -1168,12 +1391,16 @@ def replace_writer_selection(
             "The user's selection in WPS is not restored."
         ),
     }
+    revert = _writer_revert(selection, text, selection["selection_text"])
     post_error = verify_post_com_source(path, write_result)
     if post_error is not None:
-        return False, result, [post_error], False
+        return _undo_in_wps("writer", document_id, path, backup_result, result, [post_error], revert)
     if not validation_passed:
-        return (
-            False,
+        return _undo_in_wps(
+            "writer",
+            document_id,
+            path,
+            backup_result,
             result,
             [
                 {
@@ -1181,7 +1408,7 @@ def replace_writer_selection(
                     "message": "Selection replacement read-back did not match the replacement text.",
                 }
             ],
-            False,
+            revert,
         )
 
     record_operation(request_id, "writer-selection-replace", result, workspace)
@@ -1318,15 +1545,19 @@ def insert_writer_selection(
         "selection_preserved": False,
         "note": "Text is inserted at the caret by position; the user's selection in WPS is not restored.",
     }
+    revert = _writer_revert(selection, text, "")
     post_error = verify_post_com_source(path, write_result)
     if post_error is not None:
-        return False, result, [post_error], False
+        return _undo_in_wps("writer", document_id, path, backup_result, result, [post_error], revert)
     if not validation_passed:
-        return (
-            False,
+        return _undo_in_wps(
+            "writer",
+            document_id,
+            path,
+            backup_result,
             result,
             [{"code": "VALIDATION_FAILED", "message": "Caret insert read-back did not match the insert text."}],
-            False,
+            revert,
         )
 
     record_operation(request_id, "writer-selection-insert", result, workspace)
@@ -1447,15 +1678,19 @@ def delete_writer_selection(
         "selection_preserved": False,
         "note": "The selected range is cleared by position; the user's selection in WPS is not restored.",
     }
+    revert = _writer_revert(selection, "", selection["selection_text"])
     post_error = verify_post_com_source(path, write_result)
     if post_error is not None:
-        return False, result, [post_error], False
+        return _undo_in_wps("writer", document_id, path, backup_result, result, [post_error], revert)
     if not validation_passed:
-        return (
-            False,
+        return _undo_in_wps(
+            "writer",
+            document_id,
+            path,
+            backup_result,
             result,
             [{"code": "VALIDATION_FAILED", "message": "Selection delete read-back still matches the deleted text."}],
-            False,
+            revert,
         )
 
     record_operation(request_id, "writer-selection-delete", result, workspace)
@@ -1585,12 +1820,16 @@ def replace_presentation_selection(
             "The user's selection in WPS is not restored."
         ),
     }
+    revert = _presentation_revert(payload, text, selection["selection_text"])
     post_error = verify_post_com_source(path, write_result)
     if post_error is not None:
-        return False, result, [post_error], False
+        return _undo_in_wps("presentation", document_id, path, backup_result, result, [post_error], revert)
     if not validation_passed:
-        return (
-            False,
+        return _undo_in_wps(
+            "presentation",
+            document_id,
+            path,
+            backup_result,
             result,
             [
                 {
@@ -1598,7 +1837,7 @@ def replace_presentation_selection(
                     "message": "Selection replacement read-back did not match the replacement text.",
                 }
             ],
-            False,
+            revert,
         )
 
     record_operation(request_id, "presentation-selection-replace", result, workspace)
@@ -1758,15 +1997,19 @@ def insert_presentation_selection(
         "selection_preserved": False,
         "note": "Text is inserted at the caret in the active text frame; the user's selection in WPS is not restored.",
     }
+    revert = _presentation_revert(payload, text, "")
     post_error = verify_post_com_source(path, write_result)
     if post_error is not None:
-        return False, result, [post_error], False
+        return _undo_in_wps("presentation", document_id, path, backup_result, result, [post_error], revert)
     if not validation_passed:
-        return (
-            False,
+        return _undo_in_wps(
+            "presentation",
+            document_id,
+            path,
+            backup_result,
             result,
             [{"code": "VALIDATION_FAILED", "message": "Caret insert read-back did not match the insert text."}],
-            False,
+            revert,
         )
 
     record_operation(request_id, "presentation-selection-insert", result, workspace)
@@ -1890,15 +2133,19 @@ def delete_presentation_selection(
         "selection_preserved": False,
         "note": "The selected TextRange is cleared in place; the user's selection in WPS is not restored.",
     }
+    revert = _presentation_revert(payload, "", selection["selection_text"])
     post_error = verify_post_com_source(path, write_result)
     if post_error is not None:
-        return False, result, [post_error], False
+        return _undo_in_wps("presentation", document_id, path, backup_result, result, [post_error], revert)
     if not validation_passed:
-        return (
-            False,
+        return _undo_in_wps(
+            "presentation",
+            document_id,
+            path,
+            backup_result,
             result,
             [{"code": "VALIDATION_FAILED", "message": "Selection delete read-back still matches the deleted text."}],
-            False,
+            revert,
         )
 
     record_operation(request_id, "presentation-selection-delete", result, workspace)
@@ -2299,24 +2546,28 @@ def replace_spreadsheet_selection(
         "selection_preserved": False,
         "note": note,
     }
+    revert = _spreadsheet_revert(payload)
     post_error = verify_post_com_source(path, write_result)
     if post_error is not None:
-        return False, result, [post_error], False
+        return _undo_in_wps("spreadsheets", document_id, path, backup_result, result, [post_error], revert)
     if not validation_passed:
-        return (
-            False,
+        return _undo_in_wps(
+            "spreadsheets",
+            document_id,
+            path,
+            backup_result,
             result,
             [
                 {
                     "code": "VALIDATION_FAILED",
                     "message": (
                         "Selection replacement read-back did not match the replacement values. "
-                        "WPS saved the write; it is undone from the pre-write backup at "
-                        f"{backup_result.get('backup_path')} when this command returns."
+                        "WPS saved the write; the next entry says whether it was undone in WPS "
+                        f"(pre-write backup: {backup_result.get('backup_path')})."
                     ),
                 }
             ],
-            False,
+            revert,
         )
 
     record_operation(request_id, "spreadsheet-selection-replace", result, workspace)
@@ -2620,15 +2871,19 @@ def delete_spreadsheet_selection(
         "selection_preserved": False,
         "note": clear_note,
     }
+    revert = _spreadsheet_revert(payload)
     post_error = verify_post_com_source(path, write_result)
     if post_error is not None:
-        return False, result, [post_error], False
+        return _undo_in_wps("spreadsheets", document_id, path, backup_result, result, [post_error], revert)
     if not validation_passed:
-        return (
-            False,
+        return _undo_in_wps(
+            "spreadsheets",
+            document_id,
+            path,
+            backup_result,
             result,
             [{"code": "VALIDATION_FAILED", "message": "Selection delete read-back still contains cell text."}],
-            False,
+            revert,
         )
 
     record_operation(request_id, "spreadsheet-selection-delete", result, workspace)
