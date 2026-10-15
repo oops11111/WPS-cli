@@ -3,6 +3,7 @@ from __future__ import annotations
 import importlib.util
 import json
 import os
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
@@ -1828,20 +1829,6 @@ class OpenDocumentSetupTests(unittest.TestCase):
             outcome = run_agent_eval.stop_started_wps("writer", {42})
         self.assertEqual(outcome, "left running: WPS still lists report.docx, 文字文稿1")
 
-    def test_stopped_processes_are_waited_for(self):
-        from wps_ai_agent_cli import open_documents, powershell_runner
-
-        running = [{42}, set()]
-        with (
-            patch.object(open_documents, "list_open_documents", return_value=(True, {"documents": []}, [])),
-            patch.object(powershell_runner, "run_powershell_command"),
-            patch.object(run_agent_eval, "wps_process_ids", side_effect=lambda: running.pop(0) if running else set()),
-            patch.object(run_agent_eval.time, "sleep") as sleep,
-        ):
-            outcome = run_agent_eval.stop_started_wps("writer", {42})
-        self.assertEqual(outcome, "stopped 42")
-        self.assertEqual(sleep.call_count, 1)
-
     def test_a_failed_close_records_its_message(self):
         from wps_ai_agent_cli import open_documents
 
@@ -1853,23 +1840,60 @@ class OpenDocumentSetupTests(unittest.TestCase):
             outcome = run_agent_eval.release_opened_fixture("spreadsheets", self.fixture, set())
         self.assertEqual(outcome, "fixture COM_OPERATION_FAILED (RPC disconnected); processes none started")
 
-    def test_started_wps_processes_are_ended_only_when_wps_lists_no_document(self):
+    def stop_with(self, running, documents=(), replacements=()):
+        """stop_started_wps against a simulated process table. Each stop may start one queued replacement."""
         from wps_ai_agent_cli import open_documents, powershell_runner
 
-        for documents, stopped in (([{"full_name": "C:\\other.docx"}], False), ([], True)):
-            with (
-                self.subTest(documents=documents),
-                patch.object(open_documents, "list_open_documents", return_value=(True, {"documents": documents}, [])),
-                patch.object(powershell_runner, "run_powershell_command") as command,
-                patch.object(run_agent_eval, "wps_process_ids", return_value=set()),
-            ):
-                outcome = run_agent_eval.stop_started_wps("writer", {42, 7})
-            self.assertEqual(command.called, stopped, outcome)
-            if stopped:
-                self.assertIn("Stop-Process -Id 7,42", command.call_args.args[0])
+        table = set(running)
+        queued = list(replacements)
+        stops = []
+
+        def command(script, timeout_seconds=10, **kwargs):
+            if script.startswith("Stop-Process"):
+                ids = {int(token) for token in script.split()[2].split(",")}
+                stops.append(sorted(ids))
+                table.difference_update(ids)
+                if queued:
+                    table.add(queued.pop(0))
+            return subprocess.CompletedProcess([], 0, stdout="", stderr="")
+
+        with (
+            patch.object(
+                open_documents, "list_open_documents", return_value=(True, {"documents": list(documents)}, [])
+            ),
+            patch.object(powershell_runner, "run_powershell_command", side_effect=command),
+            patch.object(run_agent_eval, "component_process_ids", side_effect=lambda component: set(table)),
+            patch.object(run_agent_eval.time, "sleep"),
+        ):
+            outcome = run_agent_eval.stop_started_wps("spreadsheets", {49320})
+        return outcome, stops, table
+
+    def test_started_wps_processes_are_ended_only_when_wps_lists_no_document(self):
+        outcome, stops, table = self.stop_with({49320}, documents=[{"name": "other.xlsx"}])
+        self.assertEqual(outcome, "left running: WPS still lists other.xlsx")
+        self.assertEqual(stops, [])
+        outcome, stops, table = self.stop_with({49320})
+        self.assertEqual(outcome, "stopped 49320")
+        self.assertEqual(stops, [[49320]])
+        self.assertEqual(table, set())
+        from wps_ai_agent_cli import powershell_runner
+
         with patch.object(powershell_runner, "run_powershell_command") as command:
             self.assertEqual(run_agent_eval.stop_started_wps("writer", set()), "none started")
         command.assert_not_called()
+
+    def test_a_recovery_instance_wps_starts_in_place_of_a_stopped_one_is_stopped_too(self):
+        # P7-007 on 1b6ad48: stopping et.exe 49320 made WPS start "et.exe recover1 -cpid=49320", which reopened
+        # status.xlsx without registering for automation, so the next runs could not reach their workbook.
+        outcome, stops, table = self.stop_with({49320}, replacements=[27324])
+        self.assertEqual(stops, [[49320], [27324]])
+        self.assertEqual(outcome, "stopped 49320,27324")
+        self.assertEqual(table, set())
+
+    def test_a_process_that_keeps_coming_back_is_reported_after_three_rounds(self):
+        outcome, stops, table = self.stop_with({1}, replacements=[2, 3, 4])
+        self.assertEqual(stops, [[1], [2], [3]])
+        self.assertEqual(outcome, "stopped 1,2,3; still running after 3 rounds: 4")
 
     def test_the_registered_open_command_becomes_the_launch_command_line(self):
         path = Path("C:/Users/a b/report.docx")
