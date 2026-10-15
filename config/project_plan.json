@@ -1,7 +1,7 @@
 {
   "product": "WPS AI Agent CLI",
   "source_prd": "WPS_AI_Agent_CLI_PRD_v1.1.docx",
-  "current_phase": "phase6",
+  "current_phase": "phase7",
   "phases": [
     {
       "id": "phase0",
@@ -76,6 +76,18 @@
         "G1: on Windows, for each of Writer, Spreadsheets and Presentation, a document opened by double-click with the stock open command is either listed by open-documents and exported by export-open-document-text, or the commands return a dedicated error code whose message gives the cause and what the user can do, never 'no running WPS'; both outcomes have offline fake-COM tests and the Windows results are recorded (2026-10-15: all three components listed through the Running Object Table and exported, P6-004)",
         "G2: the agent evaluation adds at least four open-document write tasks (Writer selection replace, Writer selection insert, Presentation selection replace, save_open_document), each naming its expected tools; the WPS open-document tasks, including wps-open-document-export-text, pass at least 2 of 3 runs on Windows in one --repeat 3 invocation without changing the system open command (2026-10-15: all five 3/3 on main@4ba838b, after fixing the open-document backup probe and the presentation read-back)",
         "G3: v0.3.0 is released per docs/RELEASING.md with the G1 and G2 changes; in a new Windows virtual environment with only that wheel installed, inspect-env and the safe regression profile pass (2026-10-15: v0.3.0 released from main@b19d201; the Release wheel passed inspect-env and safe 7/7 on Windows, P6-010)"
+      ]
+    },
+    {
+      "id": "phase7",
+      "name": "Open-document writes: undo in WPS and full coverage",
+      "goal": "Undo a failed open-document write inside WPS instead of a blocked file rollback, evaluate every open-document write command on Windows, run the Windows checks with one command, and release 0.4.0.",
+      "status": "active",
+      "exit_criteria": [
+        "H1: when one of the 8 open-document selection writes has changed the document in WPS and a later check fails, the command undoes the change in the same WPS instance, reads it back and reports rolled_back_in_wps, never MUTATION_ROLLBACK_BLOCKED because WPS holds the file; if the undo itself fails, a dedicated error code says what state the document is in and what to do, and the user's document is not closed or saved; fake-COM tests per component and an in-process injected read-back failure verified on Windows for Writer and Presentation",
+        "H2: at least five new agent-eval tasks cover at least five of writer_selection_delete, presentation_selection_insert, presentation_selection_delete, spreadsheet_selection_replace, spreadsheet_selection_delete and save_as_open_document, each naming its expected tools; all WPS open-document tasks pass at least 2 of 3 runs on Windows in one --repeat 3 invocation without changing the system open command",
+        "H3: one script runs the Windows checks: prerequisites (claude answers, no leftover WPS processes, open command unchanged, commit), then the requested evaluation or wheel check, and writes the results file in the repository's format; the H1, H2 and H4 Windows results come from it",
+        "H4: v0.4.0 is released per docs/RELEASING.md with the H1 and H2 changes, the tag pushed only after __version__ and CHANGELOG.md are on main; in a new Windows virtual environment with only that wheel installed, inspect-env and the safe regression profile pass, checked with the H3 script"
       ]
     }
   ]

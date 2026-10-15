@@ -2980,5 +2980,68 @@
     "title": "Windows check of the 0.3.0 wheel",
     "status": "done",
     "acceptance": "G3: in a new Windows virtual environment with only the released wheel, inspect-env and the safe regression profile pass; result recorded."
+  },
+  {
+    "id": "P7-001",
+    "phase": "phase7",
+    "title": "Undo a failed open-document write inside WPS",
+    "status": "todo",
+    "acceptance": "H1: the 8 open-document selection writes undo a change WPS made when a later check fails, by the inverse edit, save and read-back; the result reports rolled_back_in_wps; a failed undo returns a new error code; fake-COM tests per component."
+  },
+  {
+    "id": "P7-002",
+    "phase": "phase7",
+    "title": "In-process injection of a read-back failure",
+    "status": "todo",
+    "acceptance": "H1: a script patches the read-back in-process (no production switch) to trigger the undo for Writer and Presentation, recording hashes before and after."
+  },
+  {
+    "id": "P7-003",
+    "phase": "phase7",
+    "title": "Runner: spreadsheet selection and untitled documents",
+    "status": "todo",
+    "acceptance": "H2: select_text selects a cell range in Spreadsheets and reads the address back; an untitled_document setup step creates an untitled document with text in WPS for the save-as task."
+  },
+  {
+    "id": "P7-004",
+    "phase": "phase7",
+    "title": "Agent eval: remaining open-document write tasks",
+    "status": "todo",
+    "acceptance": "H2: at least five tasks covering at least five of the six uncovered open-document write commands, each with expected_tools and offline judge tests."
+  },
+  {
+    "id": "P7-005",
+    "phase": "phase7",
+    "title": "One-command Windows check",
+    "status": "todo",
+    "acceptance": "H3: scripts/windows_check checks prerequisites, runs the requested evaluation or wheel check and writes the results file; offline tests cover the prerequisite checks and the results format."
+  },
+  {
+    "id": "P7-006",
+    "phase": "phase7",
+    "title": "validate_document parameter guidance",
+    "status": "todo",
+    "acceptance": "Gap from P6-008: find out why agents call validate_document with invalid arguments and improve its parameter descriptions and INVALID_ARGUMENT messages."
+  },
+  {
+    "id": "P7-007",
+    "phase": "phase7",
+    "title": "Windows runs of H1 and H2",
+    "status": "todo",
+    "acceptance": "H1, H2: with the P7-005 script, run the P7-002 injection scenarios and all WPS open-document tasks three times each; results recorded."
+  },
+  {
+    "id": "P7-008",
+    "phase": "phase7",
+    "title": "Release 0.4.0",
+    "status": "todo",
+    "acceptance": "H4: version 0.4.0 per docs/RELEASING.md and a CHANGELOG section, merged before the maintainer pushes the v0.4.0 tag."
+  },
+  {
+    "id": "P7-009",
+    "phase": "phase7",
+    "title": "Windows check of the 0.4.0 wheel",
+    "status": "todo",
+    "acceptance": "H4: the Release wheel checked on Windows with the P7-005 script; result recorded."
   }
 ]
