@@ -50,7 +50,7 @@ Phase 6 让已打开文档的命令能看到用户打开的文档，并证明 Ag
 | P7-001 | H1 | 8 个已打开文档写入命令在 WPS 改动后失败时，改为在 WPS 里做反向操作撤回、保存、读回核对；结果写明 `rolled_back_in_wps`；撤回失败时返回新错误码。每个组件补假 COM 测试（已完成：`open_documents._undo_in_wps` 和 `open_document_scripts/revert.py`；撤回失败的错误码是 `MUTATION_ROLLBACK_IN_WPS_FAILED`。WPS 重新保存的文件和备份的字节不会相同，所以核对的是文件内容：Writer 和演示比文字，表格比每个非空单元格；表格里的图表和图形选区没有记录原值，不撤回，返回这个错误码并说明怎么恢复） | 本地 |
 | P7-002 | H1 | 写进程内注入脚本：让读回校验失败，触发撤回，记录前后哈希。Writer 和演示各一个场景（已完成：`scripts/windows_check/undo_injection.py`，由 `run_windows_check.py undo` 运行并写出结果） | 本地 |
 | P7-003 | H2 | runner 的 `select_text` 支持表格（单元格区域）；新增 `untitled_document` 准备步骤（在 WPS 里新建一个未命名文档并写入文字），供另存为任务使用（已完成：表格按 `selection.range` 和 `selection.sheet` 选中并读回地址；未命名文档的名字由 WPS 决定，任务的提示里写 `{untitled_name}`，runner 在开始前填入；新增表格测试文档 `status.xlsx`） | 本地 |
-| P7-004 | H2 | 编写至少 5 个新任务，每个补离线判定测试 | 本地 |
+| P7-004 | H2 | 编写至少 5 个新任务，每个补离线判定测试（已完成：6 个任务，6 个命令都覆盖：`wps-open-writer-selection-delete`、`wps-open-presentation-selection-insert`、`wps-open-presentation-selection-delete`、`wps-open-spreadsheet-selection-replace`、`wps-open-spreadsheet-selection-delete`、`wps-open-save-as-untitled`；runner 的 `select_text` 也能在演示里放插入点） | 本地 |
 | P7-005 | H3 | `scripts/windows_check/`：前提检查、调用评测或 wheel 检查、生成结果文件；离线测试覆盖前提检查和结果格式（已完成：`scripts/windows_check/run_windows_check.py`，子命令 `prereq`、`eval`、`wheel`，用法见同目录 README） | 本地 |
 | P7-006 | 缺口 | 查清 Agent 为什么常用错 `validate_document`，改进它的参数说明和 `INVALID_ARGUMENT` 的错误信息 | 本地 |
 | P7-007 | H1、H2 | 在 Windows 上用 P7-005 的脚本：跑 P7-002 的注入场景，再把所有已打开文档任务各跑 3 次 | Windows |

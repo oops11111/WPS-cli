@@ -52,8 +52,26 @@ WPS_WRITE_TASKS = (
     "wps-open-writer-selection-insert",
     "wps-open-presentation-selection-replace",
     "wps-open-save-document",
+    "wps-open-writer-selection-delete",
+    "wps-open-presentation-selection-insert",
+    "wps-open-presentation-selection-delete",
+    "wps-open-spreadsheet-selection-replace",
+    "wps-open-spreadsheet-selection-delete",
+    "wps-open-save-as-untitled",
 )
-OPEN_DOCUMENT_WRITE_TASKS = WPS_WRITE_TASKS[-4:]
+# Every tool that writes to a document open in WPS; Phase 7 (H2) asks for an evaluation task for each.
+OPEN_DOCUMENT_WRITE_TOOLS = {
+    "writer_selection_replace",
+    "writer_selection_insert",
+    "writer_selection_delete",
+    "presentation_selection_replace",
+    "presentation_selection_insert",
+    "presentation_selection_delete",
+    "spreadsheet_selection_replace",
+    "spreadsheet_selection_delete",
+    "save_open_document",
+    "save_as_open_document",
+}
 KNOWN_SETUP_STEPS = {
     "register",
     "backup",
@@ -143,6 +161,17 @@ class AgentEvalTaskFileTests(unittest.TestCase):
             fixture = task.get("fixture", spec["fixture"])
             self.assertIn(Path(fixture).suffix, {".xlsx", ".docx", ".pptx"}, task_id)
             self.assertIn(task.get("component", spec["component"]), {"spreadsheets", "writer", "presentation"}, task_id)
+
+    def test_every_open_document_write_tool_has_a_wps_task_that_must_call_it(self):
+        spec = json.loads(TASKS_PATH.read_text(encoding="utf-8"))
+        covered = {
+            check["tool"]
+            for task in spec["tasks"]
+            if task.get("requires_wps") and "open_in_wps" in task.get("setup", [])
+            for check in task["checks"]
+            if check["kind"] == "tool_called"
+        }
+        self.assertLessEqual(OPEN_DOCUMENT_WRITE_TOOLS, covered)
 
     def test_docx_and_pptx_fixtures_hold_the_text_the_tasks_replace(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -1051,6 +1080,173 @@ class AgentEvalJudgeTests(unittest.TestCase):
             )
         self.assertTrue(saved["passed"], saved)
         self.assertEqual([c["kind"] for c in not_saved["checks"] if not c["passed"]], ["file_text"])
+
+    @staticmethod
+    def set_cells(path, values):
+        from openpyxl import load_workbook
+
+        workbook = load_workbook(path)
+        for cell, value in values.items():
+            workbook["Status"][cell] = value
+        workbook.save(path)
+
+    def run_open_write(self, task_id, root, component, fixture, request_id, command, edit, calls):
+        return self.run_open_task(
+            task_id,
+            root,
+            lambda ws: self.simulate_write(ws, component, fixture, request_id, command, edit),
+            calls,
+        )
+
+    def test_open_writer_selection_delete_needs_draft_gone_and_the_rest_kept(self):
+        task = "wps-open-writer-selection-delete"
+        calls = [_call("writer_selection_delete", request_id="eval-delete-1")]
+        args = ("writer", "report.docx", "eval-delete-1", "writer-selection-delete")
+        with tempfile.TemporaryDirectory() as tmp:
+            passed = self.run_open_write(
+                task, Path(tmp), *args, lambda path: self.replace_in_docx(path, "DRAFT", ""), calls
+            )
+            left = self.run_open_write(task, Path(tmp) / "b", *args, lambda path: None, calls)
+            too_much = self.run_open_write(
+                task, Path(tmp) / "c", *args, lambda path: self.replace_in_docx(path, "Status: DRAFT", ""), calls
+            )
+        self.assertTrue(passed["passed"], passed)
+        self.assertEqual([c["kind"] for c in left["checks"] if not c["passed"]], ["file_text"])
+        self.assertEqual([c["kind"] for c in too_much["checks"] if not c["passed"]], ["file_text"])
+
+    def test_open_presentation_selection_insert_needs_the_text_right_after_draft(self):
+        task = "wps-open-presentation-selection-insert"
+        calls = [_call("presentation_selection_insert", request_id="eval-slide-insert-1", text=" (v2)")]
+        args = ("presentation", "deck.pptx", "eval-slide-insert-1", "presentation-selection-insert")
+        with tempfile.TemporaryDirectory() as tmp:
+            passed = self.run_open_write(
+                task,
+                Path(tmp),
+                *args,
+                lambda path: self.replace_in_pptx(path, "Status: DRAFT", "Status: DRAFT (v2)"),
+                calls,
+            )
+            no_space = self.run_open_write(
+                task,
+                Path(tmp) / "b",
+                *args,
+                lambda path: self.replace_in_pptx(path, "Status: DRAFT", "Status: DRAFT(v2)"),
+                calls,
+            )
+        self.assertTrue(passed["passed"], passed)
+        self.assertEqual([c["kind"] for c in no_space["checks"] if not c["passed"]], ["file_text"])
+
+    def test_open_presentation_selection_delete_must_not_use_the_file_based_replace(self):
+        task = "wps-open-presentation-selection-delete"
+        calls = [_call("presentation_selection_delete", request_id="eval-slide-delete-1")]
+        args = ("presentation", "deck.pptx", "eval-slide-delete-1", "presentation-selection-delete")
+        with tempfile.TemporaryDirectory() as tmp:
+            passed = self.run_open_write(
+                task, Path(tmp), *args, lambda path: self.replace_in_pptx(path, "DRAFT", ""), calls
+            )
+            file_based = self.run_open_write(
+                task,
+                Path(tmp) / "b",
+                *args,
+                lambda path: self.replace_in_pptx(path, "DRAFT", ""),
+                [*calls, _call("presentation_replace", request_id="other")],
+            )
+        self.assertTrue(passed["passed"], passed)
+        self.assertEqual([c["kind"] for c in file_based["checks"] if not c["passed"]], ["tool_not_called"])
+
+    def test_open_spreadsheet_selection_replace_needs_both_cells_and_nothing_else(self):
+        task = "wps-open-spreadsheet-selection-replace"
+        calls = [_call("spreadsheet_selection_replace", request_id="eval-cells-1", text="FINAL")]
+        args = ("spreadsheets", "status.xlsx", "eval-cells-1", "spreadsheet-selection-replace")
+        with tempfile.TemporaryDirectory() as tmp:
+            passed = self.run_open_write(
+                task, Path(tmp), *args, lambda path: self.set_cells(path, {"C2": "FINAL", "C3": "FINAL"}), calls
+            )
+            one_cell = self.run_open_write(
+                task, Path(tmp) / "b", *args, lambda path: self.set_cells(path, {"C2": "FINAL"}), calls
+            )
+            spilled = self.run_open_write(
+                task,
+                Path(tmp) / "c",
+                *args,
+                lambda path: self.set_cells(path, {"B2": "FINAL", "C2": "FINAL", "C3": "FINAL"}),
+                calls,
+            )
+        self.assertTrue(passed["passed"], passed)
+        self.assertEqual(
+            [(c["kind"], c.get("cell")) for c in one_cell["checks"] if not c["passed"]], [("xlsx_cell", "C3")]
+        )
+        self.assertEqual(
+            [(c["kind"], c.get("cell")) for c in spilled["checks"] if not c["passed"]], [("xlsx_cell", "B2")]
+        )
+
+    def test_open_spreadsheet_selection_delete_clears_only_c3(self):
+        task = "wps-open-spreadsheet-selection-delete"
+        calls = [_call("spreadsheet_selection_delete", request_id="eval-clear-1")]
+        args = ("spreadsheets", "status.xlsx", "eval-clear-1", "spreadsheet-selection-delete")
+        with tempfile.TemporaryDirectory() as tmp:
+            passed = self.run_open_write(task, Path(tmp), *args, lambda path: self.set_cells(path, {"C3": None}), calls)
+            both = self.run_open_write(
+                task, Path(tmp) / "b", *args, lambda path: self.set_cells(path, {"C2": None, "C3": None}), calls
+            )
+        self.assertTrue(passed["passed"], passed)
+        self.assertEqual([(c["kind"], c.get("cell")) for c in both["checks"] if not c["passed"]], [("xlsx_cell", "C2")])
+
+    def test_open_save_as_untitled_needs_the_new_file_with_the_untitled_text(self):
+        from docx import Document
+
+        def save_as(workspace):
+            document = Document()
+            document.add_paragraph("Meeting notes: budget approved")
+            document.save(workspace / "notes.docx")
+            record_operation("eval-save-as-1", "save-as-open-document", {"output": "notes.docx"}, workspace)
+
+        calls = [_call("save_as_open_document", request_id="eval-save-as-1", output="notes.docx")]
+        task = "wps-open-save-as-untitled"
+        with (
+            tempfile.TemporaryDirectory() as tmp,
+            patch.object(run_agent_eval, "close_workspace_documents", return_value="closed") as closed,
+        ):
+            passed = self.run_open_task(task, Path(tmp), save_as, calls)
+            nothing = self.run_open_task(task, Path(tmp) / "b", lambda ws: None, calls)
+            saved_fixture = self.run_open_task(
+                task,
+                Path(tmp) / "c",
+                save_as,
+                [*calls, _call("save_open_document", request_id="eval-save-1")],
+            )
+        self.assertTrue(passed["passed"], passed)
+        self.assertEqual(closed.call_count, 3)
+        self.assertEqual([c["kind"] for c in nothing["checks"] if not c["passed"]], ["operation_recorded", "file_text"])
+        self.assertEqual([c["kind"] for c in saved_fixture["checks"] if not c["passed"]], ["tool_not_called"])
+
+    def test_a_presentation_caret_must_be_a_collapsed_text_selection(self):
+        deck = self.workspace_for_caret()
+        options = {"selection": {"text": "Status: DRAFT", "collapse": "end"}}
+        cases = (
+            ({"status": "ok", "selection_type": 3, "start": 14, "end": 14}, None),
+            ({"status": "ok", "selection_type": 3, "start": 1, "end": 14}, "expected a caret"),
+            ({"status": "ok", "selection_type": 2, "start": 14, "end": 14}, "not a caret in text"),
+        )
+        for payload, problem in cases:
+            with (
+                self.subTest(payload=payload),
+                patch.object(run_agent_eval, "open_in_wps", return_value=(lambda: "closed", None)),
+                patch.object(run_agent_eval, "wps_document_action", return_value=payload),
+            ):
+                _sha, _release, reason = run_agent_eval.run_setup(
+                    ["open_in_wps", "select_text"], deck.parent, deck, "presentation", options
+                )
+            if problem is None:
+                self.assertIsNone(reason)
+            else:
+                self.assertIn(problem, reason)
+
+    def workspace_for_caret(self):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        run_agent_eval.write_fixture(Path(tmp.name), "deck.pptx")
+        return Path(tmp.name) / "deck.pptx"
 
     def test_wps_writer_replace_passes_and_keeps_the_other_paragraphs(self):
         with tempfile.TemporaryDirectory() as tmp:

@@ -282,13 +282,20 @@ if ($params.component -eq 'presentation') {
       $at = ([string]$range.Text).IndexOf($wanted, [System.StringComparison]::Ordinal)
       if ($at -lt 0) { continue }
       try { $app.ActiveWindow.View.GotoSlide($s) } catch { }
-      $range.Characters($at + 1, $wanted.Length).Select()
+      # With collapse 'end', a caret right after the text (P7-004 insert task).
+      if ($params.collapse -eq 'end') { $range.Characters($at + 1 + $wanted.Length, 0).Select() }
+      else { $range.Characters($at + 1, $wanted.Length).Select() }
       $selection = $app.ActiveWindow.Selection
       $selectionType = $null
+      $start = $null
+      $length = $null
       try { $selectionType = [int]$selection.Type } catch { }
+      try { $start = [int]$selection.TextRange.Start; $length = [int]$selection.TextRange.Length } catch { }
+      $end = $null
+      if ($null -ne $start -and $null -ne $length) { $end = $start + $length }
       Out-Result ([pscustomobject]@{
         ok = $true; status = 'ok'; selection_text = [string]$selection.TextRange.Text
-        selection_type = $selectionType; saved = [bool]$doc.Saved
+        selection_type = $selectionType; start = $start; end = $end; saved = [bool]$doc.Saved
       })
     }
   }
@@ -513,6 +520,8 @@ def prepare_open_document(
             # A collapsed selection reports the character after the caret as its text, so compare positions.
             if payload.get("start") is None or payload.get("start") != payload.get("end"):
                 return f"select_text: expected a caret, WPS reports {payload.get('start')}..{payload.get('end')}"
+            if component == "presentation" and payload.get("selection_type") != 3:
+                return f"select_text: WPS reports selection type {payload.get('selection_type')}, not a caret in text"
             return None
         if component == "presentation" and payload.get("selection_type") != 3:
             # The selection tools take only a text selection (type 3); anything else is a setup failure.
