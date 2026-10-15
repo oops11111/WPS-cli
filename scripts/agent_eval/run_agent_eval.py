@@ -199,14 +199,25 @@ if ($null -eq $app) { Out-Result ([pscustomobject]@{ ok = $true; status = (Get-W
 if ($params.component -eq 'presentation') {
   $doc = Find-OpenPresentation $app $params.path
   if ($null -eq $doc) { Out-Result ([pscustomobject]@{ ok = $true; status = 'not_open' }) }
+  if ($params.action -eq 'close_discard') {
+    $doc.Saved = -1
+    $doc.Close()
+    Out-Result ([pscustomobject]@{ ok = $true; status = 'closed' })
+  }
   if ($params.action -ne 'select') { Out-Result ([pscustomobject]@{ ok = $true; status = 'unsupported' }) }
-  foreach ($slide in @($doc.Slides)) {
-    foreach ($shape in @($slide.Shapes)) {
+  # TextRange.Find fails with an unexpected HRESULT on WPS 12.8 (P6-008 rerun), so search the text in
+  # PowerShell and select the characters by position (Characters is 1-based).
+  $wanted = [string]$params.text
+  for ($s = 1; $s -le [int]$doc.Slides.Count; $s++) {
+    $slide = $doc.Slides.Item($s)
+    for ($h = 1; $h -le [int]$slide.Shapes.Count; $h++) {
+      $shape = $slide.Shapes.Item($h)
       if (-not [bool]$shape.HasTextFrame) { continue }
-      $hit = $shape.TextFrame.TextRange.Find([string]$params.text)
-      if ($null -eq $hit -or [int]$hit.Length -eq 0) { continue }
-      $slide.Select()
-      $hit.Select()
+      $range = $shape.TextFrame.TextRange
+      $at = ([string]$range.Text).IndexOf($wanted, [System.StringComparison]::Ordinal)
+      if ($at -lt 0) { continue }
+      try { $app.ActiveWindow.View.GotoSlide($s) } catch { }
+      $range.Characters($at + 1, $wanted.Length).Select()
       $selected = $app.ActiveWindow.Selection.TextRange
       Out-Result ([pscustomobject]@{ ok = $true; status = 'ok'; selection_text = [string]$selected.Text; saved = [bool]$doc.Saved })
     }
@@ -215,6 +226,10 @@ if ($params.component -eq 'presentation') {
 }
 $doc = Find-OpenWriterDocument $app $params.path
 if ($null -eq $doc) { Out-Result ([pscustomobject]@{ ok = $true; status = 'not_open' }) }
+if ($params.action -eq 'close_discard') {
+  $doc.Close(0)
+  Out-Result ([pscustomobject]@{ ok = $true; status = 'closed' })
+}
 if ($params.action -eq 'append_unsaved') {
   $range = $doc.Content
   $range.InsertParagraphAfter()
@@ -342,7 +357,7 @@ def open_in_wps(
     """
     if os.name != "nt":
         return None, "opening a document in WPS needs Windows"
-    from wps_ai_agent_cli.open_documents import close_unchanged_document, list_open_documents
+    from wps_ai_agent_cli.open_documents import list_open_documents
 
     before = wps_process_ids()
     target = str(path.resolve()).casefold()
@@ -350,8 +365,7 @@ def open_in_wps(
     started: set[int] = set()
 
     def release() -> None:
-        close_unchanged_document(component, path, do_close=True)
-        stop_started_wps(component, started)
+        release_opened_fixture(component, path, started)
 
     deadline = time.monotonic() + timeout
     last_errors: list[dict[str, Any]] = []
@@ -370,6 +384,21 @@ def open_in_wps(
         f"WPS did not list {path.name} as open within {timeout:.0f} s (launch mode {WPS_LAUNCH})"
         + (f": {detail}" if detail else f"; is WPS the default app for {path.suffix}?"),
     )
+
+
+def release_opened_fixture(component: str, path: Path, started: set[int]) -> None:
+    """Close the fixture open_in_wps opened, then end the WPS processes started for it.
+
+    A run that stopped early can leave the fixture with unsaved changes (P6-008 rerun). It is the runner's own
+    file in a task workspace, so it is closed without saving; left open, it would also keep its WPS process
+    from being ended.
+    """
+    from wps_ai_agent_cli.open_documents import close_unchanged_document
+
+    _status, error = close_unchanged_document(component, path, do_close=True)
+    if error and error.get("code") == "DOCUMENT_HAS_UNSAVED_CHANGES":
+        wps_document_action(component, path, "close_discard")
+    stop_started_wps(component, started)
 
 
 def prepare_open_document(step: str, fixture: Path, component: str, options: dict[str, Any]) -> str | None:
@@ -564,6 +593,15 @@ def run_claude(
     }
 
 
+def agent_error(agent: dict[str, Any]) -> str | None:
+    """The CLI's own error when the agent could not work at all, for example an API error such as 402
+    Insufficient Balance (P6-008 rerun). Such a run still fails, but says nothing about the tools."""
+    excerpt = str(agent.get("result_excerpt") or "")
+    if agent.get("is_error") and excerpt.startswith("API Error"):
+        return excerpt[:200]
+    return None
+
+
 def _calls_to(calls: list[dict[str, Any]], tool: str) -> list[dict[str, Any]]:
     return [call for call in calls if call["name"] == TOOL_PREFIX + tool]
 
@@ -739,13 +777,17 @@ def run_task(
             release()
     calls = agent.get("tool_calls") or []
     checks = judge(task, workspace, fixture, fixture_sha, component, seed_sha=seed_sha, calls=calls)
-    return {
+    result = {
         "id": task["id"],
         "passed": bool(agent.get("ran")) and all(check["passed"] for check in checks),
         "agent": agent,
         "metrics": tool_metrics(calls, task.get("expected_tools")),
         "checks": checks,
     }
+    error = agent_error(agent)
+    if error:
+        result["agent_error"] = error
+    return result
 
 
 def run_task_repeated(
@@ -890,6 +932,8 @@ def main(argv: list[str] | None = None) -> int:
             label = f"  run {index}: " if result["repeat"] > 1 else ""
             if run.get("setup_failed"):
                 print(f"    {label}BAD setup: {run['setup_failed']}")
+            if run.get("agent_error"):
+                print(f"    {label}BAD agent did not run: {run['agent_error']}")
             for check in run["checks"]:
                 print(f"    {label}{'ok ' if check['passed'] else 'BAD'} {check['kind']}: {check['detail']}")
     print(f"{summary['passed']}/{summary['total']} passed, {summary['skipped']} skipped; artifact: {artifact}")
