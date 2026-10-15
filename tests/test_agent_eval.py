@@ -1820,6 +1820,39 @@ class OpenDocumentSetupTests(unittest.TestCase):
                 action.assert_called_once_with("writer", self.fixture, "close_discard")
             stop.assert_called_once_with("writer", {42})
 
+    def test_processes_left_running_name_the_documents_wps_still_lists(self):
+        from wps_ai_agent_cli import open_documents
+
+        listed = [{"name": "report.docx", "full_name": "C:\\a\\report.docx"}, {"name": "文字文稿1", "full_name": ""}]
+        with patch.object(open_documents, "list_open_documents", return_value=(True, {"documents": listed}, [])):
+            outcome = run_agent_eval.stop_started_wps("writer", {42})
+        self.assertEqual(outcome, "left running: WPS still lists report.docx, 文字文稿1")
+
+    def test_stopped_processes_are_waited_for(self):
+        from wps_ai_agent_cli import open_documents, powershell_runner
+
+        running = [{42}, set()]
+        with (
+            patch.object(open_documents, "list_open_documents", return_value=(True, {"documents": []}, [])),
+            patch.object(powershell_runner, "run_powershell_command"),
+            patch.object(run_agent_eval, "wps_process_ids", side_effect=lambda: running.pop(0) if running else set()),
+            patch.object(run_agent_eval.time, "sleep") as sleep,
+        ):
+            outcome = run_agent_eval.stop_started_wps("writer", {42})
+        self.assertEqual(outcome, "stopped 42")
+        self.assertEqual(sleep.call_count, 1)
+
+    def test_a_failed_close_records_its_message(self):
+        from wps_ai_agent_cli import open_documents
+
+        error = {"code": "COM_OPERATION_FAILED", "message": "RPC disconnected"}
+        with (
+            patch.object(open_documents, "close_unchanged_document", return_value=(None, error)),
+            patch.object(run_agent_eval, "stop_started_wps", return_value="none started"),
+        ):
+            outcome = run_agent_eval.release_opened_fixture("spreadsheets", self.fixture, set())
+        self.assertEqual(outcome, "fixture COM_OPERATION_FAILED (RPC disconnected); processes none started")
+
     def test_started_wps_processes_are_ended_only_when_wps_lists_no_document(self):
         from wps_ai_agent_cli import open_documents, powershell_runner
 
@@ -1828,6 +1861,7 @@ class OpenDocumentSetupTests(unittest.TestCase):
                 self.subTest(documents=documents),
                 patch.object(open_documents, "list_open_documents", return_value=(True, {"documents": documents}, [])),
                 patch.object(powershell_runner, "run_powershell_command") as command,
+                patch.object(run_agent_eval, "wps_process_ids", return_value=set()),
             ):
                 outcome = run_agent_eval.stop_started_wps("writer", {42, 7})
             self.assertEqual(command.called, stopped, outcome)
@@ -1923,6 +1957,8 @@ class OpenDocumentScriptParseTests(unittest.TestCase):
                     [PWSH, "-NoProfile", "-Command", check], capture_output=True, text=True, timeout=120, check=False
                 )
                 self.assertEqual(completed.stdout.strip(), "0", completed.stdout + completed.stderr)
+
+
 class OpenDocumentScriptStdoutTests(unittest.TestCase):
     def test_the_spreadsheet_select_swallows_the_result_of_select(self):
         # The Windows check on 564d103 skipped both spreadsheet selection tasks: preparing them selects a

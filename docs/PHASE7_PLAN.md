@@ -54,6 +54,15 @@ Phase 6 让已打开文档的命令能看到用户打开的文档，并证明 Ag
 | P7-005 | H3 | `scripts/windows_check/`：前提检查、调用评测或 wheel 检查、生成结果文件；离线测试覆盖前提检查和结果格式（已完成：`scripts/windows_check/run_windows_check.py`，子命令 `prereq`、`eval`、`wheel`，用法见同目录 README） | 本地 |
 | P7-006 | 缺口 | 查清 Agent 为什么常用错 `validate_document`，改进它的参数说明和 `INVALID_ARGUMENT` 的错误信息（已完成：原因是工具说明只写“Run basic validation checks”、只要求 `document_id`，Agent 把它当成通用检查，只传 `document_id`；现在说明写明它只核对一个值、每个组件要传什么、只传 `document_id` 会失败、读文档用 `snapshot_document`，错误信息写出缺哪个参数并给例子） | 本地 |
 | P7-007 | H1、H2 | 在 Windows 上用 P7-005 的脚本：跑 P7-002 的注入场景，再把所有已打开文档任务各跑 3 次 | Windows |
+
+### P7-007 第一轮（`564d103`，结果在 `scripts/windows_check/results/`）
+
+- **H1 达成。** `undo` 两个场景都通过（`20261015T141650Z-564d103-undo`）：Writer 和演示的写入被 WPS 保存后，注入的读回失败触发撤回，返回 `VALIDATION_FAILED` 和 `MUTATION_ROLLED_BACK`，`rolled_back_in_wps` 为真，保存后的内容和备份一致，磁盘上的文字回到写入前，WPS 报告文档已保存；没有 `MUTATION_ROLLBACK_BLOCKED`。
+- **H2 未达成。** 11 个任务里 8 个在一条命令里至少 2/3 通过（`20261015T141839Z-564d103-eval`）。剩下三个：
+  - 两个表格任务被跳过：runner 选中单元格时 WPS 表格的 `Range.Select()` 把 `True` 写到 stdout，JSON 读不出来。你在 `f1a8cf9` 修好后单独重跑，各 2/3（`20261015T154848Z-f1a8cf9-eval`），第 3 次都因 45 秒内 WPS 没列出 `status.xlsx` 而没开始；前两次清理时关闭工作簿报 `COM_OPERATION_FAILED`，但随后 WPS 已不列出它。
+  - `wps-open-save-as-untitled` 0/3。原因是编码：Windows PowerShell 把重定向的 stdout 按控制台代码页（GBK）输出，而所有调用方按 UTF-8 解码，未命名文档的名字 `文字文稿1` 变成乱码。提示里的名字、`open_documents` 列出的名字都是乱码，Agent 只能得到 `UNTITLED_DOCUMENT_NOT_FOUND`；runner 也按乱码名字关不掉未命名文档，三次运行的未命名文档留在同一个 WPS 里。
+- **修复（本轮之后）。** 产品里所有 PowerShell 脚本和命令先把输出编码设为 UTF-8（`powershell_runner.UTF8_OUTPUT_PREAMBLE`）；`close_unchanged_document` 关闭失败时先看 WPS 是否还列出该文档，不再列出就算已关闭；runner 在结束进程后等它们退出，留下进程时写出 WPS 还列出哪些文档，关闭失败时记下错误信息。
+- **下一步。** 在合并修复后的 `main` 上用一条命令把 11 个任务重跑一次（H2 要求一条命令），再跑一次 `undo` 确认编码修改没有影响撤回。
 | P7-008 | H4 | 定版本 0.4.0，整理 `CHANGELOG.md`，合并后由你推送 `v0.4.0` 标签（已准备：`__version__` 为 `0.4.0`，`CHANGELOG.md` 有 `[0.4.0] - 2026-10-15` 一节，包含 P7-001 和 P7-006；标签待推送） | 本地 + 你 |
 | P7-009 | H4 | 在 Windows 上用 P7-005 的脚本检查 Release 的 wheel | Windows |
 

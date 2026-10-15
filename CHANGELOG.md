@@ -4,6 +4,11 @@ All notable changes to `wps-ai-agent-cli`. The versioning rule and release steps
 
 ## [Unreleased]
 
+### Fixed
+
+- Text that WPS returns with characters outside ASCII came back garbled on Chinese Windows, for example the name of an untitled document (`文字文稿1`), so `save-as-open-document` could not be pointed at it. Windows PowerShell wrote the scripts' output in the console code page (GBK) and the CLI read it as UTF-8. Every PowerShell script and command now writes UTF-8. Found by the P7-007 Windows evaluation.
+- `close_unchanged_document` (used by `restore-backup --close-in-wps`) reported `COM_OPERATION_FAILED` after closing a workbook on WPS 12.8, although the workbook was closed. When the close reports a failure, it now checks whether WPS still lists the document. Found by the P7-007 Windows evaluation.
+
 ## [0.4.0] - 2026-10-15
 
 Phase 7: a failed write to a document open in WPS is undone inside WPS, and `validate-document` says what it needs.

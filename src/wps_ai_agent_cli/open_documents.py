@@ -523,7 +523,12 @@ def close_unchanged_document(
         {"path": str(Path(path).resolve()), "component": component, "do_close": do_close},
     )
     if not outcome.get("ok"):
-        return None, (outcome.get("errors") or [{"code": COM_OPERATION_FAILED, "message": "Close in WPS failed."}])[0]
+        error = (outcome.get("errors") or [{"code": COM_OPERATION_FAILED, "message": "Close in WPS failed."}])[0]
+        # On WPS 12.8 closing a workbook reported a failure although WPS then listed no workbook (P7-007). The
+        # close only runs on a document with no unsaved changes, so when WPS no longer lists it, it was closed.
+        if do_close and _listed_in_wps(component, path) is False:
+            return "closed", None
+        return None, error
     status = (outcome.get("data") or {}).get("status")
     if status == "not_automatable":
         return None, {
@@ -543,6 +548,19 @@ def close_unchanged_document(
             ),
         }
     return None, {"code": COM_OPERATION_FAILED, "message": f"Close in WPS returned an unexpected status: {status!r}."}
+
+
+def _listed_in_wps(component: str, path: str | Path) -> bool | None:
+    """Whether WPS lists the document as open; None when the list itself failed."""
+    ok, data, _errors = list_open_documents(component=component)
+    if not ok:
+        return None
+    target = str(Path(path).resolve()).casefold()
+    return any(
+        str(Path(item.get("full_name") or "").resolve()).casefold() == target
+        for item in data.get("documents", [])
+        if item.get("full_name")
+    )
 
 
 def list_open_documents(

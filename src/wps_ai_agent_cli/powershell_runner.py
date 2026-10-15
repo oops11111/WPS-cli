@@ -17,6 +17,14 @@ from .errors import (
     HELD_OPEN_MARKER,
 )
 
+# Windows PowerShell 5.1 writes redirected stdout in the console code page (GBK on a Chinese Windows), but every
+# caller decodes it as UTF-8. Any non-ASCII text WPS returned came back garbled: the name of an untitled document
+# such as 文字文稿1, a Chinese document name or selection (P7-007). Every script and command starts with this.
+UTF8_OUTPUT_PREAMBLE = (
+    "[Console]::OutputEncoding = New-Object System.Text.UTF8Encoding $false; "
+    "$OutputEncoding = [Console]::OutputEncoding\n"
+)
+
 
 def run_powershell_command(
     script: str,
@@ -28,7 +36,7 @@ def run_powershell_command(
     command = [powershell_executable(), "-NoProfile"]
     if non_interactive:
         command.append("-NonInteractive")
-    command.extend(["-Command", script])
+    command.extend(["-Command", UTF8_OUTPUT_PREAMBLE + script])
     return subprocess.run(
         command,
         check=False,
@@ -140,7 +148,7 @@ def run_powershell_script(
     script_path = None
     try:
         with tempfile.NamedTemporaryFile("w", suffix=".ps1", delete=False, encoding="utf-8-sig") as script_file:
-            script_file.write(script)
+            script_file.write(UTF8_OUTPUT_PREAMBLE + script)
             script_path = script_file.name
         completed = subprocess.run(
             [powershell_executable(), "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", script_path],
