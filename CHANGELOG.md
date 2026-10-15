@@ -4,6 +4,10 @@ All notable changes to `wps-ai-agent-cli`. The versioning rule and release steps
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-10-15
+
+Phase 6: the open-document commands work on documents the user opened in WPS the usual way, and their writes work on real WPS.
+
 ### Added
 
 - Open-document commands (`open-documents`, selection read and edit, `save-open-document`, the exports, `restore-backup --close-in-wps`) reach a WPS that did not register its application object: when `GetActiveObject` finds nothing, they look for a document of the component in the Running Object Table and attach through its application, but only when it is WPS. Nothing is launched. The pre-open guard of the file-based write and conversion commands uses the same lookup, so it also sees a document open in such a WPS and refuses instead of opening it a second time. (P6-003)
@@ -12,7 +16,6 @@ All notable changes to `wps-ai-agent-cli`. The versioning rule and release steps
 ### Fixed
 
 - Open-document write commands (Writer, Presentation and Spreadsheets selection replace, insert and delete; `save-open-document`) always refused on real WPS with `DOCUMENT_HELD_OPEN`, in 0.2.0 too. Their backup began with the exclusive-share probe that file-based commands use. That probe always fails on a document that is open in WPS, which is what these commands work on. Their backup now only needs the file to be readable alongside WPS; WPS allows that. Found by the P6-008 Windows evaluation.
-
 - `presentation-selection-replace` reported `VALIDATION_FAILED` on WPS 12.8 after a successful write. It read the new text back through the selection, which WPS moves after the assignment. It now checks the shape's whole text instead: the old text with exactly the selected part replaced. Found by the P6-008 Windows evaluation.
 
 ### Changed

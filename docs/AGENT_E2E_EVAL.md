@@ -367,6 +367,11 @@ Every run recorded the expected operation, kept one backup, and matched the expe
 
 After the command, two runner processes were still up: Writer pid 22416, title `report.docx - WPS 文字`, command line the run-2 export fixture; Presentation pid 50020, title `deck.pptx - WPS 演示`, command line the run-1 deck. They were closed after the run. No `et.exe` was left.
 
+**Review (2026-10-15).** **G2 is met.** All five open-document tasks passed 3/3 in one default-launch command, with the system open command unchanged. Presentation selection replace went from 0/3 to 3/3 at 7.3 turns, which confirms the shape-based read-back.
+
+- The one tool error is a JSON-RPC argument error. The agent passed a `request_id` to `writer_selection_read`, which takes none, and an unknown argument is refused that way (`MCP_ARGUMENTS_UNKNOWN`), with no error code in the result text. The F1 contract allows this.
+- **Two WPS processes the runner started were still running afterwards.** The summary does not say why, so the runner now records what its cleanup did in each run's `cleanup` field: how the fixture was closed, and which processes were stopped or why they were left. A leftover process is harmless for the results, because each run opens its own fixture.
+
 ## Limits
 
 - Twenty-three tasks are still a small set, not a benchmark. Ten run offline (registration, backup, idempotent retry, restore, dry run, a held file, HTML to xlsx and docx, reading sheets); thirteen marked (WPS) need WPS on Windows and are skipped elsewhere. Together they use 24 of the 85 tools.
