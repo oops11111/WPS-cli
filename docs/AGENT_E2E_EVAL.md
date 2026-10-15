@@ -15,7 +15,7 @@ A task can list `setup` steps that prepare the workspace before the agent starts
 | `modify` | changes A1 to `changed by mistake` and saves the file |
 | `html_table` | writes `table.html` with a two-column table |
 | `hold` | holds the fixture the way WPS holds an open document. Must be the last step. |
-| `open_in_wps` | opens the fixture in WPS on Windows and waits until WPS lists it as open (up to 45 s). It runs the open command registered for the extension (for example `wps.exe "%1"`), the command a double-click runs, rather than going through the shell, which on some machines shows the "Open with" chooser instead. `--wps-launch automation` adds `/Automation` to that command. Neither changes the system's open command. It records the WPS processes (`wps`, `et`, `wpp`) that appeared while opening. After the agent, the runner closes the document without saving, and only when WPS reports no unsaved changes; then it ends the processes it recorded, but only while WPS lists no other document for the component, so that the next `--repeat` run starts from the same state. Only `select_text` and `append_unsaved` may follow it; the task must be marked (WPS). Elsewhere the task is skipped. |
+| `open_in_wps` | opens the fixture in WPS on Windows and waits until WPS lists it as open (up to 45 s). It runs the open command registered for the extension (for example `wps.exe "%1"`), the command a double-click runs, rather than going through the shell, which on some machines shows the "Open with" chooser instead. `--wps-launch automation` adds `/Automation` to that command. Neither changes the system's open command. When the agent left the fixture with unsaved changes, the runner closes it without saving: it is the runner's own file. It records the WPS processes (`wps`, `et`, `wpp`) that appeared while opening. After the agent, the runner closes the document without saving, and only when WPS reports no unsaved changes; then it ends the processes it recorded, but only while WPS lists no other document for the component, so that the next `--repeat` run starts from the same state. Only `select_text` and `append_unsaved` may follow it; the task must be marked (WPS). Elsewhere the task is skipped. |
 | `select_text` | after `open_in_wps`: selects the first occurrence of the task's `selection.text` in WPS (Writer or Presentation), or, with `"collapse": "end"`, puts the caret right after it (Writer). It reads the selection back; when WPS selected something else, the run is a setup failure, not an agent failure. |
 | `append_unsaved` | after `open_in_wps`: appends the task's `unsaved_text` as a new paragraph in WPS (Writer) without saving, and checks that WPS reports the document as unsaved. |
 
@@ -65,7 +65,7 @@ python scripts/agent_eval/run_agent_eval.py --only register-and-backup --model <
 python scripts/agent_eval/run_agent_eval.py --repeat 3 --min-passes 2
 ```
 
-The runner needs `claude` on `PATH`. It runs the CLI with `--output-format stream-json --verbose` so that it can read each tool call. It exits with 0 when every task that ran passes, 1 when any fails, and 2 when the CLI is missing. Skipped tasks do not change the exit code.
+The runner needs `claude` on `PATH`. It runs the CLI with `--output-format stream-json --verbose` so that it can read each tool call. It exits with 0 when every task that ran passes, 1 when any fails, and 2 when the CLI is missing. Skipped tasks do not change the exit code. A run where the CLI itself failed, for example with an API error, is marked `agent_error`; it still counts as a failed run.
 
 `--repeat N` runs each task N times, each in its own workspace under `run-<n>/`. A task passes when at least `--min-passes` runs pass; by default every run must pass. The summary records each run, the number of passes and the pass rate. Phase 4 judges WPS write tasks with `--repeat 3 --min-passes 2`.
 
@@ -236,11 +236,63 @@ No `wps.exe` was left after this command.
 
 **Review (2026-10-15).** The `CELL_NOT_FOUND` calls were deliberate dry-run probes of rows 4 and 5. The agent was looking for the edge of the table, because no tool reported the table's size. So the cause of the P5-006 out-of-range calls is the same. The P6-007 message only helps after the agent goes out of range. `writer_table_write`'s dry run now also returns `row_count`, `column_count` and `header_row`, and the tool description says so, so one dry run shows the whole table. Run 1's failure (it stopped after the dry run) is a separate issue. The comparison is rerun together with P6-008.
 
+### P6-008 rerun on 174f04e (2026-10-15)
+
+`main` at `174f04e` (the open-document write fix and the runner launching the registered open command). Windows 10.0.19045. WPS 12.8.2.18913. Claude Code CLI 2.1.295, CLI default model. No `--model`. The system open command was not changed. G2 is judged on this default-launch command. It is not met.
+
+```powershell
+python scripts/agent_eval/run_agent_eval.py `
+  --only wps-open-document-export-text --only wps-open-writer-selection-replace `
+  --only wps-open-writer-selection-insert --only wps-open-presentation-selection-replace `
+  --only wps-open-save-document `
+  --repeat 3 --min-passes 2 --out $env:TEMP\wps-p6\eval-open-174f04e
+```
+
+Artifact: `%TEMP%\wps-p6\eval-open-174f04e\run-20261015T022144989017Z\summary.json`.
+
+| Task | Passes | Turns | `wps-agent` calls | Tool errors | `off_path_calls` | `off_path_tools` |
+| --- | --- | --- | --- | --- | --- | --- |
+| `wps-open-document-export-text` | 3/3 | 4.0 (4, 4, 4) | 6 | 0 | 0 | |
+| `wps-open-writer-selection-replace` | 3/3 | 5.3 (5, 6, 5) | 12 | 0 | 0 | |
+| `wps-open-writer-selection-insert` | 2/3 | 7.3 (13, 7, 2) | 15 | 1 | 3 | `export_open_document_text`, `validate_document` |
+| `wps-open-presentation-selection-replace` | skipped | | | | | |
+| `wps-open-save-document` | 0/3 | 1, 1, 1 | 0 | 0 | 0 | |
+
+`wps-open-document-export-text` and `wps-open-writer-selection-replace` passed every run. Replace recorded `writer-selection-replace`, left `Status: FINAL`, and kept one backup.
+
+`wps-open-writer-selection-insert` passed runs 1 and 2. Run 1 also called `export_open_document_text` (`INVALID_ARGUMENT`; output `…\wps-p6-eval-scratch-insert1\report_before.txt`) and `validate_document` with `contains` `Owner: Finance (reviewed)`. Run 2 called `validate_document` the same way. Run 3 made one `open_documents` call (`register: true`, not an error) and then stopped. The reply was `API Error: 402 Insufficient Balance (request_id: 78d2c758-80e6-40e3-8cd3-3ae58091a4e3)`. Failed checks: `operation_recorded` no record, `tool_called` 0 for `writer_selection_insert`, `Owner: Finance (reviewed)` missing, `backup_count` 0.
+
+`wps-open-presentation-selection-replace` was skipped on the first run, before the agent. The reason is not `WPS_INSTANCE_NOT_AUTOMATABLE`, so the command was not repeated with `--wps-launch automation`:
+
+`select_text: script_failed [{'code': 'COM_OPERATION_FAILED', 'message': 'OperationStopped: …\tmpu189mt4l.ps1:206 | $hit = $shape.TextFrame.TextRange.Find([string]$params.text) | Unexpected HRESULT has been returned from a call to a COM component.'}]`
+
+`wps-open-save-document` did not reach a tool call. Each run is one turn and the reply is `API Error: 402 Insufficient Balance`, request ids `b5368d85-48a7-4118-ba2d-5328356343d5`, `7ad472de-4869-4d73-a356-e912f35faf82`, `453ed9a7-5f1e-434b-a9f4-bef2a0350b04`. Failed checks on every run: no operation, `tool_called` 0, `Reviewed in WPS` missing, `backup_count` 0. `tool_not_called` for `save_as_open_document` passed.
+
+After the command, Writer pid 46568 was still open, title `report.docx * - WPS 文字`, command line the run-2 export fixture. It was ended before the table comparison. No `et.exe` or `wpp.exe` was left.
+
+**Review (2026-10-15).**
+
+- **The write fix works.** Writer selection replace passed 3/3 at 5.3 turns with no off-path calls. Before the fix it was 0/3 at 16 turns. Selection insert passed runs 1 and 2. Its run 3 never reached the tools: the Claude API answered `402 Insufficient Balance`.
+- **The save task and the P6-007 table rerun below were not evaluated.** Every run is one turn with the same 402 and no tool call. The judge failed them, but they say nothing about the tools. The runner now marks such a run with `agent_error` and prints it, so they stand out.
+- **The presentation skip came from the runner's own setup.** `TextRange.Find` fails on WPS 12.8 with an unexpected HRESULT. `select_text` now finds the text in PowerShell and selects it with `TextRange.Characters(start, length)`.
+- **The Writer left open was the runner's own fixture.** It had unsaved changes from a run that stopped early, and the runner only closed unchanged documents. It now closes its own fixture without saving in that case, then ends the WPS process it started.
+- G2 is still open. The five tasks are rerun in one command once the API balance is restored.
+
+### P6-007 rerun on 174f04e
+
+```powershell
+python scripts/agent_eval/run_agent_eval.py --only wps-writer-table-write --repeat 3 --min-passes 2 --out $env:TEMP\wps-p6\eval-table-174f04e
+```
+
+Artifact: `%TEMP%\wps-p6\eval-table-174f04e\run-20261015T022924523541Z\summary.json`.
+
+**0/3.** Turns 1, 1, 1. `wps-agent` calls 0, tool errors 0, off-path calls 0. No `CELL_NOT_FOUND`. Each reply is `API Error: 402 Insufficient Balance`, request ids `5dea3130-a0db-4117-a8c7-44f163620706`, `c3444403-7c54-4184-9f26-cb5efb5681f1`, `721cc47d-ec76-43c4-b4cc-194b6aea0df7`. Failed checks: no operation, `tool_called` 0, North status still `DRAFT`, `backup_count` 0. The South status and the header checks passed. No `wps.exe` was left. This run does not replace the P5-006 comparison (3/3, mean 15.3 turns, 41 calls); the agent never called a tool.
+
 ## Limits
 
 - Twenty-three tasks are still a small set, not a benchmark. Ten run offline (registration, backup, idempotent retry, restore, dry run, a held file, HTML to xlsx and docx, reading sheets); thirteen marked (WPS) need WPS on Windows and are skipped elsewhere. Together they use 24 of the 85 tools.
 - The WPS tasks were run on one Windows machine with one WPS version: the first four in P4-007, the five Phase 5 tasks in P5-006, all 3/3. The P4-007 tasks pass on these commits: the three write tasks on `4999b77`, `wps-held-spreadsheet-write` on `6484151`. The first runs of the held task failed because of two server bugs, fixed in PRs #55 and #56. Those fixes change only what a failed call returns, so the three passing write tasks were not rerun.
-- The open-document tools attach with `GetActiveObject`, and since P6-003 also through the Running Object Table. On this machine (WPS 12.8.2.18913) a Writer started by `wps.exe "%1"` does not register `kwps.Application`; P6-004 still listed that document with `attached_via` `running_object_table`. The same was true for Spreadsheets and Presentation when those processes were started with their registered open command. A Writer started with `/Automation` lists the document with `attached_via` `active_object`. P6-008's first writes into an open document returned `DOCUMENT_HELD_OPEN` because of the backup's exclusive-share probe; that is fixed (see the P6-008 review). Since P6-005 the runner ends the WPS processes it started after each run; one Writer from the P6-008 command was still open afterward and was ended before the table comparison.
+- The open-document tools attach with `GetActiveObject`, and since P6-003 also through the Running Object Table. On this machine (WPS 12.8.2.18913) a Writer started by `wps.exe "%1"` does not register `kwps.Application`; P6-004 still listed that document with `attached_via` `running_object_table`. The same was true for Spreadsheets and Presentation when those processes were started with their registered open command. A Writer started with `/Automation` lists the document with `attached_via` `active_object`. P6-008's first writes into an open document returned `DOCUMENT_HELD_OPEN` because of the backup's exclusive-share probe; that is fixed (see the P6-008 review). On the `174f04e` rerun, selection replace passed 3/3 and selection insert passed 2/3 before the Claude API returned 402 Insufficient Balance. Since P6-005 the runner ends the WPS processes it started after each run; one Writer from the P6-008 command was still open afterward and was ended before the table comparison.
 - There is no held-file recovery task. The runner cannot make WPS open a document and block a rollback, so recovery with `restore-backup --close-in-wps` is checked by hand in P4-011 instead.
 - The judge checks state and tool calls, so a correct-sounding reply with the wrong state fails. A failure to report the result accurately is not detected here.
 - Results depend on the model the CLI uses. Record it with `--model` when comparing runs.

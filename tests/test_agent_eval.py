@@ -1456,6 +1456,23 @@ class OpenDocumentSetupTests(unittest.TestCase):
             with self.subTest(steps=steps), self.assertRaises(ValueError):
                 run_agent_eval.run_setup(steps, self.workspace, self.fixture, "writer", {})
 
+    def test_a_fixture_left_unsaved_is_closed_without_saving_before_its_process_is_ended(self):
+        from wps_ai_agent_cli import open_documents
+
+        unsaved = (None, {"code": "DOCUMENT_HAS_UNSAVED_CHANGES", "message": "unsaved"})
+        for closed, discarded in ((("closed", None), False), (unsaved, True)):
+            with (
+                self.subTest(closed=closed),
+                patch.object(open_documents, "close_unchanged_document", return_value=closed),
+                patch.object(run_agent_eval, "wps_document_action") as action,
+                patch.object(run_agent_eval, "stop_started_wps") as stop,
+            ):
+                run_agent_eval.release_opened_fixture("writer", self.fixture, {42})
+            self.assertEqual(action.called, discarded)
+            if discarded:
+                action.assert_called_once_with("writer", self.fixture, "close_discard")
+            stop.assert_called_once_with("writer", {42})
+
     def test_started_wps_processes_are_ended_only_when_wps_lists_no_document(self):
         from wps_ai_agent_cli import open_documents, powershell_runner
 
@@ -1499,6 +1516,14 @@ class OpenDocumentSetupTests(unittest.TestCase):
         self.assertEqual(command[0], "C:\\npm\\claude.CMD")
         self.assertEqual(run.call_args.kwargs["encoding"], "utf-8")
         self.assertEqual(run.call_args.kwargs["errors"], "replace")
+
+    def test_an_api_error_of_the_cli_is_flagged_as_an_agent_error(self):
+        self.assertEqual(
+            run_agent_eval.agent_error({"is_error": True, "result_excerpt": "API Error: 402 Insufficient Balance"}),
+            "API Error: 402 Insufficient Balance",
+        )
+        self.assertIsNone(run_agent_eval.agent_error({"is_error": False, "result_excerpt": "Done."}))
+        self.assertIsNone(run_agent_eval.agent_error({"is_error": True, "result_excerpt": "Reached max turns"}))
 
     def test_the_wps_launch_mode_is_an_option_and_recorded_in_the_summary(self):
         with self.assertRaises(SystemExit):
