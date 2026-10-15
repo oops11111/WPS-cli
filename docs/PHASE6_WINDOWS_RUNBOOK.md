@@ -7,7 +7,7 @@
 | 1 | P6-002：用诊断脚本记录 WPS 在自动化接口上登记了什么 | G1 | 已完成（2026-10-15，`main@655d76c`，见 `scripts/real_wps_verify_p6/RESULTS-655d76c.md`） |
 | 2 | P6-004：三个组件分别用双击打开，检查已打开文档命令 | G1 | 已完成，三个组件都是 (a)，G1 达成 |
 | 3 | P6-008：已打开文档的评测任务，一条命令跑 3 次 | G2 | 已完成（2026-10-15，`main@4ba838b`，5 个任务都是 3/3），G2 达成 |
-| 4 | P6-010：只装 `v0.3.0` 的 wheel，跑 `inspect-env` 和 safe 档 | G3 | 发布后做 |
+| 4 | P6-010：只装 `v0.3.0` 的 wheel，跑 `inspect-env` 和 safe 档 | G3 | 可以做了（`v0.3.0` 已于 2026-10-15 发布） |
 
 P6-003（经 ROT 附着，或返回 `WPS_INSTANCE_NOT_AUTOMATABLE`）已经在本地做完，所以第 1 节和第 2 节可以一起做：第 1 节记录 WPS 实际登记了什么，第 2 节检查命令在这种情况下的表现。
 
@@ -176,4 +176,4 @@ python scripts/agent_eval/run_agent_eval.py --only wps-writer-table-write --repe
 
 ## 4. P6-010：只装 `v0.3.0` 的 wheel
 
-等 `v0.3.0` 发布以后，按 `docs/PHASE5_WINDOWS_RUNBOOK.md` 第 2 节做，把版本号和文件名里的 `0.2.0` 换成 `0.3.0`，SHA-256 以 Release 页面上列出的为准。通过条件也一样：版本是 0.3.0，`inspect-env` 通过，safe 档 7/7，清单来自 site-packages。
+等 `v0.3.0` 发布以后，按 `docs/PHASE5_WINDOWS_RUNBOOK.md` 第 2 节做，把版本号和文件名里的 `0.2.0` 换成 `0.3.0`，SHA-256 应为 `870DD38DFC587257A952F894E506039E58F14D09D80B0BE2C2C815722A146AEE`（以 Release 页面上列出的为准）。通过条件也一样：版本是 0.3.0，`inspect-env` 通过，safe 档 7/7，清单来自 site-packages。
