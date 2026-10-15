@@ -63,11 +63,12 @@ KNOWN_SETUP_STEPS = {
     "open_in_wps",
     "select_text",
     "append_unsaved",
+    "untitled_document",
 }
 # Setup steps that leave the fixture held or open for the agent. Only steps that work on the open document
 # may follow open_in_wps; nothing may follow hold.
 FINAL_SETUP_STEPS = {"hold", "open_in_wps"}
-OPEN_DOCUMENT_STEPS = {"select_text", "append_unsaved"}
+OPEN_DOCUMENT_STEPS = {"select_text", "append_unsaved", "untitled_document"}
 
 
 def _task(task_id: str) -> dict:
@@ -165,7 +166,12 @@ class AgentEvalTaskFileTests(unittest.TestCase):
                 self.assertTrue(task.get("requires_wps"), task["id"])
             if "select_text" in steps:
                 self.assertIn("open_in_wps", steps, task["id"])
-                self.assertTrue(task.get("selection", {}).get("text"), task["id"])
+                # Spreadsheets select a cell range; Writer and Presentation select text (P7-003).
+                key = "range" if task.get("component", spec["component"]) == "spreadsheets" else "text"
+                self.assertTrue(task.get("selection", {}).get(key), task["id"])
+            if "untitled_document" in steps:
+                self.assertIn("open_in_wps", steps, task["id"])
+                self.assertIn("{untitled_name}", task["prompt"], task["id"])
             if "append_unsaved" in steps:
                 self.assertIn("open_in_wps", steps, task["id"])
                 self.assertTrue(task.get("unsaved_text"), task["id"])
@@ -174,11 +180,22 @@ class AgentEvalTaskFileTests(unittest.TestCase):
         spec = json.loads(TASKS_PATH.read_text(encoding="utf-8"))
         with tempfile.TemporaryDirectory() as tmp:
             for task in spec["tasks"]:
-                if "selection" not in task:
+                if "text" not in task.get("selection", {}):
                     continue
                 with self.subTest(task=task["id"]):
                     run_agent_eval.write_fixture(Path(tmp), task["fixture"])
                     self.assertIn(task["selection"]["text"], run_agent_eval.document_text(Path(tmp) / task["fixture"]))
+
+    def test_the_status_workbook_holds_the_table_on_its_own_sheet(self):
+        from openpyxl import load_workbook
+
+        with tempfile.TemporaryDirectory() as tmp:
+            run_agent_eval.write_fixture(Path(tmp), "status.xlsx")
+            workbook = load_workbook(Path(tmp) / "status.xlsx")
+            sheet = workbook["Status"]
+            rows = [list(row) for row in sheet.iter_rows(values_only=True)]
+            workbook.close()
+        self.assertEqual(rows, [["Region", "Q1", "Status"], ["North", 120, "DRAFT"], ["South", 95, "DRAFT"]])
 
     def test_the_table_fixture_holds_the_table_the_task_edits(self):
         from docx import Document
@@ -793,7 +810,7 @@ class AgentEvalJudgeTests(unittest.TestCase):
         reasons = iter([None, "WPS did not list report.docx as open within 45 s", None])
         released = []
 
-        def setup(steps, workspace, fixture, component, options=None):
+        def setup(steps, workspace, fixture, component, options=None, state=None):
             reason = next(reasons)
             sha = run_agent_eval.file_sha256(fixture)
             if reason:
@@ -1459,6 +1476,114 @@ class OpenDocumentSetupTests(unittest.TestCase):
         self.assertIsNotNone(caret)
         self.assertIsNone(not_a_caret)
         self.assertIn("expected a caret", not_a_caret_reason)
+
+    def test_a_spreadsheet_range_is_selected_and_its_address_read_back(self):
+        book = self.workspace / "status.xlsx"
+        run_agent_eval.write_fixture(self.workspace, "status.xlsx")
+        options = {"selection": {"range": "$c$2:C3", "sheet": "Status"}}
+        cases = (
+            ({"status": "ok", "address": "C2:C3", "sheet": "Status"}, None),
+            ({"status": "ok", "address": "A1", "sheet": "Status"}, "WPS selected 'A1', expected 'C2:C3'"),
+            ({"status": "ok", "address": "C2:C3", "sheet": "Sheet1"}, "on sheet 'Sheet1', expected 'Status'"),
+            ({"status": "not_open"}, "select_text: not_open"),
+        )
+        for payload, problem in cases:
+            self.released = []
+            with (
+                self.subTest(payload=payload),
+                patch.object(run_agent_eval, "open_in_wps", side_effect=self.open_ok),
+                patch.object(run_agent_eval, "wps_document_action", return_value=payload) as action,
+            ):
+                _sha, release, reason = run_agent_eval.run_setup(
+                    ["open_in_wps", "select_text"], self.workspace, book, "spreadsheets", options
+                )
+            action.assert_called_once_with("spreadsheets", book, "select", range="C2:C3", sheet="Status")
+            if problem is None:
+                self.assertIsNone(reason)
+                self.assertIsNotNone(release)
+            else:
+                self.assertIn(problem, reason)
+                self.assertEqual(self.released, ["status.xlsx"])
+
+    def test_an_untitled_document_is_made_named_in_the_state_and_closed_with_the_run(self):
+        from wps_ai_agent_cli import open_documents
+
+        saved_as = self.workspace / "notes.docx"
+        actions = []
+
+        def action(component, path, step, **params):
+            actions.append((step, Path(path).name, params))
+            if step == "new_untitled":
+                return {"status": "ok", "name": "文字文稿2", "saved": False}
+            return {"status": "closed"}
+
+        listed = [{"full_name": str(self.fixture)}, {"full_name": str(saved_as)}, {"full_name": "C:\\elsewhere.docx"}]
+        state = {}
+        with (
+            patch.object(run_agent_eval, "open_in_wps", side_effect=self.open_ok),
+            patch.object(run_agent_eval, "wps_document_action", side_effect=action),
+            patch.object(open_documents, "list_open_documents", return_value=(True, {"documents": listed}, [])),
+        ):
+            _sha, release, reason = run_agent_eval.run_setup(
+                ["open_in_wps", "untitled_document"],
+                self.workspace,
+                self.fixture,
+                "writer",
+                {"untitled_text": "Meeting notes"},
+                state,
+            )
+            self.assertIsNone(reason)
+            self.assertEqual(state, {"untitled_name": "文字文稿2"})
+            outcome = release()
+        self.assertEqual(
+            actions,
+            [
+                ("new_untitled", "report.docx", {"text": "Meeting notes"}),
+                ("close_untitled", "report.docx", {"name": "文字文稿2"}),
+                ("close_discard", "notes.docx", {}),
+            ],
+        )
+        self.assertEqual(self.released, ["report.docx"])
+        self.assertIn("untitled 文字文稿2 closed; notes.docx closed", outcome)
+
+    def test_a_failed_untitled_document_is_a_setup_failure(self):
+        with (
+            patch.object(run_agent_eval, "open_in_wps", side_effect=self.open_ok),
+            patch.object(run_agent_eval, "wps_document_action", return_value={"status": "no_instance"}),
+            patch.object(run_agent_eval, "close_workspace_documents", return_value="nothing"),
+        ):
+            _sha, release, reason = run_agent_eval.run_setup(
+                ["open_in_wps", "untitled_document"], self.workspace, self.fixture, "writer", {}
+            )
+        self.assertIsNone(release)
+        self.assertEqual(reason, "untitled_document: no_instance")
+        self.assertEqual(self.released, ["report.docx"])
+
+    def test_the_prompt_names_the_untitled_document_wps_made(self):
+        task = {
+            "id": "untitled",
+            "requires_wps": True,
+            "setup": ["open_in_wps", "untitled_document"],
+            "prompt": "Save the untitled document {untitled_name} as notes.docx.",
+            "checks": [],
+        }
+        prompts = []
+
+        def setup(steps, workspace, fixture, component, options, state=None):
+            state["untitled_name"] = "文字文稿3"
+            return "sha", (lambda: "closed"), None
+
+        def agent(prompt, *args):
+            prompts.append(prompt)
+            return {"ran": True, "tool_calls": []}
+
+        with tempfile.TemporaryDirectory() as tmp, patch.object(run_agent_eval, "run_setup", side_effect=setup):
+            result = run_agent_eval.run_task(
+                task, "report.docx", "writer", Path(tmp), None, 15, 60, runner=agent, has_wps=lambda c: True
+            )
+        self.assertEqual(prompts, ["Save the untitled document 文字文稿3 as notes.docx."])
+        self.assertEqual(result["untitled_name"], "文字文稿3")
+        self.assertEqual(result["cleanup"], "closed")
 
     def test_append_unsaved_must_leave_the_document_unsaved(self):
         options = {"unsaved_text": "Reviewed in WPS"}
