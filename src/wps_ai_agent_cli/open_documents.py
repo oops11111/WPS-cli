@@ -77,6 +77,8 @@ _COMPONENT_COLLECTIONS = {
 }
 
 NO_RUNNING_WPS_INSTANCE = "NO_RUNNING_WPS_INSTANCE"
+WPS_INSTANCE_NOT_AUTOMATABLE = "WPS_INSTANCE_NOT_AUTOMATABLE"
+_COMPONENT_LABELS = {"writer": "Writer", "spreadsheets": "Spreadsheets", "presentation": "Presentation"}
 DOCUMENT_NOT_OPEN = "DOCUMENT_NOT_OPEN"
 DOCUMENT_HAS_UNSAVED_CHANGES = "DOCUMENT_HAS_UNSAVED_CHANGES"
 DOCUMENT_READ_ONLY = "DOCUMENT_READ_ONLY"
@@ -220,6 +222,17 @@ def _run_component_attached_com(component: str, action: str, params: dict[str, A
     return _run_spreadsheet_attached_com(action, params)
 
 
+def _not_automatable_message(label: str) -> str:
+    """WPS has a window open but registered nothing this command can attach to (P5-011)."""
+    return (
+        f"WPS {label} is running with a window, but it did not register for automation, so its open documents "
+        "cannot be reached. This happens when WPS was started by opening a file directly, for example by "
+        f"double-clicking it. Save your work in WPS, close every WPS {label} window, then reopen the document "
+        'with the /Automation option, for example: wps.exe /Automation "<path to the document>". '
+        "Nothing was launched, closed or changed."
+    )
+
+
 def _status_error(
     status: str | None,
     path: str,
@@ -231,11 +244,7 @@ def _status_error(
         return None
     if status == "unsaved":
         return _unsaved_open_document_error(action)
-    label = {
-        "writer": "Writer",
-        "presentation": "Presentation",
-        "spreadsheets": "Spreadsheets",
-    }.get(component, component)
+    label = _COMPONENT_LABELS.get(component, component)
     read_only_by_action = {
         "exported": "The open document is read-only, so it cannot be exported through this command.",
         "saved": "The open document is read-only, so it cannot be saved through save-open-document.",
@@ -244,6 +253,7 @@ def _status_error(
         "cleared": "The open document is read-only, so its selection cannot be cleared.",
     }
     messages = {
+        "not_automatable": (WPS_INSTANCE_NOT_AUTOMATABLE, _not_automatable_message(label)),
         "no_instance": (
             NO_RUNNING_WPS_INSTANCE,
             f"No running WPS {label} instance was found. Open the document in WPS first; this command never launches WPS or closes a running instance.",
@@ -499,6 +509,11 @@ def close_unchanged_document(
     if not outcome.get("ok"):
         return None, (outcome.get("errors") or [{"code": COM_OPERATION_FAILED, "message": "Close in WPS failed."}])[0]
     status = (outcome.get("data") or {}).get("status")
+    if status == "not_automatable":
+        return None, {
+            "code": WPS_INSTANCE_NOT_AUTOMATABLE,
+            "message": _not_automatable_message(_COMPONENT_LABELS.get(component, component)),
+        }
     if status in ("no_instance", "not_open", "closed"):
         return status, None
     if status == "open":
@@ -577,7 +592,23 @@ def list_open_documents(
             "use save-as-open-document with --component/--name/--output for untitled documents."
         ),
     }
+    unreachable = [str(name) for name in _as_list(payload.get("not_automatable")) if name]
+    if unreachable:
+        data["not_automatable"] = unreachable
+        data["warnings"] = [_not_automatable_message(_COMPONENT_LABELS.get(name, name)) for name in unreachable]
     if not instances:
+        if unreachable:
+            return (
+                False,
+                data,
+                [
+                    {
+                        "code": WPS_INSTANCE_NOT_AUTOMATABLE,
+                        "message": _not_automatable_message(_COMPONENT_LABELS.get(name, name)),
+                    }
+                    for name in unreachable
+                ],
+            )
         return (
             False,
             data,
@@ -2859,6 +2890,18 @@ def save_as_open_document(
         )
 
     status = payload.get("status")
+    if status == "not_automatable":
+        return (
+            False,
+            {"component": component, "name": display_name, "output": str(resolved_output)},
+            [
+                {
+                    "code": WPS_INSTANCE_NOT_AUTOMATABLE,
+                    "message": _not_automatable_message(_COMPONENT_LABELS.get(component, component)),
+                }
+            ],
+            False,
+        )
     if status == "no_instance":
         return (
             False,
@@ -2999,13 +3042,14 @@ def save_as_open_document(
             ],
             False,
         )
-    if write_status in {"not_found", "ambiguous", "already_pathed", "no_instance"}:
+    if write_status in {"not_found", "ambiguous", "already_pathed", "no_instance", "not_automatable"}:
         # Race: selection changed between inspect and write.
         code = {
             "not_found": UNTITLED_DOCUMENT_NOT_FOUND,
             "ambiguous": AMBIGUOUS_OPEN_DOCUMENT,
             "already_pathed": DOCUMENT_ALREADY_PATHED,
             "no_instance": NO_RUNNING_WPS_INSTANCE,
+            "not_automatable": WPS_INSTANCE_NOT_AUTOMATABLE,
         }[write_status]
         return (
             False,

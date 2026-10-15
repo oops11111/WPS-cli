@@ -1,5 +1,7 @@
+import json
 import os
 import shutil
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
@@ -66,10 +68,30 @@ namespace WpsAgent {
     public FakeDoc Add(string template) { var d = new FakeDoc(); d.IsCopy = true; return d; }
   }
   public class FakeApp {
+    public string AppName = "WPS Office";
+    public string Name { get { return AppName; } }
     public string Version { get { return "12.1"; } }
     public FakeDocs Documents { get { return new FakeDocs(); } }
     public FakeDoc ActiveDocument { get { return new FakeDoc(); } }
     public object Workbooks { get { return null; } }
+  }
+  public class FakeRotDoc {
+    public FakeApp Application { get { var app = new FakeApp(); app.AppName = Environment.GetEnvironmentVariable("WPSFAKE_ROT_APP") ?? "WPS Office"; return app; } }
+  }
+  // Stands in for the Running Object Table and the process list (P6-003).
+  public static class Rot {
+    public static object[] Find(string[] extensions) {
+      string registered = Environment.GetEnvironmentVariable("WPSFAKE_ROT") ?? "";
+      foreach (string extension in extensions) {
+        if (registered.Length > 0 && registered.EndsWith(extension, StringComparison.OrdinalIgnoreCase)) {
+          return new object[] { new FakeRotDoc() };
+        }
+      }
+      return new object[0];
+    }
+    public static int WindowedProcessCount(string name) {
+      return name == (Environment.GetEnvironmentVariable("WPSFAKE_WINDOWED") ?? "") ? 1 : 0;
+    }
   }
   public static class Running {
     public static object Get(string progId) {
@@ -128,6 +150,35 @@ class GeneratedScriptBehaviourTests(unittest.TestCase):
             listing = open_documents._run_open_documents_com(["writer"])
         self.assertEqual(result["data"]["status"], "no_instance")
         self.assertTrue(listing["ok"], listing)
+
+    def test_an_application_reached_through_a_registered_document_is_used(self):
+        # A WPS started by opening a file registers no application object, only the document (P5-011).
+        with patch.dict(os.environ, {"WPSFAKE_MODE": "none", "WPSFAKE_ROT": str(self.document)}):
+            listing = open_documents._run_open_documents_com(["writer"])
+            result = self.attached("selection-read")
+        instances = listing["data"]["instances"]
+        instances = instances if isinstance(instances, list) else [instances]
+        self.assertEqual(instances[0]["attached_via"], "running_object_table")
+        self.assertEqual(result["data"]["selection_text"], "brave")
+
+    def test_a_registered_document_of_another_office_suite_is_ignored(self):
+        env = {"WPSFAKE_MODE": "none", "WPSFAKE_ROT": str(self.document), "WPSFAKE_ROT_APP": "Microsoft Word"}
+        with patch.dict(os.environ, env):
+            result = self.attached("selection-read")
+        self.assertEqual(result["data"]["status"], "no_instance")
+
+    def test_a_wps_window_without_automation_is_not_automatable(self):
+        with patch.dict(os.environ, {"WPSFAKE_MODE": "none", "WPSFAKE_WINDOWED": "wps"}):
+            result = self.attached("selection-read")
+            listing = open_documents._run_open_documents_com(["writer", "spreadsheets"])
+            ok, data, errors = open_documents.list_open_documents("writer")
+        self.assertEqual(result["data"]["status"], "not_automatable")
+        unreachable = listing["data"]["not_automatable"]
+        self.assertEqual(unreachable if isinstance(unreachable, list) else [unreachable], ["writer"])
+        self.assertFalse(ok)
+        self.assertEqual([error["code"] for error in errors], ["WPS_INSTANCE_NOT_AUTOMATABLE"])
+        self.assertIn("/Automation", errors[0]["message"])
+        self.assertEqual(data["not_automatable"], ["writer"])
 
     def test_document_matching_is_by_path_not_active_window(self):
         other = self.dir / "other.docx"
@@ -214,6 +265,41 @@ class GeneratedScriptBehaviourTests(unittest.TestCase):
         self.assertTrue(result["data"]["source_still_open"])
         self.assertEqual(output.read_text(encoding="utf-8"), "<html>hello brave world</html>")
         self.assertEqual(self.document.read_bytes(), before)
+
+
+@unittest.skipUnless(PWSH, "PowerShell (pwsh) is required to compile the attach snippet")
+class AttachSnippetTests(unittest.TestCase):
+    """The real snippet, without the fake COM prelude: it must compile everywhere and attach to nothing here."""
+
+    def test_snippet_compiles_and_the_rot_lookup_finds_nothing_off_windows(self):
+        from wps_ai_agent_cli.wps_script_snippets import ATTACH_RUNNING_INSTANCE
+
+        script = (
+            "$ErrorActionPreference = 'Stop'\n"
+            + ATTACH_RUNNING_INSTANCE
+            + """
+# Running.Get needs ole32 and only runs on Windows; the ROT lookup must degrade to nothing elsewhere.
+[pscustomobject]@{
+  rot = @([WpsAgent.Rot]::Find([string[]]@('.docx'))).Count
+  missing = (Get-WpsMissingStatus @('ket.Application'))
+  wps_by_name = (Test-WpsApplication ([pscustomobject]@{ Name = 'WPS Office'; Path = 'C:\\x' }))
+  wps_by_chinese_name = (Test-WpsApplication ([pscustomobject]@{ Name = ([string][char]0x91d1 + [char]0x5c71); Path = 'C:\\x' }))
+  word = (Test-WpsApplication ([pscustomobject]@{ Name = 'Microsoft Word'; Path = 'C:\\Office' }))
+} | ConvertTo-Json -Compress
+"""
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "attach.ps1"
+            path.write_text(script, encoding="utf-8")
+            completed = subprocess.run(
+                [PWSH, "-NoProfile", "-File", str(path)], capture_output=True, text=True, timeout=120, check=False
+            )
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        result = json.loads(completed.stdout)
+        self.assertEqual(
+            result,
+            {"rot": 0, "missing": "no_instance", "wps_by_name": True, "wps_by_chinese_name": True, "word": False},
+        )
 
 
 @unittest.skipUnless(PWSH, "PowerShell (pwsh) is required to execute the cell text matcher")
