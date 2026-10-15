@@ -2971,7 +2971,7 @@
     "id": "P6-009",
     "phase": "phase6",
     "title": "Release 0.3.0",
-    "status": "todo",
+    "status": "done",
     "acceptance": "G3: version 0.3.0 per docs/RELEASING.md, CHANGELOG section, merged; the maintainer pushes the v0.3.0 tag and the release workflow publishes it."
   },
   {
