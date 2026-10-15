@@ -1923,3 +1923,14 @@ class OpenDocumentScriptParseTests(unittest.TestCase):
                     [PWSH, "-NoProfile", "-Command", check], capture_output=True, text=True, timeout=120, check=False
                 )
                 self.assertEqual(completed.stdout.strip(), "0", completed.stdout + completed.stderr)
+class OpenDocumentScriptStdoutTests(unittest.TestCase):
+    def test_the_script_swallows_the_return_value_of_activate(self):
+        # The Windows check on 564d103 skipped both spreadsheet selection tasks: their select_text
+        # preparation ran $doc.Activate() and $sheet.Activate() bare, PowerShell wrote "True" to stdout
+        # ahead of the JSON, and _run_script read the whole output as script_failed / COM_OPERATION_FAILED
+        # even though the payload it printed said the range was selected.
+        script = run_agent_eval._WPS_DOCUMENT_SCRIPT
+        for call in ("$doc.Activate()", "$sheet.Activate()"):
+            with self.subTest(call=call):
+                self.assertEqual(script.count(call), 1)
+                self.assertIn(f"[void]{call}", script)

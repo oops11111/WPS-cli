@@ -250,10 +250,11 @@ if ($params.component -eq 'spreadsheets') {
   }
   if ($params.action -ne 'select') { Out-Result ([pscustomobject]@{ ok = $true; status = 'unsupported' }) }
   # Select a cell range through COM and read its address back (P7-003).
-  try { $doc.Activate() } catch { }
+  # [void]: Activate() returns True, and a bare call would put it on stdout ahead of the JSON.
+  try { [void]$doc.Activate() } catch { }
   if ([string]::IsNullOrEmpty([string]$params.sheet)) { $sheet = $doc.Worksheets.Item(1) }
   else { $sheet = $doc.Worksheets.Item([string]$params.sheet) }
-  $sheet.Activate()
+  [void]$sheet.Activate()
   $sheet.Range([string]$params.range).Select()
   $selection = $app.ActiveWindow.Selection
   Out-Result ([pscustomobject]@{
