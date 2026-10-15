@@ -11,6 +11,9 @@ Subcommands:
              registered open commands unchanged, inspect-env. Exits 1 when a required check fails.
     eval     prereq, then run agent-evaluation tasks one at a time. Progress is saved after every task, so
              --resume after an interruption runs only the tasks that have no result yet.
+    undo     prereq, then make a Writer and a Presentation selection replace fail its read-back inside this
+             process (undo_injection.py), so that the undo in WPS (P7-001) runs on real WPS, and record the file
+             hashes before the write, after it and after the undo.
     wheel    Download a released wheel, compare its SHA-256 with the one the Release reports, install it alone
              in a new virtual environment and run inspect-env and the safe regression profile outside the
              repository.
@@ -22,6 +25,7 @@ Usage:
     python scripts/windows_check/run_windows_check.py prereq
     python scripts/windows_check/run_windows_check.py eval --only wps-open-writer-selection-replace --repeat 3 --min-passes 2
     python scripts/windows_check/run_windows_check.py eval --resume scripts/windows_check/results/<dir>
+    python scripts/windows_check/run_windows_check.py undo
     python scripts/windows_check/run_windows_check.py wheel --version 0.4.0
 """
 
@@ -46,6 +50,16 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 RESULTS_ROOT = REPO_ROOT / "scripts" / "windows_check" / "results"
 REPOSITORY = "oops11111/WPS-cli"
 OPEN_COMMAND_EXTENSIONS = (".docx", ".xlsx", ".pptx")
+
+
+def load_undo_injection() -> Any:
+    """undo_injection.py next to this script; it imports the package, which load_runner puts on sys.path."""
+    path = Path(__file__).resolve().parent / "undo_injection.py"
+    spec = importlib.util.spec_from_file_location("undo_injection", path)
+    module = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    spec.loader.exec_module(module)
+    return module
 
 
 def load_runner() -> Any:
@@ -523,6 +537,97 @@ def run_wheel(args: argparse.Namespace, machine: Machine) -> int:
     return 0 if passed else 1
 
 
+# --------------------------------------------------------------------------------------------------- undo
+def _short(sha: str | None) -> str:
+    return f"`{sha[:12]}`" if sha else "-"
+
+
+def undo_table(results: list[dict[str, Any]], verdicts: dict[str, bool]) -> list[str]:
+    lines = [
+        "| Scenario | Result | Error codes | Before write | Before undo | After undo | Content matches backup | Cleanup |",
+        "| --- | --- | --- | --- | --- | --- | --- | --- |",
+    ]
+    for result in results:
+        hashes = result.get("hashes") or {}
+        rollback = result.get("rollback") or {}
+        codes = ", ".join(f"`{code}`" for code in result.get("error_codes") or []) or "-"
+        cleanup = str(result.get("cleanup") or "-").replace("|", "\\|")
+        lines.append(
+            f"| `{result['scenario']}` | {'pass' if verdicts[result['scenario']] else 'FAIL'} | {codes} "
+            f"| {_short(hashes.get('before_write'))} | {_short(hashes.get('before_undo'))} "
+            f"| {_short(hashes.get('after_undo'))} | {rollback.get('content_matches_backup')} | {cleanup} |"
+        )
+    return lines
+
+
+def run_undo(args: argparse.Namespace, machine: Machine, runner: Any, injection: Any) -> int:
+    prereq = prerequisites(machine, need_claude=False, need_wps=True)
+    stamp = dt.datetime.now(dt.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    directory = Path(args.out or RESULTS_ROOT / f"{stamp}-{prereq['info'].get('commit')}-undo")
+    scenarios = args.scenario or list(injection.SCENARIOS)
+    settings = {"scenarios": scenarios, "wps_launch": args.wps_launch}
+    if not prereq["passed"] and not args.force:
+        write_results(directory, "Windows check stopped: prerequisites", prereq, [], {"settings": settings})
+        print(f"Prerequisites failed; nothing was run. See {directory / 'RESULTS.md'}", file=sys.stderr)
+        return 1
+    runner.WPS_LAUNCH = args.wps_launch
+    work = Path(tempfile.gettempdir()) / "wps-windows-check" / directory.name
+    results = []
+    for name in scenarios:
+        print(f"running {name}")
+        results.append(injection.run_scenario(name, runner, work))
+    verdicts: dict[str, bool] = {}
+    details: list[str] = []
+    for result in results:
+        passed, conditions = injection.verdict(result)
+        verdicts[result["scenario"]] = passed
+        result["passed"] = passed
+        details += [f"### `{result['scenario']}`", "", *conditions, ""]
+        rollback = result.get("rollback") or {}
+        if rollback:
+            details += [
+                f"- rollback status `{rollback.get('status')}`, read back {json.dumps(rollback.get('read_back_text'), ensure_ascii=False)}",
+                f"- WPS read back after the write (replaced by the injection): "
+                f"{json.dumps(result.get('real_read_back_text'), ensure_ascii=False)}",
+                "",
+            ]
+        for error in result.get("errors") or []:
+            details.append(f"- `{error.get('code')}`: {error.get('message')}")
+        if result.get("errors"):
+            details.append("")
+    leftover = machine.wps_processes() if machine.is_windows() else []
+    passed_count = sum(verdicts.values())
+    body = [
+        "## Undo in WPS after an injected read-back failure",
+        "",
+        "```",
+        "python scripts/windows_check/run_windows_check.py undo"
+        + "".join(f" --scenario {name}" for name in args.scenario)
+        + (f" --wps-launch {args.wps_launch}" if args.wps_launch != "default" else ""),
+        "```",
+        "",
+        f"**{passed_count}/{len(results)} scenarios passed.** The write runs in WPS as usual; inside this process "
+        "only its reported read-back is replaced, so the command rejects the write and undoes it in WPS. Hashes are "
+        f"the file's SHA-256. Workspaces: `{work}`.",
+        "",
+        *undo_table(results, verdicts),
+        "",
+        *details,
+        "### WPS processes after the run",
+        "",
+        *([f"- {item.get('name')} {item.get('id')} `{item.get('title') or ''}`" for item in leftover] or ["- None."]),
+    ]
+    path = write_results(
+        directory,
+        "Windows check of the undo in WPS",
+        prereq,
+        body,
+        {"settings": settings, "results": results, "leftover_processes": leftover},
+    )
+    print(f"{passed_count}/{len(results)} passed; results: {path}")
+    return 0 if passed_count == len(results) else 1
+
+
 def run_prereq(args: argparse.Namespace, machine: Machine) -> int:
     report = prerequisites(machine, need_claude=not args.skip_claude, need_wps=True)
     for line in prerequisites_markdown(report):
@@ -530,7 +635,9 @@ def run_prereq(args: argparse.Namespace, machine: Machine) -> int:
     return 0 if report["passed"] else 1
 
 
-def main(argv: list[str] | None = None, machine: Machine | None = None, runner: Any = None) -> int:
+def main(
+    argv: list[str] | None = None, machine: Machine | None = None, runner: Any = None, injection: Any = None
+) -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     commands = parser.add_subparsers(dest="command", required=True)
     prereq = commands.add_parser("prereq", help="Check the machine only.")
@@ -547,6 +654,17 @@ def main(argv: list[str] | None = None, machine: Machine | None = None, runner: 
     evaluation.add_argument("--resume", default=None, help="A results directory of an interrupted eval run.")
     evaluation.add_argument("--out", default=None, help="Results directory (default: under results/).")
     evaluation.add_argument("--force", action="store_true", help="Run even when a required prerequisite failed.")
+    undo = commands.add_parser("undo", help="Make a selection write's read-back fail and check the undo in WPS.")
+    undo.add_argument(
+        "--scenario",
+        action="append",
+        default=[],
+        choices=("writer-replace", "presentation-replace"),
+        help="Scenario (repeatable); default: all.",
+    )
+    undo.add_argument("--wps-launch", choices=("default", "automation"), default="default")
+    undo.add_argument("--out", default=None, help="Results directory (default: under results/).")
+    undo.add_argument("--force", action="store_true", help="Run even when a required prerequisite failed.")
     wheel = commands.add_parser("wheel", help="Check a released wheel in a new virtual environment.")
     wheel.add_argument("--version", required=True)
     wheel.add_argument("--wheel", default=None, help="A local wheel instead of the Release's.")
@@ -564,6 +682,9 @@ def main(argv: list[str] | None = None, machine: Machine | None = None, runner: 
         return run_prereq(args, machine)
     if args.command == "eval":
         return run_eval(args, machine, runner or load_runner())
+    if args.command == "undo":
+        runner = runner or load_runner()
+        return run_undo(args, machine, runner, injection or load_undo_injection())
     return run_wheel(args, machine)
 
 

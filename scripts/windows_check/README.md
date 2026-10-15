@@ -10,6 +10,7 @@ Phase 6 在 Windows 上跑了五轮，每轮都照着手册一条条执行，结
 python scripts/windows_check/run_windows_check.py prereq
 python scripts/windows_check/run_windows_check.py eval --only wps-open-writer-selection-replace --only wps-open-save-document
 python scripts/windows_check/run_windows_check.py eval --resume scripts\windows_check\results\<目录>
+python scripts/windows_check/run_windows_check.py undo
 python scripts/windows_check/run_windows_check.py wheel --version 0.4.0
 ```
 
@@ -17,6 +18,7 @@ python scripts/windows_check/run_windows_check.py wheel --version 0.4.0
 | --- | --- |
 | `prereq` | 只检查机器，见下表；有必需项没通过时退出码为 1 |
 | `eval` | 先做 `prereq`，再逐个任务跑评测（默认 `--repeat 3 --min-passes 2`，不给 `--only` 就跑全部任务）。每跑完一个任务就保存进度；中断后用 `--resume <结果目录>` 只跑剩下的任务 |
+| `undo` | 先做 `prereq`（不问 `claude`），再检查已打开文档写入失败时在 WPS 里的撤回（P7-001）：用注册的打开命令打开 Writer 和演示的测试文档、选中 `DRAFT`，执行选区替换。替换照常在 WPS 里完成并保存，只是在本进程里把它报告的读回换掉（`undo_injection.py`，产品代码没有开关），于是命令判定写入失败、在 WPS 里撤回。记录写入前、撤回前、撤回后的文件哈希，错误码，回滚结果，磁盘上的文字，以及 WPS 是否报告已保存。`--scenario writer-replace` 或 `presentation-replace` 只跑一个 |
 | `wheel` | 从 Release 下载 wheel，与 Release 列出的 SHA-256 对比；在新的虚拟环境里只装它，不带 `PYTHONPATH`，在仓库以外跑 `inspect-env` 和 safe 档 |
 
 必需项没通过时，脚本不跑任何检查，只写出前提检查的结果。确实需要照跑时加 `--force`，结果里会照实记录哪一项没通过。
@@ -35,12 +37,12 @@ python scripts/windows_check/run_windows_check.py wheel --version 0.4.0
 
 ## 结果
 
-每次运行写到 `scripts/windows_check/results/<时间>-<提交号>-eval/`（`wheel` 是 `<时间>-wheel-<版本>`），可以直接提交：
+每次运行写到 `scripts/windows_check/results/<时间>-<提交号>-eval/`（`undo` 是 `<时间>-<提交号>-undo`，`wheel` 是 `<时间>-wheel-<版本>`），可以直接提交：
 
-- `RESULTS.md`：日期、提交、机器、WPS 版本、前提检查，以及评测表（格式和 `docs/AGENT_E2E_EVAL.md` 一样）、每次运行没通过的检查、准备失败、Agent 错误、错误码、清理结果，最后列出跑完后还在的 WPS 进程；`wheel` 则列出每个通过条件。
+- `RESULTS.md`：日期、提交、机器、WPS 版本、前提检查，以及评测表（格式和 `docs/AGENT_E2E_EVAL.md` 一样）、每次运行没通过的检查、准备失败、Agent 错误、错误码、清理结果，最后列出跑完后还在的 WPS 进程；`undo` 列出每个场景的哈希、错误码和每个通过条件；`wheel` 则列出每个通过条件。
 - `results.json`：同样的内容，供机器读取；`eval` 中断时它也是续跑的依据。
 - `summary.json`：`eval` 时 runner 的原始汇总。
 
 评测的任务工作区放在系统临时目录（`%TEMP%\wps-windows-check\<目录名>`）下，不进结果目录。
 
-`tests/test_windows_check.py` 用假的机器测试前提检查、续跑和结果格式；`wheel` 在 Linux 上用 `v0.3.0` 的 Release 实际跑过一次。
+`tests/test_windows_check.py` 用假的机器测试前提检查、续跑和结果格式，`tests/test_undo_injection.py` 用假的 WPS 测试注入和 `undo` 的结果；`wheel` 在 Linux 上用 `v0.3.0` 的 Release 实际跑过一次。

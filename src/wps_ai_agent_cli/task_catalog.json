@@ -2992,7 +2992,7 @@
     "id": "P7-002",
     "phase": "phase7",
     "title": "In-process injection of a read-back failure",
-    "status": "todo",
+    "status": "done",
     "acceptance": "H1: a script patches the read-back in-process (no production switch) to trigger the undo for Writer and Presentation, recording hashes before and after."
   },
   {
