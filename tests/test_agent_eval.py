@@ -48,10 +48,26 @@ WPS_WRITE_TASKS = (
     "wps-writer-table-write",
     "wps-docx-to-pdf",
     "wps-open-document-export-text",
+    "wps-open-writer-selection-replace",
+    "wps-open-writer-selection-insert",
+    "wps-open-presentation-selection-replace",
+    "wps-open-save-document",
 )
-KNOWN_SETUP_STEPS = {"register", "backup", "modify", "html_table", "hold", "open_in_wps"}
-# Setup steps that leave the fixture held or open for the agent; they must come last.
+OPEN_DOCUMENT_WRITE_TASKS = WPS_WRITE_TASKS[-4:]
+KNOWN_SETUP_STEPS = {
+    "register",
+    "backup",
+    "modify",
+    "html_table",
+    "hold",
+    "open_in_wps",
+    "select_text",
+    "append_unsaved",
+}
+# Setup steps that leave the fixture held or open for the agent. Only steps that work on the open document
+# may follow open_in_wps; nothing may follow hold.
 FINAL_SETUP_STEPS = {"hold", "open_in_wps"}
+OPEN_DOCUMENT_STEPS = {"select_text", "append_unsaved"}
 
 
 def _task(task_id: str) -> dict:
@@ -142,9 +158,27 @@ class AgentEvalTaskFileTests(unittest.TestCase):
             final = [step for step in steps if step in FINAL_SETUP_STEPS]
             self.assertLessEqual(len(final), 1, task["id"])
             if final:
-                self.assertEqual(steps[-1], final[0], task["id"])
+                after = steps[steps.index(final[0]) + 1 :]
+                allowed = OPEN_DOCUMENT_STEPS if final[0] == "open_in_wps" else set()
+                self.assertLessEqual(set(after), allowed, task["id"])
             if "open_in_wps" in steps:
                 self.assertTrue(task.get("requires_wps"), task["id"])
+            if "select_text" in steps:
+                self.assertIn("open_in_wps", steps, task["id"])
+                self.assertTrue(task.get("selection", {}).get("text"), task["id"])
+            if "append_unsaved" in steps:
+                self.assertIn("open_in_wps", steps, task["id"])
+                self.assertTrue(task.get("unsaved_text"), task["id"])
+
+    def test_the_selected_text_is_in_the_fixture(self):
+        spec = json.loads(TASKS_PATH.read_text(encoding="utf-8"))
+        with tempfile.TemporaryDirectory() as tmp:
+            for task in spec["tasks"]:
+                if "selection" not in task:
+                    continue
+                with self.subTest(task=task["id"]):
+                    run_agent_eval.write_fixture(Path(tmp), task["fixture"])
+                    self.assertIn(task["selection"]["text"], run_agent_eval.document_text(Path(tmp) / task["fixture"]))
 
     def test_the_table_fixture_holds_the_table_the_task_edits(self):
         from docx import Document
@@ -759,7 +793,7 @@ class AgentEvalJudgeTests(unittest.TestCase):
         reasons = iter([None, "WPS did not list report.docx as open within 45 s", None])
         released = []
 
-        def setup(steps, workspace, fixture, component):
+        def setup(steps, workspace, fixture, component, options=None):
             reason = next(reasons)
             sha = run_agent_eval.file_sha256(fixture)
             if reason:
@@ -884,6 +918,122 @@ class AgentEvalJudgeTests(unittest.TestCase):
             )
         failed = [(check["kind"], check.get("cell")) for check in result["checks"] if not check["passed"]]
         self.assertEqual(failed, [("xlsx_cell", "B2"), ("xlsx_cell", "A1")])
+
+    def run_open_task(self, task_id, root, actions, calls):
+        """Run a task whose setup opens the fixture in WPS, with the WPS steps stood in for."""
+        released = []
+        with (
+            patch.object(run_agent_eval, "open_in_wps", return_value=(lambda: released.append(task_id), None)),
+            patch.object(run_agent_eval, "prepare_open_document", return_value=None) as prepared,
+        ):
+            result = self.run_wps_task(task_id, root, actions, calls)
+        self.assertEqual(released, [task_id])
+        self.assertEqual(prepared.call_count, 1)
+        return result
+
+    def test_open_writer_selection_replace_passes_and_keeps_the_other_paragraphs(self):
+        calls = [
+            _call("open_documents"),
+            _call("writer_selection_replace", request_id="eval-selection-1", text="FINAL"),
+        ]
+        with tempfile.TemporaryDirectory() as tmp:
+            passed = self.run_open_task(
+                "wps-open-writer-selection-replace",
+                Path(tmp),
+                lambda ws: self.simulate_write(
+                    ws,
+                    "writer",
+                    "report.docx",
+                    "eval-selection-1",
+                    "writer-selection-replace",
+                    lambda path: self.replace_in_docx(path, "DRAFT", "FINAL"),
+                ),
+                calls,
+            )
+            file_based = self.run_open_task(
+                "wps-open-writer-selection-replace",
+                Path(tmp) / "b",
+                lambda ws: self.simulate_write(
+                    ws,
+                    "writer",
+                    "report.docx",
+                    "eval-selection-1",
+                    "writer-selection-replace",
+                    lambda path: self.replace_in_docx(path, "DRAFT", "FINAL"),
+                ),
+                [*calls, _call("writer_replace", request_id="other")],
+            )
+        self.assertTrue(passed["passed"], passed)
+        self.assertEqual([c["kind"] for c in file_based["checks"] if not c["passed"]], ["tool_not_called"])
+
+    def test_open_writer_selection_insert_needs_the_text_right_after_the_owner_line(self):
+        calls = [_call("writer_selection_insert", request_id="eval-insert-1", text=" (reviewed)")]
+
+        def insert(text):
+            return lambda ws: self.simulate_write(
+                ws,
+                "writer",
+                "report.docx",
+                "eval-insert-1",
+                "writer-selection-insert",
+                lambda path: self.replace_in_docx(path, "Owner: Finance", text),
+            )
+
+        with tempfile.TemporaryDirectory() as tmp:
+            passed = self.run_open_task(
+                "wps-open-writer-selection-insert", Path(tmp), insert("Owner: Finance (reviewed)"), calls
+            )
+            no_space = self.run_open_task(
+                "wps-open-writer-selection-insert", Path(tmp) / "b", insert("Owner: Finance(reviewed)"), calls
+            )
+        self.assertTrue(passed["passed"], passed)
+        self.assertEqual([c["kind"] for c in no_space["checks"] if not c["passed"]], ["file_text"])
+
+    def test_open_presentation_selection_replace_passes(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            result = self.run_open_task(
+                "wps-open-presentation-selection-replace",
+                Path(tmp),
+                lambda ws: self.simulate_write(
+                    ws,
+                    "presentation",
+                    "deck.pptx",
+                    "eval-slide-selection-1",
+                    "presentation-selection-replace",
+                    lambda path: self.replace_in_pptx(path, "DRAFT", "FINAL"),
+                ),
+                [_call("presentation_selection_replace", request_id="eval-slide-selection-1", text="FINAL")],
+            )
+        self.assertTrue(result["passed"], result)
+
+    def test_open_save_document_passes_only_when_the_unsaved_text_reaches_the_file(self):
+        from docx import Document
+
+        def append(path):
+            document = Document(path)
+            document.add_paragraph("Reviewed in WPS")
+            document.save(path)
+
+        calls = [_call("save_open_document", request_id="eval-save-1")]
+        with tempfile.TemporaryDirectory() as tmp:
+            saved = self.run_open_task(
+                "wps-open-save-document",
+                Path(tmp),
+                lambda ws: self.simulate_write(
+                    ws, "writer", "report.docx", "eval-save-1", "save-open-document", append
+                ),
+                calls,
+            )
+            not_saved = self.run_open_task(
+                "wps-open-save-document",
+                Path(tmp) / "b",
+                lambda ws: self.simulate_write(
+                    ws, "writer", "report.docx", "eval-save-1", "save-open-document", lambda path: None
+                ),
+                calls,
+            )
+        self.assertTrue(saved["passed"], saved)
+        self.assertEqual([c["kind"] for c in not_saved["checks"] if not c["passed"]], ["file_text"])
 
     def test_wps_writer_replace_passes_and_keeps_the_other_paragraphs(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -1215,3 +1365,143 @@ class AgentEvalJudgeTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class OpenDocumentSetupTests(unittest.TestCase):
+    """P6-005: steps that work on a document the runner opened in WPS."""
+
+    def setUp(self):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        self.workspace = Path(tmp.name)
+        self.fixture = self.workspace / "report.docx"
+        run_agent_eval.write_fixture(self.workspace, "report.docx")
+        self.released = []
+
+    def open_ok(self, path, component):
+        return (lambda: self.released.append(path.name)), None
+
+    def test_select_text_after_open_keeps_the_document_open_for_the_agent(self):
+        options = {"selection": {"text": "DRAFT"}}
+        with (
+            patch.object(run_agent_eval, "open_in_wps", side_effect=self.open_ok),
+            patch.object(
+                run_agent_eval, "wps_document_action", return_value={"status": "ok", "selection_text": "DRAFT"}
+            ) as action,
+        ):
+            sha, release, reason = run_agent_eval.run_setup(
+                ["open_in_wps", "select_text"], self.workspace, self.fixture, "writer", options
+            )
+        self.assertIsNone(reason)
+        self.assertEqual(sha, run_agent_eval.file_sha256(self.fixture))
+        action.assert_called_once_with("writer", self.fixture, "select", text="DRAFT", collapse=None)
+        self.assertEqual(self.released, [])
+        release()
+        self.assertEqual(self.released, ["report.docx"])
+
+    def test_a_selection_that_does_not_read_back_is_a_setup_failure_and_closes_the_document(self):
+        options = {"selection": {"text": "DRAFT"}}
+        with (
+            patch.object(run_agent_eval, "open_in_wps", side_effect=self.open_ok),
+            patch.object(
+                run_agent_eval, "wps_document_action", return_value={"status": "ok", "selection_text": "DRAF"}
+            ),
+        ):
+            _sha, release, reason = run_agent_eval.run_setup(
+                ["open_in_wps", "select_text"], self.workspace, self.fixture, "writer", options
+            )
+        self.assertIsNone(release)
+        self.assertIn("expected 'DRAFT'", reason)
+        self.assertEqual(self.released, ["report.docx"])
+
+    def test_a_collapsed_caret_is_checked_by_position(self):
+        options = {"selection": {"text": "Owner: Finance", "collapse": "end"}}
+        with (
+            patch.object(run_agent_eval, "open_in_wps", side_effect=self.open_ok),
+            patch.object(
+                run_agent_eval,
+                "wps_document_action",
+                side_effect=[
+                    {"status": "ok", "selection_text": "\r", "start": 40, "end": 40},
+                    {"status": "ok", "selection_text": "Owner: Finance", "start": 26, "end": 40},
+                ],
+            ),
+        ):
+            _sha, caret, reason = run_agent_eval.run_setup(
+                ["open_in_wps", "select_text"], self.workspace, self.fixture, "writer", options
+            )
+            _sha, not_a_caret, not_a_caret_reason = run_agent_eval.run_setup(
+                ["open_in_wps", "select_text"], self.workspace, self.fixture, "writer", options
+            )
+        self.assertIsNone(reason)
+        self.assertIsNotNone(caret)
+        self.assertIsNone(not_a_caret)
+        self.assertIn("expected a caret", not_a_caret_reason)
+
+    def test_append_unsaved_must_leave_the_document_unsaved(self):
+        options = {"unsaved_text": "Reviewed in WPS"}
+        for payload, fails in (({"status": "ok", "saved": False}, False), ({"status": "ok", "saved": True}, True)):
+            with (
+                self.subTest(payload=payload),
+                patch.object(run_agent_eval, "open_in_wps", side_effect=self.open_ok),
+                patch.object(run_agent_eval, "wps_document_action", return_value=payload),
+            ):
+                _sha, release, reason = run_agent_eval.run_setup(
+                    ["open_in_wps", "append_unsaved"], self.workspace, self.fixture, "writer", options
+                )
+            self.assertEqual(reason is not None, fails, reason)
+
+    def test_only_open_document_steps_may_follow_open_in_wps_and_nothing_may_follow_hold(self):
+        for steps in (["open_in_wps", "register"], ["hold", "select_text"]):
+            with self.subTest(steps=steps), self.assertRaises(ValueError):
+                run_agent_eval.run_setup(steps, self.workspace, self.fixture, "writer", {})
+
+    def test_started_wps_processes_are_ended_only_when_wps_lists_no_document(self):
+        from wps_ai_agent_cli import open_documents, powershell_runner
+
+        for documents, stopped in (([{"full_name": "C:\\other.docx"}], False), ([], True)):
+            with (
+                self.subTest(documents=documents),
+                patch.object(open_documents, "list_open_documents", return_value=(True, {"documents": documents}, [])),
+                patch.object(powershell_runner, "run_powershell_command") as command,
+            ):
+                outcome = run_agent_eval.stop_started_wps("writer", {42, 7})
+            self.assertEqual(command.called, stopped, outcome)
+            if stopped:
+                self.assertIn("Stop-Process -Id 7,42", command.call_args.args[0])
+        with patch.object(powershell_runner, "run_powershell_command") as command:
+            self.assertEqual(run_agent_eval.stop_started_wps("writer", set()), "none started")
+        command.assert_not_called()
+
+    def test_the_wps_launch_mode_is_an_option_and_recorded_in_the_summary(self):
+        with self.assertRaises(SystemExit):
+            run_agent_eval.main(["--wps-launch", "elsewhere"])
+        self.assertIn("wps_launch", run_agent_eval.summarize([], "stamp", None))
+
+
+PWSH = os.environ.get("WPS_TEST_PWSH") or __import__("shutil").which("pwsh")
+
+
+@unittest.skipUnless(PWSH, "PowerShell (pwsh) is required to parse the runner's WPS scripts")
+class OpenDocumentScriptParseTests(unittest.TestCase):
+    def test_the_runner_scripts_parse(self):
+        import subprocess
+
+        from wps_ai_agent_cli.wps_script_snippets import ATTACH_RUNNING_INSTANCE
+
+        scripts = {
+            "document": run_agent_eval._WPS_DOCUMENT_SCRIPT.replace("__ATTACH__", ATTACH_RUNNING_INSTANCE),
+            "automation": run_agent_eval._START_WITH_AUTOMATION_SCRIPT.replace("__PATH__", "C:\\x\\report.docx"),
+        }
+        for name, script in scripts.items():
+            with self.subTest(script=name), tempfile.TemporaryDirectory() as tmp:
+                path = Path(tmp) / f"{name}.ps1"
+                path.write_text(script, encoding="utf-8")
+                check = (
+                    "$errors = $null; [void][System.Management.Automation.Language.Parser]::ParseFile("
+                    f"'{path}', [ref]$null, [ref]$errors); $errors.Count"
+                )
+                completed = subprocess.run(
+                    [PWSH, "-NoProfile", "-Command", check], capture_output=True, text=True, timeout=120, check=False
+                )
+                self.assertEqual(completed.stdout.strip(), "0", completed.stdout + completed.stderr)
