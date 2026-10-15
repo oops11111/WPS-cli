@@ -74,7 +74,7 @@ PHASES: tuple[Phase, ...] = (
     Phase(
         id="phase6",
         name="Documents the user opened",
-        status="planned",
+        status="active",
         goal=(
             "Make the open-document tools work on documents the user opened the usual way, or say clearly "
             "when they cannot; prove agents can write to open documents; and release it as 0.3.0."

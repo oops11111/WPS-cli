@@ -1,7 +1,7 @@
 {
   "product": "WPS AI Agent CLI",
   "source_prd": "WPS_AI_Agent_CLI_PRD_v1.1.docx",
-  "current_phase": "phase5",
+  "current_phase": "phase6",
   "phases": [
     {
       "id": "phase0",
@@ -71,7 +71,7 @@
       "id": "phase6",
       "name": "Documents the user opened",
       "goal": "Make the open-document tools work on documents the user opened the usual way, or say clearly when they cannot; prove agents can write to open documents; and release it as 0.3.0.",
-      "status": "planned",
+      "status": "active",
       "exit_criteria": [
         "G1: on Windows, for each of Writer, Spreadsheets and Presentation, a document opened by double-click with the stock open command is either listed by open-documents and exported by export-open-document-text, or the commands return a dedicated error code whose message gives the cause and what the user can do, never 'no running WPS'; both outcomes have offline fake-COM tests and the Windows results are recorded",
         "G2: the agent evaluation adds at least four open-document write tasks (Writer selection replace, Writer selection insert, Presentation selection replace, save_open_document), each naming its expected tools; the WPS open-document tasks, including wps-open-document-export-text, pass at least 2 of 3 runs on Windows in one --repeat 3 invocation without changing the system open command",
