@@ -95,7 +95,15 @@ def create_backup(
     dry_run: bool = False,
     workspace: str | Path = ".",
     allow_stale_registration: bool = False,
+    source_open_in_wps: bool = False,
 ) -> tuple[bool, dict[str, Any], list[dict[str, str]], bool]:
+    """Copy the registered file to a new backup.
+
+    source_open_in_wps is for commands that change a document through the WPS instance that has it open
+    (selection edits, save-open-document). That document is open by definition, so the exclusive-share probe,
+    which protects file-based commands from calling Open() on it, would always refuse (P6-008). The copy then
+    only needs the file to be readable alongside WPS; a holder that refuses readers is still DOCUMENT_HELD_OPEN.
+    """
     replay = replay_operation(
         request_id,
         "backup-document",
@@ -126,9 +134,10 @@ def create_backup(
     # Exclusive share probe before identity/backup open, matching Assert-WpsFileNotHeld before Open().
     # An exclusive holder otherwise surfaces as a bare Permission denied from the identity read.
     what = "presentation" if document.get("component") == "presentation" else "document"
-    held = probe_file_not_held(source_path, read_only=False, what=what)
-    if held is not None:
-        return False, {"document": document}, [held], False
+    if not source_open_in_wps:
+        held = probe_file_not_held(source_path, read_only=False, what=what)
+        if held is not None:
+            return False, {"document": document}, [held], False
 
     try:
         source_identity = file_identity(source_path)

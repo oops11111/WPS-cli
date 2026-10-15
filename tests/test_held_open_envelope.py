@@ -242,6 +242,38 @@ class GapBWriteEnvelopeTests(unittest.TestCase):
             self.assertEqual(probe.call_args.kwargs["read_only"], False)
             identity.assert_not_called()
 
+    def test_a_backup_for_a_command_working_through_wps_skips_the_exclusive_probe(self):
+        # The document of an open-document command is open in WPS by definition; WPS lets others read it (P6-008).
+        with tempfile.TemporaryDirectory() as tmp:
+            workspace = Path(tmp) / "workspace"
+            workspace.mkdir()
+            document = Path(tmp) / "book.xlsx"
+            Workbook().save(document)
+            _, record, _ = register_document("spreadsheets", str(document), workspace)
+            held = held_open_error("document", "WPS has it open")
+            with patch("wps_ai_agent_cli.backups.probe_file_not_held", return_value=held) as probe:
+                ok, result, errors, _ = create_backup(
+                    record["document_id"], "b-open", workspace=workspace, source_open_in_wps=True
+                )
+            self.assertTrue(ok, errors)
+            self.assertTrue(result["created"])
+            self.assertTrue(Path(result["backup_path"]).is_file())
+            probe.assert_not_called()
+
+    def test_a_backup_for_a_command_working_through_wps_still_refuses_an_unreadable_file(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            workspace = Path(tmp) / "workspace"
+            workspace.mkdir()
+            document = Path(tmp) / "book.xlsx"
+            Workbook().save(document)
+            _, record, _ = register_document("spreadsheets", str(document), workspace)
+            with patch("wps_ai_agent_cli.backups.file_identity", side_effect=PermissionError(13, "Permission denied")):
+                ok, _result, errors, _ = create_backup(
+                    record["document_id"], "b-open-denied", workspace=workspace, source_open_in_wps=True
+                )
+            self.assertFalse(ok)
+            _assert_held_open_envelope(self, errors)
+
     def test_create_backup_maps_identity_permission_error_to_held_open(self):
         with tempfile.TemporaryDirectory() as tmp:
             workspace = Path(tmp) / "workspace"

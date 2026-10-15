@@ -75,6 +75,17 @@ class Fixture:
         self.document_id = record["document_id"]
 
 
+class OpenDocumentBackupTests(unittest.TestCase):
+    def test_every_open_document_write_backs_up_without_the_exclusive_probe(self):
+        # P6-008: with the exclusive probe every one of these refused on real WPS with DOCUMENT_HELD_OPEN.
+        import inspect
+
+        source = inspect.getsource(open_documents)
+        calls = source.count("create_backup(")
+        self.assertEqual(calls, 9)
+        self.assertEqual(source.count("source_open_in_wps=True"), calls)
+
+
 class ListOpenDocumentsTests(unittest.TestCase):
     def test_reports_missing_instance_without_launching_anything(self):
         with patch.object(
@@ -332,6 +343,24 @@ class SelectionReplaceTests(unittest.TestCase):
             self.assertTrue(replayed)
             self.assertEqual(again["read_back_text"], "APPROVED")
         self.assertEqual(calls.count("selection-replace"), 1)
+
+    def test_replaces_while_the_file_is_held_the_way_wps_holds_an_open_document(self):
+        # P6-008: WPS holds the open document, so an exclusive probe always fails; readers are still allowed.
+        from wps_ai_agent_cli.file_hold import held_open_error
+
+        fixture = Fixture(self)
+        with (
+            patch.object(
+                open_documents, "_run_writer_attached_com", side_effect=self.fake_attached(fixture, selection_payload())
+            ),
+            patch(
+                "wps_ai_agent_cli.backups.probe_file_not_held",
+                return_value=held_open_error("document", "held by WPS"),
+            ),
+        ):
+            ok, data, errors, _replayed = self.replace(fixture, expected_selection_text="PENDING_STATUS")
+        self.assertTrue(ok, errors)
+        self.assertTrue(data["backup"]["created"])
 
     def test_selection_replace_script_snapshots_font(self):
         captured = {}
