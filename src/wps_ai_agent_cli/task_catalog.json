@@ -2915,7 +2915,7 @@
     "id": "P6-001",
     "phase": "phase6",
     "title": "Read-only diagnostic of how WPS registers for automation",
-    "status": "todo",
+    "status": "done",
     "acceptance": "G1: a script that lists every Running Object Table entry, tries GetActiveObject per component and GetObject on registered file monikers only, and records WPS process command lines; it opens, closes and saves nothing."
   },
   {
@@ -2929,7 +2929,7 @@
     "id": "P6-003",
     "phase": "phase6",
     "title": "Attach to normally opened documents or report why not",
-    "status": "todo",
+    "status": "done",
     "acceptance": "G1: based on P6-002, open-documents and the open-document commands attach through the ROT or file path where possible; otherwise they return a new error code with the cause and a remedy; offline fake-COM tests; README known limit updated."
   },
   {
@@ -2943,14 +2943,14 @@
     "id": "P6-005",
     "phase": "phase6",
     "title": "Agent eval runner: own WPS processes and a select_text step",
-    "status": "todo",
+    "status": "done",
     "acceptance": "G2: open_in_wps records the WPS processes it started and closes only those, only when they hold no other document; a select_text setup step selects given text in Writer or Presentation and reads it back."
   },
   {
     "id": "P6-006",
     "phase": "phase6",
     "title": "Agent eval: open-document write tasks",
-    "status": "todo",
+    "status": "done",
     "acceptance": "G2: at least four tasks (Writer selection replace and insert, Presentation selection replace, save_open_document), each with expected_tools and offline judge tests."
   },
   {

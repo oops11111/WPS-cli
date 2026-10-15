@@ -4,6 +4,15 @@ All notable changes to `wps-ai-agent-cli`. The versioning rule and release steps
 
 ## [Unreleased]
 
+### Added
+
+- Open-document commands (`open-documents`, selection read and edit, `save-open-document`, the exports, `restore-backup --close-in-wps`) reach a WPS that did not register its application object: when `GetActiveObject` finds nothing, they look for a document of the component in the Running Object Table and attach through its application, but only when it is WPS. Nothing is launched. The pre-open guard of the file-based write and conversion commands uses the same lookup, so it also sees a document open in such a WPS and refuses instead of opening it a second time. (P6-003)
+- New error code `WPS_INSTANCE_NOT_AUTOMATABLE`. A WPS window of the component is running, but neither route reaches it, as with a WPS Writer opened by double-click on 12.8 (P5-011). The message gives the cause and the remedy: reopen the document with `wps.exe /Automation`. These commands answered `NO_RUNNING_WPS_INSTANCE` before. `open-documents` also reports such a component in `data.not_automatable` and `data.warnings` while listing the others. (P6-003)
+
+### Changed
+
+- `writer-table-write`: the `CELL_NOT_FOUND` message gives the table's row and column counts, that rows and columns count from 1, and the header row, so an agent can correct the address in one step. (P6-007)
+
 ## [0.2.0] - 2026-10-14
 
 First release. Phases 4 and 5 so far: in-CLI recovery for documents open in WPS, a WPS compatibility profile, an MCP failure contract for every tool, and a wheel that runs on its own.
