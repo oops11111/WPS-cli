@@ -854,6 +854,349 @@
           "tool": "save_as_open_document"
         }
       ]
+    },
+    {
+      "id": "wps-open-writer-selection-delete",
+      "requires_wps": true,
+      "component": "writer",
+      "fixture": "report.docx",
+      "setup": [
+        "open_in_wps",
+        "select_text"
+      ],
+      "selection": {
+        "text": "DRAFT"
+      },
+      "prompt": "The Writer document report.docx in the current directory is open in WPS, and the word DRAFT in it is selected. Using the wps-agent MCP tools, delete the selected text in WPS, with request_id eval-delete-1. Do not close the document and change nothing else.",
+      "expected_tools": [
+        "open_documents",
+        "documents",
+        "register_document",
+        "writer_selection_read",
+        "writer_selection_delete"
+      ],
+      "checks": [
+        {
+          "kind": "operation_recorded",
+          "request_id": "eval-delete-1",
+          "command": "writer-selection-delete"
+        },
+        {
+          "kind": "tool_called",
+          "tool": "writer_selection_delete",
+          "input": {
+            "request_id": "eval-delete-1"
+          }
+        },
+        {
+          "kind": "file_text",
+          "path": "report.docx",
+          "contains": [
+            "Quarterly report",
+            "Status: ",
+            "Owner: Finance"
+          ],
+          "absent": [
+            "DRAFT"
+          ]
+        },
+        {
+          "kind": "backup_count",
+          "count": 1
+        },
+        {
+          "kind": "tool_not_called",
+          "tool": "writer_replace"
+        }
+      ]
+    },
+    {
+      "id": "wps-open-presentation-selection-insert",
+      "requires_wps": true,
+      "component": "presentation",
+      "fixture": "deck.pptx",
+      "setup": [
+        "open_in_wps",
+        "select_text"
+      ],
+      "selection": {
+        "text": "Status: DRAFT",
+        "collapse": "end"
+      },
+      "prompt": "The presentation deck.pptx in the current directory is open in WPS, and the caret is at the end of the text Status: DRAFT on its slide. Using the wps-agent MCP tools, insert the text \" (v2)\" at the caret in WPS, including its leading space, with request_id eval-slide-insert-1. Do not close the presentation and change nothing else.",
+      "expected_tools": [
+        "open_documents",
+        "documents",
+        "register_document",
+        "presentation_selection_read",
+        "presentation_selection_insert"
+      ],
+      "checks": [
+        {
+          "kind": "operation_recorded",
+          "request_id": "eval-slide-insert-1",
+          "command": "presentation-selection-insert"
+        },
+        {
+          "kind": "tool_called",
+          "tool": "presentation_selection_insert",
+          "input": {
+            "request_id": "eval-slide-insert-1"
+          }
+        },
+        {
+          "kind": "file_text",
+          "path": "deck.pptx",
+          "contains": [
+            "Quarterly review",
+            "Status: DRAFT (v2)"
+          ]
+        },
+        {
+          "kind": "backup_count",
+          "count": 1
+        },
+        {
+          "kind": "tool_not_called",
+          "tool": "presentation_replace"
+        }
+      ]
+    },
+    {
+      "id": "wps-open-presentation-selection-delete",
+      "requires_wps": true,
+      "component": "presentation",
+      "fixture": "deck.pptx",
+      "setup": [
+        "open_in_wps",
+        "select_text"
+      ],
+      "selection": {
+        "text": "DRAFT"
+      },
+      "prompt": "The presentation deck.pptx in the current directory is open in WPS, and the word DRAFT on its slide is selected. Using the wps-agent MCP tools, delete the selected text in WPS, with request_id eval-slide-delete-1. Do not close the presentation and change nothing else.",
+      "expected_tools": [
+        "open_documents",
+        "documents",
+        "register_document",
+        "presentation_selection_read",
+        "presentation_selection_delete"
+      ],
+      "checks": [
+        {
+          "kind": "operation_recorded",
+          "request_id": "eval-slide-delete-1",
+          "command": "presentation-selection-delete"
+        },
+        {
+          "kind": "tool_called",
+          "tool": "presentation_selection_delete",
+          "input": {
+            "request_id": "eval-slide-delete-1"
+          }
+        },
+        {
+          "kind": "file_text",
+          "path": "deck.pptx",
+          "contains": [
+            "Quarterly review",
+            "Status: "
+          ],
+          "absent": [
+            "DRAFT"
+          ]
+        },
+        {
+          "kind": "backup_count",
+          "count": 1
+        },
+        {
+          "kind": "tool_not_called",
+          "tool": "presentation_replace"
+        }
+      ]
+    },
+    {
+      "id": "wps-open-spreadsheet-selection-replace",
+      "requires_wps": true,
+      "component": "spreadsheets",
+      "fixture": "status.xlsx",
+      "setup": [
+        "open_in_wps",
+        "select_text"
+      ],
+      "selection": {
+        "range": "C2:C3",
+        "sheet": "Status"
+      },
+      "prompt": "The workbook status.xlsx in the current directory is open in WPS, and the cells C2:C3 on its sheet Status are selected. Using the wps-agent MCP tools, set every selected cell to FINAL in WPS, with request_id eval-cells-1. Do not close the workbook and change no other cell.",
+      "expected_tools": [
+        "open_documents",
+        "documents",
+        "register_document",
+        "spreadsheet_selection_read",
+        "spreadsheet_selection_replace"
+      ],
+      "checks": [
+        {
+          "kind": "operation_recorded",
+          "request_id": "eval-cells-1",
+          "command": "spreadsheet-selection-replace"
+        },
+        {
+          "kind": "tool_called",
+          "tool": "spreadsheet_selection_replace",
+          "input": {
+            "request_id": "eval-cells-1"
+          }
+        },
+        {
+          "kind": "xlsx_cell",
+          "path": "status.xlsx",
+          "sheet": "Status",
+          "cell": "C2",
+          "value": "FINAL"
+        },
+        {
+          "kind": "xlsx_cell",
+          "path": "status.xlsx",
+          "sheet": "Status",
+          "cell": "C3",
+          "value": "FINAL"
+        },
+        {
+          "kind": "xlsx_cell",
+          "path": "status.xlsx",
+          "sheet": "Status",
+          "cell": "B2",
+          "value": 120
+        },
+        {
+          "kind": "xlsx_cell",
+          "path": "status.xlsx",
+          "sheet": "Status",
+          "cell": "C1",
+          "value": "Status"
+        },
+        {
+          "kind": "backup_count",
+          "count": 1
+        },
+        {
+          "kind": "tool_not_called",
+          "tool": "spreadsheet_write"
+        }
+      ]
+    },
+    {
+      "id": "wps-open-spreadsheet-selection-delete",
+      "requires_wps": true,
+      "component": "spreadsheets",
+      "fixture": "status.xlsx",
+      "setup": [
+        "open_in_wps",
+        "select_text"
+      ],
+      "selection": {
+        "range": "C3",
+        "sheet": "Status"
+      },
+      "prompt": "The workbook status.xlsx in the current directory is open in WPS, and the cell C3 on its sheet Status is selected. Using the wps-agent MCP tools, clear the selected cell in WPS, with request_id eval-clear-1. Do not close the workbook and change no other cell.",
+      "expected_tools": [
+        "open_documents",
+        "documents",
+        "register_document",
+        "spreadsheet_selection_read",
+        "spreadsheet_selection_delete"
+      ],
+      "checks": [
+        {
+          "kind": "operation_recorded",
+          "request_id": "eval-clear-1",
+          "command": "spreadsheet-selection-delete"
+        },
+        {
+          "kind": "tool_called",
+          "tool": "spreadsheet_selection_delete",
+          "input": {
+            "request_id": "eval-clear-1"
+          }
+        },
+        {
+          "kind": "xlsx_cell",
+          "path": "status.xlsx",
+          "sheet": "Status",
+          "cell": "C3",
+          "value": null
+        },
+        {
+          "kind": "xlsx_cell",
+          "path": "status.xlsx",
+          "sheet": "Status",
+          "cell": "C2",
+          "value": "DRAFT"
+        },
+        {
+          "kind": "xlsx_cell",
+          "path": "status.xlsx",
+          "sheet": "Status",
+          "cell": "B3",
+          "value": 95
+        },
+        {
+          "kind": "backup_count",
+          "count": 1
+        },
+        {
+          "kind": "tool_not_called",
+          "tool": "spreadsheet_write"
+        }
+      ]
+    },
+    {
+      "id": "wps-open-save-as-untitled",
+      "requires_wps": true,
+      "component": "writer",
+      "fixture": "report.docx",
+      "setup": [
+        "open_in_wps",
+        "untitled_document"
+      ],
+      "untitled_text": "Meeting notes: budget approved",
+      "prompt": "WPS Writer has a new document named {untitled_name} open that has never been saved. Using the wps-agent MCP tools, save that document as notes.docx in the current directory, with request_id eval-save-as-1. Do not close it, and do not change report.docx, which is also open.",
+      "expected_tools": [
+        "open_documents",
+        "documents",
+        "save_as_open_document"
+      ],
+      "checks": [
+        {
+          "kind": "operation_recorded",
+          "request_id": "eval-save-as-1",
+          "command": "save-as-open-document"
+        },
+        {
+          "kind": "tool_called",
+          "tool": "save_as_open_document",
+          "input": {
+            "request_id": "eval-save-as-1"
+          }
+        },
+        {
+          "kind": "file_text",
+          "path": "notes.docx",
+          "contains": [
+            "Meeting notes: budget approved"
+          ]
+        },
+        {
+          "kind": "file_unchanged"
+        },
+        {
+          "kind": "tool_not_called",
+          "tool": "save_open_document"
+        }
+      ]
     }
   ]
 }

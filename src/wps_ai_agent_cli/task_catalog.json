@@ -3006,7 +3006,7 @@
     "id": "P7-004",
     "phase": "phase7",
     "title": "Agent eval: remaining open-document write tasks",
-    "status": "todo",
+    "status": "done",
     "acceptance": "H2: at least five tasks covering at least five of the six uncovered open-document write commands, each with expected_tools and offline judge tests."
   },
   {
