@@ -72,6 +72,10 @@ def load_runner() -> Any:
     return module
 
 
+# Windows PowerShell writes redirected output in the console code page; window titles came back garbled (P7-007).
+POWERSHELL_UTF8 = "[Console]::OutputEncoding = New-Object System.Text.UTF8Encoding $false; "
+
+
 def _run(command: list[str], timeout: int = 120, **kwargs: Any) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
         command,
@@ -117,7 +121,7 @@ class Machine:
             "[pscustomobject]@{ id = [int]$_.ProcessId; name = $_.Name; command_line = [string]$_.CommandLine; "
             "title = [string]$p.MainWindowTitle } } | ConvertTo-Json -Depth 3"
         )
-        completed = _run(["powershell", "-NoProfile", "-Command", script], timeout=60)
+        completed = _run(["powershell", "-NoProfile", "-Command", POWERSHELL_UTF8 + script], timeout=60)
         text = completed.stdout.strip()
         if not text:
             return []
@@ -129,7 +133,12 @@ class Machine:
 
     def file_version(self, path: str) -> str:
         completed = _run(
-            ["powershell", "-NoProfile", "-Command", f"(Get-Item -LiteralPath '{path}').VersionInfo.FileVersion"],
+            [
+                "powershell",
+                "-NoProfile",
+                "-Command",
+                POWERSHELL_UTF8 + f"(Get-Item -LiteralPath '{path}').VersionInfo.FileVersion",
+            ],
             timeout=60,
         )
         return completed.stdout.strip()

@@ -86,6 +86,42 @@ class OpenDocumentBackupTests(unittest.TestCase):
         self.assertEqual(source.count("source_open_in_wps=True"), calls)
 
 
+class CloseUnchangedDocumentTests(unittest.TestCase):
+    """P7-007: closing a workbook on WPS 12.8 reported a failure although WPS then listed no workbook."""
+
+    def close(self, listed, *, do_close=True, list_ok=True):
+        failure = {"ok": False, "errors": [{"code": "COM_OPERATION_FAILED", "message": "RPC disconnected"}], "data": {}}
+        documents = [{"full_name": str(Path("C:/w/status.xlsx").resolve())}] if listed else []
+        with (
+            patch.object(open_documents, "_run_component_attached_com", return_value=failure),
+            patch.object(
+                open_documents,
+                "list_open_documents",
+                return_value=(list_ok, {"documents": documents}, []),
+            ) as listing,
+        ):
+            outcome = open_documents.close_unchanged_document("spreadsheets", "C:/w/status.xlsx", do_close=do_close)
+        return outcome, listing
+
+    def test_a_failed_close_of_a_document_wps_no_longer_lists_is_a_close(self):
+        (status, error), listing = self.close(listed=False)
+        self.assertEqual((status, error), ("closed", None))
+        listing.assert_called_once_with(component="spreadsheets")
+
+    def test_a_failed_close_stays_a_failure_while_wps_lists_the_document_or_cannot_say(self):
+        for kwargs in ({"listed": True}, {"listed": False, "list_ok": False}):
+            with self.subTest(**kwargs):
+                (status, error), _listing = self.close(**kwargs)
+                self.assertIsNone(status)
+                self.assertEqual(error["message"], "RPC disconnected")
+
+    def test_a_failed_check_without_closing_is_not_turned_into_a_close(self):
+        (status, error), listing = self.close(listed=False, do_close=False)
+        self.assertIsNone(status)
+        self.assertEqual(error["code"], "COM_OPERATION_FAILED")
+        listing.assert_not_called()
+
+
 class ListOpenDocumentsTests(unittest.TestCase):
     def test_reports_missing_instance_without_launching_anything(self):
         with patch.object(

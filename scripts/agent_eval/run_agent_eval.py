@@ -254,7 +254,10 @@ if ($params.component -eq 'spreadsheets') {
   if ([string]::IsNullOrEmpty([string]$params.sheet)) { $sheet = $doc.Worksheets.Item(1) }
   else { $sheet = $doc.Worksheets.Item([string]$params.sheet) }
   $sheet.Activate()
-  $sheet.Range([string]$params.range).Select()
+  # [void]: WPS Spreadsheets returns True from Range.Select(), and a bare call puts it on stdout
+  # ahead of the JSON, which _run_script then reads as a failure. Measured on WPS 12.8.2.18913;
+  # Activate() above puts nothing there.
+  [void]$sheet.Range([string]$params.range).Select()
   $selection = $app.ActiveWindow.Selection
   Out-Result ([pscustomobject]@{
     ok = $true; status = 'ok'; address = [string]$selection.Address($false, $false)
@@ -346,10 +349,18 @@ def stop_started_wps(component: str, started: set[int]) -> str:
 
     _ok, data, _errors = list_open_documents(component)
     if data.get("documents"):
-        return "left running: WPS still lists open documents"
+        # Name them: P7-007 left processes running and the record could not say which document kept them.
+        names = ", ".join(str(item.get("name") or item.get("full_name") or "?") for item in data["documents"])
+        return f"left running: WPS still lists {names}"
     ids = ",".join(str(pid) for pid in sorted(started))
     run_powershell_command(f"Stop-Process -Id {ids} -ErrorAction SilentlyContinue", timeout_seconds=30)
-    return f"stopped {ids}"
+    # Wait until they are gone: in P7-007 the run after a stop could not open its workbook within 45 s, and a
+    # process still shutting down is the likely reason. Not proven; the wait costs nothing when they are gone.
+    deadline = time.monotonic() + 20
+    while time.monotonic() < deadline and wps_process_ids() & started:
+        time.sleep(1)
+    left = sorted(wps_process_ids() & started)
+    return f"stopped {ids}" + (f"; still running after 20 s: {','.join(map(str, left))}" if left else "")
 
 
 def registered_open_command(extension: str) -> str:
@@ -473,7 +484,7 @@ def release_opened_fixture(component: str, path: Path, started: set[int]) -> str
     from wps_ai_agent_cli.open_documents import close_unchanged_document
 
     status, error = close_unchanged_document(component, path, do_close=True)
-    closed = status or (error or {}).get("code")
+    closed = status or f"{(error or {}).get('code')} ({(error or {}).get('message')})"
     if error and error.get("code") == "DOCUMENT_HAS_UNSAVED_CHANGES":
         closed = "discarded: " + str(wps_document_action(component, path, "close_discard").get("status"))
     # Recorded with the run, so that a WPS process left running afterwards can be explained (P6-008 rerun).
