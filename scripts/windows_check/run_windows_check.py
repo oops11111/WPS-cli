@@ -726,11 +726,15 @@ def run_close_diag(args: argparse.Namespace, machine: Machine, runner: Any, diag
         details += [
             f"### {result['launch']} `{result['method']}`",
             "",
-            f"- {diagnostic.METHODS.get(result['method'], '')}",
+            f"- {diagnostic.DESCRIPTIONS.get(result['method'], '')}",
             f"- outcome: {diagnostic.outcome(result)}; still in Workbooks after 2 s: {attempt.get('listed_after')}; "
             f"listed by open-documents: {result.get('listed_by_cli')}",
             f"- error: `{json.dumps(attempt.get('error'), ensure_ascii=False)}`",
         ]
+        if result.get("write"):
+            details.append(f"- write before the close: `{json.dumps(result['write'], ensure_ascii=False)}`")
+        if result.get("restore"):
+            details.append(f"- restore: `{json.dumps(result['restore'], ensure_ascii=False)}`")
         if attempt.get("list_error"):
             details.append(
                 f"- listing Workbooks afterwards failed: `{json.dumps(attempt['list_error'], ensure_ascii=False)}`"
@@ -752,7 +756,10 @@ def run_close_diag(args: argparse.Namespace, machine: Machine, runner: Any, diag
         "",
         "Each row is a new workbook opened with the registered open command (`default`, as a double-click) or "
         "with `/Automation` (`automation`, the control group), then closed with one method. Outcome `closed` "
-        "means the call returned and WPS no longer lists the workbook. A recovery instance is a WPS process with "
+        "means the call returned and WPS no longer lists the workbook. `write_then_*` rows write and save A1 in "
+        "another process first, as the agent's selection write did in P7-007; `restore_close_in_wps` runs the "
+        "product's `restore-backup --close-in-wps` after such a write, and `restored` means it succeeded and A1 "
+        "is the backup's again. A recovery instance is a WPS process with "
         f"`recover` in its command line. Workspaces: `{work}`.",
         "",
         *diagnostic.results_table(results),
@@ -835,6 +842,9 @@ def main(
             "rot_object",
             "invoke_member",
             "window_close",
+            "write_then_close",
+            "write_then_close_false",
+            "restore_close_in_wps",
         ),
         help="Method (repeatable); default: all.",
     )

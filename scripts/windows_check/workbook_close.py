@@ -34,13 +34,34 @@ METHODS: dict[str, str] = {
     "invoke_member": "IDispatch Close through InvokeMember with no arguments, past the PowerShell COM adapter",
     "window_close": "$doc.Windows.Item(1).Close() — the workbook's only window",
 }
+# The first close-diag run (4731b04) closed an untouched workbook with every method. In P7-007 the workbook had
+# just been written and saved by another process (the agent's selection replace) before the close failed. These
+# attempts do the same first: write A1 and save in one PowerShell process, then close in another.
+AFTER_WRITE = {
+    "write_then_close": "close",
+    "write_then_close_false": "close_false",
+}
+# The product path I2 is about: a backup, a write WPS saved, then restore-backup --close-in-wps.
+RESTORE = "restore_close_in_wps"
+DESCRIPTIONS: dict[str, str] = {
+    **METHODS,
+    "write_then_close": "A1 written and saved in another process, then $doc.Close()",
+    "write_then_close_false": "A1 written and saved in another process, then $doc.Close($false)",
+    RESTORE: "backup, A1 written and saved in another process, then restore-backup --close-in-wps",
+}
 # /Automation starts WPS registered for automation: the control group, where closing is expected to work.
 CONTROL_METHODS = ("close", "close_false")
 LAUNCHES = ("default", "automation")
+WRITTEN_TEXT = "written by close-diag"
 
 
 def default_plan() -> list[tuple[str, str]]:
-    return [("default", method) for method in METHODS] + [("automation", method) for method in CONTROL_METHODS]
+    return (
+        [("default", method) for method in METHODS]
+        + [("default", method) for method in AFTER_WRITE]
+        + [("default", RESTORE)]
+        + [("automation", method) for method in CONTROL_METHODS]
+    )
 
 
 _ATTEMPT_BODY = r"""
@@ -121,6 +142,82 @@ def run_close_script(path: Path, method: str) -> dict[str, Any]:
     return result["data"] or {"status": "no_output"}
 
 
+_WRITE_BODY = r"""
+  $sheet = $doc.Worksheets.Item(1)
+  $sheet.Range('A1').Value2 = [string]$params.text
+  $doc.Save()
+  [pscustomobject]@{ ok = $true; status = 'written'; saved = [bool]$doc.Saved; a1 = [string]$sheet.Range('A1').Value2 } | ConvertTo-Json -Depth 5
+"""
+
+
+def write_and_save(path: Path, text: str = WRITTEN_TEXT) -> dict[str, Any]:
+    """Write A1 of the open workbook and save it in WPS, in its own PowerShell process, as a selection write does."""
+    from wps_ai_agent_cli.capabilities import WPS_COMPONENTS
+    from wps_ai_agent_cli.open_document_scripts.spreadsheet import _ATTACHED_SPREADSHEET_WRAPPER
+    from wps_ai_agent_cli.open_documents import _run_script
+
+    result = _run_script(
+        _ATTACHED_SPREADSHEET_WRAPPER.replace("__ACTION_BODY__", _WRITE_BODY),
+        {"prog_ids": list(WPS_COMPONENTS["spreadsheets"]), "path": str(path.resolve()), "text": text},
+        timeout_seconds=120,
+    )
+    if not result["ok"]:
+        return {"status": "script_failed", "errors": result["errors"]}
+    return result["data"] or {"status": "no_output"}
+
+
+def a1_on_disk(path: Path) -> Any:
+    from openpyxl import load_workbook
+
+    try:
+        workbook = load_workbook(path, read_only=True)
+    except Exception as exc:  # noqa: BLE001 - recorded, not raised: a held or broken file is a finding
+        return f"unreadable: {type(exc).__name__}"
+    try:
+        return workbook.worksheets[0]["A1"].value
+    finally:
+        workbook.close()
+
+
+def restore_with_close(path: Path, workspace: Path, write: Callable[[Path], dict[str, Any]]) -> dict[str, Any]:
+    """Back up, write and save in WPS, then restore-backup --close-in-wps; the record says what each step did.
+
+    The workbook is registered and backed up while it is open in WPS, as an open-document write does.
+    """
+    from wps_ai_agent_cli.backups import create_backup, restore_backup
+    from wps_ai_agent_cli.sessions import register_document
+
+    record: dict[str, Any] = {}
+    ok, document, errors = register_document("spreadsheets", str(path), workspace)
+    if not ok:
+        return {"step": "register", "errors": errors}
+    ok, backup, errors, _replayed = create_backup(
+        document["document_id"], "close-diag:backup", workspace=workspace, source_open_in_wps=True
+    )
+    if not ok:
+        return {"step": "backup", "errors": errors}
+    record["write"] = write(path)
+    record["a1_after_write"] = a1_on_disk(path)
+    ok, result, errors, _replayed = restore_backup(
+        document["document_id"],
+        "close-diag:restore",
+        backup_name=Path(backup["backup_path"]).name,
+        workspace=workspace,
+        close_in_wps=True,
+    )
+    record.update(
+        {
+            "step": "restore",
+            "ok": ok,
+            "error_codes": [error.get("code") for error in errors],
+            "errors": errors,
+            "close_in_wps": result.get("close_in_wps") if ok else None,
+            "a1_after_restore": a1_on_disk(path),
+        }
+    )
+    return record
+
+
 def run_attempt(
     launch: str,
     method: str,
@@ -129,9 +226,14 @@ def run_attempt(
     processes: Callable[[], list[dict[str, Any]]],
     *,
     close: Callable[[Path, str], dict[str, Any]] = run_close_script,
+    write: Callable[[Path], dict[str, Any]] = write_and_save,
+    restore: Callable[..., dict[str, Any]] = restore_with_close,
     settle: float = 3.0,
 ) -> dict[str, Any]:
-    """Open a new workbook in WPS, close it with `method`, record what happened, then clean up."""
+    """Open a new workbook in WPS, close it with `method`, record what happened, then clean up.
+
+    An AFTER_WRITE method writes and saves A1 first; RESTORE runs the product's restore-backup --close-in-wps.
+    """
     from wps_ai_agent_cli.open_documents import _listed_in_wps
 
     workspace = root / f"{launch}-{method}"
@@ -146,11 +248,17 @@ def run_attempt(
         result["setup_failed"] = reason
         return result
     try:
-        payload = close(path, method)
-        result["status"] = payload.get("status")
-        result["attempt"] = payload.get("attempt") or {}
-        if payload.get("errors"):
-            result["errors"] = payload["errors"]
+        if method == RESTORE:
+            result["restore"] = restore(path, workspace, write)
+            result["status"] = "restore"
+        else:
+            if method in AFTER_WRITE:
+                result["write"] = write(path)
+            payload = close(path, AFTER_WRITE.get(method, method))
+            result["status"] = payload.get("status")
+            result["attempt"] = payload.get("attempt") or {}
+            if payload.get("errors"):
+                result["errors"] = payload["errors"]
         time.sleep(settle)
         result["listed_by_cli"] = _listed_in_wps("spreadsheets", path)
         result["processes_after"] = processes()
@@ -163,6 +271,15 @@ def outcome(result: dict[str, Any]) -> str:
     """One word for the table: closed, failed but closed, failed and still open, or why nothing was tried."""
     if result.get("setup_failed"):
         return "setup failed"
+    if result.get("status") == "restore":
+        record = result.get("restore") or {}
+        if record.get("step") != "restore":
+            return f"failed before the restore ({record.get('step')})"
+        if record.get("ok") and record.get("a1_after_restore") == "seed":
+            return "restored"
+        return "restore failed: " + (", ".join(record.get("error_codes") or []) or "A1 not restored")
+    if (result.get("write") or {}).get("status") not in (None, "written"):
+        return f"write failed ({result['write'].get('status')})"
     attempt = result.get("attempt") or {}
     if result.get("status") != "attempted":
         return f"not attempted ({result.get('status')})"
@@ -188,7 +305,13 @@ def results_table(results: list[dict[str, Any]]) -> list[str]:
     for result in results:
         attempt = result.get("attempt") or {}
         error = attempt.get("error") or {}
-        message = str(error.get("message") or result.get("setup_failed") or "").replace("|", "\\|").replace("\n", " ")
+        restore_errors = (result.get("restore") or {}).get("errors") or []
+        detail = (
+            error.get("message")
+            or result.get("setup_failed")
+            or "; ".join(f"{item.get('code')}: {item.get('message')}" for item in restore_errors)
+        )
+        message = str(detail or "").replace("|", "\\|").replace("\n", " ")
         recovery = ", ".join(recovery_processes(result.get("processes_after"))) or "none"
         cleanup = str(result.get("cleanup") or "").replace("|", "\\|")
         lines.append(

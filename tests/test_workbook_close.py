@@ -127,9 +127,97 @@ class AttemptTests(unittest.TestCase):
         _result, runner = self.attempt(attempted(), listed=False, launch="automation")
         self.assertEqual(runner.launches[0][0], "automation")
 
+    def test_a_write_then_close_writes_first_and_closes_with_the_base_method(self):
+        steps = []
+        with patch.object(open_documents, "_listed_in_wps", return_value=False):
+            result = workbook_close.run_attempt(
+                "default",
+                "write_then_close_false",
+                FakeRunner(),
+                self.root,
+                list,
+                close=lambda path, name: steps.append(("close", name)) or attempted(),
+                write=lambda path: steps.append(("write", path.name)) or {"status": "written", "saved": True},
+                settle=0,
+            )
+        self.assertEqual(steps, [("write", "close-check.xlsx"), ("close", "close_false")])
+        self.assertEqual(result["write"]["status"], "written")
+        self.assertEqual(workbook_close.outcome(result), "closed")
+
+    def test_a_failed_write_is_the_outcome_whatever_the_close_did(self):
+        with patch.object(open_documents, "_listed_in_wps", return_value=True):
+            result = workbook_close.run_attempt(
+                "default",
+                "write_then_close",
+                FakeRunner(),
+                self.root,
+                list,
+                close=lambda path, name: attempted(),
+                write=lambda path: {"status": "script_failed"},
+                settle=0,
+            )
+        self.assertEqual(workbook_close.outcome(result), "write failed (script_failed)")
+
+    def run_restore(self, record):
+        with patch.object(open_documents, "_listed_in_wps", return_value=False):
+            return workbook_close.run_attempt(
+                "default",
+                workbook_close.RESTORE,
+                FakeRunner(),
+                self.root,
+                list,
+                close=lambda path, name: self.fail("the restore path never runs a close attempt"),
+                restore=lambda path, workspace, write: record,
+                settle=0,
+            )
+
+    def test_the_restore_attempt_is_restored_only_when_a1_is_the_backups_again(self):
+        restored = self.run_restore({"step": "restore", "ok": True, "a1_after_restore": "seed", "error_codes": []})
+        self.assertEqual(workbook_close.outcome(restored), "restored")
+        refused = self.run_restore(
+            {
+                "step": "restore",
+                "ok": False,
+                "a1_after_restore": "written by close-diag",
+                "error_codes": ["WPS_CLOSE_REFUSED"],
+                "errors": [{"code": "WPS_CLOSE_REFUSED", "message": "WPS refused to close close-check.xlsx"}],
+            }
+        )
+        self.assertEqual(workbook_close.outcome(refused), "restore failed: WPS_CLOSE_REFUSED")
+        self.assertIn("WPS_CLOSE_REFUSED: WPS refused", workbook_close.results_table([refused])[2])
+        early = self.run_restore({"step": "backup", "errors": []})
+        self.assertEqual(workbook_close.outcome(early), "failed before the restore (backup)")
+
+    def test_restore_with_close_backs_up_writes_and_restores_through_the_product(self):
+        from openpyxl import Workbook, load_workbook
+
+        book = self.root / "close-check.xlsx"
+        workbook = Workbook()
+        workbook.active["A1"] = "seed"
+        workbook.save(book)
+
+        def write(path):
+            changed = load_workbook(path)
+            changed.active["A1"] = workbook_close.WRITTEN_TEXT
+            changed.save(path)
+            return {"status": "written"}
+
+        closed = {"ok": True, "errors": [], "data": {"status": "closed"}}
+        with patch.object(open_documents, "_run_component_attached_com", return_value=closed) as close:
+            record = workbook_close.restore_with_close(book, self.root, write)
+        self.assertEqual(close.call_args.args[:2], ("spreadsheets", "close-unchanged"))
+        self.assertEqual(record["a1_after_write"], workbook_close.WRITTEN_TEXT)
+        self.assertTrue(record["ok"], record)
+        self.assertEqual(record["close_in_wps"], "closed")
+        self.assertEqual(record["a1_after_restore"], "seed")
+
     def test_the_default_plan_tries_every_method_and_a_control_group(self):
         plan = workbook_close.default_plan()
-        self.assertEqual({method for launch, method in plan if launch == "default"}, set(workbook_close.METHODS))
+        self.assertEqual(
+            {method for launch, method in plan if launch == "default"},
+            {*workbook_close.METHODS, *workbook_close.AFTER_WRITE, workbook_close.RESTORE},
+        )
+        self.assertEqual(set(workbook_close.DESCRIPTIONS), {method for _launch, method in plan})
         self.assertEqual([method for launch, method in plan if launch == "automation"], ["close", "close_false"])
         parser_choices = {"close", "close_false", "close_false_missing", "saved_then_close", "item_by_name"}
         self.assertLessEqual(parser_choices, set(workbook_close.METHODS))
@@ -262,6 +350,22 @@ class CloseAttemptScriptTests(unittest.TestCase):
         self.assertFalse(attempt["in_rot"])
         self.assertFalse(attempt["returned"])
         self.assertIn("Running Object Table", attempt["error"]["message"])
+
+    def test_the_write_script_parses(self):
+        import subprocess
+
+        from wps_ai_agent_cli.open_document_scripts.spreadsheet import _ATTACHED_SPREADSHEET_WRAPPER
+
+        path = self.book.with_name("write.ps1")
+        path.write_text(_ATTACHED_SPREADSHEET_WRAPPER.replace("__ACTION_BODY__", workbook_close._WRITE_BODY))
+        check = (
+            "$errors = $null; [void][System.Management.Automation.Language.Parser]::ParseFile("
+            f"'{path}', [ref]$null, [ref]$errors); $errors.Count"
+        )
+        completed = subprocess.run(
+            [PWSH, "-NoProfile", "-Command", check], capture_output=True, text=True, timeout=120, check=False
+        )
+        self.assertEqual(completed.stdout.strip(), "0", completed.stdout + completed.stderr)
 
     def test_every_method_runs_to_a_record(self):
         for method in workbook_close.METHODS:

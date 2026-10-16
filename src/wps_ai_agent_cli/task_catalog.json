@@ -3055,7 +3055,7 @@
     "id": "P8-002",
     "phase": "phase8",
     "title": "Windows check of the 0.4.1 wheel",
-    "status": "todo",
+    "status": "done",
     "acceptance": "I3: run_windows_check.py wheel --version 0.4.1 passes on Windows; result recorded."
   },
   {
