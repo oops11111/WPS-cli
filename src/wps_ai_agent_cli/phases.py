@@ -89,6 +89,16 @@ PHASES: tuple[Phase, ...] = (
             "open-document write command on Windows, run the Windows checks with one command, and release 0.4.0."
         ),
     ),
+    Phase(
+        id="phase8",
+        name="Chinese content and workbooks opened the usual way",
+        status="planned",
+        goal=(
+            "Make Chinese content work end to end and close workbooks the user opened the usual way: test every "
+            "path non-ASCII text takes, evaluate Chinese tasks on Windows, fix or explain the failing workbook "
+            "close, and release 0.4.1 and 0.5.0."
+        ),
+    ),
 )
 
 
