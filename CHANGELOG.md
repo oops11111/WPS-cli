@@ -4,6 +4,11 @@ All notable changes to `wps-ai-agent-cli`. The versioning rule and release steps
 
 ## [Unreleased]
 
+### Fixed
+
+- The Writer structure parity check ran its PowerShell script with `-File`, so its output (headings, which may be Chinese) was written in the console code page (GBK on Chinese Windows) and read back garbled. It now runs with the same UTF-8 output setting as every other script. (P8-003)
+- The CLI wrote its error messages (stderr) in the system code page, so an argparse error about a Chinese argument reached the caller garbled. stderr is now UTF-8, like stdout and stdin. (P8-003)
+
 ## [0.4.1] - 2026-10-16
 
 Fixes for Chinese Windows found by the Phase 7 Windows evaluation: arguments and output with characters outside ASCII are no longer garbled.

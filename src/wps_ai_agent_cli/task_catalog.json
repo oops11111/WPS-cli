@@ -3062,7 +3062,7 @@
     "id": "P8-003",
     "phase": "phase8",
     "title": "Non-ASCII text on every path",
-    "status": "todo",
+    "status": "done",
     "acceptance": "I1: every text path into and out of the Python process (arguments, stdin, stdout, stderr, subprocesses, file encodings) is checked; real-process tests under a GBK locale and a Chinese fake-COM round trip per component."
   },
   {

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 import subprocess
 import tempfile
 from collections.abc import Iterator, Sequence
@@ -48,6 +49,17 @@ def run_powershell_command(
     )
 
 
+_PARAMETER_NAME = re.compile(r"^-[A-Za-z][A-Za-z0-9]*$")
+
+
+def _powershell_quote(value: str) -> str:
+    return "'" + value.replace("'", "''") + "'"
+
+
+def _powershell_argument(value: str) -> str:
+    return value if _PARAMETER_NAME.match(value) else _powershell_quote(value)
+
+
 def run_powershell_file(
     script_path: str | Path,
     args: Sequence[str] | None = None,
@@ -55,15 +67,20 @@ def run_powershell_file(
     *,
     cwd: str | Path | None = None,
 ) -> subprocess.CompletedProcess[str]:
-    """Run an existing ``.ps1`` file with optional arguments."""
+    """Run an existing ``.ps1`` file with optional arguments.
+
+    It runs through -Command rather than -File so that the UTF-8 output preamble applies to it too (P8-003): the
+    Writer structure parity script prints headings, which may be Chinese. Arguments are quoted for PowerShell;
+    one that looks like a parameter name (``-Path``) stays bare so that it still names the parameter.
+    """
+    invocation = " ".join(["&", _powershell_quote(str(script_path)), *(_powershell_argument(a) for a in args or ())])
     command = [
         powershell_executable(),
         "-NoProfile",
         "-ExecutionPolicy",
         "Bypass",
-        "-File",
-        str(script_path),
-        *(args or ()),
+        "-Command",
+        UTF8_OUTPUT_PREAMBLE + invocation + "; exit $LASTEXITCODE",
     ]
     return subprocess.run(
         command,

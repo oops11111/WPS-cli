@@ -133,6 +133,8 @@ def _configure_stdout() -> None:
         sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     if hasattr(sys.stdin, "reconfigure"):
         sys.stdin.reconfigure(encoding="utf-8", errors="replace")
+    if hasattr(sys.stderr, "reconfigure"):
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
 
 def _request_id(value: str | None) -> str:
