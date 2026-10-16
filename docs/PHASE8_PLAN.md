@@ -1,6 +1,19 @@
 # Phase 8 计划：中文内容和常规打开的工作簿
 
-状态：**active**（2026-10-16 确认，五项决定均按默认建议）。
+状态：**done**（2026-10-16 确认，2026-10-16 完成）。
+
+I1 到 I3 都已达成，证据在下面的“P8-005 结果”“P8-008 结果”和 `scripts/windows_check/results/` 里：
+
+- I1：`tests/test_chinese_text.py`（P8-003）；4 个中文评测任务在 `1c44940` 上一条命令各 3/3。第一轮查出 `export-open-document-text` 拒收 WPS 写出的 GBK 文本，已修（#100）。
+- I2：`close-diag` 两次上机，双击打开的工作簿各种关法都关上；写入保存后 `restore-backup --close-in-wps` 关闭并恢复成功。P7-007 的 `0x800A01A8` 没复现，关法不改，`WPS_CLOSE_REFUSED` 兜底。
+- I3：`v0.4.1`、`v0.5.0` 已发布，两个 wheel 在 Windows 上都通过全部 7 个条件（`4731b04`、`e4ae8c3`）。
+
+遗留缺口（不是出口标准）：
+
+- P7-007 的 `0x800A01A8` 原因没有查清，只是在干净的机器状态下没再出现。
+- WPS 启动时重新打开上一次会话的文档：P8-007 会记录下来，但仍要在上机前手动关掉；被 runner 结束过的 WPS 进程会让 WPS 把当时开着的文档当成要恢复的。
+- 表格里的图表和图形选区写入失败时不能在 WPS 里撤回（P7-001）。
+- 兼容矩阵只有一个 WPS 版本（P5-010）。
 
 ## 目标
 
@@ -48,7 +61,7 @@ Phase 8 把这两件事做完，先尽快把已经修好的发出去（0.4.1）�
 
 | 任务 | 对应标准 | 内容 | 在哪做 |
 | --- | --- | --- | --- |
-| P8-001 | I3 | 定版本 0.4.1，把 `[Unreleased]` 改成 `[0.4.1]`，合并后由你推送 `v0.4.1` 标签（已准备：`__version__` 为 `0.4.1`，`CHANGELOG.md` 有 `[0.4.1] - 2026-10-16` 一节；标签待推送） | 本地 + 你 |
+| P8-001 | I3 | 定版本 0.4.1，把 `[Unreleased]` 改成 `[0.4.1]`，合并后由你推送 `v0.4.1` 标签（已完成：`v0.4.1` 已发布） | 本地 + 你 |
 | P8-002 | I3 | 在 Windows 上用 `run_windows_check.py wheel --version 0.4.1` 检查 Release 的 wheel（已完成：`4731b04` 上通过，SHA-256 与 Release 一致，safe 档 7/7，结果在 `scripts/windows_check/results/20261016T021230Z-wheel-0.4.1/`） | Windows |
 | P8-003 | I1 | 查遍所有进出 Python 进程的文本：CLI 参数、stdin、stdout、stderr、子进程、文件读写的默认编码；补齐 GBK 区域设置下的真实进程测试，以及每个组件的中文假 COM 往返测试（已完成：`tests/test_chinese_text.py`；查出并修了两处：Writer 结构校验脚本用 `-File` 运行、没有 UTF-8 输出设置，CLI 的 stderr 不是 UTF-8） | 本地 |
 | P8-004 | I1 | runner 支持中文测试文档（中文文件名、中文文字、中文工作表名）；编写 4 个中文评测任务，每个补离线判定测试（已完成：`季度报告.docx`、`状态表.xlsx`（工作表 `汇总`）两个中文测试文档，4 个 `wps-open-zh-*` 任务，提示也是中文；纯文本导出按 GBK 回退读取；`run_windows_check.py eval --prefix wps-open-` 一条命令跑全部已打开文档任务） | 本地 |
@@ -56,8 +69,8 @@ Phase 8 把这两件事做完，先尽快把已经修好的发出去（0.4.1）�
 | P8-006 | I2 | 按 P8-005 的结果修 `close_unchanged_document`（以及 runner 的清理）；修不了就加专门的错误码。补假 COM 测试（错误码部分已完成：WPS 拒绝关闭且仍列出文档时返回 `WPS_CLOSE_REFUSED`，说明原因和处理办法，两种结局都需要它兜底；换哪种关法等 P8-005 上机结果。已完成：两次上机所有关法都关上，产品从 0.4.1 起用的 `Close()` 不用换；`WPS_CLOSE_REFUSED` 留作兜底） | 本地 |
 | P8-007 | 缺口 | runner 在每次运行开始时记录 WPS 列出的、不在任务工作区里的文档，写进 `RESULTS.md`（已完成：fixture 在 WPS 里打开后、后续准备步骤之前列一次，记在每次运行的 `documents_outside`；`RESULTS.md` 每次运行一行，另有一节按文档汇总） | 本地 |
 | P8-008 | I1、I2 | 在 Windows 上：4 个中文任务和现有 11 个已打开文档任务一条命令各跑 3 次；`restore-backup --close-in-wps` 对双击打开的工作簿验证一次（后一半已由 P8-005 第二次上机的 `restore_close_in_wps` 完成。已完成：两轮评测见下文“P8-008 结果”，4 个中文任务都 3/3） | Windows |
-| P8-009 | I3 | 定版本 0.5.0，整理 `CHANGELOG.md`，合并后由你推送 `v0.5.0` 标签（已准备：`__version__` 为 `0.5.0`，`CHANGELOG.md` 有 `[0.5.0] - 2026-10-16` 一节；标签待推送） | 本地 + 你 |
-| P8-010 | I3 | 在 Windows 上检查 0.5.0 的 wheel | Windows |
+| P8-009 | I3 | 定版本 0.5.0，整理 `CHANGELOG.md`，合并后由你推送 `v0.5.0` 标签（已准备：`__version__` 为 `0.5.0`，`CHANGELOG.md` 有 `[0.5.0] - 2026-10-16` 一节。已完成：`v0.5.0` 已发布） | 本地 + 你 |
+| P8-010 | I3 | 在 Windows 上检查 0.5.0 的 wheel（已完成：`e4ae8c3` 上通过，SHA-256 与 Release 一致，safe 档 7/7，结果在 `scripts/windows_check/results/20261016T131733Z-wheel-0.5.0/`） | Windows |
 
 ## P8-005 结果
 
@@ -101,7 +114,7 @@ Phase 8 把这两件事做完，先尽快把已经修好的发出去（0.4.1）�
 | --- | --- | --- |
 | I1 | 达成 | P8-003 的测试；P8-008 第二轮 4 个中文任务都 3/3 |
 | I2 | 达成 | P8-005 第二次上机：双击打开、写入保存后的工作簿，`restore-backup --close-in-wps` 关闭并恢复成功；`WPS_CLOSE_REFUSED` 兜底 |
-| I3 | 进行中 | 0.4.1 已发布并在 Windows 上检查通过（P8-002）；0.5.0 已准备（P8-009），待推送标签和 Windows 检查（P8-010） |
+| I3 | 达成 | 0.4.1、0.5.0 都已发布，两个 wheel 在 Windows 上检查通过（P8-002、P8-010） |
 
 ## 建议顺序
 
