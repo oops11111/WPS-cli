@@ -3048,7 +3048,7 @@
     "id": "P8-001",
     "phase": "phase8",
     "title": "Release 0.4.1",
-    "status": "todo",
+    "status": "done",
     "acceptance": "I3: version 0.4.1 per docs/RELEASING.md with the fixes already in [Unreleased], merged before the maintainer pushes the v0.4.1 tag."
   },
   {
@@ -3104,14 +3104,14 @@
     "id": "P8-009",
     "phase": "phase8",
     "title": "Release 0.5.0",
-    "status": "todo",
+    "status": "done",
     "acceptance": "I3: version 0.5.0 per docs/RELEASING.md and a CHANGELOG section, merged before the maintainer pushes the v0.5.0 tag."
   },
   {
     "id": "P8-010",
     "phase": "phase8",
     "title": "Windows check of the 0.5.0 wheel",
-    "status": "todo",
+    "status": "done",
     "acceptance": "I3: run_windows_check.py wheel --version 0.5.0 passes on Windows; result recorded."
   }
 ]

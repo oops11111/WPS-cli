@@ -30,10 +30,10 @@ class PhaseTests(unittest.TestCase):
 
         self.assertEqual(phases["phase7"]["status"], "done")
 
-    def test_phase8_is_active(self):
+    def test_phase8_is_done(self):
         phases = {phase["id"]: phase for phase in list_phases()}
 
-        self.assertEqual(phases["phase8"]["status"], "active")
+        self.assertEqual(phases["phase8"]["status"], "done")
 
 
 if __name__ == "__main__":

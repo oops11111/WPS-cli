@@ -94,11 +94,11 @@
       "id": "phase8",
       "name": "Chinese content and workbooks opened the usual way",
       "goal": "Make Chinese content work end to end and close workbooks the user opened the usual way: test every path non-ASCII text takes, evaluate Chinese tasks on Windows, fix or explain the failing workbook close, and release 0.4.1 and 0.5.0.",
-      "status": "active",
+      "status": "done",
       "exit_criteria": [
-        "I1: offline, real-process tests under a GBK locale show Chinese paths, document names, written text and sheet names reach the CLI and MCP server unchanged and come back unchanged, and each PowerShell component (Writer, Spreadsheets, Presentation) has a fake-COM round trip of Chinese text; on Windows at least four new agent-eval tasks with Chinese content pass at least 2 of 3 runs in one --repeat 3 invocation",
-        "I2: close_unchanged_document closes a workbook reached through the Running Object Table and confirms WPS no longer lists it, and restore-backup --close-in-wps closes and restores a double-clicked workbook on Windows; if that cannot be made to work, a dedicated error code gives the cause and what to do, verified on Windows",
-        "I3: v0.4.1 is released first with the fixes already in [Unreleased], and v0.5.0 at the end with the I1 and I2 changes, per docs/RELEASING.md; each wheel is checked on Windows with run_windows_check.py wheel"
+        "I1: offline, real-process tests under a GBK locale show Chinese paths, document names, written text and sheet names reach the CLI and MCP server unchanged and come back unchanged, and each PowerShell component (Writer, Spreadsheets, Presentation) has a fake-COM round trip of Chinese text; on Windows at least four new agent-eval tasks with Chinese content pass at least 2 of 3 runs in one --repeat 3 invocation (2026-10-16: tests/test_chinese_text.py, P8-003; all four wps-open-zh-* tasks 3/3 in one --repeat 3 --min-passes 2 invocation on main@1c44940, after the first run found the text export rejecting GBK output, fixed in #100)",
+        "I2: close_unchanged_document closes a workbook reached through the Running Object Table and confirms WPS no longer lists it, and restore-backup --close-in-wps closes and restores a double-clicked workbook on Windows; if that cannot be made to work, a dedicated error code gives the cause and what to do, verified on Windows (2026-10-16: run_windows_check.py close-diag closed a double-clicked workbook with every method on main@4731b04, untouched, and on aed06e6 after a write saved by another process, where restore-backup --close-in-wps closed and restored it; P7-007's 0x800A01A8 did not reproduce, the close stays Close(), and WPS_CLOSE_REFUSED is the fallback)",
+        "I3: v0.4.1 is released first with the fixes already in [Unreleased], and v0.5.0 at the end with the I1 and I2 changes, per docs/RELEASING.md; each wheel is checked on Windows with run_windows_check.py wheel (2026-10-16: v0.4.1 and v0.5.0 released; both wheels passed all seven conditions on Windows, safe 7/7, P8-002 on main@4731b04 and P8-010 on e4ae8c3)"
       ]
     }
   ]
