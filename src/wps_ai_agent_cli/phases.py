@@ -92,7 +92,7 @@ PHASES: tuple[Phase, ...] = (
     Phase(
         id="phase8",
         name="Chinese content and workbooks opened the usual way",
-        status="planned",
+        status="active",
         goal=(
             "Make Chinese content work end to end and close workbooks the user opened the usual way: test every "
             "path non-ASCII text takes, evaluate Chinese tasks on Windows, fix or explain the failing workbook "

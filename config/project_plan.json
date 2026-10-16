@@ -1,7 +1,7 @@
 {
   "product": "WPS AI Agent CLI",
   "source_prd": "WPS_AI_Agent_CLI_PRD_v1.1.docx",
-  "current_phase": "phase7",
+  "current_phase": "phase8",
   "phases": [
     {
       "id": "phase0",
@@ -94,7 +94,7 @@
       "id": "phase8",
       "name": "Chinese content and workbooks opened the usual way",
       "goal": "Make Chinese content work end to end and close workbooks the user opened the usual way: test every path non-ASCII text takes, evaluate Chinese tasks on Windows, fix or explain the failing workbook close, and release 0.4.1 and 0.5.0.",
-      "status": "planned",
+      "status": "active",
       "exit_criteria": [
         "I1: offline, real-process tests under a GBK locale show Chinese paths, document names, written text and sheet names reach the CLI and MCP server unchanged and come back unchanged, and each PowerShell component (Writer, Spreadsheets, Presentation) has a fake-COM round trip of Chinese text; on Windows at least four new agent-eval tasks with Chinese content pass at least 2 of 3 runs in one --repeat 3 invocation",
         "I2: close_unchanged_document closes a workbook reached through the Running Object Table and confirms WPS no longer lists it, and restore-backup --close-in-wps closes and restores a double-clicked workbook on Windows; if that cannot be made to work, a dedicated error code gives the cause and what to do, verified on Windows",
