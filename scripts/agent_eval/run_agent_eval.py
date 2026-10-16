@@ -34,6 +34,7 @@ ALLOWED_TOOLS = f"mcp__{MCP_SERVER_NAME}__*"
 
 sys.path.insert(0, str(SRC_DIR))
 from wps_ai_agent_cli.backups import create_backup, list_backups  # noqa: E402
+from wps_ai_agent_cli.open_document_hints import OPEN_DOCUMENT_ALTERNATIVES  # noqa: E402
 from wps_ai_agent_cli.operations import get_operation  # noqa: E402
 from wps_ai_agent_cli.sessions import (  # noqa: E402
     get_document,
@@ -42,6 +43,8 @@ from wps_ai_agent_cli.sessions import (  # noqa: E402
 )
 
 TOOL_PREFIX = f"mcp__{MCP_SERVER_NAME}__wps_agent_"
+# File-based write tools: wrong on a document open in WPS, where the selection tools apply (P9-002).
+FILE_BASED_WRITE_TOOLS = frozenset(command.replace("-", "_") for command in OPEN_DOCUMENT_ALTERNATIVES)
 HTML_TABLE = (
     "<html><body><h2>Sales</h2><table>"
     "<tr><th>Region</th><th>Q1</th></tr><tr><td>North</td><td>120</td></tr><tr><td>South</td><td>95</td></tr>"
@@ -65,6 +68,10 @@ SPREADSHEET_STATUS_ROWS = (("Region", "Q1", "Status"), ("North", 120, "DRAFT"), 
 # workbook, a Chinese sheet name. Same layout as report.docx and status.xlsx.
 WRITER_ZH_FIXTURE = "季度报告.docx"
 WRITER_ZH_PARAGRAPHS = ("季度报告", "状态：草稿", "负责人：财务部")
+# Characters GBK cannot encode, for the text export task (P9-004): an emoji and a CJK character outside the BMP.
+WRITER_BEYOND_GBK_FIXTURE = "核对清单.docx"
+WRITER_BEYOND_GBK_PARAGRAPHS = ("核对清单", "✅ 已核对：𠮷野家", "负责人：财务部")
+WRITER_PARAGRAPHS = {WRITER_ZH_FIXTURE: WRITER_ZH_PARAGRAPHS, WRITER_BEYOND_GBK_FIXTURE: WRITER_BEYOND_GBK_PARAGRAPHS}
 SPREADSHEET_ZH_FIXTURE = "状态表.xlsx"
 SPREADSHEET_ZH_SHEET = "汇总"
 SPREADSHEET_ZH_ROWS = (("地区", "一季度", "状态"), ("华北", 120, "草稿"), ("华南", 95, "草稿"))
@@ -108,7 +115,7 @@ def write_fixture(workspace: Path, name: str) -> str:
         from docx import Document
 
         document = Document()
-        for text in WRITER_ZH_PARAGRAPHS if path.name == WRITER_ZH_FIXTURE else WRITER_FIXTURE_PARAGRAPHS:
+        for text in WRITER_PARAGRAPHS.get(path.name, WRITER_FIXTURE_PARAGRAPHS):
             document.add_paragraph(text)
         document.save(path)
     elif suffix == ".pptx":
@@ -124,6 +131,20 @@ def write_fixture(workspace: Path, name: str) -> str:
     else:
         raise ValueError(f"unsupported fixture type {suffix}")
     return file_sha256(path)
+
+
+def text_file_encoding(path: Path) -> str:
+    """utf-16 or utf-8-sig by byte order mark, utf-8 when it decodes strictly, else other (a code page)."""
+    raw = path.read_bytes()
+    if raw[:2] in (b"\xff\xfe", b"\xfe\xff"):
+        return "utf-16"
+    if raw[:3] == b"\xef\xbb\xbf":
+        return "utf-8-sig"
+    try:
+        raw.decode("utf-8")
+    except UnicodeDecodeError:
+        return "other"
+    return "utf-8"
 
 
 def document_text(path: Path) -> str:
@@ -372,8 +393,70 @@ def component_process_ids(component: str) -> set[int]:
     return {int(token) for token in completed.stdout.split() if token.strip().isdigit()}
 
 
+_QUIT_SCRIPT = """
+$app = Get-RunningWpsApp @($params.prog_ids)
+if ($null -eq $app) {
+  [pscustomobject]@{ status = 'unreachable' } | ConvertTo-Json -Depth 3
+  exit 0
+}
+try { $app.DisplayAlerts = $false } catch { }
+$app.Quit()
+[pscustomobject]@{ status = 'quit' } | ConvertTo-Json -Depth 3
+"""
+
+
+def quit_wps_app(component: str) -> str:
+    """Call Quit() on the component's running WPS: 'quit', 'unreachable', or why it failed.
+
+    A WPS started by opening a file registers nothing once its last document is closed (P8-005), so it is often
+    unreachable here; close_main_windows is the other normal way to end it.
+    """
+    from wps_ai_agent_cli.capabilities import WPS_COMPONENTS
+    from wps_ai_agent_cli.open_document_scripts import _SCRIPT_HEAD
+    from wps_ai_agent_cli.open_documents import _run_script
+    from wps_ai_agent_cli.wps_script_snippets import ATTACH_RUNNING_INSTANCE
+
+    script = _SCRIPT_HEAD + ATTACH_RUNNING_INSTANCE + _QUIT_SCRIPT
+    result = _run_script(script, {"prog_ids": list(WPS_COMPONENTS[component])}, timeout_seconds=60)
+    if not result["ok"]:
+        return "failed: " + "; ".join(str(error.get("message")) for error in result["errors"])
+    return str((result["data"] or {}).get("status") or "no output")
+
+
+def close_main_windows(ids: set[int]) -> None:
+    """Close the processes' main windows, as a user closing WPS would; WPS then exits normally."""
+    from wps_ai_agent_cli.powershell_runner import run_powershell_command
+
+    listed = ",".join(map(str, sorted(ids)))
+    run_powershell_command(
+        f"Get-Process -Id {listed} -ErrorAction SilentlyContinue | ForEach-Object {{ [void]$_.CloseMainWindow() }}",
+        timeout_seconds=30,
+    )
+
+
+def end_wps_normally(component: str, ids: set[int], timeout: float = 20.0) -> tuple[list[int], str]:
+    """Let the component's WPS exit by itself: Quit(), else close its main windows. Returns (exited ids, how).
+
+    A WPS ended with Stop-Process while it still had a document open treats the next start as a recovery and
+    reopens that document; after Phase 7 and Phase 8 runs, every Windows run had to start with closing those by
+    hand (P9-005). A WPS that exits normally reopens nothing.
+    """
+    how = quit_wps_app(component)
+    if how != "quit":
+        close_main_windows(ids)
+        how = "main window closed" if how == "unreachable" else f"main window closed after Quit() {how}"
+    else:
+        how = "Quit()"
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline and component_process_ids(component) & ids:
+        time.sleep(1)
+    return sorted(ids - component_process_ids(component)), how
+
+
 def stop_started_wps(component: str, started: set[int], rounds: int = 3, settle: float = 3.0) -> str:
     """End the component's WPS processes after a run that started one, while WPS lists no document for it.
+
+    It first lets WPS exit normally (end_wps_normally) and stops only the processes still running after that.
 
     Not only the processes the run started: when one is stopped, WPS can start another in its place. In P7-007
     stopping et.exe made WPS start "et.exe recover1 -cpid=<the stopped id>", which reopened status.xlsx in a
@@ -392,6 +475,11 @@ def stop_started_wps(component: str, started: set[int], rounds: int = 3, settle:
         # Name them: P7-007 left processes running and the record could not say which document kept them.
         names = ", ".join(str(item.get("name") or item.get("full_name") or "?") for item in data["documents"])
         return f"left running: WPS still lists {names}"
+    exited: list[int] = []
+    how = ""
+    running = component_process_ids(component)
+    if running:
+        exited, how = end_wps_normally(component, running)
     stopped: list[int] = []
     for _round in range(rounds):
         ids = component_process_ids(component)
@@ -406,7 +494,13 @@ def stop_started_wps(component: str, started: set[int], rounds: int = 3, settle:
         # Give WPS the moment it takes to start a replacement, so the next round sees it.
         time.sleep(settle)
     left = sorted(component_process_ids(component))
-    summary = f"stopped {','.join(map(str, stopped))}" if stopped else "none running"
+    parts = []
+    if exited:
+        parts.append(f"exited {','.join(map(str, exited))} ({how})")
+    if stopped:
+        tried = f" (still running after {how})" if how else ""
+        parts.append(f"stopped {','.join(map(str, stopped))}{tried}")
+    summary = "; ".join(parts) or "none running"
     return summary + (f"; still running after {rounds} rounds: {','.join(map(str, left))}" if left else "")
 
 
@@ -763,10 +857,14 @@ def parse_transcript(lines: list[str]) -> tuple[dict[str, Any], list[dict[str, A
     return result, calls
 
 
-def tool_metrics(calls: list[dict[str, Any]], expected_tools: list[str] | None = None) -> dict[str, Any]:
+def tool_metrics(
+    calls: list[dict[str, Any]], expected_tools: list[str] | None = None, open_document: bool = False
+) -> dict[str, Any]:
     """Counts for one run. With expected_tools, also the wps-agent calls to any other tool (off-path calls).
 
-    Off-path calls are reported, not judged: a task passes or fails on its checks alone.
+    For a task whose document is open in WPS, wrong_tool_calls counts the calls to file-based write tools, which
+    cannot change an open document (P9-002); it is None for other tasks. Off-path and wrong-tool calls are
+    reported, not judged: a task passes or fails on its checks alone.
     """
     wps_calls = [call for call in calls if str(call["name"]).startswith(TOOL_PREFIX)]
     used = [str(call["name"]).removeprefix(TOOL_PREFIX) for call in wps_calls]
@@ -778,6 +876,7 @@ def tool_metrics(calls: list[dict[str, Any]], expected_tools: list[str] | None =
         "expected_tools": sorted(expected_tools) if expected_tools is not None else None,
         "off_path_calls": None,
         "off_path_tools": None,
+        "wrong_tool_calls": sum(tool in FILE_BASED_WRITE_TOOLS for tool in used) if open_document else None,
     }
     if expected_tools is not None:
         off_path = [tool for tool in used if tool not in expected_tools]
@@ -913,6 +1012,11 @@ def judge(
                 present = [item for item in check.get("absent", []) if item in text]
                 passed = not missing and not present
                 detail = "ok" if passed else {"missing": missing, "present": present}
+        elif kind == "text_encoding":
+            path = workspace / check["path"]
+            encoding = text_file_encoding(path) if path.is_file() else None
+            passed = encoding in check["encodings"]
+            detail = encoding or "file missing"
         elif kind == "xlsx_sheets":
             from openpyxl import load_workbook
 
@@ -1027,7 +1131,7 @@ def run_task(
         "id": task["id"],
         "passed": bool(agent.get("ran")) and all(check["passed"] for check in checks),
         "agent": agent,
-        "metrics": tool_metrics(calls, task.get("expected_tools")),
+        "metrics": tool_metrics(calls, task.get("expected_tools"), opens_document(task)),
         "checks": checks,
     }
     error = agent_error(agent)
@@ -1040,6 +1144,11 @@ def run_task(
     if "documents_outside" in state:
         result["documents_outside"] = state["documents_outside"]
     return result
+
+
+def opens_document(task: dict[str, Any]) -> bool:
+    """Whether the task's document is open in WPS while the agent works on it."""
+    return "open_in_wps" in task.get("setup", [])
 
 
 def run_task_repeated(
@@ -1082,7 +1191,7 @@ def run_task_repeated(
                 "passed": False,
                 "setup_failed": result["skipped"],
                 "agent": {},
-                "metrics": tool_metrics([], task.get("expected_tools")),
+                "metrics": tool_metrics([], task.get("expected_tools"), opens_document(task)),
                 "checks": [],
             }
         runs.append(result)
@@ -1104,6 +1213,9 @@ def run_task_repeated(
                 sorted({tool for run in runs for tool in run["metrics"]["off_path_tools"]})
                 if "expected_tools" in task
                 else None
+            ),
+            "wrong_tool_calls": (
+                sum(run["metrics"].get("wrong_tool_calls") or 0 for run in runs) if opens_document(task) else None
             ),
         },
         "runs": runs,
@@ -1178,7 +1290,7 @@ def main(argv: list[str] | None = None) -> int:
             f"{'PASS' if result['passed'] else 'FAIL'} {result['id']} "
             f"({result['passes']}/{result['repeat']} runs passed, need {result['min_passes']}; "
             f"wps-agent calls {metrics.get('wps_tool_calls')}, errors {metrics.get('wps_tool_errors')}, "
-            f"off-path calls {metrics.get('off_path_calls')})"
+            f"off-path calls {metrics.get('off_path_calls')}, wrong-tool calls {metrics.get('wrong_tool_calls')})"
         )
         for index, run in enumerate(result["runs"], 1):
             label = f"  run {index}: " if result["repeat"] > 1 else ""
@@ -1205,6 +1317,7 @@ def summarize(results: list[dict[str, Any]], stamp: str, model: str | None) -> d
         "wps_tool_calls": sum(result.get("metrics", {}).get("wps_tool_calls", 0) for result in ran),
         "wps_tool_errors": sum(result.get("metrics", {}).get("wps_tool_errors", 0) for result in ran),
         "off_path_calls": sum(result.get("metrics", {}).get("off_path_calls") or 0 for result in ran),
+        "wrong_tool_calls": sum(result.get("metrics", {}).get("wrong_tool_calls") or 0 for result in ran),
         "tasks_without_expected_tools": [
             result["id"] for result in ran if result.get("metrics", {}).get("off_path_calls") is None
         ],

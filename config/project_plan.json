@@ -1,7 +1,7 @@
 {
   "product": "WPS AI Agent CLI",
   "source_prd": "WPS_AI_Agent_CLI_PRD_v1.1.docx",
-  "current_phase": "phase8",
+  "current_phase": "phase9",
   "phases": [
     {
       "id": "phase0",
@@ -99,6 +99,18 @@
         "I1: offline, real-process tests under a GBK locale show Chinese paths, document names, written text and sheet names reach the CLI and MCP server unchanged and come back unchanged, and each PowerShell component (Writer, Spreadsheets, Presentation) has a fake-COM round trip of Chinese text; on Windows at least four new agent-eval tasks with Chinese content pass at least 2 of 3 runs in one --repeat 3 invocation (2026-10-16: tests/test_chinese_text.py, P8-003; all four wps-open-zh-* tasks 3/3 in one --repeat 3 --min-passes 2 invocation on main@1c44940, after the first run found the text export rejecting GBK output, fixed in #100)",
         "I2: close_unchanged_document closes a workbook reached through the Running Object Table and confirms WPS no longer lists it, and restore-backup --close-in-wps closes and restores a double-clicked workbook on Windows; if that cannot be made to work, a dedicated error code gives the cause and what to do, verified on Windows (2026-10-16: run_windows_check.py close-diag closed a double-clicked workbook with every method on main@4731b04, untouched, and on aed06e6 after a write saved by another process, where restore-backup --close-in-wps closed and restored it; P7-007's 0x800A01A8 did not reproduce, the close stays Close(), and WPS_CLOSE_REFUSED is the fallback)",
         "I3: v0.4.1 is released first with the fixes already in [Unreleased], and v0.5.0 at the end with the I1 and I2 changes, per docs/RELEASING.md; each wheel is checked on Windows with run_windows_check.py wheel (2026-10-16: v0.4.1 and v0.5.0 released; both wheels passed all seven conditions on Windows, safe 7/7, P8-002 on main@4731b04 and P8-010 on e4ae8c3)"
+      ]
+    },
+    {
+      "id": "phase9",
+      "name": "Right tools, lossless text export, clean Windows runs",
+      "goal": "Make agents pick the open-document tools, keep every character in text exports, and end the Windows runs' WPS cleanly so no manual cleanup is needed; release 0.6.0.",
+      "status": "active",
+      "exit_criteria": [
+        "J1: offline, every file-based write tool refused on a document open in WPS names the matching open-document tool and how its arguments map, the MCP descriptions of those tools say they are not for documents open in WPS, and each evaluation run records wrong_tool_calls (file-based write calls on an open document), shown in RESULTS.md; on Windows all open-document tasks (the existing 15 plus the J2 task) pass at least 2 of 3 runs in one --repeat 3 invocation with wrong_tool_calls summing to 0",
+        "J2: export-open-document-text writes Unicode (UTF-8, or UTF-16 with a byte order mark) for Writer and Spreadsheets, keeping characters outside GBK, and records export_method and text_encoding; fake-COM tests per component; on Windows a new task exporting an open document with characters outside GBK passes at least 2 of 3 runs in the J1 invocation, with no text_encoding of gbk",
+        "J3: the runner's cleanup closes the documents it opened and ends the WPS it started with Quit(), stopping the process only when Quit() fails, and says which in cleanup; on Windows, after one cleanup before the run, every run of the J1 invocation has an empty documents_outside and no process was stopped while WPS still had a document open",
+        "J4: v0.6.0 is released per docs/RELEASING.md with the J1 and J2 changes, and its wheel is checked on Windows with run_windows_check.py wheel"
       ]
     }
   ]

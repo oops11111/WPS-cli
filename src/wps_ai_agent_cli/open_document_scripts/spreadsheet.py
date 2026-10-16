@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from ..wps_script_snippets import ATTACH_RUNNING_INSTANCE
-from .common import _SCRIPT_HEAD
+from .common import _SCRIPT_HEAD, _UNICODE_TEXT_FILE
 from .revert import SPREADSHEET_CAPTURE_AFTER_FORMULAS, SPREADSHEET_CAPTURE_BEFORE_CELLS
 
 MAX_SPREADSHEET_SELECTION_SAMPLE_CELLS = 100
@@ -972,7 +972,9 @@ _SPREADSHEET_EXPORT_COPY_BODY = """
   } | ConvertTo-Json -Depth 5
 """
 
-_SPREADSHEET_EXPORT_TEXT_BODY = """
+_SPREADSHEET_EXPORT_TEXT_BODY = (
+    _UNICODE_TEXT_FILE
+    + """
   if (-not [bool]$doc.Saved) {
     [pscustomobject]@{ ok = $true; status = 'unsaved' } | ConvertTo-Json -Depth 5
     exit 0
@@ -1002,6 +1004,17 @@ _SPREADSHEET_EXPORT_TEXT_BODY = """
       if (Test-Path -LiteralPath $tempCopy) { Remove-Item -LiteralPath $tempCopy -Force -ErrorAction SilentlyContinue }
     } catch { }
   }
+  # The active sheet as text, as WPS writes it: one line per row of the used range, cells separated by tabs.
+  $finish = Complete-WpsUnicodeTextFile ([string]$params.output) {
+    $used = $doc.ActiveSheet.UsedRange
+    $rows = [int]$used.Rows.Count
+    $columns = [int]$used.Columns.Count
+    $lines = for ($row = 1; $row -le $rows; $row++) {
+      (@(for ($column = 1; $column -le $columns; $column++) { [string]$used.Cells.Item($row, $column).Text }) -join "`t")
+    }
+    (@($lines) -join "`r`n") + "`r`n"
+  }
+  if ($finish -ne 'unicode') { $method = $method + '+' + $finish }
   [pscustomobject]@{
     ok = $true
     status = 'ok'
@@ -1011,3 +1024,4 @@ _SPREADSHEET_EXPORT_TEXT_BODY = """
     source_still_open = [bool]($null -ne (Find-OpenWorkbook $app $params.path))
   } | ConvertTo-Json -Depth 5
 """
+)

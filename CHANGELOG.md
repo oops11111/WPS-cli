@@ -4,6 +4,21 @@ All notable changes to `wps-ai-agent-cli`. The versioning rule and release steps
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-10-16
+
+Phase 9: agents are told which tool to use on a document open in WPS, the text export keeps every character, and Windows evaluation runs end WPS normally.
+
+### Added
+
+- Agent evaluation: for tasks whose document is open in WPS, each run counts `wrong_tool_calls`, the calls to file-based write tools that cannot change an open document. The summary and `run_windows_check.py eval`'s `RESULTS.md` show them per task and in total. (P9-002)
+- Agent evaluation: the task `wps-open-zh-document-export-beyond-gbk` exports an open Writer document holding `✅` and `𠮷`, characters outside GBK, and checks they come back and the file is UTF-8 or UTF-16 (new check kind `text_encoding`). (P9-004)
+- Agent evaluation: the runner lets the WPS it started exit normally (`Quit()`, or closing its main window when WPS cannot be reached, as a WPS opened by double-click with no document left cannot) and stops only what is still running after that. A WPS stopped with a document open reopened it on the next start, so every Windows run had to begin by closing those by hand. Each run's `cleanup` says `exited <ids> (Quit())`, `exited <ids> (main window closed)` or `stopped <ids> (still running after ...)`. (P9-005)
+
+### Changed
+
+- `export-open-document-text` (MCP `export_open_document_text`) writes Unicode for Writer and Spreadsheets, so characters outside the system code page survive. WPS 12.8 wrote the Writer export in the code page (GBK on Chinese Windows), where a character such as `✅` or `𠮷` is already `?` in the file. Writer now asks WPS for UTF-8 (`SaveAs2`'s encoding argument, `export_method` `SaveAsUtf8Text`). When the file WPS wrote is in the code page anyway, it is re-encoded to UTF-8 if every character of the document fits the code page (`+transcoded`), and otherwise rewritten as UTF-8 from the document's text read through WPS (`+document_text`; for Spreadsheets, the active sheet's cells). A file WPS wrote as UTF-16 or UTF-8 is kept. Exports that were in GBK before are now UTF-8 with a byte order mark. (P9-003)
+- A file-based write (`writer-replace`, `writer-fill-bookmark`, `writer-table-write`, `presentation-replace`, `spreadsheet-write`, `spreadsheet-formula-write` and the sheet-structure commands) that refuses because the document is open in WPS now says what to use instead: `open_documents` to get the `document_id`, then the selection tools of that component (`*_selection_read`, `_replace`, `_insert`, `_delete`) and how the arguments carry over; for sheet structure, that there is no open-document tool and the workbook has to be saved and closed first. The MCP descriptions of these tools say they are not for documents open in WPS. In P8-008 an agent called `presentation_replace` on an open presentation and was not told which tool to use. (P9-001)
+
 ## [0.5.0] - 2026-10-16
 
 Phase 8: Chinese content works end to end on Chinese Windows, and `restore-backup --close-in-wps` is verified on a workbook opened by double-click.

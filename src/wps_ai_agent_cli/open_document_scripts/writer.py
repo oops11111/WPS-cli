@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from ..wps_script_snippets import ATTACH_RUNNING_INSTANCE
-from .common import _SCRIPT_HEAD
+from .common import _SCRIPT_HEAD, _UNICODE_TEXT_FILE
 
 _ATTACHED_WRITER_WRAPPER = (
     _SCRIPT_HEAD
@@ -325,25 +325,34 @@ _EXPORT_COPY_BODY = """
   } | ConvertTo-Json -Depth 5
 """
 
-_EXPORT_TEXT_BODY = """
+_EXPORT_TEXT_BODY = (
+    _UNICODE_TEXT_FILE
+    + """
   if (-not [bool]$doc.Saved) {
     [pscustomobject]@{ ok = $true; status = 'unsaved' } | ConvertTo-Json -Depth 5
     exit 0
   }
   try { $app.DisplayAlerts = $false } catch { }
   $copy = $null
-  $method = 'SaveAsUnicodeText'
+  $method = 'SaveAsUtf8Text'
   try {
     $copy = $app.Documents.Add([string]$doc.FullName)
+    $missing = [Type]::Missing
     try {
-      $copy.SaveAs2([string]$params.output, 7)
+      # Encoding 65001 (UTF-8) is SaveAs2's twelfth argument; without it WPS 12.8 wrote the code page (P9-003).
+      $copy.SaveAs2([string]$params.output, 7, $missing, $missing, $missing, $missing, $missing, $missing, $missing, $missing, $missing, 65001)
     } catch {
+      $method = 'SaveAsUnicodeText'
       try {
-        $copy.SaveAs([string]$params.output, 7)
+        $copy.SaveAs2([string]$params.output, 7)
       } catch {
-        $method = 'SaveAsText'
-        try { $copy.SaveAs2([string]$params.output, 2) }
-        catch { $copy.SaveAs([string]$params.output, 2) }
+        try {
+          $copy.SaveAs([string]$params.output, 7)
+        } catch {
+          $method = 'SaveAsText'
+          try { $copy.SaveAs2([string]$params.output, 2) }
+          catch { $copy.SaveAs([string]$params.output, 2) }
+        }
       }
     }
   } finally {
@@ -352,6 +361,14 @@ _EXPORT_TEXT_BODY = """
       try { [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($copy) } catch { }
     }
   }
+  # The document's text as plain text: Word ends a table cell with CR + BEL, a line with VT, a page with FF.
+  $finish = Complete-WpsUnicodeTextFile ([string]$params.output) {
+    $text = ([string]$doc.Content.Text).Replace("`r`a", "`t")
+    $text = $text -replace '[\\x0B\\x0C]', "`r"
+    $text = $text -replace '[\\x00-\\x08\\x0E-\\x1F]', ''
+    $text -replace '\\r(?!\\n)', "`r`n"
+  }
+  if ($finish -ne 'unicode') { $method = $method + '+' + $finish }
   [pscustomobject]@{
     ok = $true
     status = 'ok'
@@ -361,3 +378,4 @@ _EXPORT_TEXT_BODY = """
     source_still_open = [bool]($null -ne (Find-OpenWriterDocument $app $params.path))
   } | ConvertTo-Json -Depth 5
 """
+)

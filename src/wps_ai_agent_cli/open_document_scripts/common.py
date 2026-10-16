@@ -240,3 +240,42 @@ _CLOSE_UNCHANGED_BODY = """
   }
   [pscustomobject]@{ ok = $true; status = 'closed'; saved = $true; closed = $true } | ConvertTo-Json -Depth 5
 """
+
+
+# A text export must keep every character (P9-003). WPS 12.8 wrote the Writer export in the system code page (GBK
+# on Chinese Windows), where characters outside it, such as ✅ or 𠮷, are already "?" in the file. Called with
+# the path WPS wrote and a script block that reads the document's text through COM, only when it is needed:
+#   'unicode'       the file is UTF-16 or UTF-8 already, kept as it is;
+#   'transcoded'    the file is in the code page and every character of the document fits it: re-encoded to UTF-8,
+#                   keeping WPS's layout;
+#   'document_text' characters were lost: the file is rewritten as UTF-8 from the document's text.
+# Every rewrite is UTF-8 with a byte order mark.
+_UNICODE_TEXT_FILE = r"""
+function Get-WpsAnsiEncoding {
+  return [System.Text.Encoding]::GetEncoding([System.Globalization.CultureInfo]::CurrentCulture.TextInfo.ANSICodePage)
+}
+function Test-WpsFitsEncoding($encoding, [string]$text) {
+  return [string]::Equals($encoding.GetString($encoding.GetBytes($text)), $text, [System.StringComparison]::Ordinal)
+}
+function Complete-WpsUnicodeTextFile([string]$path, [scriptblock]$readDocumentText) {
+  $bytes = [System.IO.File]::ReadAllBytes($path)
+  if ($bytes.Length -ge 2 -and (($bytes[0] -eq 0xFF -and $bytes[1] -eq 0xFE) -or ($bytes[0] -eq 0xFE -and $bytes[1] -eq 0xFF))) { return 'unicode' }
+  if ($bytes.Length -ge 3 -and $bytes[0] -eq 0xEF -and $bytes[1] -eq 0xBB -and $bytes[2] -eq 0xBF) { return 'unicode' }
+  $utf8 = New-Object System.Text.UTF8Encoding($true)
+  $ansi = Get-WpsAnsiEncoding
+  $asUtf8 = $null
+  try { $asUtf8 = (New-Object System.Text.UTF8Encoding($false, $true)).GetString($bytes) } catch { }
+  $documentText = $null
+  try { $documentText = [string](& $readDocumentText) } catch { }
+  $lossless = ($null -eq $documentText) -or (Test-WpsFitsEncoding $ansi $documentText)
+  # Valid UTF-8 with characters beyond ASCII was written as UTF-8. Plain ASCII is ambiguous: it is also what the
+  # code page leaves when every character outside it became "?", so the document's text decides.
+  if ($null -ne $asUtf8 -and ($asUtf8 -match '[^\x00-\x7F]' -or $lossless)) { return 'unicode' }
+  if ($lossless) {
+    [System.IO.File]::WriteAllText($path, $ansi.GetString($bytes), $utf8)
+    return 'transcoded'
+  }
+  [System.IO.File]::WriteAllText($path, $documentText, $utf8)
+  return 'document_text'
+}
+"""

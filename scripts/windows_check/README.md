@@ -42,7 +42,7 @@ python scripts/windows_check/run_windows_check.py wheel --version 0.4.0
 
 每次运行写到 `scripts/windows_check/results/<时间>-<提交号>-eval/`（`undo` 是 `<时间>-<提交号>-undo`，`close-diag` 是 `<时间>-<提交号>-close-diag`，`wheel` 是 `<时间>-wheel-<版本>`），可以直接提交：
 
-- `RESULTS.md`：日期、提交、机器、WPS 版本、前提检查，以及评测表（格式和 `docs/AGENT_E2E_EVAL.md` 一样）、每次运行没通过的检查、准备失败、Agent 错误、错误码、清理结果、WPS 在任务工作区以外打开着的文档（比如它从上一次会话重新打开的；只记录，不关），最后列出跑完后还在的 WPS 进程；`undo` 列出每个场景的哈希、错误码和每个通过条件；`wheel` 则列出每个通过条件。
+- `RESULTS.md`：日期、提交、机器、WPS 版本、前提检查，以及评测表（格式和 `docs/AGENT_E2E_EVAL.md` 一样，另有 `wrong_tool_calls` 一列和合计：已打开文档任务里调用按文件写入工具的次数）、每次运行没通过的检查、准备失败、Agent 错误、错误码、清理结果、WPS 在任务工作区以外打开着的文档（比如它从上一次会话重新打开的；只记录，不关），最后列出跑完后还在的 WPS 进程；`undo` 列出每个场景的哈希、错误码和每个通过条件；`wheel` 则列出每个通过条件。
 - `results.json`：同样的内容，供机器读取；`eval` 中断时它也是续跑的依据。
 - `summary.json`：`eval` 时 runner 的原始汇总。
 

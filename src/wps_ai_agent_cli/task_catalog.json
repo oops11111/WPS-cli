@@ -3113,5 +3113,61 @@
     "title": "Windows check of the 0.5.0 wheel",
     "status": "done",
     "acceptance": "I3: run_windows_check.py wheel --version 0.5.0 passes on Windows; result recorded."
+  },
+  {
+    "id": "P9-001",
+    "phase": "phase9",
+    "title": "File-based write refusals name the open-document tool",
+    "status": "done",
+    "acceptance": "J1: a file-based write tool refused on a document open in WPS names the matching open-document tool and how its arguments map; the MCP descriptions say these tools are not for open documents; offline tests."
+  },
+  {
+    "id": "P9-002",
+    "phase": "phase9",
+    "title": "Agent eval: count wrong_tool_calls",
+    "status": "done",
+    "acceptance": "J1: each evaluation run records wrong_tool_calls (file-based write calls on a document open in WPS); the summary and RESULTS.md show them; offline tests."
+  },
+  {
+    "id": "P9-003",
+    "phase": "phase9",
+    "title": "Unicode text export for Writer and Spreadsheets",
+    "status": "done",
+    "acceptance": "J2: export-open-document-text writes UTF-8 or UTF-16 with a byte order mark, keeping characters outside GBK, trying SaveAs2's Encoding argument first and otherwise writing the text read through COM; export_method recorded; fake-COM tests."
+  },
+  {
+    "id": "P9-004",
+    "phase": "phase9",
+    "title": "Agent eval: export text with characters outside GBK",
+    "status": "done",
+    "acceptance": "J2: a new task exports an open Writer document holding characters outside GBK; the judge checks they come back unchanged and text_encoding is not gbk; offline judge tests."
+  },
+  {
+    "id": "P9-005",
+    "phase": "phase9",
+    "title": "Runner ends its WPS with Quit()",
+    "status": "done",
+    "acceptance": "J3: the runner closes the documents it opened, then calls Quit() on the WPS it started, stopping the process only if Quit() fails or times out, and records which in cleanup; offline tests."
+  },
+  {
+    "id": "P9-006",
+    "phase": "phase9",
+    "title": "Windows run of J1 to J3",
+    "status": "todo",
+    "acceptance": "J1, J2, J3: after one cleanup, all open-document tasks in one --repeat 3 invocation; wrong_tool_calls, text_encoding, documents_outside and cleanup recorded."
+  },
+  {
+    "id": "P9-007",
+    "phase": "phase9",
+    "title": "Release 0.6.0",
+    "status": "todo",
+    "acceptance": "J4: version 0.6.0 per docs/RELEASING.md and a CHANGELOG section, merged before the maintainer pushes the v0.6.0 tag."
+  },
+  {
+    "id": "P9-008",
+    "phase": "phase9",
+    "title": "Windows check of the 0.6.0 wheel",
+    "status": "todo",
+    "acceptance": "J4: run_windows_check.py wheel --version 0.6.0 passes on Windows; result recorded."
   }
 ]

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import itertools
 import json
 import os
 import subprocess
@@ -38,6 +39,7 @@ KNOWN_CHECK_KINDS = {
     "xlsx_sheets",
     "docx_table_cell",
     "pdf_file",
+    "text_encoding",
 }
 WPS_WRITE_TASKS = (
     "wps-spreadsheet-write",
@@ -63,10 +65,11 @@ WPS_WRITE_TASKS = (
     "wps-open-zh-spreadsheet-sheet-cells",
     "wps-open-zh-document-export-text",
     "wps-open-zh-save-as-untitled",
+    "wps-open-zh-document-export-beyond-gbk",
 )
 # Phase 8 (I1): Chinese-content tasks, one for each path Chinese text takes: written text, a sheet name, a file
 # name of an open document, and the name WPS gives an untitled document.
-CHINESE_TASKS = WPS_WRITE_TASKS[-4:]
+CHINESE_TASKS = WPS_WRITE_TASKS[-5:]
 # Every tool that writes to a document open in WPS; Phase 7 (H2) asks for an evaluation task for each.
 OPEN_DOCUMENT_WRITE_TOOLS = {
     "writer_selection_replace",
@@ -248,6 +251,11 @@ class AgentEvalTaskFileTests(unittest.TestCase):
                 run_agent_eval.document_text(Path(tmp) / "季度报告.docx").split("\n"),
                 ["季度报告", "状态：草稿", "负责人：财务部"],
             )
+            run_agent_eval.write_fixture(Path(tmp), "核对清单.docx")
+            beyond = run_agent_eval.document_text(Path(tmp) / "核对清单.docx")
+            self.assertIn("✅ 已核对：𠮷野家", beyond)
+            with self.assertRaises(UnicodeEncodeError):
+                beyond.encode("gbk")
             run_agent_eval.write_fixture(Path(tmp), "状态表.xlsx")
             workbook = load_workbook(Path(tmp) / "状态表.xlsx")
             rows = [list(row) for row in workbook["汇总"].iter_rows(values_only=True)]
@@ -689,6 +697,61 @@ class AgentEvalJudgeTests(unittest.TestCase):
 
         self.assertIsNone(metrics["off_path_calls"])
         self.assertIsNone(metrics["off_path_tools"])
+
+    def test_file_based_write_calls_on_an_open_document_are_wrong_tool_calls(self):
+        calls = [
+            _call("open_documents"),
+            _call("presentation_replace", error_codes=["DOCUMENT_HELD_OPEN"], find="DRAFT", replace="FINAL"),
+            _call("presentation_selection_replace", text="FINAL"),
+            _call("writer_replace"),
+            {"name": "Bash", "input": {}, "is_error": False, "error_codes": []},
+        ]
+        open_task = run_agent_eval.tool_metrics(calls, None, open_document=True)
+        self.assertEqual(open_task["wrong_tool_calls"], 2)
+        self.assertIsNone(run_agent_eval.tool_metrics(calls, None)["wrong_tool_calls"])
+        self.assertEqual(run_agent_eval.tool_metrics([], None, open_document=True)["wrong_tool_calls"], 0)
+        # Every tool counted exists in the MCP catalog, under the name the agent sees.
+        from wps_ai_agent_cli.mcp_schema import list_mcp_tool_schemas
+
+        names = {schema["name"].removeprefix("wps_agent_") for schema in list_mcp_tool_schemas()}
+        self.assertLessEqual(run_agent_eval.FILE_BASED_WRITE_TOOLS, names)
+
+    def test_wrong_tool_calls_add_up_over_runs_and_tasks(self):
+        calls = [_call("presentation_replace", error_codes=["DOCUMENT_HELD_OPEN"])]
+        open_task = _task("wps-open-presentation-selection-insert")
+        with (
+            tempfile.TemporaryDirectory() as tmp,
+            patch.object(run_agent_eval, "open_in_wps", return_value=(lambda: "closed", None)),
+            patch.object(run_agent_eval, "prepare_open_document", return_value=None),
+            patch.object(run_agent_eval, "documents_outside", return_value=[]),
+        ):
+            result = run_agent_eval.run_task_repeated(
+                open_task,
+                open_task["fixture"],
+                open_task["component"],
+                Path(tmp),
+                None,
+                15,
+                60,
+                repeat=2,
+                min_passes=1,
+                runner=_fake_agent(lambda ws: None, calls),
+                has_wps=lambda component: True,
+            )
+            offline = run_agent_eval.run_task_repeated(
+                _task("register-and-backup"),
+                "book.xlsx",
+                "spreadsheets",
+                Path(tmp) / "b",
+                None,
+                15,
+                60,
+                runner=_fake_agent(lambda ws: None, calls),
+            )
+        self.assertEqual(result["metrics"]["wrong_tool_calls"], 2)
+        self.assertIsNone(offline["metrics"]["wrong_tool_calls"])
+        summary = run_agent_eval.summarize([result, offline], "stamp", None)
+        self.assertEqual(summary["wrong_tool_calls"], 2)
 
     def test_off_path_calls_are_reported_but_do_not_fail_a_task(self):
         def agent(workspace):
@@ -1676,6 +1739,45 @@ class AgentEvalJudgeTests(unittest.TestCase):
         self.assertTrue(passed["passed"], passed)
         self.assertEqual([c["kind"] for c in ascii_name["checks"] if not c["passed"]], ["file_text"])
 
+    def test_an_export_beyond_gbk_needs_every_character_and_a_unicode_file(self):
+        text = "\r\n".join(run_agent_eval.WRITER_BEYOND_GBK_PARAGRAPHS) + "\r\n"
+        calls = [_call("open_documents"), _call("export_open_document_text", output="核对清单.txt")]
+
+        def export(workspace, data):
+            (workspace / "核对清单.txt").write_bytes(data)
+
+        task = "wps-open-zh-document-export-beyond-gbk"
+        with (
+            tempfile.TemporaryDirectory() as tmp,
+            patch.object(run_agent_eval, "open_in_wps", return_value=(lambda: None, None)),
+            patch.object(run_agent_eval, "documents_outside", return_value=[]),
+        ):
+            results = {
+                name: self.run_wps_task(task, Path(tmp) / name, lambda ws, data=data: export(ws, data), calls)
+                for name, data in (
+                    ("utf8", text.encode("utf-8-sig")),
+                    ("utf16", "\ufeff".encode("utf-16-le") + text.encode("utf-16-le")),
+                    # What 0.5.0 left: GBK, with the characters it cannot encode turned into "?".
+                    ("gbk", text.encode("gbk", errors="replace")),
+                )
+            }
+        self.assertTrue(results["utf8"]["passed"], results["utf8"])
+        self.assertTrue(results["utf16"]["passed"], results["utf16"])
+        failed = {(c["kind"], str(c["detail"])[:5]) for c in results["gbk"]["checks"] if not c["passed"]}
+        self.assertEqual(failed, {("file_text", "{'mis"), ("text_encoding", "other")})
+
+    def test_the_text_file_encoding_is_named_by_byte_order_mark_or_strict_utf8(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "a.txt"
+            for data, expected in (
+                ("✅".encode("utf-8-sig"), "utf-8-sig"),
+                ("\ufeff✅".encode("utf-16-le"), "utf-16"),
+                ("✅".encode(), "utf-8"),
+                ("核对".encode("gbk"), "other"),
+            ):
+                path.write_bytes(data)
+                self.assertEqual(run_agent_eval.text_file_encoding(path), expected, data)
+
     def test_mcp_config_runs_the_server_in_the_task_workspace(self):
         with tempfile.TemporaryDirectory() as tmp:
             workspace = Path(tmp) / "task"
@@ -2010,13 +2112,29 @@ class OpenDocumentSetupTests(unittest.TestCase):
             outcome = run_agent_eval.release_opened_fixture("spreadsheets", self.fixture, set())
         self.assertEqual(outcome, "fixture COM_OPERATION_FAILED (RPC disconnected); processes none started")
 
-    def stop_with(self, running, documents=(), replacements=()):
-        """stop_started_wps against a simulated process table. Each stop may start one queued replacement."""
+    def stop_with(self, running, documents=(), replacements=(), exits=None, quit_status="unreachable"):
+        """stop_started_wps against a simulated process table. Each stop may start one queued replacement.
+
+        `exits` is how WPS ends normally in the simulation: "quit" when Quit() ends it, "window" when closing its
+        main window does, None when neither does.
+        """
         from wps_ai_agent_cli import open_documents, powershell_runner
 
         table = set(running)
         queued = list(replacements)
         stops = []
+        normal = []
+
+        def quit_app(component):
+            normal.append("quit")
+            if exits == "quit" and quit_status == "quit":
+                table.clear()
+            return quit_status
+
+        def close_windows(ids):
+            normal.append(sorted(ids))
+            if exits == "window":
+                table.difference_update(ids)
 
         def command(script, timeout_seconds=10, **kwargs):
             if script.startswith("Stop-Process"):
@@ -2033,17 +2151,39 @@ class OpenDocumentSetupTests(unittest.TestCase):
             ),
             patch.object(powershell_runner, "run_powershell_command", side_effect=command),
             patch.object(run_agent_eval, "component_process_ids", side_effect=lambda component: set(table)),
+            patch.object(run_agent_eval, "quit_wps_app", side_effect=quit_app),
+            patch.object(run_agent_eval, "close_main_windows", side_effect=close_windows),
             patch.object(run_agent_eval.time, "sleep"),
+            patch.object(run_agent_eval.time, "monotonic", side_effect=itertools.count(0, 5)),
         ):
             outcome = run_agent_eval.stop_started_wps("spreadsheets", {49320})
+        self.normal = normal
         return outcome, stops, table
+
+    def test_wps_is_let_exit_normally_before_any_process_is_stopped(self):
+        # P9-005: a WPS stopped with a document open reopens it on the next start; one that exits does not.
+        outcome, stops, table = self.stop_with({49320}, exits="window")
+        self.assertEqual(outcome, "exited 49320 (main window closed)")
+        self.assertEqual((stops, table), ([], set()))
+        self.assertEqual(self.normal, ["quit", [49320]])
+        outcome, stops, _table = self.stop_with({49320}, exits="quit", quit_status="quit")
+        self.assertEqual(outcome, "exited 49320 (Quit())")
+        self.assertEqual(stops, [])
+        self.assertEqual(self.normal, ["quit"])
+
+    def test_a_wps_that_does_not_exit_is_stopped_and_the_record_says_what_was_tried(self):
+        outcome, stops, _table = self.stop_with({49320}, quit_status="failed: RPC_E_SERVERFAULT")
+        self.assertEqual(stops, [[49320]])
+        self.assertEqual(
+            outcome, "stopped 49320 (still running after main window closed after Quit() failed: RPC_E_SERVERFAULT)"
+        )
 
     def test_started_wps_processes_are_ended_only_when_wps_lists_no_document(self):
         outcome, stops, table = self.stop_with({49320}, documents=[{"name": "other.xlsx"}])
         self.assertEqual(outcome, "left running: WPS still lists other.xlsx")
         self.assertEqual(stops, [])
         outcome, stops, table = self.stop_with({49320})
-        self.assertEqual(outcome, "stopped 49320")
+        self.assertEqual(outcome, "stopped 49320 (still running after main window closed)")
         self.assertEqual(stops, [[49320]])
         self.assertEqual(table, set())
         from wps_ai_agent_cli import powershell_runner
@@ -2057,13 +2197,15 @@ class OpenDocumentSetupTests(unittest.TestCase):
         # status.xlsx without registering for automation, so the next runs could not reach their workbook.
         outcome, stops, table = self.stop_with({49320}, replacements=[27324])
         self.assertEqual(stops, [[49320], [27324]])
-        self.assertEqual(outcome, "stopped 49320,27324")
+        self.assertEqual(outcome, "stopped 49320,27324 (still running after main window closed)")
         self.assertEqual(table, set())
 
     def test_a_process_that_keeps_coming_back_is_reported_after_three_rounds(self):
         outcome, stops, table = self.stop_with({1}, replacements=[2, 3, 4])
         self.assertEqual(stops, [[1], [2], [3]])
-        self.assertEqual(outcome, "stopped 1,2,3; still running after 3 rounds: 4")
+        self.assertEqual(
+            outcome, "stopped 1,2,3 (still running after main window closed); still running after 3 rounds: 4"
+        )
 
     def test_the_registered_open_command_becomes_the_launch_command_line(self):
         path = Path("C:/Users/a b/report.docx")
@@ -2134,10 +2276,12 @@ class OpenDocumentScriptParseTests(unittest.TestCase):
     def test_the_runner_scripts_parse(self):
         import subprocess
 
+        from wps_ai_agent_cli.open_document_scripts import _SCRIPT_HEAD
         from wps_ai_agent_cli.wps_script_snippets import ATTACH_RUNNING_INSTANCE
 
         scripts = {
             "document": run_agent_eval._WPS_DOCUMENT_SCRIPT.replace("__ATTACH__", ATTACH_RUNNING_INSTANCE),
+            "quit": _SCRIPT_HEAD + ATTACH_RUNNING_INSTANCE + run_agent_eval._QUIT_SCRIPT,
         }
         for name, script in scripts.items():
             with self.subTest(script=name), tempfile.TemporaryDirectory() as tmp:
@@ -2151,6 +2295,22 @@ class OpenDocumentScriptParseTests(unittest.TestCase):
                     [PWSH, "-NoProfile", "-Command", check], capture_output=True, text=True, timeout=120, check=False
                 )
                 self.assertEqual(completed.stdout.strip(), "0", completed.stdout + completed.stderr)
+
+    def test_quit_reports_a_wps_it_cannot_reach_and_one_that_refuses(self):
+        from tests.test_open_documents_powershell import FAKE_WPS_PRELUDE
+        from wps_ai_agent_cli import open_documents, powershell_runner
+
+        def render(script, values):
+            return FAKE_WPS_PRELUDE + open_documents.json.dumps(values).join(script.split("__PARAMS_JSON__"))
+
+        with (
+            patch.object(powershell_runner, "powershell_executable", return_value=PWSH),
+            patch.object(open_documents, "_render", side_effect=render),
+        ):
+            with patch.dict(os.environ, {"WPSFAKE_MODE": "none"}):
+                self.assertEqual(run_agent_eval.quit_wps_app("writer"), "unreachable")
+            # The fake application has no Quit(): the failure is reported, so the caller closes the window.
+            self.assertTrue(run_agent_eval.quit_wps_app("writer").startswith("failed: "))
 
 
 class OpenDocumentScriptStdoutTests(unittest.TestCase):
