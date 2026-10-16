@@ -69,6 +69,17 @@ Phase 8 把这两件事做完，先尽快把已经修好的发出去（0.4.1）�
 - **和 P7-007 的差别在于写入。** P7-007 关不上的工作簿，在关之前刚被 Agent 的选区替换在另一个进程里写入并保存过；这次的工作簿没被改过。所以第二次上机加了三行：先在另一个进程里写入 A1 并保存，再用 `Close()` 或 `Close($false)` 关（`write_then_close`、`write_then_close_false`）；以及产品自己的路径：备份、写入并保存、再 `restore-backup --close-in-wps`（`restore_close_in_wps`），这正是 I2 要验证的。
 - **WPS 每次启动都重新打开一个 `status.xlsx`。** 第一次尝试之后 `et.exe` 40128 一直列着它，runner 的清理因此不结束进程（“WPS still lists status.xlsx”），后面 7 种关法都在这个进程里跑（打开命令把文件交给已在运行的 WPS，和用户双击一样，不影响结论）；`/Automation` 新启动的 47744 也重新打开了它。它很可能是 Phase 7 评测留下的工作簿：runner 结束 `et.exe` 时它还开着，WPS 当成异常退出，此后每次启动都恢复它（结果里只有名字，没有路径）。P8-008 之前要在 WPS 表格里把它正常关掉、再正常退出 WPS，否则评测的每次运行都会混进它（P8-007 会把它记在 `documents_outside` 里）。
 
+## P8-008 结果
+
+### 第一轮（`aed06e6`，2026-10-16）
+
+结果在 `scripts/windows_check/results/20261016T035749Z-aed06e6-eval/`，命令 `eval --prefix wps-open- --repeat 3 --min-passes 2`。**15 个任务 14 个通过。**
+
+- **`wps-open-zh-document-export-text` 0/3，是产品缺陷。** 三次都是 `EXPORT_OUTPUT_NOT_TEXT`。WPS 把中文正文按系统代码页（GBK）写出，`export-open-document-text` 判断“是不是纯文本”时只试 UTF-8 和 UTF-16；`季度报告\r\n状态：` 之后的 `草` 是 `b2 dd`，落在偶数偏移上，按 UTF-16 读是孤立的代理项，两种都失败，于是一个正确的导出被拒绝并删除。英文任务能过只是因为 ASCII 也是合法的 UTF-8。用测试文档的原文按 GBK 编码即可复现。已修：也接受 GBK，`data.text_encoding` 写明编码，被拒绝时在 `data.output_head_hex` 留下开头的字节。0.4.1 及以前都有这个缺陷，正是 I1 要这些中文任务的原因。
+- **其余 3 个中文任务都是 3/3**（选区替换成中文、中文工作表名的单元格、未命名文档另存为中文文件名）。I1 要 4 个都至少 2/3，所以修好后要用 `eval --prefix wps-open-zh-` 再跑一次 4 个中文任务。
+- **11 个已有任务都通过。** 演示的插入和删除各 2/3：没过的那次 Agent 改用了按文件的 `presentation_replace`，得到 `DOCUMENT_HELD_OPEN`；这是 Agent 选错工具，任务按 2/3 判通过。
+- **WPS 演示每次启动都重新打开一个 Phase 6 留下的 `deck.pptx`**（`%TEMP%\wps-p6\eval-open-174f04e\...\deck.pptx`）。P8-007 把它记在 20 次运行里；因为它一直开着，runner 不结束 `wpp.exe`，演示任务都在同一个进程里跑。下次上机前在 WPS 演示里把它正常关掉、再正常退出。
+
 ## 建议顺序
 
 1. 先做 P8-001，你推送 `v0.4.1` 后做 P8-002。

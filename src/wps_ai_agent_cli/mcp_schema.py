@@ -803,7 +803,7 @@ MCP_TOOL_SCHEMAS: tuple[dict[str, Any], ...] = (
         idempotency="Creates an artifact; request_id should be supplied and is replayed by the operation ledger.",
         safety_notes=[
             "Writer exports a Documents.Add copy via text SaveAs; Presentation extracts shape text per slide to UTF-8; Spreadsheet uses a temporary SaveCopyAs then Unicode/Windows text SaveAs.",
-            "Rejects unsaved documents with DOCUMENT_HAS_UNSAVED_CHANGES (use save-open-document first); rejects non-text bytes (for example packages or PDF); refuses to overwrite an existing file; checks the source file hash afterwards.",
+            "Rejects unsaved documents with DOCUMENT_HAS_UNSAVED_CHANGES (use save-open-document first); rejects non-text bytes (for example packages or PDF); refuses to overwrite an existing file; checks the source file hash afterwards. data.text_encoding names the file's encoding (utf-16, utf-8, utf-8-sig, or gbk when WPS writes the Chinese Windows code page).",
             "Never launches WPS and never Quit()s an attached instance; the open source document is not renamed or closed.",
         ],
     ),
