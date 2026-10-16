@@ -1,0 +1,462 @@
+{
+  "prerequisites": {
+    "passed": true,
+    "checks": [
+      {
+        "name": "commit",
+        "ok": true,
+        "detail": "4731b04 on main",
+        "required": true
+      },
+      {
+        "name": "python",
+        "ok": true,
+        "detail": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\.venv\\Scripts\\python.exe",
+        "required": true
+      },
+      {
+        "name": "windows",
+        "ok": true,
+        "detail": "Windows-10-10.0.19045-SP0",
+        "required": true
+      },
+      {
+        "name": "no WPS process running",
+        "ok": true,
+        "detail": "none",
+        "required": true
+      },
+      {
+        "name": "open command .docx",
+        "ok": true,
+        "detail": "\"C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\wps.exe\" \"%1\"",
+        "required": true
+      },
+      {
+        "name": "open command .xlsx",
+        "ok": true,
+        "detail": "\"C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\et.exe\" \"%1\"",
+        "required": true
+      },
+      {
+        "name": "open command .pptx",
+        "ok": true,
+        "detail": "\"C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\wpp.exe\" \"%1\"",
+        "required": true
+      },
+      {
+        "name": "inspect-env",
+        "ok": true,
+        "detail": "{\"presentation\": \"kwpp.Application\", \"spreadsheets\": \"ket.Application\", \"writer\": \"kwps.Application\"}",
+        "required": true
+      }
+    ],
+    "info": {
+      "commit": "4731b04",
+      "branch": "main",
+      "python": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\.venv\\Scripts\\python.exe",
+      "platform": "Windows-10-10.0.19045-SP0",
+      "wps_versions": {
+        "wps.exe": "12,8,2,18913",
+        "et.exe": "12,8,2,18913",
+        "wpp.exe": "12,8,2,18913"
+      }
+    }
+  },
+  "settings": {
+    "plan": [
+      [
+        "default",
+        "close"
+      ],
+      [
+        "default",
+        "close_false"
+      ],
+      [
+        "default",
+        "close_false_missing"
+      ],
+      [
+        "default",
+        "saved_then_close"
+      ],
+      [
+        "default",
+        "item_by_name"
+      ],
+      [
+        "default",
+        "rot_object"
+      ],
+      [
+        "default",
+        "invoke_member"
+      ],
+      [
+        "default",
+        "window_close"
+      ],
+      [
+        "automation",
+        "close"
+      ],
+      [
+        "automation",
+        "close_false"
+      ]
+    ]
+  },
+  "results": [
+    {
+      "launch": "default",
+      "method": "close",
+      "workspace": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261016T021338Z-4731b04-close-diag\\default-close",
+      "processes_before": [],
+      "status": "attempted",
+      "attempt": {
+        "method": "close",
+        "attached_via": "running_object_table",
+        "name": "close-check.xlsx",
+        "saved_before": true,
+        "in_rot": true,
+        "returned": true,
+        "error": null,
+        "listed_after": false,
+        "list_error": null
+      },
+      "listed_by_cli": false,
+      "processes_after": [
+        {
+          "id": 40128,
+          "name": "et.exe",
+          "command_line": "\"C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\et.exe\" \"C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261016T021338Z-4731b04-close-diag\\default-close\\close-check.xlsx\"",
+          "title": "status.xlsx - WPS 表格"
+        }
+      ],
+      "cleanup": "fixture not_open; processes left running: WPS still lists status.xlsx"
+    },
+    {
+      "launch": "default",
+      "method": "close_false",
+      "workspace": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261016T021338Z-4731b04-close-diag\\default-close_false",
+      "processes_before": [
+        {
+          "id": 40128,
+          "name": "et.exe",
+          "command_line": "\"C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\et.exe\" \"C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261016T021338Z-4731b04-close-diag\\default-close\\close-check.xlsx\"",
+          "title": "status.xlsx - WPS 表格"
+        }
+      ],
+      "status": "attempted",
+      "attempt": {
+        "method": "close_false",
+        "attached_via": "running_object_table",
+        "name": "close-check.xlsx",
+        "saved_before": true,
+        "in_rot": true,
+        "returned": true,
+        "error": null,
+        "listed_after": false,
+        "list_error": null
+      },
+      "listed_by_cli": false,
+      "processes_after": [
+        {
+          "id": 40128,
+          "name": "et.exe",
+          "command_line": "\"C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\et.exe\" \"C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261016T021338Z-4731b04-close-diag\\default-close\\close-check.xlsx\"",
+          "title": "status.xlsx - WPS 表格"
+        }
+      ],
+      "cleanup": "fixture not_open; processes none started"
+    },
+    {
+      "launch": "default",
+      "method": "close_false_missing",
+      "workspace": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261016T021338Z-4731b04-close-diag\\default-close_false_missing",
+      "processes_before": [
+        {
+          "id": 40128,
+          "name": "et.exe",
+          "command_line": "\"C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\et.exe\" \"C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261016T021338Z-4731b04-close-diag\\default-close\\close-check.xlsx\"",
+          "title": "status.xlsx - WPS 表格"
+        }
+      ],
+      "status": "attempted",
+      "attempt": {
+        "method": "close_false_missing",
+        "attached_via": "running_object_table",
+        "name": "close-check.xlsx",
+        "saved_before": true,
+        "in_rot": true,
+        "returned": true,
+        "error": null,
+        "listed_after": false,
+        "list_error": null
+      },
+      "listed_by_cli": false,
+      "processes_after": [
+        {
+          "id": 40128,
+          "name": "et.exe",
+          "command_line": "\"C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\et.exe\" \"C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261016T021338Z-4731b04-close-diag\\default-close\\close-check.xlsx\"",
+          "title": "status.xlsx - WPS 表格"
+        }
+      ],
+      "cleanup": "fixture not_open; processes none started"
+    },
+    {
+      "launch": "default",
+      "method": "saved_then_close",
+      "workspace": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261016T021338Z-4731b04-close-diag\\default-saved_then_close",
+      "processes_before": [
+        {
+          "id": 40128,
+          "name": "et.exe",
+          "command_line": "\"C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\et.exe\" \"C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261016T021338Z-4731b04-close-diag\\default-close\\close-check.xlsx\"",
+          "title": "status.xlsx - WPS 表格"
+        }
+      ],
+      "status": "attempted",
+      "attempt": {
+        "method": "saved_then_close",
+        "attached_via": "running_object_table",
+        "name": "close-check.xlsx",
+        "saved_before": true,
+        "in_rot": true,
+        "returned": true,
+        "error": null,
+        "listed_after": false,
+        "list_error": null
+      },
+      "listed_by_cli": false,
+      "processes_after": [
+        {
+          "id": 40128,
+          "name": "et.exe",
+          "command_line": "\"C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\et.exe\" \"C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261016T021338Z-4731b04-close-diag\\default-close\\close-check.xlsx\"",
+          "title": "status.xlsx - WPS 表格"
+        }
+      ],
+      "cleanup": "fixture not_open; processes none started"
+    },
+    {
+      "launch": "default",
+      "method": "item_by_name",
+      "workspace": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261016T021338Z-4731b04-close-diag\\default-item_by_name",
+      "processes_before": [
+        {
+          "id": 40128,
+          "name": "et.exe",
+          "command_line": "\"C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\et.exe\" \"C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261016T021338Z-4731b04-close-diag\\default-close\\close-check.xlsx\"",
+          "title": "status.xlsx - WPS 表格"
+        }
+      ],
+      "status": "attempted",
+      "attempt": {
+        "method": "item_by_name",
+        "attached_via": "running_object_table",
+        "name": "close-check.xlsx",
+        "saved_before": true,
+        "in_rot": true,
+        "returned": true,
+        "error": null,
+        "listed_after": false,
+        "list_error": null
+      },
+      "listed_by_cli": false,
+      "processes_after": [
+        {
+          "id": 40128,
+          "name": "et.exe",
+          "command_line": "\"C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\et.exe\" \"C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261016T021338Z-4731b04-close-diag\\default-close\\close-check.xlsx\"",
+          "title": "status.xlsx - WPS 表格"
+        }
+      ],
+      "cleanup": "fixture not_open; processes none started"
+    },
+    {
+      "launch": "default",
+      "method": "rot_object",
+      "workspace": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261016T021338Z-4731b04-close-diag\\default-rot_object",
+      "processes_before": [
+        {
+          "id": 40128,
+          "name": "et.exe",
+          "command_line": "\"C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\et.exe\" \"C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261016T021338Z-4731b04-close-diag\\default-close\\close-check.xlsx\"",
+          "title": "status.xlsx - WPS 表格"
+        }
+      ],
+      "status": "attempted",
+      "attempt": {
+        "method": "rot_object",
+        "attached_via": "running_object_table",
+        "name": "close-check.xlsx",
+        "saved_before": true,
+        "in_rot": true,
+        "returned": true,
+        "error": null,
+        "listed_after": false,
+        "list_error": null
+      },
+      "listed_by_cli": false,
+      "processes_after": [
+        {
+          "id": 40128,
+          "name": "et.exe",
+          "command_line": "\"C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\et.exe\" \"C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261016T021338Z-4731b04-close-diag\\default-close\\close-check.xlsx\"",
+          "title": "status.xlsx - WPS 表格"
+        }
+      ],
+      "cleanup": "fixture not_open; processes none started"
+    },
+    {
+      "launch": "default",
+      "method": "invoke_member",
+      "workspace": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261016T021338Z-4731b04-close-diag\\default-invoke_member",
+      "processes_before": [
+        {
+          "id": 40128,
+          "name": "et.exe",
+          "command_line": "\"C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\et.exe\" \"C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261016T021338Z-4731b04-close-diag\\default-close\\close-check.xlsx\"",
+          "title": "status.xlsx - WPS 表格"
+        }
+      ],
+      "status": "attempted",
+      "attempt": {
+        "method": "invoke_member",
+        "attached_via": "running_object_table",
+        "name": "close-check.xlsx",
+        "saved_before": true,
+        "in_rot": true,
+        "returned": true,
+        "error": null,
+        "listed_after": false,
+        "list_error": null
+      },
+      "listed_by_cli": false,
+      "processes_after": [
+        {
+          "id": 40128,
+          "name": "et.exe",
+          "command_line": "\"C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\et.exe\" \"C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261016T021338Z-4731b04-close-diag\\default-close\\close-check.xlsx\"",
+          "title": "status.xlsx - WPS 表格"
+        }
+      ],
+      "cleanup": "fixture not_open; processes none started"
+    },
+    {
+      "launch": "default",
+      "method": "window_close",
+      "workspace": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261016T021338Z-4731b04-close-diag\\default-window_close",
+      "processes_before": [
+        {
+          "id": 40128,
+          "name": "et.exe",
+          "command_line": "\"C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\et.exe\" \"C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261016T021338Z-4731b04-close-diag\\default-close\\close-check.xlsx\"",
+          "title": "status.xlsx - WPS 表格"
+        }
+      ],
+      "status": "attempted",
+      "attempt": {
+        "method": "window_close",
+        "attached_via": "running_object_table",
+        "name": "close-check.xlsx",
+        "saved_before": true,
+        "in_rot": true,
+        "returned": true,
+        "error": null,
+        "listed_after": false,
+        "list_error": null
+      },
+      "listed_by_cli": false,
+      "processes_after": [
+        {
+          "id": 40128,
+          "name": "et.exe",
+          "command_line": "\"C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\et.exe\" \"C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261016T021338Z-4731b04-close-diag\\default-close\\close-check.xlsx\"",
+          "title": "status.xlsx - WPS 表格"
+        }
+      ],
+      "cleanup": "fixture not_open; processes none started"
+    },
+    {
+      "launch": "automation",
+      "method": "close",
+      "workspace": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261016T021338Z-4731b04-close-diag\\automation-close",
+      "processes_before": [
+        {
+          "id": 40128,
+          "name": "et.exe",
+          "command_line": "\"C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\et.exe\" \"C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261016T021338Z-4731b04-close-diag\\default-close\\close-check.xlsx\"",
+          "title": "status.xlsx - WPS 表格"
+        }
+      ],
+      "status": "attempted",
+      "attempt": {
+        "method": "close",
+        "attached_via": "active_object",
+        "name": "close-check.xlsx",
+        "saved_before": true,
+        "in_rot": true,
+        "returned": true,
+        "error": null,
+        "listed_after": false,
+        "list_error": null
+      },
+      "listed_by_cli": false,
+      "processes_after": [
+        {
+          "id": 40128,
+          "name": "et.exe",
+          "command_line": "\"C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\et.exe\" \"C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261016T021338Z-4731b04-close-diag\\default-close\\close-check.xlsx\"",
+          "title": "status.xlsx - WPS 表格"
+        },
+        {
+          "id": 47216,
+          "name": "et.exe",
+          "command_line": "\"C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\et.exe\" /Automation \"C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261016T021338Z-4731b04-close-diag\\automation-close\\close-check.xlsx\"",
+          "title": "WPS 表格"
+        }
+      ],
+      "cleanup": "fixture not_open; processes stopped 40128,47216"
+    },
+    {
+      "launch": "automation",
+      "method": "close_false",
+      "workspace": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261016T021338Z-4731b04-close-diag\\automation-close_false",
+      "processes_before": [],
+      "status": "attempted",
+      "attempt": {
+        "method": "close_false",
+        "attached_via": "active_object",
+        "name": "close-check.xlsx",
+        "saved_before": true,
+        "in_rot": true,
+        "returned": true,
+        "error": null,
+        "listed_after": false,
+        "list_error": null
+      },
+      "listed_by_cli": false,
+      "processes_after": [
+        {
+          "id": 47744,
+          "name": "et.exe",
+          "command_line": "\"C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\et.exe\" /Automation \"C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261016T021338Z-4731b04-close-diag\\automation-close_false\\close-check.xlsx\"",
+          "title": "status.xlsx - WPS 表格"
+        }
+      ],
+      "cleanup": "fixture not_open; processes left running: WPS still lists status.xlsx"
+    }
+  ],
+  "leftover_processes": [
+    {
+      "id": 47744,
+      "name": "et.exe",
+      "command_line": "\"C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\et.exe\" /Automation \"C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261016T021338Z-4731b04-close-diag\\automation-close_false\\close-check.xlsx\"",
+      "title": "status.xlsx - WPS 表格"
+    }
+  ]
+}
