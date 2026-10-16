@@ -1,7 +1,7 @@
 {
   "product": "WPS AI Agent CLI",
   "source_prd": "WPS_AI_Agent_CLI_PRD_v1.1.docx",
-  "current_phase": "phase8",
+  "current_phase": "phase9",
   "phases": [
     {
       "id": "phase0",
@@ -105,7 +105,7 @@
       "id": "phase9",
       "name": "Right tools, lossless text export, clean Windows runs",
       "goal": "Make agents pick the open-document tools, keep every character in text exports, and end the Windows runs' WPS cleanly so no manual cleanup is needed; release 0.6.0.",
-      "status": "planned",
+      "status": "active",
       "exit_criteria": [
         "J1: offline, every file-based write tool refused on a document open in WPS names the matching open-document tool and how its arguments map, the MCP descriptions of those tools say they are not for documents open in WPS, and each evaluation run records wrong_tool_calls (file-based write calls on an open document), shown in RESULTS.md; on Windows all open-document tasks (the existing 15 plus the J2 task) pass at least 2 of 3 runs in one --repeat 3 invocation with wrong_tool_calls summing to 0",
         "J2: export-open-document-text writes Unicode (UTF-8, or UTF-16 with a byte order mark) for Writer and Spreadsheets, keeping characters outside GBK, and records export_method and text_encoding; fake-COM tests per component; on Windows a new task exporting an open document with characters outside GBK passes at least 2 of 3 runs in the J1 invocation, with no text_encoding of gbk",

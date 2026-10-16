@@ -121,7 +121,7 @@
 
 出口标准和任务拆分见 `docs/PHASE8_PLAN.md`。
 
-### Phase 9 Agent 选对工具、文本导出不丢字、上机不用手工清理（planned）
+### Phase 9 Agent 选对工具、文本导出不丢字、上机不用手工清理（active）
 
 目标是 Agent 对已打开的文档用选区工具，文本导出保留 GBK 以外的字符，Windows 上机不再需要手工关掉 WPS 恢复的文档；发布 0.6.0。
 
