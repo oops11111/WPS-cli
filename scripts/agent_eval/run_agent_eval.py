@@ -393,8 +393,70 @@ def component_process_ids(component: str) -> set[int]:
     return {int(token) for token in completed.stdout.split() if token.strip().isdigit()}
 
 
+_QUIT_SCRIPT = """
+$app = Get-RunningWpsApp @($params.prog_ids)
+if ($null -eq $app) {
+  [pscustomobject]@{ status = 'unreachable' } | ConvertTo-Json -Depth 3
+  exit 0
+}
+try { $app.DisplayAlerts = $false } catch { }
+$app.Quit()
+[pscustomobject]@{ status = 'quit' } | ConvertTo-Json -Depth 3
+"""
+
+
+def quit_wps_app(component: str) -> str:
+    """Call Quit() on the component's running WPS: 'quit', 'unreachable', or why it failed.
+
+    A WPS started by opening a file registers nothing once its last document is closed (P8-005), so it is often
+    unreachable here; close_main_windows is the other normal way to end it.
+    """
+    from wps_ai_agent_cli.capabilities import WPS_COMPONENTS
+    from wps_ai_agent_cli.open_document_scripts import _SCRIPT_HEAD
+    from wps_ai_agent_cli.open_documents import _run_script
+    from wps_ai_agent_cli.wps_script_snippets import ATTACH_RUNNING_INSTANCE
+
+    script = _SCRIPT_HEAD + ATTACH_RUNNING_INSTANCE + _QUIT_SCRIPT
+    result = _run_script(script, {"prog_ids": list(WPS_COMPONENTS[component])}, timeout_seconds=60)
+    if not result["ok"]:
+        return "failed: " + "; ".join(str(error.get("message")) for error in result["errors"])
+    return str((result["data"] or {}).get("status") or "no output")
+
+
+def close_main_windows(ids: set[int]) -> None:
+    """Close the processes' main windows, as a user closing WPS would; WPS then exits normally."""
+    from wps_ai_agent_cli.powershell_runner import run_powershell_command
+
+    listed = ",".join(map(str, sorted(ids)))
+    run_powershell_command(
+        f"Get-Process -Id {listed} -ErrorAction SilentlyContinue | ForEach-Object {{ [void]$_.CloseMainWindow() }}",
+        timeout_seconds=30,
+    )
+
+
+def end_wps_normally(component: str, ids: set[int], timeout: float = 20.0) -> tuple[list[int], str]:
+    """Let the component's WPS exit by itself: Quit(), else close its main windows. Returns (exited ids, how).
+
+    A WPS ended with Stop-Process while it still had a document open treats the next start as a recovery and
+    reopens that document; after Phase 7 and Phase 8 runs, every Windows run had to start with closing those by
+    hand (P9-005). A WPS that exits normally reopens nothing.
+    """
+    how = quit_wps_app(component)
+    if how != "quit":
+        close_main_windows(ids)
+        how = "main window closed" if how == "unreachable" else f"main window closed after Quit() {how}"
+    else:
+        how = "Quit()"
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline and component_process_ids(component) & ids:
+        time.sleep(1)
+    return sorted(ids - component_process_ids(component)), how
+
+
 def stop_started_wps(component: str, started: set[int], rounds: int = 3, settle: float = 3.0) -> str:
     """End the component's WPS processes after a run that started one, while WPS lists no document for it.
+
+    It first lets WPS exit normally (end_wps_normally) and stops only the processes still running after that.
 
     Not only the processes the run started: when one is stopped, WPS can start another in its place. In P7-007
     stopping et.exe made WPS start "et.exe recover1 -cpid=<the stopped id>", which reopened status.xlsx in a
@@ -413,6 +475,11 @@ def stop_started_wps(component: str, started: set[int], rounds: int = 3, settle:
         # Name them: P7-007 left processes running and the record could not say which document kept them.
         names = ", ".join(str(item.get("name") or item.get("full_name") or "?") for item in data["documents"])
         return f"left running: WPS still lists {names}"
+    exited: list[int] = []
+    how = ""
+    running = component_process_ids(component)
+    if running:
+        exited, how = end_wps_normally(component, running)
     stopped: list[int] = []
     for _round in range(rounds):
         ids = component_process_ids(component)
@@ -427,7 +494,13 @@ def stop_started_wps(component: str, started: set[int], rounds: int = 3, settle:
         # Give WPS the moment it takes to start a replacement, so the next round sees it.
         time.sleep(settle)
     left = sorted(component_process_ids(component))
-    summary = f"stopped {','.join(map(str, stopped))}" if stopped else "none running"
+    parts = []
+    if exited:
+        parts.append(f"exited {','.join(map(str, exited))} ({how})")
+    if stopped:
+        tried = f" (still running after {how})" if how else ""
+        parts.append(f"stopped {','.join(map(str, stopped))}{tried}")
+    summary = "; ".join(parts) or "none running"
     return summary + (f"; still running after {rounds} rounds: {','.join(map(str, left))}" if left else "")
 
 

@@ -3146,7 +3146,7 @@
     "id": "P9-005",
     "phase": "phase9",
     "title": "Runner ends its WPS with Quit()",
-    "status": "todo",
+    "status": "done",
     "acceptance": "J3: the runner closes the documents it opened, then calls Quit() on the WPS it started, stopping the process only if Quit() fails or times out, and records which in cleanup; offline tests."
   },
   {

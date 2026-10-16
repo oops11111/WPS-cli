@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import itertools
 import json
 import os
 import subprocess
@@ -2111,13 +2112,29 @@ class OpenDocumentSetupTests(unittest.TestCase):
             outcome = run_agent_eval.release_opened_fixture("spreadsheets", self.fixture, set())
         self.assertEqual(outcome, "fixture COM_OPERATION_FAILED (RPC disconnected); processes none started")
 
-    def stop_with(self, running, documents=(), replacements=()):
-        """stop_started_wps against a simulated process table. Each stop may start one queued replacement."""
+    def stop_with(self, running, documents=(), replacements=(), exits=None, quit_status="unreachable"):
+        """stop_started_wps against a simulated process table. Each stop may start one queued replacement.
+
+        `exits` is how WPS ends normally in the simulation: "quit" when Quit() ends it, "window" when closing its
+        main window does, None when neither does.
+        """
         from wps_ai_agent_cli import open_documents, powershell_runner
 
         table = set(running)
         queued = list(replacements)
         stops = []
+        normal = []
+
+        def quit_app(component):
+            normal.append("quit")
+            if exits == "quit" and quit_status == "quit":
+                table.clear()
+            return quit_status
+
+        def close_windows(ids):
+            normal.append(sorted(ids))
+            if exits == "window":
+                table.difference_update(ids)
 
         def command(script, timeout_seconds=10, **kwargs):
             if script.startswith("Stop-Process"):
@@ -2134,17 +2151,39 @@ class OpenDocumentSetupTests(unittest.TestCase):
             ),
             patch.object(powershell_runner, "run_powershell_command", side_effect=command),
             patch.object(run_agent_eval, "component_process_ids", side_effect=lambda component: set(table)),
+            patch.object(run_agent_eval, "quit_wps_app", side_effect=quit_app),
+            patch.object(run_agent_eval, "close_main_windows", side_effect=close_windows),
             patch.object(run_agent_eval.time, "sleep"),
+            patch.object(run_agent_eval.time, "monotonic", side_effect=itertools.count(0, 5)),
         ):
             outcome = run_agent_eval.stop_started_wps("spreadsheets", {49320})
+        self.normal = normal
         return outcome, stops, table
+
+    def test_wps_is_let_exit_normally_before_any_process_is_stopped(self):
+        # P9-005: a WPS stopped with a document open reopens it on the next start; one that exits does not.
+        outcome, stops, table = self.stop_with({49320}, exits="window")
+        self.assertEqual(outcome, "exited 49320 (main window closed)")
+        self.assertEqual((stops, table), ([], set()))
+        self.assertEqual(self.normal, ["quit", [49320]])
+        outcome, stops, _table = self.stop_with({49320}, exits="quit", quit_status="quit")
+        self.assertEqual(outcome, "exited 49320 (Quit())")
+        self.assertEqual(stops, [])
+        self.assertEqual(self.normal, ["quit"])
+
+    def test_a_wps_that_does_not_exit_is_stopped_and_the_record_says_what_was_tried(self):
+        outcome, stops, _table = self.stop_with({49320}, quit_status="failed: RPC_E_SERVERFAULT")
+        self.assertEqual(stops, [[49320]])
+        self.assertEqual(
+            outcome, "stopped 49320 (still running after main window closed after Quit() failed: RPC_E_SERVERFAULT)"
+        )
 
     def test_started_wps_processes_are_ended_only_when_wps_lists_no_document(self):
         outcome, stops, table = self.stop_with({49320}, documents=[{"name": "other.xlsx"}])
         self.assertEqual(outcome, "left running: WPS still lists other.xlsx")
         self.assertEqual(stops, [])
         outcome, stops, table = self.stop_with({49320})
-        self.assertEqual(outcome, "stopped 49320")
+        self.assertEqual(outcome, "stopped 49320 (still running after main window closed)")
         self.assertEqual(stops, [[49320]])
         self.assertEqual(table, set())
         from wps_ai_agent_cli import powershell_runner
@@ -2158,13 +2197,15 @@ class OpenDocumentSetupTests(unittest.TestCase):
         # status.xlsx without registering for automation, so the next runs could not reach their workbook.
         outcome, stops, table = self.stop_with({49320}, replacements=[27324])
         self.assertEqual(stops, [[49320], [27324]])
-        self.assertEqual(outcome, "stopped 49320,27324")
+        self.assertEqual(outcome, "stopped 49320,27324 (still running after main window closed)")
         self.assertEqual(table, set())
 
     def test_a_process_that_keeps_coming_back_is_reported_after_three_rounds(self):
         outcome, stops, table = self.stop_with({1}, replacements=[2, 3, 4])
         self.assertEqual(stops, [[1], [2], [3]])
-        self.assertEqual(outcome, "stopped 1,2,3; still running after 3 rounds: 4")
+        self.assertEqual(
+            outcome, "stopped 1,2,3 (still running after main window closed); still running after 3 rounds: 4"
+        )
 
     def test_the_registered_open_command_becomes_the_launch_command_line(self):
         path = Path("C:/Users/a b/report.docx")
@@ -2235,10 +2276,12 @@ class OpenDocumentScriptParseTests(unittest.TestCase):
     def test_the_runner_scripts_parse(self):
         import subprocess
 
+        from wps_ai_agent_cli.open_document_scripts import _SCRIPT_HEAD
         from wps_ai_agent_cli.wps_script_snippets import ATTACH_RUNNING_INSTANCE
 
         scripts = {
             "document": run_agent_eval._WPS_DOCUMENT_SCRIPT.replace("__ATTACH__", ATTACH_RUNNING_INSTANCE),
+            "quit": _SCRIPT_HEAD + ATTACH_RUNNING_INSTANCE + run_agent_eval._QUIT_SCRIPT,
         }
         for name, script in scripts.items():
             with self.subTest(script=name), tempfile.TemporaryDirectory() as tmp:
@@ -2252,6 +2295,22 @@ class OpenDocumentScriptParseTests(unittest.TestCase):
                     [PWSH, "-NoProfile", "-Command", check], capture_output=True, text=True, timeout=120, check=False
                 )
                 self.assertEqual(completed.stdout.strip(), "0", completed.stdout + completed.stderr)
+
+    def test_quit_reports_a_wps_it_cannot_reach_and_one_that_refuses(self):
+        from tests.test_open_documents_powershell import FAKE_WPS_PRELUDE
+        from wps_ai_agent_cli import open_documents, powershell_runner
+
+        def render(script, values):
+            return FAKE_WPS_PRELUDE + open_documents.json.dumps(values).join(script.split("__PARAMS_JSON__"))
+
+        with (
+            patch.object(powershell_runner, "powershell_executable", return_value=PWSH),
+            patch.object(open_documents, "_render", side_effect=render),
+        ):
+            with patch.dict(os.environ, {"WPSFAKE_MODE": "none"}):
+                self.assertEqual(run_agent_eval.quit_wps_app("writer"), "unreachable")
+            # The fake application has no Quit(): the failure is reported, so the caller closes the window.
+            self.assertTrue(run_agent_eval.quit_wps_app("writer").startswith("failed: "))
 
 
 class OpenDocumentScriptStdoutTests(unittest.TestCase):

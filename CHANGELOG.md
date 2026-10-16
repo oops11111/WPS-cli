@@ -8,6 +8,7 @@ All notable changes to `wps-ai-agent-cli`. The versioning rule and release steps
 
 - Agent evaluation: for tasks whose document is open in WPS, each run counts `wrong_tool_calls`, the calls to file-based write tools that cannot change an open document. The summary and `run_windows_check.py eval`'s `RESULTS.md` show them per task and in total. (P9-002)
 - Agent evaluation: the task `wps-open-zh-document-export-beyond-gbk` exports an open Writer document holding `✅` and `𠮷`, characters outside GBK, and checks they come back and the file is UTF-8 or UTF-16 (new check kind `text_encoding`). (P9-004)
+- Agent evaluation: the runner lets the WPS it started exit normally (`Quit()`, or closing its main window when WPS cannot be reached, as a WPS opened by double-click with no document left cannot) and stops only what is still running after that. A WPS stopped with a document open reopened it on the next start, so every Windows run had to begin by closing those by hand. Each run's `cleanup` says `exited <ids> (Quit())`, `exited <ids> (main window closed)` or `stopped <ids> (still running after ...)`. (P9-005)
 
 ### Changed
 
