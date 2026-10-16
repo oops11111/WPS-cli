@@ -11,6 +11,8 @@ ROLLBACK_BLOCKED = "MUTATION_ROLLBACK_BLOCKED"
 ROLLBACK_IN_WPS_FAILED = "MUTATION_ROLLBACK_IN_WPS_FAILED"
 DOCUMENT_IDENTITY_UNAVAILABLE = "DOCUMENT_IDENTITY_UNAVAILABLE"
 DOCUMENT_HELD_OPEN = "DOCUMENT_HELD_OPEN"
+# WPS refused to close a document with no unsaved changes, and still lists it (P8-006).
+WPS_CLOSE_REFUSED = "WPS_CLOSE_REFUSED"
 
 # Shared with wps_script_snippets.Assert-WpsFileNotHeld and file_hold, so a refusal raised on either side maps to
 # DOCUMENT_HELD_OPEN.

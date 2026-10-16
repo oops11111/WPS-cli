@@ -10,6 +10,10 @@ All notable changes to `wps-ai-agent-cli`. The versioning rule and release steps
 - `run_windows_check.py close-diag`: opens a new workbook in WPS the usual way and closes it once per method (eight methods, plus `Close()` and `Close($false)` under `/Automation` as the control group), and records each HRESULT, whether WPS still lists the workbook and whether it started a recovery instance. (P8-005)
 - Agent evaluation: right after a fixture opens in WPS, the runner records the documents WPS lists outside the task workspace, such as those WPS reopened from its previous session, in each run's `documents_outside`. They are left open. `run_windows_check.py eval` shows them per run and in a section of `RESULTS.md`. (P8-007)
 
+### Changed
+
+- `restore-backup --close-in-wps` (MCP `close_in_wps`): when WPS refuses to close the document and still lists it, the error is now `WPS_CLOSE_REFUSED`, with the reason WPS gave and what to do (close it in WPS, then restore without the flag), instead of the script's `COM_OPERATION_FAILED`. Nothing is restored, as before. A workbook opened by double-click on WPS 12.8 is refused this way (P7-007). (P8-006)
+
 ### Fixed
 
 - The Writer structure parity check ran its PowerShell script with `-File`, so its output (headings, which may be Chinese) was written in the console code page (GBK on Chinese Windows) and read back garbled. It now runs with the same UTF-8 output setting as every other script. (P8-003)
