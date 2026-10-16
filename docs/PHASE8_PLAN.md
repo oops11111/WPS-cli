@@ -55,8 +55,8 @@ Phase 8 把这两件事做完，先尽快把已经修好的发出去（0.4.1）�
 | P8-005 | I2 | 只读的 Windows 诊断脚本：在常规打开的工作簿上试几种关法并记录 HRESULT，`/Automation` 启动作为对照组；由 `run_windows_check.py` 运行并写出结果（本地部分已完成：`run_windows_check.py close-diag`，`scripts/windows_check/workbook_close.py`，8 种关法加 2 个对照。第一次上机见下文“P8-005 结果”：未改动的工作簿 10 种关法全部关上，没复现；第二次上机加了“先写入保存再关”和 `restore-backup --close-in-wps` 两类，也都关上，见下文。已完成） | 本地 + Windows |
 | P8-006 | I2 | 按 P8-005 的结果修 `close_unchanged_document`（以及 runner 的清理）；修不了就加专门的错误码。补假 COM 测试（错误码部分已完成：WPS 拒绝关闭且仍列出文档时返回 `WPS_CLOSE_REFUSED`，说明原因和处理办法，两种结局都需要它兜底；换哪种关法等 P8-005 上机结果。已完成：两次上机所有关法都关上，产品从 0.4.1 起用的 `Close()` 不用换；`WPS_CLOSE_REFUSED` 留作兜底） | 本地 |
 | P8-007 | 缺口 | runner 在每次运行开始时记录 WPS 列出的、不在任务工作区里的文档，写进 `RESULTS.md`（已完成：fixture 在 WPS 里打开后、后续准备步骤之前列一次，记在每次运行的 `documents_outside`；`RESULTS.md` 每次运行一行，另有一节按文档汇总） | 本地 |
-| P8-008 | I1、I2 | 在 Windows 上：4 个中文任务和现有 11 个已打开文档任务一条命令各跑 3 次；`restore-backup --close-in-wps` 对双击打开的工作簿验证一次（后一半已由 P8-005 第二次上机的 `restore_close_in_wps` 完成；剩下评测） | Windows |
-| P8-009 | I3 | 定版本 0.5.0，整理 `CHANGELOG.md`，合并后由你推送 `v0.5.0` 标签 | 本地 + 你 |
+| P8-008 | I1、I2 | 在 Windows 上：4 个中文任务和现有 11 个已打开文档任务一条命令各跑 3 次；`restore-backup --close-in-wps` 对双击打开的工作簿验证一次（后一半已由 P8-005 第二次上机的 `restore_close_in_wps` 完成。已完成：两轮评测见下文“P8-008 结果”，4 个中文任务都 3/3） | Windows |
+| P8-009 | I3 | 定版本 0.5.0，整理 `CHANGELOG.md`，合并后由你推送 `v0.5.0` 标签（已准备：`__version__` 为 `0.5.0`，`CHANGELOG.md` 有 `[0.5.0] - 2026-10-16` 一节；标签待推送） | 本地 + 你 |
 | P8-010 | I3 | 在 Windows 上检查 0.5.0 的 wheel | Windows |
 
 ## P8-005 结果
@@ -87,6 +87,21 @@ Phase 8 把这两件事做完，先尽快把已经修好的发出去（0.4.1）�
 - **其余 3 个中文任务都是 3/3**（选区替换成中文、中文工作表名的单元格、未命名文档另存为中文文件名）。I1 要 4 个都至少 2/3，所以修好后要用 `eval --prefix wps-open-zh-` 再跑一次 4 个中文任务。
 - **11 个已有任务都通过。** 演示的插入和删除各 2/3：没过的那次 Agent 改用了按文件的 `presentation_replace`，得到 `DOCUMENT_HELD_OPEN`；这是 Agent 选错工具，任务按 2/3 判通过。
 - **WPS 演示每次启动都重新打开一个 Phase 6 留下的 `deck.pptx`**（`%TEMP%\wps-p6\eval-open-174f04e\...\deck.pptx`）。P8-007 把它记在 20 次运行里；因为它一直开着，runner 不结束 `wpp.exe`，演示任务都在同一个进程里跑。下次上机前在 WPS 演示里把它正常关掉、再正常退出。
+
+### 第二轮（`1c44940`，2026-10-16）
+
+结果在 `scripts/windows_check/results/20261016T112127Z-1c44940-eval/`，命令 `eval --prefix wps-open-zh- --repeat 3 --min-passes 2`，在合并了 GBK 修复（#100）的 `main` 上。上机前在 WPS 里关掉了每次启动都重新打开的 `deck.pptx`，这次 WPS 在任务工作区以外没有打开任何文档。
+
+- **4 个中文任务都是 3/3：** Writer 选区替换成中文、中文工作表名 `汇总` 上的单元格、导出中文文件名的已打开文档（第一轮 0/3，修复后 3/3）、把中文内容的未命名文档另存为 `会议纪要.docx`。
+- **I1 达成。** 离线部分在 P8-003 完成（GBK 区域设置下的真实进程测试、每个组件的中文假 COM 往返）；Windows 部分就是这一条命令，4 个中文任务每个至少 2/3。
+
+## 出口标准结果
+
+| # | 结果 | 依据 |
+| --- | --- | --- |
+| I1 | 达成 | P8-003 的测试；P8-008 第二轮 4 个中文任务都 3/3 |
+| I2 | 达成 | P8-005 第二次上机：双击打开、写入保存后的工作簿，`restore-backup --close-in-wps` 关闭并恢复成功；`WPS_CLOSE_REFUSED` 兜底 |
+| I3 | 进行中 | 0.4.1 已发布并在 Windows 上检查通过（P8-002）；0.5.0 已准备（P8-009），待推送标签和 Windows 检查（P8-010） |
 
 ## 建议顺序
 

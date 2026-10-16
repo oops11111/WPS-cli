@@ -4,6 +4,10 @@ All notable changes to `wps-ai-agent-cli`. The versioning rule and release steps
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-10-16
+
+Phase 8: Chinese content works end to end on Chinese Windows, and `restore-backup --close-in-wps` is verified on a workbook opened by double-click.
+
 ### Added
 
 - Agent evaluation: four Chinese-content tasks (`wps-open-zh-*`) with Chinese fixtures (`季度报告.docx`, `状态表.xlsx` with a sheet `汇总`) and Chinese prompts: a Writer selection replaced with Chinese text, cells on a Chinese-named sheet, the text export of an open document with a Chinese file name, and an untitled document saved under a Chinese file name. `run_windows_check.py eval --prefix wps-open-` runs every open-document task in one command. (P8-004)
@@ -12,7 +16,7 @@ All notable changes to `wps-ai-agent-cli`. The versioning rule and release steps
 
 ### Changed
 
-- `restore-backup --close-in-wps` (MCP `close_in_wps`): when WPS refuses to close the document and still lists it, the error is now `WPS_CLOSE_REFUSED`, with the reason WPS gave and what to do (close it in WPS, then restore without the flag), instead of the script's `COM_OPERATION_FAILED`. Nothing is restored, as before. A workbook opened by double-click on WPS 12.8 is refused this way (P7-007). (P8-006)
+- `restore-backup --close-in-wps` (MCP `close_in_wps`): when WPS refuses to close the document and still lists it, the error is now `WPS_CLOSE_REFUSED`, with the reason WPS gave and what to do (close it in WPS, then restore without the flag), instead of the script's `COM_OPERATION_FAILED`. Nothing is restored, as before. WPS 12.8 refused to close a workbook opened by double-click in the P7-007 runs; Phase 8 did not reproduce that on Windows, where `restore-backup --close-in-wps` closed such a workbook after a write and restored it (P8-005). The close itself is unchanged. (P8-006)
 
 ### Fixed
 

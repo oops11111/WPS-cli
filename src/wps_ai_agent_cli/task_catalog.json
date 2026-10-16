@@ -3097,7 +3097,7 @@
     "id": "P8-008",
     "phase": "phase8",
     "title": "Windows runs of I1 and I2",
-    "status": "todo",
+    "status": "done",
     "acceptance": "I1, I2: the Chinese tasks and the 11 open-document tasks in one --repeat 3 invocation, and restore-backup --close-in-wps on a double-clicked workbook; results recorded."
   },
   {
