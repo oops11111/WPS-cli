@@ -3153,21 +3153,21 @@
     "id": "P9-006",
     "phase": "phase9",
     "title": "Windows run of J1 to J3",
-    "status": "todo",
+    "status": "done",
     "acceptance": "J1, J2, J3: after one cleanup, all open-document tasks in one --repeat 3 invocation; wrong_tool_calls, text_encoding, documents_outside and cleanup recorded."
   },
   {
     "id": "P9-007",
     "phase": "phase9",
     "title": "Release 0.6.0",
-    "status": "todo",
+    "status": "done",
     "acceptance": "J4: version 0.6.0 per docs/RELEASING.md and a CHANGELOG section, merged before the maintainer pushes the v0.6.0 tag."
   },
   {
     "id": "P9-008",
     "phase": "phase9",
     "title": "Windows check of the 0.6.0 wheel",
-    "status": "todo",
+    "status": "done",
     "acceptance": "J4: run_windows_check.py wheel --version 0.6.0 passes on Windows; result recorded."
   }
 ]

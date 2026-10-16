@@ -1,6 +1,20 @@
 # Phase 9 计划：Agent 选对工具、文本导出不丢字、上机不用手工清理
 
-状态：**active**（2026-10-16 确认，五项决定均按默认建议）。
+状态：**done**（2026-10-16 确认，2026-10-16 完成）。
+
+J1 到 J4 都已达成，证据在下面的“P9-006 结果”和 `scripts/windows_check/results/` 里：
+
+- J1：`main@edb577c` 上 16 个已打开文档任务一条命令各 3/3，`wrong_tool_calls` 合计 0。
+- J2：`wps-open-zh-document-export-beyond-gbk` 3/3，三次的 `text_encoding` 都是 `utf-8`，`✅`、`𠮷` 原样保留。
+- J3：48 次运行的 `cleanup` 都是 `exited …（main window closed）`，没有一次结束进程；`documents_outside` 每次都为空，上机前只清理了一次。
+- J4：`v0.6.0` 已发布，wheel 在 Windows 上通过全部 7 个条件。
+
+遗留缺口（不是出口标准）：
+
+- P7-007 的 `0x800A01A8` 原因没查清。
+- 表格里的图表和图形选区写入失败时不能在 WPS 里撤回（P7-001）。
+- 兼容矩阵只有一个 WPS 版本（P5-010）。
+- 评测里 Agent 仍有额外的核对调用（`off_path_calls`，比如 `snapshot_document`、`spreadsheet_read`），只记录，不影响判定。
 
 ## 目标
 
@@ -55,9 +69,26 @@ Phase 9 把这三件事做完，最后发布 0.6.0。
 | P9-003 | J2 | Writer 和表格的文本导出写 Unicode：先试 `Encoding` 参数，不行就经 COM 读文字自己写 UTF-8；结果记录 `export_method`；假 COM 测试（已完成：`open_document_scripts/common.py` 的 `Complete-WpsUnicodeTextFile`，WPS 写的是代码页时，没丢字就转成 UTF-8（`+transcoded`），丢了字就按经 COM 读出的文字重写（`+document_text`）；`tests/test_text_export_powershell.py`） | 本地 |
 | P9-004 | J2 | 新评测任务：导出含 `✅`、`𠮷` 的已打开 Writer 文档，判定文本原样、`text_encoding` 不是 `gbk`；离线判定测试（已完成：任务 `wps-open-zh-document-export-beyond-gbk`，测试文档 `核对清单.docx`，新检查 `text_encoding`；0.5.0 留下的 GBK 文件在离线测试里两项检查都不通过） | 本地 |
 | P9-005 | J3 | runner 清理时关掉自己打开的文档后对自己启动的 WPS 调 `Quit()`，失败才结束进程，`cleanup` 写明；离线测试（已完成：`end_wps_normally`。双击启动的 WPS 关掉最后一个文档后连不上（P8-005 第二次上机），`Quit()` 调不到，所以连不上时关它的主窗口，这同样是正常退出；`cleanup` 写 `exited …（Quit()）`、`exited …（main window closed）` 或 `stopped …（still running after …）`） | 本地 |
-| P9-006 | J1、J2、J3 | 在 Windows 上：上机前清理一次，然后全部已打开文档任务一条命令各跑 3 次 | Windows |
-| P9-007 | J4 | 定版本 0.6.0，整理 `CHANGELOG.md`，合并后由你推送 `v0.6.0` 标签（已准备：`__version__` 为 `0.6.0`，`CHANGELOG.md` 有 `[0.6.0] - 2026-10-16` 一节，在分支 `release/0.6.0`；等 P9-006 上机通过再合并、推送标签） | 本地 + 你 |
-| P9-008 | J4 | 在 Windows 上检查 0.6.0 的 wheel | Windows |
+| P9-006 | J1、J2、J3 | 在 Windows 上：上机前清理一次，然后全部已打开文档任务一条命令各跑 3 次（已完成：见下文“P9-006 结果”） | Windows |
+| P9-007 | J4 | 定版本 0.6.0，整理 `CHANGELOG.md`，合并后由你推送 `v0.6.0` 标签（已准备：`__version__` 为 `0.6.0`，`CHANGELOG.md` 有 `[0.6.0] - 2026-10-16` 一节，在分支 `release/0.6.0`；已完成：P9-006 之后由你推送标签，`v0.6.0` 已发布） | 本地 + 你 |
+| P9-008 | J4 | 在 Windows 上检查 0.6.0 的 wheel（已完成：`edb577c` 上通过，SHA-256 与 Release 一致，safe 档 7/7，结果在 `scripts/windows_check/results/20261016T153638Z-wheel-0.6.0/`） | Windows |
+
+## P9-006 结果
+
+结果在 `scripts/windows_check/results/20261016T144113Z-edb577c-eval/`，命令 `eval --prefix wps-open- --repeat 3 --min-passes 2`，在合并了 #103 的 `main@edb577c` 上。上机前在 WPS 里关掉了每次启动都重新打开的文档，只清理了这一次。
+
+- **16 个任务都是 3/3，`wrong_tool_calls` 合计 0。** P8-008 第一轮演示的插入和删除各有一次用了 `presentation_replace`，这次没有。
+- **`wps-open-zh-document-export-beyond-gbk` 3/3**，三次的导出都是 UTF-8，`✅`、`𠮷` 都在。
+- **48 次运行的清理都让 WPS 正常退出**（`exited …（main window closed）`），没有一次走到结束进程；每次运行的 `documents_outside` 都为空，跑完后没有 WPS 进程留下。
+
+## 出口标准结果
+
+| # | 结果 | 依据 |
+| --- | --- | --- |
+| J1 | 达成 | P9-001、P9-002；P9-006 16/16 都 3/3，`wrong_tool_calls` 0 |
+| J2 | 达成 | P9-003、P9-004；新任务 3/3，`text_encoding` 都是 `utf-8` |
+| J3 | 达成 | P9-005；48 次清理都正常退出，`documents_outside` 都为空 |
+| J4 | 达成 | `v0.6.0` 已发布，wheel 在 Windows 上通过（P9-008） |
 
 ## 建议顺序
 

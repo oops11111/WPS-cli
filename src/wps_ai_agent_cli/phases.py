@@ -102,7 +102,7 @@ PHASES: tuple[Phase, ...] = (
     Phase(
         id="phase9",
         name="Right tools, lossless text export, clean Windows runs",
-        status="active",
+        status="done",
         goal=(
             "Make agents pick the open-document tools, keep every character in text exports, and end the Windows "
             "runs' WPS cleanly so no manual cleanup is needed; release 0.6.0."
