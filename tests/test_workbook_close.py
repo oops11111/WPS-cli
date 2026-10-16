@@ -106,6 +106,17 @@ class AttemptTests(unittest.TestCase):
         result, _ = self.attempt(attempted(returned=False, error={"hresult": "0x80010105"}), listed=False)
         self.assertEqual(workbook_close.outcome(result), "failed, closed anyway")
 
+    def test_a_close_that_leaves_wps_unreachable_is_decided_by_the_scripts_own_look_at_workbooks(self):
+        # aed06e6: once its last workbook closed, a double-clicked WPS answered WPS_INSTANCE_NOT_AUTOMATABLE.
+        gone, _ = self.attempt(attempted(listed_after=False), listed=None)
+        self.assertEqual(workbook_close.outcome(gone), "closed")
+        still, _ = self.attempt(attempted(listed_after=True), listed=None)
+        self.assertEqual(workbook_close.outcome(still), "returned, still open")
+        failed, _ = self.attempt(
+            attempted(returned=False, error={"hresult": "0x800A01A8"}, listed_after=None), listed=None
+        )
+        self.assertEqual(workbook_close.outcome(failed), "failed, still open")
+
     def test_a_workbook_wps_did_not_open_is_a_setup_failure_and_nothing_is_tried(self):
         closed = []
         with patch.object(open_documents, "_listed_in_wps") as listed:
