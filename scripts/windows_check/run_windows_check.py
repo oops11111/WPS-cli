@@ -24,6 +24,7 @@ scripts/windows_check/results/, ready to commit.
 Usage:
     python scripts/windows_check/run_windows_check.py prereq
     python scripts/windows_check/run_windows_check.py eval --only wps-open-writer-selection-replace --repeat 3 --min-passes 2
+    python scripts/windows_check/run_windows_check.py eval --prefix wps-open- --repeat 3 --min-passes 2
     python scripts/windows_check/run_windows_check.py eval --resume scripts/windows_check/results/<dir>
     python scripts/windows_check/run_windows_check.py undo
     python scripts/windows_check/run_windows_check.py wheel --version 0.4.0
@@ -312,6 +313,7 @@ def run_eval(args: argparse.Namespace, machine: Machine, runner: Any) -> int:
     else:
         settings = {
             "only": args.only,
+            "prefix": args.prefix,
             "repeat": args.repeat,
             "min_passes": args.min_passes or args.repeat,
             "model": args.model,
@@ -333,7 +335,12 @@ def run_eval(args: argparse.Namespace, machine: Machine, runner: Any) -> int:
 
     runner.WPS_LAUNCH = settings["wps_launch"]
     spec = json.loads(Path(settings["tasks"]).read_text(encoding="utf-8"))
-    tasks = [task for task in spec["tasks"] if not settings["only"] or task["id"] in settings["only"]]
+    prefixes = tuple(settings.get("prefix") or ())
+    tasks = [
+        task
+        for task in spec["tasks"]
+        if (not settings["only"] and not prefixes) or task["id"] in settings["only"] or task["id"].startswith(prefixes)
+    ]
     results: list[dict[str, Any]] = [done[task["id"]] for task in tasks if task["id"] in done]
     # The task workspaces stay out of the results directory, which is meant to be committed.
     work = Path(tempfile.gettempdir()) / "wps-windows-check" / directory.name
@@ -367,6 +374,7 @@ def run_eval(args: argparse.Namespace, machine: Machine, runner: Any) -> int:
     (directory / "summary.json").write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
     leftover = machine.wps_processes() if machine.is_windows() else []
     command = ["eval"] + [f"--only {task_id}" for task_id in settings["only"]]
+    command += [f"--prefix {prefix}" for prefix in prefixes]
     command += [f"--repeat {settings['repeat']}", f"--min-passes {settings['min_passes']}"]
     if settings["wps_launch"] != "default":
         command.append(f"--wps-launch {settings['wps_launch']}")
@@ -658,6 +666,12 @@ def main(
     prereq.add_argument("--skip-claude", action="store_true", help="Do not ask claude to answer.")
     evaluation = commands.add_parser("eval", help="Run agent-evaluation tasks and write the results.")
     evaluation.add_argument("--only", action="append", default=[], help="Task id (repeatable); default: all tasks.")
+    evaluation.add_argument(
+        "--prefix",
+        action="append",
+        default=[],
+        help="Run every task whose id starts with this (repeatable), for example wps-open-; adds to --only.",
+    )
     evaluation.add_argument("--repeat", type=int, default=3)
     evaluation.add_argument("--min-passes", type=int, default=2)
     evaluation.add_argument("--model", default=None)

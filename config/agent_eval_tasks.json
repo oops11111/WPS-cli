@@ -1197,6 +1197,220 @@
           "tool": "save_open_document"
         }
       ]
+    },
+    {
+      "id": "wps-open-zh-writer-selection-replace",
+      "requires_wps": true,
+      "component": "writer",
+      "fixture": "季度报告.docx",
+      "setup": [
+        "open_in_wps",
+        "select_text"
+      ],
+      "selection": {
+        "text": "草稿"
+      },
+      "prompt": "当前目录下的 Writer 文档 季度报告.docx 已在 WPS 中打开，其中的“草稿”二字已被选中。请用 wps-agent MCP 工具在 WPS 中把选中的文字替换为“定稿”，request_id 用 eval-zh-selection-1。不要关闭文档，其他内容都不要改。",
+      "expected_tools": [
+        "open_documents",
+        "documents",
+        "register_document",
+        "writer_selection_read",
+        "writer_selection_replace"
+      ],
+      "checks": [
+        {
+          "kind": "operation_recorded",
+          "request_id": "eval-zh-selection-1",
+          "command": "writer-selection-replace"
+        },
+        {
+          "kind": "tool_called",
+          "tool": "writer_selection_replace",
+          "input": {
+            "request_id": "eval-zh-selection-1"
+          }
+        },
+        {
+          "kind": "file_text",
+          "path": "季度报告.docx",
+          "contains": [
+            "季度报告",
+            "状态：定稿",
+            "负责人：财务部"
+          ],
+          "absent": [
+            "草稿"
+          ]
+        },
+        {
+          "kind": "backup_count",
+          "count": 1
+        },
+        {
+          "kind": "tool_not_called",
+          "tool": "writer_replace"
+        }
+      ]
+    },
+    {
+      "id": "wps-open-zh-spreadsheet-sheet-cells",
+      "requires_wps": true,
+      "component": "spreadsheets",
+      "fixture": "状态表.xlsx",
+      "setup": [
+        "open_in_wps",
+        "select_text"
+      ],
+      "selection": {
+        "range": "C2:C3",
+        "sheet": "汇总"
+      },
+      "prompt": "当前目录下的工作簿 状态表.xlsx 已在 WPS 中打开，工作表“汇总”上的单元格 C2:C3 已被选中。请用 wps-agent MCP 工具在 WPS 中把选中的每个单元格都改成“已完成”，request_id 用 eval-zh-cells-1。不要关闭工作簿，其他单元格都不要改。",
+      "expected_tools": [
+        "open_documents",
+        "documents",
+        "register_document",
+        "spreadsheet_selection_read",
+        "spreadsheet_selection_replace"
+      ],
+      "checks": [
+        {
+          "kind": "operation_recorded",
+          "request_id": "eval-zh-cells-1",
+          "command": "spreadsheet-selection-replace"
+        },
+        {
+          "kind": "tool_called",
+          "tool": "spreadsheet_selection_replace",
+          "input": {
+            "request_id": "eval-zh-cells-1"
+          }
+        },
+        {
+          "kind": "xlsx_cell",
+          "path": "状态表.xlsx",
+          "sheet": "汇总",
+          "cell": "C2",
+          "value": "已完成"
+        },
+        {
+          "kind": "xlsx_cell",
+          "path": "状态表.xlsx",
+          "sheet": "汇总",
+          "cell": "C3",
+          "value": "已完成"
+        },
+        {
+          "kind": "xlsx_cell",
+          "path": "状态表.xlsx",
+          "sheet": "汇总",
+          "cell": "B2",
+          "value": 120
+        },
+        {
+          "kind": "xlsx_cell",
+          "path": "状态表.xlsx",
+          "sheet": "汇总",
+          "cell": "C1",
+          "value": "状态"
+        },
+        {
+          "kind": "backup_count",
+          "count": 1
+        },
+        {
+          "kind": "tool_not_called",
+          "tool": "spreadsheet_write"
+        }
+      ]
+    },
+    {
+      "id": "wps-open-zh-document-export-text",
+      "requires_wps": true,
+      "component": "writer",
+      "fixture": "季度报告.docx",
+      "setup": [
+        "open_in_wps"
+      ],
+      "prompt": "当前目录下的 Writer 文档 季度报告.docx 已在 WPS 中打开。请用 wps-agent MCP 工具在 WPS 已打开的文档中找到它，把它的文字导出到当前目录的 季度报告.txt。不要关闭、保存或修改这个文档。",
+      "expected_tools": [
+        "open_documents",
+        "documents",
+        "register_document",
+        "export_open_document_text"
+      ],
+      "checks": [
+        {
+          "kind": "tool_called",
+          "tool": "open_documents"
+        },
+        {
+          "kind": "tool_called",
+          "tool": "export_open_document_text"
+        },
+        {
+          "kind": "file_text",
+          "path": "季度报告.txt",
+          "contains": [
+            "季度报告",
+            "状态：草稿",
+            "负责人：财务部"
+          ]
+        },
+        {
+          "kind": "tool_not_called",
+          "tool": "save_open_document"
+        },
+        {
+          "kind": "file_unchanged"
+        }
+      ]
+    },
+    {
+      "id": "wps-open-zh-save-as-untitled",
+      "requires_wps": true,
+      "component": "writer",
+      "fixture": "季度报告.docx",
+      "setup": [
+        "open_in_wps",
+        "untitled_document"
+      ],
+      "untitled_text": "会议纪要：预算已批准",
+      "prompt": "WPS 文字里有一个从未保存过的新文档 {untitled_name}。请用 wps-agent MCP 工具把它另存为当前目录下的 会议纪要.docx，request_id 用 eval-zh-save-as-1。不要关闭它；同样打开着的 季度报告.docx 不要改动。",
+      "expected_tools": [
+        "open_documents",
+        "documents",
+        "save_as_open_document"
+      ],
+      "checks": [
+        {
+          "kind": "operation_recorded",
+          "request_id": "eval-zh-save-as-1",
+          "command": "save-as-open-document"
+        },
+        {
+          "kind": "tool_called",
+          "tool": "save_as_open_document",
+          "input": {
+            "request_id": "eval-zh-save-as-1"
+          }
+        },
+        {
+          "kind": "file_text",
+          "path": "会议纪要.docx",
+          "contains": [
+            "会议纪要：预算已批准"
+          ]
+        },
+        {
+          "kind": "file_unchanged"
+        },
+        {
+          "kind": "tool_not_called",
+          "tool": "save_open_document"
+        }
+      ]
     }
   ]
 }

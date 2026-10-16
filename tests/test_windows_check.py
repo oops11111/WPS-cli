@@ -245,6 +245,12 @@ class EvalTests(unittest.TestCase):
         self.assertEqual(runner.WPS_LAUNCH, "automation")
         self.assertIn("--wps-launch automation", (self.out / "RESULTS.md").read_text(encoding="utf-8"))
 
+    def test_a_prefix_selects_every_task_whose_id_starts_with_it(self):
+        runner = FakeRunner()
+        self.run_eval("--prefix", "task-b", "--only", "task-a", runner=runner)
+        self.assertEqual(runner.ran, ["task-a", "task-b"])
+        self.assertIn("--only task-a --prefix task-b", (self.out / "RESULTS.md").read_text(encoding="utf-8"))
+
     def test_leftover_wps_processes_are_listed(self):
         class Leftover(FakeMachine):
             def wps_processes(self):

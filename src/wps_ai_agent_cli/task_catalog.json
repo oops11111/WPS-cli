@@ -3069,7 +3069,7 @@
     "id": "P8-004",
     "phase": "phase8",
     "title": "Agent eval: Chinese content tasks",
-    "status": "todo",
+    "status": "done",
     "acceptance": "I1: the runner supports Chinese fixtures (file names, text, sheet names); at least four Chinese-content tasks, each with expected_tools and offline judge tests."
   },
   {

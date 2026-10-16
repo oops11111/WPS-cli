@@ -59,7 +59,14 @@ WPS_WRITE_TASKS = (
     "wps-open-spreadsheet-selection-replace",
     "wps-open-spreadsheet-selection-delete",
     "wps-open-save-as-untitled",
+    "wps-open-zh-writer-selection-replace",
+    "wps-open-zh-spreadsheet-sheet-cells",
+    "wps-open-zh-document-export-text",
+    "wps-open-zh-save-as-untitled",
 )
+# Phase 8 (I1): Chinese-content tasks, one for each path Chinese text takes: written text, a sheet name, a file
+# name of an open document, and the name WPS gives an untitled document.
+CHINESE_TASKS = WPS_WRITE_TASKS[-4:]
 # Every tool that writes to a document open in WPS; Phase 7 (H2) asks for an evaluation task for each.
 OPEN_DOCUMENT_WRITE_TOOLS = {
     "writer_selection_replace",
@@ -226,6 +233,26 @@ class AgentEvalTaskFileTests(unittest.TestCase):
             rows = [list(row) for row in sheet.iter_rows(values_only=True)]
             workbook.close()
         self.assertEqual(rows, [["Region", "Q1", "Status"], ["North", 120, "DRAFT"], ["South", 95, "DRAFT"]])
+
+    def test_the_chinese_fixtures_hold_chinese_names_and_text(self):
+        from openpyxl import load_workbook
+
+        spec = json.loads(TASKS_PATH.read_text(encoding="utf-8"))
+        tasks = {task["id"]: task for task in spec["tasks"]}
+        for task_id in CHINESE_TASKS:
+            self.assertTrue(tasks[task_id].get("requires_wps"), task_id)
+            self.assertFalse(tasks[task_id]["fixture"].isascii(), task_id)
+        with tempfile.TemporaryDirectory() as tmp:
+            run_agent_eval.write_fixture(Path(tmp), "季度报告.docx")
+            self.assertEqual(
+                run_agent_eval.document_text(Path(tmp) / "季度报告.docx").split("\n"),
+                ["季度报告", "状态：草稿", "负责人：财务部"],
+            )
+            run_agent_eval.write_fixture(Path(tmp), "状态表.xlsx")
+            workbook = load_workbook(Path(tmp) / "状态表.xlsx")
+            rows = [list(row) for row in workbook["汇总"].iter_rows(values_only=True)]
+            workbook.close()
+        self.assertEqual(rows, [["地区", "一季度", "状态"], ["华北", 120, "草稿"], ["华南", 95, "草稿"]])
 
     def test_the_table_fixture_holds_the_table_the_task_edits(self):
         from docx import Document
@@ -1564,6 +1591,90 @@ class AgentEvalJudgeTests(unittest.TestCase):
         ):
             self.run_wps_task("wps-open-document-export-text", Path(tmp), lambda ws: None, [])
         self.assertEqual(released, [True])
+
+    def test_chinese_writer_selection_replace_needs_the_chinese_text_in_the_file(self):
+        task = "wps-open-zh-writer-selection-replace"
+        calls = [_call("writer_selection_replace", request_id="eval-zh-selection-1", text="定稿")]
+        args = ("writer", "季度报告.docx", "eval-zh-selection-1", "writer-selection-replace")
+        with tempfile.TemporaryDirectory() as tmp:
+            passed = self.run_open_write(
+                task, Path(tmp), *args, lambda path: self.replace_in_docx(path, "草稿", "定稿"), calls
+            )
+            # What a GBK round trip makes of the text: the check must not pass on it.
+            garbled = "定稿".encode().decode("gbk", errors="replace")
+            mangled = self.run_open_write(
+                task, Path(tmp) / "b", *args, lambda path: self.replace_in_docx(path, "草稿", garbled), calls
+            )
+        self.assertTrue(passed["passed"], passed)
+        self.assertEqual([c["kind"] for c in mangled["checks"] if not c["passed"]], ["file_text"])
+
+    def test_chinese_sheet_cells_need_both_cells_on_the_chinese_sheet(self):
+        from openpyxl import load_workbook
+
+        def set_cells(values, sheet="汇总"):
+            def edit(path):
+                workbook = load_workbook(path)
+                for cell, value in values.items():
+                    workbook[sheet][cell] = value
+                workbook.save(path)
+
+            return edit
+
+        task = "wps-open-zh-spreadsheet-sheet-cells"
+        calls = [_call("spreadsheet_selection_replace", request_id="eval-zh-cells-1", text="已完成")]
+        args = ("spreadsheets", "状态表.xlsx", "eval-zh-cells-1", "spreadsheet-selection-replace")
+        with tempfile.TemporaryDirectory() as tmp:
+            passed = self.run_open_write(task, Path(tmp), *args, set_cells({"C2": "已完成", "C3": "已完成"}), calls)
+            one_cell = self.run_open_write(task, Path(tmp) / "b", *args, set_cells({"C2": "已完成"}), calls)
+        self.assertTrue(passed["passed"], passed)
+        self.assertEqual(
+            [(c["kind"], c.get("cell")) for c in one_cell["checks"] if not c["passed"]], [("xlsx_cell", "C3")]
+        )
+
+    def test_chinese_text_export_is_read_as_unicode_text_or_gbk(self):
+        text = "\r\n".join(run_agent_eval.WRITER_ZH_PARAGRAPHS)
+        calls = [_call("open_documents"), _call("export_open_document_text", output="季度报告.txt")]
+
+        def export(workspace, data):
+            (workspace / "季度报告.txt").write_bytes(data)
+
+        task = "wps-open-zh-document-export-text"
+        with (
+            tempfile.TemporaryDirectory() as tmp,
+            patch.object(run_agent_eval, "open_in_wps", return_value=(lambda: None, None)),
+        ):
+            utf16 = self.run_wps_task(
+                task, Path(tmp), lambda ws: export(ws, "\ufeff".encode("utf-16-le") + text.encode("utf-16-le")), calls
+            )
+            gbk = self.run_wps_task(task, Path(tmp) / "b", lambda ws: export(ws, text.encode("gbk")), calls)
+            utf8 = self.run_wps_task(task, Path(tmp) / "c", lambda ws: export(ws, text.encode("utf-8")), calls)
+            wrong_name = self.run_wps_task(task, Path(tmp) / "d", lambda ws: None, calls)
+        for result in (utf16, gbk, utf8):
+            self.assertTrue(result["passed"], result)
+        self.assertEqual([c["kind"] for c in wrong_name["checks"] if not c["passed"]], ["file_text"])
+
+    def test_chinese_save_as_untitled_needs_the_chinese_file_name(self):
+        from docx import Document
+
+        def save_as(name):
+            def act(workspace):
+                document = Document()
+                document.add_paragraph("会议纪要：预算已批准")
+                document.save(workspace / name)
+                record_operation("eval-zh-save-as-1", "save-as-open-document", {"output": name}, workspace)
+
+            return act
+
+        calls = [_call("save_as_open_document", request_id="eval-zh-save-as-1", output="会议纪要.docx")]
+        task = "wps-open-zh-save-as-untitled"
+        with (
+            tempfile.TemporaryDirectory() as tmp,
+            patch.object(run_agent_eval, "close_workspace_documents", return_value="closed"),
+        ):
+            passed = self.run_open_task(task, Path(tmp), save_as("会议纪要.docx"), calls)
+            ascii_name = self.run_open_task(task, Path(tmp) / "b", save_as("notes.docx"), calls)
+        self.assertTrue(passed["passed"], passed)
+        self.assertEqual([c["kind"] for c in ascii_name["checks"] if not c["passed"]], ["file_text"])
 
     def test_mcp_config_runs_the_server_in_the_task_workspace(self):
         with tempfile.TemporaryDirectory() as tmp:

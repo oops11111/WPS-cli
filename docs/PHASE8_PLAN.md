@@ -51,7 +51,7 @@ Phase 8 把这两件事做完，先尽快把已经修好的发出去（0.4.1）�
 | P8-001 | I3 | 定版本 0.4.1，把 `[Unreleased]` 改成 `[0.4.1]`，合并后由你推送 `v0.4.1` 标签（已准备：`__version__` 为 `0.4.1`，`CHANGELOG.md` 有 `[0.4.1] - 2026-10-16` 一节；标签待推送） | 本地 + 你 |
 | P8-002 | I3 | 在 Windows 上用 `run_windows_check.py wheel --version 0.4.1` 检查 Release 的 wheel | Windows |
 | P8-003 | I1 | 查遍所有进出 Python 进程的文本：CLI 参数、stdin、stdout、stderr、子进程、文件读写的默认编码；补齐 GBK 区域设置下的真实进程测试，以及每个组件的中文假 COM 往返测试（已完成：`tests/test_chinese_text.py`；查出并修了两处：Writer 结构校验脚本用 `-File` 运行、没有 UTF-8 输出设置，CLI 的 stderr 不是 UTF-8） | 本地 |
-| P8-004 | I1 | runner 支持中文测试文档（中文文件名、中文文字、中文工作表名）；编写 4 个中文评测任务，每个补离线判定测试 | 本地 |
+| P8-004 | I1 | runner 支持中文测试文档（中文文件名、中文文字、中文工作表名）；编写 4 个中文评测任务，每个补离线判定测试（已完成：`季度报告.docx`、`状态表.xlsx`（工作表 `汇总`）两个中文测试文档，4 个 `wps-open-zh-*` 任务，提示也是中文；纯文本导出按 GBK 回退读取；`run_windows_check.py eval --prefix wps-open-` 一条命令跑全部已打开文档任务） | 本地 |
 | P8-005 | I2 | 只读的 Windows 诊断脚本：在常规打开的工作簿上试几种关法并记录 HRESULT，`/Automation` 启动作为对照组；由 `run_windows_check.py` 运行并写出结果 | 本地 + Windows |
 | P8-006 | I2 | 按 P8-005 的结果修 `close_unchanged_document`（以及 runner 的清理）；修不了就加专门的错误码。补假 COM 测试 | 本地 |
 | P8-007 | 缺口 | runner 在每次运行开始时记录 WPS 列出的、不在任务工作区里的文档，写进 `RESULTS.md` | 本地 |

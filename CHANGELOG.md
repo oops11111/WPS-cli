@@ -4,6 +4,10 @@ All notable changes to `wps-ai-agent-cli`. The versioning rule and release steps
 
 ## [Unreleased]
 
+### Added
+
+- Agent evaluation: four Chinese-content tasks (`wps-open-zh-*`) with Chinese fixtures (`季度报告.docx`, `状态表.xlsx` with a sheet `汇总`) and Chinese prompts: a Writer selection replaced with Chinese text, cells on a Chinese-named sheet, the text export of an open document with a Chinese file name, and an untitled document saved under a Chinese file name. `run_windows_check.py eval --prefix wps-open-` runs every open-document task in one command. (P8-004)
+
 ### Fixed
 
 - The Writer structure parity check ran its PowerShell script with `-File`, so its output (headings, which may be Chinese) was written in the console code page (GBK on Chinese Windows) and read back garbled. It now runs with the same UTF-8 output setting as every other script. (P8-003)

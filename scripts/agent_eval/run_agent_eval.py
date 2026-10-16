@@ -61,19 +61,31 @@ WRITER_TABLE_ROWS = (("Region", "Q1", "Status"), ("North", "120", "DRAFT"), ("So
 # status.xlsx: the same table on one sheet, for the spreadsheet selection tasks (P7-003).
 SPREADSHEET_STATUS_SHEET = "Status"
 SPREADSHEET_STATUS_ROWS = (("Region", "Q1", "Status"), ("North", 120, "DRAFT"), ("South", 95, "DRAFT"))
+# Chinese fixtures for the Chinese-content tasks (P8-004): a Chinese file name, Chinese text and, for the
+# workbook, a Chinese sheet name. Same layout as report.docx and status.xlsx.
+WRITER_ZH_FIXTURE = "季度报告.docx"
+WRITER_ZH_PARAGRAPHS = ("季度报告", "状态：草稿", "负责人：财务部")
+SPREADSHEET_ZH_FIXTURE = "状态表.xlsx"
+SPREADSHEET_ZH_SHEET = "汇总"
+SPREADSHEET_ZH_ROWS = (("地区", "一季度", "状态"), ("华北", 120, "草稿"), ("华南", 95, "草稿"))
 
 
 def write_fixture(workspace: Path, name: str) -> str:
-    """Write the task's fixture, chosen by its suffix: .xlsx, .docx or .pptx."""
+    """Write the task's fixture, chosen by its name, else by its suffix: .xlsx, .docx or .pptx."""
     path = workspace / name
     suffix = path.suffix.lower()
-    if suffix == ".xlsx" and path.name == "status.xlsx":
+    tables = {
+        "status.xlsx": (SPREADSHEET_STATUS_SHEET, SPREADSHEET_STATUS_ROWS),
+        SPREADSHEET_ZH_FIXTURE: (SPREADSHEET_ZH_SHEET, SPREADSHEET_ZH_ROWS),
+    }
+    if suffix == ".xlsx" and path.name in tables:
         from openpyxl import Workbook
 
+        title, rows = tables[path.name]
         workbook = Workbook()
         sheet = workbook.active
-        sheet.title = SPREADSHEET_STATUS_SHEET
-        for row in SPREADSHEET_STATUS_ROWS:
+        sheet.title = title
+        for row in rows:
             sheet.append(list(row))
         workbook.save(path)
     elif suffix == ".xlsx":
@@ -96,7 +108,7 @@ def write_fixture(workspace: Path, name: str) -> str:
         from docx import Document
 
         document = Document()
-        for text in WRITER_FIXTURE_PARAGRAPHS:
+        for text in WRITER_ZH_PARAGRAPHS if path.name == WRITER_ZH_FIXTURE else WRITER_FIXTURE_PARAGRAPHS:
             document.add_paragraph(text)
         document.save(path)
     elif suffix == ".pptx":
@@ -117,14 +129,18 @@ def write_fixture(workspace: Path, name: str) -> str:
 def document_text(path: Path) -> str:
     """All text in a .docx (paragraphs and tables), a .pptx (every shape) or a .txt, joined by newlines.
 
-    A .txt from WPS is UTF-16 with a byte order mark (Unicode text) or, as a fallback, the system code page.
+    A .txt from WPS is UTF-16 with a byte order mark (Unicode text) or, as a fallback, the system code page:
+    GBK on Chinese Windows, which is what Chinese text that is not UTF-8 is read as (P8-004).
     """
     suffix = path.suffix.lower()
     if suffix == ".txt":
         raw = path.read_bytes()
         if raw[:2] in (b"\xff\xfe", b"\xfe\xff"):
             return raw.decode("utf-16")
-        return raw.decode("utf-8-sig", errors="replace")
+        try:
+            return raw.decode("utf-8-sig")
+        except UnicodeDecodeError:
+            return raw.decode("gbk", errors="replace")
     if suffix == ".docx":
         from docx import Document
 
