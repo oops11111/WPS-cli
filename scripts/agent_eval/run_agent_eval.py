@@ -342,8 +342,30 @@ def wps_process_ids() -> set[int]:
     return {int(token) for token in completed.stdout.split() if token.strip().isdigit()}
 
 
-def stop_started_wps(component: str, started: set[int]) -> str:
-    """End the WPS processes this runner started, but only while WPS lists no document for the component."""
+COMPONENT_PROCESSES = {"writer": "wps", "spreadsheets": "et", "presentation": "wpp"}
+
+
+def component_process_ids(component: str) -> set[int]:
+    """Ids of the processes of one WPS component (wps for Writer, et for Spreadsheets, wpp for Presentation)."""
+    from wps_ai_agent_cli.powershell_runner import run_powershell_command
+
+    completed = run_powershell_command(
+        f"Get-Process -Name {COMPONENT_PROCESSES[component]} -ErrorAction SilentlyContinue | ForEach-Object {{ $_.Id }}",
+        timeout_seconds=30,
+    )
+    return {int(token) for token in completed.stdout.split() if token.strip().isdigit()}
+
+
+def stop_started_wps(component: str, started: set[int], rounds: int = 3, settle: float = 3.0) -> str:
+    """End the component's WPS processes after a run that started one, while WPS lists no document for it.
+
+    Not only the processes the run started: when one is stopped, WPS can start another in its place. In P7-007
+    stopping et.exe made WPS start "et.exe recover1 -cpid=<the stopped id>", which reopened status.xlsx in a
+    recovery workspace without registering for automation; every later launch handed the file to it, so the
+    next runs could not reach their workbook. So every process of the component is stopped, in up to `rounds`
+    rounds, until none comes back. This is safe because the Windows check's prerequisites require that no WPS
+    process runs when a check starts: any process of the component now belongs to this run.
+    """
     if not started:
         return "none started"
     from wps_ai_agent_cli.open_documents import list_open_documents
@@ -354,15 +376,22 @@ def stop_started_wps(component: str, started: set[int]) -> str:
         # Name them: P7-007 left processes running and the record could not say which document kept them.
         names = ", ".join(str(item.get("name") or item.get("full_name") or "?") for item in data["documents"])
         return f"left running: WPS still lists {names}"
-    ids = ",".join(str(pid) for pid in sorted(started))
-    run_powershell_command(f"Stop-Process -Id {ids} -ErrorAction SilentlyContinue", timeout_seconds=30)
-    # Wait until they are gone: in P7-007 the run after a stop could not open its workbook within 45 s, and a
-    # process still shutting down is the likely reason. Not proven; the wait costs nothing when they are gone.
-    deadline = time.monotonic() + 20
-    while time.monotonic() < deadline and wps_process_ids() & started:
-        time.sleep(1)
-    left = sorted(wps_process_ids() & started)
-    return f"stopped {ids}" + (f"; still running after 20 s: {','.join(map(str, left))}" if left else "")
+    stopped: list[int] = []
+    for _round in range(rounds):
+        ids = component_process_ids(component)
+        if not ids:
+            break
+        stopped += sorted(ids)
+        listed = ",".join(map(str, sorted(ids)))
+        run_powershell_command(f"Stop-Process -Id {listed} -Force -ErrorAction SilentlyContinue", timeout_seconds=30)
+        deadline = time.monotonic() + 20
+        while time.monotonic() < deadline and component_process_ids(component) & ids:
+            time.sleep(1)
+        # Give WPS the moment it takes to start a replacement, so the next round sees it.
+        time.sleep(settle)
+    left = sorted(component_process_ids(component))
+    summary = f"stopped {','.join(map(str, stopped))}" if stopped else "none running"
+    return summary + (f"; still running after {rounds} rounds: {','.join(map(str, left))}" if left else "")
 
 
 def registered_open_command(extension: str) -> str:

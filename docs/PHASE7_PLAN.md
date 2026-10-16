@@ -73,6 +73,14 @@ Phase 6 让已打开文档的命令能看到用户打开的文档，并证明 Ag
   - 表格替换 1/3，表格删除被跳过。第 1 次清理时关闭工作簿报 `RPC_E_SERVERFAULT`（`Close($false)`，工作簿是通过 Running Object Table 拿到的）；之后每次启动的 WPS 表格都连不上（`WPS_INSTANCE_NOT_AUTOMATABLE`），单独重跑这两个任务结果一样。P4-011 在真实 WPS 上验证过关闭工作簿，但那次是 `/Automation` 启动、经 `GetActiveObject` 拿到的。
 - **修复（本轮之后）。** CLI 把 stdin 也设成 UTF-8；关闭未改动的工作簿先用不带参数的 `Close()`（文档已保存，不会弹框），失败再用 `Close($false)`；runner 丢弃工作簿时同样处理；runner 打开文档超时时记下当时有哪些 WPS 进程、哪些是这次启动的；`wheel` 有 `GITHUB_TOKEN` 时带上它，避开未认证的配额（这次运行前一次失败于 HTTP 403）。`Close()` 能否避免表格的问题，要下一轮才知道。
 - **下一步。** 合并后在新的 `main` 上再用一条命令跑 11 个任务。如果表格任务仍然连不上，H2 的表格任务改用 `--wps-launch automation` 跑（不改系统打开命令，只在命令行加 `/Automation`），由你决定。
+
+### P7-007 第三轮（`1b6ad48`）
+
+- `wps-open-save-as-untitled` 3/3（4、8、7 轮，没有工具错误）：MCP 读 stdin 的修复生效。10 个任务里 9 个至少 2/3（`20261015T221131Z-1b6ad48-eval`）。
+- **表格任务的原因找到了。** 第 1 次运行后关闭工作簿仍失败（`0x800A01A8`），runner 结束了它启动的 `et.exe` 49320；WPS 随即自己启动了 `et.exe recover1 -cpid=49320 /w`，在“工作区”里重新打开 `status.xlsx`，这个进程不注册自动化。之后每次启动都把文件交给它，所以拿到 `WPS_INSTANCE_NOT_AUTOMATABLE`。runner 只结束自己启动的 pid，结束不到这个替身。
+- **修复（本轮之后）。** runner 结束进程时按组件结束全部进程（`wps`、`et`、`wpp`），最多三轮，每轮等它们退出，以抓住 WPS 自己启动的替身。前提写在代码和文档里：前置检查保证开跑时没有 WPS 进程，所以清理时该组件的进程都属于这次运行。
+- **还开着。** 关闭工作簿为什么失败（经 Running Object Table 拿到的工作簿，`Close()` 报 `0x800A01A8`，之前 `Close($false)` 报 `RPC_E_SERVERFAULT`）仍不清楚；产品里的关闭会先查 WPS 是否还列出文档。另外 WPS 会在启动时重新打开上一次会话的文档（这次是 P6 的 `deck.pptx` 和一个编码试验写的 `notes-default.docx`），这是机器状态，在 WPS 里关掉它们即可。
+- **下一步。** 合并后再用一条命令跑 11 个任务。
 | P7-008 | H4 | 定版本 0.4.0，整理 `CHANGELOG.md`，合并后由你推送 `v0.4.0` 标签（已完成：`v0.4.0` 从 `564d103` 发布） | 本地 + 你 |
 | P7-009 | H4 | 在 Windows 上用 P7-005 的脚本检查 Release 的 wheel（已完成：`20261015T170715Z-wheel-0.4.0`，7 个条件全部通过） | Windows |
 
