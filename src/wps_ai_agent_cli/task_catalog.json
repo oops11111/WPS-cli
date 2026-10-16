@@ -3169,5 +3169,61 @@
     "title": "Windows check of the 0.6.0 wheel",
     "status": "done",
     "acceptance": "J4: run_windows_check.py wheel --version 0.6.0 passes on Windows; result recorded."
+  },
+  {
+    "id": "P10-001",
+    "phase": "phase10",
+    "title": "Classify the off-path calls of P9-006",
+    "status": "todo",
+    "acceptance": "K1: each of the 50 off-path calls in P9-006 is classified (locating before the write, checking after it, other) in docs/PHASE10_PLAN.md, and what verified_state gives per component is decided."
+  },
+  {
+    "id": "P10-002",
+    "phase": "phase10",
+    "title": "Open-document write results carry verified_state",
+    "status": "todo",
+    "acceptance": "K1: every open-document write command returns verified_state read back from the saved file and a sentence on what was checked; the MCP descriptions say the result is already verified; offline tests."
+  },
+  {
+    "id": "P10-003",
+    "phase": "phase10",
+    "title": "Agent eval: off-path calls before and after the write",
+    "status": "todo",
+    "acceptance": "K1: each evaluation run splits off_path_calls into calls before and after the first write; the summary and RESULTS.md show both; offline tests."
+  },
+  {
+    "id": "P10-004",
+    "phase": "phase10",
+    "title": "Undo chart and shape selection writes in WPS",
+    "status": "todo",
+    "acceptance": "K2: Spreadsheet selection writes on shape text, chart titles, axis titles and series values record the original value and write it back in WPS when the read-back fails, reporting rolled_back_in_wps; fake-COM tests."
+  },
+  {
+    "id": "P10-005",
+    "phase": "phase10",
+    "title": "Windows undo check for shape text and chart titles",
+    "status": "todo",
+    "acceptance": "K2: run_windows_check.py undo gains shape-text and chart-title cases on a workbook with a shape and a chart; offline tests."
+  },
+  {
+    "id": "P10-006",
+    "phase": "phase10",
+    "title": "Windows run of K1 and K2",
+    "status": "todo",
+    "acceptance": "K1, K2: all open-document tasks in one --repeat 3 --min-passes 2 invocation, then run_windows_check.py undo; off_path_calls, wrong_tool_calls and the undo results recorded."
+  },
+  {
+    "id": "P10-007",
+    "phase": "phase10",
+    "title": "Release 0.7.0",
+    "status": "todo",
+    "acceptance": "K3: version 0.7.0 per docs/RELEASING.md and a CHANGELOG section, merged before the maintainer pushes the v0.7.0 tag."
+  },
+  {
+    "id": "P10-008",
+    "phase": "phase10",
+    "title": "Windows check of the 0.7.0 wheel",
+    "status": "todo",
+    "acceptance": "K3: run_windows_check.py wheel --version 0.7.0 passes on Windows; result recorded."
   }
 ]
