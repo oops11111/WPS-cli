@@ -94,11 +94,27 @@ class CloseAndRestoreTests(unittest.TestCase):
         self.assertEqual(self.backup_count(), 1, "no pre-restore backup may be taken")
 
     def test_a_failed_close_restores_nothing(self):
-        with self.fake_close(failure={"code": "COM_OPERATION_FAILED", "message": "boom"}):
+        with (
+            self.fake_close(failure={"code": "COM_OPERATION_FAILED", "message": "boom"}),
+            patch.object(open_documents, "list_open_documents", return_value=(False, {}, [])),
+        ):
             ok, _result, errors, _ = self.restore(close_in_wps=True)
         self.assertFalse(ok)
         self.assertEqual(errors[0]["code"], "COM_OPERATION_FAILED")
         self.assertEqual(self.a1(), "rejected")
+
+    def test_a_close_wps_refuses_restores_nothing_and_says_so(self):
+        listed = {"documents": [{"full_name": str(self.path.resolve())}]}
+        with (
+            self.fake_close(failure={"code": "COM_OPERATION_FAILED", "message": "0x800A01A8"}),
+            patch.object(open_documents, "list_open_documents", return_value=(True, listed, [])),
+        ):
+            ok, _result, errors, _ = self.restore(close_in_wps=True)
+        self.assertFalse(ok)
+        self.assertEqual(errors[0]["code"], "WPS_CLOSE_REFUSED")
+        self.assertEqual(self.a1(), "rejected")
+        self.assertIsNone(get_operation("restore-1", self.workspace))
+        self.assertEqual(self.backup_count(), 1, "no pre-restore backup may be taken")
 
     def test_dry_run_only_asks_whether_it_would_close(self):
         with self.fake_close("open"):

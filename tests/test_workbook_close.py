@@ -1,0 +1,275 @@
+"""The workbook-close diagnostic (P8-005): what each attempt records, the results it writes, and its script."""
+
+from __future__ import annotations
+
+import importlib.util
+import io
+import json
+import os
+import shutil
+import tempfile
+import types
+import unittest
+from pathlib import Path
+from unittest.mock import patch
+
+from tests.test_undo_in_wps_powershell import FAKE_BOOK_PRELUDE
+from tests.test_windows_check import FakeMachine, windows_check
+from wps_ai_agent_cli import open_documents
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+_spec = importlib.util.spec_from_file_location(
+    "workbook_close", REPO_ROOT / "scripts" / "windows_check" / "workbook_close.py"
+)
+workbook_close = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(workbook_close)
+PWSH = os.environ.get("WPS_TEST_PWSH") or shutil.which("pwsh")
+
+RECOVERY = {"name": "et.exe", "id": 9, "title": "", "command_line": r"et.exe recover1 -cpid=8 /w"}
+
+
+class FakeRunner:
+    WPS_LAUNCH = "default"
+
+    def __init__(self, open_reason=None):
+        self.open_reason = open_reason
+        self.launches = []
+        self.released = 0
+
+    def write_fixture(self, workspace, name):
+        (workspace / name).write_bytes(b"xlsx")
+        return "sha"
+
+    def open_in_wps(self, path, component):
+        self.launches.append((self.WPS_LAUNCH, path.name, component))
+        if self.open_reason:
+            return None, self.open_reason
+
+        def release():
+            self.released += 1
+            return "fixture closed; processes stopped 8"
+
+        return release, None
+
+
+def attempted(returned=True, error=None, **extra):
+    return {
+        "ok": True,
+        "status": "attempted",
+        "attempt": {
+            "attached_via": "running_object_table",
+            "in_rot": True,
+            "returned": returned,
+            "error": error,
+            **extra,
+        },
+    }
+
+
+class AttemptTests(unittest.TestCase):
+    def setUp(self):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        self.root = Path(tmp.name)
+
+    def attempt(self, payload, listed, processes=(), runner=None, launch="default", method="close"):
+        runner = runner or FakeRunner()
+        with patch.object(open_documents, "_listed_in_wps", return_value=listed):
+            result = workbook_close.run_attempt(
+                launch,
+                method,
+                runner,
+                self.root,
+                lambda: list(processes),
+                close=lambda path, name: payload,
+                settle=0,
+            )
+        return result, runner
+
+    def test_a_close_that_returns_and_leaves_nothing_listed_is_closed(self):
+        result, runner = self.attempt(attempted(), listed=False)
+        self.assertEqual(workbook_close.outcome(result), "closed")
+        self.assertEqual(runner.launches, [("default", "close-check.xlsx", "spreadsheets")])
+        self.assertEqual(runner.released, 1)
+        self.assertEqual(result["cleanup"], "fixture closed; processes stopped 8")
+
+    def test_a_failed_close_records_its_hresult_and_a_recovery_instance(self):
+        error = {"hresult": "0x800A01A8", "type": "System.Runtime.InteropServices.COMException", "message": "x"}
+        result, _ = self.attempt(attempted(returned=False, error=error), listed=True, processes=[RECOVERY])
+        self.assertEqual(workbook_close.outcome(result), "failed, still open")
+        self.assertEqual(workbook_close.recovery_processes(result["processes_after"]), ["et.exe 9"])
+        row = workbook_close.results_table([result])[2]
+        self.assertIn("| failed, still open | 0x800A01A8 |", row)
+        self.assertIn("| et.exe 9 |", row)
+
+    def test_a_failure_after_which_wps_lists_nothing_is_failed_but_closed(self):
+        result, _ = self.attempt(attempted(returned=False, error={"hresult": "0x80010105"}), listed=False)
+        self.assertEqual(workbook_close.outcome(result), "failed, closed anyway")
+
+    def test_a_workbook_wps_did_not_open_is_a_setup_failure_and_nothing_is_tried(self):
+        closed = []
+        with patch.object(open_documents, "_listed_in_wps") as listed:
+            result = workbook_close.run_attempt(
+                "automation",
+                "close",
+                FakeRunner(open_reason="WPS did not list close-check.xlsx"),
+                self.root,
+                list,
+                close=lambda path, name: closed.append(name),
+                settle=0,
+            )
+        self.assertEqual(closed, [])
+        listed.assert_not_called()
+        self.assertEqual(workbook_close.outcome(result), "setup failed")
+        self.assertIn("WPS did not list", workbook_close.results_table([result])[2])
+
+    def test_the_launch_mode_is_set_on_the_runner_before_opening(self):
+        _result, runner = self.attempt(attempted(), listed=False, launch="automation")
+        self.assertEqual(runner.launches[0][0], "automation")
+
+    def test_the_default_plan_tries_every_method_and_a_control_group(self):
+        plan = workbook_close.default_plan()
+        self.assertEqual({method for launch, method in plan if launch == "default"}, set(workbook_close.METHODS))
+        self.assertEqual([method for launch, method in plan if launch == "automation"], ["close", "close_false"])
+        parser_choices = {"close", "close_false", "close_false_missing", "saved_then_close", "item_by_name"}
+        self.assertLessEqual(parser_choices, set(workbook_close.METHODS))
+
+
+class CloseDiagCommandTests(unittest.TestCase):
+    def setUp(self):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        self.out = Path(tmp.name) / "results"
+        for patcher in (
+            patch("sys.stdout", new_callable=io.StringIO),
+            patch("sys.stderr", new_callable=io.StringIO),
+        ):
+            patcher.start()
+            self.addCleanup(patcher.stop)
+
+    def diagnostic(self, ran):
+        def run_attempt(launch, method, runner, root, processes):
+            ran.append((launch, method))
+            failed = method != "close" or launch == "automation"
+            payload = attempted(
+                returned=not failed, error={"hresult": "0x800A01A8", "message": "m"} if failed else None
+            )
+            return {
+                "launch": launch,
+                "method": method,
+                **payload,
+                "listed_by_cli": failed,
+                "processes_after": [RECOVERY] if failed else [],
+                "cleanup": "ok",
+            }
+
+        return types.SimpleNamespace(**{**vars(workbook_close), "run_attempt": run_attempt})
+
+    def test_every_attempt_is_written_to_the_results(self):
+        ran = []
+        code = windows_check.main(
+            ["close-diag", "--out", str(self.out)],
+            machine=FakeMachine(),
+            runner=object(),
+            diagnostic=self.diagnostic(ran),
+        )
+        self.assertEqual(code, 0)
+        self.assertEqual(ran, workbook_close.default_plan())
+        text = (self.out / "RESULTS.md").read_text(encoding="utf-8")
+        self.assertIn("| default | `close` | running_object_table | True | closed |", text)
+        self.assertIn("| automation | `close_false` |", text)
+        self.assertIn("0x800A01A8", text)
+        self.assertIn("et.exe recover1 -cpid=8 /w", text)
+        state = json.loads((self.out / "results.json").read_text(encoding="utf-8"))
+        self.assertEqual(len(state["results"]), len(ran))
+
+    def test_method_and_launch_narrow_the_plan(self):
+        ran = []
+        windows_check.main(
+            [
+                "close-diag",
+                "--out",
+                str(self.out),
+                "--method",
+                "close",
+                "--method",
+                "item_by_name",
+                "--launch",
+                "default",
+            ],
+            machine=FakeMachine(),
+            runner=object(),
+            diagnostic=self.diagnostic(ran),
+        )
+        self.assertEqual(ran, [("default", "close"), ("default", "item_by_name")])
+        text = (self.out / "RESULTS.md").read_text(encoding="utf-8")
+        self.assertIn("close-diag --method close --method item_by_name --launch default", text)
+
+    def test_failed_prerequisites_run_nothing(self):
+        ran = []
+        code = windows_check.main(
+            ["close-diag", "--out", str(self.out)],
+            machine=FakeMachine(processes=[{"name": "et.exe", "id": 1, "title": "x", "command_line": "et.exe"}]),
+            runner=object(),
+            diagnostic=self.diagnostic(ran),
+        )
+        self.assertEqual(code, 1)
+        self.assertEqual(ran, [])
+
+
+@unittest.skipUnless(PWSH, "PowerShell (pwsh) is required to run the close attempts against a fake WPS")
+class CloseAttemptScriptTests(unittest.TestCase):
+    """The fake workbook behaves like the one in P7-007: Close() works, Close($false) faults."""
+
+    def setUp(self):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        self.book = Path(tmp.name) / "close-check.xlsx"
+        self.book.write_bytes(b"xlsx")
+        for patcher in (
+            patch("wps_ai_agent_cli.powershell_runner.powershell_executable", return_value=PWSH),
+            patch.dict(os.environ, {"WPSFAKE_PATH": str(self.book.resolve()), "WPSFAKE_SAVES": "1"}),
+            patch.object(
+                open_documents,
+                "_render",
+                side_effect=lambda script, values: (
+                    FAKE_BOOK_PRELUDE + open_documents.json.dumps(values).join(script.split("__PARAMS_JSON__"))
+                ),
+            ),
+        ):
+            patcher.start()
+            self.addCleanup(patcher.stop)
+
+    def test_a_close_that_returns_is_recorded_with_how_the_script_attached(self):
+        payload = workbook_close.run_close_script(self.book, "close")
+        self.assertEqual(payload["status"], "attempted", payload)
+        attempt = payload["attempt"]
+        self.assertTrue(attempt["returned"])
+        self.assertIsNone(attempt["error"])
+        self.assertEqual(attempt["attached_via"], "active_object")
+        self.assertTrue(attempt["saved_before"])
+        # The fake keeps listing the workbook, so the check afterwards sees it.
+        self.assertTrue(attempt["listed_after"])
+
+    def test_a_faulting_close_records_the_innermost_hresult(self):
+        attempt = workbook_close.run_close_script(self.book, "close_false")["attempt"]
+        self.assertFalse(attempt["returned"])
+        self.assertEqual(attempt["error"]["hresult"], "0x80010105")
+        self.assertEqual(attempt["error"]["type"], "System.Runtime.InteropServices.COMException")
+
+    def test_a_workbook_missing_from_the_running_object_table_is_an_error_not_a_crash(self):
+        attempt = workbook_close.run_close_script(self.book, "rot_object")["attempt"]
+        self.assertFalse(attempt["in_rot"])
+        self.assertFalse(attempt["returned"])
+        self.assertIn("Running Object Table", attempt["error"]["message"])
+
+    def test_every_method_runs_to_a_record(self):
+        for method in workbook_close.METHODS:
+            with self.subTest(method=method):
+                payload = workbook_close.run_close_script(self.book, method)
+                self.assertEqual(payload["status"], "attempted", payload)
+                self.assertEqual(payload["attempt"]["method"], method)
+
+
+if __name__ == "__main__":
+    unittest.main()

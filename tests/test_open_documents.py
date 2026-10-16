@@ -108,12 +108,18 @@ class CloseUnchangedDocumentTests(unittest.TestCase):
         self.assertEqual((status, error), ("closed", None))
         listing.assert_called_once_with(component="spreadsheets")
 
-    def test_a_failed_close_stays_a_failure_while_wps_lists_the_document_or_cannot_say(self):
-        for kwargs in ({"listed": True}, {"listed": False, "list_ok": False}):
-            with self.subTest(**kwargs):
-                (status, error), _listing = self.close(**kwargs)
-                self.assertIsNone(status)
-                self.assertEqual(error["message"], "RPC disconnected")
+    def test_a_failed_close_stays_the_script_error_when_wps_cannot_say_whether_it_lists_the_document(self):
+        (status, error), _listing = self.close(listed=False, list_ok=False)
+        self.assertIsNone(status)
+        self.assertEqual((error["code"], error["message"]), ("COM_OPERATION_FAILED", "RPC disconnected"))
+
+    def test_a_document_wps_still_lists_after_a_failed_close_is_wps_close_refused(self):
+        (status, error), _listing = self.close(listed=True)
+        self.assertIsNone(status)
+        self.assertEqual(error["code"], "WPS_CLOSE_REFUSED")
+        self.assertIn("status.xlsx", error["message"])
+        self.assertIn("COM_OPERATION_FAILED: RPC disconnected", error["message"])
+        self.assertIn("without close_in_wps", error["message"])
 
     def test_a_failed_check_without_closing_is_not_turned_into_a_close(self):
         (status, error), listing = self.close(listed=False, do_close=False)

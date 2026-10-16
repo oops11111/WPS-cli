@@ -245,6 +245,32 @@ class EvalTests(unittest.TestCase):
         self.assertEqual(runner.WPS_LAUNCH, "automation")
         self.assertIn("--wps-launch automation", (self.out / "RESULTS.md").read_text(encoding="utf-8"))
 
+    def test_a_prefix_selects_every_task_whose_id_starts_with_it(self):
+        runner = FakeRunner()
+        self.run_eval("--prefix", "task-b", "--only", "task-a", runner=runner)
+        self.assertEqual(runner.ran, ["task-a", "task-b"])
+        self.assertIn("--only task-a --prefix task-b", (self.out / "RESULTS.md").read_text(encoding="utf-8"))
+
+    def test_documents_wps_had_open_outside_the_workspaces_are_listed_once_with_their_runs(self):
+        restored = {"component": "spreadsheets", "name": "预算.xlsx", "full_name": r"D:\上次\预算.xlsx"}
+
+        class Restoring(FakeRunner):
+            def run_task_repeated(self, task, *args, **kwargs):
+                self.ran.append(task["id"])
+                outside = [restored] if task["id"] == "task-a" else []
+                return task_result(task["id"], documents_outside=outside)
+
+        self.run_eval(runner=Restoring())
+        text = (self.out / "RESULTS.md").read_text(encoding="utf-8")
+        self.assertIn("WPS also had open: `D:\\上次\\预算.xlsx` (spreadsheets)", text)
+        self.assertIn("- `D:\\上次\\预算.xlsx` (spreadsheets): 3 runs (task-a run 1, task-a run 2, task-a run 3)", text)
+
+    def test_no_documents_outside_the_workspaces_is_said(self):
+        self.run_eval()
+        text = (self.out / "RESULTS.md").read_text(encoding="utf-8")
+        section = text.split("### Documents WPS had open outside the task workspaces")[1]
+        self.assertIn("- None.", section.split("###")[0])
+
     def test_leftover_wps_processes_are_listed(self):
         class Leftover(FakeMachine):
             def wps_processes(self):

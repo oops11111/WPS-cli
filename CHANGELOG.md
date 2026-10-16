@@ -4,6 +4,21 @@ All notable changes to `wps-ai-agent-cli`. The versioning rule and release steps
 
 ## [Unreleased]
 
+### Added
+
+- Agent evaluation: four Chinese-content tasks (`wps-open-zh-*`) with Chinese fixtures (`季度报告.docx`, `状态表.xlsx` with a sheet `汇总`) and Chinese prompts: a Writer selection replaced with Chinese text, cells on a Chinese-named sheet, the text export of an open document with a Chinese file name, and an untitled document saved under a Chinese file name. `run_windows_check.py eval --prefix wps-open-` runs every open-document task in one command. (P8-004)
+- `run_windows_check.py close-diag`: opens a new workbook in WPS the usual way and closes it once per method (eight methods, plus `Close()` and `Close($false)` under `/Automation` as the control group), and records each HRESULT, whether WPS still lists the workbook and whether it started a recovery instance. (P8-005)
+- Agent evaluation: right after a fixture opens in WPS, the runner records the documents WPS lists outside the task workspace, such as those WPS reopened from its previous session, in each run's `documents_outside`. They are left open. `run_windows_check.py eval` shows them per run and in a section of `RESULTS.md`. (P8-007)
+
+### Changed
+
+- `restore-backup --close-in-wps` (MCP `close_in_wps`): when WPS refuses to close the document and still lists it, the error is now `WPS_CLOSE_REFUSED`, with the reason WPS gave and what to do (close it in WPS, then restore without the flag), instead of the script's `COM_OPERATION_FAILED`. Nothing is restored, as before. A workbook opened by double-click on WPS 12.8 is refused this way (P7-007). (P8-006)
+
+### Fixed
+
+- The Writer structure parity check ran its PowerShell script with `-File`, so its output (headings, which may be Chinese) was written in the console code page (GBK on Chinese Windows) and read back garbled. It now runs with the same UTF-8 output setting as every other script. (P8-003)
+- The CLI wrote its error messages (stderr) in the system code page, so an argparse error about a Chinese argument reached the caller garbled. stderr is now UTF-8, like stdout and stdin. (P8-003)
+
 ## [0.4.1] - 2026-10-16
 
 Fixes for Chinese Windows found by the Phase 7 Windows evaluation: arguments and output with characters outside ASCII are no longer garbled.

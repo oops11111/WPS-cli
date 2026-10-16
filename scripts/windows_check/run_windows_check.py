@@ -14,6 +14,10 @@ Subcommands:
     undo     prereq, then make a Writer and a Presentation selection replace fail its read-back inside this
              process (undo_injection.py), so that the undo in WPS (P7-001) runs on real WPS, and record the file
              hashes before the write, after it and after the undo.
+    close-diag
+             prereq, then open a new workbook in WPS the usual way and close it, once per method (Close(),
+             Close($false), through Workbooks.Item(name), the Running Object Table object, ...), with /Automation
+             as the control group, and record each HRESULT and what WPS did (workbook_close.py, P8-005).
     wheel    Download a released wheel, compare its SHA-256 with the one the Release reports, install it alone
              in a new virtual environment and run inspect-env and the safe regression profile outside the
              repository.
@@ -24,8 +28,10 @@ scripts/windows_check/results/, ready to commit.
 Usage:
     python scripts/windows_check/run_windows_check.py prereq
     python scripts/windows_check/run_windows_check.py eval --only wps-open-writer-selection-replace --repeat 3 --min-passes 2
+    python scripts/windows_check/run_windows_check.py eval --prefix wps-open- --repeat 3 --min-passes 2
     python scripts/windows_check/run_windows_check.py eval --resume scripts/windows_check/results/<dir>
     python scripts/windows_check/run_windows_check.py undo
+    python scripts/windows_check/run_windows_check.py close-diag
     python scripts/windows_check/run_windows_check.py wheel --version 0.4.0
 """
 
@@ -56,6 +62,16 @@ def load_undo_injection() -> Any:
     """undo_injection.py next to this script; it imports the package, which load_runner puts on sys.path."""
     path = Path(__file__).resolve().parent / "undo_injection.py"
     spec = importlib.util.spec_from_file_location("undo_injection", path)
+    module = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    spec.loader.exec_module(module)
+    return module
+
+
+def load_workbook_close() -> Any:
+    """workbook_close.py next to this script."""
+    path = Path(__file__).resolve().parent / "workbook_close.py"
+    spec = importlib.util.spec_from_file_location("workbook_close", path)
     module = importlib.util.module_from_spec(spec)
     assert spec.loader is not None
     spec.loader.exec_module(module)
@@ -240,6 +256,26 @@ def eval_table(results: list[dict[str, Any]]) -> list[str]:
     return lines
 
 
+def document_label(item: dict[str, Any]) -> str:
+    return f"`{item.get('full_name') or item.get('name')}` ({item.get('component')})"
+
+
+def outside_documents(results: list[dict[str, Any]]) -> list[str]:
+    """Every document WPS had open outside a task workspace, with the runs it was seen in (P8-007)."""
+    seen: dict[str, list[str]] = {}
+    labels: dict[str, str] = {}
+    for result in results:
+        for index, run in enumerate(result.get("runs") or [], 1):
+            outside = run.get("documents_outside")
+            for item in outside if isinstance(outside, list) else []:
+                key = str(item.get("full_name") or item.get("name")).casefold()
+                labels.setdefault(key, document_label(item))
+                seen.setdefault(key, []).append(f"{result['id']} run {index}")
+    if not seen:
+        return ["- None."]
+    return [f"- {labels[key]}: {len(runs)} runs ({', '.join(runs)})" for key, runs in seen.items()]
+
+
 def run_details(results: list[dict[str, Any]]) -> list[str]:
     """Failed checks, setup failures, agent errors and cleanup, per run: what a review needs."""
     lines: list[str] = []
@@ -269,6 +305,11 @@ def run_details(results: list[dict[str, Any]]) -> list[str]:
                 notes.append("error codes: " + ", ".join(errors))
             if run.get("cleanup"):
                 notes.append(f"cleanup: {run['cleanup']}")
+            outside = run.get("documents_outside")
+            if isinstance(outside, str):
+                notes.append(f"documents outside the workspace not listed: {outside}")
+            elif outside:
+                notes.append("WPS also had open: " + ", ".join(document_label(item) for item in outside))
             if notes:
                 lines.append(
                     f"- `{result['id']}` run {index} ({'pass' if run['passed'] else 'FAIL'}): " + " | ".join(notes)
@@ -312,6 +353,7 @@ def run_eval(args: argparse.Namespace, machine: Machine, runner: Any) -> int:
     else:
         settings = {
             "only": args.only,
+            "prefix": args.prefix,
             "repeat": args.repeat,
             "min_passes": args.min_passes or args.repeat,
             "model": args.model,
@@ -333,7 +375,12 @@ def run_eval(args: argparse.Namespace, machine: Machine, runner: Any) -> int:
 
     runner.WPS_LAUNCH = settings["wps_launch"]
     spec = json.loads(Path(settings["tasks"]).read_text(encoding="utf-8"))
-    tasks = [task for task in spec["tasks"] if not settings["only"] or task["id"] in settings["only"]]
+    prefixes = tuple(settings.get("prefix") or ())
+    tasks = [
+        task
+        for task in spec["tasks"]
+        if (not settings["only"] and not prefixes) or task["id"] in settings["only"] or task["id"].startswith(prefixes)
+    ]
     results: list[dict[str, Any]] = [done[task["id"]] for task in tasks if task["id"] in done]
     # The task workspaces stay out of the results directory, which is meant to be committed.
     work = Path(tempfile.gettempdir()) / "wps-windows-check" / directory.name
@@ -367,6 +414,7 @@ def run_eval(args: argparse.Namespace, machine: Machine, runner: Any) -> int:
     (directory / "summary.json").write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
     leftover = machine.wps_processes() if machine.is_windows() else []
     command = ["eval"] + [f"--only {task_id}" for task_id in settings["only"]]
+    command += [f"--prefix {prefix}" for prefix in prefixes]
     command += [f"--repeat {settings['repeat']}", f"--min-passes {settings['min_passes']}"]
     if settings["wps_launch"] != "default":
         command.append(f"--wps-launch {settings['wps_launch']}")
@@ -387,6 +435,13 @@ def run_eval(args: argparse.Namespace, machine: Machine, runner: Any) -> int:
         "### Runs",
         "",
         *run_details(results),
+        "",
+        "### Documents WPS had open outside the task workspaces",
+        "",
+        "Listed right after the fixture opened. WPS reopens the documents of its previous session when it starts; "
+        "they are the machine user's, so they are recorded here and left open.",
+        "",
+        *outside_documents(results),
         "",
         "### WPS processes after the run",
         "",
@@ -642,6 +697,83 @@ def run_undo(args: argparse.Namespace, machine: Machine, runner: Any, injection:
     return 0 if passed_count == len(results) else 1
 
 
+def run_close_diag(args: argparse.Namespace, machine: Machine, runner: Any, diagnostic: Any) -> int:
+    prereq = prerequisites(machine, need_claude=False, need_wps=True)
+    stamp = dt.datetime.now(dt.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    directory = Path(args.out or RESULTS_ROOT / f"{stamp}-{prereq['info'].get('commit')}-close-diag")
+    plan = diagnostic.default_plan()
+    if args.method:
+        plan = [(launch, method) for launch, method in plan if method in args.method]
+    if args.launch:
+        plan = [(launch, method) for launch, method in plan if launch == args.launch]
+    settings = {"plan": [list(item) for item in plan]}
+    if not prereq["passed"] and not args.force:
+        write_results(directory, "Windows check stopped: prerequisites", prereq, [], {"settings": settings})
+        print(f"Prerequisites failed; nothing was run. See {directory / 'RESULTS.md'}", file=sys.stderr)
+        return 1
+    work = Path(tempfile.gettempdir()) / "wps-windows-check" / directory.name
+    results = []
+    for launch, method in plan:
+        print(f"closing with {method} ({launch} launch)")
+        results.append(diagnostic.run_attempt(launch, method, runner, work, machine.wps_processes))
+    leftover = machine.wps_processes() if machine.is_windows() else []
+    command = "python scripts/windows_check/run_windows_check.py close-diag"
+    command += "".join(f" --method {method}" for method in args.method)
+    command += f" --launch {args.launch}" if args.launch else ""
+    details: list[str] = []
+    for result in results:
+        attempt = result.get("attempt") or {}
+        details += [
+            f"### {result['launch']} `{result['method']}`",
+            "",
+            f"- {diagnostic.METHODS.get(result['method'], '')}",
+            f"- outcome: {diagnostic.outcome(result)}; still in Workbooks after 2 s: {attempt.get('listed_after')}; "
+            f"listed by open-documents: {result.get('listed_by_cli')}",
+            f"- error: `{json.dumps(attempt.get('error'), ensure_ascii=False)}`",
+        ]
+        if attempt.get("list_error"):
+            details.append(
+                f"- listing Workbooks afterwards failed: `{json.dumps(attempt['list_error'], ensure_ascii=False)}`"
+            )
+        for error in result.get("errors") or []:
+            details.append(f"- script error `{error.get('code')}`: {error.get('message')}")
+        details.append("- WPS processes after the attempt:")
+        details += [
+            f"  - {item.get('name')} {item.get('id')} `{item.get('command_line') or ''}`"
+            for item in result.get("processes_after") or []
+        ] or ["  - none"]
+        details.append("")
+    body = [
+        "## Closing a workbook opened the usual way",
+        "",
+        "```",
+        command,
+        "```",
+        "",
+        "Each row is a new workbook opened with the registered open command (`default`, as a double-click) or "
+        "with `/Automation` (`automation`, the control group), then closed with one method. Outcome `closed` "
+        "means the call returned and WPS no longer lists the workbook. A recovery instance is a WPS process with "
+        f"`recover` in its command line. Workspaces: `{work}`.",
+        "",
+        *diagnostic.results_table(results),
+        "",
+        *details,
+        "### WPS processes after the run",
+        "",
+        *([f"- {item.get('name')} {item.get('id')} `{item.get('title') or ''}`" for item in leftover] or ["- None."]),
+    ]
+    path = write_results(
+        directory,
+        "Windows diagnostic of the workbook close",
+        prereq,
+        body,
+        {"settings": settings, "results": results, "leftover_processes": leftover},
+    )
+    closed = sum(1 for result in results if diagnostic.outcome(result) == "closed")
+    print(f"{closed}/{len(results)} methods closed the workbook; results: {path}")
+    return 0
+
+
 def run_prereq(args: argparse.Namespace, machine: Machine) -> int:
     report = prerequisites(machine, need_claude=not args.skip_claude, need_wps=True)
     for line in prerequisites_markdown(report):
@@ -650,7 +782,11 @@ def run_prereq(args: argparse.Namespace, machine: Machine) -> int:
 
 
 def main(
-    argv: list[str] | None = None, machine: Machine | None = None, runner: Any = None, injection: Any = None
+    argv: list[str] | None = None,
+    machine: Machine | None = None,
+    runner: Any = None,
+    injection: Any = None,
+    diagnostic: Any = None,
 ) -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     commands = parser.add_subparsers(dest="command", required=True)
@@ -658,6 +794,12 @@ def main(
     prereq.add_argument("--skip-claude", action="store_true", help="Do not ask claude to answer.")
     evaluation = commands.add_parser("eval", help="Run agent-evaluation tasks and write the results.")
     evaluation.add_argument("--only", action="append", default=[], help="Task id (repeatable); default: all tasks.")
+    evaluation.add_argument(
+        "--prefix",
+        action="append",
+        default=[],
+        help="Run every task whose id starts with this (repeatable), for example wps-open-; adds to --only.",
+    )
     evaluation.add_argument("--repeat", type=int, default=3)
     evaluation.add_argument("--min-passes", type=int, default=2)
     evaluation.add_argument("--model", default=None)
@@ -679,6 +821,26 @@ def main(
     undo.add_argument("--wps-launch", choices=("default", "automation"), default="default")
     undo.add_argument("--out", default=None, help="Results directory (default: under results/).")
     undo.add_argument("--force", action="store_true", help="Run even when a required prerequisite failed.")
+    close_diag = commands.add_parser("close-diag", help="Try several ways to close a workbook opened the usual way.")
+    close_diag.add_argument(
+        "--method",
+        action="append",
+        default=[],
+        choices=(
+            "close",
+            "close_false",
+            "close_false_missing",
+            "saved_then_close",
+            "item_by_name",
+            "rot_object",
+            "invoke_member",
+            "window_close",
+        ),
+        help="Method (repeatable); default: all.",
+    )
+    close_diag.add_argument("--launch", choices=("default", "automation"), default=None, help="Default: both.")
+    close_diag.add_argument("--out", default=None, help="Results directory (default: under results/).")
+    close_diag.add_argument("--force", action="store_true", help="Run even when a required prerequisite failed.")
     wheel = commands.add_parser("wheel", help="Check a released wheel in a new virtual environment.")
     wheel.add_argument("--version", required=True)
     wheel.add_argument("--wheel", default=None, help="A local wheel instead of the Release's.")
@@ -699,6 +861,8 @@ def main(
     if args.command == "undo":
         runner = runner or load_runner()
         return run_undo(args, machine, runner, injection or load_undo_injection())
+    if args.command == "close-diag":
+        return run_close_diag(args, machine, runner or load_runner(), diagnostic or load_workbook_close())
     return run_wheel(args, machine)
 
 

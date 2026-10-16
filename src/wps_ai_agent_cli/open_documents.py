@@ -19,6 +19,7 @@ from .errors import (
     INPUT_FILE_NOT_FOUND,
     ROLLBACK_IN_WPS_FAILED,
     ROLLED_BACK,
+    WPS_CLOSE_REFUSED,
     identity_error,
 )
 from .mutation_lock import coordinated_mutation, coordinated_request
@@ -526,8 +527,20 @@ def close_unchanged_document(
         error = (outcome.get("errors") or [{"code": COM_OPERATION_FAILED, "message": "Close in WPS failed."}])[0]
         # On WPS 12.8 closing a workbook reported a failure although WPS then listed no workbook (P7-007). The
         # close only runs on a document with no unsaved changes, so when WPS no longer lists it, it was closed.
-        if do_close and _listed_in_wps(component, path) is False:
+        listed = _listed_in_wps(component, path) if do_close else None
+        if listed is False:
             return "closed", None
+        if listed:
+            # A workbook opened by double-click and reached through the Running Object Table could not be closed
+            # in P7-007 (0x800A01A8). Say what state the document is in and what the user can do.
+            return None, {
+                "code": WPS_CLOSE_REFUSED,
+                "message": (
+                    f"WPS refused to close {Path(path).name} ({error.get('code')}: {error.get('message')}). "
+                    "It is still open in WPS and nothing was restored. Close it in WPS yourself, then run "
+                    "restore-backup again without close_in_wps."
+                ),
+            }
         return None, error
     status = (outcome.get("data") or {}).get("status")
     if status == "not_automatable":

@@ -501,7 +501,7 @@ MCP_TOOL_SCHEMAS: tuple[dict[str, Any], ...] = (
         safety_notes=[
             "Restores a registered document from a backup and creates a pre-restore backup before overwriting.",
             "Provide either backup_name or backup_path; dry_run previews without copying.",
-            "close_in_wps closes the document in the running WPS without saving, and only when WPS reports no unsaved changes; with unsaved changes it refuses with DOCUMENT_HAS_UNSAVED_CHANGES and nothing is closed or restored. Without it, WPS is never touched. With dry_run it only reports whether it would close the document.",
+            "close_in_wps closes the document in the running WPS without saving, and only when WPS reports no unsaved changes; with unsaved changes it refuses with DOCUMENT_HAS_UNSAVED_CHANGES and nothing is closed or restored. When WPS refuses the close and still lists the document, it returns WPS_CLOSE_REFUSED and nothing is restored: the user closes it in WPS, then the restore runs without close_in_wps. Without it, WPS is never touched. With dry_run it only reports whether it would close the document.",
         ],
     ),
     _tool(
