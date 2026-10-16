@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import dataclasses
 import sys
 from typing import TextIO
 from uuid import uuid4
@@ -121,6 +122,7 @@ from .task_status import (
     list_task_statuses,
     update_task_status,
 )
+from .verified_state import add_verified_check
 
 
 def _configure_stdout() -> None:
@@ -388,6 +390,9 @@ def _run_command(argv: list[str], output_stream: TextIO | None = None, strict_ex
         return response
     if not response.ok:
         add_open_document_hint(args.command, response.errors)
+    summary = add_verified_check(args.command, response.ok, response.summary, response.data)
+    if summary != response.summary:
+        response = dataclasses.replace(response, summary=summary)
 
     print(dumps_json(response.to_dict()), file=output_stream or sys.stdout)
     return 0 if response.ok or not strict_exit else 1

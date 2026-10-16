@@ -480,6 +480,9 @@ _SPREADSHEET_SERIES_VALUES_REPLACE_BODY = """
     [pscustomobject]@{ ok = $true; status = 'selection_changed'; current_text = $before } | ConvertTo-Json -Depth 5
     exit 0
   }
+  # Recorded so a failed write can be undone with the series' own formula, keeping a link to cells (P10-004).
+  $beforeFormula = $null
+  try { $beforeFormula = [string]$series.Formula } catch { }
   $rawParts = @($params.values)
   if ($rawParts.Count -ne $beforeParts.Count) {
     [pscustomobject]@{
@@ -518,6 +521,7 @@ _SPREADSHEET_SERIES_VALUES_REPLACE_BODY = """
     object_kind = 'chart'
     object_name = $objectName
     series_name = $(try { [string]$series.Name } catch { $null })
+    before_formula = $beforeFormula
     cells_matched = ($readBack -ceq $expectedJoined)
     read_back_text = [string]$readBack
   } | ConvertTo-Json -Depth 5
@@ -603,6 +607,9 @@ _SPREADSHEET_SERIES_VALUES_DELETE_BODY = """
     [pscustomobject]@{ ok = $true; status = 'no_series_values' } | ConvertTo-Json -Depth 5
     exit 0
   }
+  # Recorded so a failed write can be undone with the series' own formula, keeping a link to cells (P10-004).
+  $beforeFormula = $null
+  try { $beforeFormula = [string]$series.Formula } catch { }
   $cleared = New-Object object[] $beforeParts.Count
   for ($i = 0; $i -lt $beforeParts.Count; $i++) { $cleared[$i] = $null }
   try { $series.Values = $cleared }
@@ -626,6 +633,7 @@ _SPREADSHEET_SERIES_VALUES_DELETE_BODY = """
     object_kind = 'chart'
     object_name = $objectName
     series_name = $(try { [string]$series.Name } catch { $null })
+    before_formula = $beforeFormula
     cells_matched = [bool]$allEmpty
     deleted_text = [string]$params.expected_text
     read_back_text = [string]$readBack

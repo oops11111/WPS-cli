@@ -6,7 +6,7 @@ this module patches, in this process only, the function that runs the write scri
 always does, then its reported read-back is replaced, the command rejects the write, and the real undo runs.
 
 Each scenario opens a fixture in WPS the way the agent evaluation does (its registered open command), selects
-"DRAFT", runs the command and records the file hashes before the write, after the write and after the undo, the
+"DRAFT" (or, for a worksheet shape or chart title, the object holding it; P10-005), runs the command and records the file hashes before the write, after the write and after the undo, the
 errors, the rollback the command reported, and the text on disk afterwards.
 """
 
@@ -20,7 +20,19 @@ from typing import Any
 from unittest.mock import patch
 
 INJECTED_READ_BACK = "<read-back replaced by undo_injection>"
-WRITE_ACTIONS = {"selection-replace", "selection-insert", "selection-delete"}
+WRITE_ACTIONS = {
+    "selection-replace",
+    "selection-insert",
+    "selection-delete",
+    "selection-shape-replace",
+    "selection-shape-delete",
+    "selection-chart-title-replace",
+    "selection-chart-title-delete",
+    "selection-axis-title-replace",
+    "selection-axis-title-delete",
+    "selection-series-values-replace",
+    "selection-series-values-delete",
+}
 RUNNER_FUNCTIONS = {
     "writer": "_run_writer_attached_com",
     "presentation": "_run_presentation_attached_com",
@@ -42,6 +54,21 @@ SCENARIOS: dict[str, dict[str, Any]] = {
         "select": "DRAFT",
         "command": "replace_presentation_selection",
         "arguments": {"text": "FINAL"},
+    },
+    # A worksheet text box and a chart title (P10-005): the selection is the object, not text in it.
+    "spreadsheet-shape-text-replace": {
+        "component": "spreadsheets",
+        "fixture": "chart_note.xlsx",
+        "selection": {"sheet": "Status", "object": "Note 1"},
+        "command": "replace_spreadsheet_selection",
+        "arguments": {"text": "FINAL", "expected_selection_text": "DRAFT"},
+    },
+    "spreadsheet-chart-title-replace": {
+        "component": "spreadsheets",
+        "fixture": "chart_note.xlsx",
+        "selection": {"sheet": "Status", "object": "Chart 1", "part": "chart_title"},
+        "command": "replace_spreadsheet_selection",
+        "arguments": {"text": "FINAL", "expected_selection_text": "DRAFT"},
     },
 }
 
@@ -132,7 +159,7 @@ def run_scenario(name: str, runner: Any, root: Path | None = None) -> dict[str, 
         workspace,
         fixture,
         component,
-        {"selection": {"text": scenario["select"]}},
+        {"selection": scenario.get("selection") or {"text": scenario["select"]}},
     )
     result["hashes"] = {"before_write": before_write}
     if release is None:

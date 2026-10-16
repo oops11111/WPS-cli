@@ -41,10 +41,13 @@ from wps_ai_agent_cli.sessions import (  # noqa: E402
     register_document,
     stable_document_id,
 )
+from wps_ai_agent_cli.verified_state import VERIFIED_COMMANDS  # noqa: E402
 
 TOOL_PREFIX = f"mcp__{MCP_SERVER_NAME}__wps_agent_"
 # File-based write tools: wrong on a document open in WPS, where the selection tools apply (P9-002).
 FILE_BASED_WRITE_TOOLS = frozenset(command.replace("-", "_") for command in OPEN_DOCUMENT_ALTERNATIVES)
+# Open-document writes whose result carries verified_state: off-path calls after the first one are checks (P10-003).
+VERIFIED_WRITE_TOOLS = frozenset(command.replace("-", "_") for command in VERIFIED_COMMANDS)
 HTML_TABLE = (
     "<html><body><h2>Sales</h2><table>"
     "<tr><th>Region</th><th>Q1</th></tr><tr><td>North</td><td>120</td></tr><tr><td>South</td><td>95</td></tr>"
@@ -77,6 +80,66 @@ SPREADSHEET_ZH_SHEET = "汇总"
 SPREADSHEET_ZH_ROWS = (("地区", "一季度", "状态"), ("华北", 120, "草稿"), ("华南", 95, "草稿"))
 
 
+# A workbook with a chart titled DRAFT and a text box holding DRAFT, for the Windows undo check (P10-005).
+CHART_NOTE_FIXTURE = "chart_note.xlsx"
+CHART_NOTE_SHEET = "Status"
+CHART_NOTE_ROWS = (("Quarter", "Sales"), ("Q1", 120), ("Q2", 95))
+CHART_NOTE_TEXT = "DRAFT"
+_NOTE_ANCHOR = (
+    "<oneCellAnchor><from><col>3</col><colOff>0</colOff><row>18</row><rowOff>0</rowOff></from>"
+    '<ext cx="2000000" cy="500000"/>'
+    '<sp macro="" textlink="" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">'
+    '<nvSpPr><cNvPr id="2" name="Note 1"/><cNvSpPr txBox="1"/></nvSpPr>'
+    '<spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="2000000" cy="500000"/></a:xfrm>'
+    '<a:prstGeom prst="rect"><a:avLst/></a:prstGeom></spPr>'
+    "<txBody><a:bodyPr/><a:lstStyle/><a:p><a:r><a:t>{text}</a:t></a:r></a:p></txBody></sp><clientData/>"
+    "</oneCellAnchor>"
+)
+
+
+def write_chart_note_workbook(path: Path) -> None:
+    """The chart (Chart 1, title DRAFT) comes from openpyxl; the text box (Note 1), which openpyxl cannot make,
+    is added to the same drawing."""
+    import zipfile
+
+    from openpyxl import Workbook
+    from openpyxl.chart import BarChart, Reference
+
+    workbook = Workbook()
+    sheet = workbook.active
+    sheet.title = CHART_NOTE_SHEET
+    for row in CHART_NOTE_ROWS:
+        sheet.append(list(row))
+    chart = BarChart()
+    chart.title = CHART_NOTE_TEXT
+    chart.add_data(Reference(sheet, min_col=2, min_row=1, max_row=len(CHART_NOTE_ROWS)), titles_from_data=True)
+    sheet.add_chart(chart, "D2")
+    plain = path.with_name(path.name + ".tmp")
+    workbook.save(plain)
+    with zipfile.ZipFile(plain) as source, zipfile.ZipFile(path, "w", zipfile.ZIP_DEFLATED) as target:
+        for item in source.infolist():
+            data = source.read(item.filename)
+            if item.filename == "xl/drawings/drawing1.xml":
+                data = data.replace(b"</wsDr>", _NOTE_ANCHOR.format(text=CHART_NOTE_TEXT).encode() + b"</wsDr>")
+            target.writestr(item, data)
+    plain.unlink()
+
+
+def drawing_texts(path: Path) -> list[str]:
+    """The text of every shape and chart in a workbook: the a:t runs of its drawings and charts, in part order."""
+    import re
+    import zipfile
+
+    with zipfile.ZipFile(path) as archive:
+        names = sorted(
+            name for name in archive.namelist() if re.fullmatch(r"xl/(drawings/drawing|charts/chart)\d+\.xml", name)
+        )
+        texts = []
+        for name in names:
+            texts += re.findall(r"<a:t>([^<]*)</a:t>", archive.read(name).decode("utf-8"))
+    return texts
+
+
 def write_fixture(workspace: Path, name: str) -> str:
     """Write the task's fixture, chosen by its name, else by its suffix: .xlsx, .docx or .pptx."""
     path = workspace / name
@@ -85,7 +148,9 @@ def write_fixture(workspace: Path, name: str) -> str:
         "status.xlsx": (SPREADSHEET_STATUS_SHEET, SPREADSHEET_STATUS_ROWS),
         SPREADSHEET_ZH_FIXTURE: (SPREADSHEET_ZH_SHEET, SPREADSHEET_ZH_ROWS),
     }
-    if suffix == ".xlsx" and path.name in tables:
+    if path.name == CHART_NOTE_FIXTURE:
+        write_chart_note_workbook(path)
+    elif suffix == ".xlsx" and path.name in tables:
         from openpyxl import Workbook
 
         title, rows = tables[path.name]
@@ -177,6 +242,22 @@ def document_text(path: Path) -> str:
         return "\n".join(
             shape.text_frame.text for slide in presentation.slides for shape in slide.shapes if shape.has_text_frame
         )
+    if suffix == ".xlsx":
+        # Cells, then the text of shapes and charts (P10-005), so an undo of either shows in the text.
+        from openpyxl import load_workbook
+
+        workbook = load_workbook(path)
+        try:
+            cells = [
+                f"{sheet.title}!{cell.coordinate}={cell.value}"
+                for sheet in workbook.worksheets
+                for row in sheet.iter_rows()
+                for cell in row
+                if cell.value is not None
+            ]
+        finally:
+            workbook.close()
+        return "\n".join(cells + drawing_texts(path))
     raise ValueError(f"unsupported document type {suffix}")
 
 
@@ -293,6 +374,24 @@ if ($params.component -eq 'spreadsheets') {
   if ([string]::IsNullOrEmpty([string]$params.sheet)) { $sheet = $doc.Worksheets.Item(1) }
   else { $sheet = $doc.Worksheets.Item([string]$params.sheet) }
   $sheet.Activate()
+  if (-not [string]::IsNullOrEmpty([string]$params.object)) {
+    # Select a shape, or a chart's title, by the object's name (P10-005).
+    $shape = $sheet.Shapes.Item([string]$params.object)
+    if ([string]$params.part -eq 'chart_title') {
+      try { [void]$sheet.ChartObjects([string]$params.object).Activate() } catch { [void]$shape.Select() }
+      $chart = $app.ActiveChart
+      if ($null -eq $chart) { $chart = $shape.Chart }
+      [void]$chart.ChartTitle.Select()
+    } else {
+      [void]$shape.Select()
+    }
+    $selected = $null
+    try { $selected = [Microsoft.VisualBasic.Information]::TypeName($app.Selection) } catch { }
+    Out-Result ([pscustomobject]@{
+      ok = $true; status = 'ok'; object = [string]$params.object; part = [string]$params.part
+      selected = $selected; saved = [bool]$doc.Saved
+    })
+  }
   # [void]: WPS Spreadsheets returns True from Range.Select(), and a bare call puts it on stdout
   # ahead of the JSON, which _run_script then reads as a failure. Measured on WPS 12.8.2.18913;
   # Activate() above puts nothing there.
@@ -647,6 +746,19 @@ def prepare_open_document(
     `state` collects what a step made that the run needs later: the name of an untitled document.
     """
     state = {} if state is None else state
+    if step == "select_text" and component == "spreadsheets" and (options.get("selection") or {}).get("object"):
+        selection = options["selection"]
+        payload = wps_document_action(
+            component,
+            fixture,
+            "select",
+            sheet=selection.get("sheet"),
+            object=selection["object"],
+            part=selection.get("part") or "",
+        )
+        if payload.get("status") != "ok":
+            return f"select_text: {payload.get('status')} {payload.get('errors') or ''}".strip()
+        return None
     if step == "select_text" and component == "spreadsheets":
         selection = options.get("selection") or {}
         wanted = str(selection.get("range") or "").replace("$", "").upper()
@@ -876,12 +988,24 @@ def tool_metrics(
         "expected_tools": sorted(expected_tools) if expected_tools is not None else None,
         "off_path_calls": None,
         "off_path_tools": None,
+        "off_path_calls_before_write": None,
+        "off_path_calls_after_write": None,
         "wrong_tool_calls": sum(tool in FILE_BASED_WRITE_TOOLS for tool in used) if open_document else None,
     }
     if expected_tools is not None:
         off_path = [tool for tool in used if tool not in expected_tools]
         metrics["off_path_calls"] = len(off_path)
         metrics["off_path_tools"] = sorted(set(off_path))
+        first_write = next(
+            (
+                index
+                for index, call in enumerate(wps_calls)
+                if used[index] in VERIFIED_WRITE_TOOLS and not (call.get("input") or {}).get("dry_run")
+            ),
+            len(wps_calls),
+        )
+        metrics["off_path_calls_after_write"] = sum(tool not in expected_tools for tool in used[first_write + 1 :])
+        metrics["off_path_calls_before_write"] = metrics["off_path_calls"] - metrics["off_path_calls_after_write"]
     return metrics
 
 
@@ -1214,6 +1338,10 @@ def run_task_repeated(
                 if "expected_tools" in task
                 else None
             ),
+            **{
+                key: (sum(run["metrics"].get(key) or 0 for run in runs) if "expected_tools" in task else None)
+                for key in ("off_path_calls_before_write", "off_path_calls_after_write")
+            },
             "wrong_tool_calls": (
                 sum(run["metrics"].get("wrong_tool_calls") or 0 for run in runs) if opens_document(task) else None
             ),
@@ -1290,7 +1418,8 @@ def main(argv: list[str] | None = None) -> int:
             f"{'PASS' if result['passed'] else 'FAIL'} {result['id']} "
             f"({result['passes']}/{result['repeat']} runs passed, need {result['min_passes']}; "
             f"wps-agent calls {metrics.get('wps_tool_calls')}, errors {metrics.get('wps_tool_errors')}, "
-            f"off-path calls {metrics.get('off_path_calls')}, wrong-tool calls {metrics.get('wrong_tool_calls')})"
+            f"off-path calls {metrics.get('off_path_calls')} ({metrics.get('off_path_calls_after_write')} after the write), "
+            f"wrong-tool calls {metrics.get('wrong_tool_calls')})"
         )
         for index, run in enumerate(result["runs"], 1):
             label = f"  run {index}: " if result["repeat"] > 1 else ""
@@ -1317,6 +1446,9 @@ def summarize(results: list[dict[str, Any]], stamp: str, model: str | None) -> d
         "wps_tool_calls": sum(result.get("metrics", {}).get("wps_tool_calls", 0) for result in ran),
         "wps_tool_errors": sum(result.get("metrics", {}).get("wps_tool_errors", 0) for result in ran),
         "off_path_calls": sum(result.get("metrics", {}).get("off_path_calls") or 0 for result in ran),
+        "off_path_calls_after_write": sum(
+            result.get("metrics", {}).get("off_path_calls_after_write") or 0 for result in ran
+        ),
         "wrong_tool_calls": sum(result.get("metrics", {}).get("wrong_tool_calls") or 0 for result in ran),
         "tasks_without_expected_tools": [
             result["id"] for result in ran if result.get("metrics", {}).get("off_path_calls") is None

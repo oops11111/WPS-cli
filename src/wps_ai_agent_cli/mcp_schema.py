@@ -1606,7 +1606,18 @@ def _with_open_document_notes(schemas: tuple[dict[str, Any], ...]) -> tuple[dict
     return tuple(result)
 
 
-MCP_TOOL_SCHEMAS = _with_open_document_notes(MCP_TOOL_SCHEMAS)
+def _with_verified_notes(schemas: tuple[dict[str, Any], ...]) -> tuple[dict[str, Any], ...]:
+    from .verified_state import VERIFIED_COMMANDS, VERIFIED_NOTE
+
+    return tuple(
+        {**schema, "safety_notes": [*schema["safety_notes"], VERIFIED_NOTE]}
+        if schema["cli_command"] in VERIFIED_COMMANDS
+        else schema
+        for schema in schemas
+    )
+
+
+MCP_TOOL_SCHEMAS = _with_verified_notes(_with_open_document_notes(MCP_TOOL_SCHEMAS))
 
 
 def list_mcp_tool_schemas(
