@@ -283,7 +283,11 @@ def outcome(result: dict[str, Any]) -> str:
     attempt = result.get("attempt") or {}
     if result.get("status") != "attempted":
         return f"not attempted ({result.get('status')})"
-    gone = result.get("listed_by_cli") is False
+    # open-documents cannot list anything once a WPS started by double-click has no workbook left: nothing of it is
+    # in the Running Object Table any more, so it answers WPS_INSTANCE_NOT_AUTOMATABLE (listed_by_cli None, seen
+    # on aed06e6). Then the script's own look at Workbooks, through the application it still holds, decides.
+    listed = result.get("listed_by_cli")
+    gone = listed is False or (listed is None and attempt.get("listed_after") is False)
     if attempt.get("returned"):
         return "closed" if gone else "returned, still open"
     return "failed, closed anyway" if gone else "failed, still open"

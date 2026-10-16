@@ -3076,14 +3076,14 @@
     "id": "P8-005",
     "phase": "phase8",
     "title": "Diagnose the workbook close on Windows",
-    "status": "todo",
+    "status": "done",
     "acceptance": "I2: a read-only Windows diagnostic tries several ways to close a workbook reached through the Running Object Table, with an /Automation control, and records each HRESULT through run_windows_check.py."
   },
   {
     "id": "P8-006",
     "phase": "phase8",
     "title": "Close workbooks opened the usual way",
-    "status": "todo",
+    "status": "done",
     "acceptance": "I2: close_unchanged_document and the runner's cleanup close such a workbook, chosen from the P8-005 results, or a dedicated error code says why not; fake-COM tests."
   },
   {

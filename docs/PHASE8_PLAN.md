@@ -52,10 +52,10 @@ Phase 8 把这两件事做完，先尽快把已经修好的发出去（0.4.1）�
 | P8-002 | I3 | 在 Windows 上用 `run_windows_check.py wheel --version 0.4.1` 检查 Release 的 wheel（已完成：`4731b04` 上通过，SHA-256 与 Release 一致，safe 档 7/7，结果在 `scripts/windows_check/results/20261016T021230Z-wheel-0.4.1/`） | Windows |
 | P8-003 | I1 | 查遍所有进出 Python 进程的文本：CLI 参数、stdin、stdout、stderr、子进程、文件读写的默认编码；补齐 GBK 区域设置下的真实进程测试，以及每个组件的中文假 COM 往返测试（已完成：`tests/test_chinese_text.py`；查出并修了两处：Writer 结构校验脚本用 `-File` 运行、没有 UTF-8 输出设置，CLI 的 stderr 不是 UTF-8） | 本地 |
 | P8-004 | I1 | runner 支持中文测试文档（中文文件名、中文文字、中文工作表名）；编写 4 个中文评测任务，每个补离线判定测试（已完成：`季度报告.docx`、`状态表.xlsx`（工作表 `汇总`）两个中文测试文档，4 个 `wps-open-zh-*` 任务，提示也是中文；纯文本导出按 GBK 回退读取；`run_windows_check.py eval --prefix wps-open-` 一条命令跑全部已打开文档任务） | 本地 |
-| P8-005 | I2 | 只读的 Windows 诊断脚本：在常规打开的工作簿上试几种关法并记录 HRESULT，`/Automation` 启动作为对照组；由 `run_windows_check.py` 运行并写出结果（本地部分已完成：`run_windows_check.py close-diag`，`scripts/windows_check/workbook_close.py`，8 种关法加 2 个对照。第一次上机见下文“P8-005 结果”：未改动的工作簿 10 种关法全部关上，没复现；第二次上机加了“先写入保存再关”和 `restore-backup --close-in-wps` 两类） | 本地 + Windows |
-| P8-006 | I2 | 按 P8-005 的结果修 `close_unchanged_document`（以及 runner 的清理）；修不了就加专门的错误码。补假 COM 测试（错误码部分已完成：WPS 拒绝关闭且仍列出文档时返回 `WPS_CLOSE_REFUSED`，说明原因和处理办法，两种结局都需要它兜底；换哪种关法等 P8-005 上机结果） | 本地 |
+| P8-005 | I2 | 只读的 Windows 诊断脚本：在常规打开的工作簿上试几种关法并记录 HRESULT，`/Automation` 启动作为对照组；由 `run_windows_check.py` 运行并写出结果（本地部分已完成：`run_windows_check.py close-diag`，`scripts/windows_check/workbook_close.py`，8 种关法加 2 个对照。第一次上机见下文“P8-005 结果”：未改动的工作簿 10 种关法全部关上，没复现；第二次上机加了“先写入保存再关”和 `restore-backup --close-in-wps` 两类，也都关上，见下文。已完成） | 本地 + Windows |
+| P8-006 | I2 | 按 P8-005 的结果修 `close_unchanged_document`（以及 runner 的清理）；修不了就加专门的错误码。补假 COM 测试（错误码部分已完成：WPS 拒绝关闭且仍列出文档时返回 `WPS_CLOSE_REFUSED`，说明原因和处理办法，两种结局都需要它兜底；换哪种关法等 P8-005 上机结果。已完成：两次上机所有关法都关上，产品从 0.4.1 起用的 `Close()` 不用换；`WPS_CLOSE_REFUSED` 留作兜底） | 本地 |
 | P8-007 | 缺口 | runner 在每次运行开始时记录 WPS 列出的、不在任务工作区里的文档，写进 `RESULTS.md`（已完成：fixture 在 WPS 里打开后、后续准备步骤之前列一次，记在每次运行的 `documents_outside`；`RESULTS.md` 每次运行一行，另有一节按文档汇总） | 本地 |
-| P8-008 | I1、I2 | 在 Windows 上：4 个中文任务和现有 11 个已打开文档任务一条命令各跑 3 次；`restore-backup --close-in-wps` 对双击打开的工作簿验证一次 | Windows |
+| P8-008 | I1、I2 | 在 Windows 上：4 个中文任务和现有 11 个已打开文档任务一条命令各跑 3 次；`restore-backup --close-in-wps` 对双击打开的工作簿验证一次（后一半已由 P8-005 第二次上机的 `restore_close_in_wps` 完成；剩下评测） | Windows |
 | P8-009 | I3 | 定版本 0.5.0，整理 `CHANGELOG.md`，合并后由你推送 `v0.5.0` 标签 | 本地 + 你 |
 | P8-010 | I3 | 在 Windows 上检查 0.5.0 的 wheel | Windows |
 
@@ -68,6 +68,14 @@ Phase 8 把这两件事做完，先尽快把已经修好的发出去（0.4.1）�
 - **没复现。** 双击方式打开（经 Running Object Table 连上）的工作簿，8 种关法全部关上：调用都正常返回，两秒后 `Workbooks` 里没有它，`open-documents` 也不再列出，没有出现恢复实例。`/Automation` 对照组的 2 种也都关上。产品从 0.4.1 起先用的 `Close()` 就在其中，所以未改动的工作簿不需要换关法。
 - **和 P7-007 的差别在于写入。** P7-007 关不上的工作簿，在关之前刚被 Agent 的选区替换在另一个进程里写入并保存过；这次的工作簿没被改过。所以第二次上机加了三行：先在另一个进程里写入 A1 并保存，再用 `Close()` 或 `Close($false)` 关（`write_then_close`、`write_then_close_false`）；以及产品自己的路径：备份、写入并保存、再 `restore-backup --close-in-wps`（`restore_close_in_wps`），这正是 I2 要验证的。
 - **WPS 每次启动都重新打开一个 `status.xlsx`。** 第一次尝试之后 `et.exe` 40128 一直列着它，runner 的清理因此不结束进程（“WPS still lists status.xlsx”），后面 7 种关法都在这个进程里跑（打开命令把文件交给已在运行的 WPS，和用户双击一样，不影响结论）；`/Automation` 新启动的 47744 也重新打开了它。它很可能是 Phase 7 评测留下的工作簿：runner 结束 `et.exe` 时它还开着，WPS 当成异常退出，此后每次启动都恢复它（结果里只有名字，没有路径）。P8-008 之前要在 WPS 表格里把它正常关掉、再正常退出 WPS，否则评测的每次运行都会混进它（P8-007 会把它记在 `documents_outside` 里）。
+
+### 第二次上机（`aed06e6`，2026-10-16）
+
+结果在 `scripts/windows_check/results/20261016T033122Z-aed06e6-close-diag/`。上机前在 WPS 里关掉了每次启动都重新打开的 `status.xlsx`，这次每种关法都在自己新启动的 `et.exe` 里跑。
+
+- **`restore_close_in_wps`：`restored`。** 双击打开的工作簿，先在另一个进程里写入 A1 并保存，再执行产品的 `restore-backup --close-in-wps`：WPS 里关掉了（`close_in_wps: closed`），A1 恢复成备份里的 `seed`。**I2 达成**：这正是出口标准要的“对双击打开的工作簿关闭并恢复成功”，由脚本执行，结果在仓库里。
+- **`write_then_close`、`write_then_close_false`：都关上了。** 调用正常返回，两秒后脚本经它手里的应用对象查 `Workbooks`，已经没有这个工作簿。表里写成“returned, still open”是 `close-diag` 的判定错了：双击启动的 WPS 关掉最后一个工作簿后，Running Object Table 里就没有它的任何东西，`open-documents` 只能报 `WPS_INSTANCE_NOT_AUTOMATABLE`，列不出结果（`listed_by_cli` 为 `null`），判定把“不知道”当成了“还开着”。已改为这时以脚本自己对 `Workbooks` 的检查为准。WPS 并没有失去响应，只是没有文档可供连上它。第一次上机没出现这个现象，是因为恢复出来的 `status.xlsx` 一直在 Running Object Table 里。
+- **P7-007 的 `0x800A01A8` 两次上机都没复现。** 未改动的、刚写入保存过的工作簿，各种关法都关上。当时和现在的差别只剩机器状态：P7-007 那几轮 `et.exe` 被反复结束，WPS 起了恢复实例并恢复上次的文档。产品的关法不改；万一再遇到，`WPS_CLOSE_REFUSED` 会说明原因和处理办法。
 
 ## P8-008 结果
 
