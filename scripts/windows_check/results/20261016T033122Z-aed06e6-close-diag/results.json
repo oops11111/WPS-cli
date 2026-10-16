@@ -1,0 +1,185 @@
+{
+  "prerequisites": {
+    "passed": true,
+    "checks": [
+      {
+        "name": "commit",
+        "ok": true,
+        "detail": "aed06e6 on main",
+        "required": true
+      },
+      {
+        "name": "python",
+        "ok": true,
+        "detail": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\.venv\\Scripts\\python.exe",
+        "required": true
+      },
+      {
+        "name": "windows",
+        "ok": true,
+        "detail": "Windows-10-10.0.19045-SP0",
+        "required": true
+      },
+      {
+        "name": "no WPS process running",
+        "ok": true,
+        "detail": "none",
+        "required": true
+      },
+      {
+        "name": "open command .docx",
+        "ok": true,
+        "detail": "\"C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\wps.exe\" \"%1\"",
+        "required": true
+      },
+      {
+        "name": "open command .xlsx",
+        "ok": true,
+        "detail": "\"C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\et.exe\" \"%1\"",
+        "required": true
+      },
+      {
+        "name": "open command .pptx",
+        "ok": true,
+        "detail": "\"C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\wpp.exe\" \"%1\"",
+        "required": true
+      },
+      {
+        "name": "inspect-env",
+        "ok": true,
+        "detail": "{\"presentation\": \"kwpp.Application\", \"spreadsheets\": \"ket.Application\", \"writer\": \"kwps.Application\"}",
+        "required": true
+      }
+    ],
+    "info": {
+      "commit": "aed06e6",
+      "branch": "main",
+      "python": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\.venv\\Scripts\\python.exe",
+      "platform": "Windows-10-10.0.19045-SP0",
+      "wps_versions": {
+        "wps.exe": "12,8,2,18913",
+        "et.exe": "12,8,2,18913",
+        "wpp.exe": "12,8,2,18913"
+      }
+    }
+  },
+  "settings": {
+    "plan": [
+      [
+        "default",
+        "write_then_close"
+      ],
+      [
+        "default",
+        "write_then_close_false"
+      ],
+      [
+        "default",
+        "restore_close_in_wps"
+      ]
+    ]
+  },
+  "results": [
+    {
+      "launch": "default",
+      "method": "write_then_close",
+      "workspace": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261016T033122Z-aed06e6-close-diag\\default-write_then_close",
+      "processes_before": [],
+      "write": {
+        "ok": true,
+        "status": "written",
+        "saved": true,
+        "a1": "written by close-diag"
+      },
+      "status": "attempted",
+      "attempt": {
+        "method": "close",
+        "attached_via": "running_object_table",
+        "name": "close-check.xlsx",
+        "saved_before": true,
+        "in_rot": true,
+        "returned": true,
+        "error": null,
+        "listed_after": false,
+        "list_error": null
+      },
+      "listed_by_cli": null,
+      "processes_after": [
+        {
+          "id": 49840,
+          "name": "et.exe",
+          "command_line": "\"C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\et.exe\" \"C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261016T033122Z-aed06e6-close-diag\\default-write_then_close\\close-check.xlsx\"",
+          "title": "WPS 表格"
+        }
+      ],
+      "cleanup": "fixture WPS_INSTANCE_NOT_AUTOMATABLE (WPS Spreadsheets is running with a window, but it did not register for automation, so its open documents cannot be reached. This happens when WPS was started by opening a file directly, for example by double-clicking it. Save your work in WPS, close every WPS Spreadsheets window, then reopen the document with the /Automation option, for example: wps.exe /Automation \"<path to the document>\". Nothing was launched, closed or changed.); processes stopped 49840"
+    },
+    {
+      "launch": "default",
+      "method": "write_then_close_false",
+      "workspace": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261016T033122Z-aed06e6-close-diag\\default-write_then_close_false",
+      "processes_before": [],
+      "write": {
+        "ok": true,
+        "status": "written",
+        "saved": true,
+        "a1": "written by close-diag"
+      },
+      "status": "attempted",
+      "attempt": {
+        "method": "close_false",
+        "attached_via": "running_object_table",
+        "name": "close-check.xlsx",
+        "saved_before": true,
+        "in_rot": true,
+        "returned": true,
+        "error": null,
+        "listed_after": false,
+        "list_error": null
+      },
+      "listed_by_cli": null,
+      "processes_after": [
+        {
+          "id": 28072,
+          "name": "et.exe",
+          "command_line": "\"C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\et.exe\" \"C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261016T033122Z-aed06e6-close-diag\\default-write_then_close_false\\close-check.xlsx\"",
+          "title": "WPS 表格"
+        }
+      ],
+      "cleanup": "fixture WPS_INSTANCE_NOT_AUTOMATABLE (WPS Spreadsheets is running with a window, but it did not register for automation, so its open documents cannot be reached. This happens when WPS was started by opening a file directly, for example by double-clicking it. Save your work in WPS, close every WPS Spreadsheets window, then reopen the document with the /Automation option, for example: wps.exe /Automation \"<path to the document>\". Nothing was launched, closed or changed.); processes stopped 28072"
+    },
+    {
+      "launch": "default",
+      "method": "restore_close_in_wps",
+      "workspace": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261016T033122Z-aed06e6-close-diag\\default-restore_close_in_wps",
+      "processes_before": [],
+      "restore": {
+        "write": {
+          "ok": true,
+          "status": "written",
+          "saved": true,
+          "a1": "written by close-diag"
+        },
+        "a1_after_write": "written by close-diag",
+        "step": "restore",
+        "ok": true,
+        "error_codes": [],
+        "errors": [],
+        "close_in_wps": "closed",
+        "a1_after_restore": "seed"
+      },
+      "status": "restore",
+      "listed_by_cli": null,
+      "processes_after": [
+        {
+          "id": 49292,
+          "name": "et.exe",
+          "command_line": "\"C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\et.exe\" \"C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261016T033122Z-aed06e6-close-diag\\default-restore_close_in_wps\\close-check.xlsx\"",
+          "title": "WPS 表格"
+        }
+      ],
+      "cleanup": "fixture WPS_INSTANCE_NOT_AUTOMATABLE (WPS Spreadsheets is running with a window, but it did not register for automation, so its open documents cannot be reached. This happens when WPS was started by opening a file directly, for example by double-clicking it. Save your work in WPS, close every WPS Spreadsheets window, then reopen the document with the /Automation option, for example: wps.exe /Automation \"<path to the document>\". Nothing was launched, closed or changed.); processes stopped 49292"
+    }
+  ],
+  "leftover_processes": []
+}
