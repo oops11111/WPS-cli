@@ -149,7 +149,7 @@ PYTHONPATH=src python3 -m unittest discover -s tests
 - Phase 6: 已完成（用户打开的文档），3 项出口标准均已达成：常规打开的文字、表格、演示都能被已打开文档命令看到；Agent 能在已打开的文档上替换、插入、保存；`v0.3.0` 已发布。遗留缺口见 `docs/PHASE6_PLAN.md` 开头
 - Phase 7: 已完成（已打开文档的写入可撤回、全覆盖），4 项出口标准均已达成：已打开文档的写入失败时在 WPS 里撤回；11 个已打开文档评测任务在 Windows 上一条命令各 3/3；Windows 检查一条命令完成并写出结果；`v0.4.0` 已发布。上机发现的三个缺陷（PowerShell 输出、MCP 服务器 stdin 的编码，以及经 Running Object Table 关闭工作簿）的修复在 `[Unreleased]`，待发布 0.4.1。遗留缺口见 `docs/PHASE7_PLAN.md` 开头
 - Phase 8: 已完成（中文内容和常规打开的工作簿），3 项出口标准均已达成：中文内容在 GBK 区域设置下的每条路径都有测试，4 个中文评测任务在 Windows 上一条命令各 3/3；双击打开的工作簿经 `restore-backup --close-in-wps` 关闭并恢复成功；`v0.4.1` 和 `v0.5.0` 已发布并在 Windows 上检查通过。遗留缺口见 `docs/PHASE8_PLAN.md` 开头
-- 当前 Phase 9（active）: Agent 选对工具、文本导出不丢字、上机不用手工清理，出口标准与任务见 `docs/PHASE9_PLAN.md`，`wps-agent tasks --phase phase9` 可列出任务
+- Phase 9: 已完成（Agent 选对工具、文本导出不丢字、上机不用手工清理），4 项出口标准均已达成：16 个已打开文档任务在 Windows 上一条命令各 3/3、用错工具 0 次；含 GBK 以外字符的导出原样保留、为 UTF-8；48 次运行的清理都让 WPS 正常退出，没有恢复出的文档；`v0.6.0` 已发布并在 Windows 上检查通过。遗留缺口见 `docs/PHASE9_PLAN.md` 开头，`wps-agent tasks --phase phase9` 可列出任务
 
 ## 命令速查
 
