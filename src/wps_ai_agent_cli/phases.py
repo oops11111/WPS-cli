@@ -108,6 +108,15 @@ PHASES: tuple[Phase, ...] = (
             "runs' WPS cleanly so no manual cleanup is needed; release 0.6.0."
         ),
     ),
+    Phase(
+        id="phase10",
+        name="Self-verifying write results, undoable chart and shape writes",
+        status="planned",
+        goal=(
+            "Make open-document write results carry the verified document state so agents stop re-checking, undo "
+            "failed chart and shape selection writes in WPS, and release 0.7.0."
+        ),
+    ),
 )
 
 

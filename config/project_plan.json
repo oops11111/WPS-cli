@@ -112,6 +112,17 @@
         "J3: the runner's cleanup closes the documents it opened and ends the WPS it started with Quit(), stopping the process only when Quit() fails, and says which in cleanup; on Windows, after one cleanup before the run, every run of the J1 invocation has an empty documents_outside and no process was stopped while WPS still had a document open (2026-10-16: all 48 runs on main@edb577c ended WPS normally, cleanup exited (main window closed), none stopped; documents_outside empty in every run)",
         "J4: v0.6.0 is released per docs/RELEASING.md with the J1 and J2 changes, and its wheel is checked on Windows with run_windows_check.py wheel (2026-10-16: v0.6.0 released from main@edb577c; its wheel passed all seven conditions on Windows, safe 7/7, P9-008)"
       ]
+    },
+    {
+      "id": "phase10",
+      "name": "Self-verifying write results, undoable chart and shape writes",
+      "goal": "Make open-document write results carry the verified document state so agents stop re-checking, undo failed chart and shape selection writes in WPS, and release 0.7.0.",
+      "status": "planned",
+      "exit_criteria": [
+        "K1: offline, every open-document write command (Writer, Presentation and Spreadsheet selection replace, insert and delete, save, save-as and text export) returns verified_state, the content read back from the saved file that shows the write is right (the whole paragraph or text box for Writer and Presentation, the sheet name and written range values for Spreadsheets) and a sentence on what was checked, and the MCP descriptions of these tools say the result is already verified; on Windows all 16 open-document tasks pass at least 2 of 3 runs in one --repeat 3 --min-passes 2 invocation with wrong_tool_calls summing to 0 and off_path_calls summing to at most 20 (50 in P9-006)",
+        "K2: offline, Spreadsheet selection replace and delete on shape text, chart titles, axis titles and series values record the original value before writing and, when the read-back fails, write it back in WPS, save and read back again, reporting rolled_back_in_wps, returning MUTATION_ROLLBACK_IN_WPS_FAILED only when that fails; fake-COM tests per object kind; on Windows run_windows_check.py undo gains shape-text and chart-title cases and after an injected read-back failure both WPS and the file are back to the state before the write",
+        "K3: v0.7.0 is released per docs/RELEASING.md with the K1 and K2 changes, and its wheel is checked on Windows with run_windows_check.py wheel"
+      ]
     }
   ]
 }
