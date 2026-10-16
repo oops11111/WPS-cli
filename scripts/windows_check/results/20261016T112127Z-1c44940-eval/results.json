@@ -1,0 +1,2054 @@
+{
+  "prerequisites": {
+    "passed": true,
+    "checks": [
+      {
+        "name": "commit",
+        "ok": true,
+        "detail": "1c44940 on main",
+        "required": true
+      },
+      {
+        "name": "python",
+        "ok": true,
+        "detail": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\.venv\\Scripts\\python.exe",
+        "required": true
+      },
+      {
+        "name": "windows",
+        "ok": true,
+        "detail": "Windows-10-10.0.19045-SP0",
+        "required": true
+      },
+      {
+        "name": "claude answers",
+        "ok": true,
+        "detail": "OK",
+        "required": true
+      },
+      {
+        "name": "no WPS process running",
+        "ok": true,
+        "detail": "none",
+        "required": true
+      },
+      {
+        "name": "open command .docx",
+        "ok": true,
+        "detail": "\"C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\wps.exe\" \"%1\"",
+        "required": true
+      },
+      {
+        "name": "open command .xlsx",
+        "ok": true,
+        "detail": "\"C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\et.exe\" \"%1\"",
+        "required": true
+      },
+      {
+        "name": "open command .pptx",
+        "ok": true,
+        "detail": "\"C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\wpp.exe\" \"%1\"",
+        "required": true
+      },
+      {
+        "name": "inspect-env",
+        "ok": true,
+        "detail": "{\"presentation\": \"kwpp.Application\", \"spreadsheets\": \"ket.Application\", \"writer\": \"kwps.Application\"}",
+        "required": true
+      }
+    ],
+    "info": {
+      "commit": "1c44940",
+      "branch": "main",
+      "python": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\.venv\\Scripts\\python.exe",
+      "platform": "Windows-10-10.0.19045-SP0",
+      "wps_versions": {
+        "wps.exe": "12,8,2,18913",
+        "et.exe": "12,8,2,18913",
+        "wpp.exe": "12,8,2,18913"
+      }
+    }
+  },
+  "settings": {
+    "only": [],
+    "prefix": [
+      "wps-open-zh-"
+    ],
+    "repeat": 3,
+    "min_passes": 2,
+    "model": null,
+    "wps_launch": "default",
+    "tasks": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\config\\agent_eval_tasks.json",
+    "workspaces": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261016T112127Z-1c44940-eval"
+  },
+  "results": [
+    {
+      "id": "wps-open-zh-writer-selection-replace",
+      "passed": true,
+      "repeat": 3,
+      "min_passes": 2,
+      "passes": 3,
+      "pass_rate": 1.0,
+      "metrics": {
+        "wps_tool_calls": 19,
+        "wps_tool_errors": 0,
+        "off_path_calls": 4,
+        "off_path_tools": [
+          "snapshot_document",
+          "validate_document"
+        ]
+      },
+      "runs": [
+        {
+          "id": "wps-open-zh-writer-selection-replace",
+          "passed": true,
+          "agent": {
+            "ran": true,
+            "exit_code": 0,
+            "is_error": false,
+            "num_turns": 8,
+            "duration_ms": 22993,
+            "total_cost_usd": 0.35195319999999997,
+            "result_excerpt": "已完成。\n\n**操作结果**\n- 文档：`季度报告.docx`（`document_id`: `doc_edfc952686eea2ec`），WPS Writer 中仍处于打开状态，未关闭。\n- 替换前选区：`草稿`（第 2 段，偏移 8–10），非折叠选区，与预期一致。\n- 执行：`writer_selection_replace`，`request_id` = `eval-zh-selection-1`，写入后读回为 `定稿`，验证通过（`selection_write_validated: passed`）。\n- 校验：`validate_document` 确认正文含 `定稿`，命中 1 处。\n- 备份：`.wps-agent\\backups\\doc_edfc952686eea2ec\\季度报告.20261016T112200557565Z.docx`（36662 字节，源文件 SHA-256 `BB1897D9…F07B4`）。\n\n**两点说明**\n- 写回采用 `uniform_character` 格式模式，原选中文字的字体/字号/加粗等统一字符格式已快照并重新应用；但如果",
+            "stderr_excerpt": "",
+            "tool_calls": [
+              {
+                "name": "mcp__wps-agent__wps_agent_open_documents",
+                "input": {
+                  "register": true,
+                  "component": "writer"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "ls -la \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261016T112127Z-1c44940-eval/run-1/wps-open-zh-writer-selection-replace\"",
+                  "description": "List working directory contents"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_writer_selection_read",
+                "input": {
+                  "document_id": "doc_edfc952686eea2ec"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_writer_selection_replace",
+                "input": {
+                  "document_id": "doc_edfc952686eea2ec",
+                  "expected_selection_text": "草稿",
+                  "text": "定稿",
+                  "dry_run": true,
+                  "request_id": "eval-zh-selection-1-dryrun"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_writer_selection_replace",
+                "input": {
+                  "document_id": "doc_edfc952686eea2ec",
+                  "expected_selection_text": "草稿",
+                  "request_id": "eval-zh-selection-1",
+                  "text": "定稿"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_validate_document",
+                "input": {
+                  "document_id": "doc_edfc952686eea2ec",
+                  "contains": "定稿"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_open_documents",
+                "input": {
+                  "component": "writer"
+                },
+                "is_error": false,
+                "error_codes": []
+              }
+            ]
+          },
+          "metrics": {
+            "wps_tool_calls": 6,
+            "wps_tool_errors": 0,
+            "other_tool_calls": 1,
+            "tools_used": [
+              "open_documents",
+              "validate_document",
+              "writer_selection_read",
+              "writer_selection_replace"
+            ],
+            "expected_tools": [
+              "documents",
+              "open_documents",
+              "register_document",
+              "writer_selection_read",
+              "writer_selection_replace"
+            ],
+            "off_path_calls": 1,
+            "off_path_tools": [
+              "validate_document"
+            ]
+          },
+          "checks": [
+            {
+              "kind": "operation_recorded",
+              "passed": true,
+              "detail": "writer-selection-replace",
+              "request_id": "eval-zh-selection-1",
+              "command": "writer-selection-replace"
+            },
+            {
+              "kind": "tool_called",
+              "passed": true,
+              "detail": "1 matching call(s)",
+              "tool": "writer_selection_replace",
+              "input": {
+                "request_id": "eval-zh-selection-1"
+              }
+            },
+            {
+              "kind": "file_text",
+              "passed": true,
+              "detail": "ok",
+              "path": "季度报告.docx",
+              "contains": [
+                "季度报告",
+                "状态：定稿",
+                "负责人：财务部"
+              ],
+              "absent": [
+                "草稿"
+              ]
+            },
+            {
+              "kind": "backup_count",
+              "passed": true,
+              "detail": 1,
+              "count": 1
+            },
+            {
+              "kind": "tool_not_called",
+              "passed": true,
+              "detail": "0 call(s)",
+              "tool": "writer_replace"
+            }
+          ],
+          "cleanup": "fixture closed; processes stopped 42328",
+          "documents_outside": []
+        },
+        {
+          "id": "wps-open-zh-writer-selection-replace",
+          "passed": true,
+          "agent": {
+            "ran": true,
+            "exit_code": 0,
+            "is_error": false,
+            "num_turns": 8,
+            "duration_ms": 26577,
+            "total_cost_usd": 0.3926167,
+            "result_excerpt": "已完成。选中的“草稿”已在 WPS 中被替换为“定稿”。\n\n**执行过程**\n1. `open-documents`（attach，不启动新 WPS）→ 拿到 `document_id: doc_730a353a06c62b5c`，文档为 `季度报告.docx`\n2. `writer-selection-read` → 确认选区为“草稿”（2 字，第 2 段，偏移 8–10，非折叠）\n3. `writer-selection-replace` dry-run → `would_modify: true`\n4. `writer-selection-replace` 正式执行，`request_id: eval-zh-selection-1`，`expected_selection_text: 草稿`（作为防误写守卫）\n\n**结果与校验**\n- 写回后读回文本：`定稿`，`validation_passed: true`\n- 已自动备份：`.wps-agent\\backups\\doc_730a353a06c62b5c\\季度报告.20261016T112249228470Z.docx`\n- ",
+            "stderr_excerpt": "",
+            "tool_calls": [
+              {
+                "name": "mcp__wps-agent__wps_agent_open_documents",
+                "input": {
+                  "component": "writer",
+                  "register": true
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_writer_selection_read",
+                "input": {
+                  "document_id": "doc_730a353a06c62b5c"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_writer_selection_replace",
+                "input": {
+                  "document_id": "doc_730a353a06c62b5c",
+                  "expected_selection_text": "草稿",
+                  "text": "定稿",
+                  "dry_run": true,
+                  "request_id": "eval-zh-selection-1"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_writer_selection_replace",
+                "input": {
+                  "document_id": "doc_730a353a06c62b5c",
+                  "expected_selection_text": "草稿",
+                  "request_id": "eval-zh-selection-1",
+                  "text": "定稿"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_validate_document",
+                "input": {
+                  "document_id": "doc_730a353a06c62b5c",
+                  "contains": "定稿"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_snapshot_document",
+                "input": {
+                  "document_id": "doc_730a353a06c62b5c"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_open_documents",
+                "input": {
+                  "component": "writer"
+                },
+                "is_error": false,
+                "error_codes": []
+              }
+            ]
+          },
+          "metrics": {
+            "wps_tool_calls": 7,
+            "wps_tool_errors": 0,
+            "other_tool_calls": 0,
+            "tools_used": [
+              "open_documents",
+              "snapshot_document",
+              "validate_document",
+              "writer_selection_read",
+              "writer_selection_replace"
+            ],
+            "expected_tools": [
+              "documents",
+              "open_documents",
+              "register_document",
+              "writer_selection_read",
+              "writer_selection_replace"
+            ],
+            "off_path_calls": 2,
+            "off_path_tools": [
+              "snapshot_document",
+              "validate_document"
+            ]
+          },
+          "checks": [
+            {
+              "kind": "operation_recorded",
+              "passed": true,
+              "detail": "writer-selection-replace",
+              "request_id": "eval-zh-selection-1",
+              "command": "writer-selection-replace"
+            },
+            {
+              "kind": "tool_called",
+              "passed": true,
+              "detail": "2 matching call(s)",
+              "tool": "writer_selection_replace",
+              "input": {
+                "request_id": "eval-zh-selection-1"
+              }
+            },
+            {
+              "kind": "file_text",
+              "passed": true,
+              "detail": "ok",
+              "path": "季度报告.docx",
+              "contains": [
+                "季度报告",
+                "状态：定稿",
+                "负责人：财务部"
+              ],
+              "absent": [
+                "草稿"
+              ]
+            },
+            {
+              "kind": "backup_count",
+              "passed": true,
+              "detail": 1,
+              "count": 1
+            },
+            {
+              "kind": "tool_not_called",
+              "passed": true,
+              "detail": "0 call(s)",
+              "tool": "writer_replace"
+            }
+          ],
+          "cleanup": "fixture closed; processes stopped 52616",
+          "documents_outside": []
+        },
+        {
+          "id": "wps-open-zh-writer-selection-replace",
+          "passed": true,
+          "agent": {
+            "ran": true,
+            "exit_code": 0,
+            "is_error": false,
+            "num_turns": 7,
+            "duration_ms": 27733,
+            "total_cost_usd": 0.36890069999999997,
+            "result_excerpt": "已完成。文档仍在 WPS 中打开，未关闭。\n\n**操作结果**\n\n| 项目 | 值 |\n|---|---|\n| 文档 | `季度报告.docx`（`doc_a5a8fc97edd8072f`） |\n| 位置 | 第 2 段，偏移 8–10 |\n| 替换 | 草稿 → 定稿 |\n| request_id | `eval-zh-selection-1` |\n| 校验 | `selection_write_validated` 通过，回读文本 = `定稿` |\n\n**过程与验证**\n1. 先读取选区确认未折叠、内容确为「草稿」（2 字符），避免误替换。\n2. 用独立 request_id 做了一次 dry-run，确认 `would_modify: true` 且目标为第 2 段偏移 8–10，才开始真正写入。\n3. 执行时带 `expected_selection_text=\"草稿\"` 作为守卫——若选区与预期不符会拒绝写入。\n4. 独立复核：`validate-document` 在正文中匹配到「定稿」恰好 1 处；`open-documents` 确认文档仍处于打开、已保存状态，无其他",
+            "stderr_excerpt": "",
+            "tool_calls": [
+              {
+                "name": "mcp__wps-agent__wps_agent_open_documents",
+                "input": {
+                  "register": true,
+                  "request_id": "eval-zh-selection-1-probe"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_writer_selection_read",
+                "input": {
+                  "document_id": "doc_a5a8fc97edd8072f",
+                  "request_id": "eval-zh-selection-1-precheck"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_writer_selection_replace",
+                "input": {
+                  "document_id": "doc_a5a8fc97edd8072f",
+                  "text": "定稿",
+                  "expected_selection_text": "草稿",
+                  "dry_run": true,
+                  "request_id": "eval-zh-selection-1-dryrun"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_writer_selection_replace",
+                "input": {
+                  "document_id": "doc_a5a8fc97edd8072f",
+                  "expected_selection_text": "草稿",
+                  "request_id": "eval-zh-selection-1",
+                  "text": "定稿"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_validate_document",
+                "input": {
+                  "contains": "定稿",
+                  "document_id": "doc_a5a8fc97edd8072f",
+                  "request_id": "eval-zh-selection-1-verify"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_open_documents",
+                "input": {
+                  "request_id": "eval-zh-selection-1-postcheck"
+                },
+                "is_error": false,
+                "error_codes": []
+              }
+            ]
+          },
+          "metrics": {
+            "wps_tool_calls": 6,
+            "wps_tool_errors": 0,
+            "other_tool_calls": 0,
+            "tools_used": [
+              "open_documents",
+              "validate_document",
+              "writer_selection_read",
+              "writer_selection_replace"
+            ],
+            "expected_tools": [
+              "documents",
+              "open_documents",
+              "register_document",
+              "writer_selection_read",
+              "writer_selection_replace"
+            ],
+            "off_path_calls": 1,
+            "off_path_tools": [
+              "validate_document"
+            ]
+          },
+          "checks": [
+            {
+              "kind": "operation_recorded",
+              "passed": true,
+              "detail": "writer-selection-replace",
+              "request_id": "eval-zh-selection-1",
+              "command": "writer-selection-replace"
+            },
+            {
+              "kind": "tool_called",
+              "passed": true,
+              "detail": "1 matching call(s)",
+              "tool": "writer_selection_replace",
+              "input": {
+                "request_id": "eval-zh-selection-1"
+              }
+            },
+            {
+              "kind": "file_text",
+              "passed": true,
+              "detail": "ok",
+              "path": "季度报告.docx",
+              "contains": [
+                "季度报告",
+                "状态：定稿",
+                "负责人：财务部"
+              ],
+              "absent": [
+                "草稿"
+              ]
+            },
+            {
+              "kind": "backup_count",
+              "passed": true,
+              "detail": 1,
+              "count": 1
+            },
+            {
+              "kind": "tool_not_called",
+              "passed": true,
+              "detail": "0 call(s)",
+              "tool": "writer_replace"
+            }
+          ],
+          "cleanup": "fixture closed; processes stopped 55332",
+          "documents_outside": []
+        }
+      ]
+    },
+    {
+      "id": "wps-open-zh-spreadsheet-sheet-cells",
+      "passed": true,
+      "repeat": 3,
+      "min_passes": 2,
+      "passes": 3,
+      "pass_rate": 1.0,
+      "metrics": {
+        "wps_tool_calls": 20,
+        "wps_tool_errors": 2,
+        "off_path_calls": 5,
+        "off_path_tools": [
+          "save_open_document",
+          "spreadsheet_inspect",
+          "spreadsheet_read",
+          "spreadsheet_sheets"
+        ]
+      },
+      "runs": [
+        {
+          "id": "wps-open-zh-spreadsheet-sheet-cells",
+          "passed": true,
+          "agent": {
+            "ran": true,
+            "exit_code": 0,
+            "is_error": false,
+            "num_turns": 8,
+            "duration_ms": 24883,
+            "total_cost_usd": 0.3715327,
+            "result_excerpt": "已完成。\n\n**操作结果**\n\n| 项 | 值 |\n|---|---|\n| 工作簿 | 状态表.xlsx（`doc_481387d1040e77ce`） |\n| 工作表 | 汇总 |\n| 选中区域 | `$C$2:$C$3`（2 个单元格） |\n| 修改前 | 草稿 / 草稿 |\n| 修改后 | 已完成 / 已完成 |\n| request_id | eval-zh-cells-1 |\n\n用的是 `spreadsheet_selection_replace`，带 `values_json: [[\"已完成\"],[\"已完成\"]]` 按单元格逐个写入，并加了 `expected_selection_text: \"草稿\\t草稿\"` 作为前置校验——选中内容不符就会拒绝写入。先跑了一次 dry-run（`would_modify: true`）再执行实际写入。\n\n**校验**\n- 写入前自动备份：`.wps-agent\\backups\\doc_481387d1040e77ce\\状态表.20261016T112432535784Z.xlsx`（4955 字节）\n- 工具回读校验通过，`read_ba",
+            "stderr_excerpt": "",
+            "tool_calls": [
+              {
+                "name": "mcp__wps-agent__wps_agent_open_documents",
+                "input": {
+                  "register": true
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_spreadsheet_selection_read",
+                "input": {
+                  "document_id": "placeholder"
+                },
+                "is_error": true,
+                "error_codes": [
+                  "DOCUMENT_NOT_FOUND"
+                ]
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_spreadsheet_selection_read",
+                "input": {
+                  "document_id": "doc_481387d1040e77ce"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_spreadsheet_selection_replace",
+                "input": {
+                  "document_id": "doc_481387d1040e77ce",
+                  "expected_selection_text": "草稿\t草稿",
+                  "values_json": "[[\"已完成\"],[\"已完成\"]]",
+                  "dry_run": true,
+                  "request_id": "eval-zh-cells-1"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_spreadsheet_selection_replace",
+                "input": {
+                  "document_id": "doc_481387d1040e77ce",
+                  "expected_selection_text": "草稿\t草稿",
+                  "request_id": "eval-zh-cells-1",
+                  "values_json": "[[\"已完成\"],[\"已完成\"]]"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_spreadsheet_read",
+                "input": {
+                  "document_id": "doc_481387d1040e77ce",
+                  "range": "A1:E6",
+                  "sheet": "汇总"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_spreadsheet_selection_read",
+                "input": {
+                  "document_id": "doc_481387d1040e77ce"
+                },
+                "is_error": false,
+                "error_codes": []
+              }
+            ]
+          },
+          "metrics": {
+            "wps_tool_calls": 7,
+            "wps_tool_errors": 1,
+            "other_tool_calls": 0,
+            "tools_used": [
+              "open_documents",
+              "spreadsheet_read",
+              "spreadsheet_selection_read",
+              "spreadsheet_selection_replace"
+            ],
+            "expected_tools": [
+              "documents",
+              "open_documents",
+              "register_document",
+              "spreadsheet_selection_read",
+              "spreadsheet_selection_replace"
+            ],
+            "off_path_calls": 1,
+            "off_path_tools": [
+              "spreadsheet_read"
+            ]
+          },
+          "checks": [
+            {
+              "kind": "operation_recorded",
+              "passed": true,
+              "detail": "spreadsheet-selection-replace",
+              "request_id": "eval-zh-cells-1",
+              "command": "spreadsheet-selection-replace"
+            },
+            {
+              "kind": "tool_called",
+              "passed": true,
+              "detail": "2 matching call(s)",
+              "tool": "spreadsheet_selection_replace",
+              "input": {
+                "request_id": "eval-zh-cells-1"
+              }
+            },
+            {
+              "kind": "xlsx_cell",
+              "passed": true,
+              "detail": "已完成",
+              "path": "状态表.xlsx",
+              "sheet": "汇总",
+              "cell": "C2",
+              "value": "已完成"
+            },
+            {
+              "kind": "xlsx_cell",
+              "passed": true,
+              "detail": "已完成",
+              "path": "状态表.xlsx",
+              "sheet": "汇总",
+              "cell": "C3",
+              "value": "已完成"
+            },
+            {
+              "kind": "xlsx_cell",
+              "passed": true,
+              "detail": 120,
+              "path": "状态表.xlsx",
+              "sheet": "汇总",
+              "cell": "B2",
+              "value": 120
+            },
+            {
+              "kind": "xlsx_cell",
+              "passed": true,
+              "detail": "状态",
+              "path": "状态表.xlsx",
+              "sheet": "汇总",
+              "cell": "C1",
+              "value": "状态"
+            },
+            {
+              "kind": "backup_count",
+              "passed": true,
+              "detail": 1,
+              "count": 1
+            },
+            {
+              "kind": "tool_not_called",
+              "passed": true,
+              "detail": "0 call(s)",
+              "tool": "spreadsheet_write"
+            }
+          ],
+          "cleanup": "fixture closed; processes stopped 53684",
+          "documents_outside": []
+        },
+        {
+          "id": "wps-open-zh-spreadsheet-sheet-cells",
+          "passed": true,
+          "agent": {
+            "ran": true,
+            "exit_code": 0,
+            "is_error": false,
+            "num_turns": 12,
+            "duration_ms": 49457,
+            "total_cost_usd": 0.5831381999999999,
+            "result_excerpt": "完成。\n\n**执行的操作**\n- 附加到正在运行的 WPS 实例（未启动新实例），找到已打开的 `状态表.xlsx` → `document_id: doc_e05fbbab3b08a073`\n- 读取当前选区，确认为工作表「汇总」上的 `$C$2:$C$3`（2 个单元格，原值均为「草稿」）\n- 用 `spreadsheet_selection_replace` 以常量填充方式将选区写入「已完成」，`request_id = eval-zh-cells-1`，并带上 `expected_selection_text` 作为写入前的防误改校验\n\n**验证结果**\n- 选区校验通过：地址 `$C$2:$C$3`、`area_count: 1`、`cell_count: 2`，只有这 2 个单元格被写入\n- 回读值：`[\"已完成\", \"已完成\"]`；再次读取实时选区显示 `已完成\\t已完成`\n- 写入前已自动备份：`.wps-agent\\backups\\doc_e05fbbab3b08a073\\状态表.20261016T112515805605Z.xlsx`\n- 工作簿在 WPS 中仍处于",
+            "stderr_excerpt": "",
+            "tool_calls": [
+              {
+                "name": "mcp__wps-agent__wps_agent_open_documents",
+                "input": {
+                  "component": "spreadsheets",
+                  "register": true
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_spreadsheet_selection_read",
+                "input": {
+                  "document_id": "doc_e05fbbab3b08a073"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_spreadsheet_selection_replace",
+                "input": {
+                  "document_id": "doc_e05fbbab3b08a073",
+                  "text": "已完成",
+                  "expected_selection_text": "草稿\t草稿",
+                  "request_id": "eval-zh-cells-1"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_spreadsheet_inspect",
+                "input": {
+                  "document_id": "doc_e05fbbab3b08a073",
+                  "range": "A1:D4",
+                  "sheet": "汇总"
+                },
+                "is_error": true,
+                "error_codes": [
+                  "DOCUMENT_HELD_OPEN"
+                ]
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_spreadsheet_selection_read",
+                "input": {
+                  "document_id": "doc_e05fbbab3b08a073"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_save_open_document",
+                "input": {
+                  "document_id": "doc_e05fbbab3b08a073",
+                  "dry_run": true
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "PowerShell",
+                "input": {
+                  "command": "$p = \"C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261016T112127Z-1c44940-eval\\run-2\\wps-open-zh-spreadsheet-sheet-cells\\状态表.xlsx\"; Get-Item -LiteralPath $p | Select-Object Name, Length, LastWriteTime | Format-List; \"SHA256: \" + (Get-FileHash -LiteralPath $p -Algorithm SHA256).Hash",
+                  "description": "Check workbook file timestamp and hash"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "PowerShell",
+                "input": {
+                  "command": "$p = \"C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261016T112127Z-1c44940-eval\\run-2\\wps-open-zh-spreadsheet-sheet-cells\\状态表.xlsx\"\n$i = Get-Item -LiteralPath $p\n\"Name: \" + $i.Name\n\"Length: \" + $i.Length\n\"LastWriteTime: \" + $i.LastWriteTime\n$h = Get-FileHash -LiteralPath $p -Algorithm SHA256\n\"SHA256: \" + $h.Hash",
+                  "description": "Check workbook file timestamp and hash"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "cd \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261016T112127Z-1c44940-eval/run-2/wps-open-zh-spreadsheet-sheet-cells\" && ls -l --time-style=full-iso 状态表.xlsx && sha256sum 状态表.xlsx",
+                  "description": "Check workbook timestamp and hash"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "tmp=$(mktemp -d) && cp \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261016T112127Z-1c44940-eval/run-2/wps-open-zh-spreadsheet-sheet-cells/状态表.xlsx\" \"$tmp/copy.xlsx\" && python -I -c \"\nimport sys, openpyxl\nwb = openpyxl.load_workbook(sys.argv[1], data_only=False)\nprint('sheets:', wb.sheetnames)\nfor ws in wb.worksheets:\n    print('---', ws.title, ws.dimensions)\n    for row in ws.iter_rows():\n        for c in row:\n            if c.value is not None:\n                print(c.coordinate, repr(c.value))\n\" \"$tmp/copy.xlsx\"; rm -rf \"$tmp\"",
+                  "description": "Dump workbook contents from a temp copy"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "Write",
+                "input": {
+                  "file_path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-eval-scratch\\inspect_xlsx.py",
+                  "content": "import sys\nimport openpyxl\n\nwb = openpyxl.load_workbook(sys.argv[1], data_only=False)\nprint(\"sheets:\", wb.sheetnames)\nfor ws in wb.worksheets:\n    print(\"---\", ws.title, ws.dimensions)\n    for row in ws.iter_rows():\n        for cell in row:\n            if cell.value is not None:\n                print(cell.coordinate, repr(cell.value))\n"
+                },
+                "is_error": true,
+                "error_codes": []
+              }
+            ]
+          },
+          "metrics": {
+            "wps_tool_calls": 6,
+            "wps_tool_errors": 1,
+            "other_tool_calls": 5,
+            "tools_used": [
+              "open_documents",
+              "save_open_document",
+              "spreadsheet_inspect",
+              "spreadsheet_selection_read",
+              "spreadsheet_selection_replace"
+            ],
+            "expected_tools": [
+              "documents",
+              "open_documents",
+              "register_document",
+              "spreadsheet_selection_read",
+              "spreadsheet_selection_replace"
+            ],
+            "off_path_calls": 2,
+            "off_path_tools": [
+              "save_open_document",
+              "spreadsheet_inspect"
+            ]
+          },
+          "checks": [
+            {
+              "kind": "operation_recorded",
+              "passed": true,
+              "detail": "spreadsheet-selection-replace",
+              "request_id": "eval-zh-cells-1",
+              "command": "spreadsheet-selection-replace"
+            },
+            {
+              "kind": "tool_called",
+              "passed": true,
+              "detail": "1 matching call(s)",
+              "tool": "spreadsheet_selection_replace",
+              "input": {
+                "request_id": "eval-zh-cells-1"
+              }
+            },
+            {
+              "kind": "xlsx_cell",
+              "passed": true,
+              "detail": "已完成",
+              "path": "状态表.xlsx",
+              "sheet": "汇总",
+              "cell": "C2",
+              "value": "已完成"
+            },
+            {
+              "kind": "xlsx_cell",
+              "passed": true,
+              "detail": "已完成",
+              "path": "状态表.xlsx",
+              "sheet": "汇总",
+              "cell": "C3",
+              "value": "已完成"
+            },
+            {
+              "kind": "xlsx_cell",
+              "passed": true,
+              "detail": 120,
+              "path": "状态表.xlsx",
+              "sheet": "汇总",
+              "cell": "B2",
+              "value": 120
+            },
+            {
+              "kind": "xlsx_cell",
+              "passed": true,
+              "detail": "状态",
+              "path": "状态表.xlsx",
+              "sheet": "汇总",
+              "cell": "C1",
+              "value": "状态"
+            },
+            {
+              "kind": "backup_count",
+              "passed": true,
+              "detail": 1,
+              "count": 1
+            },
+            {
+              "kind": "tool_not_called",
+              "passed": true,
+              "detail": "0 call(s)",
+              "tool": "spreadsheet_write"
+            }
+          ],
+          "cleanup": "fixture closed; processes stopped 34824",
+          "documents_outside": []
+        },
+        {
+          "id": "wps-open-zh-spreadsheet-sheet-cells",
+          "passed": true,
+          "agent": {
+            "ran": true,
+            "exit_code": 0,
+            "is_error": false,
+            "num_turns": 8,
+            "duration_ms": 24303,
+            "total_cost_usd": 0.38381970000000004,
+            "result_excerpt": "Done. The selection `C2:C3` on sheet **汇总** now reads \"已完成\" in both cells.\n\n**What ran** (request_id `eval-zh-cells-1`):\n1. `register_document` → `doc_4677992774071079`, then `open_documents` attached to the already-running WPS instance without launching a new one.\n2. `spreadsheet_selection_read` → confirmed `$C$2:$C$3`, sheet `汇总`, values `草稿` / `草稿`.\n3. Dry run, then the real `spreadsheet_selection_replace` with a constant fill of `已完成`, guarded by `expected_selection_text` so it would have re",
+            "stderr_excerpt": "",
+            "tool_calls": [
+              {
+                "name": "mcp__wps-agent__wps_agent_register_document",
+                "input": {
+                  "component": "spreadsheets",
+                  "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261016T112127Z-1c44940-eval\\run-3\\wps-open-zh-spreadsheet-sheet-cells\\状态表.xlsx",
+                  "request_id": "eval-zh-cells-1-register"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_open_documents",
+                "input": {
+                  "component": "spreadsheets",
+                  "register": true
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_spreadsheet_selection_read",
+                "input": {
+                  "document_id": "doc_4677992774071079",
+                  "request_id": "eval-zh-cells-1-read"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_spreadsheet_selection_replace",
+                "input": {
+                  "document_id": "doc_4677992774071079",
+                  "expected_selection_text": "草稿\t草稿",
+                  "text": "已完成",
+                  "dry_run": true,
+                  "request_id": "eval-zh-cells-1-dry"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_spreadsheet_selection_replace",
+                "input": {
+                  "document_id": "doc_4677992774071079",
+                  "expected_selection_text": "草稿\t草稿",
+                  "request_id": "eval-zh-cells-1",
+                  "text": "已完成"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_spreadsheet_read",
+                "input": {
+                  "document_id": "doc_4677992774071079",
+                  "range": "A1:E8",
+                  "sheet": "汇总",
+                  "request_id": "eval-zh-cells-1-verify"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_spreadsheet_sheets",
+                "input": {
+                  "document_id": "doc_4677992774071079",
+                  "request_id": "eval-zh-cells-1-sheets"
+                },
+                "is_error": false,
+                "error_codes": []
+              }
+            ]
+          },
+          "metrics": {
+            "wps_tool_calls": 7,
+            "wps_tool_errors": 0,
+            "other_tool_calls": 0,
+            "tools_used": [
+              "open_documents",
+              "register_document",
+              "spreadsheet_read",
+              "spreadsheet_selection_read",
+              "spreadsheet_selection_replace",
+              "spreadsheet_sheets"
+            ],
+            "expected_tools": [
+              "documents",
+              "open_documents",
+              "register_document",
+              "spreadsheet_selection_read",
+              "spreadsheet_selection_replace"
+            ],
+            "off_path_calls": 2,
+            "off_path_tools": [
+              "spreadsheet_read",
+              "spreadsheet_sheets"
+            ]
+          },
+          "checks": [
+            {
+              "kind": "operation_recorded",
+              "passed": true,
+              "detail": "spreadsheet-selection-replace",
+              "request_id": "eval-zh-cells-1",
+              "command": "spreadsheet-selection-replace"
+            },
+            {
+              "kind": "tool_called",
+              "passed": true,
+              "detail": "1 matching call(s)",
+              "tool": "spreadsheet_selection_replace",
+              "input": {
+                "request_id": "eval-zh-cells-1"
+              }
+            },
+            {
+              "kind": "xlsx_cell",
+              "passed": true,
+              "detail": "已完成",
+              "path": "状态表.xlsx",
+              "sheet": "汇总",
+              "cell": "C2",
+              "value": "已完成"
+            },
+            {
+              "kind": "xlsx_cell",
+              "passed": true,
+              "detail": "已完成",
+              "path": "状态表.xlsx",
+              "sheet": "汇总",
+              "cell": "C3",
+              "value": "已完成"
+            },
+            {
+              "kind": "xlsx_cell",
+              "passed": true,
+              "detail": 120,
+              "path": "状态表.xlsx",
+              "sheet": "汇总",
+              "cell": "B2",
+              "value": 120
+            },
+            {
+              "kind": "xlsx_cell",
+              "passed": true,
+              "detail": "状态",
+              "path": "状态表.xlsx",
+              "sheet": "汇总",
+              "cell": "C1",
+              "value": "状态"
+            },
+            {
+              "kind": "backup_count",
+              "passed": true,
+              "detail": 1,
+              "count": 1
+            },
+            {
+              "kind": "tool_not_called",
+              "passed": true,
+              "detail": "0 call(s)",
+              "tool": "spreadsheet_write"
+            }
+          ],
+          "cleanup": "fixture closed; processes stopped 56060",
+          "documents_outside": []
+        }
+      ]
+    },
+    {
+      "id": "wps-open-zh-document-export-text",
+      "passed": true,
+      "repeat": 3,
+      "min_passes": 2,
+      "passes": 3,
+      "pass_rate": 1.0,
+      "metrics": {
+        "wps_tool_calls": 12,
+        "wps_tool_errors": 0,
+        "off_path_calls": 3,
+        "off_path_tools": [
+          "snapshot_document",
+          "validate_document"
+        ]
+      },
+      "runs": [
+        {
+          "id": "wps-open-zh-document-export-text",
+          "passed": true,
+          "agent": {
+            "ran": true,
+            "exit_code": 0,
+            "is_error": false,
+            "num_turns": 10,
+            "duration_ms": 34158,
+            "total_cost_usd": 0.4953308999999999,
+            "result_excerpt": "完成。\n\n**结果**\n- 通过 `open_documents` 附加到正在运行的 WPS 实例（未启动新进程），找到已打开的 `季度报告.docx`，注册为 `doc_2ac8d86b12128e0e`。\n- 用 `export_open_document_text` 将其文字导出到当前目录的 `季度报告.txt`（36 字节，校验通过）。\n- 原文档保持打开、未关闭、未保存、未修改：`source_unchanged: true`、`source_still_open: true`，复查时该文档仍为 `saved: true`（无未保存改动）。\n\n**文件内容**（文档共 3 段，16 个字符）：\n\n```\n季度报告\n状态：草稿\n负责人：财务部\n```\n\n**一点说明**：导出的 .txt 是 **GBK 编码**（工具报告的 `text_encoding: \"gbk\"`，WPS 的文本 SaveAs 走的是系统 ANSI 代码页），不是 UTF-8。用记事本等 Windows 程序打开正常；若用默认按 UTF-8 解析的编辑器打开会显示乱码，需要手动选 GBK/GB18030。",
+            "stderr_excerpt": "",
+            "tool_calls": [
+              {
+                "name": "mcp__wps-agent__wps_agent_open_documents",
+                "input": {
+                  "component": "writer",
+                  "register": true
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_export_open_document_text",
+                "input": {
+                  "document_id": "doc_2ac8d86b12128e0e",
+                  "output": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261016T112127Z-1c44940-eval\\run-1\\wps-open-zh-document-export-text\\季度报告.txt"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "PowerShell",
+                "input": {
+                  "command": "$p = \"C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261016T112127Z-1c44940-eval\\run-1\\wps-open-zh-document-export-text\\季度报告.txt\"; [System.IO.File]::ReadAllText($p, [System.Text.Encoding]::GetEncoding(936))",
+                  "description": "Read exported text file as GBK"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "Read",
+                "input": {
+                  "file_path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261016T112127Z-1c44940-eval\\run-1\\wps-open-zh-document-export-text\\季度报告.txt"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "PowerShell",
+                "input": {
+                  "command": "$p = \"C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261016T112127Z-1c44940-eval\\run-1\\wps-open-zh-document-export-text\\季度报告.txt\"; Get-Content -LiteralPath $p -Encoding oem",
+                  "description": "Read exported text using OEM code page"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "iconv -f GBK -t UTF-8 \"/c/Users/admin/AppData/Local/Temp/wps-windows-check/20261016T112127Z-1c44940-eval/run-1/wps-open-zh-document-export-text/季度报告.txt\"",
+                  "description": "Decode exported GBK text file to UTF-8"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "cd \"/c/Users/admin/AppData/Local/Temp/wps-windows-check/20261016T112127Z-1c44940-eval/run-1/wps-open-zh-document-export-text\" && python -c \"\nimport sys\nd=open('季度报告.txt','rb').read()\nsys.stdout.buffer.write(d.decode('gbk').encode('utf-8'))\n\"",
+                  "description": "Decode GBK text export to UTF-8 for display"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_snapshot_document",
+                "input": {
+                  "document_id": "doc_2ac8d86b12128e0e"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_open_documents",
+                "input": {
+                  "component": "writer",
+                  "register": false
+                },
+                "is_error": false,
+                "error_codes": []
+              }
+            ]
+          },
+          "metrics": {
+            "wps_tool_calls": 4,
+            "wps_tool_errors": 0,
+            "other_tool_calls": 5,
+            "tools_used": [
+              "export_open_document_text",
+              "open_documents",
+              "snapshot_document"
+            ],
+            "expected_tools": [
+              "documents",
+              "export_open_document_text",
+              "open_documents",
+              "register_document"
+            ],
+            "off_path_calls": 1,
+            "off_path_tools": [
+              "snapshot_document"
+            ]
+          },
+          "checks": [
+            {
+              "kind": "tool_called",
+              "passed": true,
+              "detail": "2 matching call(s)",
+              "tool": "open_documents"
+            },
+            {
+              "kind": "tool_called",
+              "passed": true,
+              "detail": "1 matching call(s)",
+              "tool": "export_open_document_text"
+            },
+            {
+              "kind": "file_text",
+              "passed": true,
+              "detail": "ok",
+              "path": "季度报告.txt",
+              "contains": [
+                "季度报告",
+                "状态：草稿",
+                "负责人：财务部"
+              ]
+            },
+            {
+              "kind": "tool_not_called",
+              "passed": true,
+              "detail": "0 call(s)",
+              "tool": "save_open_document"
+            },
+            {
+              "kind": "file_unchanged",
+              "passed": true,
+              "detail": "unchanged"
+            }
+          ],
+          "cleanup": "fixture closed; processes stopped 55340",
+          "documents_outside": []
+        },
+        {
+          "id": "wps-open-zh-document-export-text",
+          "passed": true,
+          "agent": {
+            "ran": true,
+            "exit_code": 0,
+            "is_error": false,
+            "num_turns": 12,
+            "duration_ms": 31645,
+            "total_cost_usd": 0.5023244,
+            "result_excerpt": "完成。\n\n**找到的文档**：`季度报告.docx`（通过 `open_documents` 附加到正在运行的 WPS 实例找到，未启动新的 WPS 进程）\n- document_id: `doc_6e98e526a19511d4`\n- 状态：已保存、非只读、当前活动文档\n\n**导出结果**：`季度报告.txt` 已生成在当前目录（36 字节），使用 `export_open_document_text`（Writer 走 WPS 的 SaveAsUnicodeText）。\n\n文件内容（GBK 编码，十六进制核对无误）：\n\n```\n季度报告\n状态：草稿\n负责人：财务部\n```\n\n**几点说明**：\n\n1. **编码是 GBK**，不是 UTF-8。工具返回 `\"text_encoding\": \"gbk\"`，用 UTF-8 打开会显示乱码。已用十六进制逐字节核对：`bc be b6 c8 b1 a8 b8 e6` = 季度报告，`d7 b4 cc ac a3 ba b2 dd b8 e5` = 状态：草稿，`b8 ba d4 f0 c8 cb a3 ba b2 c6 ce f1 b2 b",
+            "stderr_excerpt": "",
+            "tool_calls": [
+              {
+                "name": "mcp__wps-agent__wps_agent_open_documents",
+                "input": {
+                  "component": "writer",
+                  "register": true
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_export_open_document_text",
+                "input": {
+                  "document_id": "doc_6e98e526a19511d4",
+                  "output": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261016T112127Z-1c44940-eval\\run-2\\wps-open-zh-document-export-text\\季度报告.txt"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Read",
+                "input": {
+                  "file_path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261016T112127Z-1c44940-eval\\run-2\\wps-open-zh-document-export-text\\季度报告.txt"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "PowerShell",
+                "input": {
+                  "command": "$p = \"C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261016T112127Z-1c44940-eval\\run-2\\wps-open-zh-document-export-text\\季度报告.txt\"; $bytes = [System.IO.File]::ReadAllBytes($p); \"Bytes: $($bytes.Length)\"; [System.Text.Encoding]::GetEncoding(936).GetString($bytes)",
+                  "description": "Read exported text file as GBK"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "PowerShell",
+                "input": {
+                  "command": "$p = \"C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261016T112127Z-1c44940-eval\\run-2\\wps-open-zh-document-export-text\\季度报告.txt\"\n$bytes = [System.IO.File]::ReadAllBytes($p)\nWrite-Output \"Bytes: $($bytes.Length)\"\n[System.Text.Encoding]::GetEncoding(936).GetString($bytes)",
+                  "description": "Read exported text file as GBK"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "PowerShell",
+                "input": {
+                  "command": "$p = \"C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261016T112127Z-1c44940-eval\\run-2\\wps-open-zh-document-export-text\\季度报告.txt\"\n$bytes = [System.IO.File]::ReadAllBytes($p)\nWrite-Output \"Bytes:\"\n$bytes.Length\n[System.Text.Encoding]::GetEncoding(936).GetString($bytes)",
+                  "description": "Read exported text file as GBK"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "cd \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261016T112127Z-1c44940-eval/run-2/wps-open-zh-document-export-text\" && ls -la && echo \"--- hexdump ---\" && od -A d -t x1z \"季度报告.txt\" && echo \"--- iconv GBK->UTF8 ---\" && iconv -f GBK -t UTF-8 \"季度报告.txt\"",
+                  "description": "Inspect and decode the exported text file"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "cd \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261016T112127Z-1c44940-eval/run-2/wps-open-zh-document-export-text\" && ls -la && echo \"--- hexdump ---\" && od -A d -t x1z \"季度报告.txt\"",
+                  "description": "List files and hexdump the exported text"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "cd \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261016T112127Z-1c44940-eval/run-2/wps-open-zh-document-export-text\" && iconv -f GBK -t UTF-8 \"季度报告.txt\"",
+                  "description": "Decode exported text from GBK to UTF-8"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_validate_document",
+                "input": {
+                  "document_id": "doc_6e98e526a19511d4",
+                  "contains": "季度报告"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_open_documents",
+                "input": {
+                  "component": "writer"
+                },
+                "is_error": false,
+                "error_codes": []
+              }
+            ]
+          },
+          "metrics": {
+            "wps_tool_calls": 4,
+            "wps_tool_errors": 0,
+            "other_tool_calls": 7,
+            "tools_used": [
+              "export_open_document_text",
+              "open_documents",
+              "validate_document"
+            ],
+            "expected_tools": [
+              "documents",
+              "export_open_document_text",
+              "open_documents",
+              "register_document"
+            ],
+            "off_path_calls": 1,
+            "off_path_tools": [
+              "validate_document"
+            ]
+          },
+          "checks": [
+            {
+              "kind": "tool_called",
+              "passed": true,
+              "detail": "2 matching call(s)",
+              "tool": "open_documents"
+            },
+            {
+              "kind": "tool_called",
+              "passed": true,
+              "detail": "1 matching call(s)",
+              "tool": "export_open_document_text"
+            },
+            {
+              "kind": "file_text",
+              "passed": true,
+              "detail": "ok",
+              "path": "季度报告.txt",
+              "contains": [
+                "季度报告",
+                "状态：草稿",
+                "负责人：财务部"
+              ]
+            },
+            {
+              "kind": "tool_not_called",
+              "passed": true,
+              "detail": "0 call(s)",
+              "tool": "save_open_document"
+            },
+            {
+              "kind": "file_unchanged",
+              "passed": true,
+              "detail": "unchanged"
+            }
+          ],
+          "cleanup": "fixture closed; processes stopped 13596",
+          "documents_outside": []
+        },
+        {
+          "id": "wps-open-zh-document-export-text",
+          "passed": true,
+          "agent": {
+            "ran": true,
+            "exit_code": 0,
+            "is_error": false,
+            "num_turns": 9,
+            "duration_ms": 27328,
+            "total_cost_usd": 0.4250763999999999,
+            "result_excerpt": "Done. Here's what happened:\n\n**1. Found the open document** — `wps_agent_open_documents` attached to the running WPS instance without launching a new one:\n- `季度报告.docx` — `document_id: doc_2b60d02aec18875e`, active, `saved: true`, registered.\n\n**2. Exported its text** — `wps_agent_export_open_document_text` → `C:\\...\\run-3\\wps-open-zh-document-export-text\\季度报告.txt` (36 bytes, GBK encoding, `validation_passed: true`).\n\n**3. Verified** — the tool's own checks passed (`output_created`, `source_unch",
+            "stderr_excerpt": "",
+            "tool_calls": [
+              {
+                "name": "mcp__wps-agent__wps_agent_open_documents",
+                "input": {
+                  "register": true,
+                  "component": "writer"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_export_open_document_text",
+                "input": {
+                  "document_id": "doc_2b60d02aec18875e",
+                  "output": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261016T112127Z-1c44940-eval\\run-3\\wps-open-zh-document-export-text\\季度报告.txt"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "cd \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261016T112127Z-1c44940-eval/run-3/wps-open-zh-document-export-text\" && ls -la && iconv -f GBK -t UTF-8 季度报告.txt",
+                  "description": "List files and decode the exported text"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_open_documents",
+                "input": {
+                  "component": "writer"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Read",
+                "input": {
+                  "file_path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261016T112127Z-1c44940-eval\\run-3\\wps-open-zh-document-export-text\\季度报告.txt"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "PowerShell",
+                "input": {
+                  "command": "$p = \"C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261016T112127Z-1c44940-eval\\run-3\\wps-open-zh-document-export-text\\季度报告.txt\"; $enc = [System.Text.Encoding]::GetEncoding(936); $enc.GetString([System.IO.File]::ReadAllBytes($p))",
+                  "description": "Decode the GBK text file for verification"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "python -I -c \"import io;print(io.open(r'C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261016T112127Z-1c44940-eval\\run-3\\wps-open-zh-document-export-text\\季度报告.txt',encoding='gbk').read())\"",
+                  "description": "Decode GBK text file with Python"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_snapshot_document",
+                "input": {
+                  "document_id": "doc_2b60d02aec18875e"
+                },
+                "is_error": false,
+                "error_codes": []
+              }
+            ]
+          },
+          "metrics": {
+            "wps_tool_calls": 4,
+            "wps_tool_errors": 0,
+            "other_tool_calls": 4,
+            "tools_used": [
+              "export_open_document_text",
+              "open_documents",
+              "snapshot_document"
+            ],
+            "expected_tools": [
+              "documents",
+              "export_open_document_text",
+              "open_documents",
+              "register_document"
+            ],
+            "off_path_calls": 1,
+            "off_path_tools": [
+              "snapshot_document"
+            ]
+          },
+          "checks": [
+            {
+              "kind": "tool_called",
+              "passed": true,
+              "detail": "2 matching call(s)",
+              "tool": "open_documents"
+            },
+            {
+              "kind": "tool_called",
+              "passed": true,
+              "detail": "1 matching call(s)",
+              "tool": "export_open_document_text"
+            },
+            {
+              "kind": "file_text",
+              "passed": true,
+              "detail": "ok",
+              "path": "季度报告.txt",
+              "contains": [
+                "季度报告",
+                "状态：草稿",
+                "负责人：财务部"
+              ]
+            },
+            {
+              "kind": "tool_not_called",
+              "passed": true,
+              "detail": "0 call(s)",
+              "tool": "save_open_document"
+            },
+            {
+              "kind": "file_unchanged",
+              "passed": true,
+              "detail": "unchanged"
+            }
+          ],
+          "cleanup": "fixture closed; processes stopped 28028",
+          "documents_outside": []
+        }
+      ]
+    },
+    {
+      "id": "wps-open-zh-save-as-untitled",
+      "passed": true,
+      "repeat": 3,
+      "min_passes": 2,
+      "passes": 3,
+      "pass_rate": 1.0,
+      "metrics": {
+        "wps_tool_calls": 15,
+        "wps_tool_errors": 0,
+        "off_path_calls": 3,
+        "off_path_tools": [
+          "operations",
+          "snapshot_document"
+        ]
+      },
+      "runs": [
+        {
+          "id": "wps-open-zh-save-as-untitled",
+          "passed": true,
+          "agent": {
+            "ran": true,
+            "exit_code": 0,
+            "is_error": false,
+            "num_turns": 7,
+            "duration_ms": 19127,
+            "total_cost_usd": 0.34934999999999994,
+            "result_excerpt": "已完成。\n\n**操作**：`save-as-open-document`，component=writer，name=`文字文稿1`，output=`会议纪要.docx`，request_id=`eval-zh-save-as-1`。\n\n**结果**：\n- 文件已写出：`会议纪要.docx`（9995 字节），文档内容为一段文字「会议纪要：预算已批准」。\n- 新文档已注册为 `doc_4585e40dc36e23e1`，`registered: true`、`saved: true`、`path_matched: true`，validation 状态 `passed`。\n- 三个校验项全部通过：`no_source_backup`（未命名文档无磁盘源文件，无需备份）、`save_as_validated`。\n\n**两个约束均已满足**：\n- **未关闭**：文档仍处于打开状态。WPS 中 Writer 实例的 `document_count` 仍为 2，标题由 `文字文稿1` 变为 `会议纪要.docx`，`source_still_open: true`。\n- **季度报告.doc",
+            "stderr_excerpt": "",
+            "tool_calls": [
+              {
+                "name": "mcp__wps-agent__wps_agent_open_documents",
+                "input": {
+                  "component": "writer"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_save_as_open_document",
+                "input": {
+                  "component": "writer",
+                  "name": "文字文稿1",
+                  "output": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261016T112127Z-1c44940-eval\\run-1\\wps-open-zh-save-as-untitled\\会议纪要.docx",
+                  "dry_run": true,
+                  "request_id": "eval-zh-save-as-1"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_save_as_open_document",
+                "input": {
+                  "component": "writer",
+                  "name": "文字文稿1",
+                  "output": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261016T112127Z-1c44940-eval\\run-1\\wps-open-zh-save-as-untitled\\会议纪要.docx",
+                  "request_id": "eval-zh-save-as-1"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_open_documents",
+                "input": {
+                  "component": "writer",
+                  "register": true
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "ls -la --time-style=full-iso \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261016T112127Z-1c44940-eval/run-1/wps-open-zh-save-as-untitled/\"",
+                  "description": "List working directory with timestamps"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_snapshot_document",
+                "input": {
+                  "document_id": "doc_4585e40dc36e23e1"
+                },
+                "is_error": false,
+                "error_codes": []
+              }
+            ]
+          },
+          "metrics": {
+            "wps_tool_calls": 5,
+            "wps_tool_errors": 0,
+            "other_tool_calls": 1,
+            "tools_used": [
+              "open_documents",
+              "save_as_open_document",
+              "snapshot_document"
+            ],
+            "expected_tools": [
+              "documents",
+              "open_documents",
+              "save_as_open_document"
+            ],
+            "off_path_calls": 1,
+            "off_path_tools": [
+              "snapshot_document"
+            ]
+          },
+          "checks": [
+            {
+              "kind": "operation_recorded",
+              "passed": true,
+              "detail": "save-as-open-document",
+              "request_id": "eval-zh-save-as-1",
+              "command": "save-as-open-document"
+            },
+            {
+              "kind": "tool_called",
+              "passed": true,
+              "detail": "2 matching call(s)",
+              "tool": "save_as_open_document",
+              "input": {
+                "request_id": "eval-zh-save-as-1"
+              }
+            },
+            {
+              "kind": "file_text",
+              "passed": true,
+              "detail": "ok",
+              "path": "会议纪要.docx",
+              "contains": [
+                "会议纪要：预算已批准"
+              ]
+            },
+            {
+              "kind": "file_unchanged",
+              "passed": true,
+              "detail": "unchanged"
+            },
+            {
+              "kind": "tool_not_called",
+              "passed": true,
+              "detail": "0 call(s)",
+              "tool": "save_open_document"
+            }
+          ],
+          "cleanup": "untitled 文字文稿1 not_found; 会议纪要.docx closed; fixture closed; processes stopped 35148",
+          "untitled_name": "文字文稿1",
+          "documents_outside": []
+        },
+        {
+          "id": "wps-open-zh-save-as-untitled",
+          "passed": true,
+          "agent": {
+            "ran": true,
+            "exit_code": 0,
+            "is_error": false,
+            "num_turns": 9,
+            "duration_ms": 23392,
+            "total_cost_usd": 0.3729155,
+            "result_excerpt": "完成。\n\n**结果**\n\n`文字文稿1` 已另存为 `会议纪要.docx`（当前目录），request_id `eval-zh-save-as-1`。\n\n| 项 | 状态 |\n|---|---|\n| 输出路径 | `...\\wps-open-zh-save-as-untitled\\会议纪要.docx` |\n| 文件已落盘 | 是（9991 字节） |\n| 新 document_id | `doc_2ac7a7c029cc10e4` |\n| 原文档是否仍打开 | 是（`source_still_open: true`，未关闭） |\n| 校验 | `save_as_validated` 通过 |\n\n**内容确认**：快照显示文档正文为 1 个段落、10 个字符 —— \"会议纪要：预算已批准\"（另有一个 WPS 自动加的 `_GoBack` 书签）。\n\n**季度报告.docx 未受影响**：我全程只对它做了只读探测（`open-documents` 列表）。操作账本里只记录了 1 条变更操作，就是这次 save-as；该文件仍为 36662 字节、时间戳未变，且状态仍是已保存、仍在打开中。\n",
+            "stderr_excerpt": "",
+            "tool_calls": [
+              {
+                "name": "mcp__wps-agent__wps_agent_open_documents",
+                "input": {
+                  "component": "writer",
+                  "register": true,
+                  "request_id": "eval-zh-save-as-1-ls"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "ls -la \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261016T112127Z-1c44940-eval/run-2/wps-open-zh-save-as-untitled/\"",
+                  "description": "List working directory contents"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_save_as_open_document",
+                "input": {
+                  "component": "writer",
+                  "name": "文字文稿1",
+                  "output": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261016T112127Z-1c44940-eval\\run-2\\wps-open-zh-save-as-untitled\\会议纪要.docx",
+                  "dry_run": true,
+                  "request_id": "eval-zh-save-as-1"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_save_as_open_document",
+                "input": {
+                  "component": "writer",
+                  "name": "文字文稿1",
+                  "output": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261016T112127Z-1c44940-eval\\run-2\\wps-open-zh-save-as-untitled\\会议纪要.docx",
+                  "request_id": "eval-zh-save-as-1"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "ls -la \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261016T112127Z-1c44940-eval/run-2/wps-open-zh-save-as-untitled/\"; echo \"--- 季度报告 hash ---\"; sha256sum \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261016T112127Z-1c44940-eval/run-2/wps-open-zh-save-as-untitled/季度报告.docx\"",
+                  "description": "List directory and hash the untouched report"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_open_documents",
+                "input": {
+                  "component": "writer",
+                  "register": false,
+                  "request_id": "eval-zh-save-as-1-verify"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_snapshot_document",
+                "input": {
+                  "document_id": "doc_2ac7a7c029cc10e4",
+                  "request_id": "eval-zh-save-as-1-snap"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_operations",
+                "input": {
+                  "request_id": "eval-zh-save-as-1-ops"
+                },
+                "is_error": false,
+                "error_codes": []
+              }
+            ]
+          },
+          "metrics": {
+            "wps_tool_calls": 6,
+            "wps_tool_errors": 0,
+            "other_tool_calls": 2,
+            "tools_used": [
+              "open_documents",
+              "operations",
+              "save_as_open_document",
+              "snapshot_document"
+            ],
+            "expected_tools": [
+              "documents",
+              "open_documents",
+              "save_as_open_document"
+            ],
+            "off_path_calls": 2,
+            "off_path_tools": [
+              "operations",
+              "snapshot_document"
+            ]
+          },
+          "checks": [
+            {
+              "kind": "operation_recorded",
+              "passed": true,
+              "detail": "save-as-open-document",
+              "request_id": "eval-zh-save-as-1",
+              "command": "save-as-open-document"
+            },
+            {
+              "kind": "tool_called",
+              "passed": true,
+              "detail": "2 matching call(s)",
+              "tool": "save_as_open_document",
+              "input": {
+                "request_id": "eval-zh-save-as-1"
+              }
+            },
+            {
+              "kind": "file_text",
+              "passed": true,
+              "detail": "ok",
+              "path": "会议纪要.docx",
+              "contains": [
+                "会议纪要：预算已批准"
+              ]
+            },
+            {
+              "kind": "file_unchanged",
+              "passed": true,
+              "detail": "unchanged"
+            },
+            {
+              "kind": "tool_not_called",
+              "passed": true,
+              "detail": "0 call(s)",
+              "tool": "save_open_document"
+            }
+          ],
+          "cleanup": "untitled 文字文稿1 not_found; 会议纪要.docx closed; fixture closed; processes stopped 53832",
+          "untitled_name": "文字文稿1",
+          "documents_outside": []
+        },
+        {
+          "id": "wps-open-zh-save-as-untitled",
+          "passed": true,
+          "agent": {
+            "ran": true,
+            "exit_code": 0,
+            "is_error": false,
+            "num_turns": 6,
+            "duration_ms": 19003,
+            "total_cost_usd": 0.3191485,
+            "result_excerpt": "完成。\n\n**结果**\n- `文字文稿1` 已另存为 `会议纪要.docx`（当前目录），`request_id` = `eval-zh-save-as-1`\n- 文件已写入磁盘：`会议纪要.docx`（9997 字节，`output_exists: true`）\n- 该文档在 WPS 中**仍保持打开**，未被关闭；保存后获得了路径型 `document_id`：`doc_415942036193c913`\n\n**验证**\n- 再次探测打开文档，两个 Writer 文档都在，`document_count: 2`，状态均为 `saved: true`\n- `季度报告.docx` 未做任何改动 —— 全程只对该文档执行了读取，其 `document_id`（`doc_f33732c55060de8b`）和文件大小（36662 字节）均未变化\n- 目录中出现的 `~$会议纪要.docx` 和 `~$季度报告.docx` 是 WPS 为这两个打开文档生成的临时锁定文件，属正常现象\n\n两次调用的 `validation.status` 均为 `passed`。",
+            "stderr_excerpt": "",
+            "tool_calls": [
+              {
+                "name": "mcp__wps-agent__wps_agent_open_documents",
+                "input": {
+                  "component": "writer",
+                  "register": true,
+                  "request_id": "eval-zh-save-as-1"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_save_as_open_document",
+                "input": {
+                  "component": "writer",
+                  "name": "文字文稿1",
+                  "output": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261016T112127Z-1c44940-eval\\run-3\\wps-open-zh-save-as-untitled\\会议纪要.docx",
+                  "dry_run": true,
+                  "request_id": "eval-zh-save-as-1"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_save_as_open_document",
+                "input": {
+                  "component": "writer",
+                  "name": "文字文稿1",
+                  "output": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261016T112127Z-1c44940-eval\\run-3\\wps-open-zh-save-as-untitled\\会议纪要.docx",
+                  "request_id": "eval-zh-save-as-1"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_open_documents",
+                "input": {
+                  "component": "writer",
+                  "register": true,
+                  "request_id": "eval-zh-save-as-1-verify"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "ls -la \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261016T112127Z-1c44940-eval/run-3/wps-open-zh-save-as-untitled/\"",
+                  "description": "List working directory contents"
+                },
+                "is_error": false,
+                "error_codes": []
+              }
+            ]
+          },
+          "metrics": {
+            "wps_tool_calls": 4,
+            "wps_tool_errors": 0,
+            "other_tool_calls": 1,
+            "tools_used": [
+              "open_documents",
+              "save_as_open_document"
+            ],
+            "expected_tools": [
+              "documents",
+              "open_documents",
+              "save_as_open_document"
+            ],
+            "off_path_calls": 0,
+            "off_path_tools": []
+          },
+          "checks": [
+            {
+              "kind": "operation_recorded",
+              "passed": true,
+              "detail": "save-as-open-document",
+              "request_id": "eval-zh-save-as-1",
+              "command": "save-as-open-document"
+            },
+            {
+              "kind": "tool_called",
+              "passed": true,
+              "detail": "2 matching call(s)",
+              "tool": "save_as_open_document",
+              "input": {
+                "request_id": "eval-zh-save-as-1"
+              }
+            },
+            {
+              "kind": "file_text",
+              "passed": true,
+              "detail": "ok",
+              "path": "会议纪要.docx",
+              "contains": [
+                "会议纪要：预算已批准"
+              ]
+            },
+            {
+              "kind": "file_unchanged",
+              "passed": true,
+              "detail": "unchanged"
+            },
+            {
+              "kind": "tool_not_called",
+              "passed": true,
+              "detail": "0 call(s)",
+              "tool": "save_open_document"
+            }
+          ],
+          "cleanup": "untitled 文字文稿1 not_found; 会议纪要.docx closed; fixture closed; processes stopped 6548",
+          "untitled_name": "文字文稿1",
+          "documents_outside": []
+        }
+      ]
+    }
+  ],
+  "complete": true,
+  "leftover_processes": []
+}
