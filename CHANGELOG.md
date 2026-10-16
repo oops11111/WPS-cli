@@ -4,12 +4,16 @@ All notable changes to `wps-ai-agent-cli`. The versioning rule and release steps
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-10-16
+
+Fixes for Chinese Windows found by the Phase 7 Windows evaluation: arguments and output with characters outside ASCII are no longer garbled.
+
 ### Fixed
 
 - `mcp-server` read the client's JSON-RPC requests in the system code page (GBK on Chinese Windows) instead of UTF-8, so every argument with characters outside ASCII reached the tools garbled: a Chinese document name, replacement text or path. An agent could not save the untitled document `文字文稿1`, which it named correctly. The CLI now reads stdin as UTF-8, as it already wrote stdout. 0.4.0 and earlier have this defect on Chinese Windows. Found by the P7-007 Windows evaluation; a test now runs the real `mcp-server` process with a GBK stdin.
-- Closing an unchanged workbook (`restore-backup --close-in-wps` and the open-document commands' cleanup) failed on WPS 12.8 with `RPC_E_SERVERFAULT` when the workbook was reached through the Running Object Table. It now closes with no argument first, which cannot prompt because the workbook has no unsaved changes. Found by the P7-007 Windows evaluation.
 - Text that WPS returns with characters outside ASCII came back garbled on Chinese Windows, for example the name of an untitled document (`文字文稿1`), so `save-as-open-document` could not be pointed at it. Windows PowerShell wrote the scripts' output in the console code page (GBK) and the CLI read it as UTF-8. Every PowerShell script and command now writes UTF-8. Found by the P7-007 Windows evaluation.
 - `close_unchanged_document` (used by `restore-backup --close-in-wps`) reported `COM_OPERATION_FAILED` after closing a workbook on WPS 12.8, although the workbook was closed. When the close reports a failure, it now checks whether WPS still lists the document. Found by the P7-007 Windows evaluation.
+- Closing an unchanged workbook (`restore-backup --close-in-wps` and the open-document commands' cleanup) failed on WPS 12.8 with `RPC_E_SERVERFAULT` when the workbook was reached through the Running Object Table, as for a workbook the user double-clicked. It now closes with no argument first, which cannot prompt because the workbook has no unsaved changes. This does not fix it: on the P7-007 Windows runs the close still failed, with `0x800A01A8`. Phase 8 (I2) works on it. Found by the P7-007 Windows evaluation.
 
 ## [0.4.0] - 2026-10-15
 
