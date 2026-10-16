@@ -3183,6 +3183,40 @@ class ExportOpenDocumentTextTests(unittest.TestCase):
         self.assertEqual(errors[0]["code"], "EXPORT_OUTPUT_NOT_TEXT")
         self.assertTrue(data["source_unchanged"])
 
+    def test_chinese_text_in_any_encoding_wps_writes_is_accepted_and_named(self):
+        # P8-008: WPS wrote this text in GBK and the check rejected it; "草" (b2 dd) read as a lone UTF-16 surrogate.
+        text = "季度报告\r\n状态：草稿\r\n负责人：财务部\r\n"
+        bodies = {
+            "gbk": text.encode("gbk"),
+            "utf-16": "\ufeff".encode("utf-16-le") + text.encode("utf-16-le"),
+            "utf-8-sig": text.encode("utf-8-sig"),
+            # No byte order mark: the ASCII-heavy kind of UTF-16, whose NULs rule out UTF-8 and GBK.
+            "utf-16-le": "Owner: Finance\r\n".encode("utf-16-le"),
+            # Longer than the head that is checked, so a character is cut off at its end.
+            "utf-8": (text * 200).encode("utf-8"),
+        }
+        for encoding, body in bodies.items():
+            with self.subTest(encoding=encoding):
+                fixture = Fixture(self)
+                output = Path(fixture.tmp.name) / "out.txt"
+                with patch.object(open_documents, "_run_writer_attached_com", side_effect=self.fake_export(body=body)):
+                    ok, data, errors, _replayed = self.export(fixture, output, request_id=f"txt-{encoding}")
+                self.assertTrue(ok, errors)
+                self.assertEqual(data["text_encoding"], encoding)
+                self.assertTrue(data["validation_passed"])
+
+    def test_binary_bytes_are_not_text_and_their_start_is_kept(self):
+        fixture = Fixture(self)
+        output = Path(fixture.tmp.name) / "bin.txt"
+        body = bytes(range(0, 64))
+        with patch.object(open_documents, "_run_writer_attached_com", side_effect=self.fake_export(body=body)):
+            ok, data, errors, _replayed = self.export(fixture, output, request_id="txt-bin")
+        self.assertFalse(ok)
+        self.assertEqual(errors[0]["code"], "EXPORT_OUTPUT_NOT_TEXT")
+        self.assertIsNone(data["text_encoding"])
+        self.assertTrue(data["output_head_hex"].startswith("00 01 02 03"))
+        self.assertFalse(output.exists(), "a failed export's output is removed")
+
     def test_scripts_export_text_without_quitting(self):
         captured = {}
 

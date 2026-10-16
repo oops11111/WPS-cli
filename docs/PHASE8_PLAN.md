@@ -77,6 +77,17 @@ Phase 8 把这两件事做完，先尽快把已经修好的发出去（0.4.1）�
 - **`write_then_close`、`write_then_close_false`：都关上了。** 调用正常返回，两秒后脚本经它手里的应用对象查 `Workbooks`，已经没有这个工作簿。表里写成“returned, still open”是 `close-diag` 的判定错了：双击启动的 WPS 关掉最后一个工作簿后，Running Object Table 里就没有它的任何东西，`open-documents` 只能报 `WPS_INSTANCE_NOT_AUTOMATABLE`，列不出结果（`listed_by_cli` 为 `null`），判定把“不知道”当成了“还开着”。已改为这时以脚本自己对 `Workbooks` 的检查为准。WPS 并没有失去响应，只是没有文档可供连上它。第一次上机没出现这个现象，是因为恢复出来的 `status.xlsx` 一直在 Running Object Table 里。
 - **P7-007 的 `0x800A01A8` 两次上机都没复现。** 未改动的、刚写入保存过的工作簿，各种关法都关上。当时和现在的差别只剩机器状态：P7-007 那几轮 `et.exe` 被反复结束，WPS 起了恢复实例并恢复上次的文档。产品的关法不改；万一再遇到，`WPS_CLOSE_REFUSED` 会说明原因和处理办法。
 
+## P8-008 结果
+
+### 第一轮（`aed06e6`，2026-10-16）
+
+结果在 `scripts/windows_check/results/20261016T035749Z-aed06e6-eval/`，命令 `eval --prefix wps-open- --repeat 3 --min-passes 2`。**15 个任务 14 个通过。**
+
+- **`wps-open-zh-document-export-text` 0/3，是产品缺陷。** 三次都是 `EXPORT_OUTPUT_NOT_TEXT`。WPS 把中文正文按系统代码页（GBK）写出，`export-open-document-text` 判断“是不是纯文本”时只试 UTF-8 和 UTF-16；`季度报告\r\n状态：` 之后的 `草` 是 `b2 dd`，落在偶数偏移上，按 UTF-16 读是孤立的代理项，两种都失败，于是一个正确的导出被拒绝并删除。英文任务能过只是因为 ASCII 也是合法的 UTF-8。用测试文档的原文按 GBK 编码即可复现。已修：也接受 GBK，`data.text_encoding` 写明编码，被拒绝时在 `data.output_head_hex` 留下开头的字节。0.4.1 及以前都有这个缺陷，正是 I1 要这些中文任务的原因。
+- **其余 3 个中文任务都是 3/3**（选区替换成中文、中文工作表名的单元格、未命名文档另存为中文文件名）。I1 要 4 个都至少 2/3，所以修好后要用 `eval --prefix wps-open-zh-` 再跑一次 4 个中文任务。
+- **11 个已有任务都通过。** 演示的插入和删除各 2/3：没过的那次 Agent 改用了按文件的 `presentation_replace`，得到 `DOCUMENT_HELD_OPEN`；这是 Agent 选错工具，任务按 2/3 判通过。
+- **WPS 演示每次启动都重新打开一个 Phase 6 留下的 `deck.pptx`**（`%TEMP%\wps-p6\eval-open-174f04e\...\deck.pptx`）。P8-007 把它记在 20 次运行里；因为它一直开着，runner 不结束 `wpp.exe`，演示任务都在同一个进程里跑。下次上机前在 WPS 演示里把它正常关掉、再正常退出。
+
 ## 建议顺序
 
 1. 先做 P8-001，你推送 `v0.4.1` 后做 P8-002。

@@ -16,6 +16,7 @@ All notable changes to `wps-ai-agent-cli`. The versioning rule and release steps
 
 ### Fixed
 
+- `export-open-document-text` (MCP `export_open_document_text`) rejected a correct export of Chinese text with `EXPORT_OUTPUT_NOT_TEXT` and removed it. WPS 12.8 wrote the file in the system code page (GBK on Chinese Windows); the check tried only UTF-8 and UTF-16, and GBK bytes such as `草` (`b2 dd`) read as an invalid UTF-16 surrogate. The check now also accepts GBK, still refuses packages, PDF and binary bytes, and reports the encoding in `data.text_encoding`. A refused output's first bytes are kept in `data.output_head_hex`. 0.4.1 and earlier have this defect. Found by the P8-008 Windows evaluation (`wps-open-zh-document-export-text`, 0/3).
 - The Writer structure parity check ran its PowerShell script with `-File`, so its output (headings, which may be Chinese) was written in the console code page (GBK on Chinese Windows) and read back garbled. It now runs with the same UTF-8 output setting as every other script. (P8-003)
 - The CLI wrote its error messages (stderr) in the system code page, so an argparse error about a Chinese argument reached the caller garbled. stderr is now UTF-8, like stdout and stdin. (P8-003)
 
