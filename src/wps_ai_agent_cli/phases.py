@@ -99,6 +99,15 @@ PHASES: tuple[Phase, ...] = (
             "close, and release 0.4.1 and 0.5.0."
         ),
     ),
+    Phase(
+        id="phase9",
+        name="Right tools, lossless text export, clean Windows runs",
+        status="planned",
+        goal=(
+            "Make agents pick the open-document tools, keep every character in text exports, and end the Windows "
+            "runs' WPS cleanly so no manual cleanup is needed; release 0.6.0."
+        ),
+    ),
 )
 
 
