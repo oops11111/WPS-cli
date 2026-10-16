@@ -54,8 +54,10 @@ from .open_document_scripts import (  # noqa: F401  (re-exported; tests read the
     _SELECTION_REVERT_BODY,
     _SPREADSHEET_AXIS_TITLE_DELETE_BODY,
     _SPREADSHEET_AXIS_TITLE_REPLACE_BODY,
+    _SPREADSHEET_AXIS_TITLE_REVERT_BODY,
     _SPREADSHEET_CHART_TITLE_DELETE_BODY,
     _SPREADSHEET_CHART_TITLE_REPLACE_BODY,
+    _SPREADSHEET_CHART_TITLE_REVERT_BODY,
     _SPREADSHEET_EXPORT_COPY_BODY,
     _SPREADSHEET_EXPORT_HTML_BODY,
     _SPREADSHEET_EXPORT_PDF_BODY,
@@ -66,14 +68,24 @@ from .open_document_scripts import (  # noqa: F401  (re-exported; tests read the
     _SPREADSHEET_SELECTION_REVERT_BODY,
     _SPREADSHEET_SERIES_VALUES_DELETE_BODY,
     _SPREADSHEET_SERIES_VALUES_REPLACE_BODY,
+    _SPREADSHEET_SERIES_VALUES_REVERT_BODY,
     _SPREADSHEET_SHAPE_TEXT_DELETE_BODY,
     _SPREADSHEET_SHAPE_TEXT_REPLACE_BODY,
+    _SPREADSHEET_SHAPE_TEXT_REVERT_BODY,
     MAX_SPREADSHEET_SELECTION_SAMPLE_CELLS,
+    OBJECT_REVERT_ACTIONS,
 )
 from .operations import record_operation, replay_operation
 from .powershell_runner import run_powershell_script
 from .presentation_text import pptx_slide_texts
 from .sessions import file_identity, get_document, register_document, stable_document_id
+from .verified_state import (
+    cell_write_state,
+    document_summary_state,
+    saved_document_state,
+    text_file_state,
+    text_write_state,
+)
 
 MAX_SELECTION_CHARS = 4096
 HTML_EXPORT_SUFFIXES = {".html", ".htm"}
@@ -221,6 +233,10 @@ def _run_spreadsheet_attached_com(action: str, params: dict[str, Any]) -> dict[s
         "selection-axis-title-delete": _SPREADSHEET_AXIS_TITLE_DELETE_BODY,
         "selection-series-values-replace": _SPREADSHEET_SERIES_VALUES_REPLACE_BODY,
         "selection-series-values-delete": _SPREADSHEET_SERIES_VALUES_DELETE_BODY,
+        "selection-shape-revert": _SPREADSHEET_SHAPE_TEXT_REVERT_BODY,
+        "selection-chart-title-revert": _SPREADSHEET_CHART_TITLE_REVERT_BODY,
+        "selection-axis-title-revert": _SPREADSHEET_AXIS_TITLE_REVERT_BODY,
+        "selection-series-values-revert": _SPREADSHEET_SERIES_VALUES_REVERT_BODY,
         "export-html": _SPREADSHEET_EXPORT_HTML_BODY,
         "export-pdf": _SPREADSHEET_EXPORT_PDF_BODY,
         "export-copy": _SPREADSHEET_EXPORT_COPY_BODY,
@@ -853,7 +869,11 @@ def read_spreadsheet_selection(
                 "shape geometry mutation remains unsupported. Unverified across WPS versions."
             ),
             "sample_cell_limit": MAX_SPREADSHEET_SELECTION_SAMPLE_CELLS,
-            "note": "selection_text samples at most 100 cells for multi-cell ranges; prefer address + spreadsheet-read for full values.",
+            "note": (
+                "selection_text samples at most 100 cells, which covers every selection that spreadsheet-selection-replace "
+                "and spreadsheet-selection-delete accept, so no separate read is needed before them; for a larger range, "
+                "read the values with spreadsheet-read."
+            ),
         },
         [],
     )
@@ -915,6 +935,40 @@ def _spreadsheet_revert(payload: dict[str, Any]) -> dict[str, Any] | None:
         ],
         "after_formulas": after,
     }
+
+
+def _spreadsheet_object_revert(
+    fill_mode: str, selection: dict[str, Any], payload: dict[str, Any], written: str
+) -> dict[str, Any] | None:
+    """How to undo a write to a shape's text, a chart or axis title, or series values (P10-004); None for cells.
+
+    `written` is what the command wrote ('' for a delete); the object may also hold what WPS read back instead.
+    """
+    action = OBJECT_REVERT_ACTIONS.get(fill_mode)
+    if action is None:
+        return None
+    return {
+        "revert_action": action,
+        "expected_object_name": selection.get("object_name") or "",
+        "original_text": str(selection.get("selection_text") or ""),
+        "written_text": written,
+        "read_back_text": str(payload.get("read_back_text") if payload.get("read_back_text") is not None else ""),
+        "original_formula": str(payload.get("before_formula") or ""),
+    }
+
+
+# What the opening of an object revert reports when the object it must undo is no longer the selection.
+_OBJECT_REVERT_LOST = {
+    "selection_changed",
+    "no_window",
+    "not_shape_selection",
+    "not_chart_selection",
+    "not_axis_title_selection",
+    "not_series_selection",
+    "no_text_frame",
+    "no_chart_title",
+    "no_axis_title",
+}
 
 
 def _document_content(path: Path) -> Any:
@@ -1023,7 +1077,9 @@ def _undo_in_wps(
         rollback["status"] = "unsupported"
     else:
         try:
-            outcome = _run_component_attached_com(component, "selection-revert", {"path": str(path), **revert_params})
+            params = dict(revert_params)
+            action = params.pop("revert_action", "selection-revert")
+            outcome = _run_component_attached_com(component, action, {"path": str(path), **params})
         except (OSError, subprocess.TimeoutExpired) as exc:
             outcome = {"ok": False, "errors": [{"code": COM_OPERATION_FAILED, "message": str(exc)}], "data": {}}
         data = outcome.get("data") or {}
@@ -1034,6 +1090,9 @@ def _undo_in_wps(
             )
         else:
             rollback["status"] = str(data.get("status"))
+            if rollback["status"] in _OBJECT_REVERT_LOST:
+                rollback["detail"] = rollback["status"]
+                rollback["status"] = "revert_target_missing"
             for key in ("read_back_text", "current_text", "read_back_formulas", "current_formulas", "saved"):
                 if key in data:
                     rollback[key] = data[key]
@@ -1443,6 +1502,9 @@ def replace_writer_selection(
             revert,
         )
 
+    result["verified_state"] = text_write_state(
+        path, backup_result.get("backup_path"), selection["selection_text"], text
+    )
     record_operation(request_id, "writer-selection-replace", result, workspace)
     return True, result, [], False
 
@@ -1592,6 +1654,7 @@ def insert_writer_selection(
             revert,
         )
 
+    result["verified_state"] = text_write_state(path, backup_result.get("backup_path"), "", text)
     record_operation(request_id, "writer-selection-insert", result, workspace)
     return True, result, [], False
 
@@ -1725,6 +1788,7 @@ def delete_writer_selection(
             revert,
         )
 
+    result["verified_state"] = text_write_state(path, backup_result.get("backup_path"), deleted_text, "")
     record_operation(request_id, "writer-selection-delete", result, workspace)
     return True, result, [], False
 
@@ -1872,6 +1936,9 @@ def replace_presentation_selection(
             revert,
         )
 
+    result["verified_state"] = text_write_state(
+        path, backup_result.get("backup_path"), selection["selection_text"], text
+    )
     record_operation(request_id, "presentation-selection-replace", result, workspace)
     return True, result, [], False
 
@@ -2044,6 +2111,7 @@ def insert_presentation_selection(
             revert,
         )
 
+    result["verified_state"] = text_write_state(path, backup_result.get("backup_path"), "", text)
     record_operation(request_id, "presentation-selection-insert", result, workspace)
     return True, result, [], False
 
@@ -2180,6 +2248,7 @@ def delete_presentation_selection(
             revert,
         )
 
+    result["verified_state"] = text_write_state(path, backup_result.get("backup_path"), deleted_text, "")
     record_operation(request_id, "presentation-selection-delete", result, workspace)
     return True, result, [], False
 
@@ -2578,7 +2647,11 @@ def replace_spreadsheet_selection(
         "selection_preserved": False,
         "note": note,
     }
-    revert = _spreadsheet_revert(payload)
+    revert = (
+        _spreadsheet_object_revert(preview["fill_mode"], selection, payload, replacement_text)
+        if preview["fill_mode"] in OBJECT_REVERT_ACTIONS
+        else _spreadsheet_revert(payload)
+    )
     post_error = verify_post_com_source(path, write_result)
     if post_error is not None:
         return _undo_in_wps("spreadsheets", document_id, path, backup_result, result, [post_error], revert)
@@ -2602,8 +2675,33 @@ def replace_spreadsheet_selection(
             revert,
         )
 
+    result["verified_state"] = _spreadsheet_verified_state(
+        path, backup_result.get("backup_path"), preview, read_back_text
+    )
     record_operation(request_id, "spreadsheet-selection-replace", result, workspace)
     return True, result, [], False
+
+
+_OBJECT_LABELS = {
+    "shape_text": "shape text",
+    "chart_title": "chart title",
+    "axis_title": "axis title",
+    "series_values": "series values",
+}
+
+
+def _spreadsheet_verified_state(
+    path: Path, backup_path: str | None, preview: dict[str, Any], read_back_text: str, *, cleared: bool = False
+) -> dict[str, Any]:
+    return cell_write_state(
+        path,
+        backup_path,
+        preview.get("sheet_name"),
+        preview.get("address"),
+        cleared=cleared,
+        object_kind=_OBJECT_LABELS.get(str(preview.get("fill_mode"))),
+        read_back_text=read_back_text,
+    )
 
 
 def _unsaved_open_document_error(action: str = "modified") -> dict[str, str]:
@@ -2903,7 +3001,11 @@ def delete_spreadsheet_selection(
         "selection_preserved": False,
         "note": clear_note,
     }
-    revert = _spreadsheet_revert(payload)
+    revert = (
+        _spreadsheet_object_revert(preview["fill_mode"], selection, payload, "")
+        if preview["fill_mode"] in OBJECT_REVERT_ACTIONS
+        else _spreadsheet_revert(payload)
+    )
     post_error = verify_post_com_source(path, write_result)
     if post_error is not None:
         return _undo_in_wps("spreadsheets", document_id, path, backup_result, result, [post_error], revert)
@@ -2918,6 +3020,9 @@ def delete_spreadsheet_selection(
             revert,
         )
 
+    result["verified_state"] = _spreadsheet_verified_state(
+        path, backup_result.get("backup_path"), preview, read_back_text, cleared=True
+    )
     record_operation(request_id, "spreadsheet-selection-delete", result, workspace)
     return True, result, [], False
 
@@ -3001,6 +3106,12 @@ def save_open_document(
             "backup": None,
             "source_still_open": True,
             "validation_passed": True,
+            "verified_state": {
+                "source": "wps",
+                "path": str(path),
+                "passed": True,
+                "check": "WPS reported no unsaved changes, so nothing was written; the file on disk is the document.",
+            },
         }
         record_operation(request_id, "save-open-document", result, workspace)
         return True, result, [], False
@@ -3074,6 +3185,7 @@ def save_open_document(
             False,
         )
 
+    result["verified_state"] = saved_document_state(path, backup_result.get("backup_path"))
     record_operation(request_id, "save-open-document", result, workspace)
     return True, result, [], False
 
@@ -3420,6 +3532,7 @@ def save_as_open_document(
             False,
         )
 
+    result["verified_state"] = document_summary_state(resolved_output)
     record_operation(request_id, "save-as-open-document", result, workspace)
     return True, result, [], False
 
@@ -4206,5 +4319,6 @@ def export_open_document_text(
             False,
         )
 
+    export_result["verified_state"] = text_file_state(resolved_output, text_encoding)
     record_operation(request_id, "export-open-document-text", export_result, workspace)
     return True, export_result, [], False

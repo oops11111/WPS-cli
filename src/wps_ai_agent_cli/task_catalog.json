@@ -3174,35 +3174,35 @@
     "id": "P10-001",
     "phase": "phase10",
     "title": "Classify the off-path calls of P9-006",
-    "status": "todo",
+    "status": "done",
     "acceptance": "K1: each of the 50 off-path calls in P9-006 is classified (locating before the write, checking after it, other) in docs/PHASE10_PLAN.md, and what verified_state gives per component is decided."
   },
   {
     "id": "P10-002",
     "phase": "phase10",
     "title": "Open-document write results carry verified_state",
-    "status": "todo",
+    "status": "done",
     "acceptance": "K1: every open-document write command returns verified_state read back from the saved file and a sentence on what was checked; the MCP descriptions say the result is already verified; offline tests."
   },
   {
     "id": "P10-003",
     "phase": "phase10",
     "title": "Agent eval: off-path calls before and after the write",
-    "status": "todo",
+    "status": "done",
     "acceptance": "K1: each evaluation run splits off_path_calls into calls before and after the first write; the summary and RESULTS.md show both; offline tests."
   },
   {
     "id": "P10-004",
     "phase": "phase10",
     "title": "Undo chart and shape selection writes in WPS",
-    "status": "todo",
+    "status": "done",
     "acceptance": "K2: Spreadsheet selection writes on shape text, chart titles, axis titles and series values record the original value and write it back in WPS when the read-back fails, reporting rolled_back_in_wps; fake-COM tests."
   },
   {
     "id": "P10-005",
     "phase": "phase10",
     "title": "Windows undo check for shape text and chart titles",
-    "status": "todo",
+    "status": "done",
     "acceptance": "K2: run_windows_check.py undo gains shape-text and chart-title cases on a workbook with a shape and a chart; offline tests."
   },
   {

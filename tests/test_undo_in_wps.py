@@ -165,17 +165,84 @@ CASES = {
 }
 
 
+def object_selection(text, **flags):
+    return {
+        **cell_selection(text),
+        "selection_kind": "non_range",
+        "address": None,
+        "cell_count": 0,
+        "area_count": 0,
+        "object_kind": "shape" if flags.get("has_text_frame") else "chart",
+        "object_name": "Chart 1",
+        **flags,
+    }
+
+
+def object_revert(original, written, read_back, formula=""):
+    return {
+        "expected_object_name": "Chart 1",
+        "original_text": original,
+        "written_text": written,
+        "read_back_text": read_back,
+        "original_formula": formula,
+    }
+
+
+# Shapes and charts (P10-004): the write recorded no cells; the undo finds the object again and puts the text back.
+OBJECT_CASES = {
+    "shape-text-replace": (
+        "spreadsheets",
+        open_documents.replace_spreadsheet_selection,
+        {"text": "NEW"},
+        object_selection("OLD", has_text_frame=True),
+        {"cells_matched": False, "read_back_text": "NE"},
+        object_revert("OLD", "NEW", "NE"),
+        "selection-shape-revert",
+    ),
+    "chart-title-delete": (
+        "spreadsheets",
+        open_documents.delete_spreadsheet_selection,
+        {},
+        object_selection("Q3 sales", has_chart_title=True),
+        {"cells_matched": False, "read_back_text": "Q3"},
+        object_revert("Q3 sales", "", "Q3"),
+        "selection-chart-title-revert",
+    ),
+    "axis-title-replace": (
+        "spreadsheets",
+        open_documents.replace_spreadsheet_selection,
+        {"text": "Month"},
+        object_selection("Quarter", has_axis_title=True),
+        {"cells_matched": False, "read_back_text": "Mon"},
+        object_revert("Quarter", "Month", "Mon"),
+        "selection-axis-title-revert",
+    ),
+    "series-values-replace": (
+        "spreadsheets",
+        open_documents.replace_spreadsheet_selection,
+        {"text": "30\t40"},
+        object_selection("10\t20", has_series_values=True, series_name="Sales"),
+        {"cells_matched": False, "read_back_text": "30\t4", "before_formula": "=SERIES(,,Sheet1!$B$2:$B$3,1)"},
+        object_revert("10\t20", "30\t40", "30\t4", "=SERIES(,,Sheet1!$B$2:$B$3,1)"),
+        "selection-series-values-revert",
+    ),
+}
+CASES.update({name: case[:6] for name, case in OBJECT_CASES.items()})
+
+
 class UndoInWpsTests(unittest.TestCase):
     def run_case(self, name, *, revert_status="reverted", revert_restores=True, revert_writes=None, write=None):
         component, command, arguments, selection, payload, _expected = CASES[name]
         fixture = Fixture(self, component=component)
         original = fixture.document.read_bytes()
         reverts = []
+        self.revert_actions = []
 
         def fake(action, params):
             if action == "selection-read":
                 return com_ok(selection)
-            if action == "selection-revert":
+            if action.endswith("-revert"):
+                self.revert_actions.append(action)
                 reverts.append({key: value for key, value in params.items() if key != "path"})
                 if revert_writes is not None:
                     revert_writes(fixture.document)
@@ -209,6 +276,25 @@ class UndoInWpsTests(unittest.TestCase):
                 self.assertTrue(rollback["content_matches_backup"])
                 self.assertNotEqual(rollback["file_sha256_before_undo"], rollback["file_sha256_after_undo"])
                 self.assertEqual(fixture.document.read_bytes(), original)
+
+    def test_shape_and_chart_writes_are_undone_by_their_own_scripts(self):
+        for name, case in OBJECT_CASES.items():
+            with self.subTest(command=name):
+                _fixture, _original, data, errors, _reverts = self.run_case(name)
+                self.assertEqual(self.revert_actions, [case[6]])
+                self.assertEqual(errors[-1]["code"], ROLLED_BACK, errors)
+                self.assertTrue(data["rollback"]["rolled_back_in_wps"])
+
+    def test_a_chart_that_is_no_longer_selected_is_reported_as_missing(self):
+        for status in ("selection_changed", "not_chart_selection", "no_window"):
+            with self.subTest(status=status):
+                _fixture, _original, data, errors, _reverts = self.run_case(
+                    "chart-title-delete", revert_status=status, revert_restores=False
+                )
+                self.assertEqual(data["rollback"]["status"], "revert_target_missing")
+                self.assertEqual(data["rollback"]["detail"], status)
+                self.assertEqual(errors[-1]["code"], ROLLBACK_IN_WPS_FAILED)
+                self.assertIn("could not be found again", errors[-1]["message"])
 
     def test_a_post_save_identity_failure_is_undone_the_same_way(self):
         with patch.object(
@@ -285,8 +371,8 @@ class UndoInWpsTests(unittest.TestCase):
         self.assertEqual(data["rollback"]["status"], "script_failed")
 
     def test_selections_without_a_recorded_position_are_reported_not_guessed(self):
-        # A chart or shape selection records no cells, and a presentation write that could not read the shape
-        # records no shape text: nothing tells the undo where to work, so it does not try.
+        # A cell write that recorded no cells, and a presentation write that could not read the shape and records
+        # no shape text: nothing tells the undo where to work, so it does not try.
         for name, write in (
             ("spreadsheet-replace", {"cells_matched": False, "read_back_text": "OLD", "cell_count": 1}),
             ("presentation-replace", {"read_back_text": "garbled", "slide_index": 1, "shape_name": "Title 1"}),

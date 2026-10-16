@@ -692,11 +692,37 @@ class AgentEvalJudgeTests(unittest.TestCase):
         self.assertEqual(metrics["off_path_tools"], ["documents"])
         self.assertEqual(metrics["expected_tools"], ["backup_document", "register_document"])
 
+    def test_off_path_calls_are_split_at_the_first_write_that_is_not_a_dry_run(self):
+        expected = ["open_documents", "spreadsheet_selection_read", "spreadsheet_selection_replace"]
+        calls = [
+            _call("open_documents"),
+            _call("spreadsheet_selection_read"),
+            _call("spreadsheet_sheets"),
+            _call("spreadsheet_selection_replace", dry_run=True),
+            _call("spreadsheet_read"),
+            _call("spreadsheet_selection_replace", text="FINAL"),
+            _call("spreadsheet_read"),
+            _call("validate_document"),
+        ]
+
+        metrics = run_agent_eval.tool_metrics(calls, expected, open_document=True)
+
+        self.assertEqual(metrics["off_path_calls"], 4)
+        self.assertEqual(metrics["off_path_calls_before_write"], 2)
+        self.assertEqual(metrics["off_path_calls_after_write"], 2)
+
+    def test_without_a_write_every_off_path_call_is_before_it(self):
+        metrics = run_agent_eval.tool_metrics([_call("open_documents"), _call("documents")], ["open_documents"])
+
+        self.assertEqual(metrics["off_path_calls_before_write"], 1)
+        self.assertEqual(metrics["off_path_calls_after_write"], 0)
+
     def test_without_expected_tools_off_path_calls_are_not_counted(self):
         metrics = run_agent_eval.tool_metrics([_call("documents")])
 
         self.assertIsNone(metrics["off_path_calls"])
         self.assertIsNone(metrics["off_path_tools"])
+        self.assertIsNone(metrics["off_path_calls_after_write"])
 
     def test_file_based_write_calls_on_an_open_document_are_wrong_tool_calls(self):
         calls = [
@@ -779,6 +805,8 @@ class AgentEvalJudgeTests(unittest.TestCase):
         self.assertEqual(result["metrics"]["off_path_calls"], 2)
         self.assertEqual(result["metrics"]["off_path_tools"], ["operations"])
         self.assertEqual(summary["off_path_calls"], 2)
+        self.assertEqual(result["metrics"]["off_path_calls_after_write"], 0)
+        self.assertEqual(summary["off_path_calls_after_write"], 0)
         self.assertEqual(summary["tasks_without_expected_tools"], [])
 
     def test_summary_counts_skipped_tasks_separately(self):
@@ -1825,6 +1853,30 @@ class OpenDocumentSetupTests(unittest.TestCase):
         self.assertEqual(self.released, [])
         release()
         self.assertEqual(self.released, ["report.docx"])
+
+    def test_a_worksheet_object_is_selected_by_its_name(self):
+        selection = {"sheet": "Status", "object": "Chart 1", "part": "chart_title"}
+        with patch.object(run_agent_eval, "wps_document_action", return_value={"status": "ok"}) as action:
+            reason = run_agent_eval.prepare_open_document(
+                "select_text", self.fixture, "spreadsheets", {"selection": selection}
+            )
+        self.assertIsNone(reason)
+        action.assert_called_once_with(
+            "spreadsheets", self.fixture, "select", sheet="Status", object="Chart 1", part="chart_title"
+        )
+        with patch.object(run_agent_eval, "wps_document_action", return_value={"status": "not_open"}):
+            reason = run_agent_eval.prepare_open_document(
+                "select_text", self.fixture, "spreadsheets", {"selection": {"object": "Note 1"}}
+            )
+        self.assertEqual(reason, "select_text: not_open")
+
+    def test_the_chart_note_workbook_holds_a_chart_and_a_text_box_with_draft(self):
+        path = self.workspace / run_agent_eval.CHART_NOTE_FIXTURE
+        run_agent_eval.write_fixture(self.workspace, path.name)
+        self.assertEqual(run_agent_eval.drawing_texts(path), ["DRAFT", "DRAFT"])
+        text = run_agent_eval.document_text(path)
+        self.assertIn("Status!B2=120", text)
+        self.assertTrue(text.endswith("DRAFT\nDRAFT"))
 
     def test_a_selection_that_does_not_read_back_is_a_setup_failure_and_closes_the_document(self):
         options = {"selection": {"text": "DRAFT"}}

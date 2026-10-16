@@ -4,6 +4,21 @@ All notable changes to `wps-ai-agent-cli`. The versioning rule and release steps
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-10-16
+
+Phase 10: open-document write results show what the saved file now holds, and failed writes to worksheet shapes and charts are undone in WPS.
+
+### Added
+
+- Open-document writes (`writer-selection-*`, `presentation-selection-*`, `spreadsheet-selection-replace`, `spreadsheet-selection-delete`, `save-open-document`, `save-as-open-document`, `export-open-document-text`) return `data.verified_state`. For an edit, the saved file is compared with the pre-write backup: Writer by paragraph, Presentation by text box per slide, Spreadsheets by cell with its sheet. `verified_state` lists what changed, from what to what (up to 20 changes), whether that matches the write (`passed`), and a `check` sentence that is also appended to the response `summary`. A save lists what the save wrote, a save-as reads the new file back, and a text export reads the exported text back. Formats without a reader (`.doc`, `.et`, …) report `source: wps_read_back`. The MCP descriptions of these tools say the result is already verified and no snapshot, validate, read or operation call is needed. In the P9-006 Windows run, 38 of the agents' 50 off-path calls came after the write, checking it. (P10-001, P10-002)
+- Agent evaluation: each run splits `off_path_calls` into the calls before and after the first write that is not a dry run (`off_path_calls_before_write`, `off_path_calls_after_write`). The summary and `run_windows_check.py eval`'s `RESULTS.md` show the calls after the write per task and in total. (P10-003)
+- `run_windows_check.py undo` has two more scenarios, `spreadsheet-shape-text-replace` and `spreadsheet-chart-title-replace`, on a workbook with a chart titled `DRAFT` and a text box holding `DRAFT` (`chart_note.xlsx`). The setup selects the text box or the chart title by name. (P10-005)
+
+### Changed
+
+- A failed `spreadsheet-selection-replace` or `spreadsheet-selection-delete` on a worksheet shape's text, a chart title, an axis title or a series' values is now undone in WPS, as cell writes have been since 0.4.0. The undo finds the object through the selection, as the write did, checks that it still holds what the write wrote or what WPS read back, puts the original back, reads it back and saves. A series gets its `SERIES` formula back, so a series that read its values from cells reads them again. Before, these writes returned `MUTATION_ROLLBACK_IN_WPS_FAILED` with "not available for this kind of selection". (P10-004)
+- `spreadsheet-selection-read` no longer suggests reading the full values with `spreadsheet-read`: its 100-cell sample covers every selection the selection writes accept. (P10-001)
+
 ## [0.6.0] - 2026-10-16
 
 Phase 9: agents are told which tool to use on a document open in WPS, the text export keeps every character, and Windows evaluation runs end WPS normally.

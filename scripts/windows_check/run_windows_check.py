@@ -241,12 +241,13 @@ def _blank_if_none(value: Any) -> str:
 def eval_table(results: list[dict[str, Any]]) -> list[str]:
     """The table docs/AGENT_E2E_EVAL.md uses for Windows runs."""
     lines = [
-        "| Task | Passes | Turns | `wps-agent` calls | Tool errors | `wrong_tool_calls` | `off_path_calls` | `off_path_tools` |",
-        "| --- | --- | --- | --- | --- | --- | --- | --- |",
+        "| Task | Passes | Turns | `wps-agent` calls | Tool errors | `wrong_tool_calls` | `off_path_calls` "
+        "| after the write | `off_path_tools` |",
+        "| --- | --- | --- | --- | --- | --- | --- | --- | --- |",
     ]
     for result in results:
         if result.get("skipped"):
-            lines.append(f"| `{result['id']}` | skipped | | | | | | |")
+            lines.append(f"| `{result['id']}` | skipped | | | | | | | |")
             continue
         runs = result["runs"]
         turns = [run.get("agent", {}).get("num_turns") or 0 for run in runs]
@@ -256,7 +257,8 @@ def eval_table(results: list[dict[str, Any]]) -> list[str]:
         lines.append(
             f"| `{result['id']}` | {result['passes']}/{result['repeat']} | {mean:.1f} ({', '.join(map(str, turns))}) "
             f"| {metrics.get('wps_tool_calls')} | {metrics.get('wps_tool_errors')} "
-            f"| {_blank_if_none(metrics.get('wrong_tool_calls'))} | {metrics.get('off_path_calls')} | {tools} |"
+            f"| {_blank_if_none(metrics.get('wrong_tool_calls'))} | {metrics.get('off_path_calls')} "
+            f"| {_blank_if_none(metrics.get('off_path_calls_after_write'))} | {tools} |"
         )
     return lines
 
@@ -435,6 +437,8 @@ def run_eval(args: argparse.Namespace, machine: Machine, runner: Any) -> int:
         f"Each task passes with at least {settings['min_passes']} of {settings['repeat']} runs. "
         f"**{summary.get('wrong_tool_calls', 0)} wrong-tool calls** (file-based write tools called on a document "
         "open in WPS, counted for open-document tasks). "
+        f"**{summary.get('off_path_calls', 0)} off-path calls**, {summary.get('off_path_calls_after_write', 0)} of "
+        "them after the task's first write (calls to tools the task does not need). "
         f"Task workspaces: `{work}`.",
         "",
         *eval_table(results),
