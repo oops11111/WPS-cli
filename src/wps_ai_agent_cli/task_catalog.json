@@ -3043,5 +3043,75 @@
     "title": "Windows check of the 0.4.0 wheel",
     "status": "done",
     "acceptance": "H4: the Release wheel checked on Windows with the P7-005 script; result recorded."
+  },
+  {
+    "id": "P8-001",
+    "phase": "phase8",
+    "title": "Release 0.4.1",
+    "status": "todo",
+    "acceptance": "I3: version 0.4.1 per docs/RELEASING.md with the fixes already in [Unreleased], merged before the maintainer pushes the v0.4.1 tag."
+  },
+  {
+    "id": "P8-002",
+    "phase": "phase8",
+    "title": "Windows check of the 0.4.1 wheel",
+    "status": "todo",
+    "acceptance": "I3: run_windows_check.py wheel --version 0.4.1 passes on Windows; result recorded."
+  },
+  {
+    "id": "P8-003",
+    "phase": "phase8",
+    "title": "Non-ASCII text on every path",
+    "status": "todo",
+    "acceptance": "I1: every text path into and out of the Python process (arguments, stdin, stdout, stderr, subprocesses, file encodings) is checked; real-process tests under a GBK locale and a Chinese fake-COM round trip per component."
+  },
+  {
+    "id": "P8-004",
+    "phase": "phase8",
+    "title": "Agent eval: Chinese content tasks",
+    "status": "todo",
+    "acceptance": "I1: the runner supports Chinese fixtures (file names, text, sheet names); at least four Chinese-content tasks, each with expected_tools and offline judge tests."
+  },
+  {
+    "id": "P8-005",
+    "phase": "phase8",
+    "title": "Diagnose the workbook close on Windows",
+    "status": "todo",
+    "acceptance": "I2: a read-only Windows diagnostic tries several ways to close a workbook reached through the Running Object Table, with an /Automation control, and records each HRESULT through run_windows_check.py."
+  },
+  {
+    "id": "P8-006",
+    "phase": "phase8",
+    "title": "Close workbooks opened the usual way",
+    "status": "todo",
+    "acceptance": "I2: close_unchanged_document and the runner's cleanup close such a workbook, chosen from the P8-005 results, or a dedicated error code says why not; fake-COM tests."
+  },
+  {
+    "id": "P8-007",
+    "phase": "phase8",
+    "title": "Record documents WPS restores from an earlier session",
+    "status": "todo",
+    "acceptance": "Gap from P7-007: at the start of each run the runner records documents WPS lists outside the task workspace, and RESULTS.md shows them."
+  },
+  {
+    "id": "P8-008",
+    "phase": "phase8",
+    "title": "Windows runs of I1 and I2",
+    "status": "todo",
+    "acceptance": "I1, I2: the Chinese tasks and the 11 open-document tasks in one --repeat 3 invocation, and restore-backup --close-in-wps on a double-clicked workbook; results recorded."
+  },
+  {
+    "id": "P8-009",
+    "phase": "phase8",
+    "title": "Release 0.5.0",
+    "status": "todo",
+    "acceptance": "I3: version 0.5.0 per docs/RELEASING.md and a CHANGELOG section, merged before the maintainer pushes the v0.5.0 tag."
+  },
+  {
+    "id": "P8-010",
+    "phase": "phase8",
+    "title": "Windows check of the 0.5.0 wheel",
+    "status": "todo",
+    "acceptance": "I3: run_windows_check.py wheel --version 0.5.0 passes on Windows; result recorded."
   }
 ]

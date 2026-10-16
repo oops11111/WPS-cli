@@ -1,7 +1,7 @@
 {
   "product": "WPS AI Agent CLI",
   "source_prd": "WPS_AI_Agent_CLI_PRD_v1.1.docx",
-  "current_phase": "phase7",
+  "current_phase": "phase8",
   "phases": [
     {
       "id": "phase0",
@@ -88,6 +88,17 @@
         "H2: at least five new agent-eval tasks cover at least five of writer_selection_delete, presentation_selection_insert, presentation_selection_delete, spreadsheet_selection_replace, spreadsheet_selection_delete and save_as_open_document, each naming its expected tools; all WPS open-document tasks pass at least 2 of 3 runs on Windows in one --repeat 3 invocation without changing the system open command (2026-10-16: six new tasks cover all six commands; all 11 open-document tasks 3/3 in one --repeat 3 --min-passes 2 invocation on main@0f5d8ee, resumed twice with --resume after the session ended; earlier rounds found and fixed garbled PowerShell output, the MCP server's GBK stdin and WPS's recovery instance of et.exe)",
         "H3: one script runs the Windows checks: prerequisites (claude answers, no leftover WPS processes, open command unchanged, commit), then the requested evaluation or wheel check, and writes the results file in the repository's format; the H1, H2 and H4 Windows results come from it (2026-10-16: scripts/windows_check/run_windows_check.py wrote every Phase 7 Windows result: undo, eval and wheel)",
         "H4: v0.4.0 is released per docs/RELEASING.md with the H1 and H2 changes, the tag pushed only after __version__ and CHANGELOG.md are on main; in a new Windows virtual environment with only that wheel installed, inspect-env and the safe regression profile pass, checked with the H3 script (2026-10-15: v0.4.0 released from main@564d103; its wheel passed all seven conditions on Windows with run_windows_check.py wheel, safe 7/7, P7-009)"
+      ]
+    },
+    {
+      "id": "phase8",
+      "name": "Chinese content and workbooks opened the usual way",
+      "goal": "Make Chinese content work end to end and close workbooks the user opened the usual way: test every path non-ASCII text takes, evaluate Chinese tasks on Windows, fix or explain the failing workbook close, and release 0.4.1 and 0.5.0.",
+      "status": "active",
+      "exit_criteria": [
+        "I1: offline, real-process tests under a GBK locale show Chinese paths, document names, written text and sheet names reach the CLI and MCP server unchanged and come back unchanged, and each PowerShell component (Writer, Spreadsheets, Presentation) has a fake-COM round trip of Chinese text; on Windows at least four new agent-eval tasks with Chinese content pass at least 2 of 3 runs in one --repeat 3 invocation",
+        "I2: close_unchanged_document closes a workbook reached through the Running Object Table and confirms WPS no longer lists it, and restore-backup --close-in-wps closes and restores a double-clicked workbook on Windows; if that cannot be made to work, a dedicated error code gives the cause and what to do, verified on Windows",
+        "I3: v0.4.1 is released first with the fixes already in [Unreleased], and v0.5.0 at the end with the I1 and I2 changes, per docs/RELEASING.md; each wheel is checked on Windows with run_windows_check.py wheel"
       ]
     }
   ]
