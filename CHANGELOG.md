@@ -4,6 +4,10 @@ All notable changes to `wps-ai-agent-cli`. The versioning rule and release steps
 
 ## [Unreleased]
 
+### Changed
+
+- A file-based write (`writer-replace`, `writer-fill-bookmark`, `writer-table-write`, `presentation-replace`, `spreadsheet-write`, `spreadsheet-formula-write` and the sheet-structure commands) that refuses because the document is open in WPS now says what to use instead: `open_documents` to get the `document_id`, then the selection tools of that component (`*_selection_read`, `_replace`, `_insert`, `_delete`) and how the arguments carry over; for sheet structure, that there is no open-document tool and the workbook has to be saved and closed first. The MCP descriptions of these tools say they are not for documents open in WPS. In P8-008 an agent called `presentation_replace` on an open presentation and was not told which tool to use. (P9-001)
+
 ## [0.5.0] - 2026-10-16
 
 Phase 8: Chinese content works end to end on Chinese Windows, and `restore-backup --close-in-wps` is verified on a workbook opened by double-click.

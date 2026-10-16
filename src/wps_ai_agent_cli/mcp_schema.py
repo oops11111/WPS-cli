@@ -1582,6 +1582,33 @@ MCP_TOOL_SCHEMAS: tuple[dict[str, Any], ...] = (
 )
 
 
+# File-based write tools cannot change a document WPS has open; say so where an agent chooses a tool (P9-001).
+_FILE_BASED_ON_OPEN_DOCUMENT = {
+    "writer": "Not for a document that is open in WPS: WPS holds the file and the command refuses with DOCUMENT_HELD_OPEN. For an open document use the selection tools (wps_agent_writer_selection_read, _replace, _insert, _delete) after wps_agent_open_documents.",
+    "presentation": "Not for a presentation that is open in WPS: the command refuses. For an open presentation use the selection tools (wps_agent_presentation_selection_read, _replace, _insert, _delete) after wps_agent_open_documents.",
+    "spreadsheet": "Not for a workbook that is open in WPS: WPS holds the file and the command refuses with DOCUMENT_HELD_OPEN. For an open workbook use the selection tools (wps_agent_spreadsheet_selection_read, _replace, _delete) after wps_agent_open_documents.",
+    "sheet": "Not for a workbook that is open in WPS: WPS holds the file and the command refuses with DOCUMENT_HELD_OPEN. There is no open-document tool for sheet structure; save and close the workbook in WPS first.",
+}
+
+
+def _with_open_document_notes(schemas: tuple[dict[str, Any], ...]) -> tuple[dict[str, Any], ...]:
+    from .open_document_hints import OPEN_DOCUMENT_ALTERNATIVES
+
+    result = []
+    for schema in schemas:
+        command = schema["cli_command"]
+        if command in OPEN_DOCUMENT_ALTERNATIVES:
+            kind = command.split("-")[0]
+            if command.startswith("spreadsheet-") and "sheet" in command.removeprefix("spreadsheet-"):
+                kind = "sheet"
+            schema = {**schema, "safety_notes": [*schema["safety_notes"], _FILE_BASED_ON_OPEN_DOCUMENT[kind]]}
+        result.append(schema)
+    return tuple(result)
+
+
+MCP_TOOL_SCHEMAS = _with_open_document_notes(MCP_TOOL_SCHEMAS)
+
+
 def list_mcp_tool_schemas(
     category: str | None = None,
     mutates_document: bool | None = None,

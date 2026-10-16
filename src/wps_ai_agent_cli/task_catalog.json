@@ -3118,7 +3118,7 @@
     "id": "P9-001",
     "phase": "phase9",
     "title": "File-based write refusals name the open-document tool",
-    "status": "todo",
+    "status": "done",
     "acceptance": "J1: a file-based write tool refused on a document open in WPS names the matching open-document tool and how its arguments map; the MCP descriptions say these tools are not for open documents; offline tests."
   },
   {

@@ -113,6 +113,7 @@ from .jsonio import dumps_json
 from .mcp_server import handle_mcp_json, serve_stdio  # noqa: F401
 from .models import CommandResponse, ValidationResult
 from .ooxml import OoxmlTooLargeError
+from .open_document_hints import add_open_document_hint
 from .state_store import StateCorruptError
 from .task_status import (
     create_task_status,
@@ -385,6 +386,8 @@ def _run_command(argv: list[str], output_stream: TextIO | None = None, strict_ex
     response = handler(args, request_id, output_stream)
     if isinstance(response, int):
         return response
+    if not response.ok:
+        add_open_document_hint(args.command, response.errors)
 
     print(dumps_json(response.to_dict()), file=output_stream or sys.stdout)
     return 0 if response.ok or not strict_exit else 1
@@ -434,6 +437,7 @@ def run(argv: list[str] | None = None, output_stream: TextIO | None = None) -> i
             validation=ValidationResult(status="failed"),
             errors=[{"code": DOCUMENT_HELD_OPEN, "message": _held_during_command_message(exc, mutating)}],
         )
+        add_open_document_hint(command, response.errors)
         print(dumps_json(response.to_dict()), file=output_stream or sys.stdout)
         return 1 if strict_exit else 0
 
