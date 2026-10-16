@@ -7,6 +7,7 @@ All notable changes to `wps-ai-agent-cli`. The versioning rule and release steps
 ### Added
 
 - Agent evaluation: four Chinese-content tasks (`wps-open-zh-*`) with Chinese fixtures (`季度报告.docx`, `状态表.xlsx` with a sheet `汇总`) and Chinese prompts: a Writer selection replaced with Chinese text, cells on a Chinese-named sheet, the text export of an open document with a Chinese file name, and an untitled document saved under a Chinese file name. `run_windows_check.py eval --prefix wps-open-` runs every open-document task in one command. (P8-004)
+- `run_windows_check.py close-diag`: opens a new workbook in WPS the usual way and closes it once per method (eight methods, plus `Close()` and `Close($false)` under `/Automation` as the control group), and records each HRESULT, whether WPS still lists the workbook and whether it started a recovery instance. (P8-005)
 
 ### Fixed
 
