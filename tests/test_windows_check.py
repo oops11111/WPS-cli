@@ -201,7 +201,7 @@ class EvalTests(unittest.TestCase):
         machine = FakeMachine()
         self.assertEqual(self.run_eval(machine=machine), 0)
         text = (self.out / "RESULTS.md").read_text(encoding="utf-8")
-        self.assertIn("| `task-a` | 3/3 | 4.0 (4, 4, 4) | 6 | 0 | 1 | `operation` |", text)
+        self.assertIn("| `task-a` | 3/3 | 4.0 (4, 4, 4) | 6 | 0 |  | 1 | `operation` |", text)
         self.assertIn("**3/3 tasks passed**", text)
         self.assertIn("| claude answers | ok | OK |", text)
         self.assertIn("cleanup: fixture closed; processes stopped 7", text)
@@ -270,6 +270,25 @@ class EvalTests(unittest.TestCase):
         text = (self.out / "RESULTS.md").read_text(encoding="utf-8")
         section = text.split("### Documents WPS had open outside the task workspaces")[1]
         self.assertIn("- None.", section.split("###")[0])
+
+    def test_wrong_tool_calls_are_shown_per_task_and_in_total(self):
+        class Wrong(FakeRunner):
+            def run_task_repeated(self, task, *args, **kwargs):
+                self.ran.append(task["id"])
+                result = task_result(task["id"])
+                result["metrics"] = {**result["metrics"], "wrong_tool_calls": 2 if task["id"] == "task-b" else 0}
+                return result
+
+            def summarize(self, results, stamp, model):
+                summary = super().summarize(results, stamp, model)
+                summary["wrong_tool_calls"] = sum(r["metrics"]["wrong_tool_calls"] for r in results)
+                return summary
+
+        self.run_eval(runner=Wrong())
+        text = (self.out / "RESULTS.md").read_text(encoding="utf-8")
+        self.assertIn("| `task-b` | 3/3 | 4.0 (4, 4, 4) | 6 | 0 | 2 | 1 | `operation` |", text)
+        self.assertIn("| `task-a` | 3/3 | 4.0 (4, 4, 4) | 6 | 0 | 0 | 1 | `operation` |", text)
+        self.assertIn("**2 wrong-tool calls**", text)
 
     def test_leftover_wps_processes_are_listed(self):
         class Leftover(FakeMachine):

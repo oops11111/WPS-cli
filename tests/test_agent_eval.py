@@ -690,6 +690,61 @@ class AgentEvalJudgeTests(unittest.TestCase):
         self.assertIsNone(metrics["off_path_calls"])
         self.assertIsNone(metrics["off_path_tools"])
 
+    def test_file_based_write_calls_on_an_open_document_are_wrong_tool_calls(self):
+        calls = [
+            _call("open_documents"),
+            _call("presentation_replace", error_codes=["DOCUMENT_HELD_OPEN"], find="DRAFT", replace="FINAL"),
+            _call("presentation_selection_replace", text="FINAL"),
+            _call("writer_replace"),
+            {"name": "Bash", "input": {}, "is_error": False, "error_codes": []},
+        ]
+        open_task = run_agent_eval.tool_metrics(calls, None, open_document=True)
+        self.assertEqual(open_task["wrong_tool_calls"], 2)
+        self.assertIsNone(run_agent_eval.tool_metrics(calls, None)["wrong_tool_calls"])
+        self.assertEqual(run_agent_eval.tool_metrics([], None, open_document=True)["wrong_tool_calls"], 0)
+        # Every tool counted exists in the MCP catalog, under the name the agent sees.
+        from wps_ai_agent_cli.mcp_schema import list_mcp_tool_schemas
+
+        names = {schema["name"].removeprefix("wps_agent_") for schema in list_mcp_tool_schemas()}
+        self.assertLessEqual(run_agent_eval.FILE_BASED_WRITE_TOOLS, names)
+
+    def test_wrong_tool_calls_add_up_over_runs_and_tasks(self):
+        calls = [_call("presentation_replace", error_codes=["DOCUMENT_HELD_OPEN"])]
+        open_task = _task("wps-open-presentation-selection-insert")
+        with (
+            tempfile.TemporaryDirectory() as tmp,
+            patch.object(run_agent_eval, "open_in_wps", return_value=(lambda: "closed", None)),
+            patch.object(run_agent_eval, "prepare_open_document", return_value=None),
+            patch.object(run_agent_eval, "documents_outside", return_value=[]),
+        ):
+            result = run_agent_eval.run_task_repeated(
+                open_task,
+                open_task["fixture"],
+                open_task["component"],
+                Path(tmp),
+                None,
+                15,
+                60,
+                repeat=2,
+                min_passes=1,
+                runner=_fake_agent(lambda ws: None, calls),
+                has_wps=lambda component: True,
+            )
+            offline = run_agent_eval.run_task_repeated(
+                _task("register-and-backup"),
+                "book.xlsx",
+                "spreadsheets",
+                Path(tmp) / "b",
+                None,
+                15,
+                60,
+                runner=_fake_agent(lambda ws: None, calls),
+            )
+        self.assertEqual(result["metrics"]["wrong_tool_calls"], 2)
+        self.assertIsNone(offline["metrics"]["wrong_tool_calls"])
+        summary = run_agent_eval.summarize([result, offline], "stamp", None)
+        self.assertEqual(summary["wrong_tool_calls"], 2)
+
     def test_off_path_calls_are_reported_but_do_not_fail_a_task(self):
         def agent(workspace):
             document_id = _register(workspace)

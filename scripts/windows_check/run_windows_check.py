@@ -234,15 +234,19 @@ def prerequisites_markdown(report: dict[str, Any]) -> list[str]:
 
 
 # --------------------------------------------------------------------------------------------------- eval
+def _blank_if_none(value: Any) -> str:
+    return "" if value is None else str(value)
+
+
 def eval_table(results: list[dict[str, Any]]) -> list[str]:
     """The table docs/AGENT_E2E_EVAL.md uses for Windows runs."""
     lines = [
-        "| Task | Passes | Turns | `wps-agent` calls | Tool errors | `off_path_calls` | `off_path_tools` |",
-        "| --- | --- | --- | --- | --- | --- | --- |",
+        "| Task | Passes | Turns | `wps-agent` calls | Tool errors | `wrong_tool_calls` | `off_path_calls` | `off_path_tools` |",
+        "| --- | --- | --- | --- | --- | --- | --- | --- |",
     ]
     for result in results:
         if result.get("skipped"):
-            lines.append(f"| `{result['id']}` | skipped | | | | | |")
+            lines.append(f"| `{result['id']}` | skipped | | | | | | |")
             continue
         runs = result["runs"]
         turns = [run.get("agent", {}).get("num_turns") or 0 for run in runs]
@@ -251,7 +255,8 @@ def eval_table(results: list[dict[str, Any]]) -> list[str]:
         tools = ", ".join(f"`{tool}`" for tool in metrics.get("off_path_tools") or [])
         lines.append(
             f"| `{result['id']}` | {result['passes']}/{result['repeat']} | {mean:.1f} ({', '.join(map(str, turns))}) "
-            f"| {metrics.get('wps_tool_calls')} | {metrics.get('wps_tool_errors')} | {metrics.get('off_path_calls')} | {tools} |"
+            f"| {metrics.get('wps_tool_calls')} | {metrics.get('wps_tool_errors')} "
+            f"| {_blank_if_none(metrics.get('wrong_tool_calls'))} | {metrics.get('off_path_calls')} | {tools} |"
         )
     return lines
 
@@ -428,6 +433,8 @@ def run_eval(args: argparse.Namespace, machine: Machine, runner: Any) -> int:
         f"Claude Code CLI {_cli_version()}, model {settings['model'] or 'CLI default'}, launch mode `{settings['wps_launch']}`. "
         f"**{summary['passed']}/{summary['total']} tasks passed**, {summary['skipped']} skipped. "
         f"Each task passes with at least {settings['min_passes']} of {settings['repeat']} runs. "
+        f"**{summary.get('wrong_tool_calls', 0)} wrong-tool calls** (file-based write tools called on a document "
+        "open in WPS, counted for open-document tasks). "
         f"Task workspaces: `{work}`.",
         "",
         *eval_table(results),

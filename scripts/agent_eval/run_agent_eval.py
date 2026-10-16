@@ -34,6 +34,7 @@ ALLOWED_TOOLS = f"mcp__{MCP_SERVER_NAME}__*"
 
 sys.path.insert(0, str(SRC_DIR))
 from wps_ai_agent_cli.backups import create_backup, list_backups  # noqa: E402
+from wps_ai_agent_cli.open_document_hints import OPEN_DOCUMENT_ALTERNATIVES  # noqa: E402
 from wps_ai_agent_cli.operations import get_operation  # noqa: E402
 from wps_ai_agent_cli.sessions import (  # noqa: E402
     get_document,
@@ -42,6 +43,8 @@ from wps_ai_agent_cli.sessions import (  # noqa: E402
 )
 
 TOOL_PREFIX = f"mcp__{MCP_SERVER_NAME}__wps_agent_"
+# File-based write tools: wrong on a document open in WPS, where the selection tools apply (P9-002).
+FILE_BASED_WRITE_TOOLS = frozenset(command.replace("-", "_") for command in OPEN_DOCUMENT_ALTERNATIVES)
 HTML_TABLE = (
     "<html><body><h2>Sales</h2><table>"
     "<tr><th>Region</th><th>Q1</th></tr><tr><td>North</td><td>120</td></tr><tr><td>South</td><td>95</td></tr>"
@@ -763,10 +766,14 @@ def parse_transcript(lines: list[str]) -> tuple[dict[str, Any], list[dict[str, A
     return result, calls
 
 
-def tool_metrics(calls: list[dict[str, Any]], expected_tools: list[str] | None = None) -> dict[str, Any]:
+def tool_metrics(
+    calls: list[dict[str, Any]], expected_tools: list[str] | None = None, open_document: bool = False
+) -> dict[str, Any]:
     """Counts for one run. With expected_tools, also the wps-agent calls to any other tool (off-path calls).
 
-    Off-path calls are reported, not judged: a task passes or fails on its checks alone.
+    For a task whose document is open in WPS, wrong_tool_calls counts the calls to file-based write tools, which
+    cannot change an open document (P9-002); it is None for other tasks. Off-path and wrong-tool calls are
+    reported, not judged: a task passes or fails on its checks alone.
     """
     wps_calls = [call for call in calls if str(call["name"]).startswith(TOOL_PREFIX)]
     used = [str(call["name"]).removeprefix(TOOL_PREFIX) for call in wps_calls]
@@ -778,6 +785,7 @@ def tool_metrics(calls: list[dict[str, Any]], expected_tools: list[str] | None =
         "expected_tools": sorted(expected_tools) if expected_tools is not None else None,
         "off_path_calls": None,
         "off_path_tools": None,
+        "wrong_tool_calls": sum(tool in FILE_BASED_WRITE_TOOLS for tool in used) if open_document else None,
     }
     if expected_tools is not None:
         off_path = [tool for tool in used if tool not in expected_tools]
@@ -1027,7 +1035,7 @@ def run_task(
         "id": task["id"],
         "passed": bool(agent.get("ran")) and all(check["passed"] for check in checks),
         "agent": agent,
-        "metrics": tool_metrics(calls, task.get("expected_tools")),
+        "metrics": tool_metrics(calls, task.get("expected_tools"), opens_document(task)),
         "checks": checks,
     }
     error = agent_error(agent)
@@ -1040,6 +1048,11 @@ def run_task(
     if "documents_outside" in state:
         result["documents_outside"] = state["documents_outside"]
     return result
+
+
+def opens_document(task: dict[str, Any]) -> bool:
+    """Whether the task's document is open in WPS while the agent works on it."""
+    return "open_in_wps" in task.get("setup", [])
 
 
 def run_task_repeated(
@@ -1082,7 +1095,7 @@ def run_task_repeated(
                 "passed": False,
                 "setup_failed": result["skipped"],
                 "agent": {},
-                "metrics": tool_metrics([], task.get("expected_tools")),
+                "metrics": tool_metrics([], task.get("expected_tools"), opens_document(task)),
                 "checks": [],
             }
         runs.append(result)
@@ -1104,6 +1117,9 @@ def run_task_repeated(
                 sorted({tool for run in runs for tool in run["metrics"]["off_path_tools"]})
                 if "expected_tools" in task
                 else None
+            ),
+            "wrong_tool_calls": (
+                sum(run["metrics"].get("wrong_tool_calls") or 0 for run in runs) if opens_document(task) else None
             ),
         },
         "runs": runs,
@@ -1178,7 +1194,7 @@ def main(argv: list[str] | None = None) -> int:
             f"{'PASS' if result['passed'] else 'FAIL'} {result['id']} "
             f"({result['passes']}/{result['repeat']} runs passed, need {result['min_passes']}; "
             f"wps-agent calls {metrics.get('wps_tool_calls')}, errors {metrics.get('wps_tool_errors')}, "
-            f"off-path calls {metrics.get('off_path_calls')})"
+            f"off-path calls {metrics.get('off_path_calls')}, wrong-tool calls {metrics.get('wrong_tool_calls')})"
         )
         for index, run in enumerate(result["runs"], 1):
             label = f"  run {index}: " if result["repeat"] > 1 else ""
@@ -1205,6 +1221,7 @@ def summarize(results: list[dict[str, Any]], stamp: str, model: str | None) -> d
         "wps_tool_calls": sum(result.get("metrics", {}).get("wps_tool_calls", 0) for result in ran),
         "wps_tool_errors": sum(result.get("metrics", {}).get("wps_tool_errors", 0) for result in ran),
         "off_path_calls": sum(result.get("metrics", {}).get("off_path_calls") or 0 for result in ran),
+        "wrong_tool_calls": sum(result.get("metrics", {}).get("wrong_tool_calls") or 0 for result in ran),
         "tasks_without_expected_tools": [
             result["id"] for result in ran if result.get("metrics", {}).get("off_path_calls") is None
         ],

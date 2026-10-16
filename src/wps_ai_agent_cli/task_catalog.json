@@ -3125,7 +3125,7 @@
     "id": "P9-002",
     "phase": "phase9",
     "title": "Agent eval: count wrong_tool_calls",
-    "status": "todo",
+    "status": "done",
     "acceptance": "J1: each evaluation run records wrong_tool_calls (file-based write calls on a document open in WPS); the summary and RESULTS.md show them; offline tests."
   },
   {
