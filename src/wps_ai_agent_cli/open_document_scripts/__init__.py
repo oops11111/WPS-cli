@@ -12,6 +12,7 @@ from .common import (  # noqa: F401
     _LIST_SCRIPT,
     _SAVE_AS_UNTITLED_SCRIPT,
     _SCRIPT_HEAD,
+    _UNICODE_TEXT_FILE,
 )
 from .presentation import (  # noqa: F401
     _ATTACHED_PRESENTATION_WRAPPER,

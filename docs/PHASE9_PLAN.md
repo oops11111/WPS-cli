@@ -52,7 +52,7 @@ Phase 9 把这三件事做完，最后发布 0.6.0。
 | --- | --- | --- | --- |
 | P9-001 | J1 | 按文件的写入工具在目标文档已在 WPS 里打开时，`DOCUMENT_HELD_OPEN` 的信息写明对应的已打开文档工具（比如 `presentation_replace` → 先选中再 `presentation_selection_replace`）；对应工具的 MCP 说明写明不用于已打开的文档；离线测试（已完成：`open_document_hints.py`，CLI 在这些命令因文档已在 WPS 里打开而拒绝时补上提示，MCP 经同一入口；表格的工作表结构命令说明没有对应的已打开文档工具） | 本地 |
 | P9-002 | J1 | 评测记录每次运行的 `wrong_tool_calls`，汇总和 `RESULTS.md` 显示；离线测试（已完成：`tool_metrics` 的 `wrong_tool_calls`，按文件写入工具的名单取自 P9-001 的同一张表；`RESULTS.md` 多一列和一句合计） | 本地 |
-| P9-003 | J2 | Writer 和表格的文本导出写 Unicode：先试 `Encoding` 参数，不行就经 COM 读文字自己写 UTF-8；结果记录 `export_method`；假 COM 测试 | 本地 |
+| P9-003 | J2 | Writer 和表格的文本导出写 Unicode：先试 `Encoding` 参数，不行就经 COM 读文字自己写 UTF-8；结果记录 `export_method`；假 COM 测试（已完成：`open_document_scripts/common.py` 的 `Complete-WpsUnicodeTextFile`，WPS 写的是代码页时，没丢字就转成 UTF-8（`+transcoded`），丢了字就按经 COM 读出的文字重写（`+document_text`）；`tests/test_text_export_powershell.py`） | 本地 |
 | P9-004 | J2 | 新评测任务：导出含 `✅`、`𠮷` 的已打开 Writer 文档，判定文本原样、`text_encoding` 不是 `gbk`；离线判定测试 | 本地 |
 | P9-005 | J3 | runner 清理时关掉自己打开的文档后对自己启动的 WPS 调 `Quit()`，失败才结束进程，`cleanup` 写明；离线测试 | 本地 |
 | P9-006 | J1、J2、J3 | 在 Windows 上：上机前清理一次，然后全部已打开文档任务一条命令各跑 3 次 | Windows |

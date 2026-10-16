@@ -3132,7 +3132,7 @@
     "id": "P9-003",
     "phase": "phase9",
     "title": "Unicode text export for Writer and Spreadsheets",
-    "status": "todo",
+    "status": "done",
     "acceptance": "J2: export-open-document-text writes UTF-8 or UTF-16 with a byte order mark, keeping characters outside GBK, trying SaveAs2's Encoding argument first and otherwise writing the text read through COM; export_method recorded; fake-COM tests."
   },
   {

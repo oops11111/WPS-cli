@@ -15,7 +15,7 @@ v1.2 相对 v1.1 的增量是：附着运行中实例、操作活动文档与当
 | 4.4 已打开文档直接导出 HTML | `export-open-document`（MCP：`wps_agent_export_open_document`） | Writer（`Documents.Add` + `SaveAs2`）、Presentation（`SaveCopyAs` 12/23）、Spreadsheet（P3-403：临时 `SaveCopyAs` + 副本 `SaveAs` 44/45）均已支持；均不改名不关闭源文件 |
 | 4.4b 已打开文档直接导出 PDF | `export-open-document-pdf`（MCP：`wps_agent_export_open_document_pdf`） | Writer 副本 `ExportAsFixedFormat`/`SaveAs` 17；Presentation 优先 `ExportAsFixedFormat`（失败退临时 `SaveCopyAs` + `SaveAs` 32）；Spreadsheet 对已打开工作簿 `ExportAsFixedFormat`。不改名不关闭源文件 |
 | 4.4c 已打开文档原生格式副本 | `export-open-document-copy`（MCP：`wps_agent_export_open_document_copy`） | 同扩展名 `SaveCopyAs`；Writer 失败时退 `Documents.Add` + `SaveAs`。不改名不关闭源文件；不对格式做转换 |
-| 4.4d 已打开文档导出纯文本 | `export-open-document-text`（MCP：`wps_agent_export_open_document_text`） | Writer 副本 Unicode/ANSI 文本 `SaveAs`；Presentation 按幻灯片抽取形状文本写 UTF-8；Spreadsheet 临时 `SaveCopyAs` + 副本文本 `SaveAs`。不改名不关闭源文件 |
+| 4.4d 已打开文档导出纯文本 | `export-open-document-text`（MCP：`wps_agent_export_open_document_text`） | Writer 副本按 UTF-8 文本 `SaveAs2`（WPS 写成代码页时转成 UTF-8，丢了字就按文档文字重写，P9-003）；Presentation 按幻灯片抽取形状文本写 UTF-8；Spreadsheet 临时 `SaveCopyAs` + 副本文本 `SaveAs`。不改名不关闭源文件 |
 | 4.4e 已打开文档主动保存 | `save-open-document`（MCP：`wps_agent_save_open_document`）；`save-as-open-document`（MCP：`wps_agent_save_as_open_document`，P3-444） | 对已注册且有磁盘路径的打开文档显式 `Save()`；dirty 时先备份上次已保存文件；已保存则成功且不写；拒绝只读。无路径未命名文档用 `save-as-open-document`（按 component+Name `SaveAs` 到原生路径并注册）。其它命令仍拒绝未保存，不会隐式保存 |
 | 4.5 已打开文件的推荐流程 | 见下文「推荐调用流程」 | 已实现 |
 | 4.2 修改前强制备份、干跑、请求 ID | `writer-selection-replace` 复用 `create_backup`、`guarded_com_mutation`、`replay_operation`、文档锁与可选 `--task-id` | 已实现 |
