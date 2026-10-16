@@ -4,6 +4,10 @@ All notable changes to `wps-ai-agent-cli`. The versioning rule and release steps
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-10-16
+
+Phase 9: agents are told which tool to use on a document open in WPS, the text export keeps every character, and Windows evaluation runs end WPS normally.
+
 ### Added
 
 - Agent evaluation: for tasks whose document is open in WPS, each run counts `wrong_tool_calls`, the calls to file-based write tools that cannot change an open document. The summary and `run_windows_check.py eval`'s `RESULTS.md` show them per task and in total. (P9-002)

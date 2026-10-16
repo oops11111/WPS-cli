@@ -56,7 +56,7 @@ Phase 9 把这三件事做完，最后发布 0.6.0。
 | P9-004 | J2 | 新评测任务：导出含 `✅`、`𠮷` 的已打开 Writer 文档，判定文本原样、`text_encoding` 不是 `gbk`；离线判定测试（已完成：任务 `wps-open-zh-document-export-beyond-gbk`，测试文档 `核对清单.docx`，新检查 `text_encoding`；0.5.0 留下的 GBK 文件在离线测试里两项检查都不通过） | 本地 |
 | P9-005 | J3 | runner 清理时关掉自己打开的文档后对自己启动的 WPS 调 `Quit()`，失败才结束进程，`cleanup` 写明；离线测试（已完成：`end_wps_normally`。双击启动的 WPS 关掉最后一个文档后连不上（P8-005 第二次上机），`Quit()` 调不到，所以连不上时关它的主窗口，这同样是正常退出；`cleanup` 写 `exited …（Quit()）`、`exited …（main window closed）` 或 `stopped …（still running after …）`） | 本地 |
 | P9-006 | J1、J2、J3 | 在 Windows 上：上机前清理一次，然后全部已打开文档任务一条命令各跑 3 次 | Windows |
-| P9-007 | J4 | 定版本 0.6.0，整理 `CHANGELOG.md`，合并后由你推送 `v0.6.0` 标签 | 本地 + 你 |
+| P9-007 | J4 | 定版本 0.6.0，整理 `CHANGELOG.md`，合并后由你推送 `v0.6.0` 标签（已准备：`__version__` 为 `0.6.0`，`CHANGELOG.md` 有 `[0.6.0] - 2026-10-16` 一节，在分支 `release/0.6.0`；等 P9-006 上机通过再合并、推送标签） | 本地 + 你 |
 | P9-008 | J4 | 在 Windows 上检查 0.6.0 的 wheel | Windows |
 
 ## 建议顺序
