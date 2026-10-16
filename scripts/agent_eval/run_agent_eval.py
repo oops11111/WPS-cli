@@ -68,6 +68,10 @@ SPREADSHEET_STATUS_ROWS = (("Region", "Q1", "Status"), ("North", 120, "DRAFT"), 
 # workbook, a Chinese sheet name. Same layout as report.docx and status.xlsx.
 WRITER_ZH_FIXTURE = "季度报告.docx"
 WRITER_ZH_PARAGRAPHS = ("季度报告", "状态：草稿", "负责人：财务部")
+# Characters GBK cannot encode, for the text export task (P9-004): an emoji and a CJK character outside the BMP.
+WRITER_BEYOND_GBK_FIXTURE = "核对清单.docx"
+WRITER_BEYOND_GBK_PARAGRAPHS = ("核对清单", "✅ 已核对：𠮷野家", "负责人：财务部")
+WRITER_PARAGRAPHS = {WRITER_ZH_FIXTURE: WRITER_ZH_PARAGRAPHS, WRITER_BEYOND_GBK_FIXTURE: WRITER_BEYOND_GBK_PARAGRAPHS}
 SPREADSHEET_ZH_FIXTURE = "状态表.xlsx"
 SPREADSHEET_ZH_SHEET = "汇总"
 SPREADSHEET_ZH_ROWS = (("地区", "一季度", "状态"), ("华北", 120, "草稿"), ("华南", 95, "草稿"))
@@ -111,7 +115,7 @@ def write_fixture(workspace: Path, name: str) -> str:
         from docx import Document
 
         document = Document()
-        for text in WRITER_ZH_PARAGRAPHS if path.name == WRITER_ZH_FIXTURE else WRITER_FIXTURE_PARAGRAPHS:
+        for text in WRITER_PARAGRAPHS.get(path.name, WRITER_FIXTURE_PARAGRAPHS):
             document.add_paragraph(text)
         document.save(path)
     elif suffix == ".pptx":
@@ -127,6 +131,20 @@ def write_fixture(workspace: Path, name: str) -> str:
     else:
         raise ValueError(f"unsupported fixture type {suffix}")
     return file_sha256(path)
+
+
+def text_file_encoding(path: Path) -> str:
+    """utf-16 or utf-8-sig by byte order mark, utf-8 when it decodes strictly, else other (a code page)."""
+    raw = path.read_bytes()
+    if raw[:2] in (b"\xff\xfe", b"\xfe\xff"):
+        return "utf-16"
+    if raw[:3] == b"\xef\xbb\xbf":
+        return "utf-8-sig"
+    try:
+        raw.decode("utf-8")
+    except UnicodeDecodeError:
+        return "other"
+    return "utf-8"
 
 
 def document_text(path: Path) -> str:
@@ -921,6 +939,11 @@ def judge(
                 present = [item for item in check.get("absent", []) if item in text]
                 passed = not missing and not present
                 detail = "ok" if passed else {"missing": missing, "present": present}
+        elif kind == "text_encoding":
+            path = workspace / check["path"]
+            encoding = text_file_encoding(path) if path.is_file() else None
+            passed = encoding in check["encodings"]
+            detail = encoding or "file missing"
         elif kind == "xlsx_sheets":
             from openpyxl import load_workbook
 

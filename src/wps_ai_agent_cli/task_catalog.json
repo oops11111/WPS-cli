@@ -3139,7 +3139,7 @@
     "id": "P9-004",
     "phase": "phase9",
     "title": "Agent eval: export text with characters outside GBK",
-    "status": "todo",
+    "status": "done",
     "acceptance": "J2: a new task exports an open Writer document holding characters outside GBK; the judge checks they come back unchanged and text_encoding is not gbk; offline judge tests."
   },
   {

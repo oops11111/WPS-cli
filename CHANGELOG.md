@@ -7,6 +7,7 @@ All notable changes to `wps-ai-agent-cli`. The versioning rule and release steps
 ### Added
 
 - Agent evaluation: for tasks whose document is open in WPS, each run counts `wrong_tool_calls`, the calls to file-based write tools that cannot change an open document. The summary and `run_windows_check.py eval`'s `RESULTS.md` show them per task and in total. (P9-002)
+- Agent evaluation: the task `wps-open-zh-document-export-beyond-gbk` exports an open Writer document holding `✅` and `𠮷`, characters outside GBK, and checks they come back and the file is UTF-8 or UTF-16 (new check kind `text_encoding`). (P9-004)
 
 ### Changed
 

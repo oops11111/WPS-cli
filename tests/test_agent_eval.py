@@ -38,6 +38,7 @@ KNOWN_CHECK_KINDS = {
     "xlsx_sheets",
     "docx_table_cell",
     "pdf_file",
+    "text_encoding",
 }
 WPS_WRITE_TASKS = (
     "wps-spreadsheet-write",
@@ -63,10 +64,11 @@ WPS_WRITE_TASKS = (
     "wps-open-zh-spreadsheet-sheet-cells",
     "wps-open-zh-document-export-text",
     "wps-open-zh-save-as-untitled",
+    "wps-open-zh-document-export-beyond-gbk",
 )
 # Phase 8 (I1): Chinese-content tasks, one for each path Chinese text takes: written text, a sheet name, a file
 # name of an open document, and the name WPS gives an untitled document.
-CHINESE_TASKS = WPS_WRITE_TASKS[-4:]
+CHINESE_TASKS = WPS_WRITE_TASKS[-5:]
 # Every tool that writes to a document open in WPS; Phase 7 (H2) asks for an evaluation task for each.
 OPEN_DOCUMENT_WRITE_TOOLS = {
     "writer_selection_replace",
@@ -248,6 +250,11 @@ class AgentEvalTaskFileTests(unittest.TestCase):
                 run_agent_eval.document_text(Path(tmp) / "季度报告.docx").split("\n"),
                 ["季度报告", "状态：草稿", "负责人：财务部"],
             )
+            run_agent_eval.write_fixture(Path(tmp), "核对清单.docx")
+            beyond = run_agent_eval.document_text(Path(tmp) / "核对清单.docx")
+            self.assertIn("✅ 已核对：𠮷野家", beyond)
+            with self.assertRaises(UnicodeEncodeError):
+                beyond.encode("gbk")
             run_agent_eval.write_fixture(Path(tmp), "状态表.xlsx")
             workbook = load_workbook(Path(tmp) / "状态表.xlsx")
             rows = [list(row) for row in workbook["汇总"].iter_rows(values_only=True)]
@@ -1730,6 +1737,45 @@ class AgentEvalJudgeTests(unittest.TestCase):
             ascii_name = self.run_open_task(task, Path(tmp) / "b", save_as("notes.docx"), calls)
         self.assertTrue(passed["passed"], passed)
         self.assertEqual([c["kind"] for c in ascii_name["checks"] if not c["passed"]], ["file_text"])
+
+    def test_an_export_beyond_gbk_needs_every_character_and_a_unicode_file(self):
+        text = "\r\n".join(run_agent_eval.WRITER_BEYOND_GBK_PARAGRAPHS) + "\r\n"
+        calls = [_call("open_documents"), _call("export_open_document_text", output="核对清单.txt")]
+
+        def export(workspace, data):
+            (workspace / "核对清单.txt").write_bytes(data)
+
+        task = "wps-open-zh-document-export-beyond-gbk"
+        with (
+            tempfile.TemporaryDirectory() as tmp,
+            patch.object(run_agent_eval, "open_in_wps", return_value=(lambda: None, None)),
+            patch.object(run_agent_eval, "documents_outside", return_value=[]),
+        ):
+            results = {
+                name: self.run_wps_task(task, Path(tmp) / name, lambda ws, data=data: export(ws, data), calls)
+                for name, data in (
+                    ("utf8", text.encode("utf-8-sig")),
+                    ("utf16", "\ufeff".encode("utf-16-le") + text.encode("utf-16-le")),
+                    # What 0.5.0 left: GBK, with the characters it cannot encode turned into "?".
+                    ("gbk", text.encode("gbk", errors="replace")),
+                )
+            }
+        self.assertTrue(results["utf8"]["passed"], results["utf8"])
+        self.assertTrue(results["utf16"]["passed"], results["utf16"])
+        failed = {(c["kind"], str(c["detail"])[:5]) for c in results["gbk"]["checks"] if not c["passed"]}
+        self.assertEqual(failed, {("file_text", "{'mis"), ("text_encoding", "other")})
+
+    def test_the_text_file_encoding_is_named_by_byte_order_mark_or_strict_utf8(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "a.txt"
+            for data, expected in (
+                ("✅".encode("utf-8-sig"), "utf-8-sig"),
+                ("\ufeff✅".encode("utf-16-le"), "utf-16"),
+                ("✅".encode(), "utf-8"),
+                ("核对".encode("gbk"), "other"),
+            ):
+                path.write_bytes(data)
+                self.assertEqual(run_agent_eval.text_file_encoding(path), expected, data)
 
     def test_mcp_config_runs_the_server_in_the_task_workspace(self):
         with tempfile.TemporaryDirectory() as tmp:

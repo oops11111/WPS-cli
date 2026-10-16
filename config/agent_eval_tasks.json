@@ -1411,6 +1411,53 @@
           "tool": "save_open_document"
         }
       ]
+    },
+    {
+      "id": "wps-open-zh-document-export-beyond-gbk",
+      "requires_wps": true,
+      "component": "writer",
+      "fixture": "核对清单.docx",
+      "setup": [
+        "open_in_wps"
+      ],
+      "prompt": "当前目录下的 Writer 文档 核对清单.docx 已在 WPS 中打开。请用 wps-agent MCP 工具在 WPS 已打开的文档中找到它，把它的文字导出到当前目录的 核对清单.txt。不要关闭、保存或修改这个文档。",
+      "expected_tools": [
+        "open_documents",
+        "documents",
+        "register_document",
+        "export_open_document_text"
+      ],
+      "checks": [
+        {
+          "kind": "tool_called",
+          "tool": "export_open_document_text"
+        },
+        {
+          "kind": "file_text",
+          "path": "核对清单.txt",
+          "contains": [
+            "核对清单",
+            "✅ 已核对：𠮷野家",
+            "负责人：财务部"
+          ]
+        },
+        {
+          "kind": "text_encoding",
+          "path": "核对清单.txt",
+          "encodings": [
+            "utf-8",
+            "utf-8-sig",
+            "utf-16"
+          ]
+        },
+        {
+          "kind": "tool_not_called",
+          "tool": "save_open_document"
+        },
+        {
+          "kind": "file_unchanged"
+        }
+      ]
     }
   ]
 }
