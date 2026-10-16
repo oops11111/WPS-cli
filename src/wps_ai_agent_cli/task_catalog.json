@@ -3027,7 +3027,7 @@
     "id": "P7-007",
     "phase": "phase7",
     "title": "Windows runs of H1 and H2",
-    "status": "todo",
+    "status": "done",
     "acceptance": "H1, H2: with the P7-005 script, run the P7-002 injection scenarios and all WPS open-document tasks three times each; results recorded."
   },
   {
