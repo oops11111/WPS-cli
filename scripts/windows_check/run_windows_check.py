@@ -256,6 +256,26 @@ def eval_table(results: list[dict[str, Any]]) -> list[str]:
     return lines
 
 
+def document_label(item: dict[str, Any]) -> str:
+    return f"`{item.get('full_name') or item.get('name')}` ({item.get('component')})"
+
+
+def outside_documents(results: list[dict[str, Any]]) -> list[str]:
+    """Every document WPS had open outside a task workspace, with the runs it was seen in (P8-007)."""
+    seen: dict[str, list[str]] = {}
+    labels: dict[str, str] = {}
+    for result in results:
+        for index, run in enumerate(result.get("runs") or [], 1):
+            outside = run.get("documents_outside")
+            for item in outside if isinstance(outside, list) else []:
+                key = str(item.get("full_name") or item.get("name")).casefold()
+                labels.setdefault(key, document_label(item))
+                seen.setdefault(key, []).append(f"{result['id']} run {index}")
+    if not seen:
+        return ["- None."]
+    return [f"- {labels[key]}: {len(runs)} runs ({', '.join(runs)})" for key, runs in seen.items()]
+
+
 def run_details(results: list[dict[str, Any]]) -> list[str]:
     """Failed checks, setup failures, agent errors and cleanup, per run: what a review needs."""
     lines: list[str] = []
@@ -285,6 +305,11 @@ def run_details(results: list[dict[str, Any]]) -> list[str]:
                 notes.append("error codes: " + ", ".join(errors))
             if run.get("cleanup"):
                 notes.append(f"cleanup: {run['cleanup']}")
+            outside = run.get("documents_outside")
+            if isinstance(outside, str):
+                notes.append(f"documents outside the workspace not listed: {outside}")
+            elif outside:
+                notes.append("WPS also had open: " + ", ".join(document_label(item) for item in outside))
             if notes:
                 lines.append(
                     f"- `{result['id']}` run {index} ({'pass' if run['passed'] else 'FAIL'}): " + " | ".join(notes)
@@ -410,6 +435,13 @@ def run_eval(args: argparse.Namespace, machine: Machine, runner: Any) -> int:
         "### Runs",
         "",
         *run_details(results),
+        "",
+        "### Documents WPS had open outside the task workspaces",
+        "",
+        "Listed right after the fixture opened. WPS reopens the documents of its previous session when it starts; "
+        "they are the machine user's, so they are recorded here and left open.",
+        "",
+        *outside_documents(results),
         "",
         "### WPS processes after the run",
         "",

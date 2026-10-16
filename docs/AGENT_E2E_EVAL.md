@@ -84,6 +84,8 @@ A task with `"requires_wps": true` runs only when this machine has a registered 
 
 Each run writes `summary.json` under `<out>/run-<timestamp>/`. For each task it holds the agent's turns, duration, cost, reply excerpt, every tool call with its input and error codes, the tool metrics and every check result. The summary also totals `wps-agent` calls and calls that returned an error.
 
+A task that opens its fixture in WPS also records, in each run's `documents_outside`, the documents WPS lists outside the task workspace right after the fixture opened: WPS reopens the documents of its previous session when it starts, and they show up in the agent's `open_documents` results (P7-007). The runner leaves them open; they are the machine user's (P8-007).
+
 The tool metrics count every call that returned an error code. Some of those errors are the expected outcome: in `restore-missing-backup` and `held-document-backup`, the refusal is what the task tests.
 
 The offline tests in `tests/test_agent_eval.py` cover the transcript parser, the setup steps, the judge for every task and the MCP config with a stand-in agent. They do not call the CLI.

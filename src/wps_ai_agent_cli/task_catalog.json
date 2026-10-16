@@ -3090,7 +3090,7 @@
     "id": "P8-007",
     "phase": "phase8",
     "title": "Record documents WPS restores from an earlier session",
-    "status": "todo",
+    "status": "done",
     "acceptance": "Gap from P7-007: at the start of each run the runner records documents WPS lists outside the task workspace, and RESULTS.md shows them."
   },
   {

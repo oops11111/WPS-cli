@@ -54,7 +54,7 @@ Phase 8 把这两件事做完，先尽快把已经修好的发出去（0.4.1）�
 | P8-004 | I1 | runner 支持中文测试文档（中文文件名、中文文字、中文工作表名）；编写 4 个中文评测任务，每个补离线判定测试（已完成：`季度报告.docx`、`状态表.xlsx`（工作表 `汇总`）两个中文测试文档，4 个 `wps-open-zh-*` 任务，提示也是中文；纯文本导出按 GBK 回退读取；`run_windows_check.py eval --prefix wps-open-` 一条命令跑全部已打开文档任务） | 本地 |
 | P8-005 | I2 | 只读的 Windows 诊断脚本：在常规打开的工作簿上试几种关法并记录 HRESULT，`/Automation` 启动作为对照组；由 `run_windows_check.py` 运行并写出结果（本地部分已完成：`run_windows_check.py close-diag`，`scripts/windows_check/workbook_close.py`，8 种关法加 2 个对照；待上机） | 本地 + Windows |
 | P8-006 | I2 | 按 P8-005 的结果修 `close_unchanged_document`（以及 runner 的清理）；修不了就加专门的错误码。补假 COM 测试 | 本地 |
-| P8-007 | 缺口 | runner 在每次运行开始时记录 WPS 列出的、不在任务工作区里的文档，写进 `RESULTS.md` | 本地 |
+| P8-007 | 缺口 | runner 在每次运行开始时记录 WPS 列出的、不在任务工作区里的文档，写进 `RESULTS.md`（已完成：fixture 在 WPS 里打开后、后续准备步骤之前列一次，记在每次运行的 `documents_outside`；`RESULTS.md` 每次运行一行，另有一节按文档汇总） | 本地 |
 | P8-008 | I1、I2 | 在 Windows 上：4 个中文任务和现有 11 个已打开文档任务一条命令各跑 3 次；`restore-backup --close-in-wps` 对双击打开的工作簿验证一次 | Windows |
 | P8-009 | I3 | 定版本 0.5.0，整理 `CHANGELOG.md`，合并后由你推送 `v0.5.0` 标签 | 本地 + 你 |
 | P8-010 | I3 | 在 Windows 上检查 0.5.0 的 wheel | Windows |

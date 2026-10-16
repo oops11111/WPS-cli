@@ -630,6 +630,28 @@ def close_workspace_documents(component: str, workspace: Path, fixture: Path, un
     return "; ".join(notes) or "no other documents"
 
 
+def documents_outside(workspace: Path) -> list[dict[str, Any]] | str:
+    """What WPS lists as open, in any component, outside the task workspace: documents it restored (P8-007).
+
+    WPS reopens the documents of its previous session when it starts; in P7-007 they showed up in the agent's
+    open_documents results and had to be closed by hand. They belong to the machine's user, so the runner
+    only records them. Returns the reason instead when the list failed.
+    """
+    from wps_ai_agent_cli.open_documents import list_open_documents
+
+    ok, data, errors = list_open_documents()
+    if not ok:
+        return "; ".join(f"{error.get('code')}: {error.get('message')}" for error in errors) or "list failed"
+    root = str(workspace.resolve()).casefold()
+    outside = []
+    for item in data.get("documents", []):
+        full = str(item.get("full_name") or "")
+        inside = bool(full) and os.path.isabs(full) and str(Path(full).resolve()).casefold().startswith(root)
+        if not inside:
+            outside.append({"component": item.get("component"), "name": item.get("name"), "full_name": full})
+    return outside
+
+
 def run_setup(
     steps: list[str],
     workspace: Path,
@@ -674,6 +696,9 @@ def run_setup(
             if opened is None:
                 return start_sha, None, reason
             release = opened
+            if step == "open_in_wps":
+                # Before the later steps, so that an untitled document the runner makes is not counted.
+                state["documents_outside"] = documents_outside(workspace)
             if "untitled_document" in later:
 
                 def release(opened: Callable[[], Any] = opened) -> str:
@@ -1012,6 +1037,8 @@ def run_task(
         result["cleanup"] = cleanup
     if state.get("untitled_name"):
         result["untitled_name"] = state["untitled_name"]
+    if "documents_outside" in state:
+        result["documents_outside"] = state["documents_outside"]
     return result
 
 

@@ -1841,7 +1841,9 @@ class OpenDocumentSetupTests(unittest.TestCase):
                 state,
             )
             self.assertIsNone(reason)
-            self.assertEqual(state, {"untitled_name": "文字文稿2"})
+            self.assertEqual(state["untitled_name"], "文字文稿2")
+            # Listed before the untitled document was made; notes.docx is inside the workspace.
+            self.assertEqual([item["full_name"] for item in state["documents_outside"]], ["C:\\elsewhere.docx"])
             outcome = release()
         self.assertEqual(
             actions,
@@ -1853,6 +1855,63 @@ class OpenDocumentSetupTests(unittest.TestCase):
         )
         self.assertEqual(self.released, ["report.docx"])
         self.assertIn("untitled 文字文稿2 closed; notes.docx closed", outcome)
+
+    def test_documents_wps_lists_outside_the_workspace_are_recorded_after_the_open(self):
+        from wps_ai_agent_cli import open_documents
+
+        elsewhere = Path(self.workspace).parent / "上次会话" / "预算.xlsx"
+        listed = [
+            {"component": "writer", "name": "report.docx", "full_name": str(self.fixture)},
+            {"component": "spreadsheets", "name": "预算.xlsx", "full_name": str(elsewhere)},
+            {"component": "writer", "name": "文字文稿1", "full_name": ""},
+        ]
+        state = {}
+        with (
+            patch.object(run_agent_eval, "open_in_wps", side_effect=self.open_ok),
+            patch.object(open_documents, "list_open_documents", return_value=(True, {"documents": listed}, [])),
+        ):
+            _sha, release, reason = run_agent_eval.run_setup(
+                ["open_in_wps"], self.workspace, self.fixture, "writer", {}, state
+            )
+        self.assertIsNone(reason)
+        self.assertEqual(
+            state["documents_outside"],
+            [
+                {"component": "spreadsheets", "name": "预算.xlsx", "full_name": str(elsewhere)},
+                {"component": "writer", "name": "文字文稿1", "full_name": ""},
+            ],
+        )
+        release()
+
+    def test_a_failed_list_of_documents_is_recorded_as_its_reason(self):
+        from wps_ai_agent_cli import open_documents
+
+        failure = (False, {}, [{"code": "COM_OPERATION_FAILED", "message": "Attach failed."}])
+        with patch.object(open_documents, "list_open_documents", return_value=failure):
+            self.assertEqual(run_agent_eval.documents_outside(self.workspace), "COM_OPERATION_FAILED: Attach failed.")
+
+    def test_the_documents_outside_reach_the_task_result(self):
+        outside = [{"component": "writer", "name": "a.docx", "full_name": "C:\\a.docx"}]
+
+        def open_ok(path, component):
+            return (lambda: "closed"), None
+
+        with (
+            patch.object(run_agent_eval, "open_in_wps", side_effect=open_ok),
+            patch.object(run_agent_eval, "documents_outside", return_value=outside),
+        ):
+            result = run_agent_eval.run_task(
+                _task("wps-open-document-export-text"),
+                "report.docx",
+                "writer",
+                Path(self.workspace),
+                None,
+                15,
+                60,
+                runner=_fake_agent(lambda ws: None),
+                has_wps=lambda component: True,
+            )
+        self.assertEqual(result["documents_outside"], outside)
 
     def test_a_failed_untitled_document_is_a_setup_failure(self):
         with (
