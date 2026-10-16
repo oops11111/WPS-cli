@@ -3190,6 +3190,8 @@ class ExportOpenDocumentTextTests(unittest.TestCase):
             "gbk": text.encode("gbk"),
             "utf-16": "\ufeff".encode("utf-16-le") + text.encode("utf-16-le"),
             "utf-8-sig": text.encode("utf-8-sig"),
+            # No byte order mark: the ASCII-heavy kind of UTF-16, whose NULs rule out UTF-8 and GBK.
+            "utf-16-le": "Owner: Finance\r\n".encode("utf-16-le"),
             # Longer than the head that is checked, so a character is cut off at its end.
             "utf-8": (text * 200).encode("utf-8"),
         }

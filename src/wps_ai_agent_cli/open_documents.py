@@ -4019,8 +4019,10 @@ TEXT_EXPORT_KNOWN_LOSSES = [
 # A WPS text export is Unicode text (UTF-16 with a byte order mark), UTF-8, or, when WPS falls back to plain
 # text, the system code page: GBK on Chinese Windows, the target platform. The check used to try UTF-8 and UTF-16
 # only, so a correct GBK export of Chinese text was rejected as not text (P8-008). UTF-16 without a byte order
-# mark comes last: GBK bytes can also decode as UTF-16, but not the other way round once NULs rule GBK out.
-_TEXT_ENCODINGS = ("utf-8", "gbk", "utf-16")
+# mark comes last: GBK bytes can also decode as UTF-16, but not the other way round once NULs rule GBK out. It is
+# named little-endian, as Windows writes it: before Python 3.13 the plain "utf-16" incremental decoder raises on
+# data without a byte order mark.
+_TEXT_ENCODINGS = ("utf-8", "gbk", "utf-16-le")
 _TEXT_HEAD_BYTES = 4096
 _CONTROL_CHARACTERS = re.compile(r"[\x00-\x08\x0b\x0e-\x1f]")
 
@@ -4039,10 +4041,14 @@ def _text_encoding(path: Path) -> str | None:
     if head.startswith(b"\xef\xbb\xbf"):
         return "utf-8-sig"
     for encoding in _TEXT_ENCODINGS:
+        # Without a byte order mark, take UTF-16 only for mostly-ASCII text, whose high bytes are zero: any even run
+        # of bytes decodes as UTF-16, binary included. WPS writes Unicode text with a byte order mark.
+        if encoding == "utf-16-le" and head[1::2].count(0) * 2 < len(head) // 2:
+            continue
         try:
             # Incremental, so that a character cut off at the end of the head does not count against it.
             text = codecs.getincrementaldecoder(encoding)().decode(head, final=False)
-        except UnicodeDecodeError:
+        except UnicodeError:
             continue
         if not _CONTROL_CHARACTERS.search(text):
             return encoding
