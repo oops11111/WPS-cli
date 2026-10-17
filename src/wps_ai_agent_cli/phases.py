@@ -120,7 +120,7 @@ PHASES: tuple[Phase, ...] = (
     Phase(
         id="phase11",
         name="Ship the selection fix, spreadsheet writes with their surroundings, full undo coverage",
-        status="active",
+        status="done",
         goal=(
             "Ship the selection fix 0.7.0 lacks in 0.8.0, make spreadsheet write results show the cells around the "
             "write so agents stop re-reading them, cover axis title and series undo on Windows, and release 0.8.0."
