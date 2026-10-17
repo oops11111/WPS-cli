@@ -152,6 +152,7 @@ PYTHONPATH=src python3 -m unittest discover -s tests
 - Phase 9: 已完成（Agent 选对工具、文本导出不丢字、上机不用手工清理），4 项出口标准均已达成：16 个已打开文档任务在 Windows 上一条命令各 3/3、用错工具 0 次；含 GBK 以外字符的导出原样保留、为 UTF-8；48 次运行的清理都让 WPS 正常退出，没有恢复出的文档；`v0.6.0` 已发布并在 Windows 上检查通过。遗留缺口见 `docs/PHASE9_PLAN.md` 开头，`wps-agent tasks --phase phase9` 可列出任务
 - Phase 10: 已完成（写入结果自证、图表和图形可撤回），3 项出口标准均已达成：16 个已打开文档任务在 Windows 上一条命令各 3/3，写入后不再自己核对（额外调用从 50 次降到 11 次）；表格里文本框和图表标题的写入失败时在 WPS 里撤回；`v0.7.0` 已发布并在 Windows 上检查通过。选区判断的修复随 0.8.0 发布（Phase 11）。遗留缺口见 `docs/PHASE10_PLAN.md` 开头，`wps-agent tasks --phase phase10` 可列出任务
 - Phase 11: 已完成（补发选区修复、表格写入带上周围的单元格、撤回全覆盖），4 项出口标准均已达成：16 个已打开文档任务在 Windows 上一条命令各 3/3，写入后的额外调用降到 3 次、所有写入都自证通过；表格的文本框、图表标题、坐标轴标题和系列值写入失败时都在 WPS 里撤回（`undo` 6/6）；`v0.8.0` 已发布并在 Windows 上检查通过，包含 0.7.0 缺的选区修复。遗留缺口见 `docs/PHASE11_PLAN.md` 开头，`wps-agent tasks --phase phase11` 可列出任务
+- 当前 Phase 12（active）: 全量评测、干净环境、PyPI 发布，为 1.0 做准备，出口标准与任务见 `docs/PHASE12_PLAN.md`，`wps-agent tasks --phase phase12` 可列出任务
 
 ## 命令速查
 
