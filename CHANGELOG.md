@@ -4,6 +4,20 @@ All notable changes to `wps-ai-agent-cli`. The versioning rule and release steps
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-10-17
+
+Phase 11: the selection fix 0.7.0 lacks, spreadsheet write results that show the cells around the write, and the undo of axis titles and series values checked on Windows.
+
+### Added
+
+- `spreadsheet-selection-replace` and `spreadsheet-selection-delete` on cells return `data.verified_state.surroundings`: the cells around the written range in the saved file (one row and column on each side, plus the header row of those columns when the range starts below row 2; at most 10 by 10, long values cut at 100 characters), as rows of values, with the cells outside the selection that changed (`changed_outside_selection`). When none did, the `check` sentence says so. In P10-006, five of the eight calls agents still made after a write were `spreadsheet_read` of exactly these cells. (P11-003)
+- Agent evaluation: each run records, per write call, the `verified_state` its result carried (`source`, `passed`, `change_count`, `other_changes`, the `check` sentence and the surroundings range), and counts `unverified_writes`, the writes whose `passed` is not true. `run_windows_check.py eval`'s `RESULTS.md` gives the total and lists those writes under each run. (P11-004)
+- `run_windows_check.py undo` has two more scenarios, `spreadsheet-axis-title-replace` and `spreadsheet-series-values-replace`. `chart_note.xlsx`'s chart now has a value axis title `DRAFT`, and its series reads `B2:B3`; the setup selects the axis title or the series by name. The text compared on disk includes the cell range each series reads, so an undo of series values that leaves literal values instead of the reference fails. (P11-006)
+
+### Changed
+
+- The MCP descriptions of `validate_document`, `snapshot_document` and `spreadsheet_read` say they are not needed to check an open-document write, whose result already holds `verified_state`. In P10-006 agents still called them after Writer inserts and deletes, and the write's own `check` sentence already named the paragraph they then searched for. (P11-005)
+
 ### Fixed
 
 - `spreadsheet-selection-read` read a selected chart title as the chart's series values (with empty text), so `spreadsheet-selection-replace` on it was refused with `SELECTION_MISMATCH`. A selected text box was read as series values too, and the shape-text write refused a text box as a chart element. The scripts told these objects apart by whether a member access raised, and WPS returns an empty value for a member an object does not have instead of raising. They now check for a value, which holds either way. 0.7.0 has this defect. Found by the P10-006 Windows undo check on `chart_note.xlsx`. (P10-006)

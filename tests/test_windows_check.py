@@ -271,6 +271,26 @@ class EvalTests(unittest.TestCase):
         section = text.split("### Documents WPS had open outside the task workspaces")[1]
         self.assertIn("- None.", section.split("###")[0])
 
+    def test_writes_that_did_not_verify_are_listed_per_run(self):
+        class Unverified(FakeRunner):
+            def run_task_repeated(self, task, *args, **kwargs):
+                self.ran.append(task["id"])
+                calls = [
+                    {
+                        "name": "mcp__wps-agent__wps_agent_writer_selection_insert",
+                        "error_codes": [],
+                        "verified_state": {"passed": None, "check": "not compared (no reader for .doc)"},
+                    }
+                ]
+                return task_result(task["id"], agent={"num_turns": 4, "tool_calls": calls})
+
+        self.run_eval(runner=Unverified())
+        text = (self.out / "RESULTS.md").read_text(encoding="utf-8")
+        self.assertIn(
+            "not verified: writer_selection_insert verified_state.passed None: not compared (no reader for .doc)", text
+        )
+        self.assertIn("writes whose verified_state.passed is not true**", text)
+
     def test_wrong_tool_calls_are_shown_per_task_and_in_total(self):
         class Wrong(FakeRunner):
             def run_task_repeated(self, task, *args, **kwargs):

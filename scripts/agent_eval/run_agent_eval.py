@@ -80,7 +80,8 @@ SPREADSHEET_ZH_SHEET = "汇总"
 SPREADSHEET_ZH_ROWS = (("地区", "一季度", "状态"), ("华北", 120, "草稿"), ("华南", 95, "草稿"))
 
 
-# A workbook with a chart titled DRAFT and a text box holding DRAFT, for the Windows undo check (P10-005).
+# A workbook with a chart titled DRAFT (its value axis titled DRAFT too, P11-006) and a text box holding DRAFT,
+# for the Windows undo check (P10-005). The chart's series reads Sales from B2:B3.
 CHART_NOTE_FIXTURE = "chart_note.xlsx"
 CHART_NOTE_SHEET = "Status"
 CHART_NOTE_ROWS = (("Quarter", "Sales"), ("Q1", 120), ("Q2", 95))
@@ -112,6 +113,7 @@ def write_chart_note_workbook(path: Path) -> None:
         sheet.append(list(row))
     chart = BarChart()
     chart.title = CHART_NOTE_TEXT
+    chart.y_axis.title = CHART_NOTE_TEXT
     chart.add_data(Reference(sheet, min_col=2, min_row=1, max_row=len(CHART_NOTE_ROWS)), titles_from_data=True)
     sheet.add_chart(chart, "D2")
     plain = path.with_name(path.name + ".tmp")
@@ -125,8 +127,16 @@ def write_chart_note_workbook(path: Path) -> None:
     plain.unlink()
 
 
+_TAG = r"(?:\w+:)?"
+
+
 def drawing_texts(path: Path) -> list[str]:
-    """The text of every shape and chart in a workbook: the a:t runs of its drawings and charts, in part order."""
+    """The text of every shape and chart in a workbook (the t runs of its drawings and charts, in part order), then
+    the cells each chart series reads its values from (P11-006), so an undo that loses that link shows.
+
+    The prefix of the elements is not fixed: openpyxl writes charts in the default namespace, WPS with c: and a:.
+    Sheet references are compared without quotes and dollar signs, which differ between writers.
+    """
     import re
     import zipfile
 
@@ -134,10 +144,14 @@ def drawing_texts(path: Path) -> list[str]:
         names = sorted(
             name for name in archive.namelist() if re.fullmatch(r"xl/(drawings/drawing|charts/chart)\d+\.xml", name)
         )
-        texts = []
+        texts: list[str] = []
+        references: list[str] = []
         for name in names:
-            texts += re.findall(r"<a:t>([^<]*)</a:t>", archive.read(name).decode("utf-8"))
-    return texts
+            part = archive.read(name).decode("utf-8")
+            texts += re.findall(rf"<{_TAG}t>([^<]*)</{_TAG}t>", part)
+            for reference in re.findall(rf"<{_TAG}val>\s*<{_TAG}numRef>\s*<{_TAG}f>([^<]*)</{_TAG}f>", part):
+                references.append("series values: " + reference.replace("'", "").replace("$", ""))
+    return texts + references
 
 
 def write_fixture(workspace: Path, name: str) -> str:
@@ -377,11 +391,14 @@ if ($params.component -eq 'spreadsheets') {
   if (-not [string]::IsNullOrEmpty([string]$params.object)) {
     # Select a shape, or a chart's title, by the object's name (P10-005).
     $shape = $sheet.Shapes.Item([string]$params.object)
-    if ([string]$params.part -eq 'chart_title') {
+    if (@('chart_title', 'axis_title', 'series') -contains [string]$params.part) {
       try { [void]$sheet.ChartObjects([string]$params.object).Activate() } catch { [void]$shape.Select() }
       $chart = $app.ActiveChart
       if ($null -eq $chart) { $chart = $shape.Chart }
-      [void]$chart.ChartTitle.Select()
+      # xlValue = 2: the value axis, whose title the fixture sets (P11-006).
+      if ([string]$params.part -eq 'chart_title') { [void]$chart.ChartTitle.Select() }
+      elseif ([string]$params.part -eq 'axis_title') { [void]$chart.Axes(2).AxisTitle.Select() }
+      else { [void]$chart.SeriesCollection(1).Select() }
     } else {
       [void]$shape.Select()
     }
@@ -922,17 +939,34 @@ def run_setup(
     return file_sha256(fixture), None, None
 
 
-def _error_codes(content: Any) -> list[str]:
-    """Error codes from a wps-agent tool result, which is the CLI envelope as JSON text."""
+def _envelope(content: Any) -> dict[str, Any] | None:
+    """A wps-agent tool result, which is the CLI envelope as JSON text, or None when it is not one."""
     if isinstance(content, list):
         content = "".join(part.get("text", "") for part in content if isinstance(part, dict))
     try:
         envelope = json.loads(content) if isinstance(content, str) else content
     except json.JSONDecodeError:
-        return []
-    if not isinstance(envelope, dict):
-        return []
+        return None
+    return envelope if isinstance(envelope, dict) else None
+
+
+def _error_codes(content: Any) -> list[str]:
+    """Error codes from a wps-agent tool result."""
+    envelope = _envelope(content) or {}
     return [str(error.get("code")) for error in envelope.get("errors") or [] if isinstance(error, dict)]
+
+
+def _verified_state(content: Any) -> dict[str, Any] | None:
+    """What a write's result said it verified (P11-004): enough to tell what the agent saw, not the whole result."""
+    data = (_envelope(content) or {}).get("data")
+    state = data.get("verified_state") if isinstance(data, dict) else None
+    if not isinstance(state, dict):
+        return None
+    summary = {key: state.get(key) for key in ("source", "passed", "change_count", "other_changes") if key in state}
+    summary["check"] = str(state.get("check") or "")[:300]
+    if isinstance(state.get("surroundings"), dict):
+        summary["surroundings_range"] = state["surroundings"].get("range")
+    return summary
 
 
 def parse_transcript(lines: list[str]) -> tuple[dict[str, Any], list[dict[str, Any]]]:
@@ -965,6 +999,9 @@ def parse_transcript(lines: list[str]) -> tuple[dict[str, Any], list[dict[str, A
             elif block.get("type") == "tool_result" and block.get("tool_use_id") in by_id:
                 call = by_id[block["tool_use_id"]]
                 call["error_codes"] = _error_codes(block.get("content"))
+                verified = _verified_state(block.get("content"))
+                if verified is not None:
+                    call["verified_state"] = verified
                 call["is_error"] = bool(block.get("is_error")) or bool(call["error_codes"])
     return result, calls
 
@@ -991,6 +1028,10 @@ def tool_metrics(
         "off_path_calls_before_write": None,
         "off_path_calls_after_write": None,
         "wrong_tool_calls": sum(tool in FILE_BASED_WRITE_TOOLS for tool in used) if open_document else None,
+        # Writes whose result did not report verified_state.passed true (P11-004).
+        "unverified_writes": sum(
+            1 for call in wps_calls if "verified_state" in call and call["verified_state"].get("passed") is not True
+        ),
     }
     if expected_tools is not None:
         off_path = [tool for tool in used if tool not in expected_tools]
@@ -1345,6 +1386,7 @@ def run_task_repeated(
             "wrong_tool_calls": (
                 sum(run["metrics"].get("wrong_tool_calls") or 0 for run in runs) if opens_document(task) else None
             ),
+            "unverified_writes": sum(run["metrics"].get("unverified_writes") or 0 for run in runs),
         },
         "runs": runs,
     }
@@ -1450,6 +1492,7 @@ def summarize(results: list[dict[str, Any]], stamp: str, model: str | None) -> d
             result.get("metrics", {}).get("off_path_calls_after_write") or 0 for result in ran
         ),
         "wrong_tool_calls": sum(result.get("metrics", {}).get("wrong_tool_calls") or 0 for result in ran),
+        "unverified_writes": sum(result.get("metrics", {}).get("unverified_writes") or 0 for result in ran),
         "tasks_without_expected_tools": [
             result["id"] for result in ran if result.get("metrics", {}).get("off_path_calls") is None
         ],

@@ -136,6 +136,41 @@ class CellWriteStateTests(unittest.TestCase):
         )
         self.assertIn("Status!C2 changed from 'DRAFT' to 'FINAL'", state["check"])
 
+    def test_the_cells_around_the_write_and_the_header_are_shown(self):
+        files = Files(self)
+        cells = {"A1": "Item", "B1": "Owner", "C1": "Status", "A4": "Gamma", "C4": "DRAFT", "C5": "DRAFT"}
+        backup = files.xlsx("before.xlsx", cells)
+        saved = files.xlsx("after.xlsx", {**cells, "C4": "FINAL", "C5": "FINAL"})
+        state = cell_write_state(saved, str(backup), "Status", "$C$4:$C$5")
+        around = state["surroundings"]
+        self.assertEqual(around["range"], "B3:D6")
+        self.assertEqual(around["rows"][1], [None, "FINAL", None])
+        self.assertEqual(around["header_range"], "B1:D1")
+        self.assertEqual(around["header"], ["Owner", "Status", None])
+        self.assertEqual(around["changed_outside_selection"], [])
+        self.assertIn("The cells around it (B3:D6 and the header row B1:D1)", state["check"])
+
+    def test_a_range_at_the_top_left_has_no_separate_header_and_a_changed_neighbour_is_named(self):
+        files = Files(self)
+        backup = files.xlsx("before.xlsx", {"A1": "DRAFT", "B1": "x"})
+        saved = files.xlsx("after.xlsx", {"A1": "FINAL", "B1": "y"})
+        state = cell_write_state(saved, str(backup), "Status", "A1")
+        around = state["surroundings"]
+        self.assertEqual(around["range"], "A1:B2")
+        self.assertNotIn("header", around)
+        self.assertEqual(around["changed_outside_selection"], ["B1"])
+        self.assertFalse(state["passed"])
+        self.assertNotIn("did not change", state["check"])
+
+    def test_the_surroundings_of_a_large_range_are_capped(self):
+        files = Files(self)
+        backup = files.xlsx("before.xlsx", {"A1": 1})
+        state = cell_write_state(files.xlsx("after.xlsx", {"A1": 1}), str(backup), "Status", "C3:Z40")
+        around = state["surroundings"]
+        self.assertEqual(around["range"], "B2:K11")
+        self.assertTrue(around["truncated"])
+        self.assertEqual(len(around["rows"]), 10)
+
     def test_a_change_outside_the_selection_fails(self):
         files = Files(self)
         backup = files.xlsx("before.xlsx", {"C2": "DRAFT", "E9": 1})
@@ -236,6 +271,12 @@ class CliSummaryTests(unittest.TestCase):
 
 
 class McpDescriptionTests(unittest.TestCase):
+    def test_the_checking_tools_say_they_are_not_needed_after_a_write(self):
+        for command in ("validate-document", "snapshot-document", "spreadsheet-read"):
+            with self.subTest(command=command):
+                notes = get_mcp_tool_schema(command)["safety_notes"]
+                self.assertTrue(any(note.startswith("Not needed to check an open-document write") for note in notes))
+
     def test_every_verified_command_says_the_result_is_already_checked(self):
         for command in VERIFIED_COMMANDS:
             with self.subTest(command=command):

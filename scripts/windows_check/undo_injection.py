@@ -70,6 +70,22 @@ SCENARIOS: dict[str, dict[str, Any]] = {
         "command": "replace_spreadsheet_selection",
         "arguments": {"text": "FINAL", "expected_selection_text": "DRAFT"},
     },
+    # The value axis title and the series (P11-006). The series reads B2:B3 (120, 95); the write replaces its
+    # values with literals, and the undo has to give it its cell reference back.
+    "spreadsheet-axis-title-replace": {
+        "component": "spreadsheets",
+        "fixture": "chart_note.xlsx",
+        "selection": {"sheet": "Status", "object": "Chart 1", "part": "axis_title"},
+        "command": "replace_spreadsheet_selection",
+        "arguments": {"text": "FINAL", "expected_selection_text": "DRAFT"},
+    },
+    "spreadsheet-series-values-replace": {
+        "component": "spreadsheets",
+        "fixture": "chart_note.xlsx",
+        "selection": {"sheet": "Status", "object": "Chart 1", "part": "series"},
+        "command": "replace_spreadsheet_selection",
+        "arguments": {"text": "130\t90", "expected_selection_text": "120\t95"},
+    },
 }
 
 

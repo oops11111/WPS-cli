@@ -133,16 +133,17 @@ class FakeWps:
 class FakeObjectWps:
     """Spreadsheets with a text box or a chart title selected; the write and the undo change the saved file."""
 
-    def __init__(self, scenario, selection_text="DRAFT"):
+    def __init__(self, scenario, selection_text=None):
         self.selection = injection.SCENARIOS[scenario]["selection"]
-        self.selection_text = selection_text
+        expected = injection.SCENARIOS[scenario]["arguments"]["expected_selection_text"]
+        self.selection_text = expected if selection_text is None else selection_text
         self.actions = []
 
     def __call__(self, action, params):
         self.actions.append(action)
         path = Path(params["path"])
         if action == "selection-read":
-            chart = self.selection.get("part") == "chart_title"
+            part = self.selection.get("part")
             return com_ok(
                 {
                     "ok": True,
@@ -151,18 +152,26 @@ class FakeObjectWps:
                     "read_only": False,
                     "selection_kind": "non_range",
                     "sheet_name": "Status",
-                    "object_kind": "chart" if chart else "shape",
+                    "object_kind": "chart" if part else "shape",
                     "object_name": self.selection["object"],
-                    "has_text_frame": not chart,
-                    "has_chart_title": chart,
+                    "has_text_frame": not part,
+                    "has_chart_title": part == "chart_title",
+                    "has_axis_title": part == "axis_title",
+                    "has_series_values": part == "series",
+                    "series_name": "Sales" if part == "series" else None,
                     "selection_text": self.selection_text,
                 }
             )
         if action.endswith("-replace"):
             self.original = path.read_bytes()
             part = "xl/charts/chart1.xml" if "chart" in action else "xl/drawings/drawing1.xml"
-            rewrite_part(path, part, b"<a:t>DRAFT</a:t>", f"<a:t>{params['text']}</a:t>".encode())
-            return com_ok({"ok": True, "status": "ok", "read_back_text": params["text"]})
+            written = "\t".join(params["values"]) if "values" in params else params["text"]
+            if "values" in params:
+                # Literal values replace the series' reference to B2:B3, as WPS saves them.
+                rewrite_part(path, part, b"<numRef><f>'Status'!$B$2:$B$3</f>", b"<numLit><f>")
+            else:
+                rewrite_part(path, part, b"<a:t>DRAFT</a:t>", f"<a:t>{written}</a:t>".encode(), count=1)
+            return com_ok({"ok": True, "status": "ok", "read_back_text": written})
         if action.endswith("-revert"):
             self.revert_params = params
             path.write_bytes(self.original)
@@ -170,14 +179,14 @@ class FakeObjectWps:
         raise AssertionError(f"unexpected action {action}")
 
 
-def rewrite_part(path, part, old, new):
+def rewrite_part(path, part, old, new, count=-1):
     import zipfile
 
     with zipfile.ZipFile(path) as archive:
         items = [(item, archive.read(item.filename)) for item in archive.infolist()]
     with zipfile.ZipFile(path, "w", zipfile.ZIP_DEFLATED) as archive:
         for item, data in items:
-            archive.writestr(item, data.replace(old, new) if item.filename == part else data)
+            archive.writestr(item, data.replace(old, new, count) if item.filename == part else data)
 
 
 class ScenarioTests(unittest.TestCase):
@@ -225,6 +234,12 @@ class ScenarioTests(unittest.TestCase):
         for name, write, revert in (
             ("spreadsheet-shape-text-replace", "selection-shape-replace", "selection-shape-revert"),
             ("spreadsheet-chart-title-replace", "selection-chart-title-replace", "selection-chart-title-revert"),
+            ("spreadsheet-axis-title-replace", "selection-axis-title-replace", "selection-axis-title-revert"),
+            (
+                "spreadsheet-series-values-replace",
+                "selection-series-values-replace",
+                "selection-series-values-revert",
+            ),
         ):
             with self.subTest(scenario=name):
                 wps = FakeObjectWps(name)
@@ -232,7 +247,8 @@ class ScenarioTests(unittest.TestCase):
                 passed, conditions = injection.verdict(result)
                 self.assertTrue(passed, conditions)
                 self.assertEqual(wps.actions, ["selection-read", write, revert])
-                self.assertEqual(wps.revert_params["written_text"], "FINAL")
+                written = injection.SCENARIOS[name]["arguments"]["text"]
+                self.assertEqual(wps.revert_params["written_text"], written)
                 self.assertEqual(wps.revert_params["read_back_text"], injection.INJECTED_READ_BACK)
                 self.assertEqual(result["text_after"], result["text_before"])
                 self.assertIn("DRAFT", result["text_before"])
@@ -349,11 +365,13 @@ class UndoCommandTests(unittest.TestCase):
                 "presentation-replace",
                 "spreadsheet-shape-text-replace",
                 "spreadsheet-chart-title-replace",
+                "spreadsheet-axis-title-replace",
+                "spreadsheet-series-values-replace",
             ],
         )
         text = (self.out / "RESULTS.md").read_text(encoding="utf-8")
         self.assertIn("# Windows check of the undo in WPS", text)
-        self.assertIn("**4/4 scenarios passed.**", text)
+        self.assertIn("**6/6 scenarios passed.**", text)
         self.assertIn(
             "| `writer-replace` | pass | `VALIDATION_FAILED`, `MUTATION_ROLLED_BACK` | `aaaaaaaaaaaa` |", text
         )

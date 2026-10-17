@@ -333,6 +333,76 @@ class TranscriptTests(unittest.TestCase):
         self.assertEqual(metrics["tools_used"], ["backup_document"])
 
 
+class VerifiedStateRecordTests(unittest.TestCase):
+    def transcript(self, data):
+        envelope = json.dumps({"ok": True, "errors": [], "data": data})
+        return [
+            json.dumps(
+                {
+                    "type": "assistant",
+                    "message": {
+                        "content": [
+                            {
+                                "type": "tool_use",
+                                "id": "w1",
+                                "name": "mcp__wps-agent__wps_agent_spreadsheet_selection_replace",
+                                "input": {"text": "FINAL"},
+                            }
+                        ]
+                    },
+                }
+            ),
+            json.dumps(
+                {
+                    "type": "user",
+                    "message": {
+                        "content": [
+                            {
+                                "type": "tool_result",
+                                "tool_use_id": "w1",
+                                "content": [{"type": "text", "text": envelope}],
+                            }
+                        ]
+                    },
+                }
+            ),
+        ]
+
+    def test_a_write_records_the_verified_state_it_returned(self):
+        state = {
+            "source": "saved_file",
+            "passed": True,
+            "change_count": 2,
+            "other_changes": 0,
+            "check": "The saved file was compared with the pre-write backup.",
+            "changes": [{"sheet": "Status", "cell": "C2"}],
+            "surroundings": {"range": "B1:D4", "rows": []},
+        }
+        _result, calls = run_agent_eval.parse_transcript(self.transcript({"verified_state": state}))
+        self.assertEqual(
+            calls[0]["verified_state"],
+            {
+                "source": "saved_file",
+                "passed": True,
+                "change_count": 2,
+                "other_changes": 0,
+                "check": "The saved file was compared with the pre-write backup.",
+                "surroundings_range": "B1:D4",
+            },
+        )
+        self.assertEqual(run_agent_eval.tool_metrics(calls)["unverified_writes"], 0)
+
+    def test_a_write_that_did_not_verify_is_counted(self):
+        for passed in (False, None):
+            with self.subTest(passed=passed):
+                data = {"verified_state": {"source": "wps_read_back", "passed": passed, "check": "not compared"}}
+                _result, calls = run_agent_eval.parse_transcript(self.transcript(data))
+                self.assertEqual(run_agent_eval.tool_metrics(calls)["unverified_writes"], 1)
+        _result, calls = run_agent_eval.parse_transcript(self.transcript({"selection_text": "DRAFT"}))
+        self.assertNotIn("verified_state", calls[0])
+        self.assertEqual(run_agent_eval.tool_metrics(calls)["unverified_writes"], 0)
+
+
 class AgentEvalJudgeTests(unittest.TestCase):
     def test_passes_when_the_expected_state_is_present(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -1873,10 +1943,23 @@ class OpenDocumentSetupTests(unittest.TestCase):
     def test_the_chart_note_workbook_holds_a_chart_and_a_text_box_with_draft(self):
         path = self.workspace / run_agent_eval.CHART_NOTE_FIXTURE
         run_agent_eval.write_fixture(self.workspace, path.name)
-        self.assertEqual(run_agent_eval.drawing_texts(path), ["DRAFT", "DRAFT"])
+        self.assertEqual(run_agent_eval.drawing_texts(path), ["DRAFT", "DRAFT", "DRAFT", "series values: Status!B2:B3"])
         text = run_agent_eval.document_text(path)
         self.assertIn("Status!B2=120", text)
-        self.assertTrue(text.endswith("DRAFT\nDRAFT"))
+        self.assertTrue(text.endswith("DRAFT\nseries values: Status!B2:B3"))
+
+    def test_series_references_are_compared_without_quotes_dollars_or_prefixes(self):
+        import zipfile
+
+        path = self.workspace / "wps_saved.xlsx"
+        with zipfile.ZipFile(path, "w") as archive:
+            archive.writestr(
+                "xl/charts/chart1.xml",
+                '<c:chartSpace xmlns:c="c" xmlns:a="a"><c:title><a:t>FINAL</a:t></c:title>'
+                "<c:val><c:numRef><c:f>Status!$B$2:$B$3</c:f></c:numRef></c:val></c:chartSpace>",
+            )
+            archive.writestr("xl/charts/chart2.xml", '<c:val><c:numLit><c:ptCount val="2"/></c:numLit></c:val>')
+        self.assertEqual(run_agent_eval.drawing_texts(path), ["FINAL", "series values: Status!B2:B3"])
 
     def test_a_selection_that_does_not_read_back_is_a_setup_failure_and_closes_the_document(self):
         options = {"selection": {"text": "DRAFT"}}
