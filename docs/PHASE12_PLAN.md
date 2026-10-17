@@ -115,7 +115,7 @@ python scripts/windows_check/run_windows_check.py eval --only restore-latest-bac
 `scripts/windows_check/results/20261017T233437Z-a21b050-eval/`：`main@a21b050`，只重跑两个任务，各 3 次。
 
 - `restore-latest-backup` **2/3**，`restore-dry-run` **3/3**。`wrong_tool_calls` 0，`unverified_writes` 0。
-- 同时传 `backup_name` 和 `backup_path` 的调用在 6 次运行里出现 5 次，全部成功，`MCP_CLI_ARGUMENTS_REJECTED` 不再出现。
+- 同时传 `backup_name` 和 `backup_path` 的调用在 6 次运行里出现 4 次（其中 1 次运行调了两次），全部成功，`MCP_CLI_ARGUMENTS_REJECTED` 不再出现。
 - `restore-latest-backup` 第 3 次没通过，原因和修复无关：Agent 先做了 dry run，再正式恢复，又查了两次 `operation`（第一次在恢复前，返回 `OPERATION_NOT_FOUND`）、`snapshot_document` 和 `spreadsheet_read`，共 8 次调用，超过上限 6。文件恢复正确。
 
 | 标准 | 结果 | 证据 |
