@@ -3348,15 +3348,29 @@
   {
     "id": "P12-009",
     "phase": "phase12",
-    "title": "Windows check of the 0.9.0 wheel from PyPI",
+    "title": "Windows check of the 0.9.0 wheel",
     "status": "todo",
-    "acceptance": "M3, M5: run_windows_check.py wheel --version 0.9.0 --source pypi passes on Windows; result recorded."
+    "acceptance": "M5: run_windows_check.py wheel --version 0.9.0 passes on Windows; result recorded (PyPI publishing skipped)."
   },
   {
     "id": "P12-010",
     "phase": "phase12",
     "title": "Clean-account check of 0.9.0",
     "status": "todo",
-    "acceptance": "M2: on a new Windows account, 0.9.0 installed from PyPI passes inspect-env, C1 to C6 and undo 6 of 6; recorded in docs/COMPATIBILITY_MATRIX.md."
+    "acceptance": "M2: on a new Windows account, 0.9.0 installed from the GitHub Release wheel passes inspect-env, C1 to C6 and undo 6 of 6; recorded in docs/COMPATIBILITY_MATRIX.md."
+  },
+  {
+    "id": "P12-011",
+    "phase": "phase12",
+    "title": "Complex HTML conversion tasks",
+    "status": "done",
+    "acceptance": "A complex HTML report, budget and animated slide deck in fixtures/html_complex/, three evaluation tasks that convert each to docx, xlsx or pptx and then to PDF through WPS, offline judge tests, and the conversion gaps the fixtures show written down."
+  },
+  {
+    "id": "P12-012",
+    "phase": "phase12",
+    "title": "Windows run of the complex HTML tasks",
+    "status": "todo",
+    "acceptance": "run_windows_check.py eval --prefix html-complex- --repeat 3 --min-passes 2 on Windows; each task at least 2 of 3; results recorded."
   }
 ]

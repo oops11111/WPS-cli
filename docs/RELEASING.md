@@ -41,8 +41,8 @@ Phase 4 出口标准 E6 的一部分（P4-012）。
 定 1.0 的检查清单（由你决定，满足下面各条后再考虑）：
 
 1. 全部评测任务在要发布的提交上通过（Phase 12 的 M1）。
-2. 至少在一个从没用过本项目的环境里，从 PyPI 安装后通过兼容检查（M2）。
-3. 每个版本都同时发布在 GitHub Release 和 PyPI，并在 Windows 上检查过（M3）。
+2. 至少在一个从没用过本项目的环境里，从 GitHub Release 的 wheel 安装后通过兼容检查（M2）。
+3. 每个版本都发布在 GitHub Release，并在 Windows 上检查过 wheel。是否同时发布到 PyPI 由你决定（见下文“PyPI”）。
 4. 最近一个次版本里，清单没有 breaking 的变化；有的话，先发一个只做弃用标注的次版本。
 
 ## 变更记录
@@ -66,8 +66,8 @@ Phase 4 出口标准 E6 的一部分（P4-012）。
    - 用 `scripts/release_notes.py` 检查标签等于 `v<__version__>`，并取出 `CHANGELOG.md` 里这个版本的一节作为发布说明；标签不对、这一节没有日期或是空的，就停下，不发布；
    - 构建 wheel 和源码包，在新的虚拟环境里只装 wheel，在仓库以外跑 `inspect-env` 和 safe 档回归；
    - 都通过后，用 `gh release create` 建 GitHub Release，附上 wheel 和源码包；
-   - 再由 `pypi` 任务把同一组文件上传到 PyPI（Trusted Publishing，见下文“PyPI”）。
-6. 在 GitHub 的 Releases 页面和 <https://pypi.org/project/wps-ai-agent-cli/> 确认发布内容，再在 Windows 上检查一次：`python scripts/windows_check/run_windows_check.py wheel --version <版本号> --source pypi`（从 PyPI 安装，并核对文件和 GitHub Release 上的一致）。
+   - 打开 PyPI 发布时，再由 `pypi` 任务把同一组文件上传到 PyPI（见下文“PyPI”；目前关闭）。
+6. 在 GitHub 的 Releases 页面确认发布内容，再在 Windows 上检查一次：`python scripts/windows_check/run_windows_check.py wheel --version <版本号>`。打开了 PyPI 发布时，再加跑 `--source pypi`（从 PyPI 安装，并核对文件和 GitHub Release 上的一致）。
 
 标签打错了：在 Release 发布前，删掉远端标签（`git push origin :refs/tags/v<版本号>`）重打即可；Release 已发布的，先在 GitHub 上删除 Release，再删标签。
 
@@ -77,13 +77,13 @@ Phase 4 出口标准 E6 的一部分（P4-012）。
 
 ## PyPI
 
-从 0.9.0 起，每个版本也发布到 PyPI，包名 `wps-ai-agent-cli`（P12-004）：
+**目前不发布到 PyPI**（2026-10-17 决定）。`release.yml` 的 `pypi` 任务保留，但只在仓库变量 `PUBLISH_TO_PYPI` 为 `true` 时运行（Settings → Secrets and variables → Actions → Variables）。打开后，每个版本也发布到 PyPI，包名 `wps-ai-agent-cli`（P12-004）：
 
 ```bash
 pip install wps-ai-agent-cli==<版本号>
 ```
 
-上传用 Trusted Publishing：PyPI 信任本仓库 `release.yml` 的 `pypi` 任务的 OIDC 身份，仓库和 Secrets 里都不存 token。第一次发布前要你登记一次（之后不用再做）：
+上传用 Trusted Publishing：PyPI 信任本仓库 `release.yml` 的 `pypi` 任务的 OIDC 身份，仓库和 Secrets 里都不存 token。打开前要你登记一次（之后不用再做）：
 
 1. 登录 <https://pypi.org>，打开 Account settings → Publishing → Add a new pending publisher（GitHub）。
 2. 填 PyPI Project Name `wps-ai-agent-cli`，Owner `oops11111`，Repository name `WPS-cli`，Workflow name `release.yml`，Environment name `pypi`。

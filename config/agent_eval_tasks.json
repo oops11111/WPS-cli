@@ -1458,6 +1458,201 @@
           "kind": "file_unchanged"
         }
       ]
+    },
+    {
+      "id": "html-complex-report-to-docx",
+      "requires_wps": true,
+      "setup": [
+        "html_complex"
+      ],
+      "prompt": "Using the wps-agent MCP tools, convert the HTML report report.html in the current directory into an editable Word document named report.docx in the same directory, then use WPS to convert report.docx to a PDF named report.pdf in the same directory. Do not change report.html.",
+      "expected_tools": [
+        "html_editable",
+        "convert_smoke"
+      ],
+      "checks": [
+        {
+          "kind": "tool_called",
+          "tool": "html_editable"
+        },
+        {
+          "kind": "file_text",
+          "path": "report.docx",
+          "contains": [
+            "2026 年第三季度经营报告",
+            "一、摘要",
+            "4,820 万元",
+            "质量第一",
+            "上海 6 家",
+            "汇率风险",
+            "SELECT region",
+            "finance@example.com"
+          ],
+          "absent": [
+            "document.title",
+            "alert(1)"
+          ]
+        },
+        {
+          "kind": "docx_table_cell",
+          "path": "report.docx",
+          "table": 1,
+          "row": 3,
+          "column": 1,
+          "text": "华东"
+        },
+        {
+          "kind": "docx_table_cell",
+          "path": "report.docx",
+          "table": 1,
+          "row": 3,
+          "column": 3,
+          "text": "2,050"
+        },
+        {
+          "kind": "tool_called",
+          "tool": "convert_smoke",
+          "input": {
+            "component": "writer",
+            "format": "pdf"
+          }
+        },
+        {
+          "kind": "pdf_file",
+          "path": "report.pdf",
+          "min_bytes": 1000
+        }
+      ]
+    },
+    {
+      "id": "html-complex-budget-to-xlsx",
+      "requires_wps": true,
+      "setup": [
+        "html_complex"
+      ],
+      "prompt": "Using the wps-agent MCP tools, convert the HTML page budget.html in the current directory into an editable spreadsheet named budget.xlsx in the same directory, then use WPS to convert budget.xlsx to a PDF named budget.pdf in the same directory. Do not change budget.html.",
+      "expected_tools": [
+        "html_editable",
+        "convert_smoke"
+      ],
+      "checks": [
+        {
+          "kind": "tool_called",
+          "tool": "html_editable",
+          "input": {
+            "format": "xlsx"
+          }
+        },
+        {
+          "kind": "xlsx_sheets",
+          "path": "budget.xlsx",
+          "names": [
+            "部门费用预算",
+            "人员编制",
+            "部门费用预算 2",
+            "一个名字很长很长很长很长的汇总表：包含 非法字符 以及 方括号"
+          ]
+        },
+        {
+          "kind": "xlsx_cell",
+          "path": "budget.xlsx",
+          "sheet": "部门费用预算",
+          "cell": "B3",
+          "value": 120000
+        },
+        {
+          "kind": "xlsx_cell",
+          "path": "budget.xlsx",
+          "sheet": "部门费用预算",
+          "cell": "C3",
+          "value": 135000.5
+        },
+        {
+          "kind": "xlsx_cell",
+          "path": "budget.xlsx",
+          "sheet": "部门费用预算",
+          "cell": "D4",
+          "value": -5000
+        },
+        {
+          "kind": "xlsx_cell",
+          "path": "budget.xlsx",
+          "sheet": "人员编制",
+          "cell": "A2",
+          "value": "000127"
+        },
+        {
+          "kind": "xlsx_cell",
+          "path": "budget.xlsx",
+          "sheet": "人员编制",
+          "cell": "B4",
+          "value": "Émile O'Brien"
+        },
+        {
+          "kind": "tool_called",
+          "tool": "convert_smoke",
+          "input": {
+            "component": "spreadsheets",
+            "format": "pdf"
+          }
+        },
+        {
+          "kind": "pdf_file",
+          "path": "budget.pdf",
+          "min_bytes": 1000
+        }
+      ]
+    },
+    {
+      "id": "html-complex-launch-to-pptx",
+      "requires_wps": true,
+      "setup": [
+        "html_complex"
+      ],
+      "prompt": "Using the wps-agent MCP tools, convert the animated HTML slide deck launch.html in the current directory into an editable presentation named launch.pptx in the same directory, then use WPS to convert launch.pptx to a PDF named launch.pdf in the same directory. Do not change launch.html.",
+      "expected_tools": [
+        "html_editable",
+        "convert_smoke"
+      ],
+      "checks": [
+        {
+          "kind": "tool_called",
+          "tool": "html_editable",
+          "input": {
+            "format": "pptx"
+          }
+        },
+        {
+          "kind": "file_text",
+          "path": "launch.pptx",
+          "contains": [
+            "星河 X1 新品发布会",
+            "为什么是 X1",
+            "续航提升 40%",
+            "支持 Wi-Fi 7",
+            "首年目标 50 万台",
+            "标准版 ¥6,999",
+            "Q & A"
+          ],
+          "absent": [
+            "setInterval",
+            "SVG 文本"
+          ]
+        },
+        {
+          "kind": "tool_called",
+          "tool": "convert_smoke",
+          "input": {
+            "component": "presentation",
+            "format": "pdf"
+          }
+        },
+        {
+          "kind": "pdf_file",
+          "path": "launch.pdf",
+          "min_bytes": 1000
+        }
+      ]
     }
   ]
 }

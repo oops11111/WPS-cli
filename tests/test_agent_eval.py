@@ -88,6 +88,7 @@ KNOWN_SETUP_STEPS = {
     "backup",
     "modify",
     "html_table",
+    "html_complex",
     "hold",
     "open_in_wps",
     "select_text",
@@ -1606,6 +1607,38 @@ class AgentEvalJudgeTests(unittest.TestCase):
         failed = [check for check in lost_row["checks"] if not check["passed"]]
         self.assertEqual([check["kind"] for check in failed], ["file_text"])
         self.assertEqual(failed[0]["detail"]["missing"], ["South", "95"])
+
+    def test_complex_html_tasks_pass_on_what_the_converter_makes_from_the_fixtures(self):
+        # The three html-complex tasks, judged on the real converter's output and a stand-in for WPS's PDF.
+        from wps_ai_agent_cli.html_editable import convert_html_editable
+        from wps_ai_agent_cli.html_office import convert_html_to_pptx, convert_html_to_xlsx
+
+        cases = {
+            "html-complex-report-to-docx": ("report", "docx", "writer", convert_html_editable),
+            "html-complex-budget-to-xlsx": ("budget", "xlsx", "spreadsheets", convert_html_to_xlsx),
+            "html-complex-launch-to-pptx": ("launch", "pptx", "presentation", convert_html_to_pptx),
+        }
+        for task_id, (name, suffix, component, convert) in cases.items():
+
+            def act(workspace, name=name, suffix=suffix, convert=convert, pdf=True):
+                self.assertTrue((workspace / "chart.png").is_file())
+                ok, _data, errors = convert(workspace / f"{name}.html", workspace / f"{name}.{suffix}")
+                self.assertTrue(ok, errors)
+                if pdf:
+                    (workspace / f"{name}.pdf").write_bytes(b"%PDF-1.7\n" + b"0" * 2000)
+
+            calls = [
+                _call("html_editable", input=f"{name}.html", output=f"{name}.{suffix}", format=suffix),
+                _call(
+                    "convert_smoke", component=component, input=f"{name}.{suffix}", output=f"{name}.pdf", format="pdf"
+                ),
+            ]
+            with self.subTest(task=task_id), tempfile.TemporaryDirectory() as tmp:
+                passed = self.run_wps_task(task_id, Path(tmp), act, calls)
+                self.assertTrue(passed["passed"], [check for check in passed["checks"] if not check["passed"]])
+                no_pdf = self.run_wps_task(task_id, Path(tmp) / "b", lambda ws, act=act: act(ws, pdf=False), calls[:1])
+                failed = [check["kind"] for check in no_pdf["checks"] if not check["passed"]]
+                self.assertEqual(failed, ["tool_called", "pdf_file"])
 
     def test_rename_sheet_passes_when_only_the_sheet_name_changed(self):
         from openpyxl import load_workbook

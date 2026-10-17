@@ -96,6 +96,8 @@ class ReleaseNotesTests(unittest.TestCase):
 
         pypi = workflow[workflow.index("\n  pypi:") :]
         self.assertIn("needs: release", pypi)
+        # Off unless the maintainer turns it on; a release without it is complete on GitHub.
+        self.assertIn("if: vars.PUBLISH_TO_PYPI == 'true'", pypi)
         self.assertIn("id-token: write", pypi)
         self.assertIn("pypa/gh-action-pypi-publish@release/v1", pypi)
         self.assertIn("actions/download-artifact@v4", pypi)

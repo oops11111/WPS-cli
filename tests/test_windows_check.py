@@ -245,7 +245,7 @@ class EvalTests(unittest.TestCase):
         argv = ["eval", "--tasks", str(tasks_file), "--out", str(self.out)]
         self.assertEqual(windows_check.main(argv, machine=FakeMachine(), runner=runner), 0)
         self.assertEqual(runner.ran, [task["id"] for task in spec["tasks"]])
-        self.assertEqual(len(runner.ran), 34)
+        self.assertEqual(len(runner.ran), 37)
         self.assertGreater(sum(not task_id.startswith("wps-open-") for task_id in runner.ran), 0)
 
     def test_failed_prerequisites_run_nothing_unless_forced(self):

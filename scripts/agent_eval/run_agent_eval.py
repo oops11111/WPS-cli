@@ -58,6 +58,11 @@ HTML_TABLE = (
     "</table></body></html>"
 )
 
+# Complex HTML inputs (a report, a budget and an animated deck) and the image they share, copied into the
+# workspace by the html_complex setup step.
+HTML_COMPLEX_DIR = REPO_ROOT / "fixtures" / "html_complex"
+HTML_COMPLEX_FILES = ("report.html", "budget.html", "launch.html", "chart.png")
+
 
 def file_sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
@@ -925,6 +930,9 @@ def run_setup(
             workbook.save(fixture)
         elif step == "html_table":
             (workspace / "table.html").write_text(HTML_TABLE, encoding="utf-8")
+        elif step == "html_complex":
+            for name in HTML_COMPLEX_FILES:
+                shutil.copyfile(HTML_COMPLEX_DIR / name, workspace / name)
         elif step in ("hold", "open_in_wps"):
             later = steps[index + 1 :]
             allowed = OPEN_DOCUMENT_STEPS if step == "open_in_wps" else ()

@@ -104,13 +104,13 @@ E2 原来的达成条件：两个版本的 C1 到 C6 都是 pass（C2、C3 都�
 
 ## 干净环境（Phase 12，M2）
 
-上面的结果都来自同一个账户，这个账户上已经跑过上百次评测。这一节在同一台机器上新建的本地账户上，从 PyPI 安装开始，再验证一遍。被测的包必须来自 PyPI；仓库只用来提供测试输入和检查脚本。
+上面的结果都来自同一个账户，这个账户上已经跑过上百次评测。这一节在同一台机器上新建的本地账户上，从安装 GitHub Release 的 wheel 开始，再验证一遍（PyPI 发布已略去，2026-10-17）。被测的包必须来自这个 wheel；仓库只用来提供测试输入和检查脚本。
 
 ### 检查项
 
 | # | 检查 | 命令 | 通过条件 |
 | --- | --- | --- | --- |
-| K0 | 包来自 PyPI | `run_windows_check.py --installed prereq --skip-claude` | 必需项全过；`installed package` 一项的路径在新虚拟环境的 `site-packages` 里，版本是 `0.9.0` |
+| K0 | 包来自 Release 的 wheel | `run_windows_check.py --installed prereq --skip-claude` | 必需项全过；`installed package` 一项的路径在新虚拟环境的 `site-packages` 里，版本是 `0.9.0` |
 | K1 | `inspect-env` | `wps-agent inspect-env` | 三个组件的 ProgID 已注册，版本号与上面的记录一致 |
 | K2 到 K7 | C1 到 C6 | 同上面的检查项，`wps-agent` 用新虚拟环境里的 | 同上面的通过条件 |
 | K8 | 撤回 | `run_windows_check.py --installed undo` | 6/6 通过 |
@@ -123,7 +123,7 @@ E2 原来的达成条件：两个版本的 C1 到 C6 都是 pass（C2、C3 都�
 
    ```powershell
    py -m venv $HOME\wps-agent-venv
-   $HOME\wps-agent-venv\Scripts\python -m pip install "wps-ai-agent-cli[wps]==0.9.0"
+   $HOME\wps-agent-venv\Scripts\python -m pip install "wps-ai-agent-cli[wps] @ https://github.com/oops11111/WPS-cli/releases/download/v0.9.0/wps_ai_agent_cli-0.9.0-py3-none-any.whl"
    $HOME\wps-agent-venv\Scripts\wps-agent inspect-env
    ```
 
@@ -148,7 +148,7 @@ E2 原来的达成条件：两个版本的 C1 到 C6 都是 pass（C2、C3 都�
 
 - 日期：
 - 机器：同一台 Windows <版本>，新建本地账户 `<名字>`
-- 安装：`pip install "wps-ai-agent-cli[wps]==<版本号>"`，包路径 `<site-packages 下的路径>`
+- 安装：`pip install "wps-ai-agent-cli[wps] @ <Release 上 wheel 的地址>"`，包路径 `<site-packages 下的路径>`
 - 首次启动 WPS 时出现过的对话框：
 
 | # | 结果 | 证据 |
@@ -163,4 +163,4 @@ E2 原来的达成条件：两个版本的 C1 到 C6 都是 pass（C2、C3 都�
 
 ### 结果
 
-未跑（P12-010，需要 0.9.0 发布到 PyPI 之后）。
+未跑（P12-010，需要 0.9.0 发布到 GitHub Release 之后）。

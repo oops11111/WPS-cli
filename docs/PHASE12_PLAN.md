@@ -1,6 +1,6 @@
-# Phase 12 计划：全量评测、干净环境、PyPI 发布，为 1.0 做准备
+# Phase 12 计划：全量评测、干净环境、发布 0.9.0，为 1.0 做准备
 
-状态：**active**（2026-10-17 确认，六项决定均按默认建议）。本地任务 P12-001、P12-004 到 P12-008 已完成；**M1 已达成**（P12-002 在 `29175b1` 上 33/34，P12-003 修复后在 `a21b050` 上重跑两个任务都通过）；剩下 P12-009、P12-010 在 Windows 上做，见下文“上机步骤”。
+状态：**active**（2026-10-17 确认，六项决定均按默认建议）。本地任务 P12-001、P12-004 到 P12-008 已完成；**M1 已达成**（P12-002 在 `29175b1` 上 33/34，P12-003 修复后在 `a21b050` 上重跑两个任务都通过）；PyPI 发布已略去（M3 不再要求）；新增复杂 HTML 测试（P12-011 已完成）；剩下 P12-009、P12-010、P12-012 在 Windows 上做，见下文“上机步骤”。
 
 ## 目标
 
@@ -30,10 +30,10 @@ Phase 12 做这三件事，最后发布 0.9.0。是否以及何时定 1.0，仍�
 | # | 出口标准 | 怎么算达成 |
 | --- | --- | --- |
 | M1 | 全部评测任务在当前版本上通过 | Windows：一条 `run_windows_check.py eval --repeat 3 --min-passes 2`（不加 `--prefix`，34 个任务全跑）在本阶段的 `main` 上，每个任务至少 2/3，`wrong_tool_calls` 合计 0，`unverified_writes` 0。没通过的任务在本阶段内查清原因并修复后重跑；因环境原因（比如 Claude API 额度）没跑成的，记下原因后只重跑这些任务 |
-| M2 | 干净环境从安装开始可用 | Windows：在一个从没运行过本项目的 Windows 账户上（同机新建的本地账户即可，WPS 已安装并是默认程序），只用 `pip install wps-ai-agent-cli==0.9.0` 从 PyPI 安装，不克隆仓库，依次通过：`inspect-env`；兼容矩阵的 C1 到 C6；`run_windows_check.py undo` 6/6（这一步需要仓库里的脚本，可以在安装后再克隆，但被测的包必须来自 PyPI）。结果写进 `docs/COMPATIBILITY_MATRIX.md` 的新一节 |
-| M3 | 发布到 PyPI | 离线：发布流程在创建 GitHub Release 之后用 Trusted Publishing（OIDC，不存 token）把同一组 wheel 和 sdist 上传到 PyPI；`run_windows_check.py wheel` 增加 `--source pypi`，从 PyPI 安装并核对文件的 SHA-256 与 GitHub Release 上的一致；离线测试。你：在 PyPI 上为 `wps-ai-agent-cli` 登记一次 pending publisher。Windows：`wheel --version 0.9.0 --source pypi` 通过全部条件 |
+| M2 | 干净环境从安装开始可用 | Windows：在一个从没运行过本项目的 Windows 账户上（同机新建的本地账户即可，WPS 已安装并是默认程序），只用 GitHub Release 上 0.9.0 的 wheel 安装（原为从 PyPI 安装，PyPI 发布已略去），不克隆仓库，依次通过：`inspect-env`；兼容矩阵的 C1 到 C6；`run_windows_check.py undo` 6/6（这一步需要仓库里的脚本，可以在安装后再克隆，但被测的包必须来自这个 wheel）。结果写进 `docs/COMPATIBILITY_MATRIX.md` 的新一节 |
+| M3 | 发布到 PyPI（**已略去**，2026-10-17） | 离线：发布流程在创建 GitHub Release 之后用 Trusted Publishing（OIDC，不存 token）把同一组 wheel 和 sdist 上传到 PyPI；`run_windows_check.py wheel` 增加 `--source pypi`，从 PyPI 安装并核对文件的 SHA-256 与 GitHub Release 上的一致；离线测试。你：在 PyPI 上为 `wps-ai-agent-cli` 登记一次 pending publisher。Windows：`wheel --version 0.9.0 --source pypi` 通过全部条件 |
 | M4 | 对外接口清单和稳定性规则 | 离线：从代码生成一份对外接口清单（CLI 命令和参数、MCP 工具和参数、错误码），提交到仓库；`data` 里的字段在运行时才生成，没有可读的结构，不进清单，由稳定性规则约束（P12-006 时调整）；测试在接口变化而清单没更新时失败；`docs/RELEASING.md` 写明 1.0 前后的稳定性规则（哪些变化算破坏性、弃用要提前几个版本、`data` 新增字段算不算破坏）和定 1.0 的检查清单 |
-| M5 | 发布 0.9.0 | 按 `docs/RELEASING.md` 发布 `v0.9.0`（M3 的发布流程，GitHub Release 和 PyPI 都有），包含本阶段的改动和 M1 发现的修复；在 Windows 上检查 wheel（即 M3 的 `--source pypi` 检查） |
+| M5 | 发布 0.9.0 | 按 `docs/RELEASING.md` 发布 `v0.9.0`（只发布 GitHub Release），包含本阶段的改动和 M1 发现的修复；在 Windows 上检查 wheel（`wheel --version 0.9.0`） |
 
 ## 已做的决定
 
@@ -45,6 +45,7 @@ Phase 12 做这三件事，最后发布 0.9.0。是否以及何时定 1.0，仍�
 | 干净环境用什么 | 同一台机器上新建一个本地 Windows 账户 | 不用新机器就能验证“从没用过本项目”：用户级的 WPS 配置、注册的打开命令、Python 包都从零开始 |
 | PyPI 怎么发 | Trusted Publishing（GitHub Actions 的 OIDC），包名 `wps-ai-agent-cli`（2026-10-17 查过 PyPI 上还没有这个名字），在 GitHub Release 之后上传同一组文件 | 不在仓库或 Secrets 里存 token；同一组文件保证 GitHub 和 PyPI 上的 SHA-256 一致 |
 | M1 没通过怎么办 | 在本阶段内查清并修复，再只重跑没通过的任务；不降低门槛 | 这 18 个任务就是用来发现按文件那一侧的回退的 |
+| 略去 PyPI 发布（2026-10-17 你决定） | M3 不再要求；`pypi` 任务保留但默认关闭（仓库变量 `PUBLISH_TO_PYPI` 为 `true` 时才运行）；M2 改为从 GitHub Release 的 wheel 安装；M5 只发布 GitHub Release；P12-009 改为 `wheel --version 0.9.0` | 发布流程和 `--source pypi` 检查都已做好、有测试，以后要发时只需登记并打开变量 |
 | 1.0 | 本阶段只准备清单和规则，不定 1.0 | 定 1.0 意味着承诺接口，按 `docs/RELEASING.md` 由你决定 |
 | 版本号 | 0.9.0 | M3、M4 给发布流程和 `wheel` 检查加了新能力；M1 的修复也可能改变行为；按规则升次版本 |
 
@@ -60,14 +61,16 @@ Phase 12 做这三件事，最后发布 0.9.0。是否以及何时定 1.0，仍�
 | P12-006 | M4 | 生成对外接口清单的脚本和提交的清单文件；接口变化而清单没更新时失败的测试；`docs/RELEASING.md` 的稳定性规则和 1.0 检查清单（已完成：`src/wps_ai_agent_cli/public_interface.py` 从 argparse、MCP 工具定义和源码里的错误码生成 `config/public_interface.json`：85 个命令、85 个工具、200 个错误码；`scripts/public_interface.py` 检查或 `--write` 重写；`tests/test_public_interface.py` 在两者不一致时失败并列出哪些变化算破坏性；`docs/RELEASING.md` 的“对外接口和稳定性”一节） | 本地 |
 | P12-007 | M2 | `docs/COMPATIBILITY_MATRIX.md` 加“干净环境”一节的检查项和记录格式；`docs/` 里写干净账户上从安装开始的步骤（已完成：`docs/COMPATIBILITY_MATRIX.md` 的“干净环境”一节；`run_windows_check.py --installed` 让检查和评测 runner 用安装的包，`prereq` 要求它来自 `site-packages`，`RESULTS.md` 写明被测包） | 本地 |
 | P12-008 | M5 | 定版本 0.9.0，整理 `CHANGELOG.md`，合并后由你推送 `v0.9.0` 标签（本地部分已完成：版本 0.9.0，`CHANGELOG.md` 的 `[0.9.0]` 一节；合并后由你推送 `v0.9.0`） | 本地 + 你 |
-| P12-009 | M3、M5 | 在 Windows 上：`wheel --version 0.9.0 --source pypi` | Windows |
-| P12-010 | M2 | 在 Windows 的新账户上：从 PyPI 安装 0.9.0，跑 `inspect-env`、C1 到 C6、`undo` | Windows |
+| P12-009 | M5 | 在 Windows 上：`wheel --version 0.9.0`（原为 `--source pypi`，PyPI 发布已略去） | Windows |
+| P12-011 | （新增） | 复杂 HTML 测试：一份报告（`report.html`）、一份预算表（`budget.html`）、一份带动画的演示（`launch.html`），放在 `fixtures/html_complex/`；三个评测任务各把一份转换为 docx、xlsx 或 pptx，再用 WPS 转为 PDF；离线判定测试；记下转换丢了什么（已完成，见下文“复杂 HTML 转换”） | 本地 |
+| P12-012 | （新增） | 在 Windows 上：`eval --prefix html-complex- --repeat 3 --min-passes 2` | Windows |
+| P12-010 | M2 | 在 Windows 的新账户上：从 GitHub Release 的 wheel 安装 0.9.0，跑 `inspect-env`、C1 到 C6、`undo` | Windows |
 
 ## 建议顺序
 
 1. 本地任务先做：P12-001，P12-004 到 P12-007。
 2. 第一次上机做 P12-002；有没通过的就做 P12-003。
-3. 在 PyPI 上登记 pending publisher，然后做 P12-008，发布 0.9.0。
+3. 做 P12-008，发布 0.9.0（只发 GitHub Release）。
 4. 第二次上机做 P12-009 和 P12-010（P12-010 在新账户上做）。
 
 ## 上机步骤
@@ -83,16 +86,63 @@ python scripts/windows_check/run_windows_check.py eval --repeat 3 --min-passes 2
 
 ### 发布：P12-008
 
-1. 在 PyPI 上按 `docs/RELEASING.md` 的“PyPI”一节登记 pending publisher，在 GitHub 仓库里建 `pypi` 环境。
-2. 合并后推送 `v0.9.0` 标签。发布流程先建 GitHub Release，再上传 PyPI；上传失败时修好登记后重跑 `pypi` 作业。
+合并后推送 `v0.9.0` 标签，发布流程建 GitHub Release。`pypi` 任务默认关闭，不运行（PyPI 发布已略去）。
+
+### 复杂 HTML：P12-012（可以和第二次一起做）
+
+```powershell
+python scripts/windows_check/run_windows_check.py eval --prefix html-complex- --repeat 3 --min-passes 2
+```
 
 ### 第二次：P12-009 和 P12-010
 
 ```powershell
-python scripts/windows_check/run_windows_check.py wheel --version 0.9.0 --source pypi
+python scripts/windows_check/run_windows_check.py wheel --version 0.9.0
 ```
 
-P12-010 在新建的本地账户上按 `docs/COMPATIBILITY_MATRIX.md` 的“干净环境”一节做：从 PyPI 装进新虚拟环境，用这个虚拟环境的 Python 运行 `run_windows_check.py --installed prereq --skip-claude` 和 `--installed undo`，用它的 `wps-agent` 跑 C1 到 C6，记录按那一节的格式写。
+P12-010 在新建的本地账户上按 `docs/COMPATIBILITY_MATRIX.md` 的“干净环境”一节做：把 Release 上的 wheel 装进新虚拟环境，用这个虚拟环境的 Python 运行 `run_windows_check.py --installed prereq --skip-claude` 和 `--installed undo`，用它的 `wps-agent` 跑 C1 到 C6，记录按那一节的格式写。
+
+## 复杂 HTML 转换（P12-011）
+
+2026-10-17 你要求：分别生成一个复杂的 HTML 文档、表格和演示动画，转换为 WPS 格式并测试。
+
+### 输入
+
+`fixtures/html_complex/`：
+
+| 文件 | 内容 |
+| --- | --- |
+| `report.html` | 中文经营报告：`<header>`/`<main>`/`<section>`，h1 到 h3，加粗、斜体、下划线、删除线、上下标、行内样式，外链、邮件和电话链接、一个 `javascript:` 链接，引用块，带嵌套列表的有序列表，带 `<caption>`、`<thead>`/`<tfoot>`、`rowspan` 和 `colspan` 的表格，`<figure>` 里的图片和图注，`<pre>` 代码，`<details>`，内嵌和外链 CSS，脚本 |
+| `budget.html` | 预算表：四个表，跨行跨列的表头，整数、小数、负数、空单元格，`=SUM(...)` 公式，前导零工号，千分位、货币、百分比、两种日期写法、科学计数法，带 `<br>` 和链接的单元格，嵌套表格，重名表题，超长且含 `/?[]` 的表题，一张图片 |
+| `launch.html` | 发布会演示：六个 `<section>`，`@keyframes` 动画、`transition`、`data-transition` 切换效果、逐条延迟出现的列表，演讲者备注（`<aside class="notes">`），表格，图片，SVG，视频，脚本 |
+| `chart.png` | 三份共用的图片 |
+
+### 评测任务
+
+| 任务 | 做什么 | 判定 |
+| --- | --- | --- |
+| `html-complex-report-to-docx` | `report.html` → `report.docx` → WPS 导出 `report.pdf` | 标题、正文、引用、嵌套列表项、代码、邮件链接的文字都在；表格第 3 行是“华东 … 2,050”；没有脚本和 `javascript:` 链接；`convert_smoke` 用 writer；PDF 至少 1000 字节 |
+| `html-complex-budget-to-xlsx` | `budget.html` → `budget.xlsx` → WPS 导出 `budget.pdf` | 四个工作表名（含重名和非法字符的处理）；数值单元格是数字（含小数和负数）；前导零工号仍是文本；`convert_smoke` 用 spreadsheets；PDF |
+| `html-complex-launch-to-pptx` | `launch.html` → `launch.pptx` → WPS 导出 `launch.pdf` | 六页的标题和正文文字都在；没有脚本和 SVG 文字；`convert_smoke` 用 presentation；PDF |
+
+三个任务都要 WPS（WPS 打开转换结果并导出 PDF，证明文件能被 WPS 打开）。判定只查现在应当保留的内容，下面列出的缺口不计入判定。
+
+### 转换现状：保留了什么，丢了什么
+
+本地用当前代码转换三份输入的结果：
+
+| 输入 → 格式 | 保留 | 丢失或不对 | 有没有警告 |
+| --- | --- | --- | --- |
+| report → docx | 标题层级、段落、引用、列表、表格文字、链接（外链、邮件、电话）、代码块；脚本和 `javascript:` 链接被去掉 | **图片和图注整个丢了**（`<figure>` 里的内容没有输出）；**加粗、斜体、下划线、删除线、上下标都变成普通文字**；**跨行跨列表头错位**（`rowspan`/`colspan` 没有合并单元格，“收入”下的 Q2、Q3 跑到了“区域”下面）；**嵌套列表并进父项**，和源码里的换行、缩进一起成了一段；`<caption>` 和 `<details>` 的文字丢了；段落里保留了源码的换行和缩进 | 图片和格式丢失**没有警告**；caption、details 有警告；CSS 列为 unsupported_css |
+| budget → xlsx | 四个工作表和表名、数字、负数、空单元格、前导零 | **公式写成文本**（有意为之，防止执行，有警告）；**跨行跨列表头错位**，没有合并单元格；千分位（`18,500`）、货币、百分比、日期、科学计数法都是文本，不能计算；`<br>` 两边的字粘在一起（“王小明”）；**嵌套表格的文字并进外层单元格**（“差旅嵌套”） | 公式、图片有警告；嵌套表格、错位**没有警告** |
+| launch → pptx | 六页的标题和正文（含 h3 和行内文字） | **动画、切换效果全部丢失**；**表格**（第 3 页正文为空）和**图片**没转换；**演讲者备注丢失**；视频、SVG 丢失 | 表格、图片有警告；动画、切换、备注、视频**没有警告** |
+
+结论：三种转换都只保留语义文字，`fidelity` 字段也是这样写的（“semantic-content; CSS layout is not preserved”）。但其中几处是在 Agent 和用户都看不到的情况下丢的：docx 的图片和行内格式，xlsx 的嵌套表格，pptx 的动画、备注和视频。要改哪些由你决定，建议的顺序：
+
+1. **先补警告**：所有丢掉的内容都在 `warnings` 里说出来（`<figure>` 图片、行内格式、嵌套表格、动画和切换、备注、视频）。改动小，Agent 能据此告诉用户。
+2. **docx**：`<figure>` 里的图片和图注；加粗、斜体、下划线、删除线、上下标；合并 `rowspan`/`colspan`；嵌套列表用第二级列表样式；压缩源码空白。
+3. **xlsx**：合并 `rowspan`/`colspan` 的表头；千分位、百分比、货币按数字写入并设数字格式；`<br>` 变成单元格内换行。公式保持写成文本。
+4. **pptx**：表格转成幻灯片表格，图片转成图片；`<aside class="notes">` 转成演讲者备注；`@keyframes`/`animation` 的进入效果映射为 PowerPoint 的进入动画（飞入、淡入），`data-transition` 映射为切换效果。动画映射最大，建议单独一个阶段。
 
 ## P12-002 结果
 
@@ -128,6 +178,5 @@ python scripts/windows_check/run_windows_check.py eval --only restore-latest-bac
 | --- | --- | --- |
 | 34 个任务各 3 次耗时长，跑到一半会话或 API 额度用完 | P12-002 要分几次跑 | `eval --resume` 已经支持接着跑；结果目录和设置不变 |
 | 按文件的任务在 Phase 5 之后有回退 | M1 需要修复，阶段变长 | 这正是本阶段要发现的；修复按任务分开提交，只重跑没通过的 |
-| PyPI 上传失败（Trusted Publisher 没登记或名字被占） | 0.9.0 只有 GitHub Release | 发布流程先建 GitHub Release 再上传 PyPI，上传失败不影响已有的发布；修好后可以对同一个标签重跑上传那一步 |
 | 新账户上 WPS 首次启动有欢迎页、登录框或会话恢复对话框 | 自动化被对话框挡住 | 在新账户上先手动打开一次 WPS 关掉首次启动的界面，并记进步骤；runner 已能记录准备失败的原因 |
 | 接口清单太细，每个阶段都要改 | 清单形同虚设 | 清单只列对外的东西（命令、参数、工具、错误码），不列内部结构；`data` 里新增字段按规则不算破坏 |
