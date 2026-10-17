@@ -3300,7 +3300,7 @@
     "id": "P12-002",
     "phase": "phase12",
     "title": "Windows run of all 34 evaluation tasks",
-    "status": "todo",
+    "status": "done",
     "acceptance": "M1: one eval --repeat 3 --min-passes 2 invocation over all tasks on the phase's main; results recorded."
   },
   {

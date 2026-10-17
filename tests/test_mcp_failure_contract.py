@@ -11,6 +11,7 @@ check what the agent gets back:
 PowerShell is pointed at a missing executable, so no test here starts or attaches to WPS, on any machine.
 """
 
+import argparse
 import builtins
 import json
 import os
@@ -186,12 +187,28 @@ class FailureContractTests(unittest.TestCase):
         self.assertEqual([error["code"] for error in text["errors"]], ["DOCUMENT_HELD_OPEN"])
 
     def test_rejected_cli_arguments_carry_the_reason(self):
-        response = _call("wps_agent_restore_backup", {"document_id": "doc_missing0000000"})
+        # No tool's schema lets through arguments the CLI rejects today (restore-backup's exclusive pair was the
+        # last, P12-003), so the CLI here gains a required option the schema does not have.
+        from wps_ai_agent_cli import cli_parser
+
+        original = cli_parser.build_parser
+
+        def stricter_parser():
+            parser = original()
+            for action in parser._actions:
+                if isinstance(action, argparse._SubParsersAction):
+                    action.choices["restore-backup"].add_argument("--confirm-restore", required=True)
+            return parser
+
+        with (
+            patch("wps_ai_agent_cli.cli_parser.build_parser", stricter_parser),
+            patch("wps_ai_agent_cli.cli.build_parser", stricter_parser),
+        ):
+            response = _call("wps_agent_restore_backup", {"document_id": "doc_missing0000000", "backup_name": "x"})
 
         text = json.loads(response["result"]["content"][0]["text"])
         self.assertEqual(text["errors"][0]["code"], "MCP_CLI_ARGUMENTS_REJECTED")
-        self.assertIn("--backup-name", text["errors"][0]["message"])
-        self.assertIn("--backup-path", text["errors"][0]["message"])
+        self.assertIn("--confirm-restore", text["errors"][0]["message"])
 
     def test_process_audit_without_powershell_is_a_tool_error(self):
         text = json.loads(_call("wps_agent_wps_process_audit", {})["result"]["content"][0]["text"])

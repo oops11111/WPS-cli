@@ -297,14 +297,25 @@ def _resolve_backup_file(
     backup_path: str | None,
     workspace: str | Path = ".",
 ) -> tuple[Path | None, list[dict[str, str]]]:
-    if bool(backup_name) == bool(backup_path):
-        return (
-            None,
-            [{"code": "INVALID_ARGUMENT", "message": "Provide exactly one of backup_name or backup_path."}],
-        )
+    if not backup_name and not backup_path:
+        return None, [{"code": "INVALID_ARGUMENT", "message": "Provide backup_name or backup_path."}]
 
     backup_root = _backup_dir(document_id, workspace).resolve()
     candidate = (backup_root / backup_name).resolve() if backup_name else Path(str(backup_path)).resolve()
+    # Both may be given, as list-backups returns them together, as long as they name the same file (P12-003).
+    if backup_name and backup_path and Path(str(backup_path)).resolve() != candidate:
+        return (
+            None,
+            [
+                {
+                    "code": "INVALID_ARGUMENT",
+                    "message": (
+                        f"backup_name {backup_name} and backup_path {backup_path} name different files; "
+                        "give one of them."
+                    ),
+                }
+            ],
+        )
     try:
         candidate.relative_to(backup_root)
     except ValueError:

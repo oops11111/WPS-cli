@@ -20,6 +20,10 @@ Phase 12: publishing to PyPI, a committed inventory of the public interface with
 
 - `docs/RELEASING.md` states the stability rules before and after 1.0 (what is breaking, how long a deprecation lasts, that new fields under `data` are not breaking) and a checklist for 1.0. (P12-006)
 
+### Fixed
+
+- `restore-backup` (and `wps_agent_restore_backup`) accepts `backup_name` and `backup_path` together when they name the same file, as `list-backups` returns them; when they name different files it refuses with `INVALID_ARGUMENT`. Before, argparse rejected the pair with `MCP_CLI_ARGUMENTS_REJECTED`: in the full evaluation (P12-002) every run of `restore-latest-backup` and `restore-dry-run` lost its first restore call to this, and two runs of `restore-latest-backup` went over its call limit. (P12-003)
+
 ## [0.8.0] - 2026-10-17
 
 Phase 11: the selection fix 0.7.0 lacks, spreadsheet write results that show the cells around the write, and the undo of axis titles and series values checked on Windows.
