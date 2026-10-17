@@ -261,9 +261,10 @@ def _add_document_commands(subparsers: argparse._SubParsersAction) -> None:
         help="Restore a selected backup after first protecting the current file.",
     )
     restore_backup_parser.add_argument("--document-id", required=True, help="Registered document_id.")
-    backup_selector = restore_backup_parser.add_mutually_exclusive_group(required=True)
-    backup_selector.add_argument("--backup-name", help="Backup filename from list-backups.")
-    backup_selector.add_argument("--backup-path", help="Backup path from list-backups.")
+    restore_backup_parser.add_argument("--backup-name", help="Backup filename from list-backups.")
+    restore_backup_parser.add_argument(
+        "--backup-path", help="Backup path from list-backups. With --backup-name, both must name the same file."
+    )
     restore_backup_parser.add_argument("--dry-run", action="store_true", help="Preview restore without copying.")
     restore_backup_parser.add_argument(
         "--close-in-wps",

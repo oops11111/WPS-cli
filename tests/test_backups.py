@@ -259,6 +259,46 @@ class BackupTests(unittest.TestCase):
             self.assertFalse(ok)
             self.assertEqual(errors[0]["code"], "INPUT_FILE_NOT_FOUND")
 
+    def test_mcp_restore_accepts_backup_name_and_path_of_the_same_file(self):
+        # P12-002: agents passed both fields of the list-backups entry and lost a call to the rejection.
+        with tempfile.TemporaryDirectory() as tmp:
+            document = Path(tmp) / "book.xlsx"
+            document.write_bytes(b"original")
+            _, record, _ = register_document("spreadsheets", str(document), ".")
+            document_id = record["document_id"]
+            ok, first, _errors, _replayed = create_backup(document_id, "both-backup", workspace=".")
+            self.assertTrue(ok)
+            document.write_bytes(b"changed")
+            first_path = Path(first["backup_path"])
+            other_path = first_path.with_name("book.other.xlsx")
+            relative = first_path.resolve().relative_to(Path.cwd().resolve())
+
+            ok, _, errors = call_mcp_tool(
+                "wps_agent_restore_backup",
+                {"document_id": document_id, "backup_name": first_path.name, "backup_path": str(other_path)},
+            )
+            self.assertFalse(ok)
+            self.assertEqual(errors[0]["code"], "INVALID_ARGUMENT")
+            self.assertIn("name different files", errors[0]["message"])
+            self.assertEqual(document.read_bytes(), b"changed")
+
+            ok, _, errors = call_mcp_tool("wps_agent_restore_backup", {"document_id": document_id})
+            self.assertFalse(ok)
+            self.assertEqual(errors[0]["code"], "INVALID_ARGUMENT")
+
+            ok, result, errors = call_mcp_tool(
+                "wps_agent_restore_backup",
+                {
+                    "document_id": document_id,
+                    "backup_name": first_path.name,
+                    "backup_path": str(relative),
+                    "request_id": "both-restore",
+                },
+            )
+            self.assertTrue(ok, errors)
+            self.assertTrue(result["response"]["data"]["restored"])
+            self.assertEqual(document.read_bytes(), b"original")
+
     def test_cli_mcp_reject_stale_document_identity(self):
         with tempfile.TemporaryDirectory() as tmp:
             document = Path(tmp) / "sample.docx"
