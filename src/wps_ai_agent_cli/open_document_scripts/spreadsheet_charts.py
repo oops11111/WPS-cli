@@ -436,30 +436,29 @@ _SPREADSHEET_SERIES_VALUES_REPLACE_BODY = """
   $series = $null
   $objectName = $null
   try {
-    try {
-      $null = $sel.Values
-      $series = $sel
-    } catch {
-      $null = $sel.Parent.Values
-      $series = $sel.Parent
+    # WPS returns $null for a member an object does not have instead of raising, so each probe checks for a
+    # value, as the selection read does (P10-006). P11-007: probing by exceptions took the series' parent for the
+    # chart and named the selection after the chart itself ("Status Chart 1") instead of its ChartObject
+    # ("Chart 1"), so the write refused its own selection.
+    $probe = $null
+    try { $probe = $sel.Values } catch { }
+    if ($null -ne $probe) { $series = $sel }
+    else {
+      try { $probe = $sel.Parent.Values } catch { }
+      if ($null -ne $probe) { $series = $sel.Parent }
     }
     $chartCom = $null
-    try {
-      $null = $series.Parent.ChartType
-      $chartCom = $series.Parent
-    } catch {
-      try {
-        $null = $series.Parent.Parent.ChartType
-        $chartCom = $series.Parent.Parent
-      } catch { }
+    if ($null -ne $series) {
+      $probe = $null
+      try { $probe = $series.Parent.ChartType } catch { }
+      if ($null -ne $probe) { $chartCom = $series.Parent }
+      else {
+        try { $probe = $series.Parent.Parent.ChartType } catch { }
+        if ($null -ne $probe) { $chartCom = $series.Parent.Parent }
+      }
     }
     if ($null -ne $chartCom) {
       try { $objectName = [string]$chartCom.Parent.Name } catch { }
-    }
-    if ([string]::IsNullOrEmpty($objectName)) {
-      try { $objectName = [string]$series.Parent.Parent.Name } catch {
-        try { $objectName = [string]$series.Parent.Name } catch { }
-      }
     }
   } catch { }
   if ($null -eq $series) {
@@ -559,30 +558,29 @@ _SPREADSHEET_SERIES_VALUES_DELETE_BODY = """
   $series = $null
   $objectName = $null
   try {
-    try {
-      $null = $sel.Values
-      $series = $sel
-    } catch {
-      $null = $sel.Parent.Values
-      $series = $sel.Parent
+    # WPS returns $null for a member an object does not have instead of raising, so each probe checks for a
+    # value, as the selection read does (P10-006). P11-007: probing by exceptions took the series' parent for the
+    # chart and named the selection after the chart itself ("Status Chart 1") instead of its ChartObject
+    # ("Chart 1"), so the write refused its own selection.
+    $probe = $null
+    try { $probe = $sel.Values } catch { }
+    if ($null -ne $probe) { $series = $sel }
+    else {
+      try { $probe = $sel.Parent.Values } catch { }
+      if ($null -ne $probe) { $series = $sel.Parent }
     }
     $chartCom = $null
-    try {
-      $null = $series.Parent.ChartType
-      $chartCom = $series.Parent
-    } catch {
-      try {
-        $null = $series.Parent.Parent.ChartType
-        $chartCom = $series.Parent.Parent
-      } catch { }
+    if ($null -ne $series) {
+      $probe = $null
+      try { $probe = $series.Parent.ChartType } catch { }
+      if ($null -ne $probe) { $chartCom = $series.Parent }
+      else {
+        try { $probe = $series.Parent.Parent.ChartType } catch { }
+        if ($null -ne $probe) { $chartCom = $series.Parent.Parent }
+      }
     }
     if ($null -ne $chartCom) {
       try { $objectName = [string]$chartCom.Parent.Name } catch { }
-    }
-    if ([string]::IsNullOrEmpty($objectName)) {
-      try { $objectName = [string]$series.Parent.Parent.Name } catch {
-        try { $objectName = [string]$series.Parent.Name } catch { }
-      }
     }
   } catch { }
   if ($null -eq $series) {

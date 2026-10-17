@@ -20,6 +20,7 @@ Phase 11: the selection fix 0.7.0 lacks, spreadsheet write results that show the
 
 ### Fixed
 
+- `spreadsheet-selection-replace` and `spreadsheet-selection-delete` on a selected chart series were refused with `SELECTION_MISMATCH`. The write scripts found the chart by whether a member access raised; in WPS a series' parent is its chart group, which has no `ChartType` but does not raise, so the scripts named the selection after the chart itself (`Status Chart 1`) instead of its chart object (`Chart 1`, as the selection read reports) and refused it. They now check for values, as the selection read does. 0.7.0 has this defect. Found by the P11-007 Windows undo check. (P11-007)
 - `spreadsheet-selection-read` read a selected chart title as the chart's series values (with empty text), so `spreadsheet-selection-replace` on it was refused with `SELECTION_MISMATCH`. A selected text box was read as series values too, and the shape-text write refused a text box as a chart element. The scripts told these objects apart by whether a member access raised, and WPS returns an empty value for a member an object does not have instead of raising. They now check for a value, which holds either way. 0.7.0 has this defect. Found by the P10-006 Windows undo check on `chart_note.xlsx`. (P10-006)
 
 ## [0.7.0] - 2026-10-16
