@@ -117,6 +117,15 @@ PHASES: tuple[Phase, ...] = (
             "failed chart and shape selection writes in WPS, and release 0.7.0."
         ),
     ),
+    Phase(
+        id="phase11",
+        name="Ship the selection fix, spreadsheet writes with their surroundings, full undo coverage",
+        status="planned",
+        goal=(
+            "Release 0.7.1 with the selection fix 0.7.0 lacks, make spreadsheet write results show the cells around "
+            "the write so agents stop re-reading them, cover axis title and series undo on Windows, and release 0.8.0."
+        ),
+    ),
 )
 
 

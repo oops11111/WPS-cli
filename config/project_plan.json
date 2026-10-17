@@ -123,6 +123,18 @@
         "K2: offline, Spreadsheet selection replace and delete on shape text, chart titles, axis titles and series values record the original value before writing and, when the read-back fails, write it back in WPS, save and read back again, reporting rolled_back_in_wps, returning MUTATION_ROLLBACK_IN_WPS_FAILED only when that fails; fake-COM tests per object kind; on Windows run_windows_check.py undo gains shape-text and chart-title cases and after an injected read-back failure both WPS and the file are back to the state before the write (2026-10-17: met on main@9c5a009, undo 4/4 including spreadsheet-shape-text-replace and spreadsheet-chart-title-replace, rolled back in WPS with content matching the backup; the first run on ab92a42 refused both before the write because the selection read took a text box and a chart title for a series, fixed in #107)",
         "K3: v0.7.0 is released per docs/RELEASING.md with the K1 and K2 changes, and its wheel is checked on Windows with run_windows_check.py wheel (2026-10-17: v0.7.0 released from main@ab92a42; its wheel passed all seven conditions on Windows, safe 7/7, P10-008); the #107 selection fix came after the tag and is in [Unreleased]"
       ]
+    },
+    {
+      "id": "phase11",
+      "name": "Ship the selection fix, spreadsheet writes with their surroundings, full undo coverage",
+      "goal": "Release 0.7.1 with the selection fix 0.7.0 lacks, make spreadsheet write results show the cells around the write so agents stop re-reading them, cover axis title and series undo on Windows, and release 0.8.0.",
+      "status": "planned",
+      "exit_criteria": [
+        "L1: v0.7.1 is released per docs/RELEASING.md from a main that includes #107, with a [0.7.1] CHANGELOG section naming the fix and that 0.7.0 has the defect, and its wheel is checked on Windows with run_windows_check.py wheel --version 0.7.1",
+        "L2: offline, spreadsheet selection replace and delete return verified_state.surroundings, the cells around the written range read from the saved file (one row and column on each side plus the header row, at most 10 by 10) with each value and whether it changed, and the check sentence says the surroundings did not change; each evaluation run records the verified_state each write tool returned and RESULTS.md lists writes whose passed is not true; on Windows all 16 open-document tasks pass at least 2 of 3 runs in one --repeat 3 --min-passes 2 invocation with wrong_tool_calls 0, off_path_calls_after_write summing to at most 3 (8 in P10-006), and every write's verified_state.passed true",
+        "L3: run_windows_check.py undo gains axis-title and series-values replace scenarios (the fixture chart has an axis title and a series linked to cells), and after the undo the text of shapes and charts and the cells the series refers to are back to before the write; on Windows undo passes 6 of 6",
+        "L4: v0.8.0 is released per docs/RELEASING.md with the L2 and L3 changes, and its wheel is checked on Windows"
+      ]
     }
   ]
 }
