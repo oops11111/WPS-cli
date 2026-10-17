@@ -1,0 +1,863 @@
+{
+  "prerequisites": {
+    "passed": true,
+    "checks": [
+      {
+        "name": "commit",
+        "ok": true,
+        "detail": "a21b050 on main",
+        "required": true
+      },
+      {
+        "name": "python",
+        "ok": true,
+        "detail": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\.venv\\Scripts\\python.exe",
+        "required": true
+      },
+      {
+        "name": "windows",
+        "ok": true,
+        "detail": "Windows-10-10.0.19045-SP0",
+        "required": true
+      },
+      {
+        "name": "claude answers",
+        "ok": true,
+        "detail": "OK",
+        "required": true
+      },
+      {
+        "name": "no WPS process running",
+        "ok": true,
+        "detail": "none",
+        "required": true
+      },
+      {
+        "name": "open command .docx",
+        "ok": true,
+        "detail": "\"C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\wps.exe\" \"%1\"",
+        "required": true
+      },
+      {
+        "name": "open command .xlsx",
+        "ok": true,
+        "detail": "\"C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\et.exe\" \"%1\"",
+        "required": true
+      },
+      {
+        "name": "open command .pptx",
+        "ok": true,
+        "detail": "\"C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\wpp.exe\" \"%1\"",
+        "required": true
+      },
+      {
+        "name": "inspect-env",
+        "ok": true,
+        "detail": "{\"presentation\": \"kwpp.Application\", \"spreadsheets\": \"ket.Application\", \"writer\": \"kwps.Application\"}",
+        "required": true
+      }
+    ],
+    "info": {
+      "commit": "a21b050",
+      "branch": "main",
+      "python": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\.venv\\Scripts\\python.exe",
+      "platform": "Windows-10-10.0.19045-SP0",
+      "package": {
+        "version": "0.9.0",
+        "file": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\src\\wps_ai_agent_cli\\__init__.py"
+      },
+      "wps_versions": {
+        "wps.exe": "12,8,2,18913",
+        "et.exe": "12,8,2,18913",
+        "wpp.exe": "12,8,2,18913"
+      }
+    }
+  },
+  "settings": {
+    "only": [
+      "restore-latest-backup",
+      "restore-dry-run"
+    ],
+    "prefix": [],
+    "repeat": 3,
+    "min_passes": 2,
+    "model": null,
+    "wps_launch": "default",
+    "tasks": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\config\\agent_eval_tasks.json",
+    "workspaces": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261017T233437Z-a21b050-eval"
+  },
+  "results": [
+    {
+      "id": "restore-latest-backup",
+      "passed": true,
+      "repeat": 3,
+      "min_passes": 2,
+      "passes": 2,
+      "pass_rate": 0.6666666666666666,
+      "metrics": {
+        "wps_tool_calls": 19,
+        "wps_tool_errors": 1,
+        "off_path_calls": 7,
+        "off_path_tools": [
+          "operation",
+          "snapshot_document",
+          "spreadsheet_read"
+        ],
+        "off_path_calls_before_write": 7,
+        "off_path_calls_after_write": 0,
+        "wrong_tool_calls": null,
+        "unverified_writes": 0
+      },
+      "runs": [
+        {
+          "id": "restore-latest-backup",
+          "passed": true,
+          "agent": {
+            "ran": true,
+            "exit_code": 0,
+            "is_error": false,
+            "num_turns": 7,
+            "duration_ms": 9253,
+            "total_cost_usd": 0.32639149999999995,
+            "result_excerpt": "Done — `book.xlsx` has been restored from its most recent backup with `request_id eval-restore-2`.\n\n**What happened:**\n- Document: `doc_981df1771bd2ed55` (spreadsheets), `book.xlsx`\n- Backup used: `book.20261017T233437369926Z.xlsx` (4,822 bytes, created 2026-10-17 23:34:37 UTC) — this was the only pre-existing backup, and its integrity was verified before restoring.\n- A safety copy of the mistaken post-backup state was made automatically first: `book.20261017T233445655000Z.xlsx` (4,832 bytes), s",
+            "stderr_excerpt": "",
+            "tool_calls": [
+              {
+                "name": "mcp__wps-agent__wps_agent_documents",
+                "input": {
+                  "request_id": "eval-restore-2"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_list_backups",
+                "input": {
+                  "request_id": "eval-restore-2"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_restore_backup",
+                "input": {
+                  "document_id": "doc_981df1771bd2ed55",
+                  "backup_name": "book.20261017T233437369926Z.xlsx",
+                  "backup_path": ".wps-agent\\backups\\doc_981df1771bd2ed55\\book.20261017T233437369926Z.xlsx",
+                  "dry_run": true,
+                  "request_id": "eval-restore-2"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_restore_backup",
+                "input": {
+                  "backup_name": "book.20261017T233437369926Z.xlsx",
+                  "backup_path": ".wps-agent\\backups\\doc_981df1771bd2ed55\\book.20261017T233437369926Z.xlsx",
+                  "document_id": "doc_981df1771bd2ed55",
+                  "request_id": "eval-restore-2"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_snapshot_document",
+                "input": {
+                  "document_id": "doc_981df1771bd2ed55",
+                  "request_id": "eval-restore-2"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_list_backups",
+                "input": {
+                  "document_id": "doc_981df1771bd2ed55",
+                  "request_id": "eval-restore-2"
+                },
+                "is_error": false,
+                "error_codes": []
+              }
+            ]
+          },
+          "metrics": {
+            "wps_tool_calls": 6,
+            "wps_tool_errors": 0,
+            "other_tool_calls": 0,
+            "tools_used": [
+              "documents",
+              "list_backups",
+              "restore_backup",
+              "snapshot_document"
+            ],
+            "expected_tools": [
+              "documents",
+              "list_backups",
+              "register_document",
+              "restore_backup"
+            ],
+            "off_path_calls": 1,
+            "off_path_tools": [
+              "snapshot_document"
+            ],
+            "off_path_calls_before_write": 1,
+            "off_path_calls_after_write": 0,
+            "wrong_tool_calls": null,
+            "unverified_writes": 0
+          },
+          "checks": [
+            {
+              "kind": "operation_recorded",
+              "passed": true,
+              "detail": "restore-backup",
+              "request_id": "eval-restore-2",
+              "command": "restore-backup"
+            },
+            {
+              "kind": "file_matches_seed",
+              "passed": true,
+              "detail": "matches the seed"
+            },
+            {
+              "kind": "max_tool_calls",
+              "passed": true,
+              "detail": "6 wps-agent call(s)",
+              "count": 6
+            }
+          ]
+        },
+        {
+          "id": "restore-latest-backup",
+          "passed": true,
+          "agent": {
+            "ran": true,
+            "exit_code": 0,
+            "is_error": false,
+            "num_turns": 6,
+            "duration_ms": 9435,
+            "total_cost_usd": 0.330521,
+            "result_excerpt": "Restored. `book.xlsx` (`doc_e3e2873f4d93e459`) is back to its most recent backup.\n\n- **Backup used:** `book.20261017T233450908485Z.xlsx` (created 2026-10-17T23:34:50Z), integrity verified\n- **Pre-restore safety copy:** the mistaken version was saved first as `book.20261017T233459301795Z.xlsx`, so nothing was lost\n- **Result:** `restored: true`, all three validation checks passed; snapshot shows 1 sheet, A1 = `seed`, no formula errors",
+            "stderr_excerpt": "",
+            "tool_calls": [
+              {
+                "name": "mcp__wps-agent__wps_agent_documents",
+                "input": {},
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_list_backups",
+                "input": {
+                  "document_id": "doc_e3e2873f4d93e459"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_restore_backup",
+                "input": {
+                  "document_id": "doc_e3e2873f4d93e459",
+                  "backup_name": "book.20261017T233450908485Z.xlsx",
+                  "request_id": "eval-restore-2"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_snapshot_document",
+                "input": {
+                  "document_id": "doc_e3e2873f4d93e459"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_spreadsheet_read",
+                "input": {
+                  "document_id": "doc_e3e2873f4d93e459",
+                  "range": "A1"
+                },
+                "is_error": false,
+                "error_codes": []
+              }
+            ]
+          },
+          "metrics": {
+            "wps_tool_calls": 5,
+            "wps_tool_errors": 0,
+            "other_tool_calls": 0,
+            "tools_used": [
+              "documents",
+              "list_backups",
+              "restore_backup",
+              "snapshot_document",
+              "spreadsheet_read"
+            ],
+            "expected_tools": [
+              "documents",
+              "list_backups",
+              "register_document",
+              "restore_backup"
+            ],
+            "off_path_calls": 2,
+            "off_path_tools": [
+              "snapshot_document",
+              "spreadsheet_read"
+            ],
+            "off_path_calls_before_write": 2,
+            "off_path_calls_after_write": 0,
+            "wrong_tool_calls": null,
+            "unverified_writes": 0
+          },
+          "checks": [
+            {
+              "kind": "operation_recorded",
+              "passed": true,
+              "detail": "restore-backup",
+              "request_id": "eval-restore-2",
+              "command": "restore-backup"
+            },
+            {
+              "kind": "file_matches_seed",
+              "passed": true,
+              "detail": "matches the seed"
+            },
+            {
+              "kind": "max_tool_calls",
+              "passed": true,
+              "detail": "5 wps-agent call(s)",
+              "count": 6
+            }
+          ]
+        },
+        {
+          "id": "restore-latest-backup",
+          "passed": false,
+          "agent": {
+            "ran": true,
+            "exit_code": 0,
+            "is_error": false,
+            "num_turns": 9,
+            "duration_ms": 13775,
+            "total_cost_usd": 0.38469,
+            "result_excerpt": "`book.xlsx` is restored from its backup.\n\n**What happened**\n- Document: `doc_5f3275e844fa0fa9` → `book.xlsx`\n- Backup used: `book.20261017T233504452826Z.xlsx` (4822 bytes, integrity verified; it was the only backup, so also the most recent)\n- Request ID: `eval-restore-2` — the operation is recorded in the ledger under that id\n- All three validation checks passed: `backup_selected`, `pre_restore_backup_created`, `target_restored`\n\n**Safety net:** before overwriting, the tool backed up the mistake",
+            "stderr_excerpt": "",
+            "tool_calls": [
+              {
+                "name": "mcp__wps-agent__wps_agent_documents",
+                "input": {},
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_list_backups",
+                "input": {},
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_restore_backup",
+                "input": {
+                  "document_id": "doc_5f3275e844fa0fa9",
+                  "backup_name": "book.20261017T233504452826Z.xlsx",
+                  "backup_path": ".wps-agent\\backups\\doc_5f3275e844fa0fa9\\book.20261017T233504452826Z.xlsx",
+                  "dry_run": true,
+                  "request_id": "eval-restore-2"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_operation",
+                "input": {
+                  "request": "eval-restore-2"
+                },
+                "is_error": true,
+                "error_codes": [
+                  "OPERATION_NOT_FOUND"
+                ]
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_restore_backup",
+                "input": {
+                  "backup_name": "book.20261017T233504452826Z.xlsx",
+                  "backup_path": ".wps-agent\\backups\\doc_5f3275e844fa0fa9\\book.20261017T233504452826Z.xlsx",
+                  "document_id": "doc_5f3275e844fa0fa9",
+                  "request_id": "eval-restore-2"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_operation",
+                "input": {
+                  "request": "eval-restore-2"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_snapshot_document",
+                "input": {
+                  "document_id": "doc_5f3275e844fa0fa9"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_spreadsheet_read",
+                "input": {
+                  "document_id": "doc_5f3275e844fa0fa9",
+                  "range": "A1"
+                },
+                "is_error": false,
+                "error_codes": []
+              }
+            ]
+          },
+          "metrics": {
+            "wps_tool_calls": 8,
+            "wps_tool_errors": 1,
+            "other_tool_calls": 0,
+            "tools_used": [
+              "documents",
+              "list_backups",
+              "operation",
+              "restore_backup",
+              "snapshot_document",
+              "spreadsheet_read"
+            ],
+            "expected_tools": [
+              "documents",
+              "list_backups",
+              "register_document",
+              "restore_backup"
+            ],
+            "off_path_calls": 4,
+            "off_path_tools": [
+              "operation",
+              "snapshot_document",
+              "spreadsheet_read"
+            ],
+            "off_path_calls_before_write": 4,
+            "off_path_calls_after_write": 0,
+            "wrong_tool_calls": null,
+            "unverified_writes": 0
+          },
+          "checks": [
+            {
+              "kind": "operation_recorded",
+              "passed": true,
+              "detail": "restore-backup",
+              "request_id": "eval-restore-2",
+              "command": "restore-backup"
+            },
+            {
+              "kind": "file_matches_seed",
+              "passed": true,
+              "detail": "matches the seed"
+            },
+            {
+              "kind": "max_tool_calls",
+              "passed": false,
+              "detail": "8 wps-agent call(s)",
+              "count": 6
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "restore-dry-run",
+      "passed": true,
+      "repeat": 3,
+      "min_passes": 2,
+      "passes": 3,
+      "pass_rate": 1.0,
+      "metrics": {
+        "wps_tool_calls": 11,
+        "wps_tool_errors": 0,
+        "off_path_calls": 0,
+        "off_path_tools": [],
+        "off_path_calls_before_write": 0,
+        "off_path_calls_after_write": 0,
+        "wrong_tool_calls": null,
+        "unverified_writes": 0
+      },
+      "runs": [
+        {
+          "id": "restore-dry-run",
+          "passed": true,
+          "agent": {
+            "ran": true,
+            "exit_code": 0,
+            "is_error": false,
+            "num_turns": 8,
+            "duration_ms": 21582,
+            "total_cost_usd": 0.4124682,
+            "result_excerpt": "The restore dry-run completed successfully, and nothing was changed.\n\n**What a real restore would do**\n- **Document:** `book.xlsx` (`doc_15ba484a5319d025`, spreadsheets component)\n- **Source backup:** `book.20261017T233522757390Z.xlsx` — the only backup, created `2026-10-17 23:35:22 UTC`, 4,821 bytes\n- **Target:** `C:\\...\\run-1\\restore-dry-run\\book.xlsx`\n- **Integrity:** the tool verified the backup (`backup_integrity_verified: true`); its SHA-256 is `55DF0985…B10E696`, matching the hash recorde",
+            "stderr_excerpt": "",
+            "tool_calls": [
+              {
+                "name": "mcp__wps-agent__wps_agent_documents",
+                "input": {},
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_list_backups",
+                "input": {
+                  "document_id": "doc_15ba484a5319d025"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_restore_backup",
+                "input": {
+                  "document_id": "doc_15ba484a5319d025",
+                  "backup_name": "book.20261017T233522757390Z.xlsx",
+                  "backup_path": ".wps-agent\\backups\\doc_15ba484a5319d025\\book.20261017T233522757390Z.xlsx",
+                  "dry_run": true
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "PowerShell",
+                "input": {
+                  "command": "Get-FileHash -Algorithm SHA256 .\\book.xlsx | Select-Object -ExpandProperty Hash; (Get-Item .\\book.xlsx).LastWriteTimeUtc.ToString('o')",
+                  "description": "Hash book.xlsx and show last write time"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "PowerShell",
+                "input": {
+                  "command": "Get-FileHash -Algorithm SHA256 .\\book.xlsx | Format-List; Get-Item .\\book.xlsx | Format-List LastWriteTimeUtc,Length",
+                  "description": "Hash book.xlsx and show last write time"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "PowerShell",
+                "input": {
+                  "command": "Get-FileHash -Algorithm SHA256 .\\.wps-agent\\backups\\doc_15ba484a5319d025\\book.20261017T233522757390Z.xlsx | Format-List Hash; Get-Item .\\.wps-agent\\backups\\doc_15ba484a5319d025\\book.20261017T233522757390Z.xlsx | Format-List Length,LastWriteTimeUtc; Get-Item .\\book.xlsx | Format-List LastWriteTimeUtc; Get-Item .\\book.xlsx | Select-Object -ExpandProperty LastWriteTimeUtc",
+                  "description": "Show backup hash, sizes, and file timestamps"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_list_backups",
+                "input": {
+                  "document_id": "doc_15ba484a5319d025"
+                },
+                "is_error": false,
+                "error_codes": []
+              }
+            ]
+          },
+          "metrics": {
+            "wps_tool_calls": 4,
+            "wps_tool_errors": 0,
+            "other_tool_calls": 3,
+            "tools_used": [
+              "documents",
+              "list_backups",
+              "restore_backup"
+            ],
+            "expected_tools": [
+              "documents",
+              "list_backups",
+              "register_document",
+              "restore_backup"
+            ],
+            "off_path_calls": 0,
+            "off_path_tools": [],
+            "off_path_calls_before_write": 0,
+            "off_path_calls_after_write": 0,
+            "wrong_tool_calls": null,
+            "unverified_writes": 0
+          },
+          "checks": [
+            {
+              "kind": "tool_called",
+              "passed": true,
+              "detail": "1 matching call(s)",
+              "tool": "restore_backup",
+              "input": {
+                "dry_run": true
+              }
+            },
+            {
+              "kind": "file_unchanged",
+              "passed": true,
+              "detail": "unchanged"
+            },
+            {
+              "kind": "backup_count",
+              "passed": true,
+              "detail": 1,
+              "count": 1
+            }
+          ]
+        },
+        {
+          "id": "restore-dry-run",
+          "passed": true,
+          "agent": {
+            "ran": true,
+            "exit_code": 0,
+            "is_error": false,
+            "num_turns": 7,
+            "duration_ms": 17515,
+            "total_cost_usd": 0.3762257,
+            "result_excerpt": "Dry run complete — nothing was written.\n\n**What the preview reported**\n\n| Field | Value |\n|---|---|\n| Document | `book.xlsx` (`doc_51ec886d7c1041cc`, spreadsheets) |\n| Backup used | `book.20261017T233548422777Z.xlsx` (the only one, so also the most recent) |\n| Backup created | 2026-10-17 23:35:48 UTC |\n| Restore target | `...\\restore-dry-run\\book.xlsx` |\n| `dry_run` / `restored` | `true` / `false` |\n| Backup integrity verified | yes |\n| Validation checks | `backup_selected`, `pre_restore_backup_",
+            "stderr_excerpt": "",
+            "tool_calls": [
+              {
+                "name": "mcp__wps-agent__wps_agent_documents",
+                "input": {},
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_list_backups",
+                "input": {
+                  "document_id": "doc_51ec886d7c1041cc"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_restore_backup",
+                "input": {
+                  "document_id": "doc_51ec886d7c1041cc",
+                  "backup_name": "book.20261017T233548422777Z.xlsx",
+                  "backup_path": ".wps-agent\\backups\\doc_51ec886d7c1041cc\\book.20261017T233548422777Z.xlsx",
+                  "dry_run": true
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "PowerShell",
+                "input": {
+                  "command": "Get-FileHash -Algorithm SHA256 .\\book.xlsx | Select-Object -ExpandProperty Hash; (Get-Item .\\book.xlsx).LastWriteTimeUtc.ToString('o')",
+                  "description": "Hash the workbook to confirm it was untouched"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "PowerShell",
+                "input": {
+                  "command": "Get-FileHash -Algorithm SHA256 .\\book.xlsx | Format-List Hash, Path; Get-Item .\\book.xlsx | Format-List LastWriteTimeUtc, Length",
+                  "description": "Hash the workbook to confirm it was untouched"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "PowerShell",
+                "input": {
+                  "command": "Get-FileHash -Algorithm SHA256 '.\\.wps-agent\\backups\\doc_51ec886d7c1041cc\\book.20261017T233548422777Z.xlsx' | Format-List Hash; Get-Item '.\\.wps-agent\\backups\\doc_51ec886d7c1041cc\\book.20261017T233548422777Z.xlsx' | Format-List Length, LastWriteTimeUtc",
+                  "description": "Hash the backup copy for comparison"
+                },
+                "is_error": false,
+                "error_codes": []
+              }
+            ]
+          },
+          "metrics": {
+            "wps_tool_calls": 3,
+            "wps_tool_errors": 0,
+            "other_tool_calls": 3,
+            "tools_used": [
+              "documents",
+              "list_backups",
+              "restore_backup"
+            ],
+            "expected_tools": [
+              "documents",
+              "list_backups",
+              "register_document",
+              "restore_backup"
+            ],
+            "off_path_calls": 0,
+            "off_path_tools": [],
+            "off_path_calls_before_write": 0,
+            "off_path_calls_after_write": 0,
+            "wrong_tool_calls": null,
+            "unverified_writes": 0
+          },
+          "checks": [
+            {
+              "kind": "tool_called",
+              "passed": true,
+              "detail": "1 matching call(s)",
+              "tool": "restore_backup",
+              "input": {
+                "dry_run": true
+              }
+            },
+            {
+              "kind": "file_unchanged",
+              "passed": true,
+              "detail": "unchanged"
+            },
+            {
+              "kind": "backup_count",
+              "passed": true,
+              "detail": 1,
+              "count": 1
+            }
+          ]
+        },
+        {
+          "id": "restore-dry-run",
+          "passed": true,
+          "agent": {
+            "ran": true,
+            "exit_code": 0,
+            "is_error": false,
+            "num_turns": 10,
+            "duration_ms": 28121,
+            "total_cost_usd": 0.43550419999999995,
+            "result_excerpt": "Dry-run complete — nothing was written. Here's what the preview shows:\n\n**Target**\n- Document: `doc_dd85541252d8c7a5` (spreadsheets)\n- File: `...\\run-3\\restore-dry-run\\book.xlsx`\n\n**Backup selected** (the only one, so also the most recent)\n- `book.20261017T233610070659Z.xlsx`\n- Created 2026-10-17 23:36:10 UTC, 4,821 bytes\n- Path: `.wps-agent\\backups\\doc_dd85541252d8c7a5\\book.20261017T233610070659Z.xlsx`\n- Integrity verification: **passed**\n\n**What a real restore would do**\n- Replace `book.xlsx` ",
+            "stderr_excerpt": "",
+            "tool_calls": [
+              {
+                "name": "mcp__wps-agent__wps_agent_documents",
+                "input": {},
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_list_backups",
+                "input": {
+                  "document_id": "doc_dd85541252d8c7a5"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_restore_backup",
+                "input": {
+                  "document_id": "doc_dd85541252d8c7a5",
+                  "backup_name": "book.20261017T233610070659Z.xlsx",
+                  "dry_run": true
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_list_backups",
+                "input": {
+                  "document_id": "doc_dd85541252d8c7a5"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "PowerShell",
+                "input": {
+                  "command": "Get-FileHash -Algorithm SHA256 '.\\book.xlsx' | Select-Object -ExpandProperty Hash",
+                  "description": "Compute SHA-256 of book.xlsx"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "PowerShell",
+                "input": {
+                  "command": "$b = '.\\.wps-agent\\backups\\doc_dd85541252d8c7a5\\book.20261017T233610070659Z.xlsx'; Get-FileHash -Algorithm SHA256 $b | Select-Object -ExpandProperty Hash; Get-Item $b, '.\\book.xlsx' | Select-Object Name, Length, LastWriteTime | Format-Table -AutoSize | Out-String",
+                  "description": "Hash the backup and compare file metadata"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "PowerShell",
+                "input": {
+                  "command": "Get-FileHash -Algorithm SHA256 '.\\.wps-agent\\backups\\doc_dd85541252d8c7a5\\book.20261017T233610070659Z.xlsx' | Select-Object -ExpandProperty Hash",
+                  "description": "Hash the backup copy"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "PowerShell",
+                "input": {
+                  "command": "Get-Item '.\\book.xlsx' | Select-Object Name, Length, LastWriteTime | Format-List",
+                  "description": "Show book.xlsx size and last write time"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "PowerShell",
+                "input": {
+                  "command": "Get-Date -Format 'yyyy-MM-dd HH:mm:ss zzz'",
+                  "description": "Show current local time"
+                },
+                "is_error": false,
+                "error_codes": []
+              }
+            ]
+          },
+          "metrics": {
+            "wps_tool_calls": 4,
+            "wps_tool_errors": 0,
+            "other_tool_calls": 5,
+            "tools_used": [
+              "documents",
+              "list_backups",
+              "restore_backup"
+            ],
+            "expected_tools": [
+              "documents",
+              "list_backups",
+              "register_document",
+              "restore_backup"
+            ],
+            "off_path_calls": 0,
+            "off_path_tools": [],
+            "off_path_calls_before_write": 0,
+            "off_path_calls_after_write": 0,
+            "wrong_tool_calls": null,
+            "unverified_writes": 0
+          },
+          "checks": [
+            {
+              "kind": "tool_called",
+              "passed": true,
+              "detail": "1 matching call(s)",
+              "tool": "restore_backup",
+              "input": {
+                "dry_run": true
+              }
+            },
+            {
+              "kind": "file_unchanged",
+              "passed": true,
+              "detail": "unchanged"
+            },
+            {
+              "kind": "backup_count",
+              "passed": true,
+              "detail": 1,
+              "count": 1
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "complete": true,
+  "leftover_processes": []
+}
