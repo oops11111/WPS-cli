@@ -184,6 +184,13 @@ def run_scenario(name: str, runner: Any, root: Path | None = None) -> dict[str, 
                 "error_codes": [error.get("code") for error in errors],
                 "errors": errors,
                 "rollback": rollback,
+                # What the command read as the selection, so a refusal before the write can be explained (P10-006).
+                "selection": data.get("selection")
+                or {
+                    key: data.get(key)
+                    for key in ("selection_kind", "object_kind", "object_name", "selection_text", "fill_mode")
+                    if key in data
+                },
             }
         )
         result["hashes"].update(

@@ -17,9 +17,8 @@ from wps_ai_agent_cli import open_documents
 
 PWSH = os.environ.get("WPS_TEST_PWSH") or shutil.which("pwsh")
 
-# A missing member on a WPS COM object raises; on these .NET fakes PowerShell returns $null instead. The shape
-# scripts tell a shape from a chart element by whether $sel.Parent.HasTitle raises, so the fake run raises there.
-_CHART_PROBE = "$null = [bool]$sel.Parent.HasTitle"
+# On these .NET fakes PowerShell returns $null for a member an object does not have, as WPS did on Windows in
+# P10-006, where that made a text box and a chart title read as chart series.
 
 FAKE_OBJECT_BOOK_PRELUDE = r"""
 Add-Type -TypeDefinition @"
@@ -134,8 +133,6 @@ class ObjectUndoScriptTests(unittest.TestCase):
 
     def obj(self, kind, text, params, action, **env):
         def render(script, values):
-            if kind == "shape":
-                script = script.replace(_CHART_PROBE, "throw 'not a chart element'")
             return FAKE_OBJECT_BOOK_PRELUDE + json.dumps(values).join(script.split("__PARAMS_JSON__"))
 
         environment = {"WPSFAKE_PATH": str(self.document), "WPSFAKE_KIND": kind, "WPSFAKE_OBJECT_TEXT": text, **env}
@@ -214,6 +211,27 @@ class ObjectUndoScriptTests(unittest.TestCase):
         }
         data = self.obj("shape", "NEW", params, "selection-shape-revert")
         self.assertEqual(data["status"], "selection_changed")
+
+    def test_the_selection_read_tells_a_text_box_and_a_chart_title_from_a_series(self):
+        for kind, expected in (
+            ("shape", {"object_kind": "shape", "has_text_frame": True, "has_series_values": False}),
+            ("chart_title", {"object_kind": "chart", "has_chart_title": True, "has_series_values": False}),
+            ("series", {"object_kind": "chart", "has_series_values": True, "has_chart_title": False}),
+        ):
+            with self.subTest(kind=kind):
+                text = "10\t20" if kind == "series" else "DRAFT"
+                data = self.obj(kind, text, {}, "selection-read")
+                self.assertEqual(data["status"], "ok", data)
+                self.assertEqual(data["selection_kind"], "non_range")
+                self.assertEqual(data["object_name"], "Chart 1")
+                self.assertEqual(data["selection_text"], text)
+                for key, value in expected.items():
+                    self.assertEqual(bool(data[key]) if key != "object_kind" else data[key], value, (key, data))
+
+    def test_a_text_box_selection_is_written_as_shape_text(self):
+        data = self.obj("shape", "DRAFT", {"text": "FINAL", "expected_text": "DRAFT"}, "selection-shape-replace")
+        self.assertEqual(data["status"], "ok", data)
+        self.assertEqual(data["read_back_text"], "FINAL")
 
     def test_series_writes_record_the_formula_the_undo_needs(self):
         for action, params in (

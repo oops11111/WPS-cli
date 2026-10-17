@@ -143,37 +143,30 @@ _SPREADSHEET_SELECTION_READ_BODY = """
     # Series or SeriesPoint selection: Selection.Values or Parent.Values is readable.
     if ($objectKind -ne 'chart') {
       try {
+        # WPS returns $null for a member an object does not have instead of raising (P10-006: a text box and a
+        # chart title both read as series), so each probe checks for a value, not for an exception.
         $seriesCom = $null
-        try {
-          $null = $sel.Values
-          $seriesCom = $sel
-        } catch {
-          try {
-            $null = $sel.Parent.Values
-            $seriesCom = $sel.Parent
-          } catch { }
+        $probe = $null
+        try { $probe = $sel.Values } catch { }
+        if ($null -ne $probe) { $seriesCom = $sel }
+        else {
+          try { $probe = $sel.Parent.Values } catch { }
+          if ($null -ne $probe) { $seriesCom = $sel.Parent }
         }
         if ($null -ne $seriesCom) {
           $chartCom = $null
-          try {
-            $null = $seriesCom.Parent.ChartType
-            $chartCom = $seriesCom.Parent
-          } catch {
-            try {
-              $null = $seriesCom.Parent.Parent.ChartType
-              $chartCom = $seriesCom.Parent.Parent
-            } catch { }
+          $probe = $null
+          try { $probe = $seriesCom.Parent.ChartType } catch { }
+          if ($null -ne $probe) { $chartCom = $seriesCom.Parent }
+          else {
+            try { $probe = $seriesCom.Parent.Parent.ChartType } catch { }
+            if ($null -ne $probe) { $chartCom = $seriesCom.Parent.Parent }
           }
           $chartObjectName = $null
           if ($null -ne $chartCom) {
             try { $chartObjectName = [string]$chartCom.Parent.Name } catch { }
           }
-          if ([string]::IsNullOrEmpty($chartObjectName)) {
-            try { $chartObjectName = [string]$seriesCom.Parent.Parent.Name } catch {
-              try { $chartObjectName = [string]$seriesCom.Parent.Name } catch { }
-            }
-          }
-          if (-not [string]::IsNullOrEmpty($chartObjectName)) {
+          if ($null -ne $chartCom -and -not [string]::IsNullOrEmpty($chartObjectName)) {
             $objectKind = 'chart'
             $objectName = $chartObjectName
             $shape = $null
@@ -205,11 +198,15 @@ _SPREADSHEET_SELECTION_READ_BODY = """
     if ($objectKind -ne 'chart') {
       try {
         $maybeAxis = $sel.Parent
-        $null = [bool]$maybeAxis.HasTitle
-        $axisTitleText = [string]$maybeAxis.AxisTitle.Text
+        $axisHasTitle = $null
+        $axisTitle = $null
+        try { $axisHasTitle = $maybeAxis.HasTitle } catch { }
+        try { $axisTitle = $maybeAxis.AxisTitle } catch { }
+        $axisTitleText = ''
+        try { $axisTitleText = [string]$axisTitle.Text } catch { }
         $axisChartType = $null
         try { $axisChartType = $maybeAxis.ChartType } catch { }
-        if ($null -eq $axisChartType) {
+        if ($null -ne $axisHasTitle -and $null -ne $axisTitle -and $null -eq $axisChartType) {
           $chartObjectName = $null
           try { $chartObjectName = [string]$maybeAxis.Parent.Parent.Name } catch { }
           if (-not [string]::IsNullOrEmpty($chartObjectName)) {
@@ -735,12 +732,14 @@ _SPREADSHEET_SHAPE_TEXT_REPLACE_BODY = """
       exit 0
     }
   } catch { }
-  # WPS chart ChartArea/Title selections must not be treated as TextFrame shapes.
-  try {
-    $null = [bool]$sel.Parent.HasTitle
+  # WPS chart ChartArea/Title selections must not be treated as TextFrame shapes. A chart element's parent is the
+  # chart, which has HasTitle; WPS returns $null (or raises) for HasTitle on a sheet (P10-006).
+  $chartPart = $null
+  try { $chartPart = $sel.Parent.HasTitle } catch { }
+  if ($null -ne $chartPart) {
     [pscustomobject]@{ ok = $true; status = 'not_shape_selection' } | ConvertTo-Json -Depth 5
     exit 0
-  } catch { }
+  }
   $objectName = [string]$shape.Name
   if ($objectName -cne [string]$params.expected_object_name) {
     [pscustomobject]@{ ok = $true; status = 'selection_changed'; current_object_name = $objectName } | ConvertTo-Json -Depth 5
@@ -843,11 +842,14 @@ _SPREADSHEET_SHAPE_TEXT_DELETE_BODY = """
       exit 0
     }
   } catch { }
-  try {
-    $null = [bool]$sel.Parent.HasTitle
+  # WPS chart ChartArea/Title selections must not be treated as TextFrame shapes. A chart element's parent is the
+  # chart, which has HasTitle; WPS returns $null (or raises) for HasTitle on a sheet (P10-006).
+  $chartPart = $null
+  try { $chartPart = $sel.Parent.HasTitle } catch { }
+  if ($null -ne $chartPart) {
     [pscustomobject]@{ ok = $true; status = 'not_shape_selection' } | ConvertTo-Json -Depth 5
     exit 0
-  } catch { }
+  }
   $objectName = [string]$shape.Name
   if ($objectName -cne [string]$params.expected_object_name) {
     [pscustomobject]@{ ok = $true; status = 'selection_changed'; current_object_name = $objectName } | ConvertTo-Json -Depth 5

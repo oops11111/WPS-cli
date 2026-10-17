@@ -4,6 +4,10 @@ All notable changes to `wps-ai-agent-cli`. The versioning rule and release steps
 
 ## [Unreleased]
 
+### Fixed
+
+- `spreadsheet-selection-read` read a selected chart title as the chart's series values (with empty text), so `spreadsheet-selection-replace` on it was refused with `SELECTION_MISMATCH`. A selected text box was read as series values too, and the shape-text write refused a text box as a chart element. The scripts told these objects apart by whether a member access raised, and WPS returns an empty value for a member an object does not have instead of raising. They now check for a value, which holds either way. 0.7.0 has this defect. Found by the P10-006 Windows undo check on `chart_note.xlsx`. (P10-006)
+
 ## [0.7.0] - 2026-10-16
 
 Phase 10: open-document write results show what the saved file now holds, and failed writes to worksheet shapes and charts are undone in WPS.

@@ -671,6 +671,15 @@ def run_undo(args: argparse.Namespace, machine: Machine, runner: Any, injection:
                 f"{json.dumps(result.get('real_read_back_text'), ensure_ascii=False)}",
                 "",
             ]
+        selection = result.get("selection") or {}
+        if selection and not rollback:
+            shown = {
+                key: selection.get(key)
+                for key in ("selection_kind", "object_kind", "object_name", "selection_text")
+                if key in selection
+            }
+            flags = sorted(key for key, value in selection.items() if key.startswith("has_") and value)
+            details += [f"- selection read as {json.dumps(shown, ensure_ascii=False)}, flags {flags}", ""]
         for error in result.get("errors") or []:
             details.append(f"- `{error.get('code')}`: {error.get('message')}")
         if result.get("errors"):

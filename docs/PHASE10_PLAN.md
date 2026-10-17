@@ -53,9 +53,9 @@ Phase 10 做这两件事，最后发布 0.7.0。
 | P10-003 | K1 | 评测汇总区分写入前和写入后的 `off_path_calls`，`RESULTS.md` 显示；离线测试（已完成：`off_path_calls_before_write` 和 `off_path_calls_after_write`，`RESULTS.md` 多一列和一句合计；用在 P9-006 的记录上得到 12 和 38） | 本地 |
 | P10-004 | K2 | 表格形状文字、图表标题、坐标轴标题和系列值的写入记录原值，失败时在 WPS 里写回；假 COM 测试（已完成：`open_document_scripts/object_revert.py`。原值就是写入前读到的选区文字，系列另外记录写入前的 `SERIES` 公式，撤回时先写回公式，让系列重新引用单元格。撤回沿用写入脚本找对象的方式（经当前选区，并核对对象名）；对象里是本次写入的文字或 WPS 读回的文字才写回，否则不动；选区已经换了的，记为 `revert_target_missing`；`tests/test_object_undo_powershell.py`、`tests/test_undo_in_wps.py`） | 本地 |
 | P10-005 | K2 | `run_windows_check.py undo` 增加形状文字和图表标题两种情形（测试工作簿带一个形状和一个图表）；离线测试（已完成：场景 `spreadsheet-shape-text-replace` 和 `spreadsheet-chart-title-replace`，测试工作簿 `chart_note.xlsx`：图表 `Chart 1` 标题 `DRAFT`、文本框 `Note 1` 文字 `DRAFT`；准备步骤按名称选中文本框或图表标题；磁盘上的文字包括图形和图表里的文字，撤回后要和写入前一样） | 本地 |
-| P10-006 | K1、K2 | 在 Windows 上：全部已打开文档任务一条命令各跑 3 次，再跑 `undo` | Windows |
-| P10-007 | K3 | 定版本 0.7.0，整理 `CHANGELOG.md`，合并后由你推送 `v0.7.0` 标签（已准备：`__version__` 为 `0.7.0`，`CHANGELOG.md` 有 `[0.7.0] - 2026-10-16` 一节；P10-006 之后由你推送标签） | 本地 + 你 |
-| P10-008 | K3 | 在 Windows 上检查 0.7.0 的 wheel | Windows |
+| P10-006 | K1、K2 | 在 Windows 上：全部已打开文档任务一条命令各跑 3 次，再跑 `undo`（第一轮已完成，见下文“P10-006 结果”：K1 达成；`undo` 的两个新场景在写入前被拒，原因已修，待重跑 `undo`） | Windows |
+| P10-007 | K3 | 定版本 0.7.0，整理 `CHANGELOG.md`，合并后由你推送 `v0.7.0` 标签（已完成：`v0.7.0` 从 `main@ab92a42` 发布） | 本地 + 你 |
+| P10-008 | K3 | 在 Windows 上检查 0.7.0 的 wheel（已完成：`ab92a42` 上通过，SHA-256 与 Release 一致，safe 档 7/7，结果在 `scripts/windows_check/results/20261017T044542Z-wheel-0.7.0/`） | Windows |
 
 ## P10-001 结果
 
@@ -84,6 +84,18 @@ python scripts/windows_check/run_windows_check.py undo
 ```
 
 第一条对应 K1：看 `RESULTS.md` 里 16 个任务是否都至少 2/3、`wrong_tool_calls` 合计是否为 0、`off_path_calls` 合计是否不超过 20（新的一列是其中写入之后的次数）。第二条对应 K2：四个场景都要通过，其中 `spreadsheet-shape-text-replace` 和 `spreadsheet-chart-title-replace` 是新的；如果准备步骤选不中文本框或图表标题，结果里会写成准备失败和原因。两次的结果目录都提交到 `cursor/phase10-windows-<提交号>` 分支。
+
+## P10-006 结果
+
+第一轮在 `main@ab92a42` 上，结果在 `scripts/windows_check/results/20261016T221731Z-ab92a42-eval/` 和 `20261017T042304Z-ab92a42-undo/`。评测中途因会话结束停在第 9 个任务，用 `eval --resume` 接着跑完，同一个结果目录。
+
+- **K1 达成。** 16 个任务都是 3/3，`wrong_tool_calls` 合计 0，`off_path_calls` 合计 11（写入前 3、写入后 8），P9-006 是 50（12、38）。剩下的写入后调用是 Writer 插入后的 `snapshot_document`、`validate_document`，和表格写入后的 `spreadsheet_read`。48 次清理都让 WPS 正常退出，`documents_outside` 都为空。
+- **K2 未达成。** `writer-replace` 和 `presentation-replace` 照旧通过；两个新场景 `spreadsheet-shape-text-replace` 和 `spreadsheet-chart-title-replace` 在写入前就以 `SELECTION_MISMATCH`（“The current series values do not match expected_selection_text.”）拒绝，什么也没写。
+  - 原因：表格选区读脚本用“访问某个成员会不会报错”来分辨选中的是什么。真实 WPS 对对象没有的成员返回空值、不报错，于是图表标题被当成系列（读的是它的父对象图表的 `Values`，读回空字符串），文本框也走进了系列和坐标轴的判断。形状写入脚本判断“是不是图表的一部分”（`$sel.Parent.HasTitle`）也有同样的问题，对文本框会拒绝。
+  - 修复：这几处改为检查取到的值是否为空（系列要求 `Values` 有值且父对象有 `ChartType`；坐标轴要求 `HasTitle` 和 `AxisTitle` 都有值；图表部件要求 `Parent.HasTitle` 有值），在报错和返回空值两种行为下都成立。撤回脚本沿用写入脚本的开头，一并改好。假 COM 测试按 WPS 的这种行为写（缺的成员返回空值），旧脚本在这些测试上的失败和 Windows 上一样。
+  - `undo` 的结果现在记下命令读到的选区（类型、对象名、文字和 `has_*`），写入前被拒时也能看出原因。
+- 下一步：合并修复后在 Windows 上只重跑 `python scripts/windows_check/run_windows_check.py undo`，四个场景都通过即 K2 达成。`v0.7.0` 已在修复之前从 `ab92a42` 发布，所以这个修复在 `[Unreleased]`，随下一个版本发布；K2 只看 `undo` 在 `main` 上的结果，不要求它进 0.7.0。
+- **K3 达成（P10-008）。** `v0.7.0` 从 `main@ab92a42` 发布，wheel 在 Windows 上通过全部 7 个条件（SHA-256 与 Release 一致，safe 档 7/7），结果在 `scripts/windows_check/results/20261017T044542Z-wheel-0.7.0/`。
 
 ## 建议顺序
 
