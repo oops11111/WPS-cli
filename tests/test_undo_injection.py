@@ -133,8 +133,9 @@ class FakeWps:
 class FakeObjectWps:
     """Spreadsheets with a text box or a chart title selected; the write and the undo change the saved file."""
 
-    def __init__(self, scenario):
+    def __init__(self, scenario, selection_text="DRAFT"):
         self.selection = injection.SCENARIOS[scenario]["selection"]
+        self.selection_text = selection_text
         self.actions = []
 
     def __call__(self, action, params):
@@ -154,7 +155,7 @@ class FakeObjectWps:
                     "object_name": self.selection["object"],
                     "has_text_frame": not chart,
                     "has_chart_title": chart,
-                    "selection_text": "DRAFT",
+                    "selection_text": self.selection_text,
                 }
             )
         if action.endswith("-replace"):
@@ -237,6 +238,15 @@ class ScenarioTests(unittest.TestCase):
                 self.assertIn("DRAFT", result["text_before"])
                 _steps, options = runner.steps
                 self.assertEqual(options, {"selection": injection.SCENARIOS[name]["selection"]})
+
+    def test_a_refusal_before_the_write_records_what_the_selection_was_read_as(self):
+        wps = FakeObjectWps("spreadsheet-chart-title-replace", selection_text="")
+        result, _runner = self.run_scenario("spreadsheet-chart-title-replace", wps)
+        self.assertEqual(wps.actions, ["selection-read"])
+        self.assertEqual(result["error_codes"], ["SELECTION_MISMATCH"])
+        self.assertEqual(result["selection"]["object_kind"], "chart")
+        self.assertTrue(result["selection"]["has_chart_title"])
+        self.assertEqual(result["selection"]["selection_text"], "")
 
     def test_an_undo_that_did_not_happen_fails_the_scenario(self):
         wps = FakeWps("writer", undo_status="revert_mismatch", undo_restores=False)

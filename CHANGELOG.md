@@ -19,6 +19,10 @@ Phase 10: open-document write results show what the saved file now holds, and fa
 - A failed `spreadsheet-selection-replace` or `spreadsheet-selection-delete` on a worksheet shape's text, a chart title, an axis title or a series' values is now undone in WPS, as cell writes have been since 0.4.0. The undo finds the object through the selection, as the write did, checks that it still holds what the write wrote or what WPS read back, puts the original back, reads it back and saves. A series gets its `SERIES` formula back, so a series that read its values from cells reads them again. Before, these writes returned `MUTATION_ROLLBACK_IN_WPS_FAILED` with "not available for this kind of selection". (P10-004)
 - `spreadsheet-selection-read` no longer suggests reading the full values with `spreadsheet-read`: its 100-cell sample covers every selection the selection writes accept. (P10-001)
 
+### Fixed
+
+- `spreadsheet-selection-read` read a selected chart title as the chart's series values (with empty text), so `spreadsheet-selection-replace` on it was refused with `SELECTION_MISMATCH`. A selected text box was read as series values too, and the shape-text write refused a text box as a chart element. The scripts told these objects apart by whether a member access raised, and WPS returns an empty value for a member an object does not have instead of raising. They now check for a value, which holds either way. Found by the P10-006 Windows undo check on `chart_note.xlsx`. (P10-006)
+
 ## [0.6.0] - 2026-10-16
 
 Phase 9: agents are told which tool to use on a document open in WPS, the text export keeps every character, and Windows evaluation runs end WPS normally.
