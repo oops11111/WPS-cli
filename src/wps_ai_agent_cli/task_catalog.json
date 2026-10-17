@@ -3209,7 +3209,7 @@
     "id": "P10-006",
     "phase": "phase10",
     "title": "Windows run of K1 and K2",
-    "status": "todo",
+    "status": "done",
     "acceptance": "K1, K2: all open-document tasks in one --repeat 3 --min-passes 2 invocation, then run_windows_check.py undo; off_path_calls, wrong_tool_calls and the undo results recorded."
   },
   {
