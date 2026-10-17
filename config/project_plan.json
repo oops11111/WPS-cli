@@ -145,7 +145,7 @@
         "M1: on Windows one run_windows_check.py eval --repeat 3 --min-passes 2 without --prefix (all 34 tasks) on the phase's main passes every task at least 2 of 3 runs with wrong_tool_calls 0 and unverified_writes 0; tasks that fail are fixed in the phase and rerun",
         "M2: on a Windows account that never ran the project, with WPS installed as the default app, pip install wps-ai-agent-cli==0.9.0 from PyPI passes inspect-env, compatibility checks C1 to C6 and run_windows_check.py undo 6 of 6, recorded in docs/COMPATIBILITY_MATRIX.md",
         "M3: offline, the release workflow uploads the same wheel and sdist to PyPI with Trusted Publishing after the GitHub Release, and run_windows_check.py wheel gains --source pypi, which installs from PyPI and checks the SHA-256 against the GitHub Release; on Windows wheel --version 0.9.0 --source pypi passes",
-        "M4: offline, a generated inventory of the public interface (CLI commands and arguments, MCP tools and parameters, error codes, top-level data fields per command) is committed, a test fails when the interface changes without the inventory, and docs/RELEASING.md states the stability rules before and after 1.0 and a 1.0 checklist",
+        "M4: offline, a generated inventory of the public interface (CLI commands and arguments, MCP tools and parameters, error codes; the fields under data are built at run time and covered by the stability rules instead) is committed, a test fails when the interface changes without the inventory, and docs/RELEASING.md states the stability rules before and after 1.0 and a 1.0 checklist",
         "M5: v0.9.0 is released per docs/RELEASING.md on GitHub and PyPI with the phase's changes and the M1 fixes, and its wheel is checked on Windows"
       ]
     }

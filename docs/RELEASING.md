@@ -16,6 +16,35 @@ Phase 4 出口标准 E6 的一部分（P4-012）。
 
 版本号只写在 `src/wps_ai_agent_cli/__init__.py` 的 `__version__` 里。`pyproject.toml` 从那里读取，MCP `initialize` 返回的 `serverInfo.version` 也是它。
 
+## 对外接口和稳定性
+
+对外接口指调用方会依赖的东西，清单在 `config/public_interface.json`，由代码生成（P12-006）：
+
+- CLI 的全局选项、命令和每个命令的参数（是否必填、可选值）；
+- MCP 工具、对应的 CLI 命令、是否修改文档、参数和必填参数；
+- 错误码。
+
+改了这些而没更新清单，`tests/test_public_interface.py` 会失败，并列出变化（删除的标为 breaking）。确认是有意的改动后运行 `python scripts/public_interface.py --write`，把清单的变化和代码一起提交；评审时看这个文件的 diff 就知道接口变了什么。
+
+响应 `data` 里的字段是运行时拼出来的，没有可读的结构，不在清单里，按下面的规则处理。
+
+稳定性规则：
+
+| 改动 | 1.0 之前 | 1.0 之后 |
+| --- | --- | --- |
+| 新增命令、参数（可选）、MCP 工具、错误码、`data` 里的字段 | 次版本 | 次版本 |
+| 删除或改名命令、参数、MCP 工具、错误码、`data` 里的字段；参数改为必填；改变字段的类型或含义 | 次版本，`CHANGELOG.md` 写进 Changed 并点名 | 主版本；先在至少一个次版本里标为弃用（`CHANGELOG.md` 的 Deprecated，工具说明里写明替代），再删除 |
+| 修复、文档、测试、内部重构，清单不变 | 修订号 | 修订号 |
+
+调用方应当忽略不认识的 `data` 字段，所以新增字段不算破坏。
+
+定 1.0 的检查清单（由你决定，满足下面各条后再考虑）：
+
+1. 全部评测任务在要发布的提交上通过（Phase 12 的 M1）。
+2. 至少在一个从没用过本项目的环境里，从 PyPI 安装后通过兼容检查（M2）。
+3. 每个版本都同时发布在 GitHub Release 和 PyPI，并在 Windows 上检查过（M3）。
+4. 最近一个次版本里，清单没有 breaking 的变化；有的话，先发一个只做弃用标注的次版本。
+
 ## 变更记录
 
 每个改变用户可见行为的 PR 都在 `CHANGELOG.md` 的 `[Unreleased]` 下加一行，分 Added、Changed、Fixed、Removed。只改测试、文档或内部结构的 PR 可以不写。
@@ -36,14 +65,33 @@ Phase 4 出口标准 E6 的一部分（P4-012）。
 5. 推送标签会触发 `.github/workflows/release.yml`：
    - 用 `scripts/release_notes.py` 检查标签等于 `v<__version__>`，并取出 `CHANGELOG.md` 里这个版本的一节作为发布说明；标签不对、这一节没有日期或是空的，就停下，不发布；
    - 构建 wheel 和源码包，在新的虚拟环境里只装 wheel，在仓库以外跑 `inspect-env` 和 safe 档回归；
-   - 都通过后，用 `gh release create` 建 GitHub Release，附上 wheel 和源码包。
-6. 在 GitHub 的 Releases 页面确认发布内容，再按 P5-009 在 Windows 上只装这个 wheel 检查一次。
+   - 都通过后，用 `gh release create` 建 GitHub Release，附上 wheel 和源码包；
+   - 再由 `pypi` 任务把同一组文件上传到 PyPI（Trusted Publishing，见下文“PyPI”）。
+6. 在 GitHub 的 Releases 页面和 <https://pypi.org/project/wps-ai-agent-cli/> 确认发布内容，再在 Windows 上检查一次：`python scripts/windows_check/run_windows_check.py wheel --version <版本号> --source pypi`（从 PyPI 安装，并核对文件和 GitHub Release 上的一致）。
 
 标签打错了：在 Release 发布前，删掉远端标签（`git push origin :refs/tags/v<版本号>`）重打即可；Release 已发布的，先在 GitHub 上删除 Release，再删标签。
 
-`tests/test_release.py` 检查 `CHANGELOG.md` 有 `[Unreleased]` 和当前版本号的标题、当前版本那一节有日期且不为空、发布说明的提取和标签检查，以及发布流程先检查、再跑回归、最后发布的顺序。
+`tests/test_release.py` 检查 `CHANGELOG.md` 有 `[Unreleased]` 和当前版本号的标题、当前版本那一节有日期且不为空、发布说明的提取和标签检查，发布流程先检查、再跑回归、最后发布的顺序，以及 PyPI 上传用的是 GitHub Release 的同一组文件、不用 token。
 
-目前不发布到 PyPI。标签由你推送，CI 不会自动打标签。
+标签由你推送，CI 不会自动打标签。
+
+## PyPI
+
+从 0.9.0 起，每个版本也发布到 PyPI，包名 `wps-ai-agent-cli`（P12-004）：
+
+```bash
+pip install wps-ai-agent-cli==<版本号>
+```
+
+上传用 Trusted Publishing：PyPI 信任本仓库 `release.yml` 的 `pypi` 任务的 OIDC 身份，仓库和 Secrets 里都不存 token。第一次发布前要你登记一次（之后不用再做）：
+
+1. 登录 <https://pypi.org>，打开 Account settings → Publishing → Add a new pending publisher（GitHub）。
+2. 填 PyPI Project Name `wps-ai-agent-cli`，Owner `oops11111`，Repository name `WPS-cli`，Workflow name `release.yml`，Environment name `pypi`。
+3. 保存。第一次上传成功后，这个 pending publisher 就成为项目的正式 publisher。
+
+GitHub 仓库里的 `pypi` environment 会在第一次运行时自动建立；想限制谁能发布，可以在 Settings → Environments → `pypi` 加上需要审批的人。
+
+上传失败（比如还没登记）时 GitHub Release 不受影响。登记或修好之后，在 Actions 里对同一个标签的运行重跑 `pypi` 任务即可。PyPI 不允许重复上传同一个版本号的文件，所以已经上传过的版本不能改，只能发新版本。
 
 ## CI 构建
 

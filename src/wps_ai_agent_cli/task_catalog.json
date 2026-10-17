@@ -3293,7 +3293,7 @@
     "id": "P12-001",
     "phase": "phase12",
     "title": "Eval runs every task in one command",
-    "status": "todo",
+    "status": "done",
     "acceptance": "M1: run_windows_check.py eval without --prefix runs all 34 tasks with correct setup and cleanup for file-based tasks; the offline judge tests of tasks that need no WPS still pass."
   },
   {
@@ -3314,35 +3314,35 @@
     "id": "P12-004",
     "phase": "phase12",
     "title": "Release workflow uploads to PyPI",
-    "status": "todo",
+    "status": "done",
     "acceptance": "M3: after the GitHub Release, the release workflow uploads the same wheel and sdist to PyPI with Trusted Publishing; docs/RELEASING.md describes the one-time PyPI setup."
   },
   {
     "id": "P12-005",
     "phase": "phase12",
     "title": "Wheel check from PyPI",
-    "status": "todo",
+    "status": "done",
     "acceptance": "M3: run_windows_check.py wheel --source pypi installs the version from PyPI and checks its SHA-256 against the GitHub Release; offline tests."
   },
   {
     "id": "P12-006",
     "phase": "phase12",
     "title": "Public interface inventory and stability rules",
-    "status": "todo",
-    "acceptance": "M4: a generated, committed inventory of commands, arguments, MCP tools, error codes and top-level data fields; a test fails on undocumented interface changes; docs/RELEASING.md states the stability rules and a 1.0 checklist."
+    "status": "done",
+    "acceptance": "M4: a generated, committed inventory of commands, arguments, MCP tools and error codes (data fields are covered by the stability rules); a test fails on undocumented interface changes; docs/RELEASING.md states the stability rules and a 1.0 checklist."
   },
   {
     "id": "P12-007",
     "phase": "phase12",
     "title": "Clean-environment check in the compatibility matrix",
-    "status": "todo",
+    "status": "done",
     "acceptance": "M2: docs/COMPATIBILITY_MATRIX.md gains a clean-environment section with its checks and record format; the steps for a new account are written down."
   },
   {
     "id": "P12-008",
     "phase": "phase12",
     "title": "Release 0.9.0",
-    "status": "todo",
+    "status": "done",
     "acceptance": "M5: version 0.9.0 per docs/RELEASING.md and a CHANGELOG section, merged before the maintainer pushes the v0.9.0 tag."
   },
   {

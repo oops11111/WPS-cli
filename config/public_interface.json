@@ -1,0 +1,2649 @@
+{
+  "inventory_version": 1,
+  "cli_global_options": [
+    {
+      "name": "--request-id",
+      "required": false
+    }
+  ],
+  "cli_commands": {
+    "backup-document": [
+      {
+        "name": "--document-id",
+        "required": true
+      },
+      {
+        "name": "--dry-run",
+        "required": false
+      },
+      {
+        "name": "--task-id",
+        "required": false
+      }
+    ],
+    "batch-report": [
+      {
+        "name": "--no-snapshots",
+        "required": false
+      },
+      {
+        "name": "--path",
+        "required": true
+      },
+      {
+        "name": "--recursive",
+        "required": false
+      }
+    ],
+    "batch-template-report": [
+      {
+        "name": "--manifest",
+        "required": true
+      },
+      {
+        "name": "--output",
+        "required": true
+      },
+      {
+        "name": "--task-id",
+        "required": false
+      },
+      {
+        "name": "--template",
+        "required": true
+      }
+    ],
+    "calc-smoke": [
+      {
+        "name": "--input",
+        "required": true
+      },
+      {
+        "name": "--output",
+        "required": true
+      },
+      {
+        "name": "--timeout-seconds",
+        "required": false
+      }
+    ],
+    "cleanup-approval-manifest": [
+      {
+        "name": "--workspace",
+        "required": false
+      }
+    ],
+    "cleanup-plan": [
+      {
+        "name": "--workspace",
+        "required": false
+      }
+    ],
+    "com-smoke": [
+      {
+        "name": "--component",
+        "required": true,
+        "choices": [
+          "presentation",
+          "spreadsheets",
+          "writer"
+        ]
+      },
+      {
+        "name": "--input",
+        "required": true
+      },
+      {
+        "name": "--output",
+        "required": true
+      },
+      {
+        "name": "--visible",
+        "required": false
+      }
+    ],
+    "convert-smoke": [
+      {
+        "name": "--component",
+        "required": true,
+        "choices": [
+          "presentation",
+          "spreadsheets",
+          "writer"
+        ]
+      },
+      {
+        "name": "--format",
+        "required": true,
+        "choices": [
+          "pdf"
+        ]
+      },
+      {
+        "name": "--input",
+        "required": true
+      },
+      {
+        "name": "--output",
+        "required": true
+      }
+    ],
+    "documents": [],
+    "export-open-document": [
+      {
+        "name": "--document-id",
+        "required": true
+      },
+      {
+        "name": "--output",
+        "required": true
+      }
+    ],
+    "export-open-document-copy": [
+      {
+        "name": "--document-id",
+        "required": true
+      },
+      {
+        "name": "--output",
+        "required": true
+      }
+    ],
+    "export-open-document-pdf": [
+      {
+        "name": "--document-id",
+        "required": true
+      },
+      {
+        "name": "--output",
+        "required": true
+      }
+    ],
+    "export-open-document-text": [
+      {
+        "name": "--document-id",
+        "required": true
+      },
+      {
+        "name": "--output",
+        "required": true
+      }
+    ],
+    "html-batch-convert": [
+      {
+        "name": "--input-dir",
+        "required": true
+      },
+      {
+        "name": "--mode",
+        "required": true,
+        "choices": [
+          "docx",
+          "pdf",
+          "png"
+        ]
+      },
+      {
+        "name": "--output-dir",
+        "required": true
+      },
+      {
+        "name": "--recursive",
+        "required": false
+      },
+      {
+        "name": "--task-id",
+        "required": false
+      }
+    ],
+    "html-batch-request": [
+      {
+        "name": "--batch-request-id",
+        "required": true
+      },
+      {
+        "name": "--verify",
+        "required": false
+      }
+    ],
+    "html-controlled-import": [
+      {
+        "name": "--input",
+        "required": true
+      },
+      {
+        "name": "--output",
+        "required": true
+      },
+      {
+        "name": "--task-id",
+        "required": false
+      }
+    ],
+    "html-editable": [
+      {
+        "name": "--format",
+        "required": false,
+        "choices": [
+          "docx",
+          "pptx",
+          "xlsx"
+        ]
+      },
+      {
+        "name": "--input",
+        "required": true
+      },
+      {
+        "name": "--output",
+        "required": true
+      },
+      {
+        "name": "--task-id",
+        "required": false
+      }
+    ],
+    "html-render": [
+      {
+        "name": "--allow-javascript",
+        "required": false
+      },
+      {
+        "name": "--format",
+        "required": true,
+        "choices": [
+          "pdf",
+          "png"
+        ]
+      },
+      {
+        "name": "--input",
+        "required": true
+      },
+      {
+        "name": "--output",
+        "required": true
+      },
+      {
+        "name": "--page-size",
+        "required": false,
+        "choices": [
+          "A4",
+          "Legal",
+          "Letter",
+          "Tabloid"
+        ]
+      },
+      {
+        "name": "--task-id",
+        "required": false
+      },
+      {
+        "name": "--timeout-seconds",
+        "required": false
+      },
+      {
+        "name": "--viewport-height",
+        "required": false
+      },
+      {
+        "name": "--viewport-width",
+        "required": false
+      }
+    ],
+    "html-roundtrip-export": [
+      {
+        "name": "--docx",
+        "required": true
+      },
+      {
+        "name": "--mapping",
+        "required": true
+      },
+      {
+        "name": "--output",
+        "required": true
+      },
+      {
+        "name": "--task-id",
+        "required": false
+      }
+    ],
+    "html-roundtrip-plan": [
+      {
+        "name": "--input",
+        "required": true
+      }
+    ],
+    "html-roundtrip-verify": [
+      {
+        "name": "--docx",
+        "required": true
+      },
+      {
+        "name": "--mapping",
+        "required": true
+      }
+    ],
+    "inspect-env": [],
+    "list-backups": [
+      {
+        "name": "--document-id",
+        "required": false
+      }
+    ],
+    "mcp-call": [
+      {
+        "name": "--arguments-json",
+        "required": false
+      },
+      {
+        "name": "--name",
+        "required": true
+      }
+    ],
+    "mcp-catalog-drift": [
+      {
+        "name": "--guard",
+        "required": false
+      }
+    ],
+    "mcp-catalog-snapshot": [],
+    "mcp-config-audit": [
+      {
+        "name": "--config",
+        "required": false
+      },
+      {
+        "name": "--expected-min-tools",
+        "required": false
+      },
+      {
+        "name": "--server-name",
+        "required": false
+      },
+      {
+        "name": "--timeout-seconds",
+        "required": false
+      }
+    ],
+    "mcp-server": [
+      {
+        "name": "--once-json",
+        "required": false
+      }
+    ],
+    "mcp-smoke": [
+      {
+        "name": "--arguments-json",
+        "required": false
+      },
+      {
+        "name": "--expected-min-tools",
+        "required": false
+      },
+      {
+        "name": "--tool-name",
+        "required": false
+      }
+    ],
+    "mcp-tool-schema": [
+      {
+        "name": "--name",
+        "required": true
+      }
+    ],
+    "mcp-tools": [
+      {
+        "name": "--category",
+        "required": false
+      },
+      {
+        "name": "--mutates-document",
+        "required": false,
+        "choices": [
+          "false",
+          "true"
+        ]
+      }
+    ],
+    "mutation-request-inspect": [
+      {
+        "name": "--request",
+        "required": true
+      }
+    ],
+    "open-documents": [
+      {
+        "name": "--component",
+        "required": false,
+        "choices": [
+          "presentation",
+          "spreadsheets",
+          "writer"
+        ]
+      },
+      {
+        "name": "--register",
+        "required": false
+      }
+    ],
+    "operation": [
+      {
+        "name": "--request",
+        "required": true
+      }
+    ],
+    "operations": [],
+    "performance-baseline": [],
+    "plan": [],
+    "presentation-replace": [
+      {
+        "name": "--document-id",
+        "required": true
+      },
+      {
+        "name": "--dry-run",
+        "required": false
+      },
+      {
+        "name": "--find",
+        "required": true
+      },
+      {
+        "name": "--replace",
+        "required": true
+      },
+      {
+        "name": "--slide-index",
+        "required": false
+      },
+      {
+        "name": "--task-id",
+        "required": false
+      }
+    ],
+    "presentation-selection-delete": [
+      {
+        "name": "--document-id",
+        "required": true
+      },
+      {
+        "name": "--dry-run",
+        "required": false
+      },
+      {
+        "name": "--expected-selection-text",
+        "required": false
+      },
+      {
+        "name": "--task-id",
+        "required": false
+      }
+    ],
+    "presentation-selection-insert": [
+      {
+        "name": "--document-id",
+        "required": true
+      },
+      {
+        "name": "--dry-run",
+        "required": false
+      },
+      {
+        "name": "--expected-start",
+        "required": false
+      },
+      {
+        "name": "--task-id",
+        "required": false
+      },
+      {
+        "name": "--text",
+        "required": true
+      }
+    ],
+    "presentation-selection-read": [
+      {
+        "name": "--document-id",
+        "required": true
+      }
+    ],
+    "presentation-selection-replace": [
+      {
+        "name": "--document-id",
+        "required": true
+      },
+      {
+        "name": "--dry-run",
+        "required": false
+      },
+      {
+        "name": "--expected-selection-text",
+        "required": false
+      },
+      {
+        "name": "--task-id",
+        "required": false
+      },
+      {
+        "name": "--text",
+        "required": true
+      }
+    ],
+    "register-document": [
+      {
+        "name": "--component",
+        "required": true,
+        "choices": [
+          "presentation",
+          "spreadsheets",
+          "writer"
+        ]
+      },
+      {
+        "name": "--path",
+        "required": true
+      }
+    ],
+    "regression-manifest": [
+      {
+        "name": "--include-wps",
+        "required": false
+      },
+      {
+        "name": "--manifest",
+        "required": false
+      },
+      {
+        "name": "--profile",
+        "required": false
+      }
+    ],
+    "regression-run": [
+      {
+        "name": "--artifact-dir",
+        "required": false
+      },
+      {
+        "name": "--include-wps",
+        "required": false
+      },
+      {
+        "name": "--manifest",
+        "required": false
+      },
+      {
+        "name": "--profile",
+        "required": false
+      }
+    ],
+    "restore-backup": [
+      {
+        "name": "--backup-name",
+        "required": false
+      },
+      {
+        "name": "--backup-path",
+        "required": false
+      },
+      {
+        "name": "--close-in-wps",
+        "required": false
+      },
+      {
+        "name": "--document-id",
+        "required": true
+      },
+      {
+        "name": "--dry-run",
+        "required": false
+      },
+      {
+        "name": "--task-id",
+        "required": false
+      }
+    ],
+    "save-as-open-document": [
+      {
+        "name": "--component",
+        "required": true,
+        "choices": [
+          "presentation",
+          "spreadsheets",
+          "writer"
+        ]
+      },
+      {
+        "name": "--dry-run",
+        "required": false
+      },
+      {
+        "name": "--name",
+        "required": true
+      },
+      {
+        "name": "--output",
+        "required": true
+      },
+      {
+        "name": "--task-id",
+        "required": false
+      }
+    ],
+    "save-open-document": [
+      {
+        "name": "--document-id",
+        "required": true
+      },
+      {
+        "name": "--dry-run",
+        "required": false
+      },
+      {
+        "name": "--task-id",
+        "required": false
+      }
+    ],
+    "scan-dir": [
+      {
+        "name": "--path",
+        "required": true
+      },
+      {
+        "name": "--recursive",
+        "required": false
+      }
+    ],
+    "security-audit": [],
+    "snapshot-document": [
+      {
+        "name": "--document-id",
+        "required": true
+      }
+    ],
+    "spreadsheet-copy-sheet": [
+      {
+        "name": "--document-id",
+        "required": true
+      },
+      {
+        "name": "--dry-run",
+        "required": false
+      },
+      {
+        "name": "--index",
+        "required": false
+      },
+      {
+        "name": "--new-name",
+        "required": true
+      },
+      {
+        "name": "--source-name",
+        "required": true
+      },
+      {
+        "name": "--task-id",
+        "required": false
+      }
+    ],
+    "spreadsheet-create-sheet": [
+      {
+        "name": "--document-id",
+        "required": true
+      },
+      {
+        "name": "--dry-run",
+        "required": false
+      },
+      {
+        "name": "--index",
+        "required": false
+      },
+      {
+        "name": "--name",
+        "required": true
+      },
+      {
+        "name": "--task-id",
+        "required": false
+      }
+    ],
+    "spreadsheet-delete-sheet": [
+      {
+        "name": "--document-id",
+        "required": true
+      },
+      {
+        "name": "--dry-run",
+        "required": false
+      },
+      {
+        "name": "--sheet-name",
+        "required": true
+      },
+      {
+        "name": "--task-id",
+        "required": false
+      }
+    ],
+    "spreadsheet-formula-write": [
+      {
+        "name": "--document-id",
+        "required": true
+      },
+      {
+        "name": "--dry-run",
+        "required": false
+      },
+      {
+        "name": "--expected-values-json",
+        "required": true
+      },
+      {
+        "name": "--formulas-json",
+        "required": true
+      },
+      {
+        "name": "--range",
+        "required": true
+      },
+      {
+        "name": "--sheet",
+        "required": false
+      },
+      {
+        "name": "--task-id",
+        "required": false
+      }
+    ],
+    "spreadsheet-inspect": [
+      {
+        "name": "--document-id",
+        "required": true
+      },
+      {
+        "name": "--range",
+        "required": true
+      },
+      {
+        "name": "--sheet",
+        "required": false
+      }
+    ],
+    "spreadsheet-read": [
+      {
+        "name": "--document-id",
+        "required": true
+      },
+      {
+        "name": "--range",
+        "required": true
+      },
+      {
+        "name": "--sheet",
+        "required": false
+      }
+    ],
+    "spreadsheet-rename-sheet": [
+      {
+        "name": "--document-id",
+        "required": true
+      },
+      {
+        "name": "--dry-run",
+        "required": false
+      },
+      {
+        "name": "--new-name",
+        "required": true
+      },
+      {
+        "name": "--old-name",
+        "required": true
+      },
+      {
+        "name": "--task-id",
+        "required": false
+      }
+    ],
+    "spreadsheet-selection-delete": [
+      {
+        "name": "--document-id",
+        "required": true
+      },
+      {
+        "name": "--dry-run",
+        "required": false
+      },
+      {
+        "name": "--expected-selection-text",
+        "required": false
+      },
+      {
+        "name": "--task-id",
+        "required": false
+      }
+    ],
+    "spreadsheet-selection-read": [
+      {
+        "name": "--document-id",
+        "required": true
+      }
+    ],
+    "spreadsheet-selection-replace": [
+      {
+        "name": "--document-id",
+        "required": true
+      },
+      {
+        "name": "--dry-run",
+        "required": false
+      },
+      {
+        "name": "--expected-selection-text",
+        "required": false
+      },
+      {
+        "name": "--task-id",
+        "required": false
+      },
+      {
+        "name": "--text",
+        "required": false
+      },
+      {
+        "name": "--values-json",
+        "required": false
+      }
+    ],
+    "spreadsheet-set-sheet-tab-color": [
+      {
+        "name": "--color",
+        "required": true
+      },
+      {
+        "name": "--document-id",
+        "required": true
+      },
+      {
+        "name": "--dry-run",
+        "required": false
+      },
+      {
+        "name": "--sheet-name",
+        "required": true
+      },
+      {
+        "name": "--task-id",
+        "required": false
+      }
+    ],
+    "spreadsheet-set-sheet-visibility": [
+      {
+        "name": "--document-id",
+        "required": true
+      },
+      {
+        "name": "--dry-run",
+        "required": false
+      },
+      {
+        "name": "--sheet-name",
+        "required": true
+      },
+      {
+        "name": "--task-id",
+        "required": false
+      },
+      {
+        "name": "--visible",
+        "required": true,
+        "choices": [
+          "false",
+          "true"
+        ]
+      }
+    ],
+    "spreadsheet-sheets": [
+      {
+        "name": "--document-id",
+        "required": true
+      }
+    ],
+    "spreadsheet-write": [
+      {
+        "name": "--document-id",
+        "required": true
+      },
+      {
+        "name": "--dry-run",
+        "required": false
+      },
+      {
+        "name": "--range",
+        "required": true
+      },
+      {
+        "name": "--sheet",
+        "required": false
+      },
+      {
+        "name": "--task-id",
+        "required": false
+      },
+      {
+        "name": "--values-json",
+        "required": true
+      }
+    ],
+    "task-recovery": [
+      {
+        "name": "--task-id",
+        "required": true
+      }
+    ],
+    "task-recovery-playbooks": [],
+    "task-status": [
+      {
+        "name": "--task-id",
+        "required": true
+      }
+    ],
+    "task-status-create": [
+      {
+        "name": "--command",
+        "required": true
+      },
+      {
+        "name": "--document-id",
+        "required": false
+      },
+      {
+        "name": "--message",
+        "required": false
+      },
+      {
+        "name": "--operation-request-id",
+        "required": true
+      },
+      {
+        "name": "--recovery-guidance",
+        "required": false
+      },
+      {
+        "name": "--task-id",
+        "required": false
+      }
+    ],
+    "task-status-update": [
+      {
+        "name": "--message",
+        "required": false
+      },
+      {
+        "name": "--progress-percent",
+        "required": false
+      },
+      {
+        "name": "--recovery-guidance",
+        "required": false
+      },
+      {
+        "name": "--result-ref",
+        "required": false
+      },
+      {
+        "name": "--state",
+        "required": true,
+        "choices": [
+          "cancelled",
+          "failed",
+          "pending",
+          "running",
+          "succeeded"
+        ]
+      },
+      {
+        "name": "--task-id",
+        "required": true
+      }
+    ],
+    "task-statuses": [],
+    "tasks": [
+      {
+        "name": "--phase",
+        "required": false
+      },
+      {
+        "name": "--status",
+        "required": false
+      }
+    ],
+    "validate-document": [
+      {
+        "name": "--cell",
+        "required": false
+      },
+      {
+        "name": "--contains",
+        "required": false
+      },
+      {
+        "name": "--document-id",
+        "required": true
+      },
+      {
+        "name": "--equals",
+        "required": false
+      }
+    ],
+    "wps-process-audit": [
+      {
+        "name": "--timeout-seconds",
+        "required": false
+      }
+    ],
+    "wps-version-compare": [
+      {
+        "name": "--presentation-version",
+        "required": false
+      },
+      {
+        "name": "--record",
+        "required": false
+      },
+      {
+        "name": "--spreadsheets-version",
+        "required": false
+      },
+      {
+        "name": "--workspace",
+        "required": false
+      },
+      {
+        "name": "--writer-version",
+        "required": false
+      }
+    ],
+    "writer-fill-bookmark": [
+      {
+        "name": "--bookmark-name",
+        "required": true
+      },
+      {
+        "name": "--document-id",
+        "required": true
+      },
+      {
+        "name": "--dry-run",
+        "required": false
+      },
+      {
+        "name": "--task-id",
+        "required": false
+      },
+      {
+        "name": "--text",
+        "required": true
+      }
+    ],
+    "writer-replace": [
+      {
+        "name": "--document-id",
+        "required": true
+      },
+      {
+        "name": "--dry-run",
+        "required": false
+      },
+      {
+        "name": "--find",
+        "required": true
+      },
+      {
+        "name": "--paragraph-index",
+        "required": false
+      },
+      {
+        "name": "--replace",
+        "required": true
+      },
+      {
+        "name": "--task-id",
+        "required": false
+      }
+    ],
+    "writer-selection-delete": [
+      {
+        "name": "--document-id",
+        "required": true
+      },
+      {
+        "name": "--dry-run",
+        "required": false
+      },
+      {
+        "name": "--expected-selection-text",
+        "required": false
+      },
+      {
+        "name": "--task-id",
+        "required": false
+      }
+    ],
+    "writer-selection-insert": [
+      {
+        "name": "--document-id",
+        "required": true
+      },
+      {
+        "name": "--dry-run",
+        "required": false
+      },
+      {
+        "name": "--expected-start",
+        "required": false
+      },
+      {
+        "name": "--task-id",
+        "required": false
+      },
+      {
+        "name": "--text",
+        "required": true
+      }
+    ],
+    "writer-selection-read": [
+      {
+        "name": "--document-id",
+        "required": true
+      }
+    ],
+    "writer-selection-replace": [
+      {
+        "name": "--document-id",
+        "required": true
+      },
+      {
+        "name": "--dry-run",
+        "required": false
+      },
+      {
+        "name": "--expected-selection-text",
+        "required": false
+      },
+      {
+        "name": "--task-id",
+        "required": false
+      },
+      {
+        "name": "--text",
+        "required": true
+      }
+    ],
+    "writer-structure": [
+      {
+        "name": "--bookmark-name",
+        "required": false
+      },
+      {
+        "name": "--document-id",
+        "required": true
+      },
+      {
+        "name": "--expected-sha256",
+        "required": false
+      },
+      {
+        "name": "--include-text",
+        "required": false
+      },
+      {
+        "name": "--limit",
+        "required": false
+      },
+      {
+        "name": "--offset",
+        "required": false
+      },
+      {
+        "name": "--section",
+        "required": false,
+        "choices": [
+          "all",
+          "bookmarks",
+          "headings",
+          "styles",
+          "warnings"
+        ]
+      },
+      {
+        "name": "--text-limit",
+        "required": false
+      }
+    ],
+    "writer-structure-parity": [
+      {
+        "name": "--artifact-dir",
+        "required": false
+      },
+      {
+        "name": "--run-wps",
+        "required": false
+      },
+      {
+        "name": "--scope",
+        "required": false,
+        "choices": [
+          "nested",
+          "structure"
+        ]
+      },
+      {
+        "name": "--timeout-seconds",
+        "required": false
+      }
+    ],
+    "writer-table-smoke": [
+      {
+        "name": "--column",
+        "required": true
+      },
+      {
+        "name": "--input",
+        "required": true
+      },
+      {
+        "name": "--output",
+        "required": true
+      },
+      {
+        "name": "--row",
+        "required": true
+      },
+      {
+        "name": "--table-index",
+        "required": true
+      },
+      {
+        "name": "--task-id",
+        "required": false
+      },
+      {
+        "name": "--text",
+        "required": true
+      }
+    ],
+    "writer-table-write": [
+      {
+        "name": "--allow-rich-content",
+        "required": false
+      },
+      {
+        "name": "--column",
+        "required": true
+      },
+      {
+        "name": "--document-id",
+        "required": true
+      },
+      {
+        "name": "--dry-run",
+        "required": false
+      },
+      {
+        "name": "--row",
+        "required": true
+      },
+      {
+        "name": "--table-index",
+        "required": true
+      },
+      {
+        "name": "--task-id",
+        "required": false
+      },
+      {
+        "name": "--text",
+        "required": true
+      }
+    ]
+  },
+  "mcp_tools": {
+    "wps_agent_backup_document": {
+      "cli_command": "backup-document",
+      "mutates_document": true,
+      "parameters": [
+        "document_id",
+        "dry_run",
+        "request_id",
+        "task_id"
+      ],
+      "required": [
+        "document_id"
+      ]
+    },
+    "wps_agent_batch_report": {
+      "cli_command": "batch-report",
+      "mutates_document": false,
+      "parameters": [
+        "no_snapshots",
+        "path",
+        "recursive",
+        "request_id"
+      ],
+      "required": [
+        "path"
+      ]
+    },
+    "wps_agent_batch_template_report": {
+      "cli_command": "batch-template-report",
+      "mutates_document": true,
+      "parameters": [
+        "manifest",
+        "output",
+        "request_id",
+        "task_id",
+        "template"
+      ],
+      "required": [
+        "manifest",
+        "output",
+        "template"
+      ]
+    },
+    "wps_agent_calc_smoke": {
+      "cli_command": "calc-smoke",
+      "mutates_document": false,
+      "parameters": [
+        "input",
+        "output",
+        "request_id",
+        "timeout_seconds"
+      ],
+      "required": [
+        "input",
+        "output"
+      ]
+    },
+    "wps_agent_cleanup_approval_manifest": {
+      "cli_command": "cleanup-approval-manifest",
+      "mutates_document": false,
+      "parameters": [
+        "request_id",
+        "workspace"
+      ],
+      "required": []
+    },
+    "wps_agent_cleanup_plan": {
+      "cli_command": "cleanup-plan",
+      "mutates_document": false,
+      "parameters": [
+        "request_id",
+        "workspace"
+      ],
+      "required": []
+    },
+    "wps_agent_com_smoke": {
+      "cli_command": "com-smoke",
+      "mutates_document": false,
+      "parameters": [
+        "component",
+        "input",
+        "output",
+        "request_id",
+        "visible"
+      ],
+      "required": [
+        "component",
+        "input",
+        "output"
+      ]
+    },
+    "wps_agent_convert_smoke": {
+      "cli_command": "convert-smoke",
+      "mutates_document": false,
+      "parameters": [
+        "component",
+        "format",
+        "input",
+        "output",
+        "request_id"
+      ],
+      "required": [
+        "component",
+        "format",
+        "input",
+        "output"
+      ]
+    },
+    "wps_agent_documents": {
+      "cli_command": "documents",
+      "mutates_document": false,
+      "parameters": [
+        "request_id"
+      ],
+      "required": []
+    },
+    "wps_agent_export_open_document": {
+      "cli_command": "export-open-document",
+      "mutates_document": false,
+      "parameters": [
+        "document_id",
+        "output",
+        "request_id"
+      ],
+      "required": [
+        "document_id",
+        "output"
+      ]
+    },
+    "wps_agent_export_open_document_copy": {
+      "cli_command": "export-open-document-copy",
+      "mutates_document": false,
+      "parameters": [
+        "document_id",
+        "output",
+        "request_id"
+      ],
+      "required": [
+        "document_id",
+        "output"
+      ]
+    },
+    "wps_agent_export_open_document_pdf": {
+      "cli_command": "export-open-document-pdf",
+      "mutates_document": false,
+      "parameters": [
+        "document_id",
+        "output",
+        "request_id"
+      ],
+      "required": [
+        "document_id",
+        "output"
+      ]
+    },
+    "wps_agent_export_open_document_text": {
+      "cli_command": "export-open-document-text",
+      "mutates_document": false,
+      "parameters": [
+        "document_id",
+        "output",
+        "request_id"
+      ],
+      "required": [
+        "document_id",
+        "output"
+      ]
+    },
+    "wps_agent_html_batch_convert": {
+      "cli_command": "html-batch-convert",
+      "mutates_document": true,
+      "parameters": [
+        "input_dir",
+        "mode",
+        "output_dir",
+        "recursive",
+        "request_id",
+        "task_id"
+      ],
+      "required": [
+        "input_dir",
+        "mode",
+        "output_dir"
+      ]
+    },
+    "wps_agent_html_batch_request": {
+      "cli_command": "html-batch-request",
+      "mutates_document": false,
+      "parameters": [
+        "batch_request_id",
+        "request_id",
+        "verify"
+      ],
+      "required": [
+        "batch_request_id"
+      ]
+    },
+    "wps_agent_html_controlled_import": {
+      "cli_command": "html-controlled-import",
+      "mutates_document": true,
+      "parameters": [
+        "input",
+        "output",
+        "request_id",
+        "task_id"
+      ],
+      "required": [
+        "input",
+        "output"
+      ]
+    },
+    "wps_agent_html_editable": {
+      "cli_command": "html-editable",
+      "mutates_document": true,
+      "parameters": [
+        "format",
+        "input",
+        "output",
+        "request_id",
+        "task_id"
+      ],
+      "required": [
+        "input",
+        "output"
+      ]
+    },
+    "wps_agent_html_render": {
+      "cli_command": "html-render",
+      "mutates_document": true,
+      "parameters": [
+        "allow_javascript",
+        "format",
+        "input",
+        "output",
+        "page_size",
+        "request_id",
+        "task_id",
+        "timeout_seconds",
+        "viewport_height",
+        "viewport_width"
+      ],
+      "required": [
+        "format",
+        "input",
+        "output"
+      ]
+    },
+    "wps_agent_html_roundtrip_export": {
+      "cli_command": "html-roundtrip-export",
+      "mutates_document": true,
+      "parameters": [
+        "docx",
+        "mapping",
+        "output",
+        "request_id",
+        "task_id"
+      ],
+      "required": [
+        "docx",
+        "mapping",
+        "output"
+      ]
+    },
+    "wps_agent_html_roundtrip_plan": {
+      "cli_command": "html-roundtrip-plan",
+      "mutates_document": false,
+      "parameters": [
+        "input",
+        "request_id"
+      ],
+      "required": [
+        "input"
+      ]
+    },
+    "wps_agent_html_roundtrip_verify": {
+      "cli_command": "html-roundtrip-verify",
+      "mutates_document": false,
+      "parameters": [
+        "docx",
+        "mapping",
+        "request_id"
+      ],
+      "required": [
+        "docx",
+        "mapping"
+      ]
+    },
+    "wps_agent_inspect_env": {
+      "cli_command": "inspect-env",
+      "mutates_document": false,
+      "parameters": [
+        "request_id"
+      ],
+      "required": []
+    },
+    "wps_agent_list_backups": {
+      "cli_command": "list-backups",
+      "mutates_document": false,
+      "parameters": [
+        "document_id",
+        "request_id"
+      ],
+      "required": []
+    },
+    "wps_agent_mcp_call": {
+      "cli_command": "mcp-call",
+      "mutates_document": false,
+      "parameters": [
+        "arguments_json",
+        "name",
+        "request_id"
+      ],
+      "required": [
+        "name"
+      ]
+    },
+    "wps_agent_mcp_catalog_drift": {
+      "cli_command": "mcp-catalog-drift",
+      "mutates_document": false,
+      "parameters": [
+        "guard",
+        "request_id"
+      ],
+      "required": []
+    },
+    "wps_agent_mcp_catalog_snapshot": {
+      "cli_command": "mcp-catalog-snapshot",
+      "mutates_document": false,
+      "parameters": [
+        "request_id"
+      ],
+      "required": []
+    },
+    "wps_agent_mcp_config_audit": {
+      "cli_command": "mcp-config-audit",
+      "mutates_document": false,
+      "parameters": [
+        "config",
+        "expected_min_tools",
+        "request_id",
+        "server_name",
+        "timeout_seconds"
+      ],
+      "required": []
+    },
+    "wps_agent_mcp_server": {
+      "cli_command": "mcp-server",
+      "mutates_document": false,
+      "parameters": [
+        "once_json",
+        "request_id"
+      ],
+      "required": []
+    },
+    "wps_agent_mcp_smoke": {
+      "cli_command": "mcp-smoke",
+      "mutates_document": false,
+      "parameters": [
+        "arguments_json",
+        "expected_min_tools",
+        "request_id",
+        "tool_name"
+      ],
+      "required": []
+    },
+    "wps_agent_mcp_tool_schema": {
+      "cli_command": "mcp-tool-schema",
+      "mutates_document": false,
+      "parameters": [
+        "name",
+        "request_id"
+      ],
+      "required": [
+        "name"
+      ]
+    },
+    "wps_agent_mcp_tools": {
+      "cli_command": "mcp-tools",
+      "mutates_document": false,
+      "parameters": [
+        "category",
+        "mutates_document",
+        "request_id"
+      ],
+      "required": []
+    },
+    "wps_agent_mutation_request_inspect": {
+      "cli_command": "mutation-request-inspect",
+      "mutates_document": false,
+      "parameters": [
+        "request",
+        "request_id"
+      ],
+      "required": [
+        "request"
+      ]
+    },
+    "wps_agent_open_documents": {
+      "cli_command": "open-documents",
+      "mutates_document": false,
+      "parameters": [
+        "component",
+        "register",
+        "request_id"
+      ],
+      "required": []
+    },
+    "wps_agent_operation": {
+      "cli_command": "operation",
+      "mutates_document": false,
+      "parameters": [
+        "request",
+        "request_id"
+      ],
+      "required": [
+        "request"
+      ]
+    },
+    "wps_agent_operations": {
+      "cli_command": "operations",
+      "mutates_document": false,
+      "parameters": [
+        "request_id"
+      ],
+      "required": []
+    },
+    "wps_agent_performance_baseline": {
+      "cli_command": "performance-baseline",
+      "mutates_document": false,
+      "parameters": [
+        "request_id"
+      ],
+      "required": []
+    },
+    "wps_agent_plan": {
+      "cli_command": "plan",
+      "mutates_document": false,
+      "parameters": [
+        "request_id"
+      ],
+      "required": []
+    },
+    "wps_agent_presentation_replace": {
+      "cli_command": "presentation-replace",
+      "mutates_document": true,
+      "parameters": [
+        "document_id",
+        "dry_run",
+        "find",
+        "replace",
+        "request_id",
+        "slide_index",
+        "task_id"
+      ],
+      "required": [
+        "document_id",
+        "find",
+        "replace"
+      ]
+    },
+    "wps_agent_presentation_selection_delete": {
+      "cli_command": "presentation-selection-delete",
+      "mutates_document": true,
+      "parameters": [
+        "document_id",
+        "dry_run",
+        "expected_selection_text",
+        "request_id",
+        "task_id"
+      ],
+      "required": [
+        "document_id"
+      ]
+    },
+    "wps_agent_presentation_selection_insert": {
+      "cli_command": "presentation-selection-insert",
+      "mutates_document": true,
+      "parameters": [
+        "document_id",
+        "dry_run",
+        "expected_start",
+        "request_id",
+        "task_id",
+        "text"
+      ],
+      "required": [
+        "document_id",
+        "text"
+      ]
+    },
+    "wps_agent_presentation_selection_read": {
+      "cli_command": "presentation-selection-read",
+      "mutates_document": false,
+      "parameters": [
+        "document_id",
+        "request_id"
+      ],
+      "required": [
+        "document_id"
+      ]
+    },
+    "wps_agent_presentation_selection_replace": {
+      "cli_command": "presentation-selection-replace",
+      "mutates_document": true,
+      "parameters": [
+        "document_id",
+        "dry_run",
+        "expected_selection_text",
+        "request_id",
+        "task_id",
+        "text"
+      ],
+      "required": [
+        "document_id",
+        "text"
+      ]
+    },
+    "wps_agent_register_document": {
+      "cli_command": "register-document",
+      "mutates_document": false,
+      "parameters": [
+        "component",
+        "path",
+        "request_id"
+      ],
+      "required": [
+        "component",
+        "path"
+      ]
+    },
+    "wps_agent_regression_manifest": {
+      "cli_command": "regression-manifest",
+      "mutates_document": false,
+      "parameters": [
+        "include_wps",
+        "manifest",
+        "profile",
+        "request_id"
+      ],
+      "required": []
+    },
+    "wps_agent_regression_run": {
+      "cli_command": "regression-run",
+      "mutates_document": false,
+      "parameters": [
+        "artifact_dir",
+        "include_wps",
+        "manifest",
+        "profile",
+        "request_id"
+      ],
+      "required": []
+    },
+    "wps_agent_restore_backup": {
+      "cli_command": "restore-backup",
+      "mutates_document": true,
+      "parameters": [
+        "backup_name",
+        "backup_path",
+        "close_in_wps",
+        "document_id",
+        "dry_run",
+        "request_id",
+        "task_id"
+      ],
+      "required": [
+        "document_id"
+      ]
+    },
+    "wps_agent_save_as_open_document": {
+      "cli_command": "save-as-open-document",
+      "mutates_document": true,
+      "parameters": [
+        "component",
+        "dry_run",
+        "name",
+        "output",
+        "request_id",
+        "task_id"
+      ],
+      "required": [
+        "component",
+        "name",
+        "output"
+      ]
+    },
+    "wps_agent_save_open_document": {
+      "cli_command": "save-open-document",
+      "mutates_document": true,
+      "parameters": [
+        "document_id",
+        "dry_run",
+        "request_id",
+        "task_id"
+      ],
+      "required": [
+        "document_id"
+      ]
+    },
+    "wps_agent_scan_dir": {
+      "cli_command": "scan-dir",
+      "mutates_document": false,
+      "parameters": [
+        "path",
+        "recursive",
+        "request_id"
+      ],
+      "required": [
+        "path"
+      ]
+    },
+    "wps_agent_security_audit": {
+      "cli_command": "security-audit",
+      "mutates_document": false,
+      "parameters": [
+        "request_id"
+      ],
+      "required": []
+    },
+    "wps_agent_snapshot_document": {
+      "cli_command": "snapshot-document",
+      "mutates_document": false,
+      "parameters": [
+        "document_id",
+        "request_id"
+      ],
+      "required": [
+        "document_id"
+      ]
+    },
+    "wps_agent_spreadsheet_copy_sheet": {
+      "cli_command": "spreadsheet-copy-sheet",
+      "mutates_document": true,
+      "parameters": [
+        "document_id",
+        "dry_run",
+        "index",
+        "new_name",
+        "request_id",
+        "source_name",
+        "task_id"
+      ],
+      "required": [
+        "document_id",
+        "new_name",
+        "source_name"
+      ]
+    },
+    "wps_agent_spreadsheet_create_sheet": {
+      "cli_command": "spreadsheet-create-sheet",
+      "mutates_document": true,
+      "parameters": [
+        "document_id",
+        "dry_run",
+        "index",
+        "name",
+        "request_id",
+        "task_id"
+      ],
+      "required": [
+        "document_id",
+        "name"
+      ]
+    },
+    "wps_agent_spreadsheet_delete_sheet": {
+      "cli_command": "spreadsheet-delete-sheet",
+      "mutates_document": true,
+      "parameters": [
+        "document_id",
+        "dry_run",
+        "request_id",
+        "sheet_name",
+        "task_id"
+      ],
+      "required": [
+        "document_id",
+        "sheet_name"
+      ]
+    },
+    "wps_agent_spreadsheet_formula_write": {
+      "cli_command": "spreadsheet-formula-write",
+      "mutates_document": true,
+      "parameters": [
+        "document_id",
+        "dry_run",
+        "expected_values_json",
+        "formulas_json",
+        "range",
+        "request_id",
+        "sheet",
+        "task_id"
+      ],
+      "required": [
+        "document_id",
+        "expected_values_json",
+        "formulas_json",
+        "range"
+      ]
+    },
+    "wps_agent_spreadsheet_inspect": {
+      "cli_command": "spreadsheet-inspect",
+      "mutates_document": false,
+      "parameters": [
+        "document_id",
+        "range",
+        "request_id",
+        "sheet"
+      ],
+      "required": [
+        "document_id",
+        "range"
+      ]
+    },
+    "wps_agent_spreadsheet_read": {
+      "cli_command": "spreadsheet-read",
+      "mutates_document": false,
+      "parameters": [
+        "document_id",
+        "range",
+        "request_id",
+        "sheet"
+      ],
+      "required": [
+        "document_id",
+        "range"
+      ]
+    },
+    "wps_agent_spreadsheet_rename_sheet": {
+      "cli_command": "spreadsheet-rename-sheet",
+      "mutates_document": true,
+      "parameters": [
+        "document_id",
+        "dry_run",
+        "new_name",
+        "old_name",
+        "request_id",
+        "task_id"
+      ],
+      "required": [
+        "document_id",
+        "new_name",
+        "old_name"
+      ]
+    },
+    "wps_agent_spreadsheet_selection_delete": {
+      "cli_command": "spreadsheet-selection-delete",
+      "mutates_document": true,
+      "parameters": [
+        "document_id",
+        "dry_run",
+        "expected_selection_text",
+        "request_id",
+        "task_id"
+      ],
+      "required": [
+        "document_id"
+      ]
+    },
+    "wps_agent_spreadsheet_selection_read": {
+      "cli_command": "spreadsheet-selection-read",
+      "mutates_document": false,
+      "parameters": [
+        "document_id",
+        "request_id"
+      ],
+      "required": [
+        "document_id"
+      ]
+    },
+    "wps_agent_spreadsheet_selection_replace": {
+      "cli_command": "spreadsheet-selection-replace",
+      "mutates_document": true,
+      "parameters": [
+        "document_id",
+        "dry_run",
+        "expected_selection_text",
+        "request_id",
+        "task_id",
+        "text",
+        "values_json"
+      ],
+      "required": [
+        "document_id"
+      ]
+    },
+    "wps_agent_spreadsheet_set_sheet_tab_color": {
+      "cli_command": "spreadsheet-set-sheet-tab-color",
+      "mutates_document": true,
+      "parameters": [
+        "color",
+        "document_id",
+        "dry_run",
+        "request_id",
+        "sheet_name",
+        "task_id"
+      ],
+      "required": [
+        "color",
+        "document_id",
+        "sheet_name"
+      ]
+    },
+    "wps_agent_spreadsheet_set_sheet_visibility": {
+      "cli_command": "spreadsheet-set-sheet-visibility",
+      "mutates_document": true,
+      "parameters": [
+        "document_id",
+        "dry_run",
+        "request_id",
+        "sheet_name",
+        "task_id",
+        "visible"
+      ],
+      "required": [
+        "document_id",
+        "sheet_name",
+        "visible"
+      ]
+    },
+    "wps_agent_spreadsheet_sheets": {
+      "cli_command": "spreadsheet-sheets",
+      "mutates_document": false,
+      "parameters": [
+        "document_id",
+        "request_id"
+      ],
+      "required": [
+        "document_id"
+      ]
+    },
+    "wps_agent_spreadsheet_write": {
+      "cli_command": "spreadsheet-write",
+      "mutates_document": true,
+      "parameters": [
+        "document_id",
+        "dry_run",
+        "range",
+        "request_id",
+        "sheet",
+        "task_id",
+        "values_json"
+      ],
+      "required": [
+        "document_id",
+        "range",
+        "values_json"
+      ]
+    },
+    "wps_agent_task_recovery": {
+      "cli_command": "task-recovery",
+      "mutates_document": false,
+      "parameters": [
+        "request_id",
+        "task_id"
+      ],
+      "required": [
+        "task_id"
+      ]
+    },
+    "wps_agent_task_recovery_playbooks": {
+      "cli_command": "task-recovery-playbooks",
+      "mutates_document": false,
+      "parameters": [
+        "request_id"
+      ],
+      "required": []
+    },
+    "wps_agent_task_status": {
+      "cli_command": "task-status",
+      "mutates_document": false,
+      "parameters": [
+        "request_id",
+        "task_id"
+      ],
+      "required": [
+        "task_id"
+      ]
+    },
+    "wps_agent_task_status_create": {
+      "cli_command": "task-status-create",
+      "mutates_document": false,
+      "parameters": [
+        "command",
+        "document_id",
+        "message",
+        "operation_request_id",
+        "recovery_guidance",
+        "request_id",
+        "task_id"
+      ],
+      "required": [
+        "command",
+        "operation_request_id"
+      ]
+    },
+    "wps_agent_task_status_update": {
+      "cli_command": "task-status-update",
+      "mutates_document": false,
+      "parameters": [
+        "message",
+        "progress_percent",
+        "recovery_guidance",
+        "request_id",
+        "result_ref",
+        "state",
+        "task_id"
+      ],
+      "required": [
+        "state",
+        "task_id"
+      ]
+    },
+    "wps_agent_task_statuses": {
+      "cli_command": "task-statuses",
+      "mutates_document": false,
+      "parameters": [
+        "request_id"
+      ],
+      "required": []
+    },
+    "wps_agent_tasks": {
+      "cli_command": "tasks",
+      "mutates_document": false,
+      "parameters": [
+        "phase",
+        "request_id",
+        "status"
+      ],
+      "required": []
+    },
+    "wps_agent_validate_document": {
+      "cli_command": "validate-document",
+      "mutates_document": false,
+      "parameters": [
+        "cell",
+        "contains",
+        "document_id",
+        "equals",
+        "request_id"
+      ],
+      "required": [
+        "document_id"
+      ]
+    },
+    "wps_agent_wps_process_audit": {
+      "cli_command": "wps-process-audit",
+      "mutates_document": false,
+      "parameters": [
+        "request_id",
+        "timeout_seconds"
+      ],
+      "required": []
+    },
+    "wps_agent_wps_version_compare": {
+      "cli_command": "wps-version-compare",
+      "mutates_document": false,
+      "parameters": [
+        "presentation_version",
+        "record",
+        "request_id",
+        "spreadsheets_version",
+        "workspace",
+        "writer_version"
+      ],
+      "required": []
+    },
+    "wps_agent_writer_fill_bookmark": {
+      "cli_command": "writer-fill-bookmark",
+      "mutates_document": true,
+      "parameters": [
+        "bookmark_name",
+        "document_id",
+        "dry_run",
+        "request_id",
+        "task_id",
+        "text"
+      ],
+      "required": [
+        "bookmark_name",
+        "document_id",
+        "text"
+      ]
+    },
+    "wps_agent_writer_replace": {
+      "cli_command": "writer-replace",
+      "mutates_document": true,
+      "parameters": [
+        "document_id",
+        "dry_run",
+        "find",
+        "paragraph_index",
+        "replace",
+        "request_id",
+        "task_id"
+      ],
+      "required": [
+        "document_id",
+        "find",
+        "replace"
+      ]
+    },
+    "wps_agent_writer_selection_delete": {
+      "cli_command": "writer-selection-delete",
+      "mutates_document": true,
+      "parameters": [
+        "document_id",
+        "dry_run",
+        "expected_selection_text",
+        "request_id",
+        "task_id"
+      ],
+      "required": [
+        "document_id"
+      ]
+    },
+    "wps_agent_writer_selection_insert": {
+      "cli_command": "writer-selection-insert",
+      "mutates_document": true,
+      "parameters": [
+        "document_id",
+        "dry_run",
+        "expected_start",
+        "request_id",
+        "task_id",
+        "text"
+      ],
+      "required": [
+        "document_id",
+        "text"
+      ]
+    },
+    "wps_agent_writer_selection_read": {
+      "cli_command": "writer-selection-read",
+      "mutates_document": false,
+      "parameters": [
+        "document_id",
+        "request_id"
+      ],
+      "required": [
+        "document_id"
+      ]
+    },
+    "wps_agent_writer_selection_replace": {
+      "cli_command": "writer-selection-replace",
+      "mutates_document": true,
+      "parameters": [
+        "document_id",
+        "dry_run",
+        "expected_selection_text",
+        "request_id",
+        "task_id",
+        "text"
+      ],
+      "required": [
+        "document_id",
+        "text"
+      ]
+    },
+    "wps_agent_writer_structure": {
+      "cli_command": "writer-structure",
+      "mutates_document": false,
+      "parameters": [
+        "bookmark_name",
+        "document_id",
+        "expected_sha256",
+        "include_text",
+        "limit",
+        "offset",
+        "request_id",
+        "section",
+        "text_limit"
+      ],
+      "required": [
+        "document_id"
+      ]
+    },
+    "wps_agent_writer_structure_parity": {
+      "cli_command": "writer-structure-parity",
+      "mutates_document": false,
+      "parameters": [
+        "artifact_dir",
+        "request_id",
+        "run_wps",
+        "scope",
+        "timeout_seconds"
+      ],
+      "required": []
+    },
+    "wps_agent_writer_table_smoke": {
+      "cli_command": "writer-table-smoke",
+      "mutates_document": true,
+      "parameters": [
+        "column",
+        "input",
+        "output",
+        "request_id",
+        "row",
+        "table_index",
+        "task_id",
+        "text"
+      ],
+      "required": [
+        "column",
+        "input",
+        "output",
+        "row",
+        "table_index",
+        "text"
+      ]
+    },
+    "wps_agent_writer_table_write": {
+      "cli_command": "writer-table-write",
+      "mutates_document": true,
+      "parameters": [
+        "allow_rich_content",
+        "column",
+        "document_id",
+        "dry_run",
+        "request_id",
+        "row",
+        "table_index",
+        "task_id",
+        "text"
+      ],
+      "required": [
+        "column",
+        "document_id",
+        "row",
+        "table_index",
+        "text"
+      ]
+    }
+  },
+  "error_codes": [
+    "AMBIGUOUS_OPEN_DOCUMENT",
+    "BACKUP_CHANGED_AFTER_CREATION",
+    "BACKUP_NOT_FOUND",
+    "BACKUP_SOURCE_UNAVAILABLE",
+    "BACKUP_SOURCE_UNVERIFIED",
+    "BATCH_LIMIT_EXCEEDED",
+    "BATCH_REPLAY_CONFLICT",
+    "BATCH_REPLAY_EVIDENCE_MISMATCH",
+    "BATCH_REPLAY_UNAVAILABLE",
+    "BATCH_REQUEST_IN_PROGRESS",
+    "BATCH_REQUEST_NOT_FOUND",
+    "BATCH_REQUEST_REGISTRY_FULL",
+    "BATCH_REQUEST_REGISTRY_INVALID",
+    "BATCH_REQUEST_REGISTRY_WRITE_FAILED",
+    "BATCH_SIZE_LIMIT_EXCEEDED",
+    "BOOKMARK_AMBIGUOUS",
+    "BOOKMARK_NOT_FOUND",
+    "BOOKMARK_SCOPE_UNSUPPORTED",
+    "BROWSER_BACKEND_UNAVAILABLE",
+    "CELL_HAS_RICH_CONTENT",
+    "CELL_NOT_FOUND",
+    "COM_BACKEND_UNAVAILABLE",
+    "COM_OPERATION_FAILED",
+    "COM_OPERATION_TIMEOUT",
+    "CONVERSION_FAILED",
+    "CONVERTER_UNAVAILABLE",
+    "DEPENDENCY_MISSING",
+    "DIRECTORY_NOT_FOUND",
+    "DOCUMENT_ALREADY_PATHED",
+    "DOCUMENT_BUSY",
+    "DOCUMENT_CHANGED_AFTER_BACKUP",
+    "DOCUMENT_CHANGED_AFTER_COM",
+    "DOCUMENT_CHANGED_DURING_BACKUP",
+    "DOCUMENT_HAS_UNSAVED_CHANGES",
+    "DOCUMENT_HELD_OPEN",
+    "DOCUMENT_IDENTITY_UNAVAILABLE",
+    "DOCUMENT_NOT_FOUND",
+    "DOCUMENT_NOT_OPEN",
+    "DOCUMENT_READ_ONLY",
+    "DOCUMENT_REGISTER_FAILED",
+    "DOCUMENT_UNAVAILABLE_AFTER_COM",
+    "DUPLICATE_OBJECT_ID",
+    "EXPECTED_SHAPE_MISMATCH",
+    "EXPORT_OUTPUT_MISSING",
+    "EXPORT_OUTPUT_NOT_HTML",
+    "EXPORT_OUTPUT_NOT_PACKAGE",
+    "EXPORT_OUTPUT_NOT_PDF",
+    "EXPORT_OUTPUT_NOT_TEXT",
+    "FILE_CONVERSION_FAILED",
+    "FIND_TEXT_TOO_LONG",
+    "FORMULA_PREFIX_REJECTED",
+    "IDEMPOTENCY_CONFLICT",
+    "INPUT_DIRECTORY_NOT_FOUND",
+    "INPUT_FILE_NOT_FOUND",
+    "INPUT_TOO_LARGE",
+    "INVALID_ARGUMENT",
+    "INVALID_ARGUMENTS_JSON",
+    "INVALID_ARGUMENTS_JSON_TYPE",
+    "INVALID_BACKUP_PATH",
+    "INVALID_BOOKMARK_QUERY",
+    "INVALID_BOOKMARK_TEXT_QUERY",
+    "INVALID_INPUT",
+    "INVALID_JSON",
+    "INVALID_LIMIT",
+    "INVALID_MANIFEST",
+    "INVALID_OBJECT_ID",
+    "INVALID_OFFSET",
+    "INVALID_OUTLINE_LEVEL",
+    "INVALID_OUTPUT",
+    "INVALID_PRESENTATION_STRUCTURE",
+    "INVALID_PROGRESS",
+    "INVALID_RANGE",
+    "INVALID_SCOPE",
+    "INVALID_SECTION",
+    "INVALID_SHEET_INDEX",
+    "INVALID_SHEET_NAME",
+    "INVALID_SOURCE_HASH",
+    "INVALID_STATE",
+    "INVALID_TAB_COLOR",
+    "INVALID_TEMPLATE",
+    "INVALID_TEMPLATE_TOKEN",
+    "INVALID_TEXT_LIMIT",
+    "INVALID_TIMEOUT",
+    "LAST_VISIBLE_SHEET",
+    "LAST_WORKSHEET",
+    "MANIFEST_WRITE_FAILED",
+    "MAPPING_ALREADY_EXISTS",
+    "MCP_CATALOG_GUARD_INVALID",
+    "MCP_CATALOG_GUARD_INVALID_JSON",
+    "MCP_CATALOG_GUARD_NOT_FOUND",
+    "MCP_CONFIG_AUDIT_FAILED",
+    "MCP_SMOKE_ARGUMENTS_INVALID_JSON",
+    "MCP_SMOKE_ARGUMENTS_INVALID_OBJECT",
+    "MCP_SMOKE_FAILED",
+    "MCP_SMOKE_TOOL_NOT_READ_ONLY",
+    "MCP_TOOL_SCHEMA_NOT_FOUND",
+    "MUTATION_ROLLBACK_BLOCKED",
+    "MUTATION_ROLLBACK_FAILED",
+    "MUTATION_ROLLBACK_IN_WPS_FAILED",
+    "MUTATION_ROLLED_BACK",
+    "NOT_A_DIRECTORY",
+    "NO_CONTENT",
+    "NO_INPUT_FILES",
+    "NO_MAPPED_OBJECTS",
+    "NO_RUNNING_WPS_INSTANCE",
+    "NO_SUPPORTED_CONTENT",
+    "OBJECT_ID_REQUIRED",
+    "OBJECT_SELECTION_UNSUPPORTED",
+    "OPERATION_IDENTITY_UNVERIFIED",
+    "OPERATION_NOT_FOUND",
+    "OPERATION_RECORD_FAILED",
+    "OPERATION_SOURCE_CHANGED",
+    "OUTPUT_ALREADY_EXISTS",
+    "OUTPUT_DIRECTORY_MISSING",
+    "OUTPUT_DIRECTORY_NOT_FOUND",
+    "OUTPUT_DIRECTORY_UNAVAILABLE",
+    "OUTPUT_EXISTS",
+    "OUTPUT_EXTENSION_MISMATCH",
+    "OUTPUT_HASH_MISMATCH",
+    "OUTPUT_TOO_LARGE",
+    "OUTPUT_UNAVAILABLE",
+    "OUTPUT_WRITE_FAILED",
+    "PARAGRAPH_NOT_FOUND",
+    "PERFORMANCE_BASELINE_COMMAND_FAILED",
+    "PERFORMANCE_BASELINE_WPS_SCENARIO_INCLUDED",
+    "POST_COM_SOURCE_UNVERIFIED",
+    "RANGE_SHAPE_MISMATCH",
+    "RANGE_TOO_LARGE",
+    "REGRESSION_COMMAND_NOT_ALLOWED",
+    "REGRESSION_MANIFEST_INVALID",
+    "REGRESSION_MANIFEST_INVALID_JSON",
+    "REGRESSION_MANIFEST_NOT_FOUND",
+    "REGRESSION_RUN_FAILED",
+    "REGRESSION_SCENARIO_EXCEPTION",
+    "RENDER_FAILED",
+    "RENDER_OUTPUT_INVALID",
+    "RENDER_OUTPUT_MISSING",
+    "RENDER_TIMEOUT",
+    "REPORT_RENDER_FAILED",
+    "REPORT_TOO_LARGE",
+    "REPORT_WRITE_FAILED",
+    "RESTORE_COPY_MISMATCH",
+    "RESTORE_TARGET_WRITE_FAILED",
+    "ROUNDTRIP_EXPORT_INPUT_INVALID",
+    "ROUNDTRIP_EXPORT_UNSUPPORTED",
+    "ROUNDTRIP_FILE_NOT_FOUND",
+    "ROUNDTRIP_IMPORT_FAILED",
+    "ROUNDTRIP_OBJECT_DUPLICATED",
+    "ROUNDTRIP_OBJECT_MISSING",
+    "ROUNDTRIP_OBJECT_REORDERED",
+    "ROUNDTRIP_OBJECT_UNMAPPED",
+    "ROUNDTRIP_SCHEMA_REQUIRED",
+    "ROUNDTRIP_VERIFY_INPUT_INVALID",
+    "SECURITY_BOUNDARY_AUDIT_FAILED",
+    "SELECTION_EMPTY",
+    "SELECTION_MISMATCH",
+    "SELECTION_NOT_COLLAPSED",
+    "SELECTION_SPANS_STRUCTURE",
+    "SELECTION_TOO_LARGE",
+    "SELECTION_UNAVAILABLE",
+    "SHEET_NAME_CONFLICT",
+    "SHEET_NOT_FOUND",
+    "SLIDE_NOT_FOUND",
+    "SOURCE_HASH_MISMATCH",
+    "SOURCE_UNAVAILABLE",
+    "TABLE_NOT_FOUND",
+    "TASK_ALREADY_TERMINAL",
+    "TASK_ID_CONFLICT",
+    "TASK_STATUS_NOT_FOUND",
+    "TEMPLATE_ARCHIVE_TOO_LARGE",
+    "TEMPLATE_COMPRESSION_RATIO_EXCEEDED",
+    "TEXT_NOT_FOUND",
+    "UNKNOWN_TEMPLATE_TOKEN",
+    "UNRECORDED_MUTATION_AMBIGUOUS",
+    "UNSUPPORTED_COMPONENT",
+    "UNSUPPORTED_MANIFEST",
+    "UNSUPPORTED_OBJECT_TYPE",
+    "UNSUPPORTED_OUTPUT_EXTENSION",
+    "UNSUPPORTED_ROUNDTRIP_CSS",
+    "UNSUPPORTED_ROUNDTRIP_FEATURE",
+    "UNTITLED_DOCUMENT_NOT_FOUND",
+    "VALIDATION_FAILED",
+    "WPS_CLOSE_REFUSED",
+    "WPS_INSTANCE_NOT_AUTOMATABLE",
+    "WPS_OPT_IN_REQUIRED",
+    "WPS_PROCESS_AUDIT_FAILED",
+    "WPS_PROCESS_AUDIT_TIMEOUT",
+    "WPS_VERSION_COMPONENT_UNKNOWN",
+    "WPS_VERSION_STATE_INVALID",
+    "WPS_VERSION_STATE_UNREADABLE",
+    "WPS_VERSION_STATE_UNWRITABLE",
+    "WRITER_PARITY_FAILED",
+    "WRITER_PARITY_INPUT_MISSING",
+    "WRITER_PARITY_OFFLINE_FAILED",
+    "WRITER_PARITY_SOURCE_CHANGED",
+    "WRITER_PARITY_WPS_FAILED",
+    "WRITER_PARITY_WPS_INVALID_JSON",
+    "WRITER_SOURCE_CHANGED",
+    "WRITER_STRUCTURE_INVALID",
+    "WRITER_TABLE_SMOKE_FAILED"
+  ]
+}

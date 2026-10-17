@@ -91,6 +91,19 @@ class ReleaseNotesTests(unittest.TestCase):
         self.assertLess(check, regression)
         self.assertLess(regression, publish)
 
+    def test_pypi_gets_the_files_of_the_github_release_through_trusted_publishing(self):
+        workflow = (REPO_ROOT / ".github" / "workflows" / "release.yml").read_text(encoding="utf-8")
+
+        pypi = workflow[workflow.index("\n  pypi:") :]
+        self.assertIn("needs: release", pypi)
+        self.assertIn("id-token: write", pypi)
+        self.assertIn("pypa/gh-action-pypi-publish@release/v1", pypi)
+        self.assertIn("actions/download-artifact@v4", pypi)
+        self.assertNotIn("password", pypi)
+        self.assertNotIn("secrets.", workflow)
+        # The release job keeps exactly what it published.
+        self.assertLess(workflow.index("gh release create"), workflow.index("actions/upload-artifact@v4"))
+
 
 if __name__ == "__main__":
     unittest.main()

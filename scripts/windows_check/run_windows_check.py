@@ -78,6 +78,11 @@ def load_workbook_close() -> Any:
     return module
 
 
+def using_installed() -> bool:
+    """Whether the check tests the installed package (--installed) instead of this repository's src/."""
+    return os.environ.get("WPS_AGENT_USE_INSTALLED") == "1"
+
+
 def load_runner() -> Any:
     """The agent-eval runner, which is a script, not a package module."""
     path = REPO_ROOT / "scripts" / "agent_eval" / "run_agent_eval.py"
@@ -159,8 +164,21 @@ class Machine:
         )
         return completed.stdout.strip()
 
+    def package(self) -> dict[str, str]:
+        """Which wps_ai_agent_cli the checks run: its version and where it was loaded from."""
+        env = dict(os.environ)
+        if not using_installed():
+            env["PYTHONPATH"] = str(REPO_ROOT / "src")
+        completed = _run(
+            [sys.executable, "-c", "import wps_ai_agent_cli as p; print(p.__version__); print(p.__file__)"], env=env
+        )
+        lines = (completed.stdout or "").split("\n")
+        return {"version": lines[0].strip(), "file": lines[1].strip() if len(lines) > 1 else ""}
+
     def inspect_env(self) -> dict[str, Any]:
-        env = {**os.environ, "PYTHONPATH": str(REPO_ROOT / "src")}
+        env = dict(os.environ)
+        if not using_installed():
+            env["PYTHONPATH"] = str(REPO_ROOT / "src")
         completed = _run([sys.executable, "-m", "wps_ai_agent_cli", "inspect-env"], timeout=180, env=env)
         return json.loads(completed.stdout)
 
@@ -192,6 +210,12 @@ def prerequisites(machine: Machine, *, need_claude: bool, need_wps: bool) -> dic
     windows = machine.is_windows()
     checks.append(check("windows", windows, platform.platform() if windows else "not Windows", required=need_wps))
     info: dict[str, Any] = {"commit": commit, "branch": branch, "python": python, "platform": platform.platform()}
+    package = machine.package()
+    info["package"] = package
+    if using_installed():
+        # On a clean account the package under test must come from the install, not from the clone (P12-007).
+        installed = "site-packages" in package["file"]
+        checks.append(check("installed package", installed, f"{package['version']} from {package['file']}"))
     if need_claude:
         ok, detail = machine.claude_reply()
         checks.append(check("claude answers", ok, detail))
@@ -350,6 +374,10 @@ def write_results(
     ]
     if info.get("wps_versions"):
         header.append("- WPS: " + ", ".join(f"{name} {version}" for name, version in info["wps_versions"].items()))
+    package = info.get("package") or {}
+    if package.get("version"):
+        source = "installed" if using_installed() else "this repository's src/"
+        header.append(f"- Package: wps-ai-agent-cli {package['version']} ({source}), `{package.get('file')}`")
     header.append("- Written by `scripts/windows_check/run_windows_check.py`; nothing in this file was typed by hand.")
     text = "\n".join([*header, "", *prerequisites_markdown(prereq), *body, ""])
     (directory / "RESULTS.md").write_text(text, encoding="utf-8")
@@ -514,6 +542,35 @@ def release_wheel(version: str) -> tuple[str, str]:
     raise RuntimeError(f"Release v{version} has no asset {name}")
 
 
+PYPI_INDEX = "https://pypi.org/simple"
+
+
+def pypi_wheel(version: str, work: Path) -> Path:
+    """Download the version's wheel from PyPI with pip (which checks PyPI's own hash) and return its path (P12-005)."""
+    target = work / "pypi"
+    target.mkdir(parents=True, exist_ok=True)
+    command = [
+        sys.executable,
+        "-m",
+        "pip",
+        "download",
+        f"wps-ai-agent-cli=={version}",
+        "--no-deps",
+        "--only-binary",
+        ":all:",
+        "--index-url",
+        PYPI_INDEX,
+        "-d",
+        str(target),
+    ]
+    downloaded = _run(command, timeout=600)
+    wheels = sorted(target.glob(f"wps_ai_agent_cli-{version}-*.whl"))
+    if downloaded.returncode != 0 or not wheels:
+        detail = (downloaded.stderr or downloaded.stdout).strip()[-500:]
+        raise RuntimeError(f"pip could not download wps-ai-agent-cli=={version} from PyPI: {detail}")
+    return wheels[0]
+
+
 def venv_program(venv: Path, name: str) -> Path:
     folder = venv / ("Scripts" if os.name == "nt" else "bin")
     for candidate in (folder / f"{name}.exe", folder / name):
@@ -523,11 +580,24 @@ def venv_program(venv: Path, name: str) -> Path:
 
 
 def check_wheel(
-    version: str, work: Path, *, wheel: Path | None = None, expected_sha: str | None = None
+    version: str,
+    work: Path,
+    *,
+    wheel: Path | None = None,
+    expected_sha: str | None = None,
+    source: str = "github",
 ) -> dict[str, Any]:
-    """Install only the wheel in a new venv and run it outside the repository, with no PYTHONPATH."""
+    """Install only the wheel in a new venv and run it outside the repository, with no PYTHONPATH.
+
+    With source "pypi" the wheel comes from PyPI, and its SHA-256 is still checked against the GitHub Release, so
+    both places are known to serve the same file.
+    """
     work.mkdir(parents=True, exist_ok=True)
-    if wheel is None:
+    if wheel is None and source == "pypi":
+        if not expected_sha:
+            _url, expected_sha = release_wheel(version)
+        wheel = pypi_wheel(version, work)
+    elif wheel is None:
         url, listed = release_wheel(version)
         expected_sha = expected_sha or listed
         wheel = work / url.rsplit("/", 1)[-1]
@@ -559,6 +629,7 @@ def check_wheel(
     regression = (safe_data.get("data") or {}).get("regression") or {}
     return {
         "version": version,
+        "source": source,
         "wheel": str(wheel),
         "sha256": actual,
         "expected_sha256": expected_sha,
@@ -605,10 +676,11 @@ def run_wheel(args: argparse.Namespace, machine: Machine) -> int:
             Path(work),
             wheel=Path(args.wheel) if args.wheel else None,
             expected_sha=args.sha256,
+            source=args.source,
         )
     passed, conditions = wheel_verdict(result)
     body = [
-        f"## Released wheel {args.version}",
+        f"## Released wheel {args.version} ({'from PyPI' if args.source == 'pypi' else 'from the GitHub Release'})",
         "",
         f"**{'Passed' if passed else 'Failed'}.**",
         "",
@@ -826,6 +898,11 @@ def main(
     diagnostic: Any = None,
 ) -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument(
+        "--installed",
+        action="store_true",
+        help="Test the installed wps-ai-agent-cli (for example from PyPI) instead of this repository's src/.",
+    )
     commands = parser.add_subparsers(dest="command", required=True)
     prereq = commands.add_parser("prereq", help="Check the machine only.")
     prereq.add_argument("--skip-claude", action="store_true", help="Do not ask claude to answer.")
@@ -885,9 +962,17 @@ def main(
     wheel.add_argument("--version", required=True)
     wheel.add_argument("--wheel", default=None, help="A local wheel instead of the Release's.")
     wheel.add_argument("--sha256", default=None, help="Expected SHA-256 (default: the one the Release lists).")
+    wheel.add_argument(
+        "--source",
+        choices=("github", "pypi"),
+        default="github",
+        help="Where the wheel comes from: the GitHub Release (default) or PyPI; either way it must match the Release.",
+    )
     wheel.add_argument("--out", default=None)
     wheel.add_argument("--force", action="store_true")
     args = parser.parse_args(argv)
+    if args.installed:
+        os.environ["WPS_AGENT_USE_INSTALLED"] = "1"
     if args.command == "eval" and not 1 <= args.min_passes <= args.repeat:
         parser.error("--min-passes must be between 1 and --repeat")
     for stream in (sys.stdout, sys.stderr):

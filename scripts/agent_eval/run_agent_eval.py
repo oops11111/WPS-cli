@@ -32,7 +32,11 @@ SRC_DIR = REPO_ROOT / "src"
 MCP_SERVER_NAME = "wps-agent"
 ALLOWED_TOOLS = f"mcp__{MCP_SERVER_NAME}__*"
 
-sys.path.insert(0, str(SRC_DIR))
+# WPS_AGENT_USE_INSTALLED=1 tests the installed package (for example from PyPI on a clean account, P12-007) instead
+# of this repository's src/.
+USE_INSTALLED = os.environ.get("WPS_AGENT_USE_INSTALLED") == "1"
+if not USE_INSTALLED:
+    sys.path.insert(0, str(SRC_DIR))
 from wps_ai_agent_cli.backups import create_backup, list_backups  # noqa: E402
 from wps_ai_agent_cli.open_document_hints import OPEN_DOCUMENT_ALTERNATIVES  # noqa: E402
 from wps_ai_agent_cli.operations import get_operation  # noqa: E402
@@ -282,7 +286,7 @@ def write_mcp_config(workspace: Path) -> Path:
                 "command": sys.executable,
                 "args": ["-m", "wps_ai_agent_cli", "mcp-server"],
                 "cwd": str(workspace),
-                "env": {"PYTHONPATH": str(SRC_DIR)},
+                "env": {} if USE_INSTALLED else {"PYTHONPATH": str(SRC_DIR)},
             }
         }
     }
@@ -618,6 +622,18 @@ def stop_started_wps(component: str, started: set[int], rounds: int = 3, settle:
         parts.append(f"stopped {','.join(map(str, stopped))}{tried}")
     summary = "; ".join(parts) or "none running"
     return summary + (f"; still running after {rounds} rounds: {','.join(map(str, left))}" if left else "")
+
+
+def _on_windows() -> bool:
+    return os.name == "nt"
+
+
+def end_leftover_wps(component: str, before: set[int]) -> str | None:
+    """End the WPS processes of the component that a file-based run started and left running; None if there were none."""
+    left = component_process_ids(component) - before
+    if not left:
+        return None
+    return f"left running by the commands: {','.join(map(str, sorted(left)))}; {stop_started_wps(component, left)}"
 
 
 def registered_open_command(extension: str) -> str:
@@ -1284,12 +1300,18 @@ def run_task(
     # WPS names an untitled document itself (for example "文字文稿2"), so the prompt can only name it now.
     prompt = task["prompt"].replace("{untitled_name}", state.get("untitled_name", "{untitled_name}"))
     cleanup = None
+    # A file-based task opens no document in WPS, but its commands may start WPS through COM. One left running would
+    # stop every later open-document task (P12-001: all tasks in one run), so the processes it started are ended.
+    watch_leftovers = release is None and bool(task.get("requires_wps")) and _on_windows()
+    before = wps_process_ids() if watch_leftovers else set()
     try:
         mcp_config = write_mcp_config(workspace)
         agent = runner(prompt, mcp_config, workspace, model, max_turns, timeout)
     finally:
         if release is not None:
             cleanup = release()
+        elif watch_leftovers:
+            cleanup = end_leftover_wps(component, before)
     calls = agent.get("tool_calls") or []
     checks = judge(task, workspace, fixture, fixture_sha, component, seed_sha=seed_sha, calls=calls)
     result = {

@@ -101,3 +101,66 @@ E2 原来的达成条件：两个版本的 C1 到 C6 都是 pass（C2、C3 都�
 ### 第二个版本
 
 未跑。2026-10-14 在这台 Windows 10.0.19045 机器上只找到 `C:\Program Files (x86)\Kingsoft\WPS Office\12.8.2.18913`。正在运行的 `et.exe`、`wps.exe`、`wpp.exe` 都来自这个目录。没有第二个正式版可按第 3 节重跑。
+
+## 干净环境（Phase 12，M2）
+
+上面的结果都来自同一个账户，这个账户上已经跑过上百次评测。这一节在同一台机器上新建的本地账户上，从 PyPI 安装开始，再验证一遍。被测的包必须来自 PyPI；仓库只用来提供测试输入和检查脚本。
+
+### 检查项
+
+| # | 检查 | 命令 | 通过条件 |
+| --- | --- | --- | --- |
+| K0 | 包来自 PyPI | `run_windows_check.py --installed prereq --skip-claude` | 必需项全过；`installed package` 一项的路径在新虚拟环境的 `site-packages` 里，版本是 `0.9.0` |
+| K1 | `inspect-env` | `wps-agent inspect-env` | 三个组件的 ProgID 已注册，版本号与上面的记录一致 |
+| K2 到 K7 | C1 到 C6 | 同上面的检查项，`wps-agent` 用新虚拟环境里的 | 同上面的通过条件 |
+| K8 | 撤回 | `run_windows_check.py --installed undo` | 6/6 通过 |
+
+### 步骤
+
+1. 用管理员账户新建一个本地账户（设置 → 账户 → 其他用户 → 添加），注销后用新账户登录。
+2. 在新账户里手动打开一次 WPS 文字、表格和演示，关掉欢迎页、登录框和会话恢复对话框，再全部关闭。确认 `.docx`、`.xlsx`、`.pptx` 默认用 WPS 打开。
+3. 安装 Python 3.10 以上（python.org 的安装包，不要用 Microsoft Store 的），然后：
+
+   ```powershell
+   py -m venv $HOME\wps-agent-venv
+   $HOME\wps-agent-venv\Scripts\python -m pip install "wps-ai-agent-cli[wps]==0.9.0"
+   $HOME\wps-agent-venv\Scripts\wps-agent inspect-env
+   ```
+
+4. 克隆仓库，只用它的测试输入和脚本，不要 `pip install -e`：
+
+   ```powershell
+   git clone https://github.com/oops11111/WPS-cli.git $HOME\WPS-cli
+   cd $HOME\WPS-cli
+   $py = "$HOME\wps-agent-venv\Scripts\python"
+   & $py scripts\windows_check\run_windows_check.py --installed prereq --skip-claude
+   & $py scripts\windows_check\run_windows_check.py --installed undo
+   ```
+
+   不要设置 `PYTHONPATH`。`--installed` 让检查脚本和评测 runner 用新虚拟环境里装的包，而不是仓库的 `src/`；`RESULTS.md` 开头的 `Package` 一行写明被测的版本和路径。
+5. 在仓库根目录用 `$HOME\wps-agent-venv\Scripts\wps-agent` 按上面“检查项”跑 C1 到 C6。
+6. 把 `scripts\windows_check\results\` 里新写出的目录和下面的记录一起提交到 `cursor/phase12-windows-<提交号>`。
+
+### 记录格式
+
+```markdown
+### 干净账户，WPS <版本号>，wps-ai-agent-cli <版本号>
+
+- 日期：
+- 机器：同一台 Windows <版本>，新建本地账户 `<名字>`
+- 安装：`pip install "wps-ai-agent-cli[wps]==<版本号>"`，包路径 `<site-packages 下的路径>`
+- 首次启动 WPS 时出现过的对话框：
+
+| # | 结果 | 证据 |
+| --- | --- | --- |
+| K0 | pass / fail | `prereq` 结果目录 |
+| K1 | pass / fail | `inspect-env` 输出摘要 |
+| C1 到 C6 | pass / fail | 同上面每个版本的记录格式 |
+| K8 | pass / fail | `undo` 结果目录，n/6 |
+
+与原账户的差异：
+```
+
+### 结果
+
+未跑（P12-010，需要 0.9.0 发布到 PyPI 之后）。
