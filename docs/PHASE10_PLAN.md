@@ -1,6 +1,19 @@
 # Phase 10 计划：写入结果自证、图表和图形可撤回
 
-状态：**active**（2026-10-16 确认，五项决定均按默认建议）。
+状态：**done**（2026-10-16 确认，2026-10-17 完成）。
+
+K1 到 K3 都已达成，证据在下面的“P10-006 结果”和 `scripts/windows_check/results/` 里：
+
+- K1：`main@ab92a42` 上 16 个已打开文档任务一条命令各 3/3，`wrong_tool_calls` 0，`off_path_calls` 11（P9-006 是 50）。
+- K2：`main@9c5a009` 上 `undo` 四个场景都通过，包括新的文本框和图表标题两个：注入读回失败后在 WPS 里撤回，文件内容与写入前的备份一致。
+- K3：`v0.7.0` 从 `main@ab92a42` 发布，wheel 在 Windows 上通过全部 7 个条件。
+
+遗留缺口（不是出口标准）：
+
+- 让 K2 在 Windows 上通过的选区判断修复（#107）在 `v0.7.0` 之后合并，在 `[Unreleased]`；0.7.0 里选中文本框或图表标题时仍会被当成系列而拒绝写入。下一个版本（0.7.1）应尽快发布。
+- 剩下的 8 次写入后额外调用：Writer 插入后的 `snapshot_document`、`validate_document`，表格写入后的 `spreadsheet_read`。
+- 坐标轴标题和系列值的撤回只有假 COM 测试，`undo` 没有这两种场景。
+- P7-007 的 `0x800A01A8` 原因没查清；兼容矩阵只有一个 WPS 版本（P5-010）；PRD 未做项（形状和图表几何、混合格式重建、准确页码）；没有发布到 PyPI。
 
 ## 目标
 
@@ -53,7 +66,7 @@ Phase 10 做这两件事，最后发布 0.7.0。
 | P10-003 | K1 | 评测汇总区分写入前和写入后的 `off_path_calls`，`RESULTS.md` 显示；离线测试（已完成：`off_path_calls_before_write` 和 `off_path_calls_after_write`，`RESULTS.md` 多一列和一句合计；用在 P9-006 的记录上得到 12 和 38） | 本地 |
 | P10-004 | K2 | 表格形状文字、图表标题、坐标轴标题和系列值的写入记录原值，失败时在 WPS 里写回；假 COM 测试（已完成：`open_document_scripts/object_revert.py`。原值就是写入前读到的选区文字，系列另外记录写入前的 `SERIES` 公式，撤回时先写回公式，让系列重新引用单元格。撤回沿用写入脚本找对象的方式（经当前选区，并核对对象名）；对象里是本次写入的文字或 WPS 读回的文字才写回，否则不动；选区已经换了的，记为 `revert_target_missing`；`tests/test_object_undo_powershell.py`、`tests/test_undo_in_wps.py`） | 本地 |
 | P10-005 | K2 | `run_windows_check.py undo` 增加形状文字和图表标题两种情形（测试工作簿带一个形状和一个图表）；离线测试（已完成：场景 `spreadsheet-shape-text-replace` 和 `spreadsheet-chart-title-replace`，测试工作簿 `chart_note.xlsx`：图表 `Chart 1` 标题 `DRAFT`、文本框 `Note 1` 文字 `DRAFT`；准备步骤按名称选中文本框或图表标题；磁盘上的文字包括图形和图表里的文字，撤回后要和写入前一样） | 本地 |
-| P10-006 | K1、K2 | 在 Windows 上：全部已打开文档任务一条命令各跑 3 次，再跑 `undo`（第一轮已完成，见下文“P10-006 结果”：K1 达成；`undo` 的两个新场景在写入前被拒，原因已修，待重跑 `undo`） | Windows |
+| P10-006 | K1、K2 | 在 Windows 上：全部已打开文档任务一条命令各跑 3 次，再跑 `undo`（已完成：见下文“P10-006 结果”。K1 在 `ab92a42` 上达成；`undo` 第一轮两个新场景在写入前被拒，修复后在 `9c5a009` 上重跑 4/4） | Windows |
 | P10-007 | K3 | 定版本 0.7.0，整理 `CHANGELOG.md`，合并后由你推送 `v0.7.0` 标签（已完成：`v0.7.0` 从 `main@ab92a42` 发布） | 本地 + 你 |
 | P10-008 | K3 | 在 Windows 上检查 0.7.0 的 wheel（已完成：`ab92a42` 上通过，SHA-256 与 Release 一致，safe 档 7/7，结果在 `scripts/windows_check/results/20261017T044542Z-wheel-0.7.0/`） | Windows |
 
@@ -94,8 +107,16 @@ python scripts/windows_check/run_windows_check.py undo
   - 原因：表格选区读脚本用“访问某个成员会不会报错”来分辨选中的是什么。真实 WPS 对对象没有的成员返回空值、不报错，于是图表标题被当成系列（读的是它的父对象图表的 `Values`，读回空字符串），文本框也走进了系列和坐标轴的判断。形状写入脚本判断“是不是图表的一部分”（`$sel.Parent.HasTitle`）也有同样的问题，对文本框会拒绝。
   - 修复：这几处改为检查取到的值是否为空（系列要求 `Values` 有值且父对象有 `ChartType`；坐标轴要求 `HasTitle` 和 `AxisTitle` 都有值；图表部件要求 `Parent.HasTitle` 有值），在报错和返回空值两种行为下都成立。撤回脚本沿用写入脚本的开头，一并改好。假 COM 测试按 WPS 的这种行为写（缺的成员返回空值），旧脚本在这些测试上的失败和 Windows 上一样。
   - `undo` 的结果现在记下命令读到的选区（类型、对象名、文字和 `has_*`），写入前被拒时也能看出原因。
-- 下一步：合并修复后在 Windows 上只重跑 `python scripts/windows_check/run_windows_check.py undo`，四个场景都通过即 K2 达成。`v0.7.0` 已在修复之前从 `ab92a42` 发布，所以这个修复在 `[Unreleased]`，随下一个版本发布；K2 只看 `undo` 在 `main` 上的结果，不要求它进 0.7.0。
+- **K2 达成（重跑）。** 修复（#107）合并后在 `main@9c5a009` 上重跑 `undo`，四个场景都通过，结果在 `scripts/windows_check/results/20261017T054506Z-9c5a009-undo/`。两个新场景都在写入后被注入读回失败，命令报告 `VALIDATION_FAILED` 和 `MUTATION_ROLLED_BACK`，撤回读回 `DRAFT`，保存后的文件内容与写入前的备份一致，WPS 报告已保存。`v0.7.0` 已在修复之前从 `ab92a42` 发布，所以这个修复在 `[Unreleased]`，随下一个版本发布；K2 看的是 `undo` 在 `main` 上的结果。
 - **K3 达成（P10-008）。** `v0.7.0` 从 `main@ab92a42` 发布，wheel 在 Windows 上通过全部 7 个条件（SHA-256 与 Release 一致，safe 档 7/7），结果在 `scripts/windows_check/results/20261017T044542Z-wheel-0.7.0/`。
+
+## 出口标准结果
+
+| # | 结果 | 依据 |
+| --- | --- | --- |
+| K1 | 达成 | P10-002、P10-003；P10-006 16/16 都 3/3，`wrong_tool_calls` 0，`off_path_calls` 11 |
+| K2 | 达成 | P10-004、P10-005；`9c5a009` 上 `undo` 4/4（选区判断的修复在 #107） |
+| K3 | 达成 | `v0.7.0` 已发布，wheel 在 Windows 上通过（P10-008）；#107 的修复在 0.7.0 之后，待下一个版本 |
 
 ## 建议顺序
 

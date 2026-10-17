@@ -111,7 +111,7 @@ PHASES: tuple[Phase, ...] = (
     Phase(
         id="phase10",
         name="Self-verifying write results, undoable chart and shape writes",
-        status="active",
+        status="done",
         goal=(
             "Make open-document write results carry the verified document state so agents stop re-checking, undo "
             "failed chart and shape selection writes in WPS, and release 0.7.0."
