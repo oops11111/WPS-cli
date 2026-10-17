@@ -5,6 +5,7 @@ from __future__ import annotations
 import importlib.util
 import io
 import json
+import os
 import tempfile
 import unittest
 from pathlib import Path
@@ -46,6 +47,7 @@ class FakeMachine(windows_check.Machine):
                 ".pptx": r'"C:\WPS\office6\wpp.exe" "%1"',
             },
             "env": GOOD_ENV,
+            "package": {"version": "0.9.0", "file": r"C:\repo\src\wps_ai_agent_cli\__init__.py"},
             **overrides,
         }
         self.process_calls = 0
@@ -76,6 +78,9 @@ class FakeMachine(windows_check.Machine):
 
     def inspect_env(self):
         return self.answers["env"]
+
+    def package(self):
+        return self.answers["package"]
 
 
 def failed(report):
@@ -120,6 +125,26 @@ class PrerequisiteTests(unittest.TestCase):
     def test_a_machine_that_is_not_windows_fails_a_check_that_needs_wps(self):
         report = windows_check.prerequisites(FakeMachine(windows=False), need_claude=False, need_wps=True)
         self.assertEqual(failed(report), ["windows"])
+
+    def test_the_package_under_test_is_recorded_and_checked_only_with_installed(self):
+        report = windows_check.prerequisites(FakeMachine(), need_claude=False, need_wps=True)
+        self.assertEqual(report["info"]["package"]["version"], "0.9.0")
+        self.assertNotIn("installed package", [item["name"] for item in report["checks"]])
+        site = r"C:\Users\clean\venv\Lib\site-packages\wps_ai_agent_cli\__init__.py"
+        with patch.dict(os.environ, {"WPS_AGENT_USE_INSTALLED": "1"}):
+            report = windows_check.prerequisites(FakeMachine(), need_claude=False, need_wps=True)
+            self.assertEqual(failed(report), ["installed package"])
+            machine = FakeMachine(package={"version": "0.9.0", "file": site})
+            report = windows_check.prerequisites(machine, need_claude=False, need_wps=True)
+            self.assertTrue(report["passed"], report)
+
+    def test_installed_sets_the_switch_the_eval_runner_reads(self):
+        with patch.dict(os.environ, {}, clear=False):
+            os.environ.pop("WPS_AGENT_USE_INSTALLED", None)
+            with patch.object(windows_check, "run_prereq", return_value=0) as run:
+                self.assertEqual(windows_check.main(["--installed", "prereq", "--skip-claude"]), 0)
+            self.assertEqual(os.environ.get("WPS_AGENT_USE_INSTALLED"), "1")
+            self.assertTrue(run.called)
 
     def test_the_program_of_an_open_command(self):
         self.assertEqual(windows_check.program_of(r'"C:\a b\wps.exe" "%1"'), r"C:\a b\wps.exe")
@@ -211,6 +236,17 @@ class EvalTests(unittest.TestCase):
         state = json.loads((self.out / "results.json").read_text(encoding="utf-8"))
         self.assertTrue(state["complete"])
         self.assertEqual(machine.process_calls, 2)  # before the run and after it
+
+    def test_without_a_filter_every_task_in_the_repository_runs(self):
+        # P12-001: M1 runs all tasks of config/agent_eval_tasks.json in one invocation.
+        tasks_file = Path(windows_check.__file__).resolve().parents[2] / "config" / "agent_eval_tasks.json"
+        spec = json.loads(tasks_file.read_text(encoding="utf-8"))
+        runner = FakeRunner()
+        argv = ["eval", "--tasks", str(tasks_file), "--out", str(self.out)]
+        self.assertEqual(windows_check.main(argv, machine=FakeMachine(), runner=runner), 0)
+        self.assertEqual(runner.ran, [task["id"] for task in spec["tasks"]])
+        self.assertEqual(len(runner.ran), 34)
+        self.assertGreater(sum(not task_id.startswith("wps-open-") for task_id in runner.ran), 0)
 
     def test_failed_prerequisites_run_nothing_unless_forced(self):
         runner = FakeRunner()
@@ -399,6 +435,74 @@ class WheelTests(unittest.TestCase):
         self.assertEqual((url, digest), ("https://example.invalid/w.whl", "870dd38d"))
         # A token, when there is one, avoids the unauthenticated quota that once failed the P7-009 run.
         self.assertEqual(urlopen.call_args.args[0].get_header("Authorization"), "Bearer t0ken")
+
+
+class PypiWheelTests(unittest.TestCase):
+    def setUp(self):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        self.work = Path(tmp.name)
+
+    def completed(self, command, stdout="", returncode=0):
+        import subprocess
+
+        return subprocess.CompletedProcess(command, returncode, stdout=stdout, stderr="")
+
+    def test_pip_downloads_the_exact_version_from_pypi_only(self):
+        def fake(command, timeout=120, **kwargs):
+            target = Path(command[command.index("-d") + 1])
+            (target / "wps_ai_agent_cli-0.9.0-py3-none-any.whl").write_bytes(b"wheel")
+            return self.completed(command)
+
+        with patch.object(windows_check, "_run", side_effect=fake) as run:
+            wheel = windows_check.pypi_wheel("0.9.0", self.work)
+        command = run.call_args.args[0]
+        self.assertEqual(wheel.name, "wps_ai_agent_cli-0.9.0-py3-none-any.whl")
+        self.assertIn("wps-ai-agent-cli==0.9.0", command)
+        self.assertEqual(command[command.index("--index-url") + 1], "https://pypi.org/simple")
+        self.assertIn("--no-deps", command)
+
+    def test_a_version_missing_on_pypi_says_so(self):
+        with patch.object(windows_check, "_run", return_value=self.completed([], returncode=1)):
+            with self.assertRaisesRegex(RuntimeError, "could not download wps-ai-agent-cli==0.9.0 from PyPI"):
+                windows_check.pypi_wheel("0.9.0", self.work)
+
+    def test_the_pypi_wheel_is_checked_against_the_github_release(self):
+        import hashlib
+
+        wheel = self.work / "pypi" / "wps_ai_agent_cli-0.9.0-py3-none-any.whl"
+        wheel.parent.mkdir()
+        wheel.write_bytes(b"the wheel")
+        digest = hashlib.sha256(b"the wheel").hexdigest()
+
+        def fake(command, timeout=120, **kwargs):
+            if "-c" in command:
+                return self.completed(command, "0.9.0\nC:/venv/Lib/site-packages/wps_ai_agent_cli/__init__.py\n")
+            if "inspect-env" in command:
+                return self.completed(command, json.dumps({"ok": True, "errors": []}))
+            if "regression-run" in command:
+                regression = {
+                    "passed_count": 7,
+                    "scenario_count": 7,
+                    "failed_count": 0,
+                    "manifest_path": "site-packages/m",
+                }
+                return self.completed(command, json.dumps({"ok": True, "data": {"regression": regression}}))
+            return self.completed(command)
+
+        with (
+            patch.object(windows_check, "release_wheel", return_value=("https://example.invalid/w.whl", digest)),
+            patch.object(windows_check, "pypi_wheel", return_value=wheel) as download,
+            patch.object(windows_check.subprocess, "run"),
+            patch.object(windows_check, "_run", side_effect=fake),
+        ):
+            result = windows_check.check_wheel("0.9.0", self.work, source="pypi")
+        download.assert_called_once_with("0.9.0", self.work)
+        self.assertEqual(result["source"], "pypi")
+        self.assertTrue(result["sha256_matches"])
+        self.assertEqual(result["expected_sha256"], digest)
+        passed, _lines = windows_check.wheel_verdict(result)
+        self.assertTrue(passed)
 
 
 if __name__ == "__main__":

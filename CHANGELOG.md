@@ -4,6 +4,22 @@ All notable changes to `wps-ai-agent-cli`. The versioning rule and release steps
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-10-17
+
+Phase 12: publishing to PyPI, a committed inventory of the public interface with stability rules, and checks that run every evaluation task and test an installed package on a clean account.
+
+### Added
+
+- The release workflow uploads the GitHub Release's wheel and sdist to PyPI with Trusted Publishing (the `pypi` job and environment, no stored token). `docs/RELEASING.md` describes the one-time pending publisher setup and how to rerun the upload. (P12-004)
+- `run_windows_check.py wheel --source pypi` downloads the version's wheel from PyPI with pip and checks its SHA-256 against the one the GitHub Release lists, so both places serve the same file. The result names its source. (P12-005)
+- `config/public_interface.json`, generated from the code by `scripts/public_interface.py --write`: the CLI's global options, commands and their arguments, the MCP tools and their parameters, and the error codes. `tests/test_public_interface.py` fails when the code and the file differ and lists which changes are breaking. (P12-006)
+- `run_windows_check.py --installed` runs the checks and the evaluation runner against the installed `wps-ai-agent-cli` instead of the repository's `src/`; `prereq` then requires the package to come from `site-packages`. Every `RESULTS.md` names the package version and path it tested. `docs/COMPATIBILITY_MATRIX.md` has a clean-environment section with the checks, steps for a new Windows account and a record format. (P12-007)
+- Agent evaluation: file-based tasks that need WPS record the WPS processes before the run and end the ones the commands left running, reported in the cleanup result. (P12-001)
+
+### Changed
+
+- `docs/RELEASING.md` states the stability rules before and after 1.0 (what is breaking, how long a deprecation lasts, that new fields under `data` are not breaking) and a checklist for 1.0. (P12-006)
+
 ## [0.8.0] - 2026-10-17
 
 Phase 11: the selection fix 0.7.0 lacks, spreadsheet write results that show the cells around the write, and the undo of axis titles and series values checked on Windows.

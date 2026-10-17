@@ -333,6 +333,48 @@ class TranscriptTests(unittest.TestCase):
         self.assertEqual(metrics["tools_used"], ["backup_document"])
 
 
+class LeftoverWpsTests(unittest.TestCase):
+    def test_only_processes_the_run_started_are_ended(self):
+        with (
+            patch.object(run_agent_eval, "component_process_ids", return_value={7, 41, 42}),
+            patch.object(run_agent_eval, "stop_started_wps", return_value="exited 41,42 (Quit())") as stop,
+        ):
+            note = run_agent_eval.end_leftover_wps("writer", {7})
+        stop.assert_called_once_with("writer", {41, 42})
+        self.assertEqual(note, "left running by the commands: 41,42; exited 41,42 (Quit())")
+
+    def test_nothing_left_running_is_not_reported(self):
+        with (
+            patch.object(run_agent_eval, "component_process_ids", return_value={7}),
+            patch.object(run_agent_eval, "stop_started_wps") as stop,
+        ):
+            self.assertIsNone(run_agent_eval.end_leftover_wps("writer", {7}))
+        stop.assert_not_called()
+
+    def test_a_file_based_wps_task_on_windows_checks_for_leftovers(self):
+        task = {"id": "wps-writer-replace", "requires_wps": True, "prompt": "go", "checks": []}
+        with tempfile.TemporaryDirectory() as tmp:
+            with (
+                patch.object(run_agent_eval, "_on_windows", return_value=True),
+                patch.object(run_agent_eval, "wps_process_ids", return_value={7}),
+                patch.object(run_agent_eval, "end_leftover_wps", return_value="left running by the commands: 9") as end,
+                patch.object(run_agent_eval, "write_mcp_config", return_value=Path(tmp) / "mcp.json"),
+            ):
+                result = run_agent_eval.run_task(
+                    task,
+                    "report.docx",
+                    "writer",
+                    Path(tmp),
+                    None,
+                    15,
+                    60,
+                    runner=_fake_agent(lambda workspace: None),
+                    has_wps=lambda component: True,
+                )
+        end.assert_called_once_with("writer", {7})
+        self.assertEqual(result["cleanup"], "left running by the commands: 9")
+
+
 class VerifiedStateRecordTests(unittest.TestCase):
     def transcript(self, data):
         envelope = json.dumps({"ok": True, "errors": [], "data": data})

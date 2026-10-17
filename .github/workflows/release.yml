@@ -1,7 +1,7 @@
 name: release
 
-# Pushing a tag v<version> on main publishes that version as a GitHub Release with the wheel and the sdist.
-# The steps are in docs/RELEASING.md; the maintainer pushes the tag.
+# Pushing a tag v<version> on main publishes that version as a GitHub Release with the wheel and the sdist, then
+# uploads the same two files to PyPI (P12-004). The steps are in docs/RELEASING.md; the maintainer pushes the tag.
 on:
   push:
     tags: ["v*"]
@@ -46,3 +46,28 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh release create "$GITHUB_REF_NAME" dist/* --title "$GITHUB_REF_NAME" --notes-file release-notes.md --verify-tag
+      - name: Keep the published files for the PyPI upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+          if-no-files-found: error
+
+  # The same files as the GitHub Release, so their SHA-256 match on both (run_windows_check.py wheel --source pypi).
+  # Trusted Publishing: PyPI accepts this workflow's OIDC token, so no API token is stored anywhere. If the upload
+  # fails, the GitHub Release stands; fix the cause and re-run this job for the same tag.
+  pypi:
+    needs: release
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/project/wps-ai-agent-cli/
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - name: Upload the wheel and the sdist to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
