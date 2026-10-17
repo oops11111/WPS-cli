@@ -3307,7 +3307,7 @@
     "id": "P12-003",
     "phase": "phase12",
     "title": "Fix and rerun the tasks that failed",
-    "status": "todo",
+    "status": "done",
     "acceptance": "M1: each task that failed in P12-002 is explained and fixed, then rerun on Windows until it passes at least 2 of 3."
   },
   {

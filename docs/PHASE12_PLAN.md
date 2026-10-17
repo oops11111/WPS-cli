@@ -1,6 +1,6 @@
 # Phase 12 计划：全量评测、干净环境、PyPI 发布，为 1.0 做准备
 
-状态：**active**（2026-10-17 确认，六项决定均按默认建议）。本地任务 P12-001、P12-004 到 P12-008 已完成；P12-002 在 `29175b1` 上 33/34，P12-003 的修复已做、等重跑；剩下 P12-009、P12-010 在 Windows 上做，见下文“上机步骤”。
+状态：**active**（2026-10-17 确认，六项决定均按默认建议）。本地任务 P12-001、P12-004 到 P12-008 已完成；**M1 已达成**（P12-002 在 `29175b1` 上 33/34，P12-003 修复后在 `a21b050` 上重跑两个任务都通过）；剩下 P12-009、P12-010 在 Windows 上做，见下文“上机步骤”。
 
 ## 目标
 
@@ -54,7 +54,7 @@ Phase 12 做这三件事，最后发布 0.9.0。是否以及何时定 1.0，仍�
 | --- | --- | --- | --- |
 | P12-001 | M1 | 确认 `run_windows_check.py eval` 不加 `--prefix` 时跑全部 34 个任务、准备步骤和清理对按文件的任务也正确（它们不打开 WPS 窗口）；离线检查不需要 WPS 的任务的判定测试都还在、都能过（已完成：不加 `--prefix` 和 `--only` 时跑仓库里全部 34 个任务，有测试；按文件的需要 WPS 的任务，runner 记下开始前的 WPS 进程，结束后结束命令留下的进程并写进清理结果） | 本地 |
 | P12-002 | M1 | 在 Windows 上：全部 34 个任务一条命令各跑 3 次（已完成：`29175b1` 上 33/34，见下文“P12-002 结果”） | Windows |
-| P12-003 | M1 | 按 P12-002 的结果修复没通过的任务，再只重跑它们（修复已做：`restore-backup` 接受指向同一文件的 `backup_name` 和 `backup_path`；等 Windows 上重跑 `restore-latest-backup` 和 `restore-dry-run`） | 本地 + Windows |
+| P12-003 | M1 | 按 P12-002 的结果修复没通过的任务，再只重跑它们（已完成：`restore-backup` 接受指向同一文件的 `backup_name` 和 `backup_path`（#114）；`a21b050` 上重跑 `restore-latest-backup` 2/3、`restore-dry-run` 3/3，见下文“P12-003 结果”） | 本地 + Windows |
 | P12-004 | M3 | 发布流程加 PyPI 上传（Trusted Publishing，`id-token: write`，`pypa/gh-action-pypi-publish`）；`docs/RELEASING.md` 写明一次性的 PyPI 登记步骤（已完成：`release.yml` 的 `pypi` 作业在 `release` 之后下载同一组文件，用 `pypa/gh-action-pypi-publish` 和 `pypi` 环境上传；`docs/RELEASING.md` 的“PyPI”一节写了一次性登记步骤和失败后的重跑） | 本地 + 你 |
 | P12-005 | M3 | `run_windows_check.py wheel --source pypi`：从 PyPI 安装指定版本，核对 SHA-256 与 GitHub Release 一致；离线测试（已完成：`wheel --source pypi` 用 pip 从 PyPI 下载，SHA-256 与 Release 列出的对比，结果和标题写明来源；离线测试） | 本地 |
 | P12-006 | M4 | 生成对外接口清单的脚本和提交的清单文件；接口变化而清单没更新时失败的测试；`docs/RELEASING.md` 的稳定性规则和 1.0 检查清单（已完成：`src/wps_ai_agent_cli/public_interface.py` 从 argparse、MCP 工具定义和源码里的错误码生成 `config/public_interface.json`：85 个命令、85 个工具、200 个错误码；`scripts/public_interface.py` 检查或 `--write` 重写；`tests/test_public_interface.py` 在两者不一致时失败并列出哪些变化算破坏性；`docs/RELEASING.md` 的“对外接口和稳定性”一节） | 本地 |
@@ -109,6 +109,18 @@ P12-003 的重跑：
 ```powershell
 python scripts/windows_check/run_windows_check.py eval --only restore-latest-backup --only restore-dry-run --repeat 3 --min-passes 2
 ```
+
+## P12-003 结果
+
+`scripts/windows_check/results/20261017T233437Z-a21b050-eval/`：`main@a21b050`，只重跑两个任务，各 3 次。
+
+- `restore-latest-backup` **2/3**，`restore-dry-run` **3/3**。`wrong_tool_calls` 0，`unverified_writes` 0。
+- 同时传 `backup_name` 和 `backup_path` 的调用在 6 次运行里出现 5 次，全部成功，`MCP_CLI_ARGUMENTS_REJECTED` 不再出现。
+- `restore-latest-backup` 第 3 次没通过，原因和修复无关：Agent 先做了 dry run，再正式恢复，又查了两次 `operation`（第一次在恢复前，返回 `OPERATION_NOT_FOUND`）、`snapshot_document` 和 `spreadsheet_read`，共 8 次调用，超过上限 6。文件恢复正确。
+
+| 标准 | 结果 | 证据 |
+| --- | --- | --- |
+| M1 | 达成 | P12-002：33/34，`wrong_tool_calls` 0，`unverified_writes` 0；没通过的 `restore-latest-backup` 查清原因并修复（#114）后，P12-003 重跑 2/3 |
 
 ## 主要风险
 
