@@ -1,7 +1,7 @@
 {
   "product": "WPS AI Agent CLI",
   "source_prd": "WPS_AI_Agent_CLI_PRD_v1.1.docx",
-  "current_phase": "phase11",
+  "current_phase": "phase12",
   "phases": [
     {
       "id": "phase0",
@@ -140,7 +140,7 @@
       "id": "phase12",
       "name": "Full evaluation, a clean environment and PyPI, ready for 1.0",
       "goal": "Rerun every evaluation task on the current version, install and check from scratch on a Windows account that never ran the project, publish to PyPI, write down the public interface and its stability rules, and release 0.9.0.",
-      "status": "planned",
+      "status": "active",
       "exit_criteria": [
         "M1: on Windows one run_windows_check.py eval --repeat 3 --min-passes 2 without --prefix (all 34 tasks) on the phase's main passes every task at least 2 of 3 runs with wrong_tool_calls 0 and unverified_writes 0; tasks that fail are fixed in the phase and rerun",
         "M2: on a Windows account that never ran the project, with WPS installed as the default app, pip install wps-ai-agent-cli==0.9.0 from PyPI passes inspect-env, compatibility checks C1 to C6 and run_windows_check.py undo 6 of 6, recorded in docs/COMPATIBILITY_MATRIX.md",
