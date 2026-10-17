@@ -135,6 +135,19 @@
         "L3: run_windows_check.py undo gains axis-title and series-values replace scenarios (the fixture chart has an axis title and a series linked to cells), and after the undo the text of shapes and charts and the cells the series refers to are back to before the write; on Windows undo passes 6 of 6 (2026-10-17: met on main@4ccd565, undo 6/6; the first run on 20c94d8 refused the series scenario before the write because the series write scripts named the selection after the chart itself, fixed in #110)",
         "L4: v0.8.0 is released per docs/RELEASING.md with the L2 and L3 changes, and its wheel is checked on Windows (2026-10-17: v0.8.0 released from main@4ccd565; its wheel passed all seven conditions on Windows, safe 7/7, P11-009)"
       ]
+    },
+    {
+      "id": "phase12",
+      "name": "Full evaluation, a clean environment and PyPI, ready for 1.0",
+      "goal": "Rerun every evaluation task on the current version, install and check from scratch on a Windows account that never ran the project, publish to PyPI, write down the public interface and its stability rules, and release 0.9.0.",
+      "status": "planned",
+      "exit_criteria": [
+        "M1: on Windows one run_windows_check.py eval --repeat 3 --min-passes 2 without --prefix (all 34 tasks) on the phase's main passes every task at least 2 of 3 runs with wrong_tool_calls 0 and unverified_writes 0; tasks that fail are fixed in the phase and rerun",
+        "M2: on a Windows account that never ran the project, with WPS installed as the default app, pip install wps-ai-agent-cli==0.9.0 from PyPI passes inspect-env, compatibility checks C1 to C6 and run_windows_check.py undo 6 of 6, recorded in docs/COMPATIBILITY_MATRIX.md",
+        "M3: offline, the release workflow uploads the same wheel and sdist to PyPI with Trusted Publishing after the GitHub Release, and run_windows_check.py wheel gains --source pypi, which installs from PyPI and checks the SHA-256 against the GitHub Release; on Windows wheel --version 0.9.0 --source pypi passes",
+        "M4: offline, a generated inventory of the public interface (CLI commands and arguments, MCP tools and parameters, error codes, top-level data fields per command) is committed, a test fails when the interface changes without the inventory, and docs/RELEASING.md states the stability rules before and after 1.0 and a 1.0 checklist",
+        "M5: v0.9.0 is released per docs/RELEASING.md on GitHub and PyPI with the phase's changes and the M1 fixes, and its wheel is checked on Windows"
+      ]
     }
   ]
 }
