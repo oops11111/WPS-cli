@@ -51,6 +51,8 @@ namespace WpsAgent {
   public class FakeChartObject { public string Name { get { return "Chart 1"; } } }
   public class FakeTitle { public string Text { get { return Book.HasTitle ? Book.Text : ""; } set { Book.Set(value); } } }
   public class FakeChart {
+    // Like Excel and WPS, the chart's own name is the sheet and the ChartObject's name together.
+    public string Name { get { return "Status Chart 1"; } }
     public int ChartType { get { return 51; } }
     public bool HasTitle { get { return Book.HasTitle; } set { if (!Book.Stuck) { Book.HasTitle = value; } } }
     public FakeTitle ChartTitle { get { return new FakeTitle(); } }
@@ -61,9 +63,11 @@ namespace WpsAgent {
     public FakeTitle AxisTitle { get { return new FakeTitle(); } }
     public FakeChart Parent { get { return new FakeChart(); } }
   }
+  // In WPS a series' parent is its chart group, which has no ChartType (P11-007); the group's parent is the chart.
+  public class FakeChartGroup { public FakeChart Parent { get { return new FakeChart(); } } }
   public class FakeSeries {
     public string Name { get { return "Sales"; } }
-    public FakeChart Parent { get { return new FakeChart(); } }
+    public FakeChartGroup Parent { get { return new FakeChartGroup(); } }
     public object Values {
       get {
         var parts = Book.Text.Split((char)9);
