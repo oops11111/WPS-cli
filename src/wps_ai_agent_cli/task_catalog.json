@@ -3237,7 +3237,7 @@
     "id": "P11-002",
     "phase": "phase11",
     "title": "Windows check of the selection fix in the 0.8.0 wheel",
-    "status": "todo",
+    "status": "done",
     "acceptance": "L1: covered by P11-009, the 0.8.0 wheel check."
   },
   {
@@ -3272,21 +3272,21 @@
     "id": "P11-007",
     "phase": "phase11",
     "title": "Windows run of L2 and L3",
-    "status": "todo",
+    "status": "done",
     "acceptance": "L2, L3: all open-document tasks in one --repeat 3 --min-passes 2 invocation, then run_windows_check.py undo; off_path_calls_after_write, verified_state and the undo results recorded."
   },
   {
     "id": "P11-008",
     "phase": "phase11",
     "title": "Release 0.8.0",
-    "status": "todo",
+    "status": "done",
     "acceptance": "L4: version 0.8.0 per docs/RELEASING.md and a CHANGELOG section, merged before the maintainer pushes the v0.8.0 tag."
   },
   {
     "id": "P11-009",
     "phase": "phase11",
     "title": "Windows check of the 0.8.0 wheel",
-    "status": "todo",
+    "status": "done",
     "acceptance": "L4: run_windows_check.py wheel --version 0.8.0 passes on Windows; result recorded."
   }
 ]

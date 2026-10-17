@@ -1,6 +1,19 @@
 # Phase 11 计划：补发选区修复、表格写入带上周围的单元格、撤回全覆盖
 
-状态：**active**（2026-10-17 确认。四项决定按默认建议；“0.7.1 怎么发”改为不单独发 0.7.1，选区修复随 0.8.0 发布，见“已做的决定”）。
+状态：**done**（2026-10-17 确认，2026-10-17 完成）。
+
+L1 到 L4 都已达成，证据在下面的“P11-007 结果”和 `scripts/windows_check/results/` 里：
+
+- L1：`v0.8.0` 从 `main@4ccd565` 发布，包含 #107 的选区修复（和 #110 的系列修复），wheel 在 Windows 上通过全部 7 个条件。
+- L2：`main@20c94d8` 上 16 个已打开文档任务一条命令各 3/3，`wrong_tool_calls` 0，写入后的额外调用 3（P10-006 是 8），`verified_state.passed` 不是 true 的写入 0。
+- L3：`main@4ccd565` 上 `undo` 6/6，包括新的坐标轴标题和系列值场景；系列撤回后重新引用 `Status!B2:B3`。
+- L4：同 L1，`v0.8.0` 已发布并在 Windows 上检查通过。
+
+遗留缺口（不是出口标准）：
+
+- 剩下的 3 次写入后额外调用：Writer 替换后一次 `validate_document`，表格替换后一次 `spreadsheet_read`，另存为后一次 `operation`。
+- 撤回的 Windows 场景只覆盖替换，删除（清空文字、隐藏标题、清空系列值）只有假 COM 测试。
+- P7-007 的 `0x800A01A8` 原因没查清；兼容矩阵只有一个 WPS 版本（P5-010）；PRD 未做项（形状和图表几何、混合格式重建、准确页码）；没有发布到 PyPI。
 
 ## 目标
 
@@ -50,14 +63,14 @@ Phase 11 做这三件事，最后发 0.8.0，选区修复随它一起发布。
 | 任务 | 对应标准 | 内容 | 在哪做 |
 | --- | --- | --- | --- |
 | P11-001 | L1 | 选区修复的 `CHANGELOG.md` 条目归入 `[0.8.0]`，写明 0.7.0 有此缺陷（已完成：随 P11-008） | 本地 |
-| P11-002 | L1 | 在 Windows 上验证修复随 0.8.0 发布（已并入 P11-009） | Windows |
+| P11-002 | L1 | 在 Windows 上验证修复随 0.8.0 发布（已并入 P11-009，已完成） | Windows |
 | P11-003 | L2 | 表格选区写入和删除的 `verified_state` 加 `surroundings`，`check` 写明周围没变；离线测试（已完成：`verified_state.surroundings`，`tests/test_verified_state.py`） | 本地 |
 | P11-004 | L2 | 评测记录每个写入工具返回的 `verified_state` 摘要，`RESULTS.md` 列出 `passed` 不是 true 的写入；离线测试（已完成：调用记录里的 `verified_state`，指标 `unverified_writes`，`RESULTS.md` 的合计和每次运行下的列表） | 本地 |
 | P11-005 | L2 | 按 P11-004 记下的内容和 P10-006 的调用记录，看 Writer 插入和删除后那 3 次核对的原因；能改的就改（比如 `check` 的措辞）（已完成：见下文“P11-005 结果”） | 本地 |
 | P11-006 | L3 | 测试工作簿的图表加坐标轴标题、系列引用单元格；`undo` 增加 `spreadsheet-axis-title-replace` 和 `spreadsheet-series-values-replace`；准备步骤能按名称选中坐标轴标题和系列；离线测试（已完成：`chart_note.xlsx` 的数值轴标题 `DRAFT`、系列引用 `B2:B3`；磁盘上的文字包括系列引用的区域，撤回后引用要回来） | 本地 |
-| P11-007 | L2、L3 | 在 Windows 上：全部已打开文档任务一条命令各跑 3 次，再跑 `undo`（第一轮已完成，见下文“P11-007 结果”：L2 达成；`undo` 5/6，系列值场景在写入前被拒，原因已修，待重跑 `undo`） | Windows |
-| P11-008 | L4 | 定版本 0.8.0，整理 `CHANGELOG.md`，合并后由你推送 `v0.8.0` 标签（已准备：`__version__` 为 `0.8.0`，`CHANGELOG.md` 有 `[0.8.0] - 2026-10-17` 一节，含选区修复；P11-007 之后由你推送标签） | 本地 + 你 |
-| P11-009 | L4 | 在 Windows 上检查 0.8.0 的 wheel | Windows |
+| P11-007 | L2、L3 | 在 Windows 上：全部已打开文档任务一条命令各跑 3 次，再跑 `undo`（已完成：见下文“P11-007 结果”。L2 在 `20c94d8` 上达成；`undo` 第一轮 5/6，系列值场景在写入前被拒，修复（#110）后在 `4ccd565` 上重跑 6/6） | Windows |
+| P11-008 | L4 | 定版本 0.8.0，整理 `CHANGELOG.md`，合并后由你推送 `v0.8.0` 标签（已完成：`v0.8.0` 从 `main@4ccd565` 发布） | 本地 + 你 |
+| P11-009 | L4 | 在 Windows 上检查 0.8.0 的 wheel（已完成：`4ccd565` 上通过，SHA-256 与 Release 一致，safe 档 7/7，结果在 `scripts/windows_check/results/20261017T163844Z-wheel-0.8.0/`） | Windows |
 
 ## P11-005 结果
 
@@ -86,7 +99,17 @@ python scripts/windows_check/run_windows_check.py undo
 - **L3 未达成：`undo` 5/6。** 前四个场景和新的 `spreadsheet-axis-title-replace` 都通过；`spreadsheet-series-values-replace` 在写入前以 `SELECTION_MISMATCH`（“The selection or its text changed between preview and write”）拒绝，什么也没写。
   - 原因：系列值写入脚本找图表时仍按“访问会不会报错”判断（P10-006 只改了选区读脚本）。WPS 里系列的父对象是图表组，没有 `ChartType` 但不报错，脚本就把图表组当成图表，取它的父对象（图表本身）的名称 `Status Chart 1`，而选区读给的是图表对象的名称 `Chart 1`，写入脚本的名称核对因此拒绝了自己的选区。你在 Windows 上复现过：同样的参数直接调用写入动作，返回 `selection_changed`，`current_object_name` 为 `Status Chart 1`。
   - 修复：系列值写入和删除脚本改为按取到的值判断（系列要求 `Values` 有值，图表要求 `ChartType` 有值，先看父对象再看父对象的父对象），名称取图表对象的名称，与选区读一致。撤回脚本沿用替换脚本的开头，一并改好。假 COM 里系列的父对象改为没有 `ChartType` 的图表组、图表本身名为 `Status Chart 1`，旧脚本在这些测试上的失败和 Windows 上一样（`selection_changed`）。
-- 下一步：合并修复后在 Windows 上只重跑 `python scripts/windows_check/run_windows_check.py undo`，6/6 即 L3 达成；然后推送 `v0.8.0` 标签并做 P11-009。修复在 `[0.8.0]` 里，标签还没推，所以随 0.8.0 发布。
+- **L3 达成（重跑）。** 修复（#110）合并后在 `main@4ccd565` 上重跑 `undo`，6 个场景都通过，结果在 `scripts/windows_check/results/20261017T163439Z-4ccd565-undo/`。系列值场景写入后被注入读回失败，撤回读回原值，磁盘上记录的文字里 `series values: Status!B2:B3` 回来了，说明系列重新引用了单元格。
+- **L1、L4 达成（P11-009）。** `v0.8.0` 在 `undo` 6/6 之后从 `main@4ccd565` 发布，wheel 在 Windows 上通过全部 7 个条件，结果在 `scripts/windows_check/results/20261017T163844Z-wheel-0.8.0/`。
+
+## 出口标准结果
+
+| # | 结果 | 依据 |
+| --- | --- | --- |
+| L1 | 达成 | `v0.8.0` 包含 #107 的修复，wheel 在 Windows 上通过（P11-009） |
+| L2 | 达成 | P11-003、P11-004、P11-005；P11-007 16/16 都 3/3，写入后额外调用 3，`unverified_writes` 0 |
+| L3 | 达成 | P11-006；`4ccd565` 上 `undo` 6/6（系列值写入的修复在 #110） |
+| L4 | 达成 | `v0.8.0` 已发布，wheel 在 Windows 上通过 |
 
 ## 建议顺序
 
