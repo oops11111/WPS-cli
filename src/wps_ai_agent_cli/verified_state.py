@@ -12,7 +12,12 @@ import difflib
 from pathlib import Path
 from typing import Any
 
-from openpyxl.utils.cell import column_index_from_string, coordinate_from_string, range_boundaries
+from openpyxl.utils.cell import (
+    column_index_from_string,
+    coordinate_from_string,
+    get_column_letter,
+    range_boundaries,
+)
 
 from .document_text import docx_body_story_paragraphs
 from .ooxml import load_workbook_guarded
@@ -20,6 +25,8 @@ from .presentation_text import pptx_text_objects
 
 MAX_CHANGES = 20
 MAX_TEXT = 500
+MAX_SURROUNDING = 10
+MAX_SURROUNDING_TEXT = 100
 
 # The commands whose successful result carries verified_state.
 VERIFIED_COMMANDS = (
@@ -239,6 +246,62 @@ def text_write_state(path: str | Path, backup_path: str | None, removed: str, ad
     return _state(target, kind, changes, passed, expectation, others=len(changes) - len(matched))
 
 
+def _bounds(address: str) -> tuple[int, int, int, int]:
+    areas = [range_boundaries(area.strip()) for area in str(address).replace("$", "").split(",") if area.strip()]
+    return (
+        min(area[0] for area in areas),
+        min(area[1] for area in areas),
+        max(area[2] for area in areas),
+        max(area[3] for area in areas),
+    )
+
+
+def _short(value: Any) -> Any:
+    if isinstance(value, str) and len(value) > MAX_SURROUNDING_TEXT:
+        return value[:MAX_SURROUNDING_TEXT] + "…"
+    return value
+
+
+def surroundings(
+    before: dict[tuple[str, str], Any], after: dict[tuple[str, str], Any], sheet: str, address: str
+) -> dict[str, Any]:
+    """The cells around a written range in the saved file: one row and column on each side, and the header row.
+
+    P10-006: after a spreadsheet write, agents read the range around it (A1:D5) to see that the header and the
+    neighbouring cells were untouched; verified_state listed only the cells that changed (P11-003).
+    """
+    min_col, min_row, max_col, max_row = _bounds(address)
+    first_col, first_row = max(1, min_col - 1), max(1, min_row - 1)
+    last_col = min(max_col + 1, first_col + MAX_SURROUNDING - 1)
+    last_row = min(max_row + 1, first_row + MAX_SURROUNDING - 1)
+
+    def row_values(row: int) -> list[Any]:
+        return [
+            _short(after.get((sheet, f"{get_column_letter(column)}{row}"))) for column in range(first_col, last_col + 1)
+        ]
+
+    changed_outside = []
+    for row in range(first_row, last_row + 1):
+        for column in range(first_col, last_col + 1):
+            coordinate = f"{get_column_letter(column)}{row}"
+            inside = _in_selection({"sheet": sheet, "cell": coordinate}, sheet, address)
+            if not inside and before.get((sheet, coordinate)) != after.get((sheet, coordinate)):
+                changed_outside.append(coordinate)
+    area = f"{get_column_letter(first_col)}{first_row}:{get_column_letter(last_col)}{last_row}"
+    result: dict[str, Any] = {
+        "sheet": sheet,
+        "range": area,
+        "rows": [row_values(row) for row in range(first_row, last_row + 1)],
+        "changed_outside_selection": changed_outside,
+        "truncated": last_col < max_col + 1 or last_row < max_row + 1,
+    }
+    if first_row > 1:
+        header = f"{get_column_letter(first_col)}1:{get_column_letter(last_col)}1"
+        result["header_range"] = header
+        result["header"] = row_values(1)
+    return result
+
+
 def cell_write_state(
     path: str | Path,
     backup_path: str | None,
@@ -274,7 +337,20 @@ def cell_write_state(
         changes = inside + [change for change in changes if change not in inside]
         action = "cleared" if cleared else "written"
         expectation = f"only cells inside {sheet}!{address} {action}"
-    return _state(target, kind, changes, passed, expectation, others=others)
+    state = _state(target, kind, changes, passed, expectation, others=others)
+    if not object_kind and sheet and address and target.suffix.lower() == ".xlsx":
+        try:
+            around = surroundings(_workbook_cells(Path(backup_path)), _workbook_cells(target), sheet, address)
+        except Exception as exc:  # see text_write_state; the comparison above still stands
+            state["surroundings_error"] = f"{type(exc).__name__}: {exc}"
+        else:
+            state["surroundings"] = around
+            if not around["changed_outside_selection"]:
+                where = around["range"] + (
+                    f" and the header row {around['header_range']}" if "header" in around else ""
+                )
+                state["check"] += f" The cells around it ({where}) are listed in surroundings and did not change."
+    return state
 
 
 def saved_document_state(path: str | Path, backup_path: str | None) -> dict[str, Any]:

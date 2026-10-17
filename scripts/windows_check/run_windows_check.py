@@ -310,6 +310,14 @@ def run_details(results: list[dict[str, Any]]) -> list[str]:
             )
             if errors:
                 notes.append("error codes: " + ", ".join(errors))
+            unverified = [
+                f"{str(call['name']).rsplit('wps_agent_', 1)[-1]} verified_state.passed "
+                f"{call['verified_state'].get('passed')}: {call['verified_state'].get('check')}"
+                for call in run.get("agent", {}).get("tool_calls") or []
+                if isinstance(call.get("verified_state"), dict) and call["verified_state"].get("passed") is not True
+            ]
+            if unverified:
+                notes.append("not verified: " + "; ".join(unverified))
             if run.get("cleanup"):
                 notes.append(f"cleanup: {run['cleanup']}")
             outside = run.get("documents_outside")
@@ -439,6 +447,8 @@ def run_eval(args: argparse.Namespace, machine: Machine, runner: Any) -> int:
         "open in WPS, counted for open-document tasks). "
         f"**{summary.get('off_path_calls', 0)} off-path calls**, {summary.get('off_path_calls_after_write', 0)} of "
         "them after the task's first write (calls to tools the task does not need). "
+        f"**{summary.get('unverified_writes', 0)} writes whose verified_state.passed is not true** (listed under "
+        "Runs). "
         f"Task workspaces: `{work}`.",
         "",
         *eval_table(results),

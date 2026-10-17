@@ -1606,15 +1606,26 @@ def _with_open_document_notes(schemas: tuple[dict[str, Any], ...]) -> tuple[dict
     return tuple(result)
 
 
+# The tools agents still called to check a write that had already verified itself (P10-006, P11-005).
+_CHECKING_COMMANDS = ("validate-document", "snapshot-document", "spreadsheet-read")
+_CHECKING_NOTE = (
+    "Not needed to check an open-document write (writer/presentation/spreadsheet selection replace, insert or "
+    "delete, save, save-as, text export): that write's result already holds data.verified_state, the saved file "
+    "compared with the pre-write backup, and its check sentence is in the summary."
+)
+
+
 def _with_verified_notes(schemas: tuple[dict[str, Any], ...]) -> tuple[dict[str, Any], ...]:
     from .verified_state import VERIFIED_COMMANDS, VERIFIED_NOTE
 
-    return tuple(
-        {**schema, "safety_notes": [*schema["safety_notes"], VERIFIED_NOTE]}
-        if schema["cli_command"] in VERIFIED_COMMANDS
-        else schema
-        for schema in schemas
-    )
+    def notes(schema: dict[str, Any]) -> list[str]:
+        if schema["cli_command"] in VERIFIED_COMMANDS:
+            return [*schema["safety_notes"], VERIFIED_NOTE]
+        if schema["cli_command"] in _CHECKING_COMMANDS:
+            return [*schema["safety_notes"], _CHECKING_NOTE]
+        return schema["safety_notes"]
+
+    return tuple({**schema, "safety_notes": notes(schema)} for schema in schemas)
 
 
 MCP_TOOL_SCHEMAS = _with_verified_notes(_with_open_document_notes(MCP_TOOL_SCHEMAS))

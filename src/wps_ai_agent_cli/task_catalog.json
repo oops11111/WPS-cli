@@ -3225,5 +3225,68 @@
     "title": "Windows check of the 0.7.0 wheel",
     "status": "done",
     "acceptance": "K3: run_windows_check.py wheel --version 0.7.0 passes on Windows; result recorded."
+  },
+  {
+    "id": "P11-001",
+    "phase": "phase11",
+    "title": "Ship the selection fix in 0.8.0",
+    "status": "done",
+    "acceptance": "L1: the #107 selection fix's CHANGELOG entry is in [0.8.0] and says 0.7.0 has the defect (no separate 0.7.1, decided 2026-10-17)."
+  },
+  {
+    "id": "P11-002",
+    "phase": "phase11",
+    "title": "Windows check of the selection fix in the 0.8.0 wheel",
+    "status": "todo",
+    "acceptance": "L1: covered by P11-009, the 0.8.0 wheel check."
+  },
+  {
+    "id": "P11-003",
+    "phase": "phase11",
+    "title": "Spreadsheet verified_state shows the surroundings",
+    "status": "done",
+    "acceptance": "L2: spreadsheet selection replace and delete return verified_state.surroundings (one row and column around the range plus the header row, at most 10 by 10, each cell's value and whether it changed) and the check says they did not change; offline tests."
+  },
+  {
+    "id": "P11-004",
+    "phase": "phase11",
+    "title": "Agent eval: record what each write returned",
+    "status": "done",
+    "acceptance": "L2: each run records the verified_state summary each write tool returned; RESULTS.md lists writes whose passed is not true; offline tests."
+  },
+  {
+    "id": "P11-005",
+    "phase": "phase11",
+    "title": "Find why agents re-check Writer inserts and deletes",
+    "status": "done",
+    "acceptance": "L2: from the P11-004 records and the P10-006 calls, explain the Writer post-write checks and change the result or the description where that helps; recorded in docs/PHASE11_PLAN.md."
+  },
+  {
+    "id": "P11-006",
+    "phase": "phase11",
+    "title": "Windows undo for axis titles and series values",
+    "status": "done",
+    "acceptance": "L3: chart_note.xlsx gains an axis title and a series linked to cells; run_windows_check.py undo gains spreadsheet-axis-title-replace and spreadsheet-series-values-replace; the setup selects them by name; offline tests."
+  },
+  {
+    "id": "P11-007",
+    "phase": "phase11",
+    "title": "Windows run of L2 and L3",
+    "status": "todo",
+    "acceptance": "L2, L3: all open-document tasks in one --repeat 3 --min-passes 2 invocation, then run_windows_check.py undo; off_path_calls_after_write, verified_state and the undo results recorded."
+  },
+  {
+    "id": "P11-008",
+    "phase": "phase11",
+    "title": "Release 0.8.0",
+    "status": "todo",
+    "acceptance": "L4: version 0.8.0 per docs/RELEASING.md and a CHANGELOG section, merged before the maintainer pushes the v0.8.0 tag."
+  },
+  {
+    "id": "P11-009",
+    "phase": "phase11",
+    "title": "Windows check of the 0.8.0 wheel",
+    "status": "todo",
+    "acceptance": "L4: run_windows_check.py wheel --version 0.8.0 passes on Windows; result recorded."
   }
 ]
