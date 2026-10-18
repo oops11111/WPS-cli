@@ -136,6 +136,17 @@ PHASES: tuple[Phase, ...] = (
             "release 0.9.0 on GitHub (PyPI publishing skipped on 2026-10-17)."
         ),
     ),
+    Phase(
+        id="phase13",
+        name="High-fidelity conversion between all formats",
+        status="planned",
+        goal=(
+            "Measure conversion fidelity with one check, and convert with high fidelity between HTML and the three "
+            "WPS formats, across the WPS format family (legacy, WPS-native, ODF, PNG), CSV, Markdown, across "
+            "document types, and from PDF to editable documents, released in three milestones (0.10.0, 0.11.0, "
+            "0.12.0)."
+        ),
+    ),
 )
 
 

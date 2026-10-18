@@ -148,6 +148,22 @@
         "M4: offline, a generated inventory of the public interface (CLI commands and arguments, MCP tools and parameters, error codes; the fields under data are built at run time and covered by the stability rules instead) is committed, a test fails when the interface changes without the inventory, and docs/RELEASING.md states the stability rules before and after 1.0 and a 1.0 checklist (2026-10-17: met; config/public_interface.json, scripts/public_interface.py, tests/test_public_interface.py and the RELEASING.md rules)",
         "M5: v0.9.0 is released per docs/RELEASING.md on GitHub with the phase's changes and the M1 fixes, and its wheel is checked on Windows with run_windows_check.py wheel --version 0.9.0 (2026-10-18: met; v0.9.0 released from main@588b70f on GitHub only, its wheel passed all seven conditions on Windows, safe 7/7, P12-009)"
       ]
+    },
+    {
+      "id": "phase13",
+      "name": "High-fidelity conversion between all formats",
+      "goal": "Measure conversion fidelity with one check, and convert with high fidelity between HTML and the three WPS formats, across the WPS format family (legacy, WPS-native, ODF, PNG), CSV, Markdown, across document types, and from PDF to editable documents, released in three milestones (0.10.0, 0.11.0, 0.12.0).",
+      "status": "planned",
+      "exit_criteria": [
+        "F1: offline, a fidelity-check command compares any source with its conversion on text, structure, formatting, layout, animations and data, marking checks that do not apply; layout renders both sides (HTML with Chromium, Office through WPS or LibreOffice PDF, PDF directly) and compares pages by SSIM; every check has offline tests",
+        "F2: HTML to and from docx, pptx and xlsx: at least 3 inputs per direction (5 for Writer); text, structure, formatting and animations 100%; HTML to Office at SSIM at least 0.90 in WPS; Office to HTML at SSIM at least 0.90 against WPS's PDF; HTML to Office to HTML round trip at SSIM at least 0.95; LibreOffice baselines guard against regression",
+        "F3: a convert command covers .doc/.xls/.ppt, .wps/.et/.dps and .odt/.ods/.odp to and from docx/xlsx/pptx, and per-page PNG, through WPS; at least 2 inputs per format; text and structure 100% and SSIM at least 0.95 between the WPS PDFs before and after",
+        "F4: CSV/TSV to and from xlsx with encoding and delimiter detection, values and types 100% and lossless round trips (GBK and UTF-8, at least 2 each); Markdown to and from docx/HTML on at least 3 inputs with text and structure 100% and a structure-preserving round trip",
+        "F5: docx to and from pptx and xlsx ranges to docx/pptx tables: at least 2 inputs per direction, every text, table and image of the source present, pages split by rule, opened and exported to PDF by WPS",
+        "F6: PDF to docx, xlsx and pptx: at least 5 PDFs with a text layer at text 100%, table cells at least 98% and SSIM at least 0.85 between WPS's PDF of the result and the original; at least 2 scanned PDFs at character accuracy at least 98% with OCR",
+        "F7: at least one evaluation task per group where the agent converts and runs fidelity-check, plus the three complex HTML tasks, each at least 2 of 3 on Windows",
+        "F8: each milestone is released (0.10.0, 0.11.0, 0.12.0) per docs/RELEASING.md on GitHub and its wheel is checked on Windows"
+      ]
     }
   ]
 }
