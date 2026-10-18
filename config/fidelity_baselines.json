@@ -1,0 +1,341 @@
+{
+  "description": "Phase 13 conversion matrix scores (scripts/fidelity_baselines.py). Layout is the LibreOffice regression baseline; WPS is the official renderer (decision 1).",
+  "renderer": "libreoffice",
+  "browser": true,
+  "cases": {
+    "A-report-docx": {
+      "group": "A",
+      "route": [
+        "html-editable"
+      ],
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "formatting": 1.0,
+        "data": 1.0,
+        "layout": 0.8832
+      },
+      "passed": true
+    },
+    "A-contract-docx": {
+      "group": "A",
+      "route": [
+        "html-editable"
+      ],
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "formatting": 1.0,
+        "data": 1.0,
+        "layout": 0.739
+      },
+      "passed": true
+    },
+    "A-newsletter-docx": {
+      "group": "A",
+      "route": [
+        "html-editable"
+      ],
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "formatting": 1.0,
+        "layout": 0.8607
+      },
+      "passed": true
+    },
+    "A-manual-docx": {
+      "group": "A",
+      "route": [
+        "html-editable"
+      ],
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "formatting": 1.0,
+        "data": 1.0,
+        "layout": 0.8313
+      },
+      "passed": true
+    },
+    "A-pdfsource-docx": {
+      "group": "A",
+      "route": [
+        "html-editable"
+      ],
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "formatting": 1.0,
+        "data": 1.0,
+        "layout": 0.8758
+      },
+      "passed": true
+    },
+    "A-budget-xlsx": {
+      "group": "A",
+      "route": [
+        "html-editable"
+      ],
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "data": 1.0
+      },
+      "passed": true
+    },
+    "A-launch-pptx": {
+      "group": "A",
+      "route": [
+        "html-editable"
+      ],
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "formatting": 1.0,
+        "animations": 1.0,
+        "data": 1.0,
+        "layout": 0.9165
+      },
+      "passed": true
+    },
+    "A-training-pptx": {
+      "group": "A",
+      "route": [
+        "html-editable"
+      ],
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "formatting": 1.0,
+        "animations": 1.0,
+        "layout": 0.9508
+      },
+      "passed": true
+    },
+    "A-quarterly-pptx": {
+      "group": "A",
+      "route": [
+        "html-editable"
+      ],
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "formatting": 1.0,
+        "animations": 1.0,
+        "data": 1.0,
+        "layout": 0.9498
+      },
+      "passed": true
+    },
+    "A-brief-html": {
+      "group": "A",
+      "route": [
+        "office-to-html"
+      ],
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "formatting": 1.0,
+        "data": 1.0
+      },
+      "passed": true
+    },
+    "A-deck-html": {
+      "group": "A",
+      "route": [
+        "office-to-html"
+      ],
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "formatting": 1.0,
+        "animations": 1.0,
+        "data": 1.0
+      },
+      "passed": true
+    },
+    "A-book-html": {
+      "group": "A",
+      "route": [
+        "office-to-html"
+      ],
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "formatting": 1.0,
+        "data": 1.0
+      },
+      "passed": true
+    },
+    "C-gbk-csv-xlsx": {
+      "group": "C",
+      "route": [
+        "csv-to-xlsx"
+      ],
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "data": 1.0
+      },
+      "passed": true
+    },
+    "C-utf8-tsv-xlsx": {
+      "group": "C",
+      "route": [
+        "csv-to-xlsx"
+      ],
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "data": 1.0
+      },
+      "passed": true
+    },
+    "C-book-csv": {
+      "group": "C",
+      "route": [
+        "xlsx-to-csv"
+      ],
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "data": 1.0
+      },
+      "passed": true
+    },
+    "C-guide-docx": {
+      "group": "C",
+      "route": [
+        "markdown-to-office"
+      ],
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "data": 1.0
+      },
+      "passed": true
+    },
+    "C-api-html": {
+      "group": "C",
+      "route": [
+        "markdown-to-html"
+      ],
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "data": 1.0
+      },
+      "passed": true
+    },
+    "C-notes-docx": {
+      "group": "C",
+      "route": [
+        "markdown-to-office"
+      ],
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0
+      },
+      "passed": true
+    },
+    "C-brief-md": {
+      "group": "C",
+      "route": [
+        "to-markdown"
+      ],
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "data": 1.0
+      },
+      "passed": true
+    },
+    "D-brief-pptx": {
+      "group": "D",
+      "route": [
+        "docx-to-pptx"
+      ],
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "data": 1.0
+      },
+      "passed": true
+    },
+    "D-deck-docx": {
+      "group": "D",
+      "route": [
+        "pptx-to-docx"
+      ],
+      "scores": {
+        "text": 1.0,
+        "structure": 0.7,
+        "animations": 0.0,
+        "data": 1.0
+      },
+      "passed": true
+    },
+    "D-book-docx": {
+      "group": "D",
+      "route": [
+        "xlsx-range-to-table"
+      ],
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "data": 1.0
+      },
+      "passed": true
+    },
+    "D-book-pptx": {
+      "group": "D",
+      "route": [
+        "xlsx-range-to-table"
+      ],
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "data": 1.0
+      },
+      "passed": true
+    },
+    "E-supplier-docx": {
+      "group": "E",
+      "route": [
+        "pdf-to-office"
+      ],
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "data": 1.0,
+        "layout": 0.8728
+      },
+      "passed": true
+    },
+    "E-supplier-xlsx": {
+      "group": "E",
+      "route": [
+        "pdf-to-office"
+      ],
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "data": 1.0
+      },
+      "passed": true
+    },
+    "E-supplier-pptx": {
+      "group": "E",
+      "route": [
+        "pdf-to-office"
+      ],
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "data": 1.0
+      },
+      "passed": true
+    }
+  }
+}

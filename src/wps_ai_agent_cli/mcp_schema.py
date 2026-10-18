@@ -293,6 +293,11 @@ MCP_TOOL_SCHEMAS: tuple[dict[str, Any], ...] = (
             "input": _string("Local .html or .htm source path."),
             "output": _string("New output path matching format; existing files are never overwritten."),
             "format": _string("Output format; defaults to docx.", enum=["docx", "xlsx", "pptx"]),
+            "fidelity": _string(
+                "editable (default) maps to native, editable objects styled from the computed CSS; appearance "
+                "(pptx) places every element where the browser lays it out.",
+                enum=["editable", "appearance"],
+            ),
             "task_id": _string("Optional task status id."),
         },
         mutates_document=True,
@@ -303,6 +308,70 @@ MCP_TOOL_SCHEMAS: tuple[dict[str, Any], ...] = (
             "Only local images under the HTML directory are embedded; remote images, scripts, and unsupported elements are omitted and reported.",
             "Semantic content is mapped to native editable Word objects; CSS layout is not preserved and is reported as unsupported fidelity.",
         ],
+    ),
+    _tool(
+        "wps_agent_convert",
+        "convert",
+        "Convert between document formats",
+        "Convert one file to another format chosen by the output extension: HTML to DOCX/XLSX/PPTX/PDF/PNG, "
+        "DOCX/PPTX/XLSX to clean HTML or Markdown, Markdown to HTML/DOCX/PPTX, CSV/TSV to and from XLSX (GBK and "
+        "UTF-8 detected), DOCX to PPTX (a slide per Heading 1/2) and back, a worksheet range to a DOCX or PPTX "
+        "table, PDF to DOCX/XLSX/PPTX (headings, lists, tables; OCR for scanned pages), and the WPS (.wps/.et/"
+        ".dps), legacy Office (.doc/.xls/.ppt), ODF, PDF and per-page PNG formats through WPS. Pairs without a "
+        "direct route go through one intermediate file; the result lists the route.",
+        "conversion",
+        required=["input", "output"],
+        properties={
+            "input": _string("Source file path."),
+            "output": _string(
+                "New output path; its extension selects the format. Existing files are never overwritten."
+            ),
+            "fidelity": _string("HTML to Office mapping mode.", enum=["editable", "appearance"]),
+            "ocr": _boolean("Read scanned PDF pages with OCR (needs the ocr optional dependency)."),
+            "sheet": _string("Worksheet to read for xlsx to csv, docx or pptx; the first sheet by default."),
+            "range": _string("Worksheet range for a table, such as A1:D20; the used range by default."),
+            "images": _string(
+                "HTML output images: embedded data URIs or a <name>_files folder.", enum=["embed", "files"]
+            ),
+            "encoding": _string("CSV/TSV encoding; detected when reading by default."),
+            "delimiter": _string("CSV delimiter; detected when reading by default."),
+            "dpi": _integer("PNG page image resolution.", minimum=36, maximum=600),
+            "no_browser": _boolean("Use the built-in CSS cascade instead of the browser's computed styles."),
+            "check": _boolean("Run fidelity-check (without layout) on the result and include its report."),
+            "task_id": _string("Optional task status id."),
+        },
+        mutates_document=True,
+        idempotency="Optional request_id is accepted for traceability; creates a new file and refuses to overwrite an existing output path.",
+        cli_example="python -m wps_ai_agent_cli convert --input report.pdf --output report.docx",
+        safety_notes=[
+            "Creates a new artifact file (or per-page PNG artifacts); the source is never modified and existing "
+            "outputs are never overwritten.",
+            "WPS-format conversions open the source in a hidden WPS instance and save a copy; they need WPS on Windows.",
+            "A pair WPS cannot write is refused with FORMAT_NOT_SUPPORTED_BY_WPS before WPS starts.",
+            "A scanned PDF without --ocr is refused with PDF_NEEDS_OCR rather than producing an empty document.",
+        ],
+    ),
+    _tool(
+        "wps_agent_fidelity_check",
+        "fidelity-check",
+        "Check a conversion's fidelity",
+        "Compare a converted file with its source and score text, structure (headings, lists, tables, images, "
+        "slides), character formatting, animations, table data and rendered layout (SSIM per page, rendered by WPS "
+        "on Windows or LibreOffice), against the Phase 13 thresholds for that kind of conversion.",
+        "conversion",
+        required=["source", "target"],
+        properties={
+            "source": _string("The original file."),
+            "target": _string("The converted file."),
+            "renderer": _string("Layout renderer.", enum=["auto", "wps", "libreoffice", "none"]),
+            "no_layout": _boolean("Skip the rendered-page comparison."),
+            "baseline": {"type": "number", "description": "Recorded LibreOffice layout score to compare against."},
+            "no_browser": _boolean("Read HTML with the built-in cascade instead of the browser."),
+        },
+        mutates_document=False,
+        idempotency="Read-only; repeated calls give the same scores for the same files and renderer.",
+        cli_example="python -m wps_ai_agent_cli fidelity-check --source page.html --target page.docx",
+        safety_notes=["Reads both files; layout rendering writes only temporary files that are removed."],
     ),
     _tool(
         "wps_agent_html_roundtrip_plan",

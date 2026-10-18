@@ -1700,6 +1700,183 @@
           "min_bytes": 1000
         }
       ]
+    },
+    {
+      "id": "convert-pdf-to-docx",
+      "requires_wps": false,
+      "setup": [
+        "fidelity_fixtures"
+      ],
+      "prompt": "Using the wps-agent MCP tools, convert the PDF supplier.pdf in the current directory into an editable Word document named supplier.docx in the same directory, keeping its headings, lists and tables. Do not change supplier.pdf.",
+      "expected_tools": [
+        "convert",
+        "fidelity_check"
+      ],
+      "checks": [
+        {
+          "kind": "tool_called",
+          "tool": "convert"
+        },
+        {
+          "kind": "fidelity",
+          "source": "supplier.pdf",
+          "path": "supplier.docx"
+        },
+        {
+          "kind": "file_text",
+          "path": "supplier.docx",
+          "contains": [
+            "供应商评估报告",
+            "二、评分明细",
+            "华星电子",
+            "东方精密需在 30 天内提交交付改进计划"
+          ]
+        },
+        {
+          "kind": "docx_table_cell",
+          "path": "supplier.docx",
+          "table": 1,
+          "row": 2,
+          "column": 5,
+          "text": "91.7"
+        }
+      ]
+    },
+    {
+      "id": "convert-gbk-csv-to-xlsx",
+      "requires_wps": false,
+      "setup": [
+        "fidelity_fixtures"
+      ],
+      "prompt": "Using the wps-agent MCP tools, turn the GBK-encoded CSV file sales_gbk.csv in the current directory into a workbook named sales.xlsx in the same directory, keeping store numbers such as 007 exactly as written.",
+      "expected_tools": [
+        "convert",
+        "fidelity_check"
+      ],
+      "checks": [
+        {
+          "kind": "tool_called",
+          "tool": "convert"
+        },
+        {
+          "kind": "fidelity",
+          "source": "sales_gbk.csv",
+          "path": "sales.xlsx"
+        },
+        {
+          "kind": "xlsx_cell",
+          "path": "sales.xlsx",
+          "cell": "A2",
+          "value": "华东"
+        },
+        {
+          "kind": "xlsx_cell",
+          "path": "sales.xlsx",
+          "cell": "B2",
+          "value": "007"
+        },
+        {
+          "kind": "xlsx_cell",
+          "path": "sales.xlsx",
+          "cell": "C2",
+          "value": 1200
+        }
+      ]
+    },
+    {
+      "id": "convert-markdown-to-docx",
+      "requires_wps": false,
+      "setup": [
+        "fidelity_fixtures"
+      ],
+      "prompt": "Using the wps-agent MCP tools, convert the Markdown file guide.md in the current directory into a Word document named guide.docx in the same directory, with its headings, lists, table and picture.",
+      "expected_tools": [
+        "convert",
+        "fidelity_check"
+      ],
+      "checks": [
+        {
+          "kind": "tool_called",
+          "tool": "convert"
+        },
+        {
+          "kind": "fidelity",
+          "source": "guide.md",
+          "path": "guide.docx"
+        },
+        {
+          "kind": "docx_table_cell",
+          "path": "guide.docx",
+          "table": 1,
+          "row": 2,
+          "column": 2,
+          "text": "张三"
+        }
+      ]
+    },
+    {
+      "id": "convert-docx-to-pptx",
+      "requires_wps": false,
+      "setup": [
+        "fidelity_fixtures"
+      ],
+      "prompt": "Using the wps-agent MCP tools, make a presentation named brief.pptx in the current directory from the Word document brief.docx in the same directory, one slide per section heading.",
+      "expected_tools": [
+        "convert",
+        "fidelity_check"
+      ],
+      "checks": [
+        {
+          "kind": "tool_called",
+          "tool": "convert"
+        },
+        {
+          "kind": "fidelity",
+          "source": "brief.docx",
+          "path": "brief.pptx"
+        },
+        {
+          "kind": "file_text",
+          "path": "brief.pptx",
+          "contains": [
+            "第一条 服务内容",
+            "第二条 费用与支付",
+            "90,000"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "convert-legacy-doc-with-wps",
+      "requires_wps": true,
+      "setup": [
+        "fidelity_fixtures"
+      ],
+      "prompt": "Using the wps-agent MCP tools, convert the legacy Word file brief.doc in the current directory to brief.docx with WPS, and also save it as a PDF named brief.pdf in the same directory. Do not change brief.doc.",
+      "expected_tools": [
+        "convert",
+        "fidelity_check"
+      ],
+      "checks": [
+        {
+          "kind": "tool_called",
+          "tool": "convert"
+        },
+        {
+          "kind": "file_text",
+          "path": "brief.docx",
+          "contains": [
+            "技术服务合同",
+            "第二条 费用与支付",
+            "叁拾万元整"
+          ]
+        },
+        {
+          "kind": "pdf_file",
+          "path": "brief.pdf",
+          "min_bytes": 1000
+        }
+      ]
     }
   ]
 }

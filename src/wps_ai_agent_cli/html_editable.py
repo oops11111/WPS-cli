@@ -182,9 +182,45 @@ def table_grid(table: _Node) -> tuple[list[list[_Node | None]], list[tuple[int, 
     return [row + [None] * (width - len(row)) for row in grid], merges
 
 
+_DATA_IMAGES: dict[str, Path] = {}
+
+
+def _data_image(raw: str) -> Path | None:
+    """A PNG, JPEG or GIF data: URI written to a temporary file (removed when the process exits)."""
+    if raw in _DATA_IMAGES:
+        return _DATA_IMAGES[raw]
+    import atexit
+    import tempfile
+
+    header, _, encoded = raw.partition(",")
+    mime = header[5:].split(";", 1)[0].casefold()
+    suffix = {"image/png": ".png", "image/jpeg": ".jpg", "image/gif": ".gif"}.get(mime)
+    if suffix is None or ";base64" not in header.casefold():
+        return None
+    try:
+        data = base64.b64decode(encoded, validate=True)
+    except (ValueError, base64.binascii.Error):
+        return None
+    if not data or len(data) > _MAX_IMAGE_BYTES:
+        return None
+    handle = tempfile.NamedTemporaryFile(prefix="wps-data-image-", suffix=suffix, delete=False)
+    with handle:
+        handle.write(data)
+    path = Path(handle.name)
+    atexit.register(path.unlink, missing_ok=True)
+    _DATA_IMAGES[raw] = path
+    return path
+
+
 def local_image(source: Path, raw: str) -> tuple[Path | None, str | None]:
-    """The local image file an <img src> names, inside the HTML file's folder, or the warning why not."""
+    """The local image file an <img src> names, inside the HTML file's folder, or the warning why not.
+
+    A PNG, JPEG or GIF data: URI is decoded to a temporary file.
+    """
     raw = raw.strip()
+    if raw.startswith("data:"):
+        path = _data_image(raw)
+        return (path, None) if path else (None, "HTML data image is invalid or exceeds its size limit.")
     if not raw or re.match(r"^[a-zA-Z][a-zA-Z0-9+.-]*:", raw):
         return None, f"Image with non-local or empty source omitted: {raw or '(empty)'}"
     try:
@@ -270,6 +306,14 @@ def style_formats(style: str) -> dict[str, Any]:
                 formats["underline"] = True
             if "line-through" in value:
                 formats["strike"] = True
+        elif name == "font-size":
+            size = re.fullmatch(r"(\d+(?:\.\d+)?)(pt|px)", value)
+            if size:
+                formats["size"] = float(size.group(1)) * (0.75 if size.group(2) == "px" else 1.0)
+        elif name == "font-family":
+            family = value.split(",")[0].strip().strip("'\"")
+            if family and family not in {"sans-serif", "serif", "monospace", "inherit"}:
+                formats["font"] = declaration.partition(":")[2].split(",")[0].strip().strip("'\"")
         elif name == "color":
             match = re.fullmatch(r"#([0-9a-f]{6}|[0-9a-f]{3})", value)
             if match:
@@ -315,8 +359,13 @@ def validate_office_paths(
 
 
 def convert_html_editable(
-    input_path: str | Path, output_path: str | Path
+    input_path: str | Path, output_path: str | Path, fidelity: str = "editable", use_browser: bool = True
 ) -> tuple[bool, dict[str, Any], list[dict[str, str]]]:
+    """HTML to an editable docx with the look the browser computes (P13-004).
+
+    fidelity "editable" keeps everything as flowing, editable paragraphs; "appearance" also keeps absolutely
+    positioned elements at their place, as framed paragraphs (decision 9 of docs/PHASE13_PLAN.md).
+    """
     source, destination, path_errors = validate_office_paths(input_path, output_path, ".docx")
     if path_errors:
         return False, {}, path_errors
@@ -330,10 +379,23 @@ def convert_html_editable(
             [{"code": "CONVERTER_UNAVAILABLE", "message": "Install the html optional dependency: python-docx."}],
         )
 
-    parser = _TreeParser()
-    html_text, source_encoding, decode_warning = decode_html_bytes(source.read_bytes())
-    parser.feed(html_text)
+    from . import docx_styling
+    from .html_styles import load as load_styles
+
+    _html_text, source_encoding, decode_warning = decode_html_bytes(source.read_bytes())
+    styled = load_styles(source, use_browser=use_browser)
+    parser = styled.parser
+    context = docx_styling.Context(styled, appearance=fidelity == "appearance")
     nodes = list(_walk(parser.root))
+    parents = {id(child): node for node in nodes for child in node.children if isinstance(child, _Node)}
+
+    def ancestors(node: _Node) -> list[_Node]:
+        chain = []
+        while id(node) in parents:
+            node = parents[id(node)]
+            chain.append(node)
+        return list(reversed(chain))
+
     html_root = next((node for node in nodes if node.tag == "html"), None)
     meta = next(
         (node for node in nodes if node.tag == "meta" and node.attrs.get("name", "").casefold() == "wps-agent-schema"),
@@ -349,17 +411,7 @@ def convert_html_editable(
         valid, _, validation_errors = build_html_roundtrip_mapping(source)
         if not valid:
             return False, {}, validation_errors
-    unsupported_css = sorted(
-        parser.unsupported
-        | {f"inline style on <{node.tag}>" for node in nodes if node.attrs.get("style")}
-        | {f"class selector on <{node.tag}>" for node in nodes if node.attrs.get("class")}
-        | {f"id selector on <{node.tag}>" for node in nodes if node.attrs.get("id")}
-        | {
-            "linked CSS"
-            for node in nodes
-            if node.tag == "link" and node.attrs.get("rel", "").casefold() == "stylesheet"
-        }
-    )
+    unsupported_css = docx_styling.css_coverage(styled)
     supported_tags = (
         _VOID
         | _SKIP
@@ -413,6 +465,8 @@ def convert_html_editable(
             "dfn",
             "strike",
             "tt",
+            "colgroup",
+            "col",
         }
     )
     warnings = sorted(
@@ -428,6 +482,7 @@ def convert_html_editable(
     if decode_warning:
         warnings.append(decode_warning)
     document = Document()
+    page_width_px = docx_styling.apply_page(document, styled)
     bookmark_counter = 0
     bookmark_count = 0
 
@@ -458,7 +513,7 @@ def convert_html_editable(
             warnings.append(f"Image count truncated to {_MAX_IMAGES}.")
             continue
         raw = node.attrs.get("src", "").strip()
-        if owned_schema and raw.startswith("data:"):
+        if raw.startswith("data:"):
             try:
                 header, encoded = raw.split(",", 1)
                 mime = header[5:].split(";", 1)[0].casefold()
@@ -474,7 +529,7 @@ def convert_html_editable(
                 image_nodes.append((node, image_data))
                 image_bytes += len(image_data)
             except (ValueError, base64.binascii.Error):
-                warnings.append("Owned HTML data image is invalid or exceeds its size limit.")
+                warnings.append("HTML data image is invalid or exceeds its size limit.")
             continue
         if not raw or re.match(r"^[a-zA-Z][a-zA-Z0-9+.-]*:", raw):
             warnings.append(f"Image with non-local or empty source omitted: {raw or '(empty)'}")
@@ -493,19 +548,31 @@ def convert_html_editable(
     counts = {"paragraphs": 0, "headings": 0, "lists": 0, "tables": 0, "images": 0}
 
     def add_image(node: _Node, paragraph=None) -> None:
+        from docx.shared import Emu
+
         image = image_map.get(id(node))
         if image is not None:
             picture_source = BytesIO(image) if isinstance(image, bytes) else str(image)
-            shape = document.add_picture(picture_source, width=Inches(5.5))
+            width, height = docx_styling.image_size(context, node)
+            limit = int(page_width_px * docx_styling.EMU_PER_PX)
+            if width is None:
+                width, height = min(Inches(5.5), limit), None
+            elif width > limit:
+                width, height = limit, (int(height * limit / width) if height else None)
+            size = {"width": Emu(width)} | ({"height": Emu(height)} if height else {})
             if paragraph is None:
-                paragraph = shape._inline
-                while (
-                    paragraph is not None
-                    and paragraph.tag != "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}p"
-                ):
-                    paragraph = paragraph.getparent()
-            if paragraph is not None:
-                add_bookmark(paragraph, node.attrs.get("data-wps-object-id", ""))
+                paragraph = document.add_paragraph()
+                holder = parents.get(id(node))
+                if holder is not None and holder.tag in {"figure", "p", "div", "section", "body"}:
+                    docx_styling.apply_paragraph(paragraph, holder, ancestors(holder), context, list_item=True)
+            picture_run = paragraph.add_run()
+            picture_run.add_picture(picture_source, **size)
+            described = picture_run._r.find(
+                ".//{http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing}docPr"
+            )
+            if described is not None and node.attrs.get("alt"):
+                described.set("descr", node.attrs["alt"])
+            add_bookmark(paragraph._p, node.attrs.get("data-wps-object-id", ""))
             counts["images"] += 1
 
     def apply_format(run, formats: dict[str, Any]) -> None:
@@ -540,17 +607,20 @@ def convert_html_editable(
         from docx.oxml.ns import qn
 
         formats = formats or {}
+        node_props = docx_styling.run_props(context, node)
         for child in node.children:
             if isinstance(child, str):
                 text = child if preserve else re.sub(r"\s+", " ", child)
                 if text:
-                    apply_format(paragraph.add_run(text), formats)
+                    run = paragraph.add_run(text)
+                    docx_styling.apply_run(run, node_props)
+                    apply_format(run, formats)
             elif child.tag in skip:
                 continue
             elif child.tag == "br":
                 paragraph.add_run().add_break()
             elif child.tag == "img":
-                add_image(child, paragraph._p)
+                add_image(child, paragraph)
             elif child.tag == "a":
                 label = re.sub(r"\s+", " ", _text(child))
                 href = child.attrs.get("href", "").strip()
@@ -579,7 +649,9 @@ def convert_html_editable(
                     if owned_schema and child.attrs.get("data-wps-object-id"):
                         add_bookmark(paragraph._p, child.attrs["data-wps-object-id"])
                 else:
-                    apply_format(paragraph.add_run(label), formats)
+                    run = paragraph.add_run(label)
+                    docx_styling.apply_run(run, docx_styling.run_props(context, child))
+                    apply_format(run, formats)
                     if href and not _safe_link_target(href):
                         warnings.append("Unsafe hyperlink target omitted.")
             else:
@@ -612,9 +684,14 @@ def convert_html_editable(
                     break
                 element.getparent().remove(element)
 
-    def add_paragraph(node: _Node, style: str | None = None, skip=(), formats: dict[str, Any] | None = None):
+    def add_paragraph(
+        node: _Node, style: str | None = None, skip=(), formats: dict[str, Any] | None = None, container=None
+    ):
         preserve = node.tag == "pre"
-        paragraph = document.add_paragraph(style=style)
+        paragraph = (container or document).add_paragraph(style=style)
+        docx_styling.apply_paragraph(
+            paragraph, node, ancestors(node), context, list_item=bool(style and style.startswith("List"))
+        )
         add_bookmark(paragraph._p, node.attrs.get("data-wps-object-id", ""))
         add_text_with_links(paragraph, node, formats, preserve, skip)
         if preserve:
@@ -652,6 +729,7 @@ def convert_html_editable(
         table = document.add_table(rows=len(grid), cols=columns)
         table.style = "Table Grid"
         rows = table_rows(node)
+        context.last_space_after = 0.0
         for row_index, row in enumerate(grid):
             first_cell_paragraph = table.cell(row_index, 0).paragraphs[0]._p
             if row_index == 0:
@@ -664,6 +742,8 @@ def convert_html_editable(
                 paragraph = table.cell(row_index, column_index).paragraphs[0]
                 add_bookmark(paragraph._p, cell_node.attrs.get("data-wps-object-id", ""))
                 bold = cell_node.tag == "th"
+                docx_styling.apply_paragraph(paragraph, cell_node, ancestors(cell_node), context, list_item=True)
+                paragraph.paragraph_format.space_before = paragraph.paragraph_format.space_after = 0
                 add_text_with_links(paragraph, cell_node, {"bold": True} if bold else None, skip=("table",))
                 trim(paragraph)
                 if has_nested_table(cell_node):
@@ -680,6 +760,7 @@ def convert_html_editable(
             for extra in merged.paragraphs[len(text_paragraphs) :]:
                 if not extra.text:
                     extra._p.getparent().remove(extra._p)
+        docx_styling.apply_table(table, node, grid, rows, context, page_width_px)
         counts["tables"] += 1
 
     def add_blocks(container: _Node, list_style: str | None = None) -> None:
@@ -691,9 +772,21 @@ def convert_html_editable(
                     counts["paragraphs"] += 1
                 continue
             tag = node.tag
+            role = docx_styling.page_role(node)
+            if role:
+                part = document.sections[0].header if role == "header" else document.sections[0].footer
+                blocks = [c for c in node.children if isinstance(c, _Node) and _text(c)] or [node]
+                for index, block in enumerate(blocks):
+                    paragraph = part.paragraphs[0] if index == 0 else part.add_paragraph()
+                    docx_styling.apply_paragraph(paragraph, block, ancestors(block), context, list_item=True)
+                    add_text_with_links(paragraph, block)
+                    trim(paragraph)
+                context.applied.add(f"page {role}")
+                continue
             if tag in _HEADINGS:
                 if _text(node):
                     paragraph = document.add_heading(level=_HEADINGS[tag])
+                    docx_styling.apply_paragraph(paragraph, node, ancestors(node), context)
                     add_bookmark(paragraph._p, node.attrs.get("data-wps-object-id", ""))
                     add_text_with_links(paragraph, node)
                     trim(paragraph)
@@ -707,8 +800,10 @@ def convert_html_editable(
                         add_blocks(node)
                         continue
                     style = {"blockquote": "Quote", "pre": "No Spacing"}.get(tag)
-                    formats = {"bold": True} if tag in {"dt", "summary"} else None
-                    add_paragraph(node, style, formats=formats)
+                    holder = parents.get(id(node))
+                    if style is None and holder is not None and holder.tag == "blockquote":
+                        style = "Quote"
+                    add_paragraph(node, style)
                     counts["paragraphs"] += 1
             elif tag in {"ul", "ol"}:
                 add_list(node)
@@ -716,6 +811,19 @@ def convert_html_editable(
                 add_table(node)
             elif tag == "img":
                 add_image(node)
+            elif tag == "hr":
+                # A rule: an empty paragraph with a bottom border.
+                from docx.oxml import OxmlElement
+                from docx.oxml.ns import qn
+
+                rule = document.add_paragraph()
+                borders = OxmlElement("w:pBdr")
+                bottom = OxmlElement("w:bottom")
+                for key, value in (("w:val", "single"), ("w:sz", "6"), ("w:space", "1"), ("w:color", "999999")):
+                    bottom.set(qn(key), value)
+                borders.append(bottom)
+                rule._p.get_or_add_pPr().append(borders)
+                counts["rules"] = counts.get("rules", 0) + 1
             elif tag == "figcaption":
                 if _text(node):
                     add_paragraph(node, "Caption")
@@ -770,7 +878,9 @@ def convert_html_editable(
             "mapped_objects": counts,
             "unsupported_css": unsupported_css,
             "warnings": warnings,
-            "fidelity": "semantic-content; CSS layout is not preserved",
+            "fidelity": fidelity,
+            "style_source": styled.mode,
+            "applied_styles": sorted(context.applied),
             "source_encoding": source_encoding,
             "javascript_executed": False,
             "remote_resources_fetched": False,

@@ -1,6 +1,6 @@
 # Phase 13 计划：全格式高保真互转
 
-状态：**planned**（2026-10-18 规划，同日你决定把全部格式并入本阶段；等你确认下面“待确认的决定”后激活）。
+状态：**active**（2026-10-18 规划，同日你决定把全部格式并入本阶段；同日你说“phase13三个里程碑做一个提交”，按默认决定激活。三个里程碑的本地任务已在一次提交中完成，版本号 0.10.0 包含全部内容；Windows 上的三次检查 P13-008、P13-013、P13-018 待做，见“进展”）。
 
 ## 目标
 
@@ -74,9 +74,9 @@ Phase 12 之后，HTML 转换为 WPS 三种格式已经保留语义、行内格�
 
 每个里程碑结束都上一次机，做该里程碑的 Windows 检查和评测，然后发布。
 
-## 待确认的决定
+## 决定
 
-按惯例给出默认建议，你说“OK”即按默认激活。
+2026-10-18 按默认确认。决定 2 随“三个里程碑做一个提交”调整：本地工作一次提交，版本 0.10.0 包含三个里程碑的全部内容；Windows 检查仍按里程碑做三次，检查中发现的修复各发一个补丁版本，F8 相应改为“0.10.0 发布并在 Windows 上检查 wheel，之后的修复随补丁版本发布”。决定 3 中没有浏览器时不是退回纯语义转换，而是用内置的 CSS 层叠计算样式，结果的 `style_source` 写明 `browser` 或 `cascade`（比 `fidelity: semantic` 保留得更多）。
 
 | 决定 | 默认建议 | 依据 |
 | --- | --- | --- |
@@ -89,6 +89,74 @@ Phase 12 之后，HTML 转换为 WPS 三种格式已经保留语义、行内格�
 | 7. xlsx 里的公式 | HTML → xlsx 仍写成文本（D3）；xlsx → HTML 输出计算后的显示值，公式放在 `data-formula` 属性里，往返时还原 | 防止 HTML 带入公式；往返不丢公式 |
 | 8. 跨类型的分页规则 | docx → pptx 按一、二级标题分页，每页正文超过 8 条时自动续页；不做摘要改写 | 规则可预测、可测试；改写内容属于 Agent 的工作，不属于转换 |
 | 9. B 组格式中 WPS 不支持的 | 报告 `FORMAT_NOT_SUPPORTED_BY_WPS` 并列出 WPS 能另存的格式，不尝试别的转换器 | 本项目以 WPS 为后端 |
+
+## 进展
+
+2026-10-18：本地任务全部完成，Windows 任务待做。
+
+| 任务 | 状态 | 实现 |
+| --- | --- | --- |
+| P13-001 | 完成 | `fidelity.py`，CLI `fidelity-check`、MCP `wps_agent_fidelity_check`；文字、结构（标题、列表层级、表格、图片、幻灯片）、字符格式、动画（效果、类型、开始时间）、表格数据（按值比较） |
+| P13-002 | 完成 | 版面：HTML 用 Chromium 截图（演示按 section），Office 经 WPS（`wps_convert`）或 LibreOffice 导出 PDF，pypdfium2 渲染，逐页 SSIM；缺字体时列出 |
+| P13-003 | 完成 | `fixtures/fidelity/`：文字类 5 份（`report`、`contract`、`newsletter`、`manual`、`pdf_source`），演示 3 份（`launch`、`training`、`quarterly`），GBK CSV、UTF-8 TSV、3 份 Markdown、带文字层的 PDF 和它的扫描件、`.doc`/`.xls`/`.ppt`/`.odt`；`scripts/fidelity_baselines.py` 和 `config/fidelity_baselines.json` |
+| P13-004 | 完成 | `html_styles.py`（浏览器计算样式，没有浏览器时内置层叠）、`docx_styling.py`：F2 表中的字符、段落、表格、图片、页面属性；`<thead>` 为重复表头，`<hr>`、引用、data URI 图片、图片替代文字 |
+| P13-005 | 完成 | `office_html.py`：docx → 内联样式的干净 HTML，往返 100% |
+| P13-006 | 完成 | `html_slides.py`：有浏览器时按 section 的布局摆放到 16:9 幻灯片，背景、字体、退出和强调动画、单击和“上一项之后”；`--fidelity appearance` 画出装饰框 |
+| P13-007 | 完成 | `wps_convert.py`：SaveAs 格式码（doc 0、docx 16、odt 23、xls 56、xlsx 51、ods 60、ppt 1、pptx 24、odp 35，.wps/.et/.dps 按扩展名）、PDF、每页 PNG；`FORMAT_NOT_SUPPORTED_BY_WPS`；用假 COM 测试 |
+| P13-008 | 待做 | Windows，见下 |
+| P13-009 | 完成 | pptx → HTML：每页一个定位的 section，动画转回 `@keyframes`，切换转回 `data-transition`，备注 |
+| P13-010 | 完成 | HTML → xlsx 的字体、填充、边框、对齐、列宽、冻结表头，`data-formula` 还原公式；xlsx → HTML |
+| P13-011 | 完成 | `tabular.py`（编码、分隔符、类型）、`markdown_convert.py`（markdown-it-py 或内置读取器） |
+| P13-012 | 完成 | `cross_type.py`：docx ↔ pptx（决定 8 的分页），工作表区域 → docx/pptx 表格 |
+| P13-013 | 待做 | Windows，见下 |
+| P13-014 | 完成 | `pdf_convert.py`：标题（按字号）、列表、有线框和按对齐识别的表格、图片、页眉页脚（进 docx 的页眉页脚）、页面大小和边距 |
+| P13-015 | 完成 | PDF → xlsx 每个表格一个工作表；PDF → pptx 每页一张幻灯片（按阅读顺序排版，不按页面坐标定位） |
+| P13-016 | 完成 | `--ocr` 和 `ocr` 可选依赖（RapidOCR）；没装或不加 `--ocr` 时报 `PDF_NEEDS_OCR`；本地扫描件字符准确率 98.5%（300 dpi） |
+| P13-017 | 完成 | `convert` 统一入口（CLI、MCP `wps_agent_convert`），5 个 `convert-` 评测任务和离线判定 `fidelity`，离线测试确认判定在真实转换结果上通过 |
+| P13-018 | 待做 | Windows，见下 |
+
+### 离线转换矩阵
+
+`python scripts/fidelity_baselines.py`（有 Chromium，版面用 LibreOffice，只作回归基线），26 项全部达到本组门槛。LibreOffice 的版面分数不计入判定（决定 1），正式门槛看 WPS。
+
+| 用例 | 路径 | 文字 | 结构 | 格式 | 动画 | 数据 | 版面 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| A-report-docx | html-editable | 100% | 100% | 100% | — | 100% | 0.88 |
+| A-contract-docx | html-editable | 100% | 100% | 100% | — | 100% | 0.74 |
+| A-newsletter-docx | html-editable | 100% | 100% | 100% | — | — | 0.86 |
+| A-manual-docx | html-editable | 100% | 100% | 100% | — | 100% | 0.83 |
+| A-pdfsource-docx | html-editable | 100% | 100% | 100% | — | 100% | 0.88 |
+| A-budget-xlsx | html-editable | 100% | 100% | — | — | 100% | — |
+| A-launch-pptx | html-editable | 100% | 100% | 100% | 100% | 100% | 0.92 |
+| A-training-pptx | html-editable | 100% | 100% | 100% | 100% | — | 0.95 |
+| A-quarterly-pptx | html-editable | 100% | 100% | 100% | 100% | 100% | 0.95 |
+| A-brief-html | office-to-html | 100% | 100% | 100% | — | 100% | — |
+| A-deck-html | office-to-html | 100% | 100% | 100% | 100% | 100% | — |
+| A-book-html | office-to-html | 100% | 100% | 100% | — | 100% | — |
+| C-gbk-csv-xlsx | csv-to-xlsx | 100% | 100% | — | — | 100% | — |
+| C-utf8-tsv-xlsx | csv-to-xlsx | 100% | 100% | — | — | 100% | — |
+| C-book-csv | xlsx-to-csv | 100% | 100% | — | — | 100% | — |
+| C-guide-docx | markdown-to-office | 100% | 100% | — | — | 100% | — |
+| C-api-html | markdown-to-html | 100% | 100% | — | — | 100% | — |
+| C-notes-docx | markdown-to-office | 100% | 100% | — | — | — | — |
+| C-brief-md | to-markdown | 100% | 100% | — | — | 100% | — |
+| D-brief-pptx | docx-to-pptx | 100% | 100% | — | — | 100% | — |
+| D-deck-docx | pptx-to-docx | 100% | 70% | — | 0% | 100% | — |
+| D-book-docx | xlsx-range-to-table | 100% | 100% | — | — | 100% | — |
+| D-book-pptx | xlsx-range-to-table | 100% | 100% | — | — | 100% | — |
+| E-supplier-docx | pdf-to-office | 100% | 100% | — | — | 100% | 0.87 |
+| E-supplier-xlsx | pdf-to-office | 100% | 100% | — | — | 100% | — |
+| E-supplier-pptx | pdf-to-office | 100% | 100% | — | — | 100% | — |
+
+D 组只考核文字和数据（F5）：pptx → docx 的结构 70% 和动画 0% 是预期的，文档里没有幻灯片和动画。没有浏览器时（`--no-browser`），除外观模式（需要浏览器，报 `BROWSER_BACKEND_UNAVAILABLE`）外其余 25 项同样达标。
+
+### Windows 上要做的（P13-008、P13-013、P13-018，可以一次做完）
+
+1. `pip install -e ".[html,fidelity,pdf,test]"`，`npm install`，WPS 设为默认应用。
+2. `python scripts/fidelity_baselines.py --renderer wps --wps`：A、C、D、E 组用 WPS 测版面，加上 B 组经 WPS 的 9 个方向（.doc、.odt、.xls、.ppt 转 OOXML，OOXML 转 .wps、.et、.dps、.odt，pptx 转 PNG）。看 F2、F3、F6 的门槛。
+3. `python scripts/run_windows_check.py eval --prefix convert- --repeat 3 --min-passes 2` 和 `--prefix html-`：F7。
+4. 在 WPS 演示里放映 `training.html` 转出的 pptx（外观模式），确认退出、强调、单击和“上一项之后”的动画。
+5. 结果按惯例提交并推送到 `cursor/phase13-windows-<commit>`。
 
 ## 任务拆分
 

@@ -2,9 +2,11 @@ from __future__ import annotations
 
 import io
 import json
+import os
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 from openpyxl import load_workbook
 from pptx import Presentation
@@ -28,6 +30,17 @@ SLIDES_HTML = """<!doctype html><html><body>
 </body></html>"""
 
 HEADINGS_ONLY_HTML = "<html><body><h1>One</h1><p>first</p><h2>Two</h2><p>second</p></body></html>"
+
+_NO_BROWSER = mock.patch.dict(os.environ, {"WPS_AGENT_NO_BROWSER": "1"})
+
+
+def setUpModule():
+    # These tests pin the layout-free path; tests/test_html_positioned.py covers the browser layout.
+    _NO_BROWSER.start()
+
+
+def tearDownModule():
+    _NO_BROWSER.stop()
 
 
 class HtmlToXlsxTests(unittest.TestCase):

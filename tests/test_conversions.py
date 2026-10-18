@@ -1,0 +1,518 @@
+"""Phase 13 conversions: CSV/TSV, Markdown, Office <-> HTML, cross-type, PDF, WPS formats and the convert command."""
+
+from __future__ import annotations
+
+import io
+import json
+import os
+import shutil
+import tempfile
+import unittest
+from pathlib import Path
+from unittest import mock
+
+from docx import Document
+from openpyxl import Workbook, load_workbook
+from pptx import Presentation
+
+from wps_ai_agent_cli import cli, convert, cross_type, markdown_convert, office_html, pdf_convert, tabular, wps_convert
+from wps_ai_agent_cli.fidelity import fidelity_check, read_model, score_data
+from wps_ai_agent_cli.html_office import convert_html_to_office, convert_html_to_xlsx
+from wps_ai_agent_cli.mcp_adapter import build_cli_argv
+
+ROOT = Path(__file__).resolve().parents[1]
+FIXTURES = ROOT / "fixtures" / "fidelity"
+COMPLEX = ROOT / "fixtures" / "html_complex"
+_NO_BROWSER = mock.patch.dict(os.environ, {"WPS_AGENT_NO_BROWSER": "1"})
+
+
+def setUpModule():
+    _NO_BROWSER.start()
+
+
+def tearDownModule():
+    _NO_BROWSER.stop()
+
+
+class _Workspace(unittest.TestCase):
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.work = Path(self._tmp.name)
+        for folder in (FIXTURES, COMPLEX):
+            for item in folder.iterdir():
+                if item.is_file() and not (self.work / item.name).exists():
+                    shutil.copyfile(item, self.work / item.name)
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def assertPasses(self, source, target, **options):
+        ok, report, errors = fidelity_check(self.work / source, self.work / target, layout=False, **options)
+        self.assertTrue(ok, errors)
+        self.assertTrue(report["passed"], report["aspects"])
+        return report
+
+
+class TabularTests(_Workspace):
+    def test_gbk_csv_becomes_a_typed_workbook_that_keeps_ids_and_formula_text(self):
+        ok, data, errors = tabular.csv_to_xlsx(self.work / "sales_gbk.csv", self.work / "sales.xlsx")
+        self.assertTrue(ok, errors)
+        self.assertEqual((data["encoding"], data["delimiter"], data["header_row"]), ("gb18030", ",", True))
+        sheet = load_workbook(self.work / "sales.xlsx").active
+        self.assertEqual(sheet["A2"].value, "华东")
+        self.assertEqual(sheet["B2"].value, "007")  # an id stays text
+        self.assertEqual(sheet["C2"].value, 1200)
+        self.assertEqual((sheet["C3"].value, sheet["C3"].number_format), (3.5, "0.00"))
+        self.assertEqual((sheet["D2"].value, sheet["D2"].number_format), (0.125, "0.0%"))
+        self.assertEqual((sheet["E2"].value, sheet["E2"].number_format), (1234.5, "#,##0.00"))
+        self.assertEqual(sheet["F4"].data_type, "s")  # =SUM(...) in a CSV is text, not a formula
+        self.assertTrue(sheet["A1"].font.bold)
+        self.assertEqual(sheet.freeze_panes, "A2")
+        self.assertPasses("sales_gbk.csv", "sales.xlsx")
+
+    def test_tsv_and_back_to_csv_keep_every_value(self):
+        ok, _data, errors = tabular.csv_to_xlsx(self.work / "staff_utf8.tsv", self.work / "staff.xlsx")
+        self.assertTrue(ok, errors)
+        ok, data, errors = tabular.xlsx_to_csv(self.work / "staff.xlsx", self.work / "staff.csv")
+        self.assertTrue(ok, errors)
+        text = (self.work / "staff.csv").read_text(encoding="utf-8-sig")
+        self.assertIn("000127,张伟,研发,2021-03-15,18500", text)
+        self.assertIn("16800.50", text)
+        self.assertIn("Émile O'Brien", text)
+        self.assertPasses("staff_utf8.tsv", "staff.xlsx")
+        self.assertPasses("staff.xlsx", "staff.csv")
+
+    def test_formulas_without_a_saved_result_are_written_and_reported(self):
+        workbook = Workbook()
+        workbook.active["A1"] = 2
+        workbook.active["A2"] = "=A1*3"
+        workbook.save(self.work / "calc.xlsx")
+        ok, data, errors = tabular.xlsx_to_csv(self.work / "calc.xlsx", self.work / "calc.csv")
+        self.assertTrue(ok, errors)
+        self.assertIn("=A1*3", (self.work / "calc.csv").read_text(encoding="utf-8-sig"))
+        self.assertTrue(any("no saved result" in w for w in data["warnings"]))
+
+    def test_typed_value_rules(self):
+        self.assertEqual(tabular.typed_value("0012"), ("0012", None))
+        self.assertEqual(tabular.typed_value("12,345"), (12345, "#,##0"))
+        self.assertEqual(tabular.typed_value(" 5"), (" 5", None))
+        self.assertEqual(tabular.typed_value("1e5"), ("1e5", None))
+
+
+class MarkdownTests(_Workspace):
+    def test_builtin_reader_covers_the_common_markdown(self):
+        body = markdown_convert._builtin((FIXTURES / "guide.md").read_text(encoding="utf-8"))
+        for fragment in (
+            "<h1>项目周报</h1>",
+            "<strong>核心模块</strong>",
+            "<s>20%</s>",
+            '<a href="https://example.com/design">设计文档</a>',
+            "<ul><li>数据层<ul><li>缓存命中率 92%</li><li>索引重建</li></ul></li><li>接口层</li></ul>",
+            "<ol><li>第一步：评审",
+            '<th style="text-align:center">负责人</th>',
+            '<td style="text-align:right">100%</td>',
+            "<blockquote><p>注意：下周冻结代码。</p></blockquote>",
+            '<pre><code class="language-python">print(&quot;hello&quot;)</code></pre>'.replace("&quot;", '"'),
+            '<img src="chart.png" alt="趋势图">',
+            "<hr>",
+        ):
+            self.assertIn(fragment, body)
+        setext = markdown_convert._builtin((FIXTURES / "notes.md").read_text(encoding="utf-8"))
+        self.assertIn("<h1>会议纪要</h1>", setext)
+        self.assertIn("<h2>参会人</h2>", setext)
+
+    def test_markdown_to_docx_and_back(self):
+        ok, data, errors = markdown_convert.md_to_office(self.work / "guide.md", self.work / "guide.docx")
+        self.assertTrue(ok, errors)
+        self.assertPasses("guide.md", "guide.docx")
+        document = Document(self.work / "guide.docx")
+        self.assertIn("Quote", [p.style.name for p in document.paragraphs])
+        ok, data, errors = markdown_convert.to_markdown(self.work / "guide.docx", self.work / "back.md")
+        self.assertTrue(ok, errors)
+        text = (self.work / "back.md").read_text(encoding="utf-8")
+        for fragment in (
+            "# 项目周报",
+            "**核心模块**",
+            "~~20%~~",
+            "  - 缓存命中率 92%",
+            "| 存储 | 张三 | 100% |",
+            "> 注意：下周冻结代码。",
+            '```\nprint("hello")\n```',
+            "![趋势图](back_files/image001.png)",
+            "---",
+        ):
+            self.assertIn(fragment, text)
+        self.assertTrue((self.work / "back_files" / "image001.png").is_file())
+        self.assertPasses("guide.docx", "back.md")
+
+    def test_html_tables_with_merged_cells_are_flattened_with_a_warning(self):
+        ok, data, errors = markdown_convert.to_markdown(self.work / "contract.html", self.work / "contract.md")
+        self.assertTrue(ok, errors)
+        self.assertTrue(any("merged cells" in w for w in data["warnings"]))
+        self.assertIn(
+            "| 签约 | 30% | 90,000 | 合同生效后 5 个工作日内 |", (self.work / "contract.md").read_text("utf-8")
+        )
+
+
+class OfficeHtmlTests(_Workspace):
+    def test_docx_round_trip_through_clean_html(self):
+        convert_html_to_office(self.work / "report.html", self.work / "report.docx", "docx")
+        ok, data, errors = office_html.office_to_html(self.work / "report.docx", self.work / "back.html")
+        self.assertTrue(ok, errors)
+        page = (self.work / "back.html").read_text(encoding="utf-8")
+        self.assertIn("<thead>", page)
+        self.assertIn('rowspan="2"', page)
+        self.assertIn("data:image/png;base64,", page)
+        self.assertNotIn("class=", page.split("<body>")[1])
+        self.assertPasses("report.docx", "back.html")
+        convert_html_to_office(self.work / "back.html", self.work / "again.docx", "docx")
+        self.assertPasses("report.docx", "again.docx")
+
+    def test_pptx_becomes_positioned_sections_with_animations_transitions_and_notes(self):
+        convert_html_to_office(self.work / "launch.html", self.work / "launch.pptx", "pptx")
+        ok, data, errors = office_html.office_to_html(self.work / "launch.pptx", self.work / "deck.html", "files")
+        self.assertTrue(ok, errors)
+        page = (self.work / "deck.html").read_text(encoding="utf-8")
+        self.assertIn("@keyframes wps-entrance-fly-left", page)
+        self.assertIn('data-transition="', page)
+        self.assertIn('<aside class="notes">', page)
+        self.assertIn("position:absolute", page)
+        self.assertTrue(data["image_folder"] and Path(data["image_folder"]).is_dir())
+        self.assertPasses("launch.pptx", "deck.html")
+
+    def test_xlsx_formulas_round_trip_through_data_formula(self):
+        workbook = Workbook()
+        sheet = workbook.active
+        sheet.title = "预算"
+        sheet.append(["项目", "金额"])
+        sheet.append(["人力", 100])
+        sheet.append(["合计", "=SUM(B2:B2)"])
+        sheet.merge_cells("A5:B5")
+        sheet["A5"] = "备注"
+        sheet.freeze_panes = "A2"
+        workbook.save(self.work / "calc.xlsx")
+        ok, data, errors = office_html.office_to_html(self.work / "calc.xlsx", self.work / "calc.html")
+        self.assertTrue(ok, errors)
+        page = (self.work / "calc.html").read_text(encoding="utf-8")
+        self.assertIn('data-formula="=SUM(B2:B2)"', page)
+        self.assertIn('colspan="2"', page)
+        self.assertIn("<thead>", page)
+        ok, data, errors = convert_html_to_xlsx(self.work / "calc.html", self.work / "again.xlsx")
+        self.assertTrue(ok, errors)
+        self.assertEqual(data["formulas_restored"], 1)
+        again = load_workbook(self.work / "again.xlsx").active
+        self.assertEqual(again["B3"].value, "=SUM(B2:B2)")
+        self.assertEqual(again.freeze_panes, "A2")
+
+    def test_html_to_xlsx_applies_cell_styles(self):
+        ok, data, errors = convert_html_to_xlsx(self.work / "contract.html", self.work / "contract.xlsx")
+        self.assertTrue(ok, errors)
+        self.assertTrue({"fill", "border", "font"} <= set(data["applied_styles"]))
+        sheet = load_workbook(self.work / "contract.xlsx").worksheets[1]
+        self.assertEqual(sheet["A1"].fill.start_color.rgb[-6:], "DDE6F0")
+        self.assertEqual(sheet["B3"].border.left.style, "thin")
+
+
+class CrossTypeTests(_Workspace):
+    def test_docx_to_pptx_starts_a_slide_per_heading_and_continues_long_bodies(self):
+        document = Document()
+        document.add_heading("长章节", 1)
+        for index in range(11):
+            document.add_paragraph(f"要点 {index + 1}", style="List Bullet")
+        document.add_heading("短章节", 2)
+        document.add_paragraph("一句话。")
+        document.save(self.work / "long.docx")
+        ok, data, errors = cross_type.docx_to_pptx(self.work / "long.docx", self.work / "long.pptx")
+        self.assertTrue(ok, errors)
+        titles = [slide.shapes.title.text for slide in Presentation(self.work / "long.pptx").slides]
+        self.assertEqual(titles, ["长章节", "长章节 (续)", "短章节"])
+        self.assertEqual(data["continuation_slides"], 1)
+        self.assertPasses("long.docx", "long.pptx")
+
+    def test_pptx_to_docx_keeps_slides_in_order_with_tables_and_notes(self):
+        ok, data, errors = cross_type.pptx_to_docx(self.work / "deck.pptx", self.work / "deck.docx")
+        self.assertTrue(ok, errors)
+        document = Document(self.work / "deck.docx")
+        headings = [p.text for p in document.paragraphs if p.style.name == "Heading 1"]
+        self.assertEqual(headings, ["2026 Q3 经营回顾", "核心指标", "下季度重点"])
+        self.assertEqual(document.tables[0].cell(1, 2).text, "4,820")
+        self.assertTrue(any(p.text.startswith("备注：重点解释毛利率") for p in document.paragraphs))
+        self.assertPasses("deck.pptx", "deck.docx")
+
+    def test_a_worksheet_range_becomes_one_table(self):
+        ok, data, errors = cross_type.xlsx_range_to_table(
+            self.work / "book.xlsx", self.work / "part.docx", cell_range="A1:C3"
+        )
+        self.assertTrue(ok, errors)
+        table = Document(self.work / "part.docx").tables[0]
+        self.assertEqual((len(table.rows), len(table.columns)), (3, 3))
+        self.assertEqual(table.cell(1, 1).text, "007")
+        bad, _data, errors = cross_type.xlsx_range_to_table(
+            self.work / "book.xlsx", self.work / "x.docx", cell_range="A:"
+        )
+        self.assertFalse(bad)
+        self.assertEqual(errors[0]["code"], "INVALID_RANGE")
+
+
+class PdfTests(_Workspace):
+    def test_the_text_layer_gives_headings_lists_tables_and_drops_running_headers(self):
+        analysis = pdf_convert.analyse_pdf(self.work / "supplier.pdf")
+        self.assertEqual(analysis.headers, ["供应商评估报告 · 内部资料"])
+        self.assertEqual(analysis.footers, ["采购中心"])
+        items = [item for page in analysis.pages for item in page.items]
+        headings = [(i.level, i.text) for i in items if i.kind == "heading"]
+        self.assertEqual(headings[0], (1, "供应商评估报告"))
+        self.assertIn((2, "二、评分明细"), headings)
+        self.assertEqual(sum(i.kind == "list" for i in items), 3)
+        tables = [i for i in items if i.kind == "table"]
+        self.assertEqual(tables[0].rows[1], ["华星电子", "92", "95", "88", "91.7"])
+        self.assertTrue(tables[0].ruled)
+        self.assertEqual(tables[1].rows[0], ["事项", "负责人", "期限"])
+        self.assertEqual(tables[1].rows[1][:2], ["提交改进计划", "王磊"])
+        self.assertFalse(tables[1].ruled)
+
+    def test_pdf_to_docx_xlsx_and_pptx(self):
+        for suffix in ("docx", "xlsx", "pptx"):
+            with self.subTest(suffix=suffix):
+                ok, data, errors = pdf_convert.pdf_to_office(self.work / "supplier.pdf", self.work / f"s.{suffix}")
+                self.assertTrue(ok, errors)
+                self.assertPasses("supplier.pdf", f"s.{suffix}")
+        document = Document(self.work / "s.docx")
+        self.assertEqual(document.sections[0].header.paragraphs[0].text, "供应商评估报告 · 内部资料")
+        self.assertEqual(load_workbook(self.work / "s.xlsx").sheetnames, ["第1页 表1", "第2页 表2"])
+        titles = [slide.shapes.title.text for slide in Presentation(self.work / "s.pptx").slides]
+        self.assertEqual(titles, ["供应商评估报告", "三、整改要求"])  # one slide per page
+
+    def test_a_scanned_pdf_needs_ocr(self):
+        ok, data, errors = pdf_convert.pdf_to_office(self.work / "supplier_scanned.pdf", self.work / "scan.docx")
+        self.assertFalse(ok)
+        self.assertEqual(errors[0]["code"], "PDF_NEEDS_OCR")
+        self.assertFalse((self.work / "scan.docx").exists())
+
+    def test_ocr_text_boxes_go_through_the_same_line_and_table_reading(self):
+        def engine(_image):
+            # Boxes in 300 dpi pixels: a heading, a paragraph and a three-row, two-column table.
+            def box(x0, y0, x1, y1, text):
+                return [[[x0, y0], [x1, y0], [x1, y1], [x0, y1]], text, 0.99]
+
+            return [
+                box(300, 300, 900, 380, "季度报告"),
+                box(300, 450, 1500, 500, "本季度收入稳步增长。"),
+                box(300, 600, 500, 650, "地区"),
+                box(900, 600, 1100, 650, "收入"),
+                box(300, 680, 500, 730, "华东"),
+                box(900, 680, 1100, 730, "120"),
+                box(300, 760, 500, 810, "华南"),
+                box(900, 760, 1100, 810, "95"),
+            ], 0.1
+
+        with mock.patch.object(pdf_convert, "_ocr_engine", return_value=engine):
+            ok, data, errors = pdf_convert.pdf_to_office(
+                self.work / "supplier_scanned.pdf", self.work / "scan.docx", ocr=True
+            )
+        self.assertTrue(ok, errors)
+        self.assertEqual(data["ocr_pages"], 2)
+        document = Document(self.work / "scan.docx")
+        self.assertEqual(document.paragraphs[0].style.name, "Heading 1")
+        self.assertEqual(document.tables[0].cell(2, 1).text, "95")
+
+    def test_ocr_without_the_engine_names_the_extra(self):
+        with mock.patch.object(pdf_convert, "_ocr_engine", return_value=None):
+            ok, _data, errors = pdf_convert.pdf_to_office(
+                self.work / "supplier_scanned.pdf", self.work / "scan.docx", ocr=True
+            )
+        self.assertFalse(ok)
+        self.assertEqual(errors[0]["code"], "CONVERTER_UNAVAILABLE")
+        self.assertIn("ocr", errors[0]["message"])
+
+
+class WpsConvertTests(_Workspace):
+    CAPABILITIES = {
+        "components": {
+            "writer": {"selected_prog_id": "KWPS.Application"},
+            "spreadsheets": {"selected_prog_id": "KET.Application"},
+            "presentation": {"selected_prog_id": "KWPP.Application"},
+        }
+    }
+
+    def run_fake(self, source, target, writes=None, **kwargs):
+        scripts = []
+
+        def fake_run(script, timeout_seconds, **_kwargs):
+            scripts.append(script)
+            params = json.loads(script.split("@'\n", 1)[1].split("\n'@", 1)[0])
+            written = params["pdf_path"] or params["output_path"]
+            if writes is not None:
+                shutil.copyfile(writes, written)
+            else:
+                Path(written).write_bytes(b"converted")
+            return {"ok": True, "conversion_method": "SaveAs", "written_path": written}, None
+
+        with (
+            mock.patch.object(wps_convert, "probe_wps_capabilities", return_value=self.CAPABILITIES),
+            mock.patch.object(wps_convert, "run_powershell_script", side_effect=fake_run),
+        ):
+            result = wps_convert.wps_convert(self.work / source, self.work / target, **kwargs)
+        return result, scripts
+
+    def test_save_as_uses_the_format_code_for_the_extension(self):
+        cases = {
+            ("brief.doc", "out.docx"): ("writer", 16),
+            ("brief.docx", "out.doc"): ("writer", 0),
+            ("brief.docx", "out.odt"): ("writer", 23),
+            ("book.xlsx", "out.xls"): ("spreadsheets", 56),
+            ("book.xls", "out.ods"): ("spreadsheets", 60),
+            ("deck.pptx", "out.ppt"): ("presentation", 1),
+            ("deck.ppt", "out.odp"): ("presentation", 35),
+            ("brief.docx", "out.wps"): ("writer", None),
+            ("book.xlsx", "out.et"): ("spreadsheets", None),
+            ("deck.pptx", "out.dps"): ("presentation", None),
+        }
+        for (source, target), (component, code) in cases.items():
+            with self.subTest(source=source, target=target):
+                (ok, data, errors), scripts = self.run_fake(source, target)
+                self.assertTrue(ok, errors)
+                self.assertEqual((data["component"], data["format_code"]), (component, code))
+                self.assertIn("SaveAs", scripts[0])
+                self.assertIn(wps_convert.FAMILIES[component]["collection"], scripts[0])
+                (self.work / target).unlink()
+
+    def test_pdf_and_png_pages(self):
+        (ok, data, errors), scripts = self.run_fake("brief.docx", "brief.pdf")
+        self.assertTrue(ok, errors)
+        self.assertIn("ExportAsFixedFormat($pdf, 17)", scripts[0])
+        (ok, data, errors), _scripts = self.run_fake(
+            "deck.pptx", "slide.png", writes=self.work / "supplier.pdf", dpi=50
+        )
+        self.assertTrue(ok, errors)
+        self.assertEqual([Path(p).name for p in data["pages"]], ["slide-001.png", "slide-002.png"])
+        self.assertTrue(all(Path(p).is_file() for p in data["pages"]))
+
+    def test_pairs_wps_cannot_write_are_refused_before_wps_starts(self):
+        with mock.patch.object(wps_convert, "run_powershell_script") as run:
+            ok, _data, errors = wps_convert.wps_convert(self.work / "brief.docx", self.work / "out.xlsx")
+            self.assertFalse(ok)
+            self.assertEqual(errors[0]["code"], "FORMAT_NOT_SUPPORTED_BY_WPS")
+            ok, _data, errors = wps_convert.wps_convert(self.work / "book.xlsx", self.work / "out.ppt")
+            self.assertEqual(errors[0]["code"], "FORMAT_NOT_SUPPORTED_BY_WPS")
+            run.assert_not_called()
+
+    def test_without_wps_the_backend_is_unavailable(self):
+        missing = {"components": {name: {"selected_prog_id": None} for name in wps_convert.FAMILIES}}
+        with mock.patch.object(wps_convert, "probe_wps_capabilities", return_value=missing):
+            ok, _data, errors = wps_convert.wps_convert(self.work / "brief.docx", self.work / "out.doc")
+        self.assertFalse(ok)
+        self.assertEqual(errors[0]["code"], "COM_BACKEND_UNAVAILABLE")
+
+
+class ConvertDispatchTests(_Workspace):
+    def test_routes(self):
+        self.assertEqual(convert.routes(".html", ".docx"), [("html-editable", ".docx")])
+        self.assertEqual(convert.routes(".pdf", ".html"), [("pdf-to-office", ".docx"), ("office-to-html", ".html")])
+        self.assertEqual(convert.routes(".doc", ".md"), [("wps", ".docx"), ("to-markdown", ".md")])
+        self.assertEqual(convert.routes(".csv", ".pptx"), [("csv-to-xlsx", ".xlsx"), ("xlsx-range-to-table", ".pptx")])
+        self.assertEqual(convert.routes(".docx", ".xlsx"), [("office-to-html", ".html"), ("html-editable", ".xlsx")])
+        self.assertEqual(convert.routes(".docx", ".ods"), [])
+
+    def test_two_step_route_through_wps(self):
+        def fake_wps(source, target, options):
+            shutil.copyfile(self.work / "brief.docx", target)
+            return True, {"output_path": str(target), "warnings": ["from wps"]}, []
+
+        with mock.patch.object(convert, "_wps", side_effect=fake_wps):
+            ok, data, errors = convert.convert(self.work / "brief.doc", self.work / "brief.md")
+        self.assertTrue(ok, errors)
+        self.assertEqual(data["route"], ["wps", "to-markdown"])
+        self.assertIn("from wps", data["warnings"])
+        self.assertIn("# 技术服务合同", (self.work / "brief.md").read_text(encoding="utf-8"))
+
+    def test_unsupported_pairs_name_the_reason(self):
+        ok, _data, errors = convert.convert(self.work / "brief.docx", self.work / "brief.ods")
+        self.assertEqual(errors[0]["code"], "FORMAT_NOT_SUPPORTED_BY_WPS")
+        ok, _data, errors = convert.convert(self.work / "chart.png", self.work / "chart.docx")
+        self.assertEqual(errors[0]["code"], "UNSUPPORTED_CONVERSION")
+
+    def test_cli_convert_with_check_and_fidelity_check(self):
+        stream = io.StringIO()
+        code = cli.run(
+            ["convert", "--input", str(self.work / "api.md"), "--output", str(self.work / "api.html"), "--check"],
+            output_stream=stream,
+        )
+        envelope = json.loads(stream.getvalue())
+        self.assertEqual(code, 0, envelope)
+        self.assertEqual(envelope["data"]["route"], ["markdown-to-html"])
+        self.assertTrue(envelope["data"]["fidelity"]["passed"])
+        stream = io.StringIO()
+        cli.run(
+            [
+                "fidelity-check",
+                "--source",
+                str(self.work / "api.md"),
+                "--target",
+                str(self.work / "api.html"),
+                "--no-layout",
+            ],
+            output_stream=stream,
+        )
+        envelope = json.loads(stream.getvalue())
+        self.assertEqual(envelope["validation"]["status"], "passed")
+        self.assertEqual(envelope["data"]["group"], "C")
+
+    def test_mcp_tools_map_to_the_cli(self):
+        ok, argv, _schema, errors = build_cli_argv(
+            "wps_agent_convert", {"input": "a.xlsx", "output": "a.docx", "sheet": "预算", "range": "A1:C9"}
+        )
+        self.assertTrue(ok, errors)
+        self.assertEqual(
+            argv, ["convert", "--input", "a.xlsx", "--output", "a.docx", "--sheet", "预算", "--range", "A1:C9"]
+        )
+        ok, argv, schema, errors = build_cli_argv("wps_agent_fidelity_check", {"source": "a", "target": "b"})
+        self.assertTrue(ok, errors)
+        self.assertFalse(schema["mutates_document"])
+        ok, argv, _schema, errors = build_cli_argv(
+            "wps_agent_html_editable",
+            {"input": "a.html", "output": "a.pptx", "format": "pptx", "fidelity": "appearance"},
+        )
+        self.assertIn("--fidelity", argv)
+
+
+class FidelityScoringTests(_Workspace):
+    def test_data_compares_values_not_spellings(self):
+        from wps_ai_agent_cli.fidelity import Block, Model
+
+        source = Model("html", [Block("table", rows=[["1.2e4", "3.50", "2025/11/20", "x"]])])
+        target = Model("xlsx", [Block("table", rows=[["12000", "3.5", "2025-11-20", "x"]])])
+        self.assertEqual(score_data(source, target), (1.0, []))
+
+    def test_a_lost_table_fails_the_check(self):
+        convert_html_to_office(self.work / "report.html", self.work / "report.docx", "docx")
+        document = Document(self.work / "report.docx")
+        table = document.tables[0]._tbl
+        table.getparent().remove(table)
+        document.save(self.work / "report.docx")
+        ok, report, _errors = fidelity_check(self.work / "report.html", self.work / "report.docx", layout=False)
+        self.assertTrue(ok)
+        self.assertFalse(report["passed"])
+        self.assertFalse(report["verdict"]["data"])
+
+    def test_pdf_model_leaves_out_running_headers(self):
+        model = read_model(self.work / "supplier.pdf")
+        texts = [block.text for block in model.blocks]
+        self.assertNotIn("采购中心", texts)
+        self.assertIn("供应商评估报告", texts)
+
+    @unittest.skipUnless(shutil.which("soffice") or shutil.which("libreoffice"), "LibreOffice is not installed")
+    def test_layout_is_measured_with_libreoffice_and_checked_against_a_baseline(self):
+        pdf_convert.pdf_to_office(self.work / "supplier.pdf", self.work / "s.docx")
+        ok, report, errors = fidelity_check(
+            self.work / "supplier.pdf", self.work / "s.docx", renderer="libreoffice", baseline=0.99
+        )
+        self.assertTrue(ok, errors)
+        layout = report["aspects"]["layout"]
+        self.assertEqual((layout["status"], layout["renderer"]), ("measured", "libreoffice"))
+        self.assertGreater(layout["score"], 0.8)
+        self.assertFalse(report["verdict"]["layout"])  # far below the made-up 0.99 baseline
+
+
+if __name__ == "__main__":
+    unittest.main()

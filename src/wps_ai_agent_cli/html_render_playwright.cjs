@@ -57,7 +57,8 @@ async function main() {
     if (details.height > 20000) throw Object.assign(new Error('Rendered document exceeds the 20,000 pixel height limit.'), { code: 'DOCUMENT_TOO_TALL' });
     if (request.format === 'pdf') {
       await page.emulateMedia({ media: 'print' });
-      await page.pdf({ path: request.output_path, format: request.page_size, printBackground: true, preferCSSPageSize: true });
+      const margin = request.margin_mm == null ? undefined : { top: `${request.margin_mm}mm`, right: `${request.margin_mm}mm`, bottom: `${request.margin_mm}mm`, left: `${request.margin_mm}mm` };
+      await page.pdf({ path: request.output_path, format: request.page_size, printBackground: true, preferCSSPageSize: true, margin });
     } else {
       await page.screenshot({ path: request.output_path, fullPage: true, type: 'png', timeout: request.timeout_seconds * 1000 });
     }

@@ -102,6 +102,68 @@
         "required": false
       }
     ],
+    "convert": [
+      {
+        "name": "--check",
+        "required": false
+      },
+      {
+        "name": "--delimiter",
+        "required": false
+      },
+      {
+        "name": "--dpi",
+        "required": false
+      },
+      {
+        "name": "--encoding",
+        "required": false
+      },
+      {
+        "name": "--fidelity",
+        "required": false,
+        "choices": [
+          "appearance",
+          "editable"
+        ]
+      },
+      {
+        "name": "--images",
+        "required": false,
+        "choices": [
+          "embed",
+          "files"
+        ]
+      },
+      {
+        "name": "--input",
+        "required": true
+      },
+      {
+        "name": "--no-browser",
+        "required": false
+      },
+      {
+        "name": "--ocr",
+        "required": false
+      },
+      {
+        "name": "--output",
+        "required": true
+      },
+      {
+        "name": "--range",
+        "required": false
+      },
+      {
+        "name": "--sheet",
+        "required": false
+      },
+      {
+        "name": "--task-id",
+        "required": false
+      }
+    ],
     "convert-smoke": [
       {
         "name": "--component",
@@ -169,6 +231,38 @@
         "required": true
       }
     ],
+    "fidelity-check": [
+      {
+        "name": "--baseline",
+        "required": false
+      },
+      {
+        "name": "--no-browser",
+        "required": false
+      },
+      {
+        "name": "--no-layout",
+        "required": false
+      },
+      {
+        "name": "--renderer",
+        "required": false,
+        "choices": [
+          "auto",
+          "libreoffice",
+          "none",
+          "wps"
+        ]
+      },
+      {
+        "name": "--source",
+        "required": true
+      },
+      {
+        "name": "--target",
+        "required": true
+      }
+    ],
     "html-batch-convert": [
       {
         "name": "--input-dir",
@@ -221,6 +315,14 @@
       }
     ],
     "html-editable": [
+      {
+        "name": "--fidelity",
+        "required": false,
+        "choices": [
+          "appearance",
+          "editable"
+        ]
+      },
       {
         "name": "--format",
         "required": false,
@@ -1402,6 +1504,30 @@
         "output"
       ]
     },
+    "wps_agent_convert": {
+      "cli_command": "convert",
+      "mutates_document": true,
+      "parameters": [
+        "check",
+        "delimiter",
+        "dpi",
+        "encoding",
+        "fidelity",
+        "images",
+        "input",
+        "no_browser",
+        "ocr",
+        "output",
+        "range",
+        "request_id",
+        "sheet",
+        "task_id"
+      ],
+      "required": [
+        "input",
+        "output"
+      ]
+    },
     "wps_agent_convert_smoke": {
       "cli_command": "convert-smoke",
       "mutates_document": false,
@@ -1479,6 +1605,23 @@
         "output"
       ]
     },
+    "wps_agent_fidelity_check": {
+      "cli_command": "fidelity-check",
+      "mutates_document": false,
+      "parameters": [
+        "baseline",
+        "no_browser",
+        "no_layout",
+        "renderer",
+        "request_id",
+        "source",
+        "target"
+      ],
+      "required": [
+        "source",
+        "target"
+      ]
+    },
     "wps_agent_html_batch_convert": {
       "cli_command": "html-batch-convert",
       "mutates_document": true,
@@ -1526,6 +1669,7 @@
       "cli_command": "html-editable",
       "mutates_document": true,
       "parameters": [
+        "fidelity",
         "format",
         "input",
         "output",
@@ -2495,10 +2639,13 @@
     "EXPORT_OUTPUT_NOT_TEXT",
     "FILE_CONVERSION_FAILED",
     "FIND_TEXT_TOO_LONG",
+    "FORMAT_NOT_SUPPORTED_BY_WPS",
     "FORMULA_PREFIX_REJECTED",
     "IDEMPOTENCY_CONFLICT",
+    "INPUT_DECODE_FAILED",
     "INPUT_DIRECTORY_NOT_FOUND",
     "INPUT_FILE_NOT_FOUND",
+    "INPUT_READ_FAILED",
     "INPUT_TOO_LARGE",
     "INVALID_ARGUMENT",
     "INVALID_ARGUMENTS_JSON",
@@ -2551,6 +2698,7 @@
     "NO_MAPPED_OBJECTS",
     "NO_RUNNING_WPS_INSTANCE",
     "NO_SUPPORTED_CONTENT",
+    "NO_TABLES",
     "OBJECT_ID_REQUIRED",
     "OBJECT_SELECTION_UNSUPPORTED",
     "OPERATION_IDENTITY_UNVERIFIED",
@@ -2568,6 +2716,7 @@
     "OUTPUT_UNAVAILABLE",
     "OUTPUT_WRITE_FAILED",
     "PARAGRAPH_NOT_FOUND",
+    "PDF_NEEDS_OCR",
     "PERFORMANCE_BASELINE_COMMAND_FAILED",
     "PERFORMANCE_BASELINE_WPS_SCENARIO_INCLUDED",
     "POST_COM_SOURCE_UNVERIFIED",
@@ -2620,6 +2769,7 @@
     "UNKNOWN_TEMPLATE_TOKEN",
     "UNRECORDED_MUTATION_AMBIGUOUS",
     "UNSUPPORTED_COMPONENT",
+    "UNSUPPORTED_FORMAT",
     "UNSUPPORTED_MANIFEST",
     "UNSUPPORTED_OBJECT_TYPE",
     "UNSUPPORTED_OUTPUT_EXTENSION",

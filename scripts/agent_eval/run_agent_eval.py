@@ -62,6 +62,8 @@ HTML_TABLE = (
 # workspace by the html_complex setup step.
 HTML_COMPLEX_DIR = REPO_ROOT / "fixtures" / "html_complex"
 HTML_COMPLEX_FILES = ("report.html", "budget.html", "launch.html", "chart.png")
+# Phase 13 conversion fixtures, copied by the fidelity_fixtures setup step.
+FIDELITY_DIR = REPO_ROOT / "fixtures" / "fidelity"
 
 
 def file_sha256(path: Path) -> str:
@@ -236,7 +238,7 @@ def text_file_encoding(path: Path) -> str:
 
 
 def document_text(path: Path) -> str:
-    """All text in a .docx (paragraphs and tables), a .pptx (every shape) or a .txt, joined by newlines.
+    """All text in a .docx (paragraphs and tables), a .pptx (every shape and table) or a .txt, joined by newlines.
 
     A .txt from WPS is UTF-16 with a byte order mark (Unicode text) or, as a fallback, the system code page:
     GBK on Chinese Windows, which is what Chinese text that is not UTF-8 is read as (P8-004).
@@ -262,9 +264,14 @@ def document_text(path: Path) -> str:
         from pptx import Presentation
 
         presentation = Presentation(path)
-        return "\n".join(
-            shape.text_frame.text for slide in presentation.slides for shape in slide.shapes if shape.has_text_frame
-        )
+        parts = []
+        for slide in presentation.slides:
+            for shape in slide.shapes:
+                if shape.has_text_frame:
+                    parts.append(shape.text_frame.text)
+                elif shape.has_table:
+                    parts += [cell.text for row in shape.table.rows for cell in row.cells]
+        return "\n".join(parts)
     if suffix == ".xlsx":
         # Cells, then the text of shapes and charts (P10-005), so an undo of either shows in the text.
         from openpyxl import load_workbook
@@ -933,6 +940,10 @@ def run_setup(
         elif step == "html_complex":
             for name in HTML_COMPLEX_FILES:
                 shutil.copyfile(HTML_COMPLEX_DIR / name, workspace / name)
+        elif step == "fidelity_fixtures":
+            for item in FIDELITY_DIR.iterdir():
+                if item.is_file():
+                    shutil.copyfile(item, workspace / item.name)
         elif step in ("hold", "open_in_wps"):
             later = steps[index + 1 :]
             allowed = OPEN_DOCUMENT_STEPS if step == "open_in_wps" else ()
@@ -1241,6 +1252,17 @@ def judge(
                 size = path.stat().st_size
                 passed = head == b"%PDF-" and size >= check.get("min_bytes", 1)
                 detail = {"bytes": size, "starts_with_pdf_header": head == b"%PDF-"}
+        elif kind == "fidelity":
+            # Offline: the Phase 13 fidelity check of the agent's output against its source, without layout.
+            from wps_ai_agent_cli.fidelity import fidelity_check
+
+            source, target = workspace / check["source"], workspace / check["path"]
+            if not target.is_file():
+                passed, detail = False, "output missing"
+            else:
+                checked, report, errors = fidelity_check(source, target, layout=False, use_browser=False)
+                passed = checked and report["passed"]
+                detail = report.get("verdict") if checked else errors
         elif kind == "xlsx_cell":
             from openpyxl import load_workbook
 
