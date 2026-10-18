@@ -80,7 +80,7 @@ WPS_CASES: list[tuple[str, Path, str, Path | None]] = [
 def run_wps(renderer: str) -> dict[str, dict]:
     """Group B with WPS: text, structure and the layout of WPS's PDFs before and after (F3)."""
     results: dict[str, dict] = {}
-    with tempfile.TemporaryDirectory(prefix="wps-fidelity-b-") as tmp:
+    with tempfile.TemporaryDirectory(prefix="wps-fidelity-b-", ignore_cleanup_errors=True) as tmp:
         work = Path(tmp)
         for item in FIXTURES.iterdir():
             if item.is_file():
@@ -121,7 +121,7 @@ def run_wps(renderer: str) -> dict[str, dict]:
 
 def run(renderer: str, use_browser: bool) -> dict[str, dict]:
     results: dict[str, dict] = {}
-    with tempfile.TemporaryDirectory(prefix="wps-fidelity-matrix-") as tmp:
+    with tempfile.TemporaryDirectory(prefix="wps-fidelity-matrix-", ignore_cleanup_errors=True) as tmp:
         work = Path(tmp)
         for folder in (FIXTURES, COMPLEX):
             for item in folder.iterdir():
@@ -164,9 +164,15 @@ def compare(results: dict[str, dict], baselines: dict[str, dict]) -> list[str]:
         if not result["passed"]:
             failed = [name for name, ok in result["verdict"].items() if not ok]
             problems.append(f"{case}: below threshold in {failed}: {result['scores']}")
+        # The recorded baselines are LibreOffice's; with the official WPS renderer only the threshold applies.
         recorded = baselines.get(case, {}).get("scores", {}).get("layout")
         layout = result["scores"].get("layout")
-        if recorded is not None and layout is not None and layout < recorded - 0.02:
+        if (
+            result.get("layout_renderer") == "libreoffice"
+            and recorded is not None
+            and layout is not None
+            and layout < recorded - 0.02
+        ):
             problems.append(f"{case}: layout {layout} fell below the baseline {recorded} - 0.02")
     return problems
 

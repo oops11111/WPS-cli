@@ -1,0 +1,63 @@
+[
+  {
+    "case": "B-odt-docx",
+    "converted": false,
+    "errors": [
+      {
+        "code": "COM_OPERATION_TIMEOUT",
+        "message": "WPS conversion timed out after 180 seconds."
+      }
+    ],
+    "route": null
+  },
+  {
+    "case": "B-docx-wps",
+    "converted": true,
+    "errors": [],
+    "route": [
+      "wps"
+    ],
+    "roundtrip_converted": true,
+    "checked": true,
+    "check_errors": [],
+    "scores": {
+      "text": 1.0,
+      "structure": 1.0,
+      "formatting": 1.0,
+      "data": 1.0,
+      "layout": 1.0
+    },
+    "verdict": {
+      "text": true,
+      "structure": true,
+      "layout": true
+    },
+    "passed": true,
+    "layout_renderer": "wps"
+  },
+  {
+    "case": "B-docx-odt",
+    "converted": true,
+    "errors": [],
+    "route": [
+      "wps"
+    ],
+    "roundtrip_converted": true,
+    "checked": true,
+    "check_errors": [],
+    "scores": {
+      "text": 1.0,
+      "structure": 1.0,
+      "formatting": 1.0,
+      "data": 1.0,
+      "layout": 1.0
+    },
+    "verdict": {
+      "text": true,
+      "structure": true,
+      "layout": true
+    },
+    "passed": true,
+    "layout_renderer": "wps"
+  }
+]

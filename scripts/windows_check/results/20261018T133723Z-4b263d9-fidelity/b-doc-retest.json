@@ -1,0 +1,26 @@
+[
+  {
+    "case": "B-doc-docx",
+    "converted": true,
+    "errors": [],
+    "route": [
+      "wps"
+    ],
+    "checked": true,
+    "check_errors": [],
+    "scores": {
+      "text": 1.0,
+      "structure": 1.0,
+      "formatting": 1.0,
+      "data": 1.0,
+      "layout": 0.8687
+    },
+    "verdict": {
+      "text": true,
+      "structure": true,
+      "layout": false
+    },
+    "passed": false,
+    "layout_renderer": "wps"
+  }
+]
