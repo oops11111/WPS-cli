@@ -1,7 +1,7 @@
 {
   "product": "WPS AI Agent CLI",
   "source_prd": "WPS_AI_Agent_CLI_PRD_v1.1.docx",
-  "current_phase": "phase12",
+  "current_phase": "phase13",
   "phases": [
     {
       "id": "phase0",
@@ -153,7 +153,7 @@
       "id": "phase13",
       "name": "High-fidelity conversion between all formats",
       "goal": "Measure conversion fidelity with one check, and convert with high fidelity between HTML and the three WPS formats, across the WPS format family (legacy, WPS-native, ODF, PNG), CSV, Markdown, across document types, and from PDF to editable documents, released in three milestones (0.10.0, 0.11.0, 0.12.0).",
-      "status": "planned",
+      "status": "active",
       "exit_criteria": [
         "F1: offline, a fidelity-check command compares any source with its conversion on text, structure, formatting, layout, animations and data, marking checks that do not apply; layout renders both sides (HTML with Chromium, Office through WPS or LibreOffice PDF, PDF directly) and compares pages by SSIM; every check has offline tests",
         "F2: HTML to and from docx, pptx and xlsx: at least 3 inputs per direction (5 for Writer); text, structure, formatting and animations 100%; HTML to Office at SSIM at least 0.90 in WPS; Office to HTML at SSIM at least 0.90 against WPS's PDF; HTML to Office to HTML round trip at SSIM at least 0.95; LibreOffice baselines guard against regression",

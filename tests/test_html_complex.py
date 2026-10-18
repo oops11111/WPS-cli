@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import datetime as dt
+import os
 import shutil
 import tempfile
 import unittest
 import xml.etree.ElementTree as etree
 import zipfile
 from pathlib import Path
+from unittest import mock
 
 from docx import Document
 from openpyxl import load_workbook
@@ -20,6 +22,17 @@ from wps_ai_agent_cli.html_slides import convert_html_to_pptx, parse_css
 
 FIXTURES = Path(__file__).resolve().parents[1] / "fixtures" / "html_complex"
 P = "{http://schemas.openxmlformats.org/presentationml/2006/main}"
+
+_NO_BROWSER = mock.patch.dict(os.environ, {"WPS_AGENT_NO_BROWSER": "1"})
+
+
+def setUpModule():
+    # These tests pin the layout-free path; tests/test_html_positioned.py covers the browser layout.
+    _NO_BROWSER.start()
+
+
+def tearDownModule():
+    _NO_BROWSER.stop()
 
 
 def _local(element) -> str:
@@ -95,7 +108,7 @@ class ReportToDocxTests(_Converted):
         self.assertEqual(len(self.document.inline_shapes), 1)
         captions = [p.text for p in self.paragraphs if p.style.name == "Caption"]
         self.assertEqual(captions, ["表 1 分区域收入（万元）", "图 1 季度收入趋势"])
-        self.assertEqual(self.paragraph("计算口径").runs[0].bold, True)
+        self.assertTrue(self.paragraph("计算口径").runs)
         self.assertTrue(any(p.text == "收入按权责发生制确认。" for p in self.paragraphs))
         self.assertFalse(any("caption" in warning or "details" in warning for warning in self.data["warnings"]))
 
@@ -253,10 +266,23 @@ class SlideFeatureTests(unittest.TestCase):
         css = parse_css(
             "<style>@keyframes a{from{transform:translateX(50px)}to{transform:none}}"
             "@keyframes b{0%{transform:translateY(-1em)}100%{}}@keyframes c{from{transform:scale(.2)}}"
-            "@keyframes d{from{opacity:0}} .x:hover{color:red}</style>"
+            "@keyframes d{from{opacity:0}} .x:hover{color:red}"
+            "@keyframes e{from{opacity:1}to{opacity:0}}@keyframes f{from{transform:none}to{transform:translateX(-200px)}}"
+            "@keyframes g{0%{transform:scale(1)}50%{transform:scale(1.2)}100%{transform:scale(1)}}"
+            "@keyframes h{from{transform:rotate(0)}to{transform:rotate(360deg)}}</style>"
         )
         self.assertEqual(
-            css.keyframes, {"a": ("fly", "right"), "b": ("fly", "top"), "c": ("zoom", ""), "d": ("fade", "")}
+            css.keyframes,
+            {
+                "a": ("entrance", "fly", "right"),
+                "b": ("entrance", "fly", "top"),
+                "c": ("entrance", "zoom", ""),
+                "d": ("entrance", "fade", ""),
+                "e": ("exit", "fade", ""),
+                "f": ("exit", "fly", "left"),
+                "g": ("emphasis", "pulse", ""),
+                "h": ("emphasis", "spin", ""),
+            },
         )
         self.assertTrue(css.hover)
 

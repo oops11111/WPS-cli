@@ -2,6 +2,7 @@ import os
 import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from unittest import mock
 
 from docx import Document
 from PIL import Image
@@ -14,6 +15,17 @@ from wps_ai_agent_cli.html_roundtrip import (
     import_controlled_html,
     verify_controlled_document,
 )
+
+_NO_BROWSER = mock.patch.dict(os.environ, {"WPS_AGENT_NO_BROWSER": "1"})
+
+
+def setUpModule():
+    # These tests pin the layout-free path; tests/test_html_positioned.py covers the browser layout.
+    _NO_BROWSER.start()
+
+
+def tearDownModule():
+    _NO_BROWSER.stop()
 
 
 class HtmlEditableTests(unittest.TestCase):
@@ -36,13 +48,16 @@ class HtmlEditableTests(unittest.TestCase):
             self.assertEqual(
                 data["mapped_objects"], {"paragraphs": 2, "headings": 1, "lists": 2, "tables": 1, "images": 1}
             )
-            self.assertIn("embedded CSS", data["unsupported_css"])
+            # The embedded CSS is applied now (P13-004): the heading is red.
+            self.assertEqual(data["unsupported_css"], [])
+            self.assertIn("character", data["applied_styles"])
             self.assertTrue(any("non-local" in warning for warning in data["warnings"]))
             self.assertIn("Unsafe hyperlink target omitted.", data["warnings"])
             self.assertFalse(data["javascript_executed"])
             document = Document(root / "editable.docx")
             self.assertEqual(document.core_properties.title, "Project brief")
             self.assertEqual(document.paragraphs[0].style.name, "Heading 1")
+            self.assertEqual(str(document.paragraphs[0].runs[0].font.color.rgb), "FF0000")
             self.assertIn("List Bullet", {paragraph.style.name for paragraph in document.paragraphs})
             self.assertEqual(len(document.tables), 1)
             self.assertEqual(document.tables[0].cell(1, 1).text, "2")

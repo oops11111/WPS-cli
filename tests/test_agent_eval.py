@@ -40,6 +40,7 @@ KNOWN_CHECK_KINDS = {
     "docx_table_cell",
     "pdf_file",
     "text_encoding",
+    "fidelity",
 }
 WPS_WRITE_TASKS = (
     "wps-spreadsheet-write",
@@ -89,6 +90,7 @@ KNOWN_SETUP_STEPS = {
     "modify",
     "html_table",
     "html_complex",
+    "fidelity_fixtures",
     "hold",
     "open_in_wps",
     "select_text",
@@ -1639,6 +1641,42 @@ class AgentEvalJudgeTests(unittest.TestCase):
                 no_pdf = self.run_wps_task(task_id, Path(tmp) / "b", lambda ws, act=act: act(ws, pdf=False), calls[:1])
                 failed = [check["kind"] for check in no_pdf["checks"] if not check["passed"]]
                 self.assertEqual(failed, ["tool_called", "pdf_file"])
+
+    def test_convert_tasks_pass_on_what_convert_makes_from_the_fixtures(self):
+        # The Phase 13 conversion tasks that need no WPS, judged on convert's output; a lost table fails them.
+        from wps_ai_agent_cli.convert import convert
+
+        cases = {
+            "convert-pdf-to-docx": ("supplier.pdf", "supplier.docx"),
+            "convert-gbk-csv-to-xlsx": ("sales_gbk.csv", "sales.xlsx"),
+            "convert-markdown-to-docx": ("guide.md", "guide.docx"),
+            "convert-docx-to-pptx": ("brief.docx", "brief.pptx"),
+        }
+        for task_id, (source, target) in cases.items():
+
+            def act(workspace, source=source, target=target):
+                ok, _data, errors = convert(workspace / source, workspace / target, use_browser=False)
+                self.assertTrue(ok, errors)
+
+            calls = [_call("convert", input=source, output=target)]
+            with self.subTest(task=task_id), tempfile.TemporaryDirectory() as tmp:
+                passed = self.run_wps_task(task_id, Path(tmp), act, calls)
+                self.assertTrue(passed["passed"], [check for check in passed["checks"] if not check["passed"]])
+
+        def lossy(workspace):
+            from docx import Document
+
+            act_ok, _data, errors = convert(workspace / "guide.md", workspace / "guide.docx", use_browser=False)
+            self.assertTrue(act_ok, errors)
+            document = Document(workspace / "guide.docx")
+            table = document.tables[0]._tbl
+            table.getparent().remove(table)
+            document.save(workspace / "guide.docx")
+
+        with tempfile.TemporaryDirectory() as tmp:
+            result = self.run_wps_task("convert-markdown-to-docx", Path(tmp), lossy, [_call("convert")])
+        failed = [check["kind"] for check in result["checks"] if not check["passed"]]
+        self.assertEqual(failed, ["fidelity", "docx_table_cell"])
 
     def test_rename_sheet_passes_when_only_the_sheet_name_changed(self):
         from openpyxl import load_workbook

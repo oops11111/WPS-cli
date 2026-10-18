@@ -56,9 +56,9 @@ def html_render_response(
 
 
 def html_editable_response(
-    request_id: str, input_path: str, output_path: str, output_format: str = "docx"
+    request_id: str, input_path: str, output_path: str, output_format: str = "docx", fidelity: str = "editable"
 ) -> CommandResponse:
-    ok, data, errors = convert_html_to_office(input_path, output_path, output_format)
+    ok, data, errors = convert_html_to_office(input_path, output_path, output_format, fidelity=fidelity)
     backend = HTML_OFFICE_BACKENDS.get(output_format, "python-docx")
     native_objects = data.get("mapped_objects") or data.get("rows") or data.get("slides")
     return CommandResponse(

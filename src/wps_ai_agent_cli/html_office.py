@@ -59,7 +59,8 @@ def _cell_value(text: str) -> tuple[Any, bool, str | None]:
     stripped = text.strip()
     plain = stripped.lstrip("+")
     if _NUMBER.fullmatch(plain):
-        return (float(plain) if "." in plain else int(plain)), False, None
+        decimals = _decimals(plain)
+        return (float(plain) if "." in plain else int(plain)), False, ("0." + "0" * decimals if decimals else None)
     if _THOUSANDS.fullmatch(stripped):
         number = stripped.lstrip("+").replace(",", "")
         decimals = _decimals(number)
@@ -79,8 +80,9 @@ def _cell_value(text: str) -> tuple[Any, bool, str | None]:
         return float(stripped), False, "0.00E+00"
     match = _DATE.fullmatch(stripped)
     if match:
+        separator = re.search(r"[-/.]", stripped).group(0)
         try:
-            return dt.date(*(int(part) for part in match.groups())), False, "yyyy-mm-dd"
+            return dt.date(*(int(part) for part in match.groups())), False, f"yyyy{separator}mm{separator}dd"
         except ValueError:
             pass
     return text, False, None
@@ -132,8 +134,72 @@ def _outer_tables(root) -> list[tuple[str | None, Any]]:
     return found
 
 
+def _style_cell(cell, style: dict[str, str], header: bool) -> set[str]:
+    """Font, fill, borders and alignment from the cell's computed style (P13-010); returns what was applied."""
+    from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
+
+    from .html_styles import color, first_font, is_bold, points
+
+    applied: set[str] = set()
+    hue = color(style.get("color"))
+    size = points(style.get("font-size"))
+    family = first_font(style.get("font-family"))
+    bold = header or is_bold(style)
+    italic = style.get("font-style") == "italic"
+    decoration = style.get("text-decoration-line", "") or ""
+    font = Font(
+        name=family,
+        size=round(size, 1) if size and abs(size - 12) > 0.1 else None,
+        bold=bold or None,
+        italic=italic or None,
+        underline="single" if "underline" in decoration else None,
+        strike=("line-through" in decoration) or None,
+        color=hue if hue and hue != "000000" else None,
+    )
+    if font != Font():
+        cell.font = font
+        applied.add("font")
+    fill = color(style.get("background-color"))
+    if fill:
+        cell.fill = PatternFill("solid", start_color=fill, end_color=fill)
+        applied.add("fill")
+    sides = {}
+    for side in ("left", "right", "top", "bottom"):
+        width = style.get(f"border-{side}-width", "0px")
+        kind = style.get(f"border-{side}-style", "none")
+        if kind in {"none", "hidden", ""} or width in {"0px", "0", ""}:
+            continue
+        try:
+            thickness = float(width.rstrip("px"))
+        except ValueError:
+            thickness = 1.0
+        line = "thick" if thickness >= 3 else "medium" if thickness >= 2 else "thin"
+        line = {"dashed": "dashed", "dotted": "dotted", "double": "double"}.get(kind, line)
+        sides[side] = Side(style=line, color=color(style.get(f"border-{side}-color")) or "000000")
+    if sides:
+        cell.border = Border(**sides)
+        applied.add("border")
+    horizontal = {"center": "center", "right": "right", "end": "right", "justify": "justify", "left": "left"}.get(
+        style.get("text-align", "")
+    )
+    vertical = {"middle": "center", "top": "top", "bottom": "bottom"}.get(style.get("vertical-align", ""))
+    if horizontal in {"left"} and not header:
+        horizontal = None
+    if horizontal or vertical:
+        old = cell.alignment
+        cell.alignment = Alignment(
+            horizontal=horizontal or old.horizontal, vertical=vertical or old.vertical, wrap_text=old.wrap_text
+        )
+        applied.add("alignment")
+    return applied
+
+
+def _text_width(text: str) -> float:
+    return max((sum(2 if ord(ch) > 0x2E7F else 1 for ch in line) for line in text.split("\n")), default=0)
+
+
 def convert_html_to_xlsx(
-    input_path: str | Path, output_path: str | Path
+    input_path: str | Path, output_path: str | Path, use_browser: bool = True
 ) -> tuple[bool, dict[str, Any], list[dict[str, str]]]:
     source, destination, path_errors = validate_office_paths(input_path, output_path, ".xlsx")
     if path_errors:
@@ -144,8 +210,12 @@ def convert_html_to_xlsx(
     except ImportError:
         return False, {}, [{"code": "CONVERTER_UNAVAILABLE", "message": "openpyxl is required for xlsx output."}]
     from .html_editable import _safe_link_target, _walk, cell_text, has_nested_table, local_image, table_grid
+    from .html_styles import load as load_styles
+    from .html_styles import px
 
-    parser, decode_warning = _parse_tree(source)
+    _text_unused, decode_warning = _read_html(source)
+    styled = load_styles(source, use_browser=use_browser)
+    parser = styled.parser
     tables = _outer_tables(parser.root)
     if not tables:
         return (
@@ -162,6 +232,8 @@ def convert_html_to_xlsx(
     used: set[str] = set()
     sheets = []
     formula_like = 0
+    restored = 0
+    applied: set[str] = set()
     total_rows = 0
     nested = 0
     table_sheets: dict[int, Any] = {}
@@ -173,6 +245,14 @@ def convert_html_to_xlsx(
             merges = [merge for merge in merges if merge[2] < MAX_ROWS_PER_SHEET]
         sheet = workbook.create_sheet(_unique_sheet_name(title or f"Table {index}", used))
         table_sheets[id(table)] = sheet
+        widths: dict[int, float] = {}
+        header_rows = sum(
+            1
+            for part in table.children
+            if getattr(part, "tag", "") == "thead"
+            for row_node in part.children
+            if getattr(row_node, "tag", "") == "tr"
+        )
         for row_index, row in enumerate(grid, start=1):
             for column_index, node in enumerate(row, start=1):
                 if node is None:
@@ -190,12 +270,18 @@ def convert_html_to_xlsx(
                         if getattr(row_node, "tag", "") == "tr"
                     ]
                     text = "\n".join(part for part in [text, *inner] if part)
-                if not text:
+                if not text and not node.attrs.get("data-formula"):
                     continue
                 value, is_formula, number_format = _cell_value(text)
                 cell = sheet.cell(row=row_index, column=column_index)
-                cell.value = value
-                if is_formula:
+                formula = node.attrs.get("data-formula", "").strip()
+                if formula.startswith("=") and len(formula) > 1:
+                    # Written by office-to-html from a workbook formula: restore it (decision 7).
+                    cell.value = formula
+                    restored += 1
+                else:
+                    cell.value = value
+                if is_formula and not formula:
                     cell.data_type = "s"
                     formula_like += 1
                 if number_format:
@@ -204,6 +290,14 @@ def convert_html_to_xlsx(
                     cell.font = Font(bold=True)
                 if "\n" in text:
                     cell.alignment = Alignment(wrap_text=True, vertical="top")
+                applied |= _style_cell(cell, styled.style(node), node.tag == "th")
+                span = int(node.attrs.get("colspan", "1") or 1) if node.attrs.get("colspan", "1").isdigit() else 1
+                if span == 1:
+                    box = styled.box(node)
+                    css_width = px(styled.style(node).get("width")) if styled.mode == "cascade" else None
+                    width = (box["width"] if box else css_width) or 0
+                    estimate = width / 7.0 if width else _text_width(text) + 2
+                    widths[column_index] = max(widths.get(column_index, 0), estimate)
                 links = [link for link in _walk(node) if link.tag == "a" and link.attrs.get("href")]
                 if len(links) == 1 and _safe_link_target(links[0].attrs["href"]):
                     cell.hyperlink = links[0].attrs["href"].strip()
@@ -216,6 +310,12 @@ def convert_html_to_xlsx(
                 sheet.cell(row=first_row + 1, column=first_column + 1).alignment = Alignment(
                     horizontal="center", vertical="center"
                 )
+        from openpyxl.utils import get_column_letter
+
+        for column_index, width in widths.items():
+            sheet.column_dimensions[get_column_letter(column_index)].width = round(min(80, max(6, width)), 1)
+        if header_rows and header_rows < len(grid):
+            sheet.freeze_panes = f"A{header_rows + 1}"
         total_rows += len(grid)
         sheets.append({"name": sheet.title, "rows": len(grid), "merged_ranges": len(merges)})
     # Each image goes on the sheet of the nearest table before it, below that table.
@@ -258,7 +358,10 @@ def convert_html_to_xlsx(
             "sheets": sheets,
             "rows": total_rows,
             "images": images,
-            "warnings": warnings,
+            "formulas_restored": restored,
+            "applied_styles": sorted(applied),
+            "style_source": styled.mode,
+            "warnings": warnings + styled.warnings,
         },
         [],
     )
@@ -280,16 +383,20 @@ def convert_html_to_office(
     input_path: str | Path,
     output_path: str | Path,
     output_format: str = "docx",
+    fidelity: str = "editable",
+    use_browser: bool = True,
 ) -> tuple[bool, dict[str, Any], list[dict[str, str]]]:
-    """Dispatch to the converter for one output format. docx keeps the existing Writer mapping."""
+    """Dispatch to the converter for one output format."""
     if output_format == "docx":
         from .html_editable import convert_html_editable
 
-        return convert_html_editable(input_path, output_path)
+        return convert_html_editable(input_path, output_path, fidelity=fidelity, use_browser=use_browser)
     if output_format == "xlsx":
-        return convert_html_to_xlsx(input_path, output_path)
+        return convert_html_to_xlsx(input_path, output_path, use_browser=use_browser)
     if output_format == "pptx":
-        return convert_html_to_pptx(input_path, output_path)
+        from .html_slides import convert_html_to_pptx as convert
+
+        return convert(input_path, output_path, fidelity=fidelity, use_browser=use_browser)
     return (
         False,
         {},

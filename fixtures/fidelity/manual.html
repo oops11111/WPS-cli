@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>部署手册</title>
+<style>
+  body { font-family: "Microsoft YaHei", "Noto Sans CJK SC", sans-serif; font-size: 10.5pt; }
+  h1 { font-size: 18pt; }
+  pre { background: #f2f2f2; font-family: Consolas, monospace; font-size: 9pt; padding: 6px; }
+  code { font-family: Consolas, monospace; }
+  .warn { background: #fde9e7; border: 1px solid #e06666; padding: 6px; }
+  table.opts { border-collapse: collapse; }
+  table.opts td, table.opts th { border: 1px solid #999; padding: 3px 6px; }
+</style>
+</head>
+<body>
+<h1>部署手册</h1>
+<h2>1 环境要求</h2>
+<table class="opts">
+  <thead><tr><th>组件</th><th>版本</th><th>说明</th></tr></thead>
+  <tbody>
+    <tr><td>操作系统</td><td>Windows 10 / 11</td><td>64 位</td></tr>
+    <tr><td>WPS Office</td><td>12.1 及以上</td><td>需启用 COM 组件</td></tr>
+    <tr><td>Python</td><td>3.10 – 3.13</td><td>建议使用虚拟环境</td></tr>
+  </tbody>
+</table>
+<h2>2 安装步骤</h2>
+<ol>
+  <li>创建虚拟环境：<code>python -m venv .venv</code></li>
+  <li>安装软件包：<code>pip install wps-ai-agent-cli[html]</code></li>
+  <li>检查环境：</li>
+</ol>
+<pre><code>wps-agent doctor
+wps-agent capabilities --json</code></pre>
+<p class="warn"><strong>注意：</strong>安装过程中不要打开 WPS 文档，否则 COM 检查可能失败。</p>
+<hr>
+<h2>3 常见问题</h2>
+<p><strong>问：</strong>提示 <code>COM_BACKEND_UNAVAILABLE</code> 怎么办？</p>
+<p><strong>答：</strong>以管理员身份运行一次 WPS 的“配置工具”，勾选“兼容第三方系统和软件”。</p>
+</body>
+</html>

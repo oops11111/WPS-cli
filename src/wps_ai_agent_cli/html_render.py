@@ -128,6 +128,7 @@ def render_html(
     viewport_height: int = 900,
     timeout_seconds: int = 30,
     allow_javascript: bool = False,
+    margin_mm: float | None = None,
 ) -> tuple[bool, dict[str, Any], list[dict[str, str]]]:
     source = Path(input_path).expanduser().resolve()
     destination = Path(output_path).expanduser().resolve()
@@ -206,6 +207,7 @@ def render_html(
         "timeout_seconds": timeout_seconds,
         "allow_javascript": allow_javascript,
         "browser_executable": browser,
+        "margin_mm": margin_mm,
     }
     try:
         completed = _run_renderer(node, request, timeout_seconds)

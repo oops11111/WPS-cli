@@ -1,5 +1,7 @@
 # Phase 0 转换矩阵样例
 
+> Phase 13 起，全部转换方向由 `convert` 命令统一提供，保真度由 `fidelity-check` 度量。方向、门槛和离线实测结果见 `docs/PHASE13_PLAN.md` 的“转换方向一览”和“离线转换矩阵”，基线在 `config/fidelity_baselines.json`，用 `python scripts/fidelity_baselines.py` 复现。下面是 Phase 0 到 Phase 3 的记录。
+
 ## 已验证转换方向
 
 | 方向 | 后端 | 输入 | 输出 | 方法 | 结果 |

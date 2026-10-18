@@ -13,7 +13,11 @@
 ```bash
 pip install -e .            # 核心运行时，依赖 openpyxl
 pip install -e ".[wps]"     # Windows：pywin32
-pip install -e ".[html]"    # HTML 可编辑转换：python-docx
+pip install -e ".[html]"    # HTML 可编辑转换：python-docx、python-pptx、openpyxl
+pip install -e ".[fidelity]" # fidelity-check 的版面比较：numpy、Pillow、pypdfium2
+pip install -e ".[markdown]" # Markdown 读取：markdown-it-py（不装时用内置读取器）
+pip install -e ".[pdf]"     # PDF 转可编辑文档：pdfplumber
+pip install -e ".[ocr]"     # 扫描件 PDF 的 OCR：RapidOCR
 pip install -e ".[test]"    # 运行测试所需的全部依赖
 pip install -e ".[lint]"    # 代码检查：ruff（版本与 CI 一致）
 ```
@@ -139,7 +143,7 @@ PYTHONPATH=src python3 -m unittest discover -s tests
 
 - Phase 0/1/2: 已完成可行性验证、核心 CLI、恢复能力和 MCP server 原型
 - 已实现: 环境探测、WPS ProgID 注册检测、结构化响应、任务清单、文档注册、备份/恢复、Writer/Spreadsheet/Presentation 修改命令、MCP adapter/server、回归套件和本地复现脚本
-- MCP: legacy `2025-11-25` initialize 生命周期、分页工具发现、ping、参数/schema 校验和配置客户端持久 stdio 审计；审计会校验工具描述/schema，并限制子进程输出，当前工具面 85 项
+- MCP: legacy `2025-11-25` initialize 生命周期、分页工具发现、ping、参数/schema 校验和配置客户端持久 stdio 审计；审计会校验工具描述/schema，并限制子进程输出，当前工具面 87 项
 - 最近验证: 默认测试套件共 1033 项，Linux 无 WPS 环境下全部通过，159 项跳过（需要真实 WPS 或 PowerShell 的用例；装了 pwsh 时只跳过 69 项）；MCP adapter 会在参数比较前校验 schema 约束元数据
 - 当前实测: WPS Writer、Spreadsheets、Presentation 均已通过 PowerShell COM fallback 完成打开、保存副本和关闭；表格公式计算验证和 DOCX 到 PDF 转换验证已通过
 - Phase 1: 已完成 release candidate 审计，详见 `docs/PHASE1_RELEASE_CANDIDATE_REPORT.md`
@@ -153,7 +157,7 @@ PYTHONPATH=src python3 -m unittest discover -s tests
 - Phase 10: 已完成（写入结果自证、图表和图形可撤回），3 项出口标准均已达成：16 个已打开文档任务在 Windows 上一条命令各 3/3，写入后不再自己核对（额外调用从 50 次降到 11 次）；表格里文本框和图表标题的写入失败时在 WPS 里撤回；`v0.7.0` 已发布并在 Windows 上检查通过。选区判断的修复随 0.8.0 发布（Phase 11）。遗留缺口见 `docs/PHASE10_PLAN.md` 开头，`wps-agent tasks --phase phase10` 可列出任务
 - Phase 11: 已完成（补发选区修复、表格写入带上周围的单元格、撤回全覆盖），4 项出口标准均已达成：16 个已打开文档任务在 Windows 上一条命令各 3/3，写入后的额外调用降到 3 次、所有写入都自证通过；表格的文本框、图表标题、坐标轴标题和系列值写入失败时都在 WPS 里撤回（`undo` 6/6）；`v0.8.0` 已发布并在 Windows 上检查通过，包含 0.7.0 缺的选区修复。遗留缺口见 `docs/PHASE11_PLAN.md` 开头，`wps-agent tasks --phase phase11` 可列出任务
 - Phase 12: 已完成（全量评测、干净环境、发布 0.9.0，为 1.0 做准备）：34 个评测任务在 Windows 上全部通过（修复一项后重跑）；0.9.0 的 Release wheel 装进全新虚拟环境后通过 `inspect-env`、C1 到 C6 和 `undo` 6/6（在现有账户上，不是新账户）；PyPI 发布已略去；对外接口清单和稳定性规则已提交；`v0.9.0` 已发布并在 Windows 上检查通过；另加复杂 HTML 转换任务，三项在 Windows 上 3/3，演示动画放映确认正确。遗留缺口见 `docs/PHASE12_PLAN.md` 开头，`wps-agent tasks --phase phase12` 可列出任务
-- Phase 13（planned）: 全格式高保真互转（HTML ↔ 文字/表格/演示、WPS 格式家族、CSV、Markdown、跨类型、PDF 转可编辑，分三个里程碑发布 0.10.0 到 0.12.0），计划与待确认的决定见 `docs/PHASE13_PLAN.md`，`wps-agent tasks --phase phase13` 可列出任务
+- Phase 13（active）: 全格式高保真互转。三个里程碑的本地工作已在一次提交中完成（0.10.0）：`fidelity-check` 统一度量文字、结构、格式、动画、数据和版面；`convert` 覆盖 HTML ↔ 文字/表格/演示、WPS 格式家族（经 WPS）、CSV/TSV、Markdown、跨类型和 PDF 转可编辑（含 OCR）；`scripts/fidelity_baselines.py` 的转换矩阵 26 项离线全部达标。Windows 上的三次检查（P13-008、P13-013、P13-018）待做，见 `docs/PHASE13_PLAN.md`，`wps-agent tasks --phase phase13` 可列出任务
 
 ## 命令速查
 
@@ -170,6 +174,12 @@ python -m wps_ai_agent_cli html-render --input page.html --output page.pdf --for
 python -m wps_ai_agent_cli html-editable --input page.html --output page.docx
 python -m wps_ai_agent_cli html-editable --input page.html --output page.xlsx --format xlsx
 python -m wps_ai_agent_cli html-editable --input deck.html --output deck.pptx --format pptx
+python -m wps_ai_agent_cli html-editable --input deck.html --output deck.pptx --format pptx --fidelity appearance
+python -m wps_ai_agent_cli convert --input report.pdf --output report.docx --check
+python -m wps_ai_agent_cli convert --input sales.csv --output sales.xlsx
+python -m wps_ai_agent_cli convert --input brief.doc --output brief.docx
+python -m wps_ai_agent_cli convert --input book.xlsx --output part.docx --sheet 预算 --range A1:D20
+python -m wps_ai_agent_cli fidelity-check --source page.html --target page.docx
 python -m wps_ai_agent_cli html-roundtrip-plan --input owned-page.html
 python -m wps_ai_agent_cli html-controlled-import --input owned-page.html --output controlled.docx
 python -m wps_ai_agent_cli html-roundtrip-verify --docx controlled.docx --mapping controlled.docx.wpsmap.json

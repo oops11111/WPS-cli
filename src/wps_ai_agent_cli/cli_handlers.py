@@ -143,12 +143,50 @@ def build_command_handlers(
         args: argparse.Namespace, request_id: str, output_stream: TextIO | None
     ) -> CommandResponse:
         response = cli._with_optional_task_status(
-            lambda: cli.html_editable_response(request_id, args.input, args.output, getattr(args, "format", "docx")),
+            lambda: cli.html_editable_response(
+                request_id,
+                args.input,
+                args.output,
+                getattr(args, "format", "docx"),
+                getattr(args, "fidelity", "editable"),
+            ),
             task_id=args.task_id,
             tracked_command="html-editable",
             operation_request_id=request_id,
         )
         return response
+
+    def _handle_convert(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+        options = {
+            "fidelity": args.fidelity,
+            "ocr": args.ocr,
+            "sheet": args.sheet,
+            "cell_range": args.cell_range,
+            "images": args.images,
+            "encoding": args.encoding,
+            "delimiter": args.delimiter,
+            "dpi": args.dpi,
+            "use_browser": not args.no_browser,
+        }
+        return cli._with_optional_task_status(
+            lambda: cli.convert_response(request_id, args.input, args.output, check=args.check, **options),
+            task_id=args.task_id,
+            tracked_command="convert",
+            operation_request_id=request_id,
+        )
+
+    def _handle_fidelity_check(
+        args: argparse.Namespace, request_id: str, output_stream: TextIO | None
+    ) -> CommandResponse:
+        return cli.fidelity_check_response(
+            request_id,
+            args.source,
+            args.target,
+            renderer=args.renderer,
+            layout=not args.no_layout,
+            baseline=args.baseline,
+            use_browser=not args.no_browser,
+        )
 
     def _handle_html_roundtrip_plan(
         args: argparse.Namespace, request_id: str, output_stream: TextIO | None
@@ -912,6 +950,8 @@ def build_command_handlers(
         "html-batch-request": _handle_html_batch_request,
         "batch-template-report": _handle_batch_template_report,
         "html-editable": _handle_html_editable,
+        "convert": _handle_convert,
+        "fidelity-check": _handle_fidelity_check,
         "html-roundtrip-plan": _handle_html_roundtrip_plan,
         "html-controlled-import": _handle_html_controlled_import,
         "html-roundtrip-verify": _handle_html_roundtrip_verify,

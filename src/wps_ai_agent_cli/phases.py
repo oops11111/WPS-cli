@@ -139,7 +139,7 @@ PHASES: tuple[Phase, ...] = (
     Phase(
         id="phase13",
         name="High-fidelity conversion between all formats",
-        status="planned",
+        status="active",
         goal=(
             "Measure conversion fidelity with one check, and convert with high fidelity between HTML and the three "
             "WPS formats, across the WPS format family (legacy, WPS-native, ODF, PNG), CSV, Markdown, across "

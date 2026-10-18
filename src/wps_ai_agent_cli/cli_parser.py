@@ -194,7 +194,61 @@ def _add_conversion_commands(subparsers: argparse._SubParsersAction) -> None:
             "tables, images, speaker notes, CSS entrance animations and slide transitions."
         ),
     )
+    html_editable_parser.add_argument(
+        "--fidelity",
+        choices=["editable", "appearance"],
+        default="editable",
+        help=(
+            "editable (default): native paragraphs, lists and tables styled from the computed CSS. appearance: for "
+            "pptx, every element is placed where the browser lays it out, with decorative boxes; needs the browser."
+        ),
+    )
     html_editable_parser.add_argument("--task-id", help="Optional long-running task status id.")
+
+    convert_parser = subparsers.add_parser(
+        "convert",
+        help="Convert between HTML, DOCX, XLSX, PPTX, PDF, Markdown, CSV/TSV and the WPS, legacy Office and ODF "
+        "formats, picking the converter from the two file extensions.",
+    )
+    convert_parser.add_argument("--input", required=True, help="Source file.")
+    convert_parser.add_argument(
+        "--output",
+        required=True,
+        help="New output file; its extension chooses the format. For .png, pages are written as <name>-001.png ...",
+    )
+    convert_parser.add_argument("--fidelity", choices=["editable", "appearance"], default="editable")
+    convert_parser.add_argument("--ocr", action="store_true", help="Read scanned PDF pages with OCR (ocr extra).")
+    convert_parser.add_argument("--sheet", help="Worksheet to read (xlsx to csv, docx or pptx); the first by default.")
+    convert_parser.add_argument("--range", dest="cell_range", help="Worksheet range for a table, such as A1:D20.")
+    convert_parser.add_argument(
+        "--images", choices=["embed", "files"], default="embed", help="HTML output: data URIs or a <name>_files folder."
+    )
+    convert_parser.add_argument("--encoding", help="CSV/TSV text encoding; detected when reading by default.")
+    convert_parser.add_argument("--delimiter", help="CSV delimiter; detected when reading by default.")
+    convert_parser.add_argument("--dpi", type=int, default=150, help="PNG resolution (WPS page images).")
+    convert_parser.add_argument("--no-browser", action="store_true", help="Use the built-in CSS cascade only.")
+    convert_parser.add_argument(
+        "--check", action="store_true", help="Run fidelity-check on the result (without layout) and report it."
+    )
+    convert_parser.add_argument("--task-id", help="Optional long-running task status id.")
+
+    fidelity_parser = subparsers.add_parser(
+        "fidelity-check",
+        help="Compare a converted file with its source: text, structure, formatting, animations, data and layout.",
+    )
+    fidelity_parser.add_argument("--source", required=True, help="The original file.")
+    fidelity_parser.add_argument("--target", required=True, help="The converted file.")
+    fidelity_parser.add_argument(
+        "--renderer",
+        choices=["auto", "wps", "libreoffice", "none"],
+        default="auto",
+        help="Layout renderer: WPS is the official one on Windows; LibreOffice is the regression baseline.",
+    )
+    fidelity_parser.add_argument("--no-layout", action="store_true", help="Skip the rendered-page comparison.")
+    fidelity_parser.add_argument(
+        "--baseline", type=float, help="Recorded LibreOffice layout score; the check fails below baseline - 0.02."
+    )
+    fidelity_parser.add_argument("--no-browser", action="store_true", help="Read HTML with the built-in cascade.")
 
     html_roundtrip_parser = subparsers.add_parser(
         "html-roundtrip-plan", help="Validate owned HTML schema and build a read-only object identity map."

@@ -3384,49 +3384,49 @@
     "id": "P13-001",
     "phase": "phase13",
     "title": "fidelity-check: text, structure, formatting, animations and data",
-    "status": "todo",
+    "status": "done",
     "acceptance": "F1: a fidelity-check command (CLI and MCP) compares a source with its conversion; offline tests."
   },
   {
     "id": "P13-002",
     "phase": "phase13",
     "title": "Layout check by SSIM",
-    "status": "todo",
+    "status": "done",
     "acceptance": "F1: renders both sides to images (Chromium, WPS or LibreOffice PDF, PDF), pairs pages and computes SSIM; optional fidelity extra."
   },
   {
     "id": "P13-003",
     "phase": "phase13",
     "title": "Writer and deck fidelity inputs",
-    "status": "todo",
+    "status": "done",
     "acceptance": "F2: at least 5 Writer and 3 deck inputs with recorded LibreOffice baselines."
   },
   {
     "id": "P13-004",
     "phase": "phase13",
     "title": "HTML to docx CSS mapping",
-    "status": "todo",
+    "status": "done",
     "acceptance": "F2: character, paragraph, table, image and page properties from the browser's computed styles."
   },
   {
     "id": "P13-005",
     "phase": "phase13",
     "title": "docx to clean HTML and round trip",
-    "status": "todo",
+    "status": "done",
     "acceptance": "F2: docx to semantic HTML with inline styles and a lossless round trip."
   },
   {
     "id": "P13-006",
     "phase": "phase13",
     "title": "HTML to pptx positioned layout and animations",
-    "status": "todo",
+    "status": "done",
     "acceptance": "F2: elements at computed positions, backgrounds, fonts, exit and emphasis animations, animation order and an appearance-first mode."
   },
   {
     "id": "P13-007",
     "phase": "phase13",
     "title": "convert command for the WPS format family",
-    "status": "todo",
+    "status": "done",
     "acceptance": "F3: legacy, WPS-native and ODF formats to and from docx/xlsx/pptx and per-page PNG through WPS, with inputs and tests."
   },
   {
@@ -3440,28 +3440,28 @@
     "id": "P13-009",
     "phase": "phase13",
     "title": "pptx to HTML",
-    "status": "todo",
+    "status": "done",
     "acceptance": "F2: each slide a section with absolutely positioned elements, animations back to CSS keyframes and transitions to data-transition."
   },
   {
     "id": "P13-010",
     "phase": "phase13",
     "title": "HTML to and from xlsx with styles",
-    "status": "todo",
+    "status": "done",
     "acceptance": "F2: fonts, fills, borders, alignment, column widths, frozen headers, xlsx to HTML and a formula-preserving round trip."
   },
   {
     "id": "P13-011",
     "phase": "phase13",
     "title": "CSV and Markdown",
-    "status": "todo",
+    "status": "done",
     "acceptance": "F4: CSV/TSV to and from xlsx with encoding, delimiter and type handling; Markdown to and from docx/HTML."
   },
   {
     "id": "P13-012",
     "phase": "phase13",
     "title": "Cross-type conversion",
-    "status": "todo",
+    "status": "done",
     "acceptance": "F5: docx to and from pptx and xlsx ranges to docx/pptx tables by rule."
   },
   {
@@ -3475,28 +3475,28 @@
     "id": "P13-014",
     "phase": "phase13",
     "title": "PDF to docx",
-    "status": "todo",
+    "status": "done",
     "acceptance": "F6: text layer, paragraphs, headings, lists, tables, images, headers and footers."
   },
   {
     "id": "P13-015",
     "phase": "phase13",
     "title": "PDF to xlsx and pptx",
-    "status": "todo",
+    "status": "done",
     "acceptance": "F6: table detection into sheets; each page an editable slide."
   },
   {
     "id": "P13-016",
     "phase": "phase13",
     "title": "OCR for scanned PDFs",
-    "status": "todo",
+    "status": "done",
     "acceptance": "F6: optional ocr extra; a clear error when it is missing."
   },
   {
     "id": "P13-017",
     "phase": "phase13",
     "title": "Conversion evaluation tasks",
-    "status": "todo",
+    "status": "done",
     "acceptance": "F7: at least one task per group with offline judge tests."
   },
   {
