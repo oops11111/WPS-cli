@@ -19,6 +19,11 @@ Phase 12: a committed inventory of the public interface with stability rules, ch
 
 ### Changed
 
+- `html-editable` keeps much more of a complex page (P12-013):
+  - docx: images and captions in `<figure>`, table captions, `<details>`, bold, italic, underline, strike-through, sub- and superscript, code, highlight and inline-style colour; `rowspan` and `colspan` become merged cells; nested lists become second- and third-level list paragraphs; source whitespace is collapsed, except in `<pre>`.
+  - xlsx: merged cells for `rowspan` and `colspan`; numbers with thousands separators, signs, percent, currency or exponents become numbers with a matching number format; ISO-like dates become dates; `<br>` becomes a line break in the cell; a cell's only link becomes a hyperlink; local images are placed below the table before them. The sheet result lists `merged_ranges` per sheet and the `images` placed.
+  - pptx (now in `html_slides.py`): tables (with merged cells), local images and media, speaker notes from `<aside class="notes">`, inline formatting and list levels; CSS `@keyframes` animations become entrance effects (fly in, zoom or fade, after their `animation-delay`), and `data-transition` or a CSS `transition` on the section becomes the slide transition. The result has `mapped_objects`.
+  - What is still not converted (scripts, SVG, hover effects, unavailable media, nested tables in a spreadsheet, formulas) is named in `warnings`; nothing is dropped silently.
 - `docs/RELEASING.md` states the stability rules before and after 1.0 (what is breaking, how long a deprecation lasts, that new fields under `data` are not breaking) and a checklist for 1.0. (P12-006)
 
 ### Fixed

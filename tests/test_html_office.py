@@ -105,7 +105,7 @@ class HtmlToPptxTests(unittest.TestCase):
             titles = [slide.shapes.title.text for slide in Presentation(target).slides]
             self.assertEqual(titles, ["One", "Two"])
 
-    def test_tables_are_reported_as_not_converted_to_slides(self):
+    def test_tables_become_slide_tables(self):
         with tempfile.TemporaryDirectory() as tmp:
             source = Path(tmp) / "deck.html"
             source.write_text(TABLES_HTML.replace("<h2>Sales</h2>", "<h1>Sales</h1>"), encoding="utf-8")
@@ -113,7 +113,11 @@ class HtmlToPptxTests(unittest.TestCase):
             ok, data, _errors = convert_html_to_pptx(source, Path(tmp) / "out.pptx")
 
             self.assertTrue(ok)
-            self.assertTrue(any("table(s) were not converted" in warning for warning in data["warnings"]))
+            self.assertEqual(data["mapped_objects"]["tables"], 2)
+            tables = [shape.table for shape in Presentation(Path(tmp) / "out.pptx").slides[0].shapes if shape.has_table]
+            self.assertEqual(tables[0].cell(1, 1).text, "1200")
+            # The missing chart.png is reported, not dropped silently.
+            self.assertTrue(any("chart.png" in warning for warning in data["warnings"]))
 
 
 class HtmlOfficeRefusalTests(unittest.TestCase):

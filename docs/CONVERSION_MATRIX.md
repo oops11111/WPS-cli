@@ -81,8 +81,14 @@ python -m wps_ai_agent_cli html-render --input .\page.html --output .\page.png -
 
 ## HTML editable-first (P3-115)
 
-`html-editable` maps semantic headings, paragraphs, lists, tables, hyperlinks,
-and bounded local images to editable WordprocessingML in a new DOCX. Links are
+`html-editable` maps semantic headings, paragraphs, lists (nested lists as
+second- and third-level list paragraphs), tables (`rowspan`/`colspan` as merged
+cells, `<caption>` as a caption), hyperlinks, `<figure>` images with their
+captions, `<details>`, and bounded local images to editable WordprocessingML in
+a new DOCX. Bold, italic, underline, strike-through, sub/superscript, code and
+highlight elements, and the weight, slant, decoration and colour of inline
+`style` attributes, become run formatting; source whitespace is collapsed except
+in `<pre>` (P12-013). Links are
 real DOCX hyperlinks, not fetched during conversion. Images must resolve inside
 the source directory after symlink resolution; remote images, scripts, and
 unsupported embedded content are omitted with warnings. Input is limited to 10
@@ -98,11 +104,24 @@ python -m wps_ai_agent_cli html-editable --input .\page.html --output .\page.doc
 `--format` chooses the Office output. `docx` (default) is the Writer mapping
 above. `xlsx` maps each `<table>` to a worksheet, named by the nearest preceding
 heading (later tables with no heading of their own keep the same name, with a
-number added). Numbers become numeric cells, but text with leading zeros stays
-text. Cells that start with `=` are written as text, not formulas, and reported
-as a warning. `pptx` maps each `<section>`, and each `<h1>` or `<h2>`, to a
-slide: the heading is the title, and paragraphs and list items are the body.
-Tables and images are reported as not converted. The xlsx and pptx converters
+number added). `rowspan`/`colspan` become merged cells. Numbers, including
+thousands-separated, signed, percent, currency and scientific ones, become
+numeric cells with a matching number format, and ISO-like dates become dates;
+text with leading zeros stays text. `<br>` is a line break in the cell, a
+cell's only link is a hyperlink, and local images go below the table before
+them. Cells that start with `=` are written as text, not formulas, and reported
+as a warning; a table nested in a cell is written into it as text, with a
+warning. `pptx` maps each `<section>`, and each `<h1>` or `<h2>`, to a slide:
+the heading is the title, paragraphs and list items (with their level) are the
+body, and tables, local images and local video/audio share the space below.
+`<aside class="notes">` becomes the speaker notes. CSS `@keyframes` animations
+become entrance effects that start with the slide after their
+`animation-delay` (a translate flies in from its side, a scale zooms, anything
+else fades), and `data-transition` (fade, push, wipe, cover, split, dissolve,
+zoom, cut) or a CSS `transition` on the section becomes the slide transition.
+SVG, scripts, hover effects and unavailable media are named in `warnings`
+(P12-013). `fixtures/html_complex/` holds a report, a budget and an animated
+deck that exercise all of this. The xlsx and pptx converters
 run offline and do not use WPS. Their output has been opened in WPS on one
 machine: the xlsx in WPS Spreadsheets and the pptx in WPS Presentation, and
 both exported back to HTML with their sheet name, cell text, slide titles and

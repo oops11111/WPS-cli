@@ -188,7 +188,11 @@ def _add_conversion_commands(subparsers: argparse._SubParsersAction) -> None:
         "--format",
         choices=["docx", "xlsx", "pptx"],
         default="docx",
-        help="docx: Writer content. xlsx: each table becomes a worksheet. pptx: each section or h1/h2 becomes a slide.",
+        help=(
+            "docx: Writer content with inline formatting, merged table cells and images. xlsx: each table becomes a "
+            "worksheet with merged cells and typed numbers. pptx: each section or h1/h2 becomes a slide, with "
+            "tables, images, speaker notes, CSS entrance animations and slide transitions."
+        ),
     )
     html_editable_parser.add_argument("--task-id", help="Optional long-running task status id.")
 

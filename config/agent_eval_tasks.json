@@ -1486,12 +1486,31 @@
             "上海 6 家",
             "汇率风险",
             "SELECT region",
-            "finance@example.com"
+            "finance@example.com",
+            "表 1 分区域收入（万元）",
+            "图 1 季度收入趋势",
+            "收入按权责发生制确认"
           ],
           "absent": [
             "document.title",
             "alert(1)"
           ]
+        },
+        {
+          "kind": "docx_table_cell",
+          "path": "report.docx",
+          "table": 1,
+          "row": 1,
+          "column": 2,
+          "text": "收入"
+        },
+        {
+          "kind": "docx_table_cell",
+          "path": "report.docx",
+          "table": 1,
+          "row": 2,
+          "column": 2,
+          "text": "Q2"
         },
         {
           "kind": "docx_table_cell",
@@ -1587,6 +1606,34 @@
           "sheet": "人员编制",
           "cell": "B4",
           "value": "Émile O'Brien"
+        },
+        {
+          "kind": "xlsx_cell",
+          "path": "budget.xlsx",
+          "sheet": "部门费用预算",
+          "cell": "B2",
+          "value": "Q1"
+        },
+        {
+          "kind": "xlsx_cell",
+          "path": "budget.xlsx",
+          "sheet": "人员编制",
+          "cell": "D2",
+          "value": 18500
+        },
+        {
+          "kind": "xlsx_cell",
+          "path": "budget.xlsx",
+          "sheet": "人员编制",
+          "cell": "E3",
+          "value": 0.95
+        },
+        {
+          "kind": "xlsx_cell",
+          "path": "budget.xlsx",
+          "sheet": "人员编制",
+          "cell": "B5",
+          "value": "王\n小明"
         },
         {
           "kind": "tool_called",
