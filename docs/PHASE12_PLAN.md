@@ -64,7 +64,7 @@ Phase 12 做这三件事，最后发布 0.9.0。是否以及何时定 1.0，仍�
 | P12-009 | M5 | 在 Windows 上：`wheel --version 0.9.0`（原为 `--source pypi`，PyPI 发布已略去） | Windows |
 | P12-011 | （新增） | 复杂 HTML 测试：一份报告（`report.html`）、一份预算表（`budget.html`）、一份带动画的演示（`launch.html`），放在 `fixtures/html_complex/`；三个评测任务各把一份转换为 docx、xlsx 或 pptx，再用 WPS 转为 PDF；离线判定测试；记下转换丢了什么（已完成，见下文“复杂 HTML 转换”） | 本地 |
 | P12-013 | （新增） | 补齐 P12-011 发现的转换缺口（已完成，见下文“补齐缺口”） | 本地 |
-| P12-012 | （新增） | 在 Windows 上：`eval --prefix html-complex- --repeat 3 --min-passes 2`；在 WPS 演示里放映 `launch.pptx`，确认动画和切换 | Windows |
+| P12-012 | （新增） | 在 Windows 上：`eval --prefix html-complex- --repeat 3 --min-passes 2`；在 WPS 演示里放映 `launch.pptx`，确认动画和切换（第一轮：报告、演示 3/3，预算表 0/3，修复后重跑，见下文“P12-012 结果”） | Windows |
 | P12-010 | M2 | 在 Windows 的新账户上：从 GitHub Release 的 wheel 安装 0.9.0，跑 `inspect-env`、C1 到 C6、`undo` | Windows |
 
 ## 建议顺序
@@ -149,6 +149,32 @@ P12-010 在新建的本地账户上按 `docs/COMPATIBILITY_MATRIX.md` 的“干�
 | launch → pptx | 幻灯片表格（合并单元格、表头加粗）；本地图片和本地音视频；`<aside class="notes">` 成为演讲者备注；行内格式；嵌套列表层级；`@keyframes` 动画成为进入效果：平移是“飞入”（按方向），缩放是“缩放”，其他是“淡入”，都随幻灯片开始、按 `animation-delay` 延迟，列表项逐段出现；`data-transition`（fade、push、wipe、cover、split、dissolve、zoom、cut）或 section 上的 CSS `transition` 成为切换效果 | SVG；脚本；`:hover`/`:focus` 效果；找不到的视频（`teaser.mp4`）；段落里一部分文字的动画用到整段；未知的切换名 |
 
 LibreOffice 把动画读成 `ooo-entrance-fly-in`、`ooo-entrance-fade-in`、`ooo-entrance-fade-in-and-zoom`，切换读成 fade、push、wipe，延迟 0.2/0.4/0.6 秒都对。WPS 里的效果要在 P12-012 上机时确认：任务会让 WPS 打开转换结果并导出 PDF；动画本身需要你在 WPS 演示里放映 `launch.pptx` 看一眼。
+
+## P12-012 结果（第一轮）
+
+`scripts/windows_check/results/20261018T010801Z-1fdbcfb-eval/`：`main@1fdbcfb`，三个任务各 3 次，用时 8 分钟，Claude API 约 5.4 美元。
+
+| 任务 | 结果 | 说明 |
+| --- | --- | --- |
+| `html-complex-report-to-docx` | 3/3 | WPS 打开转换出的 docx 并导出 PDF |
+| `html-complex-launch-to-pptx` | 3/3 | WPS 打开带动画、切换、表格、图片和备注的 pptx 并导出 PDF |
+| `html-complex-budget-to-xlsx` | **0/3** | 三个原因，见下 |
+
+预算表没通过的原因：
+
+1. **WPS 保存时改了工作表名。** 第四张表名里的全角冒号“：”在 WPS 保存后变成了“_”（第 3 次运行写公式之前用原名能读到，之后就是 `SHEET_NOT_FOUND`），`xlsx_sheets` 检查失败。Excel 只禁止半角的 `[ ] : * ? / \`，WPS 还会替换它们的全角形式。修复：转换时把全角形式也换成空格。
+2. **`spreadsheet-read` 读日期单元格失败。** 读“入职日期”列时返回 `MCP_TOOL_EXECUTION_FAILED`（`TypeError: Object of type datetime is not JSON serializable`）。这是早就存在的缺陷，以前的评测表格里没有日期；P12-013 把日期写成了真正的日期后才暴露。修复：命令结果和 MCP 回复里的日期、时间一律写成 ISO 8601 文本。
+3. **Agent 自作主张把 `=SUM(...)` 文本改成了公式**（`spreadsheet_formula_write`），又因为读日期失败反复检查，三次都用满了 15 轮，其中两次没来得及导出 PDF。修复：公式警告写明“保持文本，除非用户要求可计算的公式”；读日期不再失败，也就不需要反复检查。
+
+报告和演示也有较多不必要的核对调用（报告 15 次、演示 9 次，都在写入之前，比如 `inspect_env`、`register_document`、`snapshot_document`），不影响判定。
+
+`launch.pptx` 在 WPS 演示里放映的动画和切换效果还没有记录，要你看一眼。
+
+第二轮只重跑预算表：
+
+```powershell
+python scripts/windows_check/run_windows_check.py eval --only html-complex-budget-to-xlsx --repeat 3 --min-passes 2
+```
 
 ## P12-002 结果
 
