@@ -64,7 +64,7 @@ Phase 12 做这三件事，最后发布 0.9.0。是否以及何时定 1.0，仍�
 | P12-009 | M5 | 在 Windows 上：`wheel --version 0.9.0`（原为 `--source pypi`，PyPI 发布已略去） | Windows |
 | P12-011 | （新增） | 复杂 HTML 测试：一份报告（`report.html`）、一份预算表（`budget.html`）、一份带动画的演示（`launch.html`），放在 `fixtures/html_complex/`；三个评测任务各把一份转换为 docx、xlsx 或 pptx，再用 WPS 转为 PDF；离线判定测试；记下转换丢了什么（已完成，见下文“复杂 HTML 转换”） | 本地 |
 | P12-013 | （新增） | 补齐 P12-011 发现的转换缺口（已完成，见下文“补齐缺口”） | 本地 |
-| P12-012 | （新增） | 在 Windows 上：`eval --prefix html-complex- --repeat 3 --min-passes 2`；在 WPS 演示里放映 `launch.pptx`，确认动画和切换（第一轮：报告、演示 3/3，预算表 0/3，修复后重跑，见下文“P12-012 结果”） | Windows |
+| P12-012 | （新增） | 在 Windows 上：`eval --prefix html-complex- --repeat 3 --min-passes 2`；在 WPS 演示里放映 `launch.pptx`，确认动画和切换（评测已通过：报告、演示 3/3，预算表修复后 3/3，见下文“P12-012 结果”；放映确认待做） | Windows |
 | P12-010 | M2 | 在 Windows 的新账户上：从 GitHub Release 的 wheel 安装 0.9.0，跑 `inspect-env`、C1 到 C6、`undo` | Windows |
 
 ## 建议顺序
@@ -175,6 +175,16 @@ LibreOffice 把动画读成 `ooo-entrance-fly-in`、`ooo-entrance-fade-in`、`oo
 ```powershell
 python scripts/windows_check/run_windows_check.py eval --only html-complex-budget-to-xlsx --repeat 3 --min-passes 2
 ```
+
+## P12-012 结果（第二轮）
+
+`scripts/windows_check/results/20261018T045319Z-d126c8c-eval/`：`main@d126c8c`（#116 合并后），只重跑预算表，各 3 次。
+
+- `html-complex-budget-to-xlsx` **3/3**，工具错误 0，`wrong_tool_calls` 0。
+- 读日期列不再失败；工作表名在 WPS 保存后不变；Agent 没有再把 `=SUM(...)` 文本改写成公式。
+- 多余的核对调用从第一轮的 39 次降到 7 次（`inspect_env`、`register_document`、`spreadsheet_sheets`、`spreadsheet_read`），轮数平均 10.7。
+
+三个复杂 HTML 任务都已通过：报告、演示在 `1fdbcfb` 上 3/3，预算表在 `d126c8c` 上 3/3。还差一项人工确认：在 WPS 演示里放映 `launch.pptx`，看动画（标题飞入、日期淡入、列表逐条飞入）和切换效果，结果记到这里。
 
 ## P12-002 结果
 
