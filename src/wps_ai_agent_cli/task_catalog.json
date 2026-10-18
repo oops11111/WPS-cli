@@ -3379,5 +3379,75 @@
     "title": "Windows run of the complex HTML tasks",
     "status": "done",
     "acceptance": "run_windows_check.py eval --prefix html-complex- --repeat 3 --min-passes 2 on Windows; each task at least 2 of 3; launch.pptx shown in WPS Presentation with its animations and transitions; results recorded."
+  },
+  {
+    "id": "P13-001",
+    "phase": "phase13",
+    "title": "fidelity-check: text, structure, formatting and animations",
+    "status": "todo",
+    "acceptance": "F1: a fidelity-check command (CLI and MCP) compares source HTML, using the browser's computed styles, with the converted file on text, structure, formatting and animations; offline tests."
+  },
+  {
+    "id": "P13-002",
+    "phase": "phase13",
+    "title": "Layout check by SSIM",
+    "status": "todo",
+    "acceptance": "F1: renders the HTML with Chromium and the result as PDF through LibreOffice or WPS, renders pages with pypdfium2, pairs pages and computes SSIM; optional fidelity extra with numpy."
+  },
+  {
+    "id": "P13-003",
+    "phase": "phase13",
+    "title": "Fidelity inputs and baselines",
+    "status": "todo",
+    "acceptance": "F2, F3: at least 5 Writer inputs and 3 deck inputs, each with a recorded LibreOffice baseline."
+  },
+  {
+    "id": "P13-004",
+    "phase": "phase13",
+    "title": "HTML to docx CSS mapping",
+    "status": "todo",
+    "acceptance": "F2: the listed character, paragraph, table, image and page properties from the browser's computed styles."
+  },
+  {
+    "id": "P13-005",
+    "phase": "phase13",
+    "title": "HTML to pptx positioned layout and animations",
+    "status": "todo",
+    "acceptance": "F3: elements at the browser's computed positions and sizes, backgrounds, fonts, exit and emphasis animations and animation order."
+  },
+  {
+    "id": "P13-006",
+    "phase": "phase13",
+    "title": "docx to clean HTML and round trip",
+    "status": "todo",
+    "acceptance": "F4: docx to semantic HTML with inline styles; HTML to docx to HTML round trip and WPS-saved originals tested."
+  },
+  {
+    "id": "P13-007",
+    "phase": "phase13",
+    "title": "Appearance-first mode",
+    "status": "todo",
+    "acceptance": "F2, F3: --fidelity appearance keeps layouts editable formats cannot express with text boxes and fixed positions."
+  },
+  {
+    "id": "P13-008",
+    "phase": "phase13",
+    "title": "Fidelity evaluation tasks",
+    "status": "todo",
+    "acceptance": "F5: evaluation tasks where the agent converts and runs fidelity-check, with offline judge tests."
+  },
+  {
+    "id": "P13-009",
+    "phase": "phase13",
+    "title": "Windows fidelity run",
+    "status": "todo",
+    "acceptance": "F2 to F5: every input through fidelity-check with WPS, the html- evaluation tasks, and a slideshow check; results recorded."
+  },
+  {
+    "id": "P13-010",
+    "phase": "phase13",
+    "title": "Release 0.10.0",
+    "status": "todo",
+    "acceptance": "F6: version 0.10.0 per docs/RELEASING.md and a CHANGELOG section, merged before the maintainer pushes the v0.10.0 tag."
   }
 ]

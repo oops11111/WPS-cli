@@ -136,6 +136,16 @@ PHASES: tuple[Phase, ...] = (
             "release 0.9.0 on GitHub (PyPI publishing skipped on 2026-10-17)."
         ),
     ),
+    Phase(
+        id="phase13",
+        name="High-fidelity conversion: HTML to and from Writer, HTML to Presentation",
+        status="planned",
+        goal=(
+            "Measure conversion fidelity (text, structure, formatting, layout SSIM, animations), convert HTML to "
+            "docx and pptx with the browser's computed styles and positions, export docx back to clean HTML with a "
+            "lossless round trip, and release 0.10.0."
+        ),
+    ),
 )
 
 
