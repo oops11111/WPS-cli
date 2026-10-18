@@ -123,7 +123,7 @@ E2 原来的达成条件：两个版本的 C1 到 C6 都是 pass（C2、C3 都�
 
    ```powershell
    py -m venv $HOME\wps-agent-venv
-   $HOME\wps-agent-venv\Scripts\python -m pip install "wps-ai-agent-cli[wps] @ https://github.com/oops11111/WPS-cli/releases/download/v0.9.0/wps_ai_agent_cli-0.9.0-py3-none-any.whl"
+   $HOME\wps-agent-venv\Scripts\python -m pip install "wps-ai-agent-cli[wps,html] @ https://github.com/oops11111/WPS-cli/releases/download/v0.9.0/wps_ai_agent_cli-0.9.0-py3-none-any.whl"
    $HOME\wps-agent-venv\Scripts\wps-agent inspect-env
    ```
 
@@ -148,7 +148,7 @@ E2 原来的达成条件：两个版本的 C1 到 C6 都是 pass（C2、C3 都�
 
 - 日期：
 - 机器：同一台 Windows <版本>，新建本地账户 `<名字>`
-- 安装：`pip install "wps-ai-agent-cli[wps] @ <Release 上 wheel 的地址>"`，包路径 `<site-packages 下的路径>`
+- 安装：`pip install "wps-ai-agent-cli[wps,html] @ <Release 上 wheel 的地址>"`（`html` 是 C4 到 C6 用 `html-editable` 生成 docx 和 pptx 所需的，P12-010 发现），包路径 `<site-packages 下的路径>`
 - 首次启动 WPS 时出现过的对话框：
 
 | # | 结果 | 证据 |
@@ -163,4 +163,31 @@ E2 原来的达成条件：两个版本的 C1 到 C6 都是 pass（C2、C3 都�
 
 ### 结果
 
-未跑（P12-010，需要 0.9.0 发布到 GitHub Release 之后）。
+#### 干净账户，WPS 12.8.2.18913，wps-ai-agent-cli 0.9.0
+
+- 日期：2026-10-18
+- 机器：同一台 Windows 10.0.19045；**没有新建本地账户**，用的是当前 `admin` 账户加一个全新虚拟环境（2026-10-18 你确认按此执行，因为机器上没有可用的新账户）
+- 安装：`pip install "wps-ai-agent-cli[wps,html] @ https://github.com/oops11111/WPS-cli/releases/download/v0.9.0/wps_ai_agent_cli-0.9.0-py3-none-any.whl"`；包路径 `C:\Users\admin\wps-agent-venv-clean\Lib\site-packages\wps_ai_agent_cli\__init__.py`
+- 仓库：`main@588b70f` 的现有 worktree，只提供 fixtures 和脚本，没有 `pip install -e`
+- 首次启动 WPS 时出现过的对话框：本次 C4–C6 通过 COM 打开临时目录里的文件，没有需要手工处理的对话框；此前在这台账户上见过 WPS 的“信任这些文件夹吗？”提示。首次启动界面在此前的使用中已经处理过
+
+| # | 结果 | 证据 |
+| --- | --- | --- |
+| K0 | pass | `--installed prereq --skip-claude`：`installed package` 为 `0.9.0 from C:\Users\admin\wps-agent-venv-clean\Lib\site-packages\wps_ai_agent_cli\__init__.py`，其余必需项全过；同一结果也出现在 undo 的 `RESULTS.md` |
+| K1 | pass | `inspect-env`：writer `kwps.Application`、spreadsheets `ket.Application`、presentation `kwpp.Application`，三个都 `detected: true` |
+| C1 | pass | `wps-version-compare --record`：`ok: true`，三个组件 `current` 都是 `12.8.2.18913`，`relation` 都是 `absent_baseline`，写入 `.wps-agent\wps-versions.json`（版本号来源：`office6` 下三个 exe 的 FileVersion） |
+| C2 | 4/4 | `%TEMP%\p12-010-artifacts\wps\regression-run-20261018T074830046685Z-66d6e99e-48f5-4f17-a69a-4186aa61428b.json` |
+| C3 | 4/4 | `%TEMP%\p12-010-artifacts\compat\regression-run-20261018T075024385797Z-ccf75ef8-c266-4b13-bf78-83492ba89311.json` |
+| C4 | pass | `compat-writer.html` 314684 字节，含 `COMPAT-WRITER`；源 SHA-256 前后都是 `1FDAC6E192CE434B5FECE6DEE5760278D266113D65014CF548031C740FA42791`；`open-documents --component writer` 仍列出 |
+| C5 | pass | `compat-sheet.html` 19480 字节，含 `COMPAT-SHEET`；源 SHA-256 前后都是 `562FB502AF6B85B8EDBB755EFB7346504B4CCDCDC2D48700E32D87BFCC4F287B`；仍列出 |
+| C6 | pass | `compat-slide.files\slide0001.htm` 8031 字节，含 `COMPAT-SLIDE`；源 SHA-256 前后都是 `AFA54A3AE8E62D2863B231F017D9C1627704016F2362E78EC154EE323E1D4D69`；仍列出 |
+| K8 | pass | `--installed undo`：6/6，结果目录 `scripts\windows_check\results\20261018T075158Z-588b70f-undo` |
+
+与原账户的差异：
+
+- **不是新账户。** 当前 `admin` 账户上已经跑过很多次评测，这一节不能证明“全新用户配置”下的行为；K0 证明的是包来自 Release wheel 的 site-packages，不是仓库的 `src/`。
+- 安装时在 `[wps]` 之外加了 `html` extra。文档的步骤只装 `[wps]`，但不装 `html` 时 `html-editable` 不能生成 C4–C6 需要的 docx 和 pptx（`ModuleNotFoundError: python-docx` / `python-pptx`）。
+- 用现有 worktree 而不是新 clone；仓库只提供 fixtures 和脚本，没有 `pip install -e`。
+- C2、C3 的 `manifest_path` 是仓库里的 `config\regression_manifest.json`（从仓库根目录运行），不是安装包里的那份；Release workflow 的 safe profile 用的是 site-packages 里的 manifest。
+- 没有手工打开三个组件确认默认应用；`prereq` 的 `open command` 检查显示 `.docx`、`.xlsx`、`.pptx` 都指向 WPS 12.8.2.18913。
+

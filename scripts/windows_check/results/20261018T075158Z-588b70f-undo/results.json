@@ -1,0 +1,419 @@
+{
+  "prerequisites": {
+    "passed": true,
+    "checks": [
+      {
+        "name": "commit",
+        "ok": true,
+        "detail": "588b70f on main",
+        "required": true
+      },
+      {
+        "name": "python",
+        "ok": true,
+        "detail": "C:\\Users\\admin\\wps-agent-venv-clean\\Scripts\\python.exe",
+        "required": true
+      },
+      {
+        "name": "windows",
+        "ok": true,
+        "detail": "Windows-10-10.0.19045-SP0",
+        "required": true
+      },
+      {
+        "name": "installed package",
+        "ok": true,
+        "detail": "0.9.0 from C:\\Users\\admin\\wps-agent-venv-clean\\Lib\\site-packages\\wps_ai_agent_cli\\__init__.py",
+        "required": true
+      },
+      {
+        "name": "no WPS process running",
+        "ok": true,
+        "detail": "none",
+        "required": true
+      },
+      {
+        "name": "open command .docx",
+        "ok": true,
+        "detail": "\"C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\wps.exe\" \"%1\"",
+        "required": true
+      },
+      {
+        "name": "open command .xlsx",
+        "ok": true,
+        "detail": "\"C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\et.exe\" \"%1\"",
+        "required": true
+      },
+      {
+        "name": "open command .pptx",
+        "ok": true,
+        "detail": "\"C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\wpp.exe\" \"%1\"",
+        "required": true
+      },
+      {
+        "name": "inspect-env",
+        "ok": true,
+        "detail": "{\"presentation\": \"kwpp.Application\", \"spreadsheets\": \"ket.Application\", \"writer\": \"kwps.Application\"}",
+        "required": true
+      }
+    ],
+    "info": {
+      "commit": "588b70f",
+      "branch": "main",
+      "python": "C:\\Users\\admin\\wps-agent-venv-clean\\Scripts\\python.exe",
+      "platform": "Windows-10-10.0.19045-SP0",
+      "package": {
+        "version": "0.9.0",
+        "file": "C:\\Users\\admin\\wps-agent-venv-clean\\Lib\\site-packages\\wps_ai_agent_cli\\__init__.py"
+      },
+      "wps_versions": {
+        "wps.exe": "12,8,2,18913",
+        "et.exe": "12,8,2,18913",
+        "wpp.exe": "12,8,2,18913"
+      }
+    }
+  },
+  "settings": {
+    "scenarios": [
+      "writer-replace",
+      "presentation-replace",
+      "spreadsheet-shape-text-replace",
+      "spreadsheet-chart-title-replace",
+      "spreadsheet-axis-title-replace",
+      "spreadsheet-series-values-replace"
+    ],
+    "wps_launch": "default"
+  },
+  "results": [
+    {
+      "scenario": "writer-replace",
+      "component": "writer",
+      "workspace": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261018T075158Z-588b70f-undo\\writer-replace-45kx84vb",
+      "text_before": "Quarterly report\nStatus: DRAFT\nOwner: Finance",
+      "hashes": {
+        "before_write": "9101bd83c4253fb96a471f21d897fe6e80ef8edb21595060e1e56698c565dbcb",
+        "before_undo": "AEE61C525787D7DB43506E304A540165E314270C648C08E758884062C58AA285",
+        "after_undo": "5FCB6CF03210D745ED11A69C05820673B4C27AC31BA3EC7E02EAF9E2C8006603",
+        "now": "5fcb6cf03210d745ed11a69c05820673b4c27ac31ba3ec7e02eaf9e2c8006603"
+      },
+      "ok": false,
+      "injected": true,
+      "real_read_back_text": "FINAL",
+      "com_actions": [
+        "selection-read",
+        "selection-replace",
+        "selection-revert"
+      ],
+      "error_codes": [
+        "VALIDATION_FAILED",
+        "MUTATION_ROLLED_BACK"
+      ],
+      "errors": [
+        {
+          "code": "VALIDATION_FAILED",
+          "message": "Selection replacement read-back did not match the replacement text."
+        },
+        {
+          "code": "MUTATION_ROLLED_BACK",
+          "message": "The write was undone in WPS: the command put the original back, read it back and saved it, and the saved file's content matches the pre-write backup. The document stays open in WPS and nothing else needs to be done."
+        }
+      ],
+      "rollback": {
+        "method": "in_wps",
+        "rolled_back_in_wps": true,
+        "backup_path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261018T075158Z-588b70f-undo\\writer-replace-45kx84vb\\.wps-agent\\backups\\doc_4eb8af86ddbc18c5\\report.20261018T075209435156Z.docx",
+        "file_sha256_before_undo": "AEE61C525787D7DB43506E304A540165E314270C648C08E758884062C58AA285",
+        "status": "reverted",
+        "read_back_text": "DRAFT",
+        "saved": true,
+        "file_sha256_after_undo": "5FCB6CF03210D745ED11A69C05820673B4C27AC31BA3EC7E02EAF9E2C8006603",
+        "content_matches_backup": true
+      },
+      "selection": {
+        "selection_text": "DRAFT"
+      },
+      "text_after": "Quarterly report\nStatus: DRAFT\nOwner: Finance",
+      "wps_saved_after": true,
+      "cleanup": "fixture closed; processes exited 36432 (main window closed)",
+      "passed": true
+    },
+    {
+      "scenario": "presentation-replace",
+      "component": "presentation",
+      "workspace": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261018T075158Z-588b70f-undo\\presentation-replace-9lbthej5",
+      "text_before": "Quarterly review\nStatus: DRAFT",
+      "hashes": {
+        "before_write": "bd6f2a7694752cf2df6da616ab6ece7dfe69fd264418ac319eb56113273862f6",
+        "before_undo": "ECAD299381BF00E9B4F89C5FF64B691582AC6FA5D1E758AADCE641E88F8C0D0A",
+        "after_undo": "6B97570439C7CE685FFE3E59FEE752B4BFCCE85D06CD11AD4C66A190FD00A09E",
+        "now": "6b97570439c7ce685ffe3e59fee752b4bfcce85d06cd11ad4c66a190fd00a09e"
+      },
+      "ok": false,
+      "injected": true,
+      "real_read_back_text": "FINAL",
+      "com_actions": [
+        "selection-read",
+        "selection-replace",
+        "selection-revert"
+      ],
+      "error_codes": [
+        "VALIDATION_FAILED",
+        "MUTATION_ROLLED_BACK"
+      ],
+      "errors": [
+        {
+          "code": "VALIDATION_FAILED",
+          "message": "Selection replacement read-back did not match the replacement text."
+        },
+        {
+          "code": "MUTATION_ROLLED_BACK",
+          "message": "The write was undone in WPS: the command put the original back, read it back and saved it, and the saved file's content matches the pre-write backup. The document stays open in WPS and nothing else needs to be done."
+        }
+      ],
+      "rollback": {
+        "method": "in_wps",
+        "rolled_back_in_wps": true,
+        "backup_path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261018T075158Z-588b70f-undo\\presentation-replace-9lbthej5\\.wps-agent\\backups\\doc_6848434d0e38011b\\deck.20261018T075238841255Z.pptx",
+        "file_sha256_before_undo": "ECAD299381BF00E9B4F89C5FF64B691582AC6FA5D1E758AADCE641E88F8C0D0A",
+        "status": "reverted",
+        "read_back_text": "Status: DRAFT",
+        "saved": true,
+        "file_sha256_after_undo": "6B97570439C7CE685FFE3E59FEE752B4BFCCE85D06CD11AD4C66A190FD00A09E",
+        "content_matches_backup": true
+      },
+      "selection": {
+        "selection_kind": "text",
+        "selection_text": "DRAFT"
+      },
+      "text_after": "Quarterly review\nStatus: DRAFT",
+      "wps_saved_after": true,
+      "cleanup": "fixture closed; processes exited 15252 (Quit())",
+      "passed": true
+    },
+    {
+      "scenario": "spreadsheet-shape-text-replace",
+      "component": "spreadsheets",
+      "workspace": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261018T075158Z-588b70f-undo\\spreadsheet-shape-text-replace-e9lfguun",
+      "text_before": "Status!A1=Quarter\nStatus!B1=Sales\nStatus!A2=Q1\nStatus!B2=120\nStatus!A3=Q2\nStatus!B3=95\nDRAFT\nDRAFT\nDRAFT\nseries values: Status!B2:B3",
+      "hashes": {
+        "before_write": "5e686055bd371c27178cba0b7c94562fbc5a2b36c87a4d4978e50f8aa6e19366",
+        "before_undo": "ED17191DD8F9F8CA8A4EFE234DF6969CE038163E8741DA9D6E339F7637550FE9",
+        "after_undo": "DE613401C94CCCB67A0BD545A68F0CBAE01D3B0F2AAFED3F3CCAFE387AB97A66",
+        "now": "de613401c94cccb67a0bd545a68f0cbae01d3b0f2aafed3f3ccafe387ab97a66"
+      },
+      "ok": false,
+      "injected": true,
+      "real_read_back_text": "FINAL",
+      "com_actions": [
+        "selection-read",
+        "selection-shape-replace",
+        "selection-shape-revert"
+      ],
+      "error_codes": [
+        "VALIDATION_FAILED",
+        "MUTATION_ROLLED_BACK"
+      ],
+      "errors": [
+        {
+          "code": "VALIDATION_FAILED",
+          "message": "Selection replacement read-back did not match the replacement values. WPS saved the write; the next entry says whether it was undone in WPS (pre-write backup: C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261018T075158Z-588b70f-undo\\spreadsheet-shape-text-replace-e9lfguun\\.wps-agent\\backups\\doc_cc1b84159fb9e66b\\chart_note.20261018T075306309410Z.xlsx)."
+        },
+        {
+          "code": "MUTATION_ROLLED_BACK",
+          "message": "The write was undone in WPS: the command put the original back, read it back and saved it, and the saved file's content matches the pre-write backup. The document stays open in WPS and nothing else needs to be done."
+        }
+      ],
+      "rollback": {
+        "method": "in_wps",
+        "rolled_back_in_wps": true,
+        "backup_path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261018T075158Z-588b70f-undo\\spreadsheet-shape-text-replace-e9lfguun\\.wps-agent\\backups\\doc_cc1b84159fb9e66b\\chart_note.20261018T075306309410Z.xlsx",
+        "file_sha256_before_undo": "ED17191DD8F9F8CA8A4EFE234DF6969CE038163E8741DA9D6E339F7637550FE9",
+        "status": "reverted",
+        "read_back_text": "DRAFT",
+        "saved": true,
+        "file_sha256_after_undo": "DE613401C94CCCB67A0BD545A68F0CBAE01D3B0F2AAFED3F3CCAFE387AB97A66",
+        "content_matches_backup": true
+      },
+      "selection": {
+        "selection_kind": "non_range",
+        "object_kind": "shape",
+        "object_name": "Note 1",
+        "selection_text": "DRAFT",
+        "fill_mode": "shape_text"
+      },
+      "text_after": "Status!A1=Quarter\nStatus!B1=Sales\nStatus!A2=Q1\nStatus!B2=120\nStatus!A3=Q2\nStatus!B3=95\nDRAFT\nDRAFT\nDRAFT\nseries values: Status!B2:B3",
+      "wps_saved_after": true,
+      "cleanup": "fixture closed; processes exited 53180 (main window closed)",
+      "passed": true
+    },
+    {
+      "scenario": "spreadsheet-chart-title-replace",
+      "component": "spreadsheets",
+      "workspace": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261018T075158Z-588b70f-undo\\spreadsheet-chart-title-replace-jzhewc0m",
+      "text_before": "Status!A1=Quarter\nStatus!B1=Sales\nStatus!A2=Q1\nStatus!B2=120\nStatus!A3=Q2\nStatus!B3=95\nDRAFT\nDRAFT\nDRAFT\nseries values: Status!B2:B3",
+      "hashes": {
+        "before_write": "d69754c14fa2f01cd6e682effe4aa6a439ef4911e1f69aff9f9a49faab850d99",
+        "before_undo": "A2598A347F1678049F09C9E1650430802D93AC60101BA6C0565053ECB6FD1CD3",
+        "after_undo": "5727263D97C5AE84CE316B27E0597921882E596CE39A0CF918B4CCB2E573A2B6",
+        "now": "5727263d97c5ae84ce316b27e0597921882e596ce39a0cf918b4ccb2e573a2b6"
+      },
+      "ok": false,
+      "injected": true,
+      "real_read_back_text": "FINAL",
+      "com_actions": [
+        "selection-read",
+        "selection-chart-title-replace",
+        "selection-chart-title-revert"
+      ],
+      "error_codes": [
+        "VALIDATION_FAILED",
+        "MUTATION_ROLLED_BACK"
+      ],
+      "errors": [
+        {
+          "code": "VALIDATION_FAILED",
+          "message": "Selection replacement read-back did not match the replacement values. WPS saved the write; the next entry says whether it was undone in WPS (pre-write backup: C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261018T075158Z-588b70f-undo\\spreadsheet-chart-title-replace-jzhewc0m\\.wps-agent\\backups\\doc_ac4abf67f2a1f0ca\\chart_note.20261018T075338754570Z.xlsx)."
+        },
+        {
+          "code": "MUTATION_ROLLED_BACK",
+          "message": "The write was undone in WPS: the command put the original back, read it back and saved it, and the saved file's content matches the pre-write backup. The document stays open in WPS and nothing else needs to be done."
+        }
+      ],
+      "rollback": {
+        "method": "in_wps",
+        "rolled_back_in_wps": true,
+        "backup_path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261018T075158Z-588b70f-undo\\spreadsheet-chart-title-replace-jzhewc0m\\.wps-agent\\backups\\doc_ac4abf67f2a1f0ca\\chart_note.20261018T075338754570Z.xlsx",
+        "file_sha256_before_undo": "A2598A347F1678049F09C9E1650430802D93AC60101BA6C0565053ECB6FD1CD3",
+        "status": "reverted",
+        "read_back_text": "DRAFT",
+        "saved": true,
+        "file_sha256_after_undo": "5727263D97C5AE84CE316B27E0597921882E596CE39A0CF918B4CCB2E573A2B6",
+        "content_matches_backup": true
+      },
+      "selection": {
+        "selection_kind": "non_range",
+        "object_kind": "chart",
+        "object_name": "Chart 1",
+        "selection_text": "DRAFT",
+        "fill_mode": "chart_title"
+      },
+      "text_after": "Status!A1=Quarter\nStatus!B1=Sales\nStatus!A2=Q1\nStatus!B2=120\nStatus!A3=Q2\nStatus!B3=95\nDRAFT\nDRAFT\nDRAFT\nseries values: Status!B2:B3",
+      "wps_saved_after": true,
+      "cleanup": "fixture closed; processes exited 27380 (main window closed)",
+      "passed": true
+    },
+    {
+      "scenario": "spreadsheet-axis-title-replace",
+      "component": "spreadsheets",
+      "workspace": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261018T075158Z-588b70f-undo\\spreadsheet-axis-title-replace-gwbebi61",
+      "text_before": "Status!A1=Quarter\nStatus!B1=Sales\nStatus!A2=Q1\nStatus!B2=120\nStatus!A3=Q2\nStatus!B3=95\nDRAFT\nDRAFT\nDRAFT\nseries values: Status!B2:B3",
+      "hashes": {
+        "before_write": "6bcaa436e6a0c6908c9b603b67fb16b80e1f11e8295cee71ca3b871a3d2be85c",
+        "before_undo": "ED080AA5246C8CF01F35A4EFD254610F51BB86B60A1E5C58B33D546BF2636D31",
+        "after_undo": "87922A000D4D2D63FAA28F2ED785A50DDCFEA36F909CCF66EEC6D09F4789136A",
+        "now": "87922a000d4d2d63faa28f2ed785a50ddcfea36f909ccf66eec6d09f4789136a"
+      },
+      "ok": false,
+      "injected": true,
+      "real_read_back_text": "FINAL",
+      "com_actions": [
+        "selection-read",
+        "selection-axis-title-replace",
+        "selection-axis-title-revert"
+      ],
+      "error_codes": [
+        "VALIDATION_FAILED",
+        "MUTATION_ROLLED_BACK"
+      ],
+      "errors": [
+        {
+          "code": "VALIDATION_FAILED",
+          "message": "Selection replacement read-back did not match the replacement values. WPS saved the write; the next entry says whether it was undone in WPS (pre-write backup: C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261018T075158Z-588b70f-undo\\spreadsheet-axis-title-replace-gwbebi61\\.wps-agent\\backups\\doc_18a61c6b67524623\\chart_note.20261018T075406421767Z.xlsx)."
+        },
+        {
+          "code": "MUTATION_ROLLED_BACK",
+          "message": "The write was undone in WPS: the command put the original back, read it back and saved it, and the saved file's content matches the pre-write backup. The document stays open in WPS and nothing else needs to be done."
+        }
+      ],
+      "rollback": {
+        "method": "in_wps",
+        "rolled_back_in_wps": true,
+        "backup_path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261018T075158Z-588b70f-undo\\spreadsheet-axis-title-replace-gwbebi61\\.wps-agent\\backups\\doc_18a61c6b67524623\\chart_note.20261018T075406421767Z.xlsx",
+        "file_sha256_before_undo": "ED080AA5246C8CF01F35A4EFD254610F51BB86B60A1E5C58B33D546BF2636D31",
+        "status": "reverted",
+        "read_back_text": "DRAFT",
+        "saved": true,
+        "file_sha256_after_undo": "87922A000D4D2D63FAA28F2ED785A50DDCFEA36F909CCF66EEC6D09F4789136A",
+        "content_matches_backup": true
+      },
+      "selection": {
+        "selection_kind": "non_range",
+        "object_kind": "chart",
+        "object_name": "Chart 1",
+        "selection_text": "DRAFT",
+        "fill_mode": "axis_title"
+      },
+      "text_after": "Status!A1=Quarter\nStatus!B1=Sales\nStatus!A2=Q1\nStatus!B2=120\nStatus!A3=Q2\nStatus!B3=95\nDRAFT\nDRAFT\nDRAFT\nseries values: Status!B2:B3",
+      "wps_saved_after": true,
+      "cleanup": "fixture closed; processes exited 68428 (main window closed)",
+      "passed": true
+    },
+    {
+      "scenario": "spreadsheet-series-values-replace",
+      "component": "spreadsheets",
+      "workspace": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261018T075158Z-588b70f-undo\\spreadsheet-series-values-replace-t0o234ep",
+      "text_before": "Status!A1=Quarter\nStatus!B1=Sales\nStatus!A2=Q1\nStatus!B2=120\nStatus!A3=Q2\nStatus!B3=95\nDRAFT\nDRAFT\nDRAFT\nseries values: Status!B2:B3",
+      "hashes": {
+        "before_write": "9a2ae4103839fb3c0fb4b865f4dd074a81bded947f49196a0c66151b00cf88c1",
+        "before_undo": "F5600FCE53B69B398248BD67DF04E96F38A08D1FDC2326E891B9E60A191D9606",
+        "after_undo": "3ED616CC4915B304F2091E39334B9397357ADCB44B501F145A4CDFD7D355B847",
+        "now": "3ed616cc4915b304f2091e39334b9397357adcb44b501f145a4cdfd7d355b847"
+      },
+      "ok": false,
+      "injected": true,
+      "real_read_back_text": "130\t90",
+      "com_actions": [
+        "selection-read",
+        "selection-series-values-replace",
+        "selection-series-values-revert"
+      ],
+      "error_codes": [
+        "VALIDATION_FAILED",
+        "MUTATION_ROLLED_BACK"
+      ],
+      "errors": [
+        {
+          "code": "VALIDATION_FAILED",
+          "message": "Selection replacement read-back did not match the replacement values. WPS saved the write; the next entry says whether it was undone in WPS (pre-write backup: C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261018T075158Z-588b70f-undo\\spreadsheet-series-values-replace-t0o234ep\\.wps-agent\\backups\\doc_754f2a00745e541a\\chart_note.20261018T075433829095Z.xlsx)."
+        },
+        {
+          "code": "MUTATION_ROLLED_BACK",
+          "message": "The write was undone in WPS: the command put the original back, read it back and saved it, and the saved file's content matches the pre-write backup. The document stays open in WPS and nothing else needs to be done."
+        }
+      ],
+      "rollback": {
+        "method": "in_wps",
+        "rolled_back_in_wps": true,
+        "backup_path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261018T075158Z-588b70f-undo\\spreadsheet-series-values-replace-t0o234ep\\.wps-agent\\backups\\doc_754f2a00745e541a\\chart_note.20261018T075433829095Z.xlsx",
+        "file_sha256_before_undo": "F5600FCE53B69B398248BD67DF04E96F38A08D1FDC2326E891B9E60A191D9606",
+        "status": "reverted",
+        "read_back_text": "120\t95",
+        "saved": true,
+        "file_sha256_after_undo": "3ED616CC4915B304F2091E39334B9397357ADCB44B501F145A4CDFD7D355B847",
+        "content_matches_backup": true
+      },
+      "selection": {
+        "selection_kind": "non_range",
+        "object_kind": "chart",
+        "object_name": "Chart 1",
+        "selection_text": "120\t95",
+        "fill_mode": "series_values"
+      },
+      "text_after": "Status!A1=Quarter\nStatus!B1=Sales\nStatus!A2=Q1\nStatus!B2=120\nStatus!A3=Q2\nStatus!B3=95\nDRAFT\nDRAFT\nDRAFT\nseries values: Status!B2:B3",
+      "wps_saved_after": true,
+      "cleanup": "fixture closed; processes exited 70040 (main window closed)",
+      "passed": true
+    }
+  ],
+  "leftover_processes": []
+}

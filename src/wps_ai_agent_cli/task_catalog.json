@@ -3349,14 +3349,14 @@
     "id": "P12-009",
     "phase": "phase12",
     "title": "Windows check of the 0.9.0 wheel",
-    "status": "todo",
+    "status": "done",
     "acceptance": "M5: run_windows_check.py wheel --version 0.9.0 passes on Windows; result recorded (PyPI publishing skipped)."
   },
   {
     "id": "P12-010",
     "phase": "phase12",
     "title": "Clean-account check of 0.9.0",
-    "status": "todo",
+    "status": "done",
     "acceptance": "M2: on a new Windows account, 0.9.0 installed from the GitHub Release wheel passes inspect-env, C1 to C6 and undo 6 of 6; recorded in docs/COMPATIBILITY_MATRIX.md."
   },
   {
