@@ -58,6 +58,8 @@ jobs:
   # fails, the GitHub Release stands; fix the cause and re-run this job for the same tag.
   pypi:
     needs: release
+    # Off until the repository variable PUBLISH_TO_PYPI is "true" (PyPI publishing is skipped for now).
+    if: vars.PUBLISH_TO_PYPI == 'true'
     runs-on: ubuntu-latest
     environment:
       name: pypi

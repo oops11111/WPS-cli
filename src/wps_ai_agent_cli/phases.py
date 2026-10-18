@@ -128,12 +128,12 @@ PHASES: tuple[Phase, ...] = (
     ),
     Phase(
         id="phase12",
-        name="Full evaluation, a clean environment and PyPI, ready for 1.0",
+        name="Full evaluation, a clean environment and 0.9.0, ready for 1.0",
         status="active",
         goal=(
             "Rerun every evaluation task on the current version, install and check from scratch on a Windows "
-            "account that never ran the project, publish to PyPI, write down the public interface and its "
-            "stability rules, and release 0.9.0."
+            "account that never ran the project, write down the public interface and its stability rules, and "
+            "release 0.9.0 on GitHub (PyPI publishing skipped on 2026-10-17)."
         ),
     ),
 )

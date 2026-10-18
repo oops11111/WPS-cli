@@ -286,7 +286,7 @@ MCP_TOOL_SCHEMAS: tuple[dict[str, Any], ...] = (
         "wps_agent_html_editable",
         "html-editable",
         "Convert HTML to editable Office content",
-        "Map semantic local HTML to editable DOCX (Writer paragraphs, headings, lists, tables, hyperlinks, local images), XLSX (each table becomes a worksheet) or PPTX (each section or h1/h2 becomes a slide); report CSS fidelity loss.",
+        'Map semantic local HTML to editable DOCX (Writer paragraphs, headings, nested lists, tables with merged cells, bold/italic/underline/strike/sub/superscript, hyperlinks, local images and figure captions), XLSX (each table becomes a worksheet, with merged cells, numbers with their number format, dates and local images) or PPTX (each section or h1/h2 becomes a slide, with tables, local images and media, speaker notes from <aside class="notes">, CSS @keyframes animations as entrance effects and data-transition as slide transitions); report what could not be converted in warnings.',
         "conversion",
         required=["input", "output"],
         properties={

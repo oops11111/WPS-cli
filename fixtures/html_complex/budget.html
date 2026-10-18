@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><title>2027 年度预算</title>
+<style>td.num { text-align: right; } tr.total { font-weight: bold; }</style></head>
+<body>
+<h1>2027 年度预算</h1>
+<h2>部门费用预算</h2>
+<table>
+  <thead>
+    <tr><th rowspan="2">部门</th><th colspan="4">季度预算（元）</th><th rowspan="2">全年</th></tr>
+    <tr><th>Q1</th><th>Q2</th><th>Q3</th><th>Q4</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>研发部</td><td class="num">120000</td><td class="num">135000.50</td><td class="num">128000</td><td class="num">142000</td><td>=SUM(B3:E3)</td></tr>
+    <tr><td>市场部</td><td class="num">80000</td><td class="num">95000</td><td class="num">-5000</td><td class="num">110000</td><td>=SUM(B4:E4)</td></tr>
+    <tr><td>行政部</td><td class="num">30000</td><td class="num"></td><td class="num">30000</td><td class="num">30000</td><td>=SUM(B5:E5)</td></tr>
+    <tr class="total"><td>合计</td><td>=SUM(B3:B5)</td><td>=SUM(C3:C5)</td><td>=SUM(D3:D5)</td><td>=SUM(E3:E5)</td><td>=SUM(F3:F5)</td></tr>
+  </tbody>
+</table>
+<h2>人员编制</h2>
+<table>
+  <tr><th>工号</th><th>姓名</th><th>入职日期</th><th>月薪</th><th>绩效系数</th><th>备注</th></tr>
+  <tr><td>000127</td><td>张伟</td><td>2021-03-15</td><td>18,500</td><td>1.2</td><td>组长</td></tr>
+  <tr><td>000342</td><td>李娜</td><td>2023-07-01</td><td>¥15,000</td><td>95%</td><td></td></tr>
+  <tr><td>001005</td><td>Émile O'Brien</td><td>2025/11/20</td><td>12000</td><td>0.85</td><td>外籍 &amp; 远程</td></tr>
+  <tr><td>001006</td><td>王<br>小明</td><td>2026-01-04</td><td>1.2e4</td><td>1</td><td><a href="https://example.com/wang">档案</a></td></tr>
+</table>
+<h2>部门费用预算</h2>
+<table>
+  <tr><th>项目</th><th>金额</th></tr>
+  <tr><td>差旅<table><tr><td>嵌套</td></tr></table></td><td>8000</td></tr>
+  <tr><td>培训</td><td>12000</td></tr>
+</table>
+<h2>一个名字很长很长很长很长的汇总表：包含/非法字符?以及[方括号]</h2>
+<table>
+  <tr><td>指标</td><td>值</td></tr>
+  <tr><td>人均费用</td><td>0.5</td></tr>
+  <tr><td>增长率</td><td>007</td></tr>
+</table>
+<img src="chart.png" alt="图">
+</body>
+</html>

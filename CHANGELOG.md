@@ -6,18 +6,24 @@ All notable changes to `wps-ai-agent-cli`. The versioning rule and release steps
 
 ## [0.9.0] - 2026-10-17
 
-Phase 12: publishing to PyPI, a committed inventory of the public interface with stability rules, and checks that run every evaluation task and test an installed package on a clean account.
+Phase 12: a committed inventory of the public interface with stability rules, checks that run every evaluation task and test an installed package on a clean account, complex HTML conversion tasks, and a PyPI upload that is ready but off.
 
 ### Added
 
-- The release workflow uploads the GitHub Release's wheel and sdist to PyPI with Trusted Publishing (the `pypi` job and environment, no stored token). `docs/RELEASING.md` describes the one-time pending publisher setup and how to rerun the upload. (P12-004)
+- The release workflow can upload the GitHub Release's wheel and sdist to PyPI with Trusted Publishing (the `pypi` job and environment, no stored token). The job runs only when the repository variable `PUBLISH_TO_PYPI` is `true`; PyPI publishing is skipped for now, so 0.9.0 is released on GitHub only. `docs/RELEASING.md` describes the one-time pending publisher setup and how to rerun the upload. (P12-004)
 - `run_windows_check.py wheel --source pypi` downloads the version's wheel from PyPI with pip and checks its SHA-256 against the one the GitHub Release lists, so both places serve the same file. The result names its source. (P12-005)
 - `config/public_interface.json`, generated from the code by `scripts/public_interface.py --write`: the CLI's global options, commands and their arguments, the MCP tools and their parameters, and the error codes. `tests/test_public_interface.py` fails when the code and the file differ and lists which changes are breaking. (P12-006)
 - `run_windows_check.py --installed` runs the checks and the evaluation runner against the installed `wps-ai-agent-cli` instead of the repository's `src/`; `prereq` then requires the package to come from `site-packages`. Every `RESULTS.md` names the package version and path it tested. `docs/COMPATIBILITY_MATRIX.md` has a clean-environment section with the checks, steps for a new Windows account and a record format. (P12-007)
+- Agent evaluation: three complex HTML inputs in `fixtures/html_complex/` (a Chinese business report, a budget with merged headers, formulas and mixed number formats, and an animated slide deck) and three tasks, `html-complex-report-to-docx`, `html-complex-budget-to-xlsx` and `html-complex-launch-to-pptx`, that convert each with `html-editable` and then to PDF through WPS. `docs/PHASE12_PLAN.md` lists what the conversions keep and lose. (P12-011)
 - Agent evaluation: file-based tasks that need WPS record the WPS processes before the run and end the ones the commands left running, reported in the cleanup result. (P12-001)
 
 ### Changed
 
+- `html-editable` keeps much more of a complex page (P12-013):
+  - docx: images and captions in `<figure>`, table captions, `<details>`, bold, italic, underline, strike-through, sub- and superscript, code, highlight and inline-style colour; `rowspan` and `colspan` become merged cells; nested lists become second- and third-level list paragraphs; source whitespace is collapsed, except in `<pre>`.
+  - xlsx: merged cells for `rowspan` and `colspan`; numbers with thousands separators, signs, percent, currency or exponents become numbers with a matching number format; ISO-like dates become dates; `<br>` becomes a line break in the cell; a cell's only link becomes a hyperlink; local images are placed below the table before them. The sheet result lists `merged_ranges` per sheet and the `images` placed.
+  - pptx (now in `html_slides.py`): tables (with merged cells), local images and media, speaker notes from `<aside class="notes">`, inline formatting and list levels; CSS `@keyframes` animations become entrance effects (fly in, zoom or fade, after their `animation-delay`), and `data-transition` or a CSS `transition` on the section becomes the slide transition. The result has `mapped_objects`.
+  - What is still not converted (scripts, SVG, hover effects, unavailable media, nested tables in a spreadsheet, formulas) is named in `warnings`; nothing is dropped silently.
 - `docs/RELEASING.md` states the stability rules before and after 1.0 (what is breaking, how long a deprecation lasts, that new fields under `data` are not breaking) and a checklist for 1.0. (P12-006)
 
 ### Fixed

@@ -138,15 +138,15 @@
     },
     {
       "id": "phase12",
-      "name": "Full evaluation, a clean environment and PyPI, ready for 1.0",
-      "goal": "Rerun every evaluation task on the current version, install and check from scratch on a Windows account that never ran the project, publish to PyPI, write down the public interface and its stability rules, and release 0.9.0.",
+      "name": "Full evaluation, a clean environment and 0.9.0, ready for 1.0",
+      "goal": "Rerun every evaluation task on the current version, install and check from scratch on a Windows account that never ran the project, write down the public interface and its stability rules, and release 0.9.0 on GitHub (PyPI publishing skipped on 2026-10-17).",
       "status": "active",
       "exit_criteria": [
-        "M1: on Windows one run_windows_check.py eval --repeat 3 --min-passes 2 without --prefix (all 34 tasks) on the phase's main passes every task at least 2 of 3 runs with wrong_tool_calls 0 and unverified_writes 0; tasks that fail are fixed in the phase and rerun",
-        "M2: on a Windows account that never ran the project, with WPS installed as the default app, pip install wps-ai-agent-cli==0.9.0 from PyPI passes inspect-env, compatibility checks C1 to C6 and run_windows_check.py undo 6 of 6, recorded in docs/COMPATIBILITY_MATRIX.md",
-        "M3: offline, the release workflow uploads the same wheel and sdist to PyPI with Trusted Publishing after the GitHub Release, and run_windows_check.py wheel gains --source pypi, which installs from PyPI and checks the SHA-256 against the GitHub Release; on Windows wheel --version 0.9.0 --source pypi passes",
+        "M1: on Windows one run_windows_check.py eval --repeat 3 --min-passes 2 without --prefix (all 34 tasks) on the phase's main passes every task at least 2 of 3 runs with wrong_tool_calls 0 and unverified_writes 0; tasks that fail are fixed in the phase and rerun (2026-10-17: met; 33 of 34 on main@29175b1, restore-latest-backup fixed in #114 and rerun on main@a21b050, 2 of 3, restore-dry-run 3 of 3)",
+        "M2: on a Windows account that never ran the project, with WPS installed as the default app, installing the 0.9.0 wheel from the GitHub Release passes inspect-env, compatibility checks C1 to C6 and run_windows_check.py undo 6 of 6, recorded in docs/COMPATIBILITY_MATRIX.md",
+        "M3 (skipped 2026-10-17, PyPI publishing dropped): the release workflow's pypi job and run_windows_check.py wheel --source pypi exist and are tested, but the job runs only when the repository variable PUBLISH_TO_PYPI is true",
         "M4: offline, a generated inventory of the public interface (CLI commands and arguments, MCP tools and parameters, error codes; the fields under data are built at run time and covered by the stability rules instead) is committed, a test fails when the interface changes without the inventory, and docs/RELEASING.md states the stability rules before and after 1.0 and a 1.0 checklist",
-        "M5: v0.9.0 is released per docs/RELEASING.md on GitHub and PyPI with the phase's changes and the M1 fixes, and its wheel is checked on Windows"
+        "M5: v0.9.0 is released per docs/RELEASING.md on GitHub with the phase's changes and the M1 fixes, and its wheel is checked on Windows with run_windows_check.py wheel --version 0.9.0"
       ]
     }
   ]
