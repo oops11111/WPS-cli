@@ -1,6 +1,6 @@
 # Phase 12 计划：全量评测、干净环境、发布 0.9.0，为 1.0 做准备
 
-状态：**active**（2026-10-17 确认，六项决定均按默认建议）。本地任务 P12-001、P12-004 到 P12-008 已完成；**M1 已达成**（P12-002 在 `29175b1` 上 33/34，P12-003 修复后在 `a21b050` 上重跑两个任务都通过）；PyPI 发布已略去（M3 不再要求）；新增复杂 HTML 测试，转换缺口已补齐（P12-011、P12-013 已完成）；P12-012 已完成；剩下 P12-009、P12-010 在 Windows 上做，见下文“上机步骤”。
+状态：**active**（2026-10-17 确认，六项决定均按默认建议）。本地任务 P12-001、P12-004 到 P12-008 已完成；**M1 已达成**（P12-002 在 `29175b1` 上 33/34，P12-003 修复后在 `a21b050` 上重跑两个任务都通过）；PyPI 发布已略去（M3 不再要求）；新增复杂 HTML 测试，转换缺口已补齐（P12-011、P12-013 已完成）；P12-012 已完成；P12-009 和 P12-010 也已完成（v0.9.0 在最新 main 上重建后 wheel 检查通过；P12-010 因没有可用的新账户，按你的确认在当前账户的全新虚拟环境里做，完整记录见 `docs/COMPATIBILITY_MATRIX.md` 的“干净环境”一节）。
 
 ## 目标
 
@@ -61,11 +61,11 @@ Phase 12 做这三件事，最后发布 0.9.0。是否以及何时定 1.0，仍�
 | P12-006 | M4 | 生成对外接口清单的脚本和提交的清单文件；接口变化而清单没更新时失败的测试；`docs/RELEASING.md` 的稳定性规则和 1.0 检查清单（已完成：`src/wps_ai_agent_cli/public_interface.py` 从 argparse、MCP 工具定义和源码里的错误码生成 `config/public_interface.json`：85 个命令、85 个工具、200 个错误码；`scripts/public_interface.py` 检查或 `--write` 重写；`tests/test_public_interface.py` 在两者不一致时失败并列出哪些变化算破坏性；`docs/RELEASING.md` 的“对外接口和稳定性”一节） | 本地 |
 | P12-007 | M2 | `docs/COMPATIBILITY_MATRIX.md` 加“干净环境”一节的检查项和记录格式；`docs/` 里写干净账户上从安装开始的步骤（已完成：`docs/COMPATIBILITY_MATRIX.md` 的“干净环境”一节；`run_windows_check.py --installed` 让检查和评测 runner 用安装的包，`prereq` 要求它来自 `site-packages`，`RESULTS.md` 写明被测包） | 本地 |
 | P12-008 | M5 | 定版本 0.9.0，整理 `CHANGELOG.md`，合并后由你推送 `v0.9.0` 标签（本地部分已完成：版本 0.9.0，`CHANGELOG.md` 的 `[0.9.0]` 一节；合并后由你推送 `v0.9.0`） | 本地 + 你 |
-| P12-009 | M5 | 在 Windows 上：`wheel --version 0.9.0`（原为 `--source pypi`，PyPI 发布已略去） | Windows |
+| P12-009 | M5 | 在 Windows 上：`wheel --version 0.9.0`（原为 `--source pypi`，PyPI 发布已略去）（已完成：重建 v0.9.0 Release 后检查通过，SHA-256 与 Release 一致，safe profile 7/7，见下文“P12-009 结果”） | Windows |
 | P12-011 | （新增） | 复杂 HTML 测试：一份报告（`report.html`）、一份预算表（`budget.html`）、一份带动画的演示（`launch.html`），放在 `fixtures/html_complex/`；三个评测任务各把一份转换为 docx、xlsx 或 pptx，再用 WPS 转为 PDF；离线判定测试；记下转换丢了什么（已完成，见下文“复杂 HTML 转换”） | 本地 |
 | P12-013 | （新增） | 补齐 P12-011 发现的转换缺口（已完成，见下文“补齐缺口”） | 本地 |
 | P12-012 | （新增） | 在 Windows 上：`eval --prefix html-complex- --repeat 3 --min-passes 2`；在 WPS 演示里放映 `launch.pptx`，确认动画和切换（已完成：报告、演示 3/3，预算表修复后 3/3，放映确认动画和切换正确，见下文“P12-012 结果”） | Windows |
-| P12-010 | M2 | 在 Windows 的新账户上：从 GitHub Release 的 wheel 安装 0.9.0，跑 `inspect-env`、C1 到 C6、`undo` | Windows |
+| P12-010 | M2 | 在 Windows 的新账户上：从 GitHub Release 的 wheel 安装 0.9.0，跑 `inspect-env`、C1 到 C6、`undo`（已完成：`main@588b70f`，当前账户 + 全新虚拟环境；K0、K1、C1、C2 4/4、C3 4/4、C4–C6、K8 6/6 全过；不是新账户，见下文“P12-010 结果”） | Windows |
 
 ## 建议顺序
 
@@ -187,6 +187,28 @@ python scripts/windows_check/run_windows_check.py eval --only html-complex-budge
 三个复杂 HTML 任务都已通过：报告、演示在 `1fdbcfb` 上 3/3，预算表在 `d126c8c` 上 3/3。
 
 放映确认（2026-10-18，你在 WPS 演示 12.8.2.18913 里放映 `launch.pptx`）：**完全正确**。第 1 页标题飞入、日期淡入，第 2 页三个列表项逐条飞入，各页切换效果都按 HTML 里的设定出现。**P12-012 完成。**
+
+## P12-009 结果
+
+`scripts/windows_check/results/20261018T074526Z-wheel-0.9.0/`：`main@588b70f`，约 61 秒。
+
+- v0.9.0 先按最新 main 重建：删掉原来指向 `a21b050` 的 Release 和标签，把 `v0.9.0` 指向 `588b70f` 后重新推送。release workflow 成功（23 秒），pypi 作业 skipped（仓库变量 `PUBLISH_TO_PYPI` 没有设置）。
+- wheel 从 GitHub Release 下载，SHA-256 `6978fc3fd98be4fe30a1080a47430f6e7ac72fa9bc7e9cf121149bf58284f7e1` 与 Release 上的 digest 一致；装进临时 venv 后版本 0.9.0，包来自 site-packages。
+- `inspect-env` ok；safe profile 7/7，0 失败；manifest 来自安装包的 `resources\regression_manifest.json`。
+
+## P12-010 结果
+
+`main@588b70f`，当前 `admin` 账户 + 全新虚拟环境 `C:\Users\admin\wps-agent-venv-clean`（**不是文档要求的“新建本地账户”**，2026-10-18 你确认按此执行）。
+
+- K0 `--installed prereq --skip-claude`：pass，包来自 `wps-agent-venv-clean` 的 site-packages。
+- K1 `inspect-env`：pass，三个 ProgID 已注册。
+- C1 `wps-version-compare --record`：pass，三个组件都是 `12.8.2.18913`。
+- C2 `regression-run --profile wps --include-wps`：4/4。
+- C3 `regression-run --profile compat --include-wps`：4/4。
+- C4–C6：三个组件的 HTML 导出都 `ok: true`，标记文本都在，源文件 SHA-256 不变，`open-documents` 仍列出打开的文件。
+- K8 `--installed undo`：6/6，`scripts/windows_check/results/20261018T075158Z-588b70f-undo/`。
+
+因为不是新账户，这一节的结论只覆盖“从 Release wheel 安装到全新虚拟环境”，不覆盖全新用户配置；完整记录（包括安装时加的 `html` extra 等偏差）见 `docs/COMPATIBILITY_MATRIX.md` 的“干净环境”一节。
 
 ## P12-002 结果
 
