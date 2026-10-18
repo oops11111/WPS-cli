@@ -11,6 +11,7 @@ from threading import Lock
 from typing import Any, TextIO
 
 from . import __version__
+from .jsonio import json_default
 from .mcp_adapter import call_mcp_tool, validate_mcp_tool_arguments
 from .mcp_schema import list_mcp_tool_schemas
 
@@ -322,7 +323,7 @@ def serve_stdio(input_stream: TextIO | None = None, output_stream: TextIO | None
     def write_response(response: dict[str, Any] | None) -> None:
         if response is None:
             return
-        encoded = json.dumps(response, ensure_ascii=False, sort_keys=True) + "\n"
+        encoded = json.dumps(response, ensure_ascii=False, sort_keys=True, default=json_default) + "\n"
         with output_lock:
             output_stream.write(encoded)
             output_stream.flush()

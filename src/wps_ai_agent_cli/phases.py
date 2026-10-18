@@ -129,7 +129,7 @@ PHASES: tuple[Phase, ...] = (
     Phase(
         id="phase12",
         name="Full evaluation, a clean environment and 0.9.0, ready for 1.0",
-        status="active",
+        status="done",
         goal=(
             "Rerun every evaluation task on the current version, install and check from scratch on a Windows "
             "account that never ran the project, write down the public interface and its stability rules, and "

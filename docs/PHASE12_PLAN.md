@@ -1,6 +1,23 @@
 # Phase 12 计划：全量评测、干净环境、发布 0.9.0，为 1.0 做准备
 
-状态：**active**（2026-10-17 确认，六项决定均按默认建议）。本地任务 P12-001、P12-004 到 P12-008 已完成；**M1 已达成**（P12-002 在 `29175b1` 上 33/34，P12-003 修复后在 `a21b050` 上重跑两个任务都通过）；PyPI 发布已略去（M3 不再要求）；新增复杂 HTML 测试，转换缺口已补齐（P12-011、P12-013 已完成）；剩下 P12-009、P12-010、P12-012 在 Windows 上做，见下文“上机步骤”。
+状态：**done**（2026-10-17 确认，2026-10-18 完成）。
+
+| 标准 | 结果 | 证据 |
+| --- | --- | --- |
+| M1 | 达成 | P12-002 在 `29175b1` 上 33/34；没过的 `restore-latest-backup` 修复（#114）后在 `a21b050` 上 2/3，`restore-dry-run` 3/3 |
+| M2 | 达成，有偏差 | P12-010 在 `588b70f` 上全部通过（K0、K1、C1、C2 4/4、C3 4/4、C4 到 C6、`undo` 6/6），包来自 Release wheel 装进的全新虚拟环境；**没有新建账户**（机器上没有可用的新账户，2026-10-18 你确认用当前账户），所以不覆盖全新用户配置 |
+| M3 | 已略去 | 2026-10-17 你决定不发布到 PyPI；流程和检查做好并有测试，`pypi` 任务默认关闭 |
+| M4 | 达成 | 对外接口清单、检查脚本和测试、`docs/RELEASING.md` 的稳定性规则和 1.0 检查清单 |
+| M5 | 达成 | `v0.9.0` 从 `main@588b70f` 发布（GitHub Release），wheel 在 Windows 上检查通过（P12-009，7 个条件全过，safe 7/7） |
+
+阶段内新增：复杂 HTML 转换任务和缺口补齐（P12-011 到 P12-013），三个任务在 Windows 上 3/3，放映确认动画和切换正确。
+
+遗留缺口（不是出口标准）：
+
+- 干净环境没有在新建账户上做过；兼容矩阵仍只有一个 WPS 版本（P5-010）。
+- 写入后仍有少量额外核对调用；复杂 HTML 任务里转换前的多余核对较多（报告 15 次、演示 9 次）。
+- 撤回的删除类场景只有假 COM 测试；P7-007 的 `0x800A01A8` 原因没查清；PRD 未做项（几何、混合格式重建、准确页码）。
+- HTML 转换仍不转换的内容（公式写成文本、xlsx 嵌套表格、SVG、hover、CSS 版式）见下文“补齐缺口”；高保真互转是 Phase 13 的方向（`docs/DEVELOPMENT_SUMMARY.md` 第 7 节）。
 
 ## 目标
 
@@ -61,11 +78,11 @@ Phase 12 做这三件事，最后发布 0.9.0。是否以及何时定 1.0，仍�
 | P12-006 | M4 | 生成对外接口清单的脚本和提交的清单文件；接口变化而清单没更新时失败的测试；`docs/RELEASING.md` 的稳定性规则和 1.0 检查清单（已完成：`src/wps_ai_agent_cli/public_interface.py` 从 argparse、MCP 工具定义和源码里的错误码生成 `config/public_interface.json`：85 个命令、85 个工具、200 个错误码；`scripts/public_interface.py` 检查或 `--write` 重写；`tests/test_public_interface.py` 在两者不一致时失败并列出哪些变化算破坏性；`docs/RELEASING.md` 的“对外接口和稳定性”一节） | 本地 |
 | P12-007 | M2 | `docs/COMPATIBILITY_MATRIX.md` 加“干净环境”一节的检查项和记录格式；`docs/` 里写干净账户上从安装开始的步骤（已完成：`docs/COMPATIBILITY_MATRIX.md` 的“干净环境”一节；`run_windows_check.py --installed` 让检查和评测 runner 用安装的包，`prereq` 要求它来自 `site-packages`，`RESULTS.md` 写明被测包） | 本地 |
 | P12-008 | M5 | 定版本 0.9.0，整理 `CHANGELOG.md`，合并后由你推送 `v0.9.0` 标签（本地部分已完成：版本 0.9.0，`CHANGELOG.md` 的 `[0.9.0]` 一节；合并后由你推送 `v0.9.0`） | 本地 + 你 |
-| P12-009 | M5 | 在 Windows 上：`wheel --version 0.9.0`（原为 `--source pypi`，PyPI 发布已略去） | Windows |
+| P12-009 | M5 | 在 Windows 上：`wheel --version 0.9.0`（原为 `--source pypi`，PyPI 发布已略去）（已完成：重建 v0.9.0 Release 后检查通过，SHA-256 与 Release 一致，safe profile 7/7，见下文“P12-009 结果”） | Windows |
 | P12-011 | （新增） | 复杂 HTML 测试：一份报告（`report.html`）、一份预算表（`budget.html`）、一份带动画的演示（`launch.html`），放在 `fixtures/html_complex/`；三个评测任务各把一份转换为 docx、xlsx 或 pptx，再用 WPS 转为 PDF；离线判定测试；记下转换丢了什么（已完成，见下文“复杂 HTML 转换”） | 本地 |
 | P12-013 | （新增） | 补齐 P12-011 发现的转换缺口（已完成，见下文“补齐缺口”） | 本地 |
-| P12-012 | （新增） | 在 Windows 上：`eval --prefix html-complex- --repeat 3 --min-passes 2`；在 WPS 演示里放映 `launch.pptx`，确认动画和切换 | Windows |
-| P12-010 | M2 | 在 Windows 的新账户上：从 GitHub Release 的 wheel 安装 0.9.0，跑 `inspect-env`、C1 到 C6、`undo` | Windows |
+| P12-012 | （新增） | 在 Windows 上：`eval --prefix html-complex- --repeat 3 --min-passes 2`；在 WPS 演示里放映 `launch.pptx`，确认动画和切换（已完成：报告、演示 3/3，预算表修复后 3/3，放映确认动画和切换正确，见下文“P12-012 结果”） | Windows |
+| P12-010 | M2 | 在 Windows 的新账户上：从 GitHub Release 的 wheel 安装 0.9.0，跑 `inspect-env`、C1 到 C6、`undo`（已完成：`main@588b70f`，当前账户 + 全新虚拟环境；K0、K1、C1、C2 4/4、C3 4/4、C4–C6、K8 6/6 全过；不是新账户，见下文“P12-010 结果”） | Windows |
 
 ## 建议顺序
 
@@ -149,6 +166,66 @@ P12-010 在新建的本地账户上按 `docs/COMPATIBILITY_MATRIX.md` 的“干�
 | launch → pptx | 幻灯片表格（合并单元格、表头加粗）；本地图片和本地音视频；`<aside class="notes">` 成为演讲者备注；行内格式；嵌套列表层级；`@keyframes` 动画成为进入效果：平移是“飞入”（按方向），缩放是“缩放”，其他是“淡入”，都随幻灯片开始、按 `animation-delay` 延迟，列表项逐段出现；`data-transition`（fade、push、wipe、cover、split、dissolve、zoom、cut）或 section 上的 CSS `transition` 成为切换效果 | SVG；脚本；`:hover`/`:focus` 效果；找不到的视频（`teaser.mp4`）；段落里一部分文字的动画用到整段；未知的切换名 |
 
 LibreOffice 把动画读成 `ooo-entrance-fly-in`、`ooo-entrance-fade-in`、`ooo-entrance-fade-in-and-zoom`，切换读成 fade、push、wipe，延迟 0.2/0.4/0.6 秒都对。WPS 里的效果要在 P12-012 上机时确认：任务会让 WPS 打开转换结果并导出 PDF；动画本身需要你在 WPS 演示里放映 `launch.pptx` 看一眼。
+
+## P12-012 结果（第一轮）
+
+`scripts/windows_check/results/20261018T010801Z-1fdbcfb-eval/`：`main@1fdbcfb`，三个任务各 3 次，用时 8 分钟，Claude API 约 5.4 美元。
+
+| 任务 | 结果 | 说明 |
+| --- | --- | --- |
+| `html-complex-report-to-docx` | 3/3 | WPS 打开转换出的 docx 并导出 PDF |
+| `html-complex-launch-to-pptx` | 3/3 | WPS 打开带动画、切换、表格、图片和备注的 pptx 并导出 PDF |
+| `html-complex-budget-to-xlsx` | **0/3** | 三个原因，见下 |
+
+预算表没通过的原因：
+
+1. **WPS 保存时改了工作表名。** 第四张表名里的全角冒号“：”在 WPS 保存后变成了“_”（第 3 次运行写公式之前用原名能读到，之后就是 `SHEET_NOT_FOUND`），`xlsx_sheets` 检查失败。Excel 只禁止半角的 `[ ] : * ? / \`，WPS 还会替换它们的全角形式。修复：转换时把全角形式也换成空格。
+2. **`spreadsheet-read` 读日期单元格失败。** 读“入职日期”列时返回 `MCP_TOOL_EXECUTION_FAILED`（`TypeError: Object of type datetime is not JSON serializable`）。这是早就存在的缺陷，以前的评测表格里没有日期；P12-013 把日期写成了真正的日期后才暴露。修复：命令结果和 MCP 回复里的日期、时间一律写成 ISO 8601 文本。
+3. **Agent 自作主张把 `=SUM(...)` 文本改成了公式**（`spreadsheet_formula_write`），又因为读日期失败反复检查，三次都用满了 15 轮，其中两次没来得及导出 PDF。修复：公式警告写明“保持文本，除非用户要求可计算的公式”；读日期不再失败，也就不需要反复检查。
+
+报告和演示也有较多不必要的核对调用（报告 15 次、演示 9 次，都在写入之前，比如 `inspect_env`、`register_document`、`snapshot_document`），不影响判定。
+
+`launch.pptx` 在 WPS 演示里放映的动画和切换效果还没有记录，要你看一眼。
+
+第二轮只重跑预算表：
+
+```powershell
+python scripts/windows_check/run_windows_check.py eval --only html-complex-budget-to-xlsx --repeat 3 --min-passes 2
+```
+
+## P12-012 结果（第二轮）
+
+`scripts/windows_check/results/20261018T045319Z-d126c8c-eval/`：`main@d126c8c`（#116 合并后），只重跑预算表，各 3 次。
+
+- `html-complex-budget-to-xlsx` **3/3**，工具错误 0，`wrong_tool_calls` 0。
+- 读日期列不再失败；工作表名在 WPS 保存后不变；Agent 没有再把 `=SUM(...)` 文本改写成公式。
+- 多余的核对调用从第一轮的 39 次降到 7 次（`inspect_env`、`register_document`、`spreadsheet_sheets`、`spreadsheet_read`），轮数平均 10.7。
+
+三个复杂 HTML 任务都已通过：报告、演示在 `1fdbcfb` 上 3/3，预算表在 `d126c8c` 上 3/3。
+
+放映确认（2026-10-18，你在 WPS 演示 12.8.2.18913 里放映 `launch.pptx`）：**完全正确**。第 1 页标题飞入、日期淡入，第 2 页三个列表项逐条飞入，各页切换效果都按 HTML 里的设定出现。**P12-012 完成。**
+
+## P12-009 结果
+
+`scripts/windows_check/results/20261018T074526Z-wheel-0.9.0/`：`main@588b70f`，约 61 秒。
+
+- v0.9.0 先按最新 main 重建：删掉原来指向 `a21b050` 的 Release 和标签，把 `v0.9.0` 指向 `588b70f` 后重新推送。release workflow 成功（23 秒），pypi 作业 skipped（仓库变量 `PUBLISH_TO_PYPI` 没有设置）。
+- wheel 从 GitHub Release 下载，SHA-256 `6978fc3fd98be4fe30a1080a47430f6e7ac72fa9bc7e9cf121149bf58284f7e1` 与 Release 上的 digest 一致；装进临时 venv 后版本 0.9.0，包来自 site-packages。
+- `inspect-env` ok；safe profile 7/7，0 失败；manifest 来自安装包的 `resources\regression_manifest.json`。
+
+## P12-010 结果
+
+`main@588b70f`，当前 `admin` 账户 + 全新虚拟环境 `C:\Users\admin\wps-agent-venv-clean`（**不是文档要求的“新建本地账户”**，2026-10-18 你确认按此执行）。
+
+- K0 `--installed prereq --skip-claude`：pass，包来自 `wps-agent-venv-clean` 的 site-packages。
+- K1 `inspect-env`：pass，三个 ProgID 已注册。
+- C1 `wps-version-compare --record`：pass，三个组件都是 `12.8.2.18913`。
+- C2 `regression-run --profile wps --include-wps`：4/4。
+- C3 `regression-run --profile compat --include-wps`：4/4。
+- C4–C6：三个组件的 HTML 导出都 `ok: true`，标记文本都在，源文件 SHA-256 不变，`open-documents` 仍列出打开的文件。
+- K8 `--installed undo`：6/6，`scripts/windows_check/results/20261018T075158Z-588b70f-undo/`。
+
+因为不是新账户，这一节的结论只覆盖“从 Release wheel 安装到全新虚拟环境”，不覆盖全新用户配置；完整记录（包括安装时加的 `html` extra 等偏差）见 `docs/COMPATIBILITY_MATRIX.md` 的“干净环境”一节。
 
 ## P12-002 结果
 

@@ -147,9 +147,12 @@ class BudgetToXlsxTests(_Converted):
         self.assertEqual((sheet["D3"].value, sheet["D3"].number_format), (15000, '"¥"#,##0'))
         self.assertEqual((sheet["E3"].value, sheet["E3"].number_format), (0.95, "0%"))
         self.assertEqual(sheet["D5"].value, 12000.0)
-        self.assertEqual(
-            self.workbook["一个名字很长很长很长很长的汇总表：包含 非法字符 以及 方括号"]["B3"].value, "007"
-        )
+        self.assertEqual(self.workbook["一个名字很长很长很长很长的汇总表 包含 非法字符 以及 方括号"]["B3"].value, "007")
+
+    def test_sheet_names_survive_a_save_in_wps(self):
+        # P12-012: WPS replaced the full-width colon with "_" when it saved the workbook.
+        for name in self.workbook.sheetnames:
+            self.assertFalse(set(name) & set("[]:*?/\\：？／＊［］＼"), name)
 
     def test_line_breaks_links_nested_tables_and_images(self):
         staff = self.workbook["人员编制"]

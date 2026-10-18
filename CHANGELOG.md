@@ -28,6 +28,8 @@ Phase 12: a committed inventory of the public interface with stability rules, ch
 
 ### Fixed
 
+- `spreadsheet-read` (and every other command and MCP reply) no longer fails on date and time cells: they are written as ISO 8601 text. Before, reading a date column failed with `MCP_TOOL_EXECUTION_FAILED` (`Object of type datetime is not JSON serializable`). (P12-012)
+- `html-editable --format xlsx` also replaces the full-width forms of the characters a sheet name cannot hold (`：？／＊［］＼`), which WPS replaced with `_` when it saved the workbook, so the sheet names stay the same after a save in WPS. The warning about formulas written as text now says to leave them as text unless the user asks for working formulas. (P12-012)
 - `restore-backup` (and `wps_agent_restore_backup`) accepts `backup_name` and `backup_path` together when they name the same file, as `list-backups` returns them; when they name different files it refuses with `INVALID_ARGUMENT`. Before, argparse rejected the pair with `MCP_CLI_ARGUMENTS_REJECTED`: in the full evaluation (P12-002) every run of `restore-latest-backup` and `restore-dry-run` lost its first restore call to this, and two runs of `restore-latest-backup` went over its call limit. (P12-003)
 
 ## [0.8.0] - 2026-10-17
