@@ -87,7 +87,9 @@ def _cell_value(text: str) -> tuple[Any, bool, str | None]:
 
 
 def _unique_sheet_name(base: str, used: set[str]) -> str:
-    cleaned = re.sub(r"[\[\]:*?/\\]", " ", base).strip() or "Table"
+    # Excel forbids [ ] : * ? / \ in a sheet name; WPS also replaces their full-width forms (：？／＊［］＼) when it
+    # saves the workbook, so they are replaced here too and the name stays the same after a save in WPS.
+    cleaned = re.sub(r"[\[\]:*?/\\：？／＊［］＼]", " ", base).strip() or "Table"
     cleaned = cleaned[:_SHEET_TITLE_LIMIT]
     name, counter = cleaned, 2
     while name.casefold() in used:
@@ -240,7 +242,10 @@ def convert_html_to_xlsx(
         sheet.add_image(picture)
         images += 1
     if formula_like:
-        warnings.append(f"{formula_like} cell(s) starting with '=' were written as text, not formulas.")
+        warnings.append(
+            f"{formula_like} cell(s) starting with '=' were written as text, not formulas, as in the HTML. "
+            "Leave them as text unless the user asks for working formulas."
+        )
     if nested:
         warnings.append(f"{nested} table(s) nested in a cell were written into that cell as text, one row per line.")
     workbook.save(destination)

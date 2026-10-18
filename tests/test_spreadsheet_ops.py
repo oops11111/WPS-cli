@@ -1,4 +1,5 @@
 import hashlib
+import io
 import os
 import tempfile
 import unittest
@@ -1153,3 +1154,31 @@ class SpreadsheetStructureWpsIntegrationTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class DateCellOutputTests(unittest.TestCase):
+    def test_reading_date_cells_through_the_cli_and_mcp_gives_iso_text(self):
+        # P12-012: spreadsheet-read of a date column failed with "datetime is not JSON serializable".
+        import json
+
+        from wps_ai_agent_cli.cli import run
+        from wps_ai_agent_cli.mcp_adapter import call_mcp_tool
+
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "dates.xlsx"
+            workbook = Workbook()
+            workbook.active["A1"] = "joined"
+            workbook.active["A2"] = datetime(2021, 3, 15)
+            workbook.active["A2"].number_format = "yyyy-mm-dd"
+            workbook.save(path)
+            ok, record, errors = register_document("spreadsheets", str(path), ".")
+            self.assertTrue(ok, errors)
+            ok, data, errors = call_mcp_tool(
+                "wps_agent_spreadsheet_read", {"document_id": record["document_id"], "range": "A1:A2"}
+            )
+            self.assertTrue(ok, errors)
+            self.assertEqual(data["response"]["data"]["values"], [["joined"], ["2021-03-15T00:00:00"]])
+            self.assertTrue(data["response"]["data"]["cell_metadata"][1][0]["is_date"])
+            output = io.StringIO()
+            run(["spreadsheet-read", "--document-id", record["document_id"], "--range", "A2"], output_stream=output)
+            self.assertEqual(json.loads(output.getvalue())["data"]["values"], [["2021-03-15T00:00:00"]])
