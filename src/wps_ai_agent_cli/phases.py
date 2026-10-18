@@ -138,12 +138,13 @@ PHASES: tuple[Phase, ...] = (
     ),
     Phase(
         id="phase13",
-        name="High-fidelity conversion: HTML to and from Writer, HTML to Presentation",
+        name="High-fidelity conversion between all formats",
         status="planned",
         goal=(
-            "Measure conversion fidelity (text, structure, formatting, layout SSIM, animations), convert HTML to "
-            "docx and pptx with the browser's computed styles and positions, export docx back to clean HTML with a "
-            "lossless round trip, and release 0.10.0."
+            "Measure conversion fidelity with one check, and convert with high fidelity between HTML and the three "
+            "WPS formats, across the WPS format family (legacy, WPS-native, ODF, PNG), CSV, Markdown, across "
+            "document types, and from PDF to editable documents, released in three milestones (0.10.0, 0.11.0, "
+            "0.12.0)."
         ),
     ),
 )

@@ -173,18 +173,19 @@
 
 出口标准和任务拆分见 `docs/PHASE12_PLAN.md`。
 
-### Phase 13 高保真格式互转：HTML ↔ 文字、HTML → 演示（planned）
+### Phase 13 全格式高保真互转（planned）
 
-目标是让格式互转在 WPS 里的样子和原文件一致且仍可编辑，并用可测量的指标判定：文字、结构、格式、动画 100%，版面相似度（SSIM）在 WPS 上至少 0.90。
+目标是让各种格式之间的转换在 WPS 里的样子和原文件一致且仍可编辑，并用同一个保真度检查判定：文字、结构、格式、动画 100%，版面相似度（SSIM）按方向设门槛（HTML ↔ Office 在 WPS 上至少 0.90，WPS 格式家族至少 0.95，PDF 转可编辑至少 0.85）。
 
 交付物：
 
-- `fidelity-check`：文字、结构、格式、版面、动画五项保真度检查
-- HTML → docx 的 CSS 属性映射（字符、段落、表格、图片、页面）
-- HTML → pptx 按浏览器位置摆放，背景、字体、退出和强调动画、动画顺序
-- docx → 干净 HTML 和无损往返
-- 外观优先模式，保真度评测任务，Windows 上的 WPS 版面检查
-- 版本 0.10.0
+- `fidelity-check`：文字、结构、格式、版面、动画、数据六项检查
+- HTML ↔ docx / pptx / xlsx 的高保真双向转换
+- `convert`：旧格式、WPS 原生格式、ODF 互转和每页 PNG（经 WPS）
+- CSV/TSV ↔ xlsx，Markdown ↔ docx/HTML
+- 跨类型：docx ↔ pptx，xlsx 区域 → 文字/演示表格
+- PDF → docx / xlsx / pptx（含扫描件 OCR）
+- 每组的评测任务，三个里程碑各自上机检查并发布 0.10.0、0.11.0、0.12.0
 
 出口标准和任务拆分见 `docs/PHASE13_PLAN.md`。
 
