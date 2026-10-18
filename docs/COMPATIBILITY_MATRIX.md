@@ -123,7 +123,7 @@ E2 原来的达成条件：两个版本的 C1 到 C6 都是 pass（C2、C3 都�
 
    ```powershell
    py -m venv $HOME\wps-agent-venv
-   $HOME\wps-agent-venv\Scripts\python -m pip install "wps-ai-agent-cli[wps] @ https://github.com/oops11111/WPS-cli/releases/download/v0.9.0/wps_ai_agent_cli-0.9.0-py3-none-any.whl"
+   $HOME\wps-agent-venv\Scripts\python -m pip install "wps-ai-agent-cli[wps,html] @ https://github.com/oops11111/WPS-cli/releases/download/v0.9.0/wps_ai_agent_cli-0.9.0-py3-none-any.whl"
    $HOME\wps-agent-venv\Scripts\wps-agent inspect-env
    ```
 
@@ -148,7 +148,7 @@ E2 原来的达成条件：两个版本的 C1 到 C6 都是 pass（C2、C3 都�
 
 - 日期：
 - 机器：同一台 Windows <版本>，新建本地账户 `<名字>`
-- 安装：`pip install "wps-ai-agent-cli[wps] @ <Release 上 wheel 的地址>"`，包路径 `<site-packages 下的路径>`
+- 安装：`pip install "wps-ai-agent-cli[wps,html] @ <Release 上 wheel 的地址>"`（`html` 是 C4 到 C6 用 `html-editable` 生成 docx 和 pptx 所需的，P12-010 发现），包路径 `<site-packages 下的路径>`
 - 首次启动 WPS 时出现过的对话框：
 
 | # | 结果 | 证据 |
