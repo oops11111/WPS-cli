@@ -67,7 +67,7 @@ State checks: `document_registered`, `operation_recorded`, `no_operation`, `back
 
 Each task also lists `expected_tools`: the `wps-agent` tools a correct run needs, without the `wps_agent_` prefix. The runner counts calls to any other `wps-agent` tool as off-path calls and reports them for each run (`off_path_calls`, `off_path_tools`), for each repeated task and in the summary. Off-path calls are reported only; a task passes or fails on its checks. For a task whose document is open in WPS (setup `open_in_wps`), the runner also counts `wrong_tool_calls`: calls to a file-based write tool (`writer_replace`, `presentation_replace`, `spreadsheet_write`, ...), which cannot change a document WPS holds; the selection tools apply instead. They are reported per run, per task and in the summary, and Phase 9 (J1) asks for 0 over a Windows run (P9-002). The task-file test requires every task to list its expected tools, and every `tool_called` check to name one of them.
 
-Transcript checks, read from the tool calls, not from the reply: `tool_called` (optionally with `input` values and a `min` count), `tool_not_called`, `tool_error_seen` (an error code in a tool result), `max_tool_calls` (calls to `wps-agent` tools only).
+Transcript checks, read from the tool calls, not from the reply: `tool_called` (optionally with `input` values, `input_suffix` for the end of a path argument, a `min` count, and `or`: other tools, each with its own `input`/`input_suffix`, that do the same step, such as `convert` for `convert_smoke`), `tool_not_called`, `tool_error_seen` (an error code in a tool result), `max_tool_calls` (calls to `wps-agent` tools only).
 
 ## How to run
 

@@ -519,6 +519,10 @@ def analyse_pdf(path: str | Path, ocr: bool = False, images: bool = True) -> Ana
         left = min(line.x0 for _p, line in body_lines)
         right = first.width - max(line.x1 for _p, line in body_lines)
         bottom = first.height - max(line.bottom for _p, line in body_lines)
+        # Where the text happens to end says nothing about the margin (a short page ends mid-page; a bottom
+        # margin taken from it pushed the rest onto the next page in WPS): mirror the top margin, unless the
+        # text reaches lower than that.
+        bottom = min(bottom, top)
         margins = (max(18.0, top - 4), max(18.0, min(right, left)), max(18.0, bottom - 4), max(18.0, left))
     return Analysis(pages, float(body), sorted(headers), sorted(footers), warnings, margins)
 

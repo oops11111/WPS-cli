@@ -41,7 +41,8 @@ FAMILIES: dict[str, dict[str, Any]] = {
     "writer": {
         "collection": "Documents",
         # ConfirmConversions $false: no "convert file from" prompt for .odt, .rtf or .txt, which would hang.
-        "open": "$document = $app.Documents.Open($source, $false)",
+        # ReadOnly, not in the recent list: the source is only read, and WPS has nothing to ask about saving it.
+        "open": "$document = $app.Documents.Open($source, $false, $true, $false)",
         "inputs": {".doc", ".docx", ".docm", ".dot", ".dotx", ".wps", ".wpt", ".rtf", ".odt", ".txt", ".xml"},
         "outputs": {
             ".doc": 0,
@@ -247,6 +248,44 @@ def render_pdf_pages(pdf: Path, destination: Path, dpi: int = 150) -> list[str]:
     return written
 
 
+_WINDOW_TITLES_SCRIPT = r"""
+$ErrorActionPreference = 'Stop'
+Add-Type @'
+using System; using System.Collections.Generic; using System.Runtime.InteropServices; using System.Text;
+public static class WpsWindows {
+  delegate bool EnumProc(IntPtr hWnd, IntPtr lParam);
+  [DllImport("user32.dll")] static extern bool EnumWindows(EnumProc callback, IntPtr lParam);
+  [DllImport("user32.dll")] static extern int GetWindowText(IntPtr hWnd, StringBuilder text, int count);
+  [DllImport("user32.dll")] static extern bool IsWindowVisible(IntPtr hWnd);
+  [DllImport("user32.dll")] static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint pid);
+  public static List<string> Titles(HashSet<uint> pids) {
+    var titles = new List<string>();
+    EnumWindows((hWnd, l) => {
+      uint pid; GetWindowThreadProcessId(hWnd, out pid);
+      if (pids.Contains(pid) && IsWindowVisible(hWnd)) {
+        var text = new StringBuilder(256); GetWindowText(hWnd, text, 256);
+        if (text.Length > 0) { titles.Add(text.ToString()); }
+      }
+      return true;
+    }, IntPtr.Zero);
+    return titles;
+  }
+}
+'@
+$pids = New-Object 'System.Collections.Generic.HashSet[uint32]'
+Get-Process -Name wps, et, wpp -ErrorAction SilentlyContinue | ForEach-Object { [void]$pids.Add([uint32]$_.Id) }
+@{ titles = @([WpsWindows]::Titles($pids)) } | ConvertTo-Json -Depth 3
+"""
+
+
+def _wps_window_titles() -> list[str]:
+    """The titles of WPS's visible windows, after a timeout: a dialog WPS is waiting on names itself here."""
+    payload, failure = run_powershell_script(_WINDOW_TITLES_SCRIPT, 20)
+    if failure is not None or not payload:
+        return []
+    return [str(title) for title in payload.get("titles") or []][:10]
+
+
 def wps_convert(
     input_path: str | Path, output_path: str | Path, dpi: int = 150, timeout_seconds: int = 180
 ) -> tuple[bool, dict[str, Any], list[dict[str, str]]]:
@@ -315,8 +354,10 @@ def wps_convert(
             if errors and errors[0].get("code") == "COM_OPERATION_TIMEOUT":
                 # Say where WPS stopped, so a hang (a dialog on open, say) can be told from a slow save.
                 where = stage.read_text(encoding="utf-8-sig").strip() if stage.is_file() else "unknown"
-                errors = [{**errors[0], "message": f"{errors[0]['message']} WPS was {where}."}, *errors[1:]]
-                failure.setdefault("data", {})["stage"] = where
+                windows = _wps_window_titles()
+                shown = f" Open WPS windows: {', '.join(windows)}." if windows else ""
+                errors = [{**errors[0], "message": f"{errors[0]['message']} WPS was {where}.{shown}"}, *errors[1:]]
+                failure.setdefault("data", {}).update({"stage": where, "wps_windows": windows})
             return False, failure.get("data", {}), errors
         if not payload.get("ok"):
             return (

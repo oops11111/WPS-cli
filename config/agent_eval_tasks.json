@@ -1534,7 +1534,15 @@
           "input": {
             "component": "writer",
             "format": "pdf"
-          }
+          },
+          "or": [
+            {
+              "tool": "convert",
+              "input_suffix": {
+                "output": ".pdf"
+              }
+            }
+          ]
         },
         {
           "kind": "pdf_file",

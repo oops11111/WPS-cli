@@ -15,6 +15,10 @@ All notable changes to `wps-ai-agent-cli`. The versioning rule and release steps
 - `convert` through WPS also retries when WPS has not yet let go of the previous call's file (`DOCUMENT_HELD_OPEN`), and a timeout says what WPS was doing (opening the input or saving the output).
 - `convert` results include `output_summary` (slide titles, headings, sheets), and the tool description says to write straight to the requested path and check with `check`, not to convert trial copies first.
 - The `convert-legacy-doc-with-wps` evaluation task writes `legacy.docx` and `legacy.pdf`: its outputs had the names of fixtures the setup copies in, so `convert` refused them.
+- docx lines use exactly the browser's CSS line height when nothing in the paragraph is taller (no image, no larger inline font): as "at least", WPS gave Microsoft YaHei its own line of about 1.7 em, so lines and table rows came out about 1.3 times taller than in the browser. `th` cells follow the computed font weight instead of always being bold. (P13-008)
+- PDF to docx no longer takes the bottom margin from where a short page's text ends (427 pt for the supplier fixture, which pushed a paragraph onto a third page in WPS); it mirrors the top margin unless the text reaches lower. (P13-018)
+- `convert` through WPS opens Writer sources read-only and out of the recent list, and a timeout lists the titles of WPS's visible windows (`wps_windows`), so a dialog WPS waits on can be named. `scripts/fidelity_baselines.py --wps` waits for WPS to exit between group B steps and ends one it started that is still running after 30 seconds.
+- Evaluation `tool_called` checks accept other tools for the same step (`or`, with `input_suffix` matching the end of a path); `html-complex-report-to-docx` accepts `convert` writing the PDF.
 
 ## [0.10.0] - 2026-10-18
 

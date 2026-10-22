@@ -218,6 +218,21 @@ D 组只考核文字和数据（F5）：pptx → docx 的结构 70% 和动画 0%
 - 放映：`training.html` 的外观 pptx 仍然正确（fade/push/wipe、飞入、pulse、延迟退出、单击和“上一项之后”）。
 - 结论：`convert-` 已全过；`html-complex-report-to-docx` 是检查与工具不一致，建议任务检查接受 `convert` 或 `convert_smoke`。仍未达标的是 A 组 5 份 docx 版面、`E-supplier-docx`、`B-odt-docx`，以及 B 组连续用例的 WPS 占用。P13-008、P13-013、P13-018 仍不能算完成。
 
+### 第三次 Windows 检查之后的修复（待第四次检查）
+
+| 发现 | 对照图里看到的 | 修复 |
+| --- | --- | --- |
+| A 组 docx 0.76–0.88 | 网格已去掉，但行和表格行仍高约 1.3 倍：“最小值 16.5 pt”在 WPS 里被微软雅黑自己的行高（约 1.7 倍字号，11 pt 时约 18.7 pt）撑开 | 段落里没有图片、也没有比行高更大的字时，行距用“固定值”= 浏览器算出的 CSS 行高；否则仍用“最小值”，不裁切 |
+| 同上 | `th{font-weight:normal}` 的表头仍是粗体 | 有计算样式时表头粗细跟随层叠结果，只在没有样式时默认加粗 |
+| E-supplier-docx 0.5918（2 页变 3 页） | 第 2 页表格后的段落被推到第 3 页：下边距取自正文结束的位置（短页在页中结束，下边距 427 pt） | 下边距与上边距相同，除非正文比这更靠下 |
+| B-docx-wps、B-docx-odt 整轮里 `DOCUMENT_HELD_OPEN` | 单独复测（每步前结束 WPS）都是 1.0 | 矩阵脚本在 B 组每一步前等 WPS 退出（最多 30 秒）；矩阵开始时没有 WPS 在运行的话，仍未退出的 WPS（卡在对话框或还占着文件）由脚本结束 |
+| B-odt-docx 打开时超时 | 打开 `.odt` 时 WPS 停住，多半是隐藏窗口里的对话框 | 以只读、不进最近列表的方式打开源文件；超时时列出 WPS 当前可见窗口的标题（`wps_windows`），下次检查据此看出是哪个对话框 |
+| `html-complex-report-to-docx` 1/3 | 用 `convert` 生成 PDF，检查只认 `convert_smoke` | `tool_called` 检查可以列出做同一步的其他工具（`or`，输出路径按后缀匹配）；该任务也接受 `convert` 写出 `.pdf` |
+
+本地 LibreOffice 的版面分数基本不变（LibreOffice 本来就不按字体放大“最小值”行距；supplier 本地已是 2 页），基线已重新写入。
+
+第四次检查与第三次相同：`fidelity_baselines.py --renderer wps --wps --out <目录>`，`eval --prefix convert-` 和 `--prefix html-`。`B-odt-docx` 若仍超时，请把错误信息里的 “Open WPS windows: …” 一并带回。
+
 ## 任务拆分
 
 | 任务 | 里程碑 | 对应标准 | 内容 | 在哪做 |

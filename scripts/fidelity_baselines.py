@@ -20,6 +20,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -91,13 +92,37 @@ def _entry(report: dict, route) -> dict:
     }
 
 
+WPS_PROCESSES = ("wps.exe", "et.exe", "wpp.exe")
+
+
+def _wps_running() -> list[str]:
+    if sys.platform != "win32":
+        return []
+    listing = subprocess.run(["tasklist", "/FO", "CSV", "/NH"], capture_output=True, text=True, check=False).stdout
+    return [name for name in WPS_PROCESSES if f'"{name}"' in listing.casefold()]
+
+
+def _release_wps(ours: bool) -> None:
+    """Wait for the WPS the last step started to exit; one still running after 30 seconds (hung on a dialog, or
+    still holding the file) is ended when the matrix started with no WPS running, so it is ours. Without this a
+    WPS that kept brief.docx open failed the next case with DOCUMENT_HELD_OPEN (Windows check on 8899219)."""
+    deadline = time.monotonic() + 30
+    while _wps_running() and time.monotonic() < deadline:
+        time.sleep(1)
+    if ours:
+        for name in _wps_running():
+            subprocess.run(["taskkill", "/F", "/IM", name], capture_output=True, check=False)
+
+
 def run_wps(renderer: str, out: Path | None = None) -> dict[str, dict]:
     """Group B with WPS (F3): text and structure against the OOXML file a legacy or ODF source was saved from,
     and the layout of WPS's PDF of the source itself against WPS's PDF of the result. Each case works in its own
     folder, so a WPS that still holds one case's file does not fail the next."""
     results: dict[str, dict] = {}
+    ours = not _wps_running()
     with tempfile.TemporaryDirectory(prefix="wps-fidelity-b-", ignore_cleanup_errors=True) as tmp:
         for case, fixture, suffix, reference in WPS_CASES:
+            _release_wps(ours)
             work = Path(tmp) / case
             work.mkdir()
             for item in FIXTURES.iterdir():
@@ -116,11 +141,13 @@ def run_wps(renderer: str, out: Path | None = None) -> dict[str, dict]:
             if suffix in {".wps", ".et", ".dps", ".odt"}:
                 # Read the WPS-format copy back through WPS to compare it.
                 back = work / f"{case}-back{source.suffix}"
+                _release_wps(ours)
                 ok, _data, errors = convert(target, back)
                 if not ok:
                     results[case] = {"converted": True, "errors": errors}
                     continue
                 converted = back
+            _release_wps(ours)
             checked, report, check_errors = fidelity_check(
                 original,
                 converted,

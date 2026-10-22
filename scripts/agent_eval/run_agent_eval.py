@@ -1187,10 +1187,17 @@ def judge(
             passed = file_sha256(fixture) == seed_sha
             detail = "matches the seed" if passed else "differs from the seed"
         elif kind == "tool_called":
+            # "or" lists other tools that do the same step (convert for convert_smoke); "input_suffix" matches the
+            # end of a path argument, since the agent may pass it relative or absolute.
             matching = [
                 call
-                for call in _calls_to(calls, check["tool"])
-                if all(call["input"].get(key) == value for key, value in check.get("input", {}).items())
+                for option in [check, *check.get("or", [])]
+                for call in _calls_to(calls, option["tool"])
+                if all(call["input"].get(key) == value for key, value in option.get("input", {}).items())
+                and all(
+                    str(call["input"].get(key, "")).casefold().endswith(value)
+                    for key, value in option.get("input_suffix", {}).items()
+                )
             ]
             passed, detail = len(matching) >= check.get("min", 1), f"{len(matching)} matching call(s)"
         elif kind == "tool_not_called":
