@@ -251,7 +251,7 @@ def render_pdf_pages(pdf: Path, destination: Path, dpi: int = 150) -> list[str]:
 _WINDOW_TITLES_SCRIPT = r"""
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.Drawing
-Add-Type -ReferencedAssemblies System.Drawing @'
+Add-Type @'
 using System; using System.Collections.Generic; using System.Runtime.InteropServices; using System.Text;
 public static class WpsWindows {
   delegate bool EnumProc(IntPtr hWnd, IntPtr lParam);
@@ -262,11 +262,9 @@ public static class WpsWindows {
   [DllImport("user32.dll")] static extern bool IsWindowVisible(IntPtr hWnd);
   [DllImport("user32.dll")] static extern bool GetWindowRect(IntPtr hWnd, out Rect rect);
   [DllImport("user32.dll")] static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint pid);
-  [DllImport("user32.dll")] static extern bool PrintWindow(IntPtr hWnd, IntPtr hdc, uint flags);
-  public static bool Capture(IntPtr hWnd, System.Drawing.Graphics graphics) {
-    IntPtr hdc = graphics.GetHdc();
-    try { return PrintWindow(hWnd, hdc, 2); } finally { graphics.ReleaseHdc(hdc); }
-  }
+  // Takes the device context, not a Graphics: on PowerShell 7 the drawing types live in an assembly this compiled
+  // type cannot reference (CS1069, Windows check on f8ed7bd).
+  [DllImport("user32.dll")] public static extern bool PrintWindow(IntPtr hWnd, IntPtr hdc, uint flags);
   public static List<object[]> Visible(HashSet<uint> pids) {
     var found = new List<object[]>();
     EnumWindows((hWnd, l) => {
@@ -296,7 +294,8 @@ $windows = foreach ($w in [WpsWindows]::Visible($pids)) {
     try {
       $bitmap = New-Object System.Drawing.Bitmap $w[3], $w[4]
       $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
-      [void][WpsWindows]::Capture($w[2], $graphics)
+      $hdc = $graphics.GetHdc()
+      try { [void][WpsWindows]::PrintWindow($w[2], $hdc, 2) } finally { $graphics.ReleaseHdc($hdc) }
       $image = Join-Path $env:TEMP "wps-agent-timeout-$stamp-$index.png"
       $bitmap.Save($image, [System.Drawing.Imaging.ImageFormat]::Png)
       $graphics.Dispose(); $bitmap.Dispose()

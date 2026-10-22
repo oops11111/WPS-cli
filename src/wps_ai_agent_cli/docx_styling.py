@@ -169,8 +169,32 @@ def _borders_xml(tag: str, borders: dict[str, tuple[float, str, str]]):
     return container
 
 
+def _apply_padding(form, props, holder_style: dict[str, str], borders: dict, fill: str | None) -> None:
+    """The box's padding: the border's distance from the text, and the right indent by the padding and border so
+    that the box's edge stays where the browser draws it. A shaded box with padding but no border gets a border in
+    its own fill colour, the only way Word draws shading beyond the text (Windows check on f8ed7bd: the manual's
+    code block and note had no padding in WPS)."""
+    from docx.shared import Pt
+
+    pad = {side: px(holder_style.get(f"padding-{side}")) or 0.0 for side in ("top", "left", "bottom", "right")}
+    if not borders and fill and any(pad.values()):
+        borders = {side: (0.5, "single", fill) for side in ("top", "left", "bottom", "right")}
+    if not borders:
+        return
+    container = _borders_xml("w:pBdr", borders)
+    for edge in container:
+        side = edge.tag.rsplit("}", 1)[1]
+        edge.set(_qn("w:space"), str(max(0, min(31, int(round(pad.get(side, 0.0) * 0.75))))))
+    props.append(container)
+    # The left inset is already in the paragraph's indent (apply_paragraph); the right one is not.
+    right = pad["right"] + (borders["right"][0] if "right" in borders else 0.0)
+    if right:
+        form.right_indent = Pt((form.right_indent.pt if form.right_indent is not None else 0.0) + right * 0.75)
+
+
 def _left_offset(context: Context, node, ancestors) -> float | None:
-    """How far the element starts right of the page's content edge, in CSS px."""
+    """How far the element's border edge starts right of the page's content edge, in CSS px (its own border and
+    padding are added by the caller)."""
     styled = context.styled
     box = styled.box(node)
     if box is not None:
@@ -183,9 +207,9 @@ def _left_offset(context: Context, node, ancestors) -> float | None:
         if element.tag in {"html", "body", "document", "ul", "ol"}:
             continue
         style = styled.style(element)
-        total += (px(style.get("margin-left")) or 0) + (px(style.get("padding-left")) or 0)
+        total += px(style.get("margin-left")) or 0
         if element is not node:
-            total += (_border(style, "left") or (0, "", ""))[0]
+            total += (px(style.get("padding-left")) or 0) + (_border(style, "left") or (0, "", ""))[0]
     return total
 
 
@@ -200,6 +224,38 @@ def _fits_line(node, line: float, context: Context) -> bool:
             return False
         stack.extend(child for child in element.children if not isinstance(child, str))
     return True
+
+
+def _list_tab(paragraph, left) -> None:
+    """The text after the number or bullet starts at the paragraph's indent: the template's list numbering has a
+    tab stop of its own (360 twips at the first level), which a narrow bullet stops at, so bullet text started 16
+    px left of the browser's in WPS (Windows check on f8ed7bd). Clear those stops and set one at the indent."""
+    from docx.enum.text import WD_TAB_ALIGNMENT
+    from docx.shared import Twips
+
+    w = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
+    style = paragraph.style
+    num = style.element.find(f"{w}pPr/{w}numPr/{w}numId") if style is not None else None
+    positions: set[int] = set()
+    try:
+        numbering = paragraph.part.numbering_part.element
+    except (AttributeError, KeyError, NotImplementedError):
+        numbering = None
+    if num is not None and numbering is not None:
+        number = num.get(f"{w}val")
+        for entry in numbering.findall(f"{w}num"):
+            if entry.get(f"{w}numId") != number:
+                continue
+            abstract = entry.find(f"{w}abstractNumId").get(f"{w}val")
+            for definition in numbering.findall(f"{w}abstractNum"):
+                if definition.get(f"{w}abstractNumId") == abstract:
+                    for tab in definition.findall(f"{w}lvl/{w}pPr/{w}tabs/{w}tab"):
+                        positions.add(int(tab.get(f"{w}pos")))
+    stops = paragraph.paragraph_format.tab_stops
+    for position in sorted(positions):
+        if position != left.twips:
+            stops.add_tab_stop(Twips(position), WD_TAB_ALIGNMENT.CLEAR)
+    stops.add_tab_stop(left, WD_TAB_ALIGNMENT.LEFT)
 
 
 def apply_paragraph(paragraph, node, ancestors, context: Context, *, list_item: bool = False) -> None:
@@ -243,7 +299,9 @@ def apply_paragraph(paragraph, node, ancestors, context: Context, *, list_item: 
     context.last_space_after = bottom
     context.carry_before = 0.0
     if not list_item:
-        offset = _left_offset(context, node, ancestors)
+        # The text starts inside the element's own border and padding.
+        offset = (_left_offset(context, node, ancestors) or 0.0) + (px(style.get("padding-left")) or 0)
+        offset += (_border(style, "left") or (0, "", ""))[0]
         if offset:
             form.left_indent = Pt(offset * 0.75)
     elif getattr(node, "tag", "") == "li":
@@ -256,6 +314,7 @@ def apply_paragraph(paragraph, node, ancestors, context: Context, *, list_item: 
         if offset:
             form.left_indent = Pt(offset * 0.75)
             form.first_line_indent = Pt(-min(offset, 24.0) * 0.75)
+            _list_tab(paragraph, form.left_indent)
     indent = px(style.get("text-indent"), size)
     if indent:
         form.first_line_indent = Pt(indent * 0.75)
@@ -278,11 +337,14 @@ def apply_paragraph(paragraph, node, ancestors, context: Context, *, list_item: 
         if any(_border(style, s) for s in ("top", "right", "bottom", "left"))
         else (_container_with(context, node, ancestors, "border"))
     )
+    box_holder = None if cell else border_holder if border_holder is not None else holder
+    borders: dict[str, tuple[float, str, str]] = {}
     if border_holder is not None and not cell:
         holder_style = context.styled.style(border_holder)
         borders = {side: b for side in ("top", "left", "bottom", "right") if (b := _border(holder_style, side))}
-        props.append(_borders_xml("w:pBdr", borders))
         context.applied.add("border")
+    if box_holder is not None:
+        _apply_padding(form, props, context.styled.style(box_holder), borders, fill)
     if context.appearance and style.get("position") in {"absolute", "fixed"}:
         box = context.styled.box(node)
         if box is not None:
@@ -374,10 +436,17 @@ def apply_table(table, node, grid, rows, context: Context, page_width_px: float)
             properties.append(margins)
     from docx.enum.table import WD_ROW_HEIGHT_RULE
 
+    # With separate borders (the default) the browser puts border-spacing (2 px) between rows, and Word has no
+    # equivalent outside cell spacing: count it in each row's height (the report's rows came out 2 px short each in
+    # WPS, Windows check on f8ed7bd).
+    spacing = 0.0
+    if table_style.get("border-collapse", "separate") != "collapse":
+        values = table_style.get("border-spacing", "2px").split()
+        spacing = (px(values[-1]) or 0.0) if values else 0.0
     for row, row_node in zip(table.rows, rows, strict=False):
         row_height = px(styled.style(row_node).get("height"))
         if row_height:
-            row.height, row.height_rule = Pt(row_height * 0.75), WD_ROW_HEIGHT_RULE.AT_LEAST
+            row.height, row.height_rule = Pt((row_height + spacing) * 0.75), WD_ROW_HEIGHT_RULE.AT_LEAST
     has_borders = node.attrs.get("border") not in {None, "", "0"}
     for row_index, row in enumerate(grid):
         for column_index, cell_node in enumerate(row):

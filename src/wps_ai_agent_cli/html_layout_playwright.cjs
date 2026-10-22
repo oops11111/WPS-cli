@@ -14,7 +14,7 @@ const PROPERTIES = [
   'padding-right', 'text-indent', 'border-top-width', 'border-top-style', 'border-top-color', 'border-bottom-width',
   'border-bottom-style', 'border-bottom-color', 'border-left-width', 'border-left-style', 'border-left-color',
   'border-right-width', 'border-right-style', 'border-right-color', 'break-before', 'page-break-before', 'width',
-  'height', 'float', 'visibility', 'opacity', 'white-space',
+  'height', 'float', 'visibility', 'opacity', 'white-space', 'border-collapse', 'border-spacing',
 ];
 
 async function main() {
@@ -49,8 +49,11 @@ async function main() {
       // "line-height: normal" depends on the font: measure it once per font, so that a document can set the line
       // the browser drew (WPS gives Microsoft YaHei a taller "single" line than the browser's normal one).
       const normal = new Map();
-      const normalLine = style => {
-        const key = [style.fontFamily, style.fontSize, style.fontWeight, style.fontStyle].join('|');
+      // The sample has a CJK glyph only when the element's text does: a fallback CJK font makes the line taller
+      // than a Latin-only one in the same font (a Consolas code block measured 17 px instead of 14 px).
+      const normalLine = (style, text) => {
+        const cjk = /[\u3000-\u9fff\uff00-\uffef]/.test(text);
+        const key = [style.fontFamily, style.fontSize, style.fontWeight, style.fontStyle, cjk].join('|');
         if (!normal.has(key)) {
           const probe = document.createElement('div');
           probe.style.cssText = 'position:absolute;left:-10000px;top:0;visibility:hidden;white-space:nowrap;' +
@@ -59,7 +62,7 @@ async function main() {
           probe.style.fontSize = style.fontSize;
           probe.style.fontWeight = style.fontWeight;
           probe.style.fontStyle = style.fontStyle;
-          probe.textContent = '\u56fdAg';
+          probe.textContent = cjk ? '\u56fdAg' : 'Ag';
           document.body.appendChild(probe);
           normal.set(key, probe.getBoundingClientRect().height);
           probe.remove();
@@ -72,7 +75,7 @@ async function main() {
         const values = {};
         for (const name of properties) values[name] = style.getPropertyValue(name);
         if (values['line-height'] === 'normal' && document.body) {
-          values['line-height-normal'] = `${normalLine(style)}px`;
+          values['line-height-normal'] = `${normalLine(style, element.textContent || '')}px`;
         }
         result[element.getAttribute('data-wps-i')] = {
           tag: element.tagName.toLowerCase(),

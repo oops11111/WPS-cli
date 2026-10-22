@@ -1,0 +1,47 @@
+{
+  "backend": "python-pptx",
+  "command": "html-editable",
+  "data": {
+    "format": "pptx",
+    "input_path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\fixtures\\fidelity\\training.html",
+    "mapped_objects": {
+      "animations": 6,
+      "images": 0,
+      "media": 0,
+      "notes": 1,
+      "shapes": 1,
+      "tables": 0,
+      "transitions": 3
+    },
+    "output_path": "C:\\Users\\admin\\AppData\\Local\\Temp\\p13-r6-playback\\training.pptx",
+    "slides": 3,
+    "warnings": []
+  },
+  "errors": [],
+  "ok": true,
+  "request_id": "50d9e7f1-8d9a-4fb5-a294-791aefabceee",
+  "summary": "HTML mapped to editable PPTX content.",
+  "validation": {
+    "checks": [
+      {
+        "details": "C:\\Users\\admin\\AppData\\Local\\Temp\\p13-r6-playback\\training.pptx",
+        "name": "output_created",
+        "passed": true
+      },
+      {
+        "details": {
+          "animations": 6,
+          "images": 0,
+          "media": 0,
+          "notes": 1,
+          "shapes": 1,
+          "tables": 0,
+          "transitions": 3
+        },
+        "name": "native_objects_reported",
+        "passed": true
+      }
+    ],
+    "status": "passed"
+  }
+}

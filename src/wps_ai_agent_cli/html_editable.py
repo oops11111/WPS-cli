@@ -610,7 +610,9 @@ def convert_html_editable(
         node_props = docx_styling.run_props(context, node)
         for child in node.children:
             if isinstance(child, str):
-                text = child if preserve else re.sub(r"\s+", " ", child)
+                # HTML reads CRLF and CR as one line break; python-docx would make each of \r and \n a break (a
+                # blank line in every code block of a file checked out with CRLF endings, Windows check on f8ed7bd).
+                text = re.sub(r"\r\n?", "\n", child) if preserve else re.sub(r"\s+", " ", child)
                 if text:
                     run = paragraph.add_run(text)
                     docx_styling.apply_run(run, node_props)

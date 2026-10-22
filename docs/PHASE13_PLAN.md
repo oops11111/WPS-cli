@@ -1,6 +1,6 @@
 # Phase 13 计划：全格式高保真互转
 
-状态：**active**（2026-10-18 规划，同日你决定把全部格式并入本阶段；同日你说“phase13三个里程碑做一个提交”，按默认决定激活。三个里程碑的本地任务已在一次提交中完成，版本号 0.10.0 包含全部内容；Windows 上的三次检查 P13-008、P13-013、P13-018 于 2026-10-18 在 `4b263d9`、2026-10-22 在 `c117637`、`8899219`、`c55d04e` 和 `c205851` 上各跑过一遍，仍未全部通过，见“Windows 检查结果”）。
+状态：**active**（2026-10-18 规划，同日你决定把全部格式并入本阶段；同日你说“phase13三个里程碑做一个提交”，按默认决定激活。三个里程碑的本地任务已在一次提交中完成，版本号 0.10.0 包含全部内容；Windows 上的三次检查 P13-008、P13-013、P13-018 于 2026-10-18 在 `4b263d9`、2026-10-22 在 `c117637`、`8899219`、`c55d04e`、`c205851` 和 `f8ed7bd` 上各跑过一遍，仍未全部通过，见“Windows 检查结果”）。
 
 ## 目标
 
@@ -103,17 +103,17 @@ Phase 12 之后，HTML 转换为 WPS 三种格式已经保留语义、行内格�
 | P13-005 | 完成 | `office_html.py`：docx → 内联样式的干净 HTML，往返 100% |
 | P13-006 | 完成 | `html_slides.py`：有浏览器时按 section 的布局摆放到 16:9 幻灯片，背景、字体、退出和强调动画、单击和“上一项之后”；`--fidelity appearance` 画出装饰框 |
 | P13-007 | 完成 | `wps_convert.py`：SaveAs 格式码（doc 0、docx 16、odt 23、xls 56、xlsx 51、ods 60、ppt 1、pptx 24、odp 35，.wps/.et/.dps 按扩展名）、PDF、每页 PNG；`FORMAT_NOT_SUPPORTED_BY_WPS`；用假 COM 测试 |
-| P13-008 | 未通过 | 第五轮 2026-10-22（`c205851`）：A 组 5 份 docx 的版面 0.819–0.886，仍低于 0.90；`--prefix convert-` 5/5、`--prefix html-` 5/5；见“Windows 检查结果（第五轮）” |
+| P13-008 | 未通过 | 第六轮 2026-10-22（`f8ed7bd`）：A 组 5 份 docx 的版面 0.833–0.895，仍低于 0.90；`--prefix convert-` 5/5、`--prefix html-` 5/5；见“Windows 检查结果（第六轮）” |
 | P13-009 | 完成 | pptx → HTML：每页一个定位的 section，动画转回 `@keyframes`，切换转回 `data-transition`，备注 |
 | P13-010 | 完成 | HTML → xlsx 的字体、填充、边框、对齐、列宽、冻结表头，`data-formula` 还原公式；xlsx → HTML |
 | P13-011 | 完成 | `tabular.py`（编码、分隔符、类型）、`markdown_convert.py`（markdown-it-py 或内置读取器） |
 | P13-012 | 完成 | `cross_type.py`：docx ↔ pptx（决定 8 的分页），工作表区域 → docx/pptx 表格 |
-| P13-013 | 未通过 | 第五轮：C、D 组通过；A 组版面仍未达标；两组评测都是 5/5 |
+| P13-013 | 未通过 | 第六轮：C、D 组通过；A 组版面仍未达标；两组评测都是 5/5 |
 | P13-014 | 完成 | `pdf_convert.py`：标题（按字号）、列表、有线框和按对齐识别的表格、图片、页眉页脚（进 docx 的页眉页脚）、页面大小和边距 |
 | P13-015 | 完成 | PDF → xlsx 每个表格一个工作表；PDF → pptx 每页一张幻灯片（按阅读顺序排版，不按页面坐标定位） |
 | P13-016 | 完成 | `--ocr` 和 `ocr` 可选依赖（RapidOCR）；没装或不加 `--ocr` 时报 `PDF_NEEDS_OCR`；本地扫描件字符准确率 98.5%（300 dpi） |
 | P13-017 | 完成 | `convert` 统一入口（CLI、MCP `wps_agent_convert`），5 个 `convert-` 评测任务和离线判定 `fidelity`，离线测试确认判定在真实转换结果上通过 |
-| P13-018 | 未通过 | 第五轮：E-supplier-docx 0.8745 已达标；B-odt-docx 仍超时——WPS 弹出“文件损坏提示”模态框；B 组其余方向都通过；见“Windows 检查结果（第五轮）” |
+| P13-018 | 未通过 | 第六轮：E-supplier-docx 0.8745 达标；`B-odt-docx` 在 ODF 1.2 下仍弹“文件损坏提示”并超时；B 组其余方向都通过；见“Windows 检查结果（第六轮）” |
 
 ### 离线转换矩阵
 
@@ -289,6 +289,40 @@ D 组只考核文字和数据（F5）：pptx → docx 的结构 70% 和动画 0%
 | `B-odt-docx` 打开时弹“文件损坏提示” | WPS 不接受 LibreOffice 默认的 ODF 1.3 扩展格式 | `brief.odt` 改用 ODF 1.2（无 loext 扩展）重新生成，`--make-fixtures` 同样写 ODF 1.2；超时截图改用 PrintWindow（不会被其他窗口挡住）；ODF 文件打开超时时，错误信息说明可能是 WPS 的损坏文件提示，建议另存为 ODF 1.2 或 OOXML |
 
 本地 LibreOffice 基线已重写（supplier 不变；report、manual、newsletter 略升）。第六次检查与第五次相同。
+
+### Windows 检查结果（第六轮，2026-10-22，`f8ed7bd`）
+
+结果和原始输出在 `scripts/windows_check/results/20261022T115711Z-f8ed7bd-fidelity/`（保真度 `results.json`/`pages/`、超时截图、放映）以及相邻的两个 `*-eval` 目录。
+
+- 保真度（WPS）：A 组 5 份 docx 的版面 0.8328–0.8951，比第五轮又提高（newsletter 0.8951、report 0.8927 已接近），但仍都低于 0.90；pptx 3 份通过（0.9137–0.9573）。E-supplier-docx 0.8745（2 → 2 页）达标。B 组除 `B-odt-docx` 外全部通过。C、D 组全部通过。
+- `B-odt-docx`：`brief.odt` 已是 ODF 1.2（三个 XML 的 `office:version` 都是 1.2），WPS 12.8.2.18913 **仍然弹“文件损坏提示”**（“当前文档无法正确读取，继续打开将显示乱码”，按钮“关闭/继续打开”），转换 180 秒超时。截图 `timeout-printwindow-420x240.png`。
+- 本轮超时信息里没有 `Open WPS windows: …` 段：`#125` 的 C# `PrintWindow` 改动在 PowerShell 7 上 `Add-Type` 编译失败（`CS1069: System.Drawing.Graphics` 已转发到 `System.Drawing.Common`），窗口列表和截图都为空；错误原文在 `add-type-error.txt`。这是需要修掉的回归。
+- 评测：`--prefix convert-` **5/5**、`--prefix html-` **5/5**；都是 0 `wrong_tool_calls`、0 未验证写入。
+- 放映：`training.html` 的外观 pptx 仍然正确。
+- 结论：仍未达标的是 A 组 5 份 docx 的版面（0.833–0.895，要求 0.90）和 `B-odt-docx`。ODF 1.2 没有消除 WPS 的损坏提示；下一步可以用 WPS 自己保存的 ODT、自动点“继续打开”，或按决定 9 记为不支持。另需修复超时窗口截图回归。P13-008、P13-013、P13-018 仍不能算完成。
+
+### Windows 检查结果（第六轮，2026-10-22，`f8ed7bd`）
+
+结果在 `scripts/windows_check/results/20261022T115711Z-f8ed7bd-fidelity/` 和相邻的两个 `*-eval` 目录。
+
+- 保真度（WPS）：A 组 docx 0.8328–0.8951（report 0.8927、contract 0.8328、newsletter 0.8951、manual 0.8770、pdfsource 0.8853），仍都低于 0.90；其余各组和 B 组（除 `B-odt-docx`）都通过。
+- `B-odt-docx`：ODF 1.2 的 `brief.odt` 仍弹“文件损坏提示”（“当前文档无法正确读取，继续打开将显示乱码”）。
+- #125 的窗口截图在 PowerShell 7 上编译失败（CS1069），超时信息里没有窗口列表。
+- 评测：两组都是 5/5。
+
+### 第六次 Windows 检查之后的修复（待第七次检查）
+
+| 发现 | 对照图里看到的 | 修复 |
+| --- | --- | --- |
+| 超时时没有窗口列表 | C# 类型引用 `System.Drawing.Graphics`，PowerShell 7 上找不到 | C# 只声明 `PrintWindow(hWnd, hdc, flags)`，设备上下文在 PowerShell 里取 |
+| `B-odt-docx` 仍弹“文件损坏提示” | ODF 版本不是原因 | 新增 `scripts/windows_check/odt_probe.py`：WPS 自己写的 ODT、LibreOffice 的 ODT、去掉附加部件的 ODT 和手写的最小 ODT 各转一次，看 WPS 接受哪种，再决定换夹具还是按决定 9 记为这一版 WPS 不支持 |
+| manual 的代码块两行之间多一空行 | Windows 上检出的夹具是 CRLF，`\r` 和 `\n` 各成一个换行 | 保留空白的文字先把 CRLF、CR 归一为一个换行 |
+| manual 的代码块、注意框没有内边距 | 段落边框紧贴文字，底色只到文字 | 内边距写成段落边框与文字的距离（只有底色时用同色边框），文字按自身内边距和边框缩进，盒子左边缘留在浏览器的位置 |
+| report 的项目符号列表文字偏左 16 px | 模板的列表编号在 360 缇有制表位，窄的项目符号停在那里 | 列表段落清除编号的制表位，在缩进处设一个 |
+| report 的表格每行矮 2 px | 默认 `border-spacing: 2px` 没有映射 | 分离边框的表格把行间距算进行高；PDF 转来的表格标为合并边框 |
+| 代码块的 normal 行高偏大 | 测量用的样本带汉字，回退字体让纯拉丁文的行变高（Consolas 17 px，浏览器 14 px） | 元素文字里有汉字才用带汉字的样本 |
+
+本地 LibreOffice 基线已重写：newsletter 0.886 → 0.901，report 0.893 → 0.896，contract 0.791 → 0.804；manual 0.863 → 0.852（本地替代字体让窄列里的 “WPS Office” 换行，WPS 上两边都是雅黑）。
 
 ## 任务拆分
 
