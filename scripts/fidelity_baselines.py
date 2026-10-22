@@ -240,6 +240,16 @@ def make_fixtures() -> None:
             if not ok:
                 raise SystemExit(f"{name}: {errors}")
         profile = Path(tempfile.mkdtemp(prefix="wps-lo-"))
+        # Plain ODF 1.2: WPS took LibreOffice's default ODF 1.3 with its loext extensions for a corrupted file and
+        # waited on its "文件损坏提示" prompt (Windows check on c205851).
+        (profile / "user").mkdir(parents=True)
+        (profile / "user" / "registrymodifications.xcu").write_text(
+            '<?xml version="1.0" encoding="UTF-8"?>\n'
+            '<oor:items xmlns:oor="http://openoffice.org/2001/registry">'
+            '<item oor:path="/org.openoffice.Office.Common/Save/ODF">'
+            '<prop oor:name="DefaultVersion" oor:op="fuse"><value>4</value></prop></item></oor:items>\n',
+            encoding="utf-8",
+        )
 
         def office(target: str, *names: str) -> None:
             subprocess.run(

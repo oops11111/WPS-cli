@@ -454,6 +454,7 @@ class WpsConvertTests(_Workspace):
         self.assertIn("Open WPS windows: untitled Qt5QWindowIcon 420x180 (C:/t/w-1.png)", errors[0]["message"])
         self.assertEqual(data["stage"], "opening the input")
         self.assertEqual(data["wps_windows"][0]["image"], "C:/t/w-1.png")
+        self.assertIn("ODF 1.2", errors[0]["message"])  # an .odt that hangs on open: say what WPS likely asks
 
     def test_writer_opens_without_the_conversion_prompt(self):
         (ok, _data, errors), scripts = self.run_fake("brief.odt", "out.docx")
@@ -547,6 +548,35 @@ class WpsLayoutTests(_Workspace):
         names = [child.tag.split("}")[1] for child in cell._tc.tcPr]
         if "shd" in names:
             self.assertLess(names.index("tcBorders"), names.index("shd"))
+
+    def test_the_body_margin_is_part_of_the_page_margin(self):
+        # Windows check on c205851: the browser's 8 px body margin was missing, so WPS lines were 16 px wider.
+        convert_html_to_office(self.work / "contract.html", self.work / "contract.docx", "docx", use_browser=False)
+        section = Document(self.work / "contract.docx").sections[0]
+        self.assertAlmostEqual(section.left_margin.mm, 10 + 8 * 25.4 / 96, delta=0.1)
+        self.assertAlmostEqual(section.right_margin.mm, 10 + 8 * 25.4 / 96, delta=0.1)
+        self.assertAlmostEqual(section.top_margin.mm, 10, delta=0.1)
+        # PDF to docx measures its margins from the PDF: no body margin is added to them.
+        pdf_convert.pdf_to_office(self.work / "supplier.pdf", self.work / "s.docx")
+        left = pdf_convert.analyse_pdf(self.work / "supplier.pdf").margins[3]
+        self.assertAlmostEqual(Document(self.work / "s.docx").sections[0].left_margin.pt, round(left), delta=0.6)
+        # docx -> HTML -> docx keeps the margin: the HTML's own 24 px body margin is left out of its @page margin.
+        office_html.office_to_html(self.work / "contract.docx", self.work / "c.html")
+        convert_html_to_office(self.work / "c.html", self.work / "back.docx", "docx", use_browser=False)
+        back = Document(self.work / "back.docx").sections[0]
+        self.assertAlmostEqual(back.left_margin.mm, section.left_margin.mm, delta=0.2)
+
+    def test_a_table_margin_becomes_the_space_around_it(self):
+        # Windows check on c205851: the signature table's margin-top: 24pt was lost.
+        (self.work / "gap.html").write_text(
+            "<html><head><style>table{margin:24pt 0 30pt}</style></head><body>"
+            "<p>before</p><table><tr><td>cell</td></tr></table><p>after</p></body></html>",
+            encoding="utf-8",
+        )
+        convert_html_to_office(self.work / "gap.html", self.work / "gap.docx", "docx", use_browser=False)
+        before, after = Document(self.work / "gap.docx").paragraphs[:2]
+        self.assertAlmostEqual(before.paragraph_format.space_after.pt, 24, delta=0.1)
+        self.assertAlmostEqual(after.paragraph_format.space_before.pt, 30, delta=0.1)
 
     def test_list_text_starts_where_the_browser_puts_it(self):
         convert_html_to_office(self.work / "contract.html", self.work / "contract.docx", "docx")

@@ -725,7 +725,8 @@ def pdf_to_office(
         if analysis.margins:
             top, right, bottom, left = analysis.margins
             css += f";margin:{top:.0f}pt {right:.0f}pt {bottom:.0f}pt {left:.0f}pt"
-        css += f"}}\nbody{{font-size:{analysis.body_size:g}pt}}\n"
+        # The margins are the PDF's text edges: no body margin inside them.
+        css += f"}}\nbody{{font-size:{analysis.body_size:g}pt;margin:0}}\n"
     from .html_office import convert_html_to_office
     from .office_html import _page
 
