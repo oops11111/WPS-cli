@@ -81,6 +81,9 @@ class Analysis:
     footers: list[str]
     warnings: list[str]
     margins: tuple[float, float, float, float] | None = None  # top, right, bottom, left in points
+    # Where the running header starts and the running footer ends, in points from the top and from the bottom.
+    header_top: float | None = None
+    footer_bottom: float | None = None
 
 
 def _norm(text: str) -> str:
@@ -424,6 +427,22 @@ def analyse_pdf(path: str | Path, ocr: bool = False, images: bool = True) -> Ana
         need = max(2, (len(raw) + 1) // 2)
         headers = {k for k, v in top_counts.items() if v >= need}
         footers = {k for k, v in bottom_counts.items() if v >= need}
+
+        # A line box starts half a leading above the glyphs (a 1.32 em line, as for the body text).
+        def lead(line: Line) -> float:
+            return max(0.0, (line.size * 1.32 - (line.bottom - line.top)) / 2)
+
+        tops = [line.top - lead(line) for _page, lines in raw for line in lines if _key(line.text) in headers]
+        ends = [
+            page.height - line.bottom - lead(line)
+            for page, lines in raw
+            for line in lines
+            if _key(line.text) in footers
+        ]
+        header_top = min(tops) if tops else None
+        footer_bottom = min(ends) if ends else None
+    else:
+        header_top = footer_bottom = None
     # OCR sizes come from box heights and wobble by a point or two: they need a wider margin.
     ocr_pages = any(page.ocr for page in pages)
     factor = 1.2 if ocr_pages else 1.15
@@ -524,7 +543,7 @@ def analyse_pdf(path: str | Path, ocr: bool = False, images: bool = True) -> Ana
         # text reaches lower than that.
         bottom = min(bottom, top)
         margins = (max(18.0, top - 4), max(18.0, min(right, left)), max(18.0, bottom - 4), max(18.0, left))
-    return Analysis(pages, float(body), sorted(headers), sorted(footers), warnings, margins)
+    return Analysis(pages, float(body), sorted(headers), sorted(footers), warnings, margins, header_top, footer_bottom)
 
 
 def _display(key: str) -> str:
@@ -737,6 +756,20 @@ def pdf_to_office(
         ok, data, errors = convert_html_to_office(page_file, destination, suffix.lstrip("."), use_browser=False)
     if not ok:
         return ok, data, errors
+    if suffix == ".docx" and (analysis.header_top is not None or analysis.footer_bottom is not None):
+        # The running header and footer where the PDF has them, not where a browser would print them.
+        from docx import Document
+        from docx.shared import Pt
+
+        document = Document(destination)
+        section = document.sections[0]
+        if analysis.header_top is not None:
+            # Never past the body's top margin, which would push the body down.
+            limit = (analysis.margins[0] - analysis.body_size * 1.32) if analysis.margins else analysis.header_top
+            section.header_distance = Pt(max(0.0, min(analysis.header_top, limit)))
+        if analysis.footer_bottom is not None:
+            section.footer_distance = Pt(analysis.footer_bottom)
+        document.save(destination)
     counts = {"headings": 0, "paragraphs": 0, "list": 0, "table": 0, "image": 0}
     for page in pages:
         for item in page.items:
