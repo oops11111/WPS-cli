@@ -27,7 +27,7 @@
         "structure": 1.0,
         "formatting": 1.0,
         "data": 1.0,
-        "layout": 0.8057
+        "layout": 0.7851
       },
       "passed": true
     },
@@ -54,7 +54,7 @@
         "structure": 1.0,
         "formatting": 1.0,
         "data": 1.0,
-        "layout": 0.8395
+        "layout": 0.8422
       },
       "passed": true
     },
@@ -68,7 +68,7 @@
         "structure": 1.0,
         "formatting": 1.0,
         "data": 1.0,
-        "layout": 0.8795
+        "layout": 0.8807
       },
       "passed": true
     },
@@ -309,7 +309,7 @@
         "text": 1.0,
         "structure": 1.0,
         "data": 1.0,
-        "layout": 0.8837
+        "layout": 0.9313
       },
       "passed": true
     },

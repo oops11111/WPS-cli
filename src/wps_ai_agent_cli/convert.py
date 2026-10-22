@@ -166,6 +166,37 @@ def routes(source: str, target: str) -> list[tuple[str, str]]:
     return []
 
 
+def describe_output(path: Path) -> dict[str, Any]:
+    """What the converted file holds, so a caller need not open it to check: slide titles, headings, sheets."""
+    suffix = path.suffix.casefold()
+    try:
+        if suffix == ".pptx":
+            from pptx import Presentation
+
+            slides = Presentation(path).slides
+            titles = [s.shapes.title.text_frame.text if s.shapes.title is not None else "" for s in slides]
+            return {"slides": len(titles), "slide_titles": titles[:50]}
+        if suffix == ".docx":
+            from docx import Document
+
+            document = Document(path)
+            headings = [
+                p.text for p in document.paragraphs if p.style is not None and p.style.name.startswith("Heading")
+            ]
+            return {"headings": headings[:50], "paragraphs": len(document.paragraphs), "tables": len(document.tables)}
+        if suffix in {".xlsx", ".xlsm"}:
+            from openpyxl import load_workbook
+
+            workbook = load_workbook(path, read_only=True)
+            try:
+                return {"sheets": [{"name": ws.title, "dimensions": ws.calculate_dimension()} for ws in workbook]}
+            finally:
+                workbook.close()
+    except Exception:  # noqa: BLE001 - the summary is a convenience; the conversion already succeeded
+        return {}
+    return {}
+
+
 def convert(input_path: str | Path, output_path: str | Path, **options: Any) -> Result:
     """Convert ``input_path`` to ``output_path``; options: fidelity, use_browser, images, ocr, sheet, cell_range,
     encoding, delimiter, dpi."""
@@ -192,6 +223,7 @@ def convert(input_path: str | Path, output_path: str | Path, **options: Any) -> 
         ok, data, errors = function(source, destination, options)
         if ok:
             data["route"] = [steps[0][0]]
+            data["output_summary"] = describe_output(destination)
         return ok, data, errors
     # Two steps: the intermediate file lives in a temporary folder and is removed.
     _source_dir, _target_dir, path_errors = check_paths(
@@ -213,5 +245,6 @@ def convert(input_path: str | Path, output_path: str | Path, **options: Any) -> 
             return ok, data, errors
     data["input_path"] = str(source)
     data["route"] = [steps[0][0], steps[1][0]]
+    data["output_summary"] = describe_output(destination)
     data["warnings"] = warnings + data.get("warnings", [])
     return True, data, []

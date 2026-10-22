@@ -1,0 +1,73 @@
+{
+  "slides": [
+    {
+      "slide": 1,
+      "transition": 3849,
+      "animation_count": 1,
+      "effects": [
+        {
+          "effect_type": 2,
+          "exit": 0,
+          "trigger": 2,
+          "delay": 0.0
+        }
+      ]
+    },
+    {
+      "slide": 2,
+      "transition": 3855,
+      "animation_count": 3,
+      "effects": [
+        {
+          "effect_type": 2,
+          "exit": 0,
+          "trigger": 2,
+          "delay": 0.0
+        },
+        {
+          "effect_type": 2,
+          "exit": 0,
+          "trigger": 1,
+          "delay": 0.0
+        },
+        {
+          "effect_type": 2,
+          "exit": 0,
+          "trigger": 2,
+          "delay": 0.6000000238418579
+        }
+      ]
+    },
+    {
+      "slide": 3,
+      "transition": 2817,
+      "animation_count": 2,
+      "effects": [
+        {
+          "effect_type": 59,
+          "exit": 0,
+          "trigger": 2,
+          "delay": 0.0
+        },
+        {
+          "effect_type": 10,
+          "exit": -1,
+          "trigger": 2,
+          "delay": 0.5
+        }
+      ]
+    }
+  ],
+  "show": {
+    "state": 1,
+    "positions": [
+      1,
+      1,
+      2,
+      2,
+      2,
+      2,
+      3
+    ]
+  }
+}
