@@ -27,6 +27,7 @@ All notable changes to `wps-ai-agent-cli`. The versioning rule and release steps
 - The timeout window capture compiles on PowerShell 7 (the C# type no longer names a drawing type). `scripts/windows_check/odt_probe.py` shows which ODT files WPS opens without its damaged-file prompt.
 - `convert` through WPS and ODF (decision 9): WPS 12.8 asks about every real ODF file as a damaged one and "saves as .odt" an OLE compound document. An ODF source WPS does not open within a minute is reported as `FORMAT_NOT_SUPPORTED_BY_WPS` and the WPS the conversion started is ended (the script records the processes it starts); an ODF output that is not an ODF package is removed and reported the same way. `scripts/fidelity_baselines.py --wps` records such cases as unsupported. (P13-007)
 - docx from HTML: a paragraph of text and inline elements gets the line pitch the browser drew (its height over its lines), so lines with subscripts or superscripts keep their height; list markers hang about 0.95 em before the text as in the browser; column widths round up to whole twips. (P13-008)
+- docx from HTML: in tables with collapsed borders a cell's bottom padding gives up the border the rows share (each bordered row was a pixel taller in WPS); an `<hr>` is a one-point line between its collapsed margins instead of a text line with a border; list markers hang about 1.05 em. The `pdf_source.html` fixture prints its running footer at the foot of the page, where the docx puts it. (P13-008)
 
 ## [0.10.0] - 2026-10-18
 

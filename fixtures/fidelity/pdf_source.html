@@ -10,6 +10,8 @@
   table.grid { border-collapse: collapse; }
   table.grid th, table.grid td { border: 1px solid #333; padding: 4px 10px; }
   table.plain td, table.plain th { padding: 2px 28px 2px 0; }
+  /* The running footer prints at the foot of each page, where the docx puts it, not under the header. */
+  [data-page="footer"] { position: fixed; bottom: 0; }
 </style>
 </head>
 <body>

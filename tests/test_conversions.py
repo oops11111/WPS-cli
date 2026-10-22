@@ -589,7 +589,7 @@ class WpsLayoutTests(_Workspace):
         self.assertIsNotNone(margins.find(f"{w}left"))
         form = cell.paragraphs[0].paragraph_format
         self.assertAlmostEqual(form.space_before.pt, 3, delta=0.1)  # 4 px
-        self.assertAlmostEqual(form.space_after.pt, 3, delta=0.1)
+        self.assertAlmostEqual(form.space_after.pt, 2.25, delta=0.1)  # less the 1 px border rows share
         names = [child.tag.split("}")[1] for child in cell._tc.tcPr]
         if "shd" in names:
             self.assertLess(names.index("tcBorders"), names.index("shd"))
@@ -656,8 +656,19 @@ class WpsLayoutTests(_Workspace):
         )
         convert_html_to_office(self.work / "marks.html", self.work / "marks.docx", "docx", use_browser=False)
         bullet, number = Document(self.work / "marks.docx").paragraphs[:2]
-        self.assertAlmostEqual(bullet.paragraph_format.first_line_indent.pt, -16 * 0.95 * 0.75, delta=0.05)
-        self.assertAlmostEqual(number.paragraph_format.first_line_indent.pt, -16 * 1.5 * 0.75, delta=0.05)  # "12."
+        self.assertAlmostEqual(bullet.paragraph_format.first_line_indent.pt, -16 * 1.05 * 0.75, delta=0.05)
+        self.assertAlmostEqual(number.paragraph_format.first_line_indent.pt, -16 * 1.6 * 0.75, delta=0.05)  # "12."
+
+    def test_a_rule_is_a_thin_line_between_its_margins(self):
+        # Windows check on c149caf: an <hr> was a full text line with a border and sat 17 px low in WPS.
+        from docx.enum.text import WD_LINE_SPACING
+
+        (self.work / "rule.html").write_text("<html><body><p>a</p><hr><p>b</p></body></html>", encoding="utf-8")
+        convert_html_to_office(self.work / "rule.html", self.work / "rule.docx", "docx", use_browser=False)
+        rule = Document(self.work / "rule.docx").paragraphs[1].paragraph_format
+        self.assertEqual(rule.line_spacing_rule, WD_LINE_SPACING.EXACTLY)
+        self.assertAlmostEqual(rule.line_spacing.pt, 1, delta=0.01)
+        self.assertAlmostEqual(rule.space_after.pt, 6, delta=0.01)  # the browser's 8 px
 
     def test_list_text_starts_where_the_browser_puts_it(self):
         convert_html_to_office(self.work / "contract.html", self.work / "contract.docx", "docx")

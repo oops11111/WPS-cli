@@ -343,12 +343,12 @@ def apply_paragraph(paragraph, node, ancestors, context: Context, *, list_item: 
             offset = 40.0 * sum(1 for a in ancestors if a.tag in {"ul", "ol"})
         if offset:
             form.left_indent = Pt(offset * 0.75)
-            # The browser puts the marker just before the text ("1. " or "• ", about 0.95 em), not 24 px before it;
+            # The browser puts the marker just before the text ("1. " or "• ", about 1 em), not 24 px before it;
             # a number with more digits needs more room.
             parent = ancestors[-1] if ancestors else None
             items = sum(1 for c in getattr(parent, "children", []) if getattr(c, "tag", None) == "li")
             digits = len(str(items)) if getattr(parent, "tag", "") == "ol" and items else 1
-            hanging = size * (0.95 + 0.55 * (digits - 1))
+            hanging = size * (1.05 + 0.55 * (digits - 1))
             form.first_line_indent = Pt(-min(offset, hanging) * 0.75)
             _list_tab(paragraph, form.left_indent)
     indent = px(style.get("text-indent"), size)
@@ -478,7 +478,8 @@ def apply_table(table, node, grid, rows, context: Context, page_width_px: float)
     # equivalent outside cell spacing: count it in each row's height (the report's rows came out 2 px short each in
     # WPS, Windows check on f8ed7bd).
     spacing = 0.0
-    if table_style.get("border-collapse", "separate") != "collapse":
+    collapsed = table_style.get("border-collapse", "separate") == "collapse"
+    if not collapsed:
         values = table_style.get("border-spacing", "2px").split()
         spacing = (px(values[-1]) or 0.0) if values else 0.0
     for row, row_node in zip(table.rows, rows, strict=False):
@@ -518,6 +519,10 @@ def apply_table(table, node, grid, rows, context: Context, page_width_px: float)
             # row with a top/bottom cell margin about 7 pt taller than the browser (Windows check on c55d04e),
             # while rows without one (the PDF tables) matched.
             top, bottom = px(style.get("padding-top")), px(style.get("padding-bottom"))
+            if collapsed and bottom and "bottom" in borders:
+                # Collapsed borders are shared between rows in the browser, while WPS adds each cell's border to
+                # its row: every bordered row came out a pixel taller (Windows check on c149caf).
+                bottom = max(0.0, bottom - borders["bottom"][0])
             if top:
                 cell.paragraphs[0].paragraph_format.space_before = Pt(top * 0.75)
             if bottom:
@@ -642,6 +647,25 @@ def browser_defaults(document) -> None:
     props.append(_element("w:snapToGrid", **{"w:val": "0"}))
     props.append(_element("w:spacing", **{"w:after": "0", "w:line": "240", "w:lineRule": "auto"}))
     props.extend(later)
+
+
+def apply_rule(paragraph, node, context: Context) -> None:
+    """An <hr>: a one-point line under its margins, not a text line with a border (the manual's rule sat 17 px
+    low in WPS, Windows check on c149caf). Its margins collapse with the blocks around it, as in CSS."""
+    from docx.enum.text import WD_LINE_SPACING
+    from docx.shared import Pt
+
+    style = context.styled.style(node) if context.styled is not None else {}
+    # The browser's default is 0.5em above and below.
+    top = (px(style.get("margin-top"), 16.0) if style.get("margin-top") else 8.0) or 0.0
+    bottom = (px(style.get("margin-bottom"), 16.0) if style.get("margin-bottom") else 8.0) or 0.0
+    form = paragraph.paragraph_format
+    form.line_spacing_rule, form.line_spacing = WD_LINE_SPACING.EXACTLY, Pt(1)
+    form.space_before = Pt(max(0.0, top * 0.75 - context.last_space_after))
+    form.space_after = Pt(bottom * 0.75)
+    context.last_space_after = bottom * 0.75
+    context.carry_before = 0.0
+    _no_grid(paragraph._p.get_or_add_pPr())
 
 
 def apply_table_spacing(table, node, context: Context) -> None:
