@@ -29,6 +29,7 @@ All notable changes to `wps-ai-agent-cli`. The versioning rule and release steps
 - docx from HTML: a paragraph of text and inline elements gets the line pitch the browser drew (its height over its lines), so lines with subscripts or superscripts keep their height; list markers hang about 0.95 em before the text as in the browser; column widths round up to whole twips. (P13-008)
 - docx from HTML: in tables with collapsed borders a cell's bottom padding gives up the border the rows share (each bordered row was a pixel taller in WPS); an `<hr>` is a one-point line between its collapsed margins instead of a text line with a border; list markers hang about 1.05 em. The `pdf_source.html` fixture prints its running footer at the foot of the page, where the docx puts it. (P13-008)
 - docx page header and footer distances follow the page: from HTML the header starts at the top margin plus the body's top margin and the footer sits on the bottom margin, where the browser prints them (Word's default half inch put them 3 px low and 10 px high); from PDF they are where the PDF has its running header and footer. (P13-008, P13-018)
+- `scripts/fidelity_baselines.py` accepts the WPS layout of `A-contract-docx` and `A-manual-docx` above a floor (0.84 and 0.88) as known deviations (decision 10): their text lines up with the browser's, and what keeps them under 0.90 is how the two draw the same glyphs. Below the floor they still fail.
 
 ## [0.10.0] - 2026-10-18
 

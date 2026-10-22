@@ -200,6 +200,30 @@ def run(renderer: str, use_browser: bool, out: Path | None = None) -> dict[str, 
     return results
 
 
+# Decision 10: WPS layout below the 0.90 threshold accepted for these cases, as long as it stays above the floor.
+# Their pages line up with the browser's: on the ninth Windows check (3f82375) shifting the WPS page by its best
+# whole pixel only took contract from 0.849 to 0.864 and manual from 0.887 to 0.896, so what remains is how the
+# browser and WPS draw the same glyphs, not where the text is. A score below the floor is a regression.
+KNOWN_DEVIATIONS: dict[str, tuple[float, str]] = {
+    "A-contract-docx": (0.84, "glyph rendering differs from the browser; layout aligned (decision 10)"),
+    "A-manual-docx": (0.88, "glyph rendering differs from the browser; layout aligned (decision 10)"),
+}
+
+
+def _accepted(case: str, result: dict) -> bool:
+    """A WPS layout shortfall decision 10 accepts: layout is the only failed aspect and it is above the floor."""
+    deviation = KNOWN_DEVIATIONS.get(case)
+    failed = [name for name, ok in result.get("verdict", {}).items() if not ok]
+    layout = result.get("scores", {}).get("layout")
+    return bool(
+        deviation
+        and result.get("layout_renderer") == "wps"
+        and failed == ["layout"]
+        and layout is not None
+        and layout >= deviation[0]
+    )
+
+
 def compare(results: dict[str, dict], baselines: dict[str, dict]) -> list[str]:
     problems = []
     for case, result in results.items():
@@ -210,7 +234,7 @@ def compare(results: dict[str, dict], baselines: dict[str, dict]) -> list[str]:
         if not result.get("converted") or "scores" not in result:
             problems.append(f"{case}: {result.get('errors')}")
             continue
-        if not result["passed"]:
+        if not result["passed"] and not _accepted(case, result):
             failed = [name for name, ok in result["verdict"].items() if not ok]
             problems.append(f"{case}: below threshold in {failed}: {result['scores']}")
         # The recorded baselines are LibreOffice's; with the official WPS renderer only the threshold applies.
@@ -324,7 +348,8 @@ def main() -> int:
     for case, result in results.items():
         layout = (result.get("report") or {}).get("aspects", {}).get("layout", {})
         pages = f" pages {layout['pages']}" if layout.get("pages") else ""
-        print(case, json.dumps(result.get("scores") or result.get("errors"), ensure_ascii=False) + pages)
+        note = f" (known deviation: {KNOWN_DEVIATIONS[case][1]})" if _accepted(case, result) else ""
+        print(case, json.dumps(result.get("scores") or result.get("errors"), ensure_ascii=False) + pages + note)
     if args.out:
         args.out.mkdir(parents=True, exist_ok=True)
         (args.out / "results.json").write_text(
