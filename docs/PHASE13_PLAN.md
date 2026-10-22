@@ -1,6 +1,6 @@
 # Phase 13 计划：全格式高保真互转
 
-状态：**active**（2026-10-18 规划，同日你决定把全部格式并入本阶段；同日你说“phase13三个里程碑做一个提交”，按默认决定激活。三个里程碑的本地任务已在一次提交中完成，版本号 0.10.0 包含全部内容；Windows 上的三次检查 P13-008、P13-013、P13-018 已于 2026-10-18 在 `4b263d9` 上跑过，未全部通过，见“Windows 检查结果”）。
+状态：**active**（2026-10-18 规划，同日你决定把全部格式并入本阶段；同日你说“phase13三个里程碑做一个提交”，按默认决定激活。三个里程碑的本地任务已在一次提交中完成，版本号 0.10.0 包含全部内容；Windows 上的三次检查 P13-008、P13-013、P13-018 于 2026-10-18 在 `4b263d9`、2026-10-22 在 `c117637` 上各跑过一遍，仍未全部通过，见“Windows 检查结果”）。
 
 ## 目标
 
@@ -103,17 +103,17 @@ Phase 12 之后，HTML 转换为 WPS 三种格式已经保留语义、行内格�
 | P13-005 | 完成 | `office_html.py`：docx → 内联样式的干净 HTML，往返 100% |
 | P13-006 | 完成 | `html_slides.py`：有浏览器时按 section 的布局摆放到 16:9 幻灯片，背景、字体、退出和强调动画、单击和“上一项之后”；`--fidelity appearance` 画出装饰框 |
 | P13-007 | 完成 | `wps_convert.py`：SaveAs 格式码（doc 0、docx 16、odt 23、xls 56、xlsx 51、ods 60、ppt 1、pptx 24、odp 35，.wps/.et/.dps 按扩展名）、PDF、每页 PNG；`FORMAT_NOT_SUPPORTED_BY_WPS`；用假 COM 测试 |
-| P13-008 | 未通过 | Windows 检查 2026-10-18（`4b263d9`）：A 组 5 份 docx 的版面低于 0.90；`--prefix convert-` 4/5、`--prefix html-` 5/5；见“Windows 检查结果” |
+| P13-008 | 未通过 | 第二轮 2026-10-22（`c117637`）：A 组 5 份 docx 的版面 0.751–0.879，仍低于 0.90；`--prefix convert-` 4/5、`--prefix html-` 5/5；见“Windows 检查结果（第二轮）” |
 | P13-009 | 完成 | pptx → HTML：每页一个定位的 section，动画转回 `@keyframes`，切换转回 `data-transition`，备注 |
 | P13-010 | 完成 | HTML → xlsx 的字体、填充、边框、对齐、列宽、冻结表头，`data-formula` 还原公式；xlsx → HTML |
 | P13-011 | 完成 | `tabular.py`（编码、分隔符、类型）、`markdown_convert.py`（markdown-it-py 或内置读取器） |
 | P13-012 | 完成 | `cross_type.py`：docx ↔ pptx（决定 8 的分页），工作表区域 → docx/pptx 表格 |
-| P13-013 | 未通过 | 同一次 Windows 检查：C、D 组通过；A 组版面未达标；`convert-legacy-doc-with-wps` 0/3 |
+| P13-013 | 未通过 | 第二轮：C、D 组通过；A 组版面仍未达标；`convert-legacy-doc-with-wps` 已 3/3，`convert-docx-to-pptx` 变成 1/3 |
 | P13-014 | 完成 | `pdf_convert.py`：标题（按字号）、列表、有线框和按对齐识别的表格、图片、页眉页脚（进 docx 的页眉页脚）、页面大小和边距 |
 | P13-015 | 完成 | PDF → xlsx 每个表格一个工作表；PDF → pptx 每页一张幻灯片（按阅读顺序排版，不按页面坐标定位） |
 | P13-016 | 完成 | `--ocr` 和 `ocr` 可选依赖（RapidOCR）；没装或不加 `--ocr` 时报 `PDF_NEEDS_OCR`；本地扫描件字符准确率 98.5%（300 dpi） |
 | P13-017 | 完成 | `convert` 统一入口（CLI、MCP `wps_agent_convert`），5 个 `convert-` 评测任务和离线判定 `fidelity`，离线测试确认判定在真实转换结果上通过 |
-| P13-018 | 未通过 | 同一次 Windows 检查：E-supplier-docx 版面 0.5626（要求 0.85）、B-doc-docx 0.8687（要求 0.95）、B-odt-docx 超时；见“Windows 检查结果” |
+| P13-018 | 未通过 | 第二轮：E-supplier-docx 0.5762（要求 0.85）、B-odt-docx 仍超时；B-doc-docx 已到 1.0；见“Windows 检查结果（第二轮）” |
 
 ### 离线转换矩阵
 
@@ -182,6 +182,15 @@ D 组只考核文字和数据（F5）：pptx → docx 的结构 70% 和动画 0%
 本地 LibreOffice 基线随之更新（contract 0.739 → 0.806，其余小幅上升）。LibreOffice 的替代字体和 Chromium 不同，本地分数上不去，WPS 上两边都是微软雅黑。
 
 第二次检查：`python scripts/fidelity_baselines.py --renderer wps --wps --out <结果目录>`，`--out` 会写出每例的完整报告（含页数、逐页分数）和每页的对照图（左源右结果，文件名带分数），一并提交；再跑 `eval --prefix convert-`。
+
+### Windows 检查结果（第二轮，2026-10-22，`c117637`）
+
+结果和原始输出在 `scripts/windows_check/results/20261022T031614Z-c117637-fidelity/`（保真度 `results.json`/`pages/`、B 组复测、放映）以及相邻的两个 `*-eval` 目录。
+
+- 保真度（WPS）：A 组 5 份 docx 的版面都提高了，但仍低于 0.90：contract 0.7505、manual 0.8251、newsletter 0.8339、report 0.8659、pdfsource 0.8794；pptx 3 份通过（0.9137–0.9573）；xlsx 和 Office→HTML 没有版面项。E-supplier-docx 0.5762（源 2 页、目标 3 页，要求 0.85）。B 组 `B-doc-docx` 已到 1.0；`B-odt-docx` 仍 180 秒超时（单独复测也超时）；`B-docx-wps`、`B-docx-odt` 在整轮里仍是 `DOCUMENT_HELD_OPEN` 级联，单独复测都是 1.0。C、D 组全部通过。
+- 评测：`--prefix convert-` 4/5（`convert-docx-to-pptx` 1/3；`convert-legacy-doc-with-wps` 已 3/3）；`--prefix html-` 5/5（两个任务 2/3，其余 3/3）。
+- 放映：`training.html` 的外观 pptx 在 WPS 里仍然正确：fade/push/wipe，飞入、pulse 强调、延迟退出淡出、单击和“上一项之后”。
+- 结论：第一轮的 `B-doc-docx` 和 `convert-legacy-doc-with-wps` 已修好；仍未达标的是 A 组 5 份 docx 的版面、`E-supplier-docx`、`B-odt-docx` 和 `convert-docx-to-pptx`。P13-008、P13-013、P13-018 仍不能算完成。
 
 ## 任务拆分
 
