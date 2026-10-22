@@ -6,14 +6,20 @@ is one image per page or slide: WPS exports a PDF to a temporary folder and each
 (the ``fidelity`` extra) at the requested resolution, as ``<name>-001.png``, ``<name>-002.png`` and so on.
 
 A pair WPS cannot write (a document saved as a workbook, say) is refused with FORMAT_NOT_SUPPORTED_BY_WPS before
-WPS starts (decision 9).
+WPS starts (decision 9). ODF depends on the WPS build: WPS 12.8 asked about every real ODF file as a damaged one and
+"saved as .odt" an OLE compound document (Windows check on 3095499). So an ODF source WPS does not open within a
+minute is reported as FORMAT_NOT_SUPPORTED_BY_WPS (and the WPS this conversion started, left waiting on the prompt,
+is ended), and an ODF output that is not an ODF package is removed and reported the same way.
 """
 
 from __future__ import annotations
 
 import json
+import subprocess
+import sys
 import tempfile
 import time
+import zipfile
 from pathlib import Path
 from typing import Any
 
@@ -177,8 +183,15 @@ $params = @'
 $app = $null
 $document = $null
 try {{
+  $wpsBefore = @(Get-Process -Name wps, et, wpp -ErrorAction SilentlyContinue | ForEach-Object {{ $_.Id }})
   {ACQUIRE_WPS_APP}
   {HIDE_LAUNCHED_APP}
+  if ($weLaunched) {{
+    # The processes this conversion started, so that a WPS left waiting on a prompt can be ended after a timeout.
+    $started = @(Get-Process -Name wps, et, wpp -ErrorAction SilentlyContinue |
+      Where-Object {{ $wpsBefore -notcontains $_.Id }} | ForEach-Object {{ $_.Id }})
+    Set-Content -LiteralPath $params.pid_path -Value ($started -join ',') -Encoding UTF8
+  }}
   {QUIET_ALERTS}
   Assert-WpsSingleInstance $params.prog_id
   Assert-WpsInputNotOpen (Test-WpsPathOpen $app.{family["collection"]} $params.input_path)
@@ -246,6 +259,32 @@ def render_pdf_pages(pdf: Path, destination: Path, dpi: int = 150) -> list[str]:
     finally:
         document.close()
     return written
+
+
+ODF_TYPES = {".odt", ".ods", ".odp"}
+# A file WPS opens takes seconds; an ODF file this WPS build will not open waits on its prompt until the timeout.
+ODF_OPEN_TIMEOUT = 60
+
+
+def _is_odf_package(path: Path) -> bool:
+    """Whether the file is an ODF package: a zip whose mimetype entry names an OpenDocument type."""
+    try:
+        with zipfile.ZipFile(path) as package:
+            return package.read("mimetype").decode("ascii", "replace").startswith("application/vnd.oasis.opendocument")
+    except (OSError, KeyError, zipfile.BadZipFile):
+        return False
+
+
+def _end_started_wps(pid_path: Path) -> list[int]:
+    """End the WPS processes this conversion started (recorded in pid_path), which a timeout left running."""
+    try:
+        pids = [int(p) for p in pid_path.read_text(encoding="utf-8-sig").replace(",", " ").split()]
+    except (OSError, ValueError):
+        return []
+    if sys.platform == "win32":
+        for pid in pids:
+            subprocess.run(["taskkill", "/F", "/T", "/PID", str(pid)], capture_output=True, check=False)
+    return pids
 
 
 _WINDOW_TITLES_SCRIPT = r"""
@@ -370,7 +409,11 @@ def wps_convert(
             "pdf_path": pdf_path,
             "format_code": code,
             "stage_path": str(Path(tmp) / "stage.txt"),
+            "pid_path": str(Path(tmp) / "pids.txt"),
         }
+        odf_source = source.suffix.casefold() in ODF_TYPES
+        if odf_source:
+            timeout_seconds = min(timeout_seconds, ODF_OPEN_TIMEOUT)
         stage = Path(params["stage_path"])
         for attempt in range(BUSY_RETRIES + 1):
             stage.write_text("starting WPS", encoding="utf-8")
@@ -392,15 +435,22 @@ def wps_convert(
                 # Say where WPS stopped, so a hang (a dialog on open, say) can be told from a slow save.
                 where = stage.read_text(encoding="utf-8-sig").strip() if stage.is_file() else "unknown"
                 windows = _wps_windows()
+                ended = _end_started_wps(Path(params["pid_path"]))
                 shown = f" Open WPS windows: {'; '.join(map(_describe_window, windows))}." if windows else ""
-                if where == "opening the input" and source.suffix.casefold() in {".odt", ".ods", ".odp"}:
-                    # Windows check on c205851: WPS asked about a "damaged" ODF 1.3 file from LibreOffice.
-                    shown += (
-                        " WPS may be asking whether to open a file it reads as damaged; ODF 1.3 files with"
-                        " LibreOffice extensions do this, so save the file as ODF 1.2 or as .docx/.xlsx/.pptx."
-                    )
-                errors = [{**errors[0], "message": f"{errors[0]['message']} WPS was {where}.{shown}"}, *errors[1:]]
-                failure.setdefault("data", {}).update({"stage": where, "wps_windows": windows})
+                failure.setdefault("data", {}).update({"stage": where, "wps_windows": windows, "ended_wps": ended})
+                if where == "opening the input" and odf_source:
+                    # Decision 9: this WPS build asks about ODF files as damaged ones instead of opening them.
+                    errors = [
+                        {
+                            "code": FORMAT_NOT_SUPPORTED_BY_WPS,
+                            "message": f"WPS did not open {source.name} within {timeout_seconds} seconds: this WPS "
+                            "build asks whether to open ODF files as damaged ones (文件损坏提示) instead of opening "
+                            f"them. Save the file as .docx, .xlsx or .pptx in the program that made it.{shown}",
+                        }
+                    ]
+                else:
+                    message = f"{errors[0]['message']} WPS was {where}.{shown}"
+                    errors = [{**errors[0], "message": message}, *errors[1:]]
             return False, failure.get("data", {}), errors
         if not payload.get("ok"):
             return (
@@ -410,6 +460,20 @@ def wps_convert(
                     {
                         "code": COM_OPERATION_FAILED,
                         "message": str(payload.get("error_message") or "WPS did not write a non-empty output file."),
+                    }
+                ],
+            )
+        if destination.suffix.casefold() in ODF_TYPES and not _is_odf_package(destination):
+            # WPS 12.8 "saved as .odt" an OLE compound document (Windows check on 3095499): not ODF, so not kept.
+            destination.unlink(missing_ok=True)
+            return (
+                False,
+                {"component": component, "format_code": code},
+                [
+                    {
+                        "code": FORMAT_NOT_SUPPORTED_BY_WPS,
+                        "message": f"This WPS build does not write ODF: asked for {destination.suffix}, it wrote a "
+                        "file that is not an OpenDocument package, which was removed. Save as .docx, .xlsx or .pptx.",
                     }
                 ],
             )

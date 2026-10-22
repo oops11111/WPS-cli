@@ -114,6 +114,14 @@ def _release_wps(ours: bool) -> None:
             subprocess.run(["taskkill", "/F", "/IM", name], capture_output=True, check=False)
 
 
+def _unsupported(errors: list[dict]) -> dict:
+    """A case this WPS build does not do (FORMAT_NOT_SUPPORTED_BY_WPS, decision 9) is recorded, not failed: WPS 12.8
+    neither opens nor writes ODF (Windows check on 3095499)."""
+    if any(e.get("code") == "FORMAT_NOT_SUPPORTED_BY_WPS" for e in errors):
+        return {"unsupported": True, "passed": None}
+    return {}
+
+
 def run_wps(renderer: str, out: Path | None = None) -> dict[str, dict]:
     """Group B with WPS (F3): text and structure against the OOXML file a legacy or ODF source was saved from,
     and the layout of WPS's PDF of the source itself against WPS's PDF of the result. Each case works in its own
@@ -132,7 +140,7 @@ def run_wps(renderer: str, out: Path | None = None) -> dict[str, dict]:
             target = work / f"{case}{suffix}"
             ok, data, errors = convert(source, target)
             if not ok:
-                results[case] = {"converted": False, "errors": errors}
+                results[case] = {"converted": False, "errors": errors, **_unsupported(errors)}
                 continue
             if suffix == ".png":
                 results[case] = {"converted": True, "pages": len(data.get("pages", [])), "passed": True}
@@ -144,7 +152,7 @@ def run_wps(renderer: str, out: Path | None = None) -> dict[str, dict]:
                 _release_wps(ours)
                 ok, _data, errors = convert(target, back)
                 if not ok:
-                    results[case] = {"converted": True, "errors": errors}
+                    results[case] = {"converted": True, "errors": errors, **_unsupported(errors)}
                     continue
                 converted = back
             _release_wps(ours)
@@ -197,6 +205,8 @@ def compare(results: dict[str, dict], baselines: dict[str, dict]) -> list[str]:
     for case, result in results.items():
         if result.get("converted") and result.get("passed") and "scores" not in result:
             continue  # PNG pages
+        if result.get("unsupported"):
+            continue  # decision 9: this WPS build does not do the conversion, and says so
         if not result.get("converted") or "scores" not in result:
             problems.append(f"{case}: {result.get('errors')}")
             continue

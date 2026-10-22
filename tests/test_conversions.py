@@ -8,6 +8,7 @@ import os
 import shutil
 import tempfile
 import unittest
+import zipfile
 from pathlib import Path
 from unittest import mock
 
@@ -345,6 +346,9 @@ class WpsConvertTests(_Workspace):
             written = params["pdf_path"] or params["output_path"]
             if writes is not None:
                 shutil.copyfile(writes, written)
+            elif Path(written).suffix in {".odt", ".ods", ".odp"}:
+                with zipfile.ZipFile(written, "w") as package:  # a real ODF package
+                    package.writestr("mimetype", "application/vnd.oasis.opendocument.text")
             else:
                 Path(written).write_bytes(b"converted")
             return {"ok": True, "conversion_method": "SaveAs", "written_path": written}, None
@@ -453,7 +457,7 @@ class WpsConvertTests(_Workspace):
             mock.patch.object(wps_convert, "run_powershell_script", side_effect=fake_run) as run,
             mock.patch.object(wps_convert.time, "sleep"),
         ):
-            ok, data, errors = wps_convert.wps_convert(self.work / "brief.odt", self.work / "out.docx")
+            ok, data, errors = wps_convert.wps_convert(self.work / "brief.doc", self.work / "out.docx")
         self.assertFalse(ok)
         self.assertEqual(run.call_count, 3)  # held, timed out, then the windows
         self.assertEqual(errors[0]["code"], "COM_OPERATION_TIMEOUT")
@@ -461,7 +465,41 @@ class WpsConvertTests(_Workspace):
         self.assertIn("Open WPS windows: untitled Qt5QWindowIcon 420x180 (C:/t/w-1.png)", errors[0]["message"])
         self.assertEqual(data["stage"], "opening the input")
         self.assertEqual(data["wps_windows"][0]["image"], "C:/t/w-1.png")
-        self.assertIn("ODF 1.2", errors[0]["message"])  # an .odt that hangs on open: say what WPS likely asks
+
+    def test_an_odf_source_wps_will_not_open_is_unsupported_and_its_wps_is_ended(self):
+        # Windows check on 3095499: WPS 12.8 asked about every real ODF file as a damaged one.
+        timeouts = []
+
+        def fake_run(script, timeout_seconds, **_kwargs):
+            timeouts.append(timeout_seconds)
+            if "stage_path" in script:
+                params = json.loads(script.split("@'\n", 1)[1].split("\n'@", 1)[0])
+                Path(params["stage_path"]).write_text("opening the input", encoding="utf-8")
+                Path(params["pid_path"]).write_text("4242", encoding="utf-8")
+                return None, {"ok": False, "errors": [{"code": "COM_OPERATION_TIMEOUT", "message": "t"}], "data": {}}
+            return {"windows": []}, None
+
+        with (
+            mock.patch.object(wps_convert, "probe_wps_capabilities", return_value=self.CAPABILITIES),
+            mock.patch.object(wps_convert, "run_powershell_script", side_effect=fake_run),
+            mock.patch.object(wps_convert.subprocess, "run") as kill,
+            mock.patch.object(wps_convert.sys, "platform", "win32"),
+        ):
+            ok, data, errors = wps_convert.wps_convert(self.work / "brief.odt", self.work / "out.docx")
+        self.assertFalse(ok)
+        self.assertEqual(errors[0]["code"], "FORMAT_NOT_SUPPORTED_BY_WPS")
+        self.assertIn("文件损坏提示", errors[0]["message"])
+        self.assertEqual(timeouts[0], wps_convert.ODF_OPEN_TIMEOUT)  # a minute, not three
+        self.assertEqual(data["ended_wps"], [4242])
+        self.assertEqual(kill.call_args.args[0], ["taskkill", "/F", "/T", "/PID", "4242"])
+
+    def test_an_odf_output_that_is_not_odf_is_removed(self):
+        # Windows check on 3095499: WPS "saved as .odt" an OLE compound document.
+        (self.work / "ole.bin").write_bytes(b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1" + b"\0" * 64)
+        (ok, _data, errors), _scripts = self.run_fake("brief.docx", "out.odt", writes=self.work / "ole.bin")
+        self.assertFalse(ok)
+        self.assertEqual(errors[0]["code"], "FORMAT_NOT_SUPPORTED_BY_WPS")
+        self.assertFalse((self.work / "out.odt").exists())
 
     def test_writer_opens_without_the_conversion_prompt(self):
         (ok, _data, errors), scripts = self.run_fake("brief.odt", "out.docx")
@@ -609,6 +647,17 @@ class WpsLayoutTests(_Workspace):
         self.assertIn(("clear", "360"), tabs)
         self.assertIn(("left", str(item.paragraph_format.left_indent.twips)), tabs)
         self.assertAlmostEqual(document.tables[0].rows[0].height.pt, 16.5, delta=0.1)  # 20 px + 2 px spacing
+
+    def test_the_list_marker_hangs_as_far_as_the_browser_puts_it(self):
+        # Windows check on 3095499: numbers sat 24 px before the text, the browser's about 0.95 em.
+        items = "".join(f"<li>item {n}</li>" for n in range(12))
+        (self.work / "marks.html").write_text(
+            f"<html><body><ul><li>dot</li></ul><ol>{items}</ol></body></html>", encoding="utf-8"
+        )
+        convert_html_to_office(self.work / "marks.html", self.work / "marks.docx", "docx", use_browser=False)
+        bullet, number = Document(self.work / "marks.docx").paragraphs[:2]
+        self.assertAlmostEqual(bullet.paragraph_format.first_line_indent.pt, -16 * 0.95 * 0.75, delta=0.05)
+        self.assertAlmostEqual(number.paragraph_format.first_line_indent.pt, -16 * 1.5 * 0.75, delta=0.05)  # "12."
 
     def test_list_text_starts_where_the_browser_puts_it(self):
         convert_html_to_office(self.work / "contract.html", self.work / "contract.docx", "docx")

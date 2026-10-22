@@ -50,6 +50,7 @@
 | PPTX 到 HTML | medium | verified-local | 2026-10-09 本机已打开演示经 `export-open-document` 的 `SaveCopyAs` HTML；动画保真度未做矩阵 |
 | HTML 到 PDF | medium | verified-local | 2026-10-10 本机 `npm install`（`playwright`）后 `html-render` 对 `fixtures/phase3/html_visual_smoke.html` 写出 PDF 37867 字节（Edge 154.0.4258.62，`network_access=false`）与 PNG 32159 字节；`WPS_AGENT_RUN_BROWSER_INTEGRATION=1` 下 `tests.test_html_render` 4/4 通过。字体/复杂 CSS 保真度未做跨主机矩阵 |
 | 已打开文档到 TXT | medium | verified-local | 2026-10-10 `export-open-document-text`：本机已打开 Writer 写出 10115 字节 txt，已打开表格写出 28 字节 txt，已打开演示 `ExtractShapeText` 写出 18 字节 txt（形状文本），源未关闭。跨版本未做矩阵 |
+| ODF（.odt/.ods/.odp）经 WPS 读写 | medium | unsupported（此 WPS 版本） | 2026-10-22 Phase 13 第七次 Windows 检查，WPS 12.8.2.18913：LibreOffice 写出的 ODT（ODF 1.3、ODF 1.2、去掉附加部件）和手写的最小 ODT 打开时都弹“文件损坏提示”（`scripts/windows_check/odt_probe.py`）；“另存为 .odt”（格式码 23）写出的是 OLE 复合文档，不是 ODF。`convert` 对打开一分钟仍未完成的 ODF 源报 `FORMAT_NOT_SUPPORTED_BY_WPS` 并结束它启动的 WPS；写出的 ODF 不是 ODF 包时删除并报同一错误码（决定 9）。其他 WPS 版本未验证 |
 
 The PRD defines three HTML fidelity modes: visual-first rendering to PDF/image,
 editable-first mapping to native objects, and controlled round-trip using an

@@ -104,3 +104,18 @@ class NormalLineTests(unittest.TestCase):
         self.assertEqual(form.line_spacing_rule, WD_LINE_SPACING.EXACTLY)
         self.assertGreater(form.line_spacing.pt, 15)  # at least the 20 px font itself
         self.assertLess(form.line_spacing.pt, 25)
+
+    def test_a_line_with_a_superscript_keeps_the_pitch_the_browser_drew(self):
+        # Windows check on 3095499: the report's H2O line was 3 px taller in the browser than its line-height.
+        from docx import Document
+
+        with tempfile.TemporaryDirectory() as tmp:
+            source = Path(tmp) / "sup.html"
+            source.write_text(
+                "<html><body><p style='font-size:16px'>x<sup>2</sup> and H<sub>2</sub>O</p>"
+                "<p style='font-size:16px'>plain</p></body></html>",
+                encoding="utf-8",
+            )
+            convert_html_to_office(source, Path(tmp) / "sup.docx", "docx")
+            raised, plain = Document(Path(tmp) / "sup.docx").paragraphs[:2]
+        self.assertGreater(raised.paragraph_format.line_spacing.pt, plain.paragraph_format.line_spacing.pt)
