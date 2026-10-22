@@ -1,0 +1,10 @@
+Window capture script failure on 2026-10-22 (PowerShell 7):
+
+Add-Type: C:\Users\admin\AppData\Local\Temp\tmprb_a3506.ps1:5
+Line |
+   5 |  Add-Type -ReferencedAssemblies System.Drawing @'
+     |  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     | (12,58): error CS1069: 未能在命名空间“System.Drawing”中找到类型名“Graphics”。此类型已转发到程序集“System.Drawing.Common,
+     | Version=0.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51”。请考虑添加对该程序集的引用。   public static bool
+     | Capture(IntPtr hWnd, System.Drawing.Graphics graphics) {                                                        
+     | ^
