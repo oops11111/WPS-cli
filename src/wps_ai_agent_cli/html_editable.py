@@ -762,6 +762,7 @@ def convert_html_editable(
                 if not extra.text:
                     extra._p.getparent().remove(extra._p)
         docx_styling.apply_table(table, node, grid, rows, context, page_width_px)
+        docx_styling.apply_table_spacing(table, node, context)
         counts["tables"] += 1
 
     def add_blocks(container: _Node, list_style: str | None = None) -> None:

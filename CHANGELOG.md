@@ -21,6 +21,8 @@ All notable changes to `wps-ai-agent-cli`. The versioning rule and release steps
 - Evaluation `tool_called` checks accept other tools for the same step (`or`, with `input_suffix` matching the end of a path); `html-complex-report-to-docx` accepts `convert` writing the PDF.
 - docx table cells put their top and bottom padding in paragraph spacing instead of a cell margin, which made each such row about 7 pt taller in WPS; cell properties are written in schema order. Paragraphs with `line-height: normal` get the line the browser measured for their font, exactly, instead of single spacing, which WPS made taller for Microsoft YaHei. (P13-008)
 - A WPS conversion timeout lists every visible WPS window, untitled ones by class and size, and saves a screenshot of each to `%TEMP%` (`wps-agent-timeout-*.png`).
+- docx page margins include the body's own margin and padding (the browser's default 8 px), so lines are as wide as in the browser; PDF to docx sets no body margin and docx to HTML leaves its 24 px body margin out of `@page`, so their margins do not change. Table columns get 1 px of slack instead of 2, and a table's vertical margins become the space after the paragraph before it and before the paragraph after it. (P13-008)
+- `fixtures/fidelity/brief.odt` is ODF 1.2 without LibreOffice extensions (WPS read LibreOffice's ODF 1.3 as damaged and waited on its prompt), and `--make-fixtures` writes it that way. Timeout screenshots use PrintWindow, so a window on top does not hide the dialog, and an ODF file that times out while opening says WPS may be asking about a damaged file.
 
 ## [0.10.0] - 2026-10-18
 

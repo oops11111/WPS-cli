@@ -934,7 +934,10 @@ def office_to_html(
             section = document.sections[0] if document.sections else None
             if section is not None and section.page_width:
                 margin = section.left_margin.mm if section.left_margin else 25
-                css = f"@page{{size:{section.page_width.mm:.0f}mm {section.page_height.mm:.0f}mm;margin:{margin:.0f}mm}}\n"
+                # The page's 24 px body margin prints inside the @page margin: leave it out of the @page margin, so
+                # the text edge is the document's (and an HTML -> docx conversion back keeps the margins).
+                margin = max(0.0, margin - 24 * 25.4 / 96)
+                css = f"@page{{size:{section.page_width.mm:.0f}mm {section.page_height.mm:.0f}mm;margin:{margin:.1f}mm}}\n"
         elif suffix == ".pptx":
             try:
                 from pptx import Presentation

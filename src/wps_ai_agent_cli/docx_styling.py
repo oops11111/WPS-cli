@@ -14,7 +14,7 @@ import re
 from dataclasses import dataclass, field
 from typing import Any
 
-from .html_styles import StyledDocument, color, first_font, is_bold, px
+from .html_styles import StyledDocument, _walk, color, first_font, is_bold, px
 
 EMU_PER_PX = 9525
 _TRANSPARENT_PARENTS = {"html", "body", "main", "document"}
@@ -27,6 +27,7 @@ class Context:
     styled: StyledDocument | None
     appearance: bool = False
     last_space_after: float = 0.0
+    carry_before: float = 0.0  # a table's margin-bottom, in points, for the paragraph after it
     applied: set[str] = field(default_factory=set)
 
 
@@ -237,9 +238,10 @@ def apply_paragraph(paragraph, node, ancestors, context: Context, *, list_item: 
     top = (px(style.get("margin-top"), size) or 0) * 0.75
     bottom = (px(style.get("margin-bottom"), size) or 0) * 0.75
     # Adjacent vertical margins collapse in CSS: the larger one wins.
-    form.space_before = Pt(max(0.0, top - context.last_space_after))
+    form.space_before = Pt(max(0.0, max(top, context.carry_before) - context.last_space_after))
     form.space_after = Pt(bottom)
     context.last_space_after = bottom
+    context.carry_before = 0.0
     if not list_item:
         offset = _left_offset(context, node, ancestors)
         if offset:
@@ -436,9 +438,10 @@ def _column_widths(styled: StyledDocument, node, grid, page_width_px: float) -> 
                 continue
             box = styled.box(cell)
             if box is not None:
-                # The browser's cell box includes its padding and borders, as a Word cell width does; 2 px more
-                # keeps a cell that only just fits from wrapping on a rounding (6 px made tables visibly wider).
-                widths[index] = box["width"] + 2
+                # The browser's cell box includes its padding and borders, as a Word cell width does; 1 px more
+                # keeps a cell that only just fits from wrapping on a rounding (2 px a column still made the
+                # contract table 8 px wider in WPS, Windows check on c205851).
+                widths[index] = box["width"] + 1
                 continue
             declared = cell.attrs.get("width") or styled.style(cell).get("width")
             if declared:
@@ -534,6 +537,26 @@ def browser_defaults(document) -> None:
     props.extend(later)
 
 
+def apply_table_spacing(table, node, context: Context) -> None:
+    """A table's vertical margins: Word has no space around a table, so its margin-top goes after the paragraph
+    before it and its margin-bottom before the paragraph after it, collapsing with theirs as in CSS (Windows check
+    on c205851: the contract's signature table lost its 24 pt margin-top)."""
+    if context.styled is None:
+        return
+    style = context.styled.style(node)
+    size = px(style.get("font-size")) or 16.0
+    top = (px(style.get("margin-top"), size) or 0) * 0.75
+    bottom = (px(style.get("margin-bottom"), size) or 0) * 0.75
+    previous = table._tbl.getprevious()
+    if top and previous is not None and previous.tag == _qn("w:p"):
+        spacing = previous.get_or_add_pPr().get_or_add_spacing()
+        after = int(spacing.get(_qn("w:after")) or 0) / 20
+        if top > after:
+            spacing.set(_qn("w:after"), str(int(round(top * 20))))
+    context.last_space_after = 0.0
+    context.carry_before = bottom
+
+
 def apply_page(document, styled: StyledDocument | None) -> float:
     """@page size and margins on the first section; returns the text width in CSS px."""
     from docx.shared import Mm
@@ -561,9 +584,19 @@ def apply_page(document, styled: StyledDocument | None) -> float:
     # Without @page margins, the browser prints with 10 mm margins (and html-render uses the same), not Word's
     # 1 inch; the document follows the browser.
     sides = {k: page.get(f"margin-{k}") for k in ("top", "right", "bottom", "left")}
+    # The body's own margin and padding (8 px by default) sit inside the printed page in the browser; the text
+    # edge is past them (Windows check on c205851: without them WPS lines were 16 px wider and wrapped later).
+    # Top and bottom stay the page's: the first block's space before already counts from the page top.
+    body = next((n for n in _walk(styled.root) if n.tag == "body"), None) if styled is not None else None
+    inset = {"left": 0.0, "right": 0.0}
+    if body is not None:
+        body_style = styled.style(body)
+        for side in inset:
+            inset[side] = (px(body_style.get(f"margin-{side}")) or 0) + (px(body_style.get(f"padding-{side}")) or 0)
     for side in ("top", "right", "bottom", "left"):
         value = px(sides.get(side)) if sides.get(side) else None
-        setattr(section, f"{side}_margin", Mm(value * 25.4 / 96) if value is not None else Mm(PRINT_MARGIN_MM))
+        value = value if value is not None else PRINT_MARGIN_MM * 96 / 25.4
+        setattr(section, f"{side}_margin", Mm((value + inset.get(side, 0.0)) * 25.4 / 96))
     width_emu = section.page_width - section.left_margin - section.right_margin
     return width_emu / EMU_PER_PX
 

@@ -271,6 +271,25 @@ D 组只考核文字和数据（F5）：pptx → docx 的结构 70% 和动画 0%
 - 放映：`training.html` 的外观 pptx 仍然正确。
 - 结论：仍未达标的是 A 组 5 份 docx 的版面（0.819–0.886，要求 0.90）和 `B-odt-docx`。后者可以换一份 WPS 能直接打开的 ODT、自动点“继续打开”，或按决定 9 记为 WPS 不支持并写明原因。P13-008、P13-013、P13-018 仍不能算完成。
 
+### Windows 检查结果（第五轮，2026-10-22，`c205851`）
+
+结果在 `scripts/windows_check/results/20261022T080819Z-c205851-fidelity/`（含超时窗口截图）和相邻的两个 `*-eval` 目录。
+
+- 保真度（WPS）：A 组 docx 继续上升但仍低于 0.90（report 0.8850、contract 0.8188、newsletter 0.8859、manual 0.8681、pdfsource 0.8827）；pptx、xlsx、Office→HTML 通过。E-supplier-docx 0.8745 通过。B 组除 `B-odt-docx` 外全部 1.0。C、D 组通过。
+- `B-odt-docx`：PrintWindow 截到的对话框是“文件损坏提示”（无法正确读取文档，提供“关闭 / 继续打开”）。WPS 把 LibreOffice 写出的 `brief.odt`（ODF 1.3，带 loext 扩展）当成损坏文件。超时截图用的是屏幕复制，被其他窗口挡住。
+- 评测：`--prefix convert-` 5/5，`--prefix html-` 5/5。
+
+### 第五次 Windows 检查之后的修复（待第六次检查）
+
+| 发现 | 对照图里看到的 | 修复 |
+| --- | --- | --- |
+| A 组 docx 的行比浏览器宽 | 浏览器在 10 mm 打印边距里还有 body 默认的 8 px 外边距；docx 没有，正文每边宽 8 px，换行位置不同，列表和表格整体左移 | 页边距加上 body 的左右外边距和内边距（层叠模式也按浏览器默认 8 px）。PDF 转来的 HTML 设 `body{margin:0}`（边距已从 PDF 量出）；docx → HTML 时 `@page` 边距扣掉页面自己的 24 px，往返不改变边距 |
+| contract 表格比浏览器宽 8 px | 每列加 2 px 余量，4 列累计 8 px | 余量改为 1 px |
+| contract 签字表前的空白缺了 | `.sign{margin-top:24pt}`：表格的上下外边距没有映射 | 表格的上外边距并入前一段的段后，下外边距并入后一段的段前（按 CSS 合并取大） |
+| `B-odt-docx` 打开时弹“文件损坏提示” | WPS 不接受 LibreOffice 默认的 ODF 1.3 扩展格式 | `brief.odt` 改用 ODF 1.2（无 loext 扩展）重新生成，`--make-fixtures` 同样写 ODF 1.2；超时截图改用 PrintWindow（不会被其他窗口挡住）；ODF 文件打开超时时，错误信息说明可能是 WPS 的损坏文件提示，建议另存为 ODF 1.2 或 OOXML |
+
+本地 LibreOffice 基线已重写（supplier 不变；report、manual、newsletter 略升）。第六次检查与第五次相同。
+
 ## 任务拆分
 
 | 任务 | 里程碑 | 对应标准 | 内容 | 在哪做 |

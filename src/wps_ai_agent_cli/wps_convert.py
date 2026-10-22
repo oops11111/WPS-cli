@@ -251,7 +251,7 @@ def render_pdf_pages(pdf: Path, destination: Path, dpi: int = 150) -> list[str]:
 _WINDOW_TITLES_SCRIPT = r"""
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.Drawing
-Add-Type @'
+Add-Type -ReferencedAssemblies System.Drawing @'
 using System; using System.Collections.Generic; using System.Runtime.InteropServices; using System.Text;
 public static class WpsWindows {
   delegate bool EnumProc(IntPtr hWnd, IntPtr lParam);
@@ -262,6 +262,11 @@ public static class WpsWindows {
   [DllImport("user32.dll")] static extern bool IsWindowVisible(IntPtr hWnd);
   [DllImport("user32.dll")] static extern bool GetWindowRect(IntPtr hWnd, out Rect rect);
   [DllImport("user32.dll")] static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint pid);
+  [DllImport("user32.dll")] static extern bool PrintWindow(IntPtr hWnd, IntPtr hdc, uint flags);
+  public static bool Capture(IntPtr hWnd, System.Drawing.Graphics graphics) {
+    IntPtr hdc = graphics.GetHdc();
+    try { return PrintWindow(hWnd, hdc, 2); } finally { graphics.ReleaseHdc(hdc); }
+  }
   public static List<object[]> Visible(HashSet<uint> pids) {
     var found = new List<object[]>();
     EnumWindows((hWnd, l) => {
@@ -270,7 +275,7 @@ public static class WpsWindows {
         var text = new StringBuilder(256); GetWindowText(hWnd, text, 256);
         var name = new StringBuilder(256); GetClassName(hWnd, name, 256);
         Rect r; GetWindowRect(hWnd, out r);
-        found.Add(new object[] { text.ToString(), name.ToString(), r.Left, r.Top, r.Right - r.Left, r.Bottom - r.Top });
+        found.Add(new object[] { text.ToString(), name.ToString(), hWnd, r.Right - r.Left, r.Bottom - r.Top });
       }
       return true;
     }, IntPtr.Zero);
@@ -285,18 +290,19 @@ $index = 0
 $windows = foreach ($w in [WpsWindows]::Visible($pids)) {
   $index++
   $image = ''
-  if ($w[4] -ge 20 -and $w[5] -ge 20) {
-    # A picture of the window: a dialog with no title still shows what it asks.
+  if ($w[3] -ge 20 -and $w[4] -ge 20) {
+    # A picture of the window: a dialog with no title still shows what it asks. PrintWindow draws the window
+    # itself, so another window on top of it does not hide it as in a screen copy (Windows check on c205851).
     try {
-      $bitmap = New-Object System.Drawing.Bitmap $w[4], $w[5]
+      $bitmap = New-Object System.Drawing.Bitmap $w[3], $w[4]
       $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
-      $graphics.CopyFromScreen($w[2], $w[3], 0, 0, $bitmap.Size)
+      [void][WpsWindows]::Capture($w[2], $graphics)
       $image = Join-Path $env:TEMP "wps-agent-timeout-$stamp-$index.png"
       $bitmap.Save($image, [System.Drawing.Imaging.ImageFormat]::Png)
       $graphics.Dispose(); $bitmap.Dispose()
     } catch { $image = '' }
   }
-  [pscustomobject]@{ title = $w[0]; class = $w[1]; width = $w[4]; height = $w[5]; image = $image }
+  [pscustomobject]@{ title = $w[0]; class = $w[1]; width = $w[3]; height = $w[4]; image = $image }
 }
 @{ windows = @($windows) } | ConvertTo-Json -Depth 3
 """
@@ -388,6 +394,12 @@ def wps_convert(
                 where = stage.read_text(encoding="utf-8-sig").strip() if stage.is_file() else "unknown"
                 windows = _wps_windows()
                 shown = f" Open WPS windows: {'; '.join(map(_describe_window, windows))}." if windows else ""
+                if where == "opening the input" and source.suffix.casefold() in {".odt", ".ods", ".odp"}:
+                    # Windows check on c205851: WPS asked about a "damaged" ODF 1.3 file from LibreOffice.
+                    shown += (
+                        " WPS may be asking whether to open a file it reads as damaged; ODF 1.3 files with"
+                        " LibreOffice extensions do this, so save the file as ODF 1.2 or as .docx/.xlsx/.pptx."
+                    )
                 errors = [{**errors[0], "message": f"{errors[0]['message']} WPS was {where}.{shown}"}, *errors[1:]]
                 failure.setdefault("data", {}).update({"stage": where, "wps_windows": windows})
             return False, failure.get("data", {}), errors
