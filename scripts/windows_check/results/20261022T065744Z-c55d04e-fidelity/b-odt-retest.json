@@ -1,0 +1,13 @@
+[
+  {
+    "case": "B-odt-docx",
+    "converted": false,
+    "errors": [
+      {
+        "code": "COM_OPERATION_TIMEOUT",
+        "message": "WPS conversion timed out after 180 seconds. WPS was opening the input."
+      }
+    ],
+    "route": null
+  }
+]

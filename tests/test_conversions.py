@@ -422,7 +422,18 @@ class WpsConvertTests(_Workspace):
     def test_a_file_wps_still_holds_is_retried_and_a_timeout_says_where_wps_was(self):
         held = {"ok": False, "errors": [{"code": "DOCUMENT_HELD_OPEN", "message": "held"}], "data": {}}
         timeout = {"ok": False, "errors": [{"code": "COM_OPERATION_TIMEOUT", "message": "timed out."}], "data": {}}
-        replies = [(None, held), (None, timeout), ({"titles": ["Format Conversion"]}, None)]
+        replies = [
+            (None, held),
+            (None, timeout),
+            (
+                {
+                    "windows": [
+                        {"title": "", "class": "Qt5QWindowIcon", "width": 420, "height": 180, "image": "C:/t/w-1.png"}
+                    ]
+                },
+                None,
+            ),
+        ]
 
         def fake_run(script, timeout_seconds, **_kwargs):
             if "stage_path" in script:
@@ -437,12 +448,12 @@ class WpsConvertTests(_Workspace):
         ):
             ok, data, errors = wps_convert.wps_convert(self.work / "brief.odt", self.work / "out.docx")
         self.assertFalse(ok)
-        self.assertEqual(run.call_count, 3)  # held, timed out, then the window titles
+        self.assertEqual(run.call_count, 3)  # held, timed out, then the windows
         self.assertEqual(errors[0]["code"], "COM_OPERATION_TIMEOUT")
         self.assertIn("WPS was opening the input", errors[0]["message"])
-        self.assertIn("Open WPS windows: Format Conversion", errors[0]["message"])
+        self.assertIn("Open WPS windows: untitled Qt5QWindowIcon 420x180 (C:/t/w-1.png)", errors[0]["message"])
         self.assertEqual(data["stage"], "opening the input")
-        self.assertEqual(data["wps_windows"], ["Format Conversion"])
+        self.assertEqual(data["wps_windows"][0]["image"], "C:/t/w-1.png")
 
     def test_writer_opens_without_the_conversion_prompt(self):
         (ok, _data, errors), scripts = self.run_fake("brief.odt", "out.docx")
@@ -521,6 +532,21 @@ class WpsLayoutTests(_Workspace):
         # Windows check on 8899219: a short last page set a 427 pt bottom margin and pushed text to a new page.
         top, _right, bottom, _left = pdf_convert.analyse_pdf(self.work / "supplier.pdf").margins
         self.assertLessEqual(bottom, top)
+
+    def test_vertical_cell_padding_is_paragraph_spacing_not_a_cell_margin(self):
+        # Windows check on c55d04e: rows with a top/bottom cell margin came out about 7 pt taller in WPS.
+        w = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
+        convert_html_to_office(self.work / "contract.html", self.work / "contract.docx", "docx", use_browser=False)
+        cell = Document(self.work / "contract.docx").tables[1].cell(2, 0)
+        margins = cell._tc.tcPr.find(f"{w}tcMar")
+        self.assertIsNone(margins.find(f"{w}top"))
+        self.assertIsNotNone(margins.find(f"{w}left"))
+        form = cell.paragraphs[0].paragraph_format
+        self.assertAlmostEqual(form.space_before.pt, 3, delta=0.1)  # 4 px
+        self.assertAlmostEqual(form.space_after.pt, 3, delta=0.1)
+        names = [child.tag.split("}")[1] for child in cell._tc.tcPr]
+        if "shd" in names:
+            self.assertLess(names.index("tcBorders"), names.index("shd"))
 
     def test_list_text_starts_where_the_browser_puts_it(self):
         convert_html_to_office(self.work / "contract.html", self.work / "contract.docx", "docx")

@@ -87,3 +87,20 @@ class WithoutBrowserTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+@unittest.skipUnless(has_browser(), "the browser layout needs Node.js, Playwright and Edge or Chromium")
+class NormalLineTests(unittest.TestCase):
+    def test_line_height_normal_becomes_the_browser_measured_line(self):
+        # Windows check on c55d04e: "single" lines were Microsoft YaHei's taller WPS line, not the browser's.
+        from docx import Document
+        from docx.enum.text import WD_LINE_SPACING
+
+        with tempfile.TemporaryDirectory() as tmp:
+            source = Path(tmp) / "normal.html"
+            source.write_text("<html><body><p style='font-size:20px'>正文 text</p></body></html>", encoding="utf-8")
+            convert_html_to_office(source, Path(tmp) / "normal.docx", "docx")
+            form = Document(Path(tmp) / "normal.docx").paragraphs[0].paragraph_format
+        self.assertEqual(form.line_spacing_rule, WD_LINE_SPACING.EXACTLY)
+        self.assertGreater(form.line_spacing.pt, 15)  # at least the 20 px font itself
+        self.assertLess(form.line_spacing.pt, 25)

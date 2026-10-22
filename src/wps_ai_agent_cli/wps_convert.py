@@ -250,40 +250,72 @@ def render_pdf_pages(pdf: Path, destination: Path, dpi: int = 150) -> list[str]:
 
 _WINDOW_TITLES_SCRIPT = r"""
 $ErrorActionPreference = 'Stop'
+Add-Type -AssemblyName System.Drawing
 Add-Type @'
 using System; using System.Collections.Generic; using System.Runtime.InteropServices; using System.Text;
 public static class WpsWindows {
   delegate bool EnumProc(IntPtr hWnd, IntPtr lParam);
+  [StructLayout(LayoutKind.Sequential)] public struct Rect { public int Left, Top, Right, Bottom; }
   [DllImport("user32.dll")] static extern bool EnumWindows(EnumProc callback, IntPtr lParam);
   [DllImport("user32.dll")] static extern int GetWindowText(IntPtr hWnd, StringBuilder text, int count);
+  [DllImport("user32.dll")] static extern int GetClassName(IntPtr hWnd, StringBuilder text, int count);
   [DllImport("user32.dll")] static extern bool IsWindowVisible(IntPtr hWnd);
+  [DllImport("user32.dll")] static extern bool GetWindowRect(IntPtr hWnd, out Rect rect);
   [DllImport("user32.dll")] static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint pid);
-  public static List<string> Titles(HashSet<uint> pids) {
-    var titles = new List<string>();
+  public static List<object[]> Visible(HashSet<uint> pids) {
+    var found = new List<object[]>();
     EnumWindows((hWnd, l) => {
       uint pid; GetWindowThreadProcessId(hWnd, out pid);
       if (pids.Contains(pid) && IsWindowVisible(hWnd)) {
         var text = new StringBuilder(256); GetWindowText(hWnd, text, 256);
-        if (text.Length > 0) { titles.Add(text.ToString()); }
+        var name = new StringBuilder(256); GetClassName(hWnd, name, 256);
+        Rect r; GetWindowRect(hWnd, out r);
+        found.Add(new object[] { text.ToString(), name.ToString(), r.Left, r.Top, r.Right - r.Left, r.Bottom - r.Top });
       }
       return true;
     }, IntPtr.Zero);
-    return titles;
+    return found;
   }
 }
 '@
 $pids = New-Object 'System.Collections.Generic.HashSet[uint32]'
 Get-Process -Name wps, et, wpp -ErrorAction SilentlyContinue | ForEach-Object { [void]$pids.Add([uint32]$_.Id) }
-@{ titles = @([WpsWindows]::Titles($pids)) } | ConvertTo-Json -Depth 3
+$stamp = Get-Date -Format 'yyyyMMddTHHmmss'
+$index = 0
+$windows = foreach ($w in [WpsWindows]::Visible($pids)) {
+  $index++
+  $image = ''
+  if ($w[4] -ge 20 -and $w[5] -ge 20) {
+    # A picture of the window: a dialog with no title still shows what it asks.
+    try {
+      $bitmap = New-Object System.Drawing.Bitmap $w[4], $w[5]
+      $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
+      $graphics.CopyFromScreen($w[2], $w[3], 0, 0, $bitmap.Size)
+      $image = Join-Path $env:TEMP "wps-agent-timeout-$stamp-$index.png"
+      $bitmap.Save($image, [System.Drawing.Imaging.ImageFormat]::Png)
+      $graphics.Dispose(); $bitmap.Dispose()
+    } catch { $image = '' }
+  }
+  [pscustomobject]@{ title = $w[0]; class = $w[1]; width = $w[4]; height = $w[5]; image = $image }
+}
+@{ windows = @($windows) } | ConvertTo-Json -Depth 3
 """
 
 
-def _wps_window_titles() -> list[str]:
-    """The titles of WPS's visible windows, after a timeout: a dialog WPS is waiting on names itself here."""
-    payload, failure = run_powershell_script(_WINDOW_TITLES_SCRIPT, 20)
+def _wps_windows() -> list[dict[str, Any]]:
+    """WPS's visible windows after a timeout, each with a screenshot when it has a size: a dialog WPS waits on
+    names itself here, or shows what it asks when it has no title (Windows check on c55d04e: two untitled Qt
+    windows while an .odt was opening)."""
+    payload, failure = run_powershell_script(_WINDOW_TITLES_SCRIPT, 30)
     if failure is not None or not payload:
         return []
-    return [str(title) for title in payload.get("titles") or []][:10]
+    return [window for window in payload.get("windows") or [] if isinstance(window, dict)][:10]
+
+
+def _describe_window(window: dict[str, Any]) -> str:
+    name = window.get("title") or f"untitled {window.get('class') or 'window'}"
+    shown = f"{name} {window.get('width')}x{window.get('height')}"
+    return f"{shown} ({window['image']})" if window.get("image") else shown
 
 
 def wps_convert(
@@ -354,8 +386,8 @@ def wps_convert(
             if errors and errors[0].get("code") == "COM_OPERATION_TIMEOUT":
                 # Say where WPS stopped, so a hang (a dialog on open, say) can be told from a slow save.
                 where = stage.read_text(encoding="utf-8-sig").strip() if stage.is_file() else "unknown"
-                windows = _wps_window_titles()
-                shown = f" Open WPS windows: {', '.join(windows)}." if windows else ""
+                windows = _wps_windows()
+                shown = f" Open WPS windows: {'; '.join(map(_describe_window, windows))}." if windows else ""
                 errors = [{**errors[0], "message": f"{errors[0]['message']} WPS was {where}.{shown}"}, *errors[1:]]
                 failure.setdefault("data", {}).update({"stage": where, "wps_windows": windows})
             return False, failure.get("data", {}), errors
