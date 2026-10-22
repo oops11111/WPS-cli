@@ -1,0 +1,25 @@
+B-odt-docx timeout (isolated retest, 2026-10-22, 180 s)
+
+Message returned:
+  COM_OPERATION_TIMEOUT
+  WPS conversion timed out after 180 seconds. WPS was opening the input.
+
+No "Open WPS windows: ..." segment is present. wps_convert._wps_window_titles()
+collects only VISIBLE windows that have a title, and at the moment of the hang
+there were none, so the segment is omitted (the code already has it; it is
+empty here).
+
+Independent enumeration during the hang (wps.exe PID 25992):
+
+Visible titled windows belonging to wps.exe: none.
+All top-level windows of that PID:
+  class=Qt5QWindowIcon  title=''        visible=1
+  class=Qt5QWindowIcon  title=''        visible=1
+  class=KLiteMainWindowShadowBorder title='' visible=0
+  class=OpusApp         title='WPS文字'  visible=0
+  class=OleDdeWndClass  title='DDE Server Window' visible=0
+  class=__#_ACCOUNTSDK WINIPC CHANNEL NAME_#__ title='wps' visible=0
+  (plus IME and Qt event-dispatcher windows, all hidden)
+
+So WPS is stuck while opening the .odt with no visible dialog at all; there is
+no "Format Conversion" prompt to report.
