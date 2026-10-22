@@ -68,7 +68,7 @@
         "structure": 1.0,
         "formatting": 1.0,
         "data": 1.0,
-        "layout": 0.8912
+        "layout": 0.8998
       },
       "passed": true
     },
@@ -309,7 +309,7 @@
         "text": 1.0,
         "structure": 1.0,
         "data": 1.0,
-        "layout": 0.9303
+        "layout": 0.9289
       },
       "passed": true
     },

@@ -724,10 +724,17 @@ def apply_page(document, styled: StyledDocument | None) -> float:
         body_style = styled.style(body)
         for side in inset:
             inset[side] = (px(body_style.get(f"margin-{side}")) or 0) + (px(body_style.get(f"padding-{side}")) or 0)
+    page_margins = {}
     for side in ("top", "right", "bottom", "left"):
         value = px(sides.get(side)) if sides.get(side) else None
-        value = value if value is not None else PRINT_MARGIN_MM * 96 / 25.4
-        setattr(section, f"{side}_margin", Mm((value + inset.get(side, 0.0)) * 25.4 / 96))
+        page_margins[side] = value if value is not None else PRINT_MARGIN_MM * 96 / 25.4
+        setattr(section, f"{side}_margin", Mm((page_margins[side] + inset.get(side, 0.0)) * 25.4 / 96))
+    # A page header (data-page="header") starts where the body's first line does in the browser, inside the body's
+    # top margin, and a running footer sits on the bottom margin; Word's default half inch put the header and the
+    # text below it 3 px low and the footer 10 px high (Windows check on 3f82375).
+    top_inset = (px(styled.style(body).get("margin-top")) or 0) if body is not None else 0.0
+    section.header_distance = Mm((page_margins["top"] + top_inset) * 25.4 / 96)
+    section.footer_distance = Mm(page_margins["bottom"] * 25.4 / 96)
     width_emu = section.page_width - section.left_margin - section.right_margin
     return width_emu / EMU_PER_PX
 

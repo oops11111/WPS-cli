@@ -670,6 +670,19 @@ class WpsLayoutTests(_Workspace):
         self.assertAlmostEqual(rule.line_spacing.pt, 1, delta=0.01)
         self.assertAlmostEqual(rule.space_after.pt, 6, delta=0.01)  # the browser's 8 px
 
+    def test_page_header_and_footer_sit_where_they_print(self):
+        # Windows check on 3f82375: Word's half-inch header and footer distances put the header 3 px low and the
+        # footer 10 px high against the browser, and a PDF's header where the PDF has it.
+        convert_html_to_office(self.work / "contract.html", self.work / "contract.docx", "docx", use_browser=False)
+        section = Document(self.work / "contract.docx").sections[0]
+        self.assertAlmostEqual(section.header_distance.mm, 10 + 8 * 25.4 / 96, delta=0.1)  # margin + body margin
+        self.assertAlmostEqual(section.footer_distance.mm, 10, delta=0.1)
+        analysis = pdf_convert.analyse_pdf(self.work / "supplier.pdf")
+        pdf_convert.pdf_to_office(self.work / "supplier.pdf", self.work / "s.docx")
+        pdf_section = Document(self.work / "s.docx").sections[0]
+        self.assertLessEqual(pdf_section.header_distance.pt, analysis.margins[0] - analysis.body_size * 1.32 + 0.1)
+        self.assertAlmostEqual(pdf_section.footer_distance.pt, analysis.footer_bottom, delta=0.1)
+
     def test_list_text_starts_where_the_browser_puts_it(self):
         convert_html_to_office(self.work / "contract.html", self.work / "contract.docx", "docx")
         items = [p for p in Document(self.work / "contract.docx").paragraphs if p.style.name.startswith("List")]
