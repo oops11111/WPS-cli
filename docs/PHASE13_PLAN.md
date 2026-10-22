@@ -1,6 +1,6 @@
 # Phase 13 计划：全格式高保真互转
 
-状态：**active**（2026-10-18 规划，同日你决定把全部格式并入本阶段；同日你说“phase13三个里程碑做一个提交”，按默认决定激活。三个里程碑的本地任务已在一次提交中完成，版本号 0.10.0 包含全部内容；Windows 上的三次检查 P13-008、P13-013、P13-018 于 2026-10-18 在 `4b263d9`、2026-10-22 在 `c117637` 上各跑过一遍，仍未全部通过，见“Windows 检查结果”）。
+状态：**active**（2026-10-18 规划，同日你决定把全部格式并入本阶段；同日你说“phase13三个里程碑做一个提交”，按默认决定激活。三个里程碑的本地任务已在一次提交中完成，版本号 0.10.0 包含全部内容；Windows 上的三次检查 P13-008、P13-013、P13-018 于 2026-10-18 在 `4b263d9`、2026-10-22 在 `c117637` 和 `8899219` 上各跑过一遍，仍未全部通过，见“Windows 检查结果”）。
 
 ## 目标
 
@@ -103,17 +103,17 @@ Phase 12 之后，HTML 转换为 WPS 三种格式已经保留语义、行内格�
 | P13-005 | 完成 | `office_html.py`：docx → 内联样式的干净 HTML，往返 100% |
 | P13-006 | 完成 | `html_slides.py`：有浏览器时按 section 的布局摆放到 16:9 幻灯片，背景、字体、退出和强调动画、单击和“上一项之后”；`--fidelity appearance` 画出装饰框 |
 | P13-007 | 完成 | `wps_convert.py`：SaveAs 格式码（doc 0、docx 16、odt 23、xls 56、xlsx 51、ods 60、ppt 1、pptx 24、odp 35，.wps/.et/.dps 按扩展名）、PDF、每页 PNG；`FORMAT_NOT_SUPPORTED_BY_WPS`；用假 COM 测试 |
-| P13-008 | 未通过 | 第二轮 2026-10-22（`c117637`）：A 组 5 份 docx 的版面 0.751–0.879，仍低于 0.90；`--prefix convert-` 4/5、`--prefix html-` 5/5；见“Windows 检查结果（第二轮）” |
+| P13-008 | 未通过 | 第三轮 2026-10-22（`8899219`）：A 组 5 份 docx 的版面 0.764–0.878，仍低于 0.90；`--prefix convert-` 5/5、`--prefix html-` 4/5；见“Windows 检查结果（第三轮）” |
 | P13-009 | 完成 | pptx → HTML：每页一个定位的 section，动画转回 `@keyframes`，切换转回 `data-transition`，备注 |
 | P13-010 | 完成 | HTML → xlsx 的字体、填充、边框、对齐、列宽、冻结表头，`data-formula` 还原公式；xlsx → HTML |
 | P13-011 | 完成 | `tabular.py`（编码、分隔符、类型）、`markdown_convert.py`（markdown-it-py 或内置读取器） |
 | P13-012 | 完成 | `cross_type.py`：docx ↔ pptx（决定 8 的分页），工作表区域 → docx/pptx 表格 |
-| P13-013 | 未通过 | 第二轮：C、D 组通过；A 组版面仍未达标；`convert-legacy-doc-with-wps` 已 3/3，`convert-docx-to-pptx` 变成 1/3 |
+| P13-013 | 未通过 | 第三轮：C、D 组通过；A 组版面仍未达标；`convert-` 5/5；`html-complex-report-to-docx` 1/3（检查仍只认 `convert_smoke`） |
 | P13-014 | 完成 | `pdf_convert.py`：标题（按字号）、列表、有线框和按对齐识别的表格、图片、页眉页脚（进 docx 的页眉页脚）、页面大小和边距 |
 | P13-015 | 完成 | PDF → xlsx 每个表格一个工作表；PDF → pptx 每页一张幻灯片（按阅读顺序排版，不按页面坐标定位） |
 | P13-016 | 完成 | `--ocr` 和 `ocr` 可选依赖（RapidOCR）；没装或不加 `--ocr` 时报 `PDF_NEEDS_OCR`；本地扫描件字符准确率 98.5%（300 dpi） |
 | P13-017 | 完成 | `convert` 统一入口（CLI、MCP `wps_agent_convert`），5 个 `convert-` 评测任务和离线判定 `fidelity`，离线测试确认判定在真实转换结果上通过 |
-| P13-018 | 未通过 | 第二轮：E-supplier-docx 0.5762（要求 0.85）、B-odt-docx 仍超时；B-doc-docx 已到 1.0；见“Windows 检查结果（第二轮）” |
+| P13-018 | 未通过 | 第三轮：E-supplier-docx 0.5918（要求 0.85）、B-odt-docx 仍超时；B-doc-docx 1.0；见“Windows 检查结果（第三轮）” |
 
 ### 离线转换矩阵
 
@@ -208,6 +208,30 @@ D 组只考核文字和数据（F5）：pptx → docx 的结构 70% 和动画 0%
 本地 LibreOffice 基线已更新。contract 在本地降到 0.785，是 LibreOffice 的替代字体比微软雅黑宽、窄列里的“30%”换了行；WPS 上两边都是雅黑。
 
 第三次检查与第二次相同：`fidelity_baselines.py --renderer wps --wps --out <目录>`，`eval --prefix convert-` 和 `--prefix html-`。
+
+### Windows 检查结果（第三轮，2026-10-22，`8899219`）
+
+结果和原始输出在 `scripts/windows_check/results/20261022T054905Z-8899219-fidelity/`（保真度 `results.json`/`pages/`、B 组复测、放映）以及相邻的两个 `*-eval` 目录。
+
+- 保真度（WPS）：A 组 5 份 docx 的版面仍是 0.7639–0.8779（contract 0.7639、manual 0.8241、newsletter 0.8339、report 0.8659、pdfsource 0.8779），都低于 0.90；pptx 3 份通过（0.9137–0.9573）；xlsx 和 Office→HTML 没有版面项。E-supplier-docx 0.5918（源 2 页、目标 3 页，要求 0.85）。B 组 `B-doc-docx` 1.0；`B-odt-docx` 仍 180 秒超时（“WPS was opening the input”，单独复测也超时）；`B-docx-wps`、`B-docx-odt` 在整轮里仍是 `DOCUMENT_HELD_OPEN` 级联，单独复测都是 1.0。C、D 组全部通过。
+- 评测：`--prefix convert-` **5/5**（五个任务都是 3/3）；`--prefix html-` 4/5（`html-complex-report-to-docx` 1/3：第 1、3 次用新的 `convert` 而不是 `convert_smoke` 生成 PDF，检查仍只认旧工具；其余任务 3/3 或 2/3）。
+- 放映：`training.html` 的外观 pptx 仍然正确（fade/push/wipe、飞入、pulse、延迟退出、单击和“上一项之后”）。
+- 结论：`convert-` 已全过；`html-complex-report-to-docx` 是检查与工具不一致，建议任务检查接受 `convert` 或 `convert_smoke`。仍未达标的是 A 组 5 份 docx 版面、`E-supplier-docx`、`B-odt-docx`，以及 B 组连续用例的 WPS 占用。P13-008、P13-013、P13-018 仍不能算完成。
+
+### 第三次 Windows 检查之后的修复（待第四次检查）
+
+| 发现 | 对照图里看到的 | 修复 |
+| --- | --- | --- |
+| A 组 docx 0.76–0.88 | 网格已去掉，但行和表格行仍高约 1.3 倍：“最小值 16.5 pt”在 WPS 里被微软雅黑自己的行高（约 1.7 倍字号，11 pt 时约 18.7 pt）撑开 | 段落里没有图片、也没有比行高更大的字时，行距用“固定值”= 浏览器算出的 CSS 行高；否则仍用“最小值”，不裁切 |
+| 同上 | `th{font-weight:normal}` 的表头仍是粗体 | 有计算样式时表头粗细跟随层叠结果，只在没有样式时默认加粗 |
+| E-supplier-docx 0.5918（2 页变 3 页） | 第 2 页表格后的段落被推到第 3 页：下边距取自正文结束的位置（短页在页中结束，下边距 427 pt） | 下边距与上边距相同，除非正文比这更靠下 |
+| B-docx-wps、B-docx-odt 整轮里 `DOCUMENT_HELD_OPEN` | 单独复测（每步前结束 WPS）都是 1.0 | 矩阵脚本在 B 组每一步前等 WPS 退出（最多 30 秒）；矩阵开始时没有 WPS 在运行的话，仍未退出的 WPS（卡在对话框或还占着文件）由脚本结束 |
+| B-odt-docx 打开时超时 | 打开 `.odt` 时 WPS 停住，多半是隐藏窗口里的对话框 | 以只读、不进最近列表的方式打开源文件；超时时列出 WPS 当前可见窗口的标题（`wps_windows`），下次检查据此看出是哪个对话框 |
+| `html-complex-report-to-docx` 1/3 | 用 `convert` 生成 PDF，检查只认 `convert_smoke` | `tool_called` 检查可以列出做同一步的其他工具（`or`，输出路径按后缀匹配）；该任务也接受 `convert` 写出 `.pdf` |
+
+本地 LibreOffice 的版面分数基本不变（LibreOffice 本来就不按字体放大“最小值”行距；supplier 本地已是 2 页），基线已重新写入。
+
+第四次检查与第三次相同：`fidelity_baselines.py --renderer wps --wps --out <目录>`，`eval --prefix convert-` 和 `--prefix html-`。`B-odt-docx` 若仍超时，请把错误信息里的 “Open WPS windows: …” 一并带回。
 
 ## 任务拆分
 

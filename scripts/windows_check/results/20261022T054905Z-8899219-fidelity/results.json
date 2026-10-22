@@ -1,0 +1,2210 @@
+{
+  "renderer": "wps",
+  "cases": {
+    "A-report-docx": {
+      "converted": true,
+      "group": "A",
+      "route": [
+        "html-editable"
+      ],
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "formatting": 1.0,
+        "data": 1.0,
+        "layout": 0.8659
+      },
+      "verdict": {
+        "text": true,
+        "structure": true,
+        "formatting": true,
+        "data": true,
+        "layout": false
+      },
+      "passed": false,
+      "layout_renderer": "wps",
+      "report": {
+        "source": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-fidelity-matrix-lvf62kjr\\report.html",
+        "target": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-fidelity-matrix-lvf62kjr\\A-report-docx.docx",
+        "group": "A",
+        "thresholds": {
+          "text": 1.0,
+          "structure": 1.0,
+          "formatting": 1.0,
+          "animations": 1.0,
+          "data": 1.0,
+          "layout": 0.9
+        },
+        "aspects": {
+          "text": {
+            "score": 1.0,
+            "missing": []
+          },
+          "structure": {
+            "score": 1.0,
+            "differences": {}
+          },
+          "formatting": {
+            "score": 1.0,
+            "problems": []
+          },
+          "animations": {
+            "status": "not applicable"
+          },
+          "data": {
+            "score": 1.0,
+            "missing": []
+          },
+          "layout": {
+            "images": [
+              "scripts\\windows_check\\results\\20261022T054905Z-8899219-fidelity\\pages\\A-report-docx\\page-001-0.798.png",
+              "scripts\\windows_check\\results\\20261022T054905Z-8899219-fidelity\\pages\\A-report-docx\\page-002-0.934.png"
+            ],
+            "status": "measured",
+            "renderer": "wps",
+            "score": 0.8659,
+            "pages": {
+              "source": 2,
+              "target": 2
+            },
+            "page_scores": [
+              0.7978,
+              0.9339
+            ],
+            "missing_fonts": [
+              "Noto Sans CJK SC"
+            ]
+          }
+        },
+        "verdict": {
+          "text": true,
+          "structure": true,
+          "formatting": true,
+          "data": true,
+          "layout": false
+        },
+        "passed": false
+      }
+    },
+    "A-contract-docx": {
+      "converted": true,
+      "group": "A",
+      "route": [
+        "html-editable"
+      ],
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "formatting": 1.0,
+        "data": 1.0,
+        "layout": 0.7639
+      },
+      "verdict": {
+        "text": true,
+        "structure": true,
+        "formatting": true,
+        "data": true,
+        "layout": false
+      },
+      "passed": false,
+      "layout_renderer": "wps",
+      "report": {
+        "source": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-fidelity-matrix-lvf62kjr\\contract.html",
+        "target": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-fidelity-matrix-lvf62kjr\\A-contract-docx.docx",
+        "group": "A",
+        "thresholds": {
+          "text": 1.0,
+          "structure": 1.0,
+          "formatting": 1.0,
+          "animations": 1.0,
+          "data": 1.0,
+          "layout": 0.9
+        },
+        "aspects": {
+          "text": {
+            "score": 1.0,
+            "missing": []
+          },
+          "structure": {
+            "score": 1.0,
+            "differences": {}
+          },
+          "formatting": {
+            "score": 1.0,
+            "problems": []
+          },
+          "animations": {
+            "status": "not applicable"
+          },
+          "data": {
+            "score": 1.0,
+            "missing": []
+          },
+          "layout": {
+            "images": [
+              "scripts\\windows_check\\results\\20261022T054905Z-8899219-fidelity\\pages\\A-contract-docx\\page-001-0.764.png"
+            ],
+            "status": "measured",
+            "renderer": "wps",
+            "score": 0.7639,
+            "pages": {
+              "source": 1,
+              "target": 1
+            },
+            "page_scores": [
+              0.7639
+            ],
+            "missing_fonts": [
+              "Noto Sans CJK SC"
+            ]
+          }
+        },
+        "verdict": {
+          "text": true,
+          "structure": true,
+          "formatting": true,
+          "data": true,
+          "layout": false
+        },
+        "passed": false
+      }
+    },
+    "A-newsletter-docx": {
+      "converted": true,
+      "group": "A",
+      "route": [
+        "html-editable"
+      ],
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "formatting": 1.0,
+        "layout": 0.8339
+      },
+      "verdict": {
+        "text": true,
+        "structure": true,
+        "formatting": true,
+        "layout": false
+      },
+      "passed": false,
+      "layout_renderer": "wps",
+      "report": {
+        "source": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-fidelity-matrix-lvf62kjr\\newsletter.html",
+        "target": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-fidelity-matrix-lvf62kjr\\A-newsletter-docx.docx",
+        "group": "A",
+        "thresholds": {
+          "text": 1.0,
+          "structure": 1.0,
+          "formatting": 1.0,
+          "animations": 1.0,
+          "data": 1.0,
+          "layout": 0.9
+        },
+        "aspects": {
+          "text": {
+            "score": 1.0,
+            "missing": []
+          },
+          "structure": {
+            "score": 1.0,
+            "differences": {}
+          },
+          "formatting": {
+            "score": 1.0,
+            "problems": []
+          },
+          "animations": {
+            "status": "not applicable"
+          },
+          "data": {
+            "status": "not applicable"
+          },
+          "layout": {
+            "images": [
+              "scripts\\windows_check\\results\\20261022T054905Z-8899219-fidelity\\pages\\A-newsletter-docx\\page-001-0.834.png"
+            ],
+            "status": "measured",
+            "renderer": "wps",
+            "score": 0.8339,
+            "pages": {
+              "source": 1,
+              "target": 1
+            },
+            "page_scores": [
+              0.8339
+            ],
+            "missing_fonts": [
+              "Noto Sans CJK SC"
+            ]
+          }
+        },
+        "verdict": {
+          "text": true,
+          "structure": true,
+          "formatting": true,
+          "layout": false
+        },
+        "passed": false
+      }
+    },
+    "A-manual-docx": {
+      "converted": true,
+      "group": "A",
+      "route": [
+        "html-editable"
+      ],
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "formatting": 1.0,
+        "data": 1.0,
+        "layout": 0.8241
+      },
+      "verdict": {
+        "text": true,
+        "structure": true,
+        "formatting": true,
+        "data": true,
+        "layout": false
+      },
+      "passed": false,
+      "layout_renderer": "wps",
+      "report": {
+        "source": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-fidelity-matrix-lvf62kjr\\manual.html",
+        "target": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-fidelity-matrix-lvf62kjr\\A-manual-docx.docx",
+        "group": "A",
+        "thresholds": {
+          "text": 1.0,
+          "structure": 1.0,
+          "formatting": 1.0,
+          "animations": 1.0,
+          "data": 1.0,
+          "layout": 0.9
+        },
+        "aspects": {
+          "text": {
+            "score": 1.0,
+            "missing": []
+          },
+          "structure": {
+            "score": 1.0,
+            "differences": {}
+          },
+          "formatting": {
+            "score": 1.0,
+            "problems": []
+          },
+          "animations": {
+            "status": "not applicable"
+          },
+          "data": {
+            "score": 1.0,
+            "missing": []
+          },
+          "layout": {
+            "images": [
+              "scripts\\windows_check\\results\\20261022T054905Z-8899219-fidelity\\pages\\A-manual-docx\\page-001-0.824.png"
+            ],
+            "status": "measured",
+            "renderer": "wps",
+            "score": 0.8241,
+            "pages": {
+              "source": 1,
+              "target": 1
+            },
+            "page_scores": [
+              0.8241
+            ],
+            "missing_fonts": [
+              "Noto Sans CJK SC"
+            ]
+          }
+        },
+        "verdict": {
+          "text": true,
+          "structure": true,
+          "formatting": true,
+          "data": true,
+          "layout": false
+        },
+        "passed": false
+      }
+    },
+    "A-pdfsource-docx": {
+      "converted": true,
+      "group": "A",
+      "route": [
+        "html-editable"
+      ],
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "formatting": 1.0,
+        "data": 1.0,
+        "layout": 0.8779
+      },
+      "verdict": {
+        "text": true,
+        "structure": true,
+        "formatting": true,
+        "data": true,
+        "layout": false
+      },
+      "passed": false,
+      "layout_renderer": "wps",
+      "report": {
+        "source": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-fidelity-matrix-lvf62kjr\\pdf_source.html",
+        "target": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-fidelity-matrix-lvf62kjr\\A-pdfsource-docx.docx",
+        "group": "A",
+        "thresholds": {
+          "text": 1.0,
+          "structure": 1.0,
+          "formatting": 1.0,
+          "animations": 1.0,
+          "data": 1.0,
+          "layout": 0.9
+        },
+        "aspects": {
+          "text": {
+            "score": 1.0,
+            "missing": []
+          },
+          "structure": {
+            "score": 1.0,
+            "differences": {}
+          },
+          "formatting": {
+            "score": 1.0,
+            "problems": []
+          },
+          "animations": {
+            "status": "not applicable"
+          },
+          "data": {
+            "score": 1.0,
+            "missing": []
+          },
+          "layout": {
+            "images": [
+              "scripts\\windows_check\\results\\20261022T054905Z-8899219-fidelity\\pages\\A-pdfsource-docx\\page-001-0.848.png",
+              "scripts\\windows_check\\results\\20261022T054905Z-8899219-fidelity\\pages\\A-pdfsource-docx\\page-002-0.908.png"
+            ],
+            "status": "measured",
+            "renderer": "wps",
+            "score": 0.8779,
+            "pages": {
+              "source": 2,
+              "target": 2
+            },
+            "page_scores": [
+              0.8476,
+              0.9081
+            ],
+            "missing_fonts": [
+              "Noto Sans CJK SC"
+            ]
+          }
+        },
+        "verdict": {
+          "text": true,
+          "structure": true,
+          "formatting": true,
+          "data": true,
+          "layout": false
+        },
+        "passed": false
+      }
+    },
+    "A-budget-xlsx": {
+      "converted": true,
+      "group": "A",
+      "route": [
+        "html-editable"
+      ],
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "data": 1.0
+      },
+      "verdict": {
+        "text": true,
+        "structure": true,
+        "data": true
+      },
+      "passed": true,
+      "layout_renderer": null,
+      "report": {
+        "source": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-fidelity-matrix-lvf62kjr\\budget.html",
+        "target": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-fidelity-matrix-lvf62kjr\\A-budget-xlsx.xlsx",
+        "group": "A",
+        "thresholds": {
+          "text": 1.0,
+          "structure": 1.0,
+          "formatting": 1.0,
+          "animations": 1.0,
+          "data": 1.0,
+          "layout": 0.9
+        },
+        "aspects": {
+          "text": {
+            "score": 1.0,
+            "missing": []
+          },
+          "structure": {
+            "score": 1.0,
+            "differences": {}
+          },
+          "formatting": {
+            "status": "not applicable"
+          },
+          "animations": {
+            "status": "not applicable"
+          },
+          "data": {
+            "score": 1.0,
+            "missing": []
+          },
+          "layout": {
+            "status": "skipped"
+          }
+        },
+        "verdict": {
+          "text": true,
+          "structure": true,
+          "data": true
+        },
+        "passed": true
+      }
+    },
+    "A-launch-pptx": {
+      "converted": true,
+      "group": "A",
+      "route": [
+        "html-editable"
+      ],
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "formatting": 1.0,
+        "animations": 1.0,
+        "data": 1.0,
+        "layout": 0.9137
+      },
+      "verdict": {
+        "text": true,
+        "structure": true,
+        "formatting": true,
+        "animations": true,
+        "data": true,
+        "layout": true
+      },
+      "passed": true,
+      "layout_renderer": "wps",
+      "report": {
+        "source": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-fidelity-matrix-lvf62kjr\\launch.html",
+        "target": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-fidelity-matrix-lvf62kjr\\A-launch-pptx.pptx",
+        "group": "A",
+        "thresholds": {
+          "text": 1.0,
+          "structure": 1.0,
+          "formatting": 1.0,
+          "animations": 1.0,
+          "data": 1.0,
+          "layout": 0.9
+        },
+        "aspects": {
+          "text": {
+            "score": 1.0,
+            "missing": []
+          },
+          "structure": {
+            "score": 1.0,
+            "differences": {}
+          },
+          "formatting": {
+            "score": 1.0,
+            "problems": []
+          },
+          "animations": {
+            "score": 1.0,
+            "missing": []
+          },
+          "data": {
+            "score": 1.0,
+            "missing": []
+          },
+          "layout": {
+            "images": [
+              "scripts\\windows_check\\results\\20261022T054905Z-8899219-fidelity\\pages\\A-launch-pptx\\page-001-0.876.png",
+              "scripts\\windows_check\\results\\20261022T054905Z-8899219-fidelity\\pages\\A-launch-pptx\\page-002-0.926.png",
+              "scripts\\windows_check\\results\\20261022T054905Z-8899219-fidelity\\pages\\A-launch-pptx\\page-003-0.928.png",
+              "scripts\\windows_check\\results\\20261022T054905Z-8899219-fidelity\\pages\\A-launch-pptx\\page-004-0.904.png",
+              "scripts\\windows_check\\results\\20261022T054905Z-8899219-fidelity\\pages\\A-launch-pptx\\page-005-0.874.png",
+              "scripts\\windows_check\\results\\20261022T054905Z-8899219-fidelity\\pages\\A-launch-pptx\\page-006-0.974.png"
+            ],
+            "status": "measured",
+            "renderer": "wps",
+            "score": 0.9137,
+            "pages": {
+              "source": 6,
+              "target": 6
+            },
+            "page_scores": [
+              0.876,
+              0.9259,
+              0.9285,
+              0.904,
+              0.8736,
+              0.9744
+            ],
+            "missing_fonts": [
+              "Noto Sans CJK SC"
+            ]
+          }
+        },
+        "verdict": {
+          "text": true,
+          "structure": true,
+          "formatting": true,
+          "animations": true,
+          "data": true,
+          "layout": true
+        },
+        "passed": true
+      }
+    },
+    "A-training-pptx": {
+      "converted": true,
+      "group": "A",
+      "route": [
+        "html-editable"
+      ],
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "formatting": 1.0,
+        "animations": 1.0,
+        "layout": 0.9475
+      },
+      "verdict": {
+        "text": true,
+        "structure": true,
+        "formatting": true,
+        "animations": true,
+        "layout": true
+      },
+      "passed": true,
+      "layout_renderer": "wps",
+      "report": {
+        "source": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-fidelity-matrix-lvf62kjr\\training.html",
+        "target": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-fidelity-matrix-lvf62kjr\\A-training-pptx.pptx",
+        "group": "A",
+        "thresholds": {
+          "text": 1.0,
+          "structure": 1.0,
+          "formatting": 1.0,
+          "animations": 1.0,
+          "data": 1.0,
+          "layout": 0.9
+        },
+        "aspects": {
+          "text": {
+            "score": 1.0,
+            "missing": []
+          },
+          "structure": {
+            "score": 1.0,
+            "differences": {}
+          },
+          "formatting": {
+            "score": 1.0,
+            "problems": []
+          },
+          "animations": {
+            "score": 1.0,
+            "missing": []
+          },
+          "data": {
+            "status": "not applicable"
+          },
+          "layout": {
+            "images": [
+              "scripts\\windows_check\\results\\20261022T054905Z-8899219-fidelity\\pages\\A-training-pptx\\page-001-0.964.png",
+              "scripts\\windows_check\\results\\20261022T054905Z-8899219-fidelity\\pages\\A-training-pptx\\page-002-0.950.png",
+              "scripts\\windows_check\\results\\20261022T054905Z-8899219-fidelity\\pages\\A-training-pptx\\page-003-0.929.png"
+            ],
+            "status": "measured",
+            "renderer": "wps",
+            "score": 0.9475,
+            "pages": {
+              "source": 3,
+              "target": 3
+            },
+            "page_scores": [
+              0.9637,
+              0.9499,
+              0.9289
+            ],
+            "missing_fonts": [
+              "Noto Sans CJK SC"
+            ]
+          }
+        },
+        "verdict": {
+          "text": true,
+          "structure": true,
+          "formatting": true,
+          "animations": true,
+          "layout": true
+        },
+        "passed": true
+      }
+    },
+    "A-quarterly-pptx": {
+      "converted": true,
+      "group": "A",
+      "route": [
+        "html-editable"
+      ],
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "formatting": 1.0,
+        "animations": 1.0,
+        "data": 1.0,
+        "layout": 0.9573
+      },
+      "verdict": {
+        "text": true,
+        "structure": true,
+        "formatting": true,
+        "animations": true,
+        "data": true,
+        "layout": true
+      },
+      "passed": true,
+      "layout_renderer": "wps",
+      "report": {
+        "source": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-fidelity-matrix-lvf62kjr\\quarterly.html",
+        "target": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-fidelity-matrix-lvf62kjr\\A-quarterly-pptx.pptx",
+        "group": "A",
+        "thresholds": {
+          "text": 1.0,
+          "structure": 1.0,
+          "formatting": 1.0,
+          "animations": 1.0,
+          "data": 1.0,
+          "layout": 0.9
+        },
+        "aspects": {
+          "text": {
+            "score": 1.0,
+            "missing": []
+          },
+          "structure": {
+            "score": 1.0,
+            "differences": {}
+          },
+          "formatting": {
+            "score": 1.0,
+            "problems": []
+          },
+          "animations": {
+            "score": 1.0,
+            "missing": []
+          },
+          "data": {
+            "score": 1.0,
+            "missing": []
+          },
+          "layout": {
+            "images": [
+              "scripts\\windows_check\\results\\20261022T054905Z-8899219-fidelity\\pages\\A-quarterly-pptx\\page-001-0.962.png",
+              "scripts\\windows_check\\results\\20261022T054905Z-8899219-fidelity\\pages\\A-quarterly-pptx\\page-002-0.932.png",
+              "scripts\\windows_check\\results\\20261022T054905Z-8899219-fidelity\\pages\\A-quarterly-pptx\\page-003-0.978.png"
+            ],
+            "status": "measured",
+            "renderer": "wps",
+            "score": 0.9573,
+            "pages": {
+              "source": 3,
+              "target": 3
+            },
+            "page_scores": [
+              0.9617,
+              0.9318,
+              0.9783
+            ],
+            "missing_fonts": [
+              "Noto Sans CJK SC"
+            ]
+          }
+        },
+        "verdict": {
+          "text": true,
+          "structure": true,
+          "formatting": true,
+          "animations": true,
+          "data": true,
+          "layout": true
+        },
+        "passed": true
+      }
+    },
+    "A-brief-html": {
+      "converted": true,
+      "group": "A",
+      "route": [
+        "office-to-html"
+      ],
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "formatting": 1.0,
+        "data": 1.0
+      },
+      "verdict": {
+        "text": true,
+        "structure": true,
+        "formatting": true,
+        "data": true
+      },
+      "passed": true,
+      "layout_renderer": null,
+      "report": {
+        "source": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-fidelity-matrix-lvf62kjr\\brief.docx",
+        "target": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-fidelity-matrix-lvf62kjr\\A-brief-html.html",
+        "group": "A",
+        "thresholds": {
+          "text": 1.0,
+          "structure": 1.0,
+          "formatting": 1.0,
+          "animations": 1.0,
+          "data": 1.0,
+          "layout": 0.9
+        },
+        "aspects": {
+          "text": {
+            "score": 1.0,
+            "missing": []
+          },
+          "structure": {
+            "score": 1.0,
+            "differences": {}
+          },
+          "formatting": {
+            "score": 1.0,
+            "problems": []
+          },
+          "animations": {
+            "status": "not applicable"
+          },
+          "data": {
+            "score": 1.0,
+            "missing": []
+          },
+          "layout": {
+            "status": "skipped"
+          }
+        },
+        "verdict": {
+          "text": true,
+          "structure": true,
+          "formatting": true,
+          "data": true
+        },
+        "passed": true
+      }
+    },
+    "A-deck-html": {
+      "converted": true,
+      "group": "A",
+      "route": [
+        "office-to-html"
+      ],
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "formatting": 1.0,
+        "animations": 1.0,
+        "data": 1.0
+      },
+      "verdict": {
+        "text": true,
+        "structure": true,
+        "formatting": true,
+        "animations": true,
+        "data": true
+      },
+      "passed": true,
+      "layout_renderer": null,
+      "report": {
+        "source": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-fidelity-matrix-lvf62kjr\\deck.pptx",
+        "target": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-fidelity-matrix-lvf62kjr\\A-deck-html.html",
+        "group": "A",
+        "thresholds": {
+          "text": 1.0,
+          "structure": 1.0,
+          "formatting": 1.0,
+          "animations": 1.0,
+          "data": 1.0,
+          "layout": 0.9
+        },
+        "aspects": {
+          "text": {
+            "score": 1.0,
+            "missing": []
+          },
+          "structure": {
+            "score": 1.0,
+            "differences": {}
+          },
+          "formatting": {
+            "score": 1.0,
+            "problems": []
+          },
+          "animations": {
+            "score": 1.0,
+            "missing": []
+          },
+          "data": {
+            "score": 1.0,
+            "missing": []
+          },
+          "layout": {
+            "status": "skipped"
+          }
+        },
+        "verdict": {
+          "text": true,
+          "structure": true,
+          "formatting": true,
+          "animations": true,
+          "data": true
+        },
+        "passed": true
+      }
+    },
+    "A-book-html": {
+      "converted": true,
+      "group": "A",
+      "route": [
+        "office-to-html"
+      ],
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "formatting": 1.0,
+        "data": 1.0
+      },
+      "verdict": {
+        "text": true,
+        "structure": true,
+        "formatting": true,
+        "data": true
+      },
+      "passed": true,
+      "layout_renderer": null,
+      "report": {
+        "source": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-fidelity-matrix-lvf62kjr\\book.xlsx",
+        "target": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-fidelity-matrix-lvf62kjr\\A-book-html.html",
+        "group": "A",
+        "thresholds": {
+          "text": 1.0,
+          "structure": 1.0,
+          "formatting": 1.0,
+          "animations": 1.0,
+          "data": 1.0,
+          "layout": 0.9
+        },
+        "aspects": {
+          "text": {
+            "score": 1.0,
+            "missing": []
+          },
+          "structure": {
+            "score": 1.0,
+            "differences": {}
+          },
+          "formatting": {
+            "score": 1.0,
+            "problems": []
+          },
+          "animations": {
+            "status": "not applicable"
+          },
+          "data": {
+            "score": 1.0,
+            "missing": []
+          },
+          "layout": {
+            "status": "skipped"
+          }
+        },
+        "verdict": {
+          "text": true,
+          "structure": true,
+          "formatting": true,
+          "data": true
+        },
+        "passed": true
+      }
+    },
+    "C-gbk-csv-xlsx": {
+      "converted": true,
+      "group": "C",
+      "route": [
+        "csv-to-xlsx"
+      ],
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "data": 1.0
+      },
+      "verdict": {
+        "text": true,
+        "structure": true,
+        "data": true
+      },
+      "passed": true,
+      "layout_renderer": null,
+      "report": {
+        "source": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-fidelity-matrix-lvf62kjr\\sales_gbk.csv",
+        "target": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-fidelity-matrix-lvf62kjr\\C-gbk-csv-xlsx.xlsx",
+        "group": "C",
+        "thresholds": {
+          "text": 1.0,
+          "structure": 1.0,
+          "data": 1.0
+        },
+        "aspects": {
+          "text": {
+            "score": 1.0,
+            "missing": []
+          },
+          "structure": {
+            "score": 1.0,
+            "differences": {}
+          },
+          "formatting": {
+            "status": "not applicable"
+          },
+          "animations": {
+            "status": "not applicable"
+          },
+          "data": {
+            "score": 1.0,
+            "missing": []
+          },
+          "layout": {
+            "status": "not applicable"
+          }
+        },
+        "verdict": {
+          "text": true,
+          "structure": true,
+          "data": true
+        },
+        "passed": true
+      }
+    },
+    "C-utf8-tsv-xlsx": {
+      "converted": true,
+      "group": "C",
+      "route": [
+        "csv-to-xlsx"
+      ],
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "data": 1.0
+      },
+      "verdict": {
+        "text": true,
+        "structure": true,
+        "data": true
+      },
+      "passed": true,
+      "layout_renderer": null,
+      "report": {
+        "source": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-fidelity-matrix-lvf62kjr\\staff_utf8.tsv",
+        "target": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-fidelity-matrix-lvf62kjr\\C-utf8-tsv-xlsx.xlsx",
+        "group": "C",
+        "thresholds": {
+          "text": 1.0,
+          "structure": 1.0,
+          "data": 1.0
+        },
+        "aspects": {
+          "text": {
+            "score": 1.0,
+            "missing": []
+          },
+          "structure": {
+            "score": 1.0,
+            "differences": {}
+          },
+          "formatting": {
+            "status": "not applicable"
+          },
+          "animations": {
+            "status": "not applicable"
+          },
+          "data": {
+            "score": 1.0,
+            "missing": []
+          },
+          "layout": {
+            "status": "not applicable"
+          }
+        },
+        "verdict": {
+          "text": true,
+          "structure": true,
+          "data": true
+        },
+        "passed": true
+      }
+    },
+    "C-book-csv": {
+      "converted": true,
+      "group": "C",
+      "route": [
+        "xlsx-to-csv"
+      ],
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "data": 1.0
+      },
+      "verdict": {
+        "text": true,
+        "structure": true,
+        "data": true
+      },
+      "passed": true,
+      "layout_renderer": null,
+      "report": {
+        "source": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-fidelity-matrix-lvf62kjr\\book.xlsx",
+        "target": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-fidelity-matrix-lvf62kjr\\C-book-csv.csv",
+        "group": "C",
+        "thresholds": {
+          "text": 1.0,
+          "structure": 1.0,
+          "data": 1.0
+        },
+        "aspects": {
+          "text": {
+            "score": 1.0,
+            "missing": []
+          },
+          "structure": {
+            "score": 1.0,
+            "differences": {}
+          },
+          "formatting": {
+            "status": "not applicable"
+          },
+          "animations": {
+            "status": "not applicable"
+          },
+          "data": {
+            "score": 1.0,
+            "missing": []
+          },
+          "layout": {
+            "status": "not applicable"
+          }
+        },
+        "verdict": {
+          "text": true,
+          "structure": true,
+          "data": true
+        },
+        "passed": true
+      }
+    },
+    "C-guide-docx": {
+      "converted": true,
+      "group": "C",
+      "route": [
+        "markdown-to-office"
+      ],
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "data": 1.0
+      },
+      "verdict": {
+        "text": true,
+        "structure": true,
+        "data": true
+      },
+      "passed": true,
+      "layout_renderer": null,
+      "report": {
+        "source": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-fidelity-matrix-lvf62kjr\\guide.md",
+        "target": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-fidelity-matrix-lvf62kjr\\C-guide-docx.docx",
+        "group": "C",
+        "thresholds": {
+          "text": 1.0,
+          "structure": 1.0,
+          "data": 1.0
+        },
+        "aspects": {
+          "text": {
+            "score": 1.0,
+            "missing": []
+          },
+          "structure": {
+            "score": 1.0,
+            "differences": {}
+          },
+          "formatting": {
+            "status": "not applicable"
+          },
+          "animations": {
+            "status": "not applicable"
+          },
+          "data": {
+            "score": 1.0,
+            "missing": []
+          },
+          "layout": {
+            "status": "not applicable"
+          }
+        },
+        "verdict": {
+          "text": true,
+          "structure": true,
+          "data": true
+        },
+        "passed": true
+      }
+    },
+    "C-api-html": {
+      "converted": true,
+      "group": "C",
+      "route": [
+        "markdown-to-html"
+      ],
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "data": 1.0
+      },
+      "verdict": {
+        "text": true,
+        "structure": true,
+        "data": true
+      },
+      "passed": true,
+      "layout_renderer": null,
+      "report": {
+        "source": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-fidelity-matrix-lvf62kjr\\api.md",
+        "target": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-fidelity-matrix-lvf62kjr\\C-api-html.html",
+        "group": "C",
+        "thresholds": {
+          "text": 1.0,
+          "structure": 1.0,
+          "data": 1.0
+        },
+        "aspects": {
+          "text": {
+            "score": 1.0,
+            "missing": []
+          },
+          "structure": {
+            "score": 1.0,
+            "differences": {}
+          },
+          "formatting": {
+            "status": "not applicable"
+          },
+          "animations": {
+            "status": "not applicable"
+          },
+          "data": {
+            "score": 1.0,
+            "missing": []
+          },
+          "layout": {
+            "status": "not applicable"
+          }
+        },
+        "verdict": {
+          "text": true,
+          "structure": true,
+          "data": true
+        },
+        "passed": true
+      }
+    },
+    "C-notes-docx": {
+      "converted": true,
+      "group": "C",
+      "route": [
+        "markdown-to-office"
+      ],
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0
+      },
+      "verdict": {
+        "text": true,
+        "structure": true
+      },
+      "passed": true,
+      "layout_renderer": null,
+      "report": {
+        "source": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-fidelity-matrix-lvf62kjr\\notes.md",
+        "target": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-fidelity-matrix-lvf62kjr\\C-notes-docx.docx",
+        "group": "C",
+        "thresholds": {
+          "text": 1.0,
+          "structure": 1.0,
+          "data": 1.0
+        },
+        "aspects": {
+          "text": {
+            "score": 1.0,
+            "missing": []
+          },
+          "structure": {
+            "score": 1.0,
+            "differences": {}
+          },
+          "formatting": {
+            "status": "not applicable"
+          },
+          "animations": {
+            "status": "not applicable"
+          },
+          "data": {
+            "status": "not applicable"
+          },
+          "layout": {
+            "status": "not applicable"
+          }
+        },
+        "verdict": {
+          "text": true,
+          "structure": true
+        },
+        "passed": true
+      }
+    },
+    "C-brief-md": {
+      "converted": true,
+      "group": "C",
+      "route": [
+        "to-markdown"
+      ],
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "data": 1.0
+      },
+      "verdict": {
+        "text": true,
+        "structure": true,
+        "data": true
+      },
+      "passed": true,
+      "layout_renderer": null,
+      "report": {
+        "source": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-fidelity-matrix-lvf62kjr\\brief.docx",
+        "target": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-fidelity-matrix-lvf62kjr\\C-brief-md.md",
+        "group": "C",
+        "thresholds": {
+          "text": 1.0,
+          "structure": 1.0,
+          "data": 1.0
+        },
+        "aspects": {
+          "text": {
+            "score": 1.0,
+            "missing": []
+          },
+          "structure": {
+            "score": 1.0,
+            "differences": {}
+          },
+          "formatting": {
+            "status": "not applicable"
+          },
+          "animations": {
+            "status": "not applicable"
+          },
+          "data": {
+            "score": 1.0,
+            "missing": []
+          },
+          "layout": {
+            "status": "not applicable"
+          }
+        },
+        "verdict": {
+          "text": true,
+          "structure": true,
+          "data": true
+        },
+        "passed": true
+      }
+    },
+    "D-brief-pptx": {
+      "converted": true,
+      "group": "D",
+      "route": [
+        "docx-to-pptx"
+      ],
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "data": 1.0
+      },
+      "verdict": {
+        "text": true,
+        "data": true
+      },
+      "passed": true,
+      "layout_renderer": null,
+      "report": {
+        "source": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-fidelity-matrix-lvf62kjr\\brief.docx",
+        "target": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-fidelity-matrix-lvf62kjr\\D-brief-pptx.pptx",
+        "group": "D",
+        "thresholds": {
+          "text": 1.0,
+          "data": 1.0
+        },
+        "aspects": {
+          "text": {
+            "score": 1.0,
+            "missing": []
+          },
+          "structure": {
+            "score": 1.0,
+            "differences": {
+              "slides": {
+                "source": 0,
+                "target": 5
+              }
+            }
+          },
+          "formatting": {
+            "status": "not applicable"
+          },
+          "animations": {
+            "status": "not applicable"
+          },
+          "data": {
+            "score": 1.0,
+            "missing": []
+          },
+          "layout": {
+            "status": "not applicable"
+          }
+        },
+        "verdict": {
+          "text": true,
+          "data": true
+        },
+        "passed": true
+      }
+    },
+    "D-deck-docx": {
+      "converted": true,
+      "group": "D",
+      "route": [
+        "pptx-to-docx"
+      ],
+      "scores": {
+        "text": 1.0,
+        "structure": 0.7,
+        "animations": 0.0,
+        "data": 1.0
+      },
+      "verdict": {
+        "text": true,
+        "data": true
+      },
+      "passed": true,
+      "layout_renderer": null,
+      "report": {
+        "source": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-fidelity-matrix-lvf62kjr\\deck.pptx",
+        "target": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-fidelity-matrix-lvf62kjr\\D-deck-docx.docx",
+        "group": "D",
+        "thresholds": {
+          "text": 1.0,
+          "data": 1.0
+        },
+        "aspects": {
+          "text": {
+            "score": 1.0,
+            "missing": []
+          },
+          "structure": {
+            "score": 0.7,
+            "differences": {
+              "slides": {
+                "source": 3,
+                "target": 0
+              }
+            }
+          },
+          "formatting": {
+            "status": "not applicable"
+          },
+          "animations": {
+            "score": 0.0,
+            "missing": [
+              "entrance zoom on '指标 Q2 Q3 环比 收入（万元） 4' after 200 ms"
+            ]
+          },
+          "data": {
+            "score": 1.0,
+            "missing": []
+          },
+          "layout": {
+            "status": "not applicable"
+          }
+        },
+        "verdict": {
+          "text": true,
+          "data": true
+        },
+        "passed": true
+      }
+    },
+    "D-book-docx": {
+      "converted": true,
+      "group": "D",
+      "route": [
+        "xlsx-range-to-table"
+      ],
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "data": 1.0
+      },
+      "verdict": {
+        "text": true,
+        "data": true
+      },
+      "passed": true,
+      "layout_renderer": null,
+      "report": {
+        "source": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-fidelity-matrix-lvf62kjr\\book.xlsx",
+        "target": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-fidelity-matrix-lvf62kjr\\D-book-docx.docx",
+        "group": "D",
+        "thresholds": {
+          "text": 1.0,
+          "data": 1.0
+        },
+        "aspects": {
+          "text": {
+            "score": 1.0,
+            "missing": []
+          },
+          "structure": {
+            "score": 1.0,
+            "differences": {}
+          },
+          "formatting": {
+            "status": "not applicable"
+          },
+          "animations": {
+            "status": "not applicable"
+          },
+          "data": {
+            "score": 1.0,
+            "missing": []
+          },
+          "layout": {
+            "status": "not applicable"
+          }
+        },
+        "verdict": {
+          "text": true,
+          "data": true
+        },
+        "passed": true
+      }
+    },
+    "D-book-pptx": {
+      "converted": true,
+      "group": "D",
+      "route": [
+        "xlsx-range-to-table"
+      ],
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "data": 1.0
+      },
+      "verdict": {
+        "text": true,
+        "data": true
+      },
+      "passed": true,
+      "layout_renderer": null,
+      "report": {
+        "source": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-fidelity-matrix-lvf62kjr\\book.xlsx",
+        "target": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-fidelity-matrix-lvf62kjr\\D-book-pptx.pptx",
+        "group": "D",
+        "thresholds": {
+          "text": 1.0,
+          "data": 1.0
+        },
+        "aspects": {
+          "text": {
+            "score": 1.0,
+            "missing": []
+          },
+          "structure": {
+            "score": 1.0,
+            "differences": {
+              "slides": {
+                "source": 0,
+                "target": 1
+              }
+            }
+          },
+          "formatting": {
+            "status": "not applicable"
+          },
+          "animations": {
+            "status": "not applicable"
+          },
+          "data": {
+            "score": 1.0,
+            "missing": []
+          },
+          "layout": {
+            "status": "not applicable"
+          }
+        },
+        "verdict": {
+          "text": true,
+          "data": true
+        },
+        "passed": true
+      }
+    },
+    "E-supplier-docx": {
+      "converted": true,
+      "group": "E",
+      "route": [
+        "pdf-to-office"
+      ],
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "data": 1.0,
+        "layout": 0.5918
+      },
+      "verdict": {
+        "text": true,
+        "data": true,
+        "layout": false
+      },
+      "passed": false,
+      "layout_renderer": "wps",
+      "report": {
+        "source": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-fidelity-matrix-lvf62kjr\\supplier.pdf",
+        "target": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-fidelity-matrix-lvf62kjr\\E-supplier-docx.docx",
+        "group": "E",
+        "thresholds": {
+          "text": 1.0,
+          "data": 0.98,
+          "layout": 0.85
+        },
+        "aspects": {
+          "text": {
+            "score": 1.0,
+            "missing": []
+          },
+          "structure": {
+            "score": 1.0,
+            "differences": {}
+          },
+          "formatting": {
+            "status": "not applicable"
+          },
+          "animations": {
+            "status": "not applicable"
+          },
+          "data": {
+            "score": 1.0,
+            "missing": []
+          },
+          "layout": {
+            "images": [
+              "scripts\\windows_check\\results\\20261022T054905Z-8899219-fidelity\\pages\\E-supplier-docx\\page-001-0.832.png",
+              "scripts\\windows_check\\results\\20261022T054905Z-8899219-fidelity\\pages\\E-supplier-docx\\page-002-0.944.png",
+              "scripts\\windows_check\\results\\20261022T054905Z-8899219-fidelity\\pages\\E-supplier-docx\\page-003-missing.png"
+            ],
+            "status": "measured",
+            "renderer": "wps",
+            "score": 0.5918,
+            "pages": {
+              "source": 2,
+              "target": 3
+            },
+            "page_scores": [
+              0.8318,
+              0.9435
+            ],
+            "missing_fonts": [
+              "Noto Sans CJK SC"
+            ]
+          }
+        },
+        "verdict": {
+          "text": true,
+          "data": true,
+          "layout": false
+        },
+        "passed": false
+      }
+    },
+    "E-supplier-xlsx": {
+      "converted": true,
+      "group": "E",
+      "route": [
+        "pdf-to-office"
+      ],
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "data": 1.0
+      },
+      "verdict": {
+        "text": true,
+        "data": true
+      },
+      "passed": true,
+      "layout_renderer": null,
+      "report": {
+        "source": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-fidelity-matrix-lvf62kjr\\supplier.pdf",
+        "target": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-fidelity-matrix-lvf62kjr\\E-supplier-xlsx.xlsx",
+        "group": "E",
+        "thresholds": {
+          "text": 1.0,
+          "data": 0.98,
+          "layout": 0.85
+        },
+        "aspects": {
+          "text": {
+            "score": 1.0,
+            "missing": []
+          },
+          "structure": {
+            "score": 1.0,
+            "differences": {}
+          },
+          "formatting": {
+            "status": "not applicable"
+          },
+          "animations": {
+            "status": "not applicable"
+          },
+          "data": {
+            "score": 1.0,
+            "missing": []
+          },
+          "layout": {
+            "status": "skipped"
+          }
+        },
+        "verdict": {
+          "text": true,
+          "data": true
+        },
+        "passed": true
+      }
+    },
+    "E-supplier-pptx": {
+      "converted": true,
+      "group": "E",
+      "route": [
+        "pdf-to-office"
+      ],
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "data": 1.0
+      },
+      "verdict": {
+        "text": true,
+        "data": true
+      },
+      "passed": true,
+      "layout_renderer": null,
+      "report": {
+        "source": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-fidelity-matrix-lvf62kjr\\supplier.pdf",
+        "target": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-fidelity-matrix-lvf62kjr\\E-supplier-pptx.pptx",
+        "group": "E",
+        "thresholds": {
+          "text": 1.0,
+          "data": 0.98,
+          "layout": 0.85
+        },
+        "aspects": {
+          "text": {
+            "score": 1.0,
+            "missing": []
+          },
+          "structure": {
+            "score": 1.0,
+            "differences": {
+              "slides": {
+                "source": 0,
+                "target": 2
+              }
+            }
+          },
+          "formatting": {
+            "status": "not applicable"
+          },
+          "animations": {
+            "status": "not applicable"
+          },
+          "data": {
+            "score": 1.0,
+            "missing": []
+          },
+          "layout": {
+            "status": "skipped"
+          }
+        },
+        "verdict": {
+          "text": true,
+          "data": true
+        },
+        "passed": true
+      }
+    },
+    "B-doc-docx": {
+      "converted": true,
+      "group": "B",
+      "route": [
+        "wps"
+      ],
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "formatting": 1.0,
+        "data": 1.0,
+        "layout": 1.0
+      },
+      "verdict": {
+        "text": true,
+        "structure": true,
+        "layout": true
+      },
+      "passed": true,
+      "layout_renderer": "wps",
+      "report": {
+        "source": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-fidelity-b-ica1cv68\\B-doc-docx\\brief.docx",
+        "target": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-fidelity-b-ica1cv68\\B-doc-docx\\B-doc-docx.docx",
+        "group": "B",
+        "thresholds": {
+          "text": 1.0,
+          "structure": 1.0,
+          "layout": 0.95
+        },
+        "aspects": {
+          "text": {
+            "score": 1.0,
+            "missing": []
+          },
+          "structure": {
+            "score": 1.0,
+            "differences": {}
+          },
+          "formatting": {
+            "score": 1.0,
+            "problems": []
+          },
+          "animations": {
+            "status": "not applicable"
+          },
+          "data": {
+            "score": 1.0,
+            "missing": []
+          },
+          "layout": {
+            "images": [
+              "scripts\\windows_check\\results\\20261022T054905Z-8899219-fidelity\\pages\\B-doc-docx\\page-001-1.000.png"
+            ],
+            "status": "measured",
+            "renderer": "wps",
+            "score": 1.0,
+            "pages": {
+              "source": 1,
+              "target": 1
+            },
+            "page_scores": [
+              1.0
+            ],
+            "missing_fonts": [
+              "Noto Sans CJK SC"
+            ]
+          }
+        },
+        "verdict": {
+          "text": true,
+          "structure": true,
+          "layout": true
+        },
+        "passed": true
+      }
+    },
+    "B-odt-docx": {
+      "converted": false,
+      "errors": [
+        {
+          "code": "COM_OPERATION_TIMEOUT",
+          "message": "WPS conversion timed out after 180 seconds. WPS was opening the input."
+        }
+      ]
+    },
+    "B-xls-xlsx": {
+      "converted": true,
+      "group": "B",
+      "route": [
+        "wps"
+      ],
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "data": 1.0,
+        "layout": 1.0
+      },
+      "verdict": {
+        "text": true,
+        "structure": true,
+        "layout": true
+      },
+      "passed": true,
+      "layout_renderer": "wps",
+      "report": {
+        "source": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-fidelity-b-ica1cv68\\B-xls-xlsx\\book.xlsx",
+        "target": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-fidelity-b-ica1cv68\\B-xls-xlsx\\B-xls-xlsx.xlsx",
+        "group": "B",
+        "thresholds": {
+          "text": 1.0,
+          "structure": 1.0,
+          "layout": 0.95
+        },
+        "aspects": {
+          "text": {
+            "score": 1.0,
+            "missing": []
+          },
+          "structure": {
+            "score": 1.0,
+            "differences": {}
+          },
+          "formatting": {
+            "status": "not applicable"
+          },
+          "animations": {
+            "status": "not applicable"
+          },
+          "data": {
+            "score": 1.0,
+            "missing": []
+          },
+          "layout": {
+            "images": [
+              "scripts\\windows_check\\results\\20261022T054905Z-8899219-fidelity\\pages\\B-xls-xlsx\\page-001-1.000.png"
+            ],
+            "status": "measured",
+            "renderer": "wps",
+            "score": 1.0,
+            "pages": {
+              "source": 1,
+              "target": 1
+            },
+            "page_scores": [
+              1.0
+            ],
+            "missing_fonts": [
+              "Noto Sans CJK SC"
+            ]
+          }
+        },
+        "verdict": {
+          "text": true,
+          "structure": true,
+          "layout": true
+        },
+        "passed": true
+      }
+    },
+    "B-ppt-pptx": {
+      "converted": true,
+      "group": "B",
+      "route": [
+        "wps"
+      ],
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "formatting": 1.0,
+        "animations": 1.0,
+        "data": 1.0,
+        "layout": 1.0
+      },
+      "verdict": {
+        "text": true,
+        "structure": true,
+        "layout": true
+      },
+      "passed": true,
+      "layout_renderer": "wps",
+      "report": {
+        "source": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-fidelity-b-ica1cv68\\B-ppt-pptx\\deck.pptx",
+        "target": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-fidelity-b-ica1cv68\\B-ppt-pptx\\B-ppt-pptx.pptx",
+        "group": "B",
+        "thresholds": {
+          "text": 1.0,
+          "structure": 1.0,
+          "layout": 0.95
+        },
+        "aspects": {
+          "text": {
+            "score": 1.0,
+            "missing": []
+          },
+          "structure": {
+            "score": 1.0,
+            "differences": {}
+          },
+          "formatting": {
+            "score": 1.0,
+            "problems": []
+          },
+          "animations": {
+            "score": 1.0,
+            "missing": []
+          },
+          "data": {
+            "score": 1.0,
+            "missing": []
+          },
+          "layout": {
+            "images": [
+              "scripts\\windows_check\\results\\20261022T054905Z-8899219-fidelity\\pages\\B-ppt-pptx\\page-001-1.000.png",
+              "scripts\\windows_check\\results\\20261022T054905Z-8899219-fidelity\\pages\\B-ppt-pptx\\page-002-1.000.png",
+              "scripts\\windows_check\\results\\20261022T054905Z-8899219-fidelity\\pages\\B-ppt-pptx\\page-003-1.000.png"
+            ],
+            "status": "measured",
+            "renderer": "wps",
+            "score": 1.0,
+            "pages": {
+              "source": 3,
+              "target": 3
+            },
+            "page_scores": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "missing_fonts": [
+              "Noto Sans CJK SC"
+            ]
+          }
+        },
+        "verdict": {
+          "text": true,
+          "structure": true,
+          "layout": true
+        },
+        "passed": true
+      }
+    },
+    "B-docx-wps": {
+      "converted": false,
+      "errors": [
+        {
+          "code": "DOCUMENT_HELD_OPEN",
+          "message": "The input document is held open by another handle (The process cannot access the file 'C:\\Users\\admin\\AppData\\Local\\Temp\\wps-fidelity-b-ica1cv68\\B-docx-wps\\brief.docx' because it is being used by another process.), most likely because it is open in WPS. Open() was not called: on a document that is already open it reloads the file from disk without asking (alerts are turned off here) and discards unsaved edits made in WPS. The command was refused and nothing was written, saved or closed. Save or close the document in WPS (or the program that holds the file) and retry."
+        }
+      ]
+    },
+    "B-xlsx-et": {
+      "converted": true,
+      "group": "B",
+      "route": [
+        "wps"
+      ],
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "data": 1.0,
+        "layout": 1.0
+      },
+      "verdict": {
+        "text": true,
+        "structure": true,
+        "layout": true
+      },
+      "passed": true,
+      "layout_renderer": "wps",
+      "report": {
+        "source": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-fidelity-b-ica1cv68\\B-xlsx-et\\book.xlsx",
+        "target": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-fidelity-b-ica1cv68\\B-xlsx-et\\B-xlsx-et-back.xlsx",
+        "group": "B",
+        "thresholds": {
+          "text": 1.0,
+          "structure": 1.0,
+          "layout": 0.95
+        },
+        "aspects": {
+          "text": {
+            "score": 1.0,
+            "missing": []
+          },
+          "structure": {
+            "score": 1.0,
+            "differences": {}
+          },
+          "formatting": {
+            "status": "not applicable"
+          },
+          "animations": {
+            "status": "not applicable"
+          },
+          "data": {
+            "score": 1.0,
+            "missing": []
+          },
+          "layout": {
+            "images": [
+              "scripts\\windows_check\\results\\20261022T054905Z-8899219-fidelity\\pages\\B-xlsx-et\\page-001-1.000.png"
+            ],
+            "status": "measured",
+            "renderer": "wps",
+            "score": 1.0,
+            "pages": {
+              "source": 1,
+              "target": 1
+            },
+            "page_scores": [
+              1.0
+            ],
+            "missing_fonts": [
+              "Noto Sans CJK SC"
+            ]
+          }
+        },
+        "verdict": {
+          "text": true,
+          "structure": true,
+          "layout": true
+        },
+        "passed": true
+      }
+    },
+    "B-pptx-dps": {
+      "converted": true,
+      "group": "B",
+      "route": [
+        "wps"
+      ],
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "formatting": 1.0,
+        "animations": 1.0,
+        "data": 1.0,
+        "layout": 1.0
+      },
+      "verdict": {
+        "text": true,
+        "structure": true,
+        "layout": true
+      },
+      "passed": true,
+      "layout_renderer": "wps",
+      "report": {
+        "source": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-fidelity-b-ica1cv68\\B-pptx-dps\\deck.pptx",
+        "target": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-fidelity-b-ica1cv68\\B-pptx-dps\\B-pptx-dps-back.pptx",
+        "group": "B",
+        "thresholds": {
+          "text": 1.0,
+          "structure": 1.0,
+          "layout": 0.95
+        },
+        "aspects": {
+          "text": {
+            "score": 1.0,
+            "missing": []
+          },
+          "structure": {
+            "score": 1.0,
+            "differences": {}
+          },
+          "formatting": {
+            "score": 1.0,
+            "problems": []
+          },
+          "animations": {
+            "score": 1.0,
+            "missing": []
+          },
+          "data": {
+            "score": 1.0,
+            "missing": []
+          },
+          "layout": {
+            "images": [
+              "scripts\\windows_check\\results\\20261022T054905Z-8899219-fidelity\\pages\\B-pptx-dps\\page-001-1.000.png",
+              "scripts\\windows_check\\results\\20261022T054905Z-8899219-fidelity\\pages\\B-pptx-dps\\page-002-1.000.png",
+              "scripts\\windows_check\\results\\20261022T054905Z-8899219-fidelity\\pages\\B-pptx-dps\\page-003-1.000.png"
+            ],
+            "status": "measured",
+            "renderer": "wps",
+            "score": 1.0,
+            "pages": {
+              "source": 3,
+              "target": 3
+            },
+            "page_scores": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "missing_fonts": [
+              "Noto Sans CJK SC"
+            ]
+          }
+        },
+        "verdict": {
+          "text": true,
+          "structure": true,
+          "layout": true
+        },
+        "passed": true
+      }
+    },
+    "B-docx-odt": {
+      "converted": false,
+      "errors": [
+        {
+          "code": "DOCUMENT_HELD_OPEN",
+          "message": "The input document is held open by another handle (The process cannot access the file 'C:\\Users\\admin\\AppData\\Local\\Temp\\wps-fidelity-b-ica1cv68\\B-docx-odt\\brief.docx' because it is being used by another process.), most likely because it is open in WPS. Open() was not called: on a document that is already open it reloads the file from disk without asking (alerts are turned off here) and discards unsaved edits made in WPS. The command was refused and nothing was written, saved or closed. Save or close the document in WPS (or the program that holds the file) and retry."
+        }
+      ]
+    },
+    "B-pptx-png": {
+      "converted": true,
+      "pages": 3,
+      "passed": true
+    }
+  }
+}

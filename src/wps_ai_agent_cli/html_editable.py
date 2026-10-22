@@ -741,7 +741,8 @@ def convert_html_editable(
                     continue
                 paragraph = table.cell(row_index, column_index).paragraphs[0]
                 add_bookmark(paragraph._p, cell_node.attrs.get("data-wps-object-id", ""))
-                bold = cell_node.tag == "th"
+                # A header cell is bold by default; with computed styles the cascade decides (th{font-weight:400}).
+                bold = cell_node.tag == "th" and context.styled is None
                 docx_styling.apply_paragraph(paragraph, cell_node, ancestors(cell_node), context, list_item=True)
                 paragraph.paragraph_format.space_before = paragraph.paragraph_format.space_after = 0
                 add_text_with_links(paragraph, cell_node, {"bold": True} if bold else None, skip=("table",))

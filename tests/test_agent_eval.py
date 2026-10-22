@@ -570,6 +570,28 @@ class AgentEvalJudgeTests(unittest.TestCase):
         self.assertFalse(result["passed"])
         self.assertEqual([check["kind"] for check in result["checks"] if not check["passed"]], ["tool_called"])
 
+    def test_a_tool_called_check_accepts_an_alternative_tool_for_the_same_step(self):
+        task = {
+            "checks": [
+                {
+                    "kind": "tool_called",
+                    "tool": "convert_smoke",
+                    "input": {"format": "pdf"},
+                    "or": [{"tool": "convert", "input_suffix": {"output": ".pdf"}}],
+                }
+            ]
+        }
+
+        def judged(name, arguments):
+            call = {"name": run_agent_eval.TOOL_PREFIX + name, "input": arguments, "error_codes": []}
+            with tempfile.TemporaryDirectory() as tmp:
+                fixture = Path(tmp) / "report.docx"
+                return run_agent_eval.judge(task, Path(tmp), fixture, "", "writer", calls=[call])[0]["passed"]
+
+        self.assertTrue(judged("convert", {"input": "report.docx", "output": "C:/w/REPORT.PDF"}))
+        self.assertFalse(judged("convert", {"input": "report.html", "output": "report.docx"}))
+        self.assertTrue(judged("convert_smoke", {"format": "pdf"}))
+
     def test_restoring_the_latest_backup_brings_back_the_seed(self):
         with tempfile.TemporaryDirectory() as tmp:
 

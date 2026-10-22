@@ -422,11 +422,12 @@ class WpsConvertTests(_Workspace):
     def test_a_file_wps_still_holds_is_retried_and_a_timeout_says_where_wps_was(self):
         held = {"ok": False, "errors": [{"code": "DOCUMENT_HELD_OPEN", "message": "held"}], "data": {}}
         timeout = {"ok": False, "errors": [{"code": "COM_OPERATION_TIMEOUT", "message": "timed out."}], "data": {}}
-        replies = [(None, held), (None, timeout)]
+        replies = [(None, held), (None, timeout), ({"titles": ["Format Conversion"]}, None)]
 
         def fake_run(script, timeout_seconds, **_kwargs):
-            params = json.loads(script.split("@'\n", 1)[1].split("\n'@", 1)[0])
-            Path(params["stage_path"]).write_text("opening the input", encoding="utf-8")
+            if "stage_path" in script:
+                params = json.loads(script.split("@'\n", 1)[1].split("\n'@", 1)[0])
+                Path(params["stage_path"]).write_text("opening the input", encoding="utf-8")
             return replies.pop(0)
 
         with (
@@ -436,15 +437,17 @@ class WpsConvertTests(_Workspace):
         ):
             ok, data, errors = wps_convert.wps_convert(self.work / "brief.odt", self.work / "out.docx")
         self.assertFalse(ok)
-        self.assertEqual(run.call_count, 2)
+        self.assertEqual(run.call_count, 3)  # held, timed out, then the window titles
         self.assertEqual(errors[0]["code"], "COM_OPERATION_TIMEOUT")
         self.assertIn("WPS was opening the input", errors[0]["message"])
+        self.assertIn("Open WPS windows: Format Conversion", errors[0]["message"])
         self.assertEqual(data["stage"], "opening the input")
+        self.assertEqual(data["wps_windows"], ["Format Conversion"])
 
     def test_writer_opens_without_the_conversion_prompt(self):
         (ok, _data, errors), scripts = self.run_fake("brief.odt", "out.docx")
         self.assertTrue(ok, errors)
-        self.assertIn("Documents.Open($source, $false)", scripts[0])
+        self.assertIn("Documents.Open($source, $false, $true, $false)", scripts[0])  # read-only
 
     def test_pairs_wps_cannot_write_are_refused_before_wps_starts(self):
         with mock.patch.object(wps_convert, "run_powershell_script") as run:
@@ -495,6 +498,29 @@ class WpsLayoutTests(_Workspace):
         indent = properties.find(f"{w}tblInd").get(f"{w}w")
         self.assertEqual(indent, properties.find(f"{w}tblCellMar/{w}left").get(f"{w}w"))
         self.assertEqual(indent, "120")  # the cells' 8 px padding
+
+    def test_lines_are_exactly_the_css_height_unless_something_is_taller(self):
+        # Windows check on 8899219: "at least" 16.5 pt became Microsoft YaHei's own ~1.7 em line in WPS.
+        from docx.enum.text import WD_LINE_SPACING
+
+        (self.work / "lines.html").write_text(
+            "<html><head><style>body{font-size:16px;line-height:1.5} th{font-weight:400}</style></head><body>"
+            "<p>plain</p><p>big <span style='font-size:40px'>word</span></p>"
+            "<table><tr><th>head</th></tr></table></body></html>",
+            encoding="utf-8",
+        )
+        convert_html_to_office(self.work / "lines.html", self.work / "lines.docx", "docx", use_browser=False)
+        document = Document(self.work / "lines.docx")
+        plain, big = document.paragraphs[0].paragraph_format, document.paragraphs[1].paragraph_format
+        self.assertEqual(plain.line_spacing_rule, WD_LINE_SPACING.EXACTLY)
+        self.assertAlmostEqual(plain.line_spacing.pt, 18, delta=0.1)  # 24 px
+        self.assertEqual(big.line_spacing_rule, WD_LINE_SPACING.AT_LEAST)
+        self.assertFalse(document.tables[0].cell(0, 0).paragraphs[0].runs[0].bold)  # th{font-weight:400}
+
+    def test_pdf_bottom_margin_does_not_follow_where_the_text_ends(self):
+        # Windows check on 8899219: a short last page set a 427 pt bottom margin and pushed text to a new page.
+        top, _right, bottom, _left = pdf_convert.analyse_pdf(self.work / "supplier.pdf").margins
+        self.assertLessEqual(bottom, top)
 
     def test_list_text_starts_where_the_browser_puts_it(self):
         convert_html_to_office(self.work / "contract.html", self.work / "contract.docx", "docx")

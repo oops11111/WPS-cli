@@ -188,6 +188,19 @@ def _left_offset(context: Context, node, ancestors) -> float | None:
     return total
 
 
+def _fits_line(node, line: float, context: Context) -> bool:
+    """Whether every piece of text in ``node`` is at most ``line`` px high and there is no image or object in it."""
+    stack = [node]
+    while stack:
+        element = stack.pop()
+        if element.tag in {"img", "svg", "canvas", "video", "iframe", "object", "embed", "input", "button"}:
+            return False
+        if (px(context.styled.style(element).get("font-size")) or 16.0) > line:
+            return False
+        stack.extend(child for child in element.children if not isinstance(child, str))
+    return True
+
+
 def apply_paragraph(paragraph, node, ancestors, context: Context, *, list_item: bool = False) -> None:
     from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_LINE_SPACING
     from docx.shared import Pt
@@ -209,8 +222,11 @@ def apply_paragraph(paragraph, node, ancestors, context: Context, *, list_item: 
         form.alignment = align
     line = px(style.get("line-height"), size, size)
     if line:
-        # data-line-rule="exact": lines placed at a measured pitch (PDF conversion); else at least the CSS height.
-        exact = getattr(node, "attrs", {}).get("data-line-rule") == "exact"
+        # Exactly the CSS height when nothing in the paragraph is taller than a line: as "at least", WPS and Word
+        # give an East Asian font its own taller line (Microsoft YaHei is about 1.7 em), so a 1.5 line came out
+        # 1.3 times higher than in the browser. An image or a larger inline font keeps "at least", not to clip it.
+        # data-line-rule="exact" (PDF conversion) places lines at a measured pitch either way.
+        exact = getattr(node, "attrs", {}).get("data-line-rule") == "exact" or _fits_line(node, line, context)
         form.line_spacing_rule = WD_LINE_SPACING.EXACTLY if exact else WD_LINE_SPACING.AT_LEAST
         form.line_spacing = Pt(line * 0.75)
     else:
