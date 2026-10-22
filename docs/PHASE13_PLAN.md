@@ -192,6 +192,23 @@ D 组只考核文字和数据（F5）：pptx → docx 的结构 70% 和动画 0%
 - 放映：`training.html` 的外观 pptx 在 WPS 里仍然正确：fade/push/wipe，飞入、pulse 强调、延迟退出淡出、单击和“上一项之后”。
 - 结论：第一轮的 `B-doc-docx` 和 `convert-legacy-doc-with-wps` 已修好；仍未达标的是 A 组 5 份 docx 的版面、`E-supplier-docx`、`B-odt-docx` 和 `convert-docx-to-pptx`。P13-008、P13-013、P13-018 仍不能算完成。
 
+### 第二次 Windows 检查之后的修复（待第三次检查）
+
+第二次检查（`c117637`）带回了逐页对照图，问题能直接看出来：
+
+| 发现 | 对照图里看到的 | 修复 |
+| --- | --- | --- |
+| A 组 docx 0.75–0.88 | 行距、表格行高、标题间距都比浏览器高约 10%：16.5 pt 的行被拉到文档网格的 18 pt。WPS 不认文档默认里的“不对齐网格” | 每个段落自己写 `snapToGrid=0`，节里去掉文档网格 |
+| 同上 | 表格比浏览器宽、左边框伸出正文边界 | 列宽不再加 6 px（只留 2 px 防止刚好放下的单元格换行）；表格按单元格边距缩进，左边框对齐正文 |
+| E-supplier-docx 0.5762 | 列表挤在一起、其后空出一大段，把内容推到第 3 页；标题被加粗（PDF 里是常规体）；夹具 PDF 本身还带着旧版的双线单元格 | 按页面坐标累计计算每段起点（段前距离 + 固定行距）；表格前的空隙落到上一段的段后；表格的行高、单元格内边距和表头粗细取自 PDF；标题粗细跟随 PDF；用修好的代码重新生成夹具。本地 0.877 → 0.931 |
+| B-docx-wps、B-docx-odt 在整轮里 `DOCUMENT_HELD_OPEN` | 同一用例里上一步刚关的文件 WPS 还没放开 | `DOCUMENT_HELD_OPEN` 也等待后重试（最多两次） |
+| B-odt-docx 仍超时 | `ConfirmConversions=$false` 无效 | 转换脚本记录进行到哪一步，超时报告写明“WPS was opening the input / saving the output”，下次检查据此判断是打开时卡住（多半有对话框）还是另存时卡住 |
+| `convert-docx-to-pptx` 1/3 | 失败的两次都先转成 `_probe.pptx`/`_candidate.pptx` 再逐页查看，16 轮用完也没写 `brief.pptx` | `convert` 的结果带 `output_summary`（幻灯片标题、标题、工作表），工具说明写明“直接写到用户要的路径，用 `check` 核对，不要先转试验副本” |
+
+本地 LibreOffice 基线已更新。contract 在本地降到 0.785，是 LibreOffice 的替代字体比微软雅黑宽、窄列里的“30%”换了行；WPS 上两边都是雅黑。
+
+第三次检查与第二次相同：`fidelity_baselines.py --renderer wps --wps --out <目录>`，`eval --prefix convert-` 和 `--prefix html-`。
+
 ## 任务拆分
 
 | 任务 | 里程碑 | 对应标准 | 内容 | 在哪做 |

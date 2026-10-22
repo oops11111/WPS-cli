@@ -243,6 +243,7 @@ def apply_paragraph(paragraph, node, ancestors, context: Context, *, list_item: 
     if style.get("break-before") in {"page", "always", "left", "right"} or style.get("page-break-before") == "always":
         form.page_break_before = True
     props = paragraph._p.get_or_add_pPr()
+    _no_grid(props)
     # A table cell's own background and borders belong to the cell (apply_table), not to its paragraphs.
     cell = getattr(node, "tag", "") in {"td", "th"}
     fill = color(style.get("background-color"))
@@ -287,7 +288,7 @@ def apply_table(table, node, grid, rows, context: Context, page_width_px: float)
     """Column widths, table width, cell shading, borders, padding and vertical alignment."""
     from docx.enum.table import WD_CELL_VERTICAL_ALIGNMENT, WD_TABLE_ALIGNMENT
     from docx.oxml import OxmlElement
-    from docx.shared import Emu
+    from docx.shared import Emu, Pt
 
     # <thead> rows repeat at the top of each page, and say which rows are the header when read back.
     header_rows = sum(
@@ -318,6 +319,46 @@ def apply_table(table, node, grid, rows, context: Context, page_width_px: float)
         context.applied.add("column widths")
     if table_style.get("margin-left") == "auto" or node.attrs.get("align") == "center":
         table.alignment = WD_TABLE_ALIGNMENT.CENTER
+    else:
+        # The browser starts the table's border at the content edge; Word (compatibility mode 14) starts it
+        # one cell margin to the left. Indent by the table's cell margin, set to the cells' own padding.
+        first = next((cell for row in grid for cell in row if cell is not None), None)
+        pad = px(styled.style(first).get("padding-left")) if first is not None else None
+        twips = str(int(round((pad if pad is not None else 1.0) * 15)))
+        properties = table._tbl.tblPr
+        for old in properties.findall(_qn("w:tblInd")) + properties.findall(_qn("w:tblCellMar")):
+            properties.remove(old)
+        margins = _element("w:tblCellMar")
+        margins.append(_element("w:left", **{"w:w": twips, "w:type": "dxa"}))
+        margins.append(_element("w:right", **{"w:w": twips, "w:type": "dxa"}))
+        indent = _element("w:tblInd", **{"w:w": twips, "w:type": "dxa"})
+        # Schema order in tblPr: ... tblW, jc, tblCellSpacing, tblInd, tblBorders, shd, tblLayout, tblCellMar, tblLook
+        anchor = next(
+            (
+                properties.find(_qn(tag))
+                for tag in ("w:tblBorders", "w:shd", "w:tblLayout", "w:tblLook")
+                if properties.find(_qn(tag)) is not None
+            ),
+            None,
+        )
+        if anchor is not None:
+            anchor.addprevious(indent)
+        else:
+            properties.append(indent)
+        look = next(
+            (properties.find(_qn(t)) for t in ("w:tblLook", "w:tblCaption") if properties.find(_qn(t)) is not None),
+            None,
+        )
+        if look is not None:
+            look.addprevious(margins)
+        else:
+            properties.append(margins)
+    from docx.enum.table import WD_ROW_HEIGHT_RULE
+
+    for row, row_node in zip(table.rows, rows, strict=False):
+        row_height = px(styled.style(row_node).get("height"))
+        if row_height:
+            row.height, row.height_rule = Pt(row_height * 0.75), WD_ROW_HEIGHT_RULE.AT_LEAST
     has_borders = node.attrs.get("border") not in {None, "", "0"}
     for row_index, row in enumerate(grid):
         for column_index, cell_node in enumerate(row):
@@ -369,8 +410,9 @@ def _column_widths(styled: StyledDocument, node, grid, page_width_px: float) -> 
                 continue
             box = styled.box(cell)
             if box is not None:
-                # Word's cell margins and borders take a little more room than the browser's cell box.
-                widths[index] = box["width"] + 6
+                # The browser's cell box includes its padding and borders, as a Word cell width does; 2 px more
+                # keeps a cell that only just fits from wrapping on a rounding (6 px made tables visibly wider).
+                widths[index] = box["width"] + 2
                 continue
             declared = cell.attrs.get("width") or styled.style(cell).get("width")
             if declared:
@@ -413,6 +455,26 @@ def image_size(context: Context, node) -> tuple[int | None, int | None]:
     return (int(width * EMU_PER_PX) if width else None, int(height * EMU_PER_PX) if height else None)
 
 
+_AFTER_SNAP_TO_GRID = (
+    "w:spacing", "w:ind", "w:contextualSpacing", "w:mirrorIndents", "w:suppressOverlap", "w:jc",
+    "w:textDirection", "w:textAlignment", "w:textboxTightWrap", "w:outlineLvl", "w:divId", "w:cnfStyle",
+    "w:rPr", "w:sectPr", "w:pPrChange",
+)  # fmt: skip
+
+
+def _no_grid(props) -> None:
+    """snapToGrid off on the paragraph itself: WPS ignores the document default and snaps CJK lines to the
+    section's line pitch (18 pt), so a browser's 16.5 pt lines came out 10% taller (Windows check on c117637)."""
+    if props.find(_qn("w:snapToGrid")) is not None:
+        return
+    element = _element("w:snapToGrid", **{"w:val": "0"})
+    later = next((child for child in props if child.tag in {_qn(t) for t in _AFTER_SNAP_TO_GRID}), None)
+    if later is None:
+        props.append(element)
+    else:
+        later.addprevious(element)
+
+
 def browser_defaults(document) -> None:
     """Paragraph defaults that lay text out as a browser does, which WPS otherwise does not.
 
@@ -452,6 +514,9 @@ def apply_page(document, styled: StyledDocument | None) -> float:
 
     browser_defaults(document)
     section = document.sections[0]
+    # No document grid: its line pitch is what WPS snaps lines to.
+    for grid in section._sectPr.findall(_qn("w:docGrid")):
+        section._sectPr.remove(grid)
     page = styled.page if styled is not None else {}
     size = page.get("size", "").casefold().split()
     if size:

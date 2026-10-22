@@ -25,7 +25,15 @@ from .wps_script_snippets import ACQUIRE_WPS_APP, HIDE_LAUNCHED_APP, PRE_OPEN_GU
 FORMAT_NOT_SUPPORTED_BY_WPS = "FORMAT_NOT_SUPPORTED_BY_WPS"
 BUSY_RETRIES = 2
 BUSY_WAIT_SECONDS = 5
-_BUSY = ("0x80010001", "RPC_E_CALL_REJECTED", "0x8001010A", "RPC_E_SERVERCALL_RETRYLATER")
+# WPS still busy with, or not yet letting go of, the previous call's file: worth a wait and another try.
+_BUSY = (
+    "0x80010001",
+    "RPC_E_CALL_REJECTED",
+    "0x8001010A",
+    "RPC_E_SERVERCALL_RETRYLATER",
+    "DOCUMENT_HELD_OPEN",
+    "being used by another process",
+)
 
 # Component, the formats WPS opens, and the SaveAs code for each format it writes (None: by extension). The Open
 # calls are the ones the conversion smoke test verified on Windows; the source is never saved, only copied.
@@ -176,9 +184,12 @@ try {{
   Assert-WpsFileNotHeld $params.input_path 'input document' $true
   $source = (ConvertTo-WpsLocalPath $params.input_path)
   $wpsCountBefore = [int]$app.{family["collection"]}.Count
+  Set-Content -LiteralPath $params.stage_path -Value 'opening the input' -Encoding UTF8
   {family["open"]}
   if ([int]$app.{family["collection"]}.Count -le $wpsCountBefore) {{ $document = $null; Stop-WpsConcurrentOpen 'input document' '' }}
+  Set-Content -LiteralPath $params.stage_path -Value 'saving the output' -Encoding UTF8
   {action}
+  Set-Content -LiteralPath $params.stage_path -Value 'closing' -Encoding UTF8
   $exists = Test-Path $written
   $length = if ($exists) {{ (Get-Item $written).Length }} else {{ 0 }}
   [pscustomobject]@{{
@@ -282,8 +293,11 @@ def wps_convert(
             "output_path": str(destination),
             "pdf_path": pdf_path,
             "format_code": code,
+            "stage_path": str(Path(tmp) / "stage.txt"),
         }
+        stage = Path(params["stage_path"])
         for attempt in range(BUSY_RETRIES + 1):
+            stage.write_text("starting WPS", encoding="utf-8")
             payload, failure = run_powershell_script(
                 _script(component, mode, params),
                 timeout_seconds,
@@ -297,7 +311,13 @@ def wps_convert(
                 break
             time.sleep(BUSY_WAIT_SECONDS * (attempt + 1))
         if failure is not None:
-            return False, failure.get("data", {}), failure["errors"]
+            errors = failure["errors"]
+            if errors and errors[0].get("code") == "COM_OPERATION_TIMEOUT":
+                # Say where WPS stopped, so a hang (a dialog on open, say) can be told from a slow save.
+                where = stage.read_text(encoding="utf-8-sig").strip() if stage.is_file() else "unknown"
+                errors = [{**errors[0], "message": f"{errors[0]['message']} WPS was {where}."}, *errors[1:]]
+                failure.setdefault("data", {})["stage"] = where
+            return False, failure.get("data", {}), errors
         if not payload.get("ok"):
             return (
                 False,

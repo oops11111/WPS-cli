@@ -291,19 +291,20 @@ class PdfTests(_Workspace):
 
     def test_ocr_text_boxes_go_through_the_same_line_and_table_reading(self):
         def engine(_image):
-            # Boxes in 300 dpi pixels: a heading, a paragraph and a three-row, two-column table.
+            # Boxes in 300 dpi pixels, below the band a running header would sit in: a heading, a paragraph and a
+            # three-row, two-column table.
             def box(x0, y0, x1, y1, text):
                 return [[[x0, y0], [x1, y0], [x1, y1], [x0, y1]], text, 0.99]
 
             return [
-                box(300, 300, 900, 380, "季度报告"),
-                box(300, 450, 1500, 500, "本季度收入稳步增长。"),
-                box(300, 600, 500, 650, "地区"),
-                box(900, 600, 1100, 650, "收入"),
-                box(300, 680, 500, 730, "华东"),
-                box(900, 680, 1100, 730, "120"),
-                box(300, 760, 500, 810, "华南"),
-                box(900, 760, 1100, 810, "95"),
+                box(300, 600, 900, 680, "季度报告"),
+                box(300, 750, 1500, 800, "本季度收入稳步增长。"),
+                box(300, 900, 500, 950, "地区"),
+                box(900, 900, 1100, 950, "收入"),
+                box(300, 980, 500, 1030, "华东"),
+                box(900, 980, 1100, 1030, "120"),
+                box(300, 1060, 500, 1110, "华南"),
+                box(900, 1060, 1100, 1110, "95"),
             ], 0.1
 
         with mock.patch.object(pdf_convert, "_ocr_engine", return_value=engine):
@@ -418,6 +419,28 @@ class WpsConvertTests(_Workspace):
         self.assertEqual(run.call_count, 2)
         sleep.assert_called_once()
 
+    def test_a_file_wps_still_holds_is_retried_and_a_timeout_says_where_wps_was(self):
+        held = {"ok": False, "errors": [{"code": "DOCUMENT_HELD_OPEN", "message": "held"}], "data": {}}
+        timeout = {"ok": False, "errors": [{"code": "COM_OPERATION_TIMEOUT", "message": "timed out."}], "data": {}}
+        replies = [(None, held), (None, timeout)]
+
+        def fake_run(script, timeout_seconds, **_kwargs):
+            params = json.loads(script.split("@'\n", 1)[1].split("\n'@", 1)[0])
+            Path(params["stage_path"]).write_text("opening the input", encoding="utf-8")
+            return replies.pop(0)
+
+        with (
+            mock.patch.object(wps_convert, "probe_wps_capabilities", return_value=self.CAPABILITIES),
+            mock.patch.object(wps_convert, "run_powershell_script", side_effect=fake_run) as run,
+            mock.patch.object(wps_convert.time, "sleep"),
+        ):
+            ok, data, errors = wps_convert.wps_convert(self.work / "brief.odt", self.work / "out.docx")
+        self.assertFalse(ok)
+        self.assertEqual(run.call_count, 2)
+        self.assertEqual(errors[0]["code"], "COM_OPERATION_TIMEOUT")
+        self.assertIn("WPS was opening the input", errors[0]["message"])
+        self.assertEqual(data["stage"], "opening the input")
+
     def test_writer_opens_without_the_conversion_prompt(self):
         (ok, _data, errors), scripts = self.run_fake("brief.odt", "out.docx")
         self.assertTrue(ok, errors)
@@ -459,6 +482,20 @@ class WpsLayoutTests(_Workspace):
         cell = document.tables[1].cell(2, 0).paragraphs[0]._p
         self.assertIsNone(cell.find(".//{http://schemas.openxmlformats.org/wordprocessingml/2006/main}pBdr"))
 
+    def test_paragraphs_and_tables_ignore_the_wps_grid_and_cell_margin(self):
+        # Windows check on c117637: WPS snapped lines to the 18 pt grid despite the document default, and
+        # started tables one cell margin left of the text.
+        w = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
+        convert_html_to_office(self.work / "contract.html", self.work / "contract.docx", "docx")
+        document = Document(self.work / "contract.docx")
+        self.assertIsNone(document.sections[0]._sectPr.find(f"{w}docGrid"))
+        for paragraph in document.paragraphs:
+            self.assertEqual(paragraph._p.pPr.find(f"{w}snapToGrid").get(f"{w}val"), "0")
+        properties = document.tables[1]._tbl.tblPr
+        indent = properties.find(f"{w}tblInd").get(f"{w}w")
+        self.assertEqual(indent, properties.find(f"{w}tblCellMar/{w}left").get(f"{w}w"))
+        self.assertEqual(indent, "120")  # the cells' 8 px padding
+
     def test_list_text_starts_where_the_browser_puts_it(self):
         convert_html_to_office(self.work / "contract.html", self.work / "contract.docx", "docx")
         items = [p for p in Document(self.work / "contract.docx").paragraphs if p.style.name.startswith("List")]
@@ -475,6 +512,20 @@ class WpsLayoutTests(_Workspace):
         form = body.paragraph_format
         self.assertEqual(form.line_spacing_rule, WD_LINE_SPACING.EXACTLY)
         self.assertGreater(form.line_spacing.pt, 12)
+
+    def test_pdf_tables_keep_their_row_heights_and_padding(self):
+        from docx.shared import Pt
+
+        analysis = pdf_convert.analyse_pdf(self.work / "supplier.pdf")
+        table = [i for p in analysis.pages for i in p.items if i.kind == "table"][0]
+        self.assertEqual(len(table.row_heights), 6)
+        self.assertGreater(table.padding, 3)
+        self.assertFalse(table.header_bold)
+        pdf_convert.pdf_to_office(self.work / "supplier.pdf", self.work / "s.docx")
+        rows = Document(self.work / "s.docx").tables[0].rows
+        self.assertAlmostEqual(rows[1].height.pt, Pt(table.row_heights[1]).pt, delta=0.6)
+        heading = [p for p in Document(self.work / "s.docx").paragraphs if p.text == "二、评分明细"][0]
+        self.assertFalse(heading.runs[0].bold)  # regular in the PDF
 
     def test_layout_keeps_page_pairs_and_can_render_another_source(self):
         pdf_convert.pdf_to_office(self.work / "supplier.pdf", self.work / "s.docx")
@@ -516,6 +567,13 @@ class ConvertDispatchTests(_Workspace):
         self.assertEqual(data["route"], ["wps", "to-markdown"])
         self.assertIn("from wps", data["warnings"])
         self.assertIn("# 技术服务合同", (self.work / "brief.md").read_text(encoding="utf-8"))
+
+    def test_the_result_summarises_the_output(self):
+        ok, data, errors = convert.convert(self.work / "brief.docx", self.work / "brief.pptx")
+        self.assertTrue(ok, errors)
+        self.assertEqual(data["output_summary"]["slide_titles"][0], "技术服务合同")
+        ok, data, errors = convert.convert(self.work / "sales_gbk.csv", self.work / "s.xlsx")
+        self.assertEqual(data["output_summary"]["sheets"][0]["dimensions"], "A1:F4")
 
     def test_unsupported_pairs_name_the_reason(self):
         ok, _data, errors = convert.convert(self.work / "brief.docx", self.work / "brief.ods")

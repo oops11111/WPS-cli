@@ -318,7 +318,9 @@ MCP_TOOL_SCHEMAS: tuple[dict[str, Any], ...] = (
         "UTF-8 detected), DOCX to PPTX (a slide per Heading 1/2) and back, a worksheet range to a DOCX or PPTX "
         "table, PDF to DOCX/XLSX/PPTX (headings, lists, tables; OCR for scanned pages), and the WPS (.wps/.et/"
         ".dps), legacy Office (.doc/.xls/.ppt), ODF, PDF and per-page PNG formats through WPS. Pairs without a "
-        "direct route go through one intermediate file; the result lists the route.",
+        "direct route go through one intermediate file; the result lists the route and an output_summary (slide "
+        "titles, headings, sheets). Write straight to the path the user asked for: the result is final, so check it "
+        "with check (or fidelity-check) instead of converting to trial copies first.",
         "conversion",
         required=["input", "output"],
         properties={

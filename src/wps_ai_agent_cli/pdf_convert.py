@@ -58,6 +58,9 @@ class Item:
     ruled: bool = True  # a table drawn with lines (else its columns were found from the text alignment)
     bottom: float = 0.0
     pitches: list[float] = field(default_factory=list)  # distances between the tops of its lines
+    row_heights: list[float] = field(default_factory=list)  # table rows, in points
+    padding: float | None = None  # a table cell's left inset, in points
+    header_bold: bool | None = None  # whether the table's first row is set in bold
 
 
 @dataclass
@@ -284,6 +287,30 @@ def _lines_of(page, exclude: list[tuple[float, float, float, float]], tables_out
     return [_make_line(words) for i, words in enumerate(word_lines) if i not in used and _text_of(words)]
 
 
+def _measure_table(page, table, item: Item) -> None:
+    """Row heights, the cells' left inset and the header weight of a ruled table, as the PDF draws them."""
+    item.row_heights = [row.bbox[3] - row.bbox[1] for row in table.rows if row.bbox]
+    try:
+        words = page.within_bbox(table.bbox).extract_words(extra_attrs=["fontname"])
+    except ValueError:
+        return
+    insets = []
+    first_row = table.rows[0].bbox if table.rows else None
+    header_fonts = []
+    for cell in table.cells:
+        inside = [w for w in words if cell[0] - 1 <= w["x0"] <= cell[2] and cell[1] - 1 <= w["top"] <= cell[3]]
+        if inside:
+            insets.append(min(w["x0"] for w in inside) - cell[0])
+            if first_row and abs(cell[1] - first_row[1]) < 1:
+                header_fonts += [w["fontname"] for w in inside]
+    # Centred header cells sit further in: the smaller half of the insets is the padding.
+    body = sorted(i for i in insets if i >= 0)
+    if body:
+        item.padding = statistics.median(body[: max(1, len(body) // 2)]) or None
+    if header_fonts:
+        item.header_bold = all(re.search(r"bold|black|heavy|semibold", f, re.I) for f in header_fonts)
+
+
 def _ocr_words(page_image, engine, scale: float) -> list[dict]:
     """RapidOCR's text boxes as words in PDF points, with a font size estimated from the box height."""
     import numpy as np
@@ -341,7 +368,9 @@ def analyse_pdf(path: str | Path, ocr: bool = False, images: bool = True) -> Ana
                 if rows and any(any(row) for row in rows):
                     edges = sorted({round(cell[0], 1) for cell in table.cells} | {round(table.bbox[2], 1)})
                     widths = [b - a for a, b in zip(edges, edges[1:], strict=False)]
-                    page.items.append(Item("table", rows=rows, top=table.bbox[1], columns=widths, bottom=table.bbox[3]))
+                    item = Item("table", rows=rows, top=table.bbox[1], columns=widths, bottom=table.bbox[3])
+                    _measure_table(plumber_page, table, item)
+                    page.items.append(item)
             for top, bottom, rows, widths in text_tables:
                 page.items.append(Item("table", rows=rows, top=top, columns=widths, ruled=False, bottom=bottom))
             bounds.append((page, lines, [t.bbox for t in tables] + [(0, t[0], 0, t[1]) for t in text_tables]))
@@ -438,14 +467,21 @@ def analyse_pdf(path: str | Path, ocr: bool = False, images: bool = True) -> Ana
                     current.pitches.append(line.top - previous.top)
                     current.bottom = line.bottom
                 else:
-                    current = Item("heading", line.text, level, top=line.top, size=line.size, bottom=line.bottom)
+                    current = Item(
+                        "heading", line.text, level, top=line.top, size=line.size, bottom=line.bottom, bold=line.bold
+                    )
                     page.items.append(current)
             elif bullet is not None:
                 text = (
                     line.text[bullet.end() :] if bullet.group(1) in "•·▪◦●○■□-–*\uf0b7\uf0a7\uf0d8\uf076" else line.text
                 )
                 current = Item(
-                    "list", text, 1 if line.x0 - (previous.x0 if previous else line.x0) < 12 else 2, top=line.top
+                    "list",
+                    text,
+                    1 if line.x0 - (previous.x0 if previous else line.x0) < 12 else 2,
+                    top=line.top,
+                    size=line.size,
+                    bottom=line.bottom,
                 )
                 current.bold = line.bold
                 page.items.append(current)
@@ -496,26 +532,45 @@ def _escape(text: str) -> str:
     return html.escape(text, quote=False)
 
 
-def _table_html(rows: list[list[str]], widths: list[float] | None = None, ruled: bool = True) -> str:
+def _table_html(
+    rows: list[list[str]], widths: list[float] | None = None, ruled: bool = True, item: Item | None = None
+) -> str:
     width = max(len(row) for row in rows)
     cols = ""
     if widths and len(widths) == width:
         cols = "<colgroup>" + "".join(f'<col style="width:{w:.0f}pt">' for w in widths) + "</colgroup>"
-    head = "".join(f"<th>{_escape(cell)}</th>" for cell in rows[0] + [""] * (width - len(rows[0])))
+    heights = item.row_heights if item is not None and len(item.row_heights) == len(rows) else []
+    cell_style = ""
+    if item is not None and item.padding is not None:
+        cell_style = f' style="padding:0 {item.padding:.1f}pt;vertical-align:middle"'
+    head_style = cell_style
+    if item is not None and item.header_bold is False:
+        head_style = cell_style[:-1] + ';font-weight:normal"' if cell_style else ' style="font-weight:normal"'
+
+    def tr(index: int) -> str:
+        return f'<tr style="height:{heights[index]:.1f}pt">' if heights else "<tr>"
+
+    head = "".join(f"<th{head_style}>{_escape(cell)}</th>" for cell in rows[0] + [""] * (width - len(rows[0])))
     body = "".join(
-        "<tr>" + "".join(f"<td>{_escape(cell)}</td>" for cell in row + [""] * (width - len(row))) + "</tr>"
-        for row in rows[1:]
+        tr(index)
+        + "".join(f"<td{cell_style}>{_escape(cell)}</td>" for cell in row + [""] * (width - len(row)))
+        + "</tr>"
+        for index, row in enumerate(rows[1:], start=1)
     )
     border = ' border="1"' if ruled else ""
-    return f"<table{border}>{cols}<thead><tr>{head}</tr></thead><tbody>{body}</tbody></table>"
+    return f"<table{border}>{cols}<thead>{tr(0)}{head}</tr></thead><tbody>{body}</tbody></table>"
 
 
-def _size_style(item: Item, body: float, extra: str = "", spacing: tuple[float, float] | None = None) -> str:
+def _size_style(
+    item: Item, body: float, extra: str = "", spacing: tuple[float, float] | None = None, bold: bool | None = None
+) -> str:
     """The item's style: its size when it differs from the body text and, for a document, the space above it
     and its line pitch as measured on the page (spacing), so that lines fall where the PDF has them."""
     parts = [extra] if extra else []
     if item.size and (item.kind == "heading" or abs(item.size - body) > 0.4):
         parts.append(f"font-size:{item.size:g}pt")
+    if bold is False:
+        parts.append("font-weight:normal")  # a heading in the PDF's regular weight stays regular
     if spacing is not None:
         before, pitch = spacing
         parts.append(f"margin:{before:.1f}pt 0 0 0")
@@ -528,22 +583,29 @@ def _items_html(items: list[Item], body: float = 12.0, page_break: bool = False,
     above it and its line pitch from the page, marked data-line-rule="exact" for html-editable."""
     out: list[str] = []
     in_list = False
-    previous_bottom = top
+    # Where the document's text cursor is, in page points: each block's first line box starts where the PDF
+    # has its glyphs (less half the box padding), and the space before it is what is left above that.
+    cursor = top
     for index, item in enumerate(items):
         extra = "break-before:page" if page_break and index == 0 else ""
         spacing = None
         exact = ""
-        if previous_bottom is not None and item.kind in {"heading", "paragraph", "list"}:
-            pitch = statistics.median(item.pitches) if item.pitches else (item.bottom - item.top) * 1.25
-            pitch = max(pitch, (item.size or body) * 1.05)
-            # Each line box is a pitch tall with its glyphs (about one font size) centred in it, so the space
-            # between two blocks is the gap between their glyphs less the box padding around them.
-            glyphs = item.size or (item.bottom - item.top)
-            before = max(0.0, item.top - previous_bottom - (pitch - glyphs))
-            spacing = (min(before, 72.0), pitch)
+        if cursor is not None and item.kind in {"heading", "paragraph", "list"}:
+            glyphs = item.size or max(item.bottom - item.top, 0.0) or body
+            pitch = statistics.median(item.pitches) if item.pitches else glyphs * 1.3
+            pitch = max(pitch, glyphs * 1.05)
+            start = item.top - (pitch - glyphs) / 2
+            spacing = (min(max(0.0, start - cursor), 144.0), pitch)
             exact = ' data-line-rule="exact"'
-        if previous_bottom is not None and item.bottom:
-            previous_bottom = item.bottom
+            cursor = max(cursor, start) + pitch * (len(item.pitches) + 1)
+        elif cursor is not None and item.bottom:
+            gap = item.top - cursor
+            if item.kind == "table" and gap > 1 and not extra and out:
+                # A table has no space before it: the gap becomes the space after the block above.
+                out[-1] = re.sub(
+                    r"margin:([\d.]+)pt 0 0 0", rf"margin:\1pt 0 {min(gap, 144.0):.1f}pt 0", out[-1], count=1
+                )
+            cursor = item.bottom
         if item.kind == "list":
             if not in_list:
                 out.append("<ul>")
@@ -559,7 +621,8 @@ def _items_html(items: list[Item], body: float = 12.0, page_break: bool = False,
             in_list = False
         if item.kind == "heading":
             out.append(
-                f"<h{item.level}{_size_style(item, body, extra, spacing)}{exact}>{_escape(item.text)}</h{item.level}>"
+                f"<h{item.level}{_size_style(item, body, extra, spacing, item.bold)}{exact}>"
+                f"{_escape(item.text)}</h{item.level}>"
             )
         elif item.kind == "paragraph":
             text = _escape(item.text)
@@ -570,7 +633,7 @@ def _items_html(items: list[Item], body: float = 12.0, page_break: bool = False,
         elif item.kind == "table":
             if extra:
                 out.append(f'<p style="{extra};font-size:1pt"> </p>')
-            out.append(_table_html(item.rows, item.columns, item.ruled))
+            out.append(_table_html(item.rows, item.columns, item.ruled, item))
         elif item.kind == "image" and item.image:
             width = round(item.width / 72 * 96)
             data = base64.b64encode(item.image).decode("ascii")

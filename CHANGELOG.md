@@ -10,6 +10,10 @@ All notable changes to `wps-ai-agent-cli`. The versioning rule and release steps
 - PDF to docx keeps each paragraph's measured space before and line pitch (exact line spacing), so WPS paginates it like the PDF. (P13-018)
 - `convert` through WPS opens Writer documents without the conversion prompt (`.odt` timed out), and retries twice when WPS rejects a call while it is still busy (`RPC_E_CALL_REJECTED`). (P13-007)
 - `fidelity-check` takes `layout_source` (render another file for the layout, as a legacy `.doc` itself) and `images_dir` (each page pair side by side); `scripts/fidelity_baselines.py --out` writes the full reports and the page images, and runs each group B case in its own folder.
+- docx paragraphs set `snapToGrid` off themselves and the section has no document grid: WPS ignored the document default and put the browser's 16.5 pt lines on its 18 pt grid. Table cells are no wider than the browser's (2 px slack instead of 6) and tables are indented by their cell margin, so the left border lines up with the text as in the browser. (P13-008)
+- PDF to docx places each block where the PDF has it (the space before and the line pitch counted from the page top), puts the gap above a table after the block before it, takes table row heights, cell padding and header weight from the PDF, and keeps regular-weight headings regular; 2-page PDFs no longer run onto a third page in WPS. (P13-018)
+- `convert` through WPS also retries when WPS has not yet let go of the previous call's file (`DOCUMENT_HELD_OPEN`), and a timeout says what WPS was doing (opening the input or saving the output).
+- `convert` results include `output_summary` (slide titles, headings, sheets), and the tool description says to write straight to the requested path and check with `check`, not to convert trial copies first.
 - The `convert-legacy-doc-with-wps` evaluation task writes `legacy.docx` and `legacy.pdf`: its outputs had the names of fixtures the setup copies in, so `convert` refused them.
 
 ## [0.10.0] - 2026-10-18
