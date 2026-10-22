@@ -357,6 +357,19 @@ D 组只考核文字和数据（F5）：pptx → docx 的结构 70% 和动画 0%
 - 放映：`training.html` 的外观 pptx 仍然正确。
 - 结论：只剩 A 组三份 docx 的版面（contract 0.8492、manual 0.8869、pdfsource 0.8823，要求 0.90）未达标。P13-008、P13-013、P13-018 仍不能算完成。
 
+### 第八次 Windows 检查之后的修复（待第九次检查）
+
+第八次检查（`c149caf`）：report 0.9234、newsletter 0.9169 通过；ODF 两个方向按决定 9 记为不支持（B-odt-docx 60 秒后报 `FORMAT_NOT_SUPPORTED_BY_WPS` 并结束 WPS，B-docx-odt 删除非 ODF 的输出），整轮 5 分 53 秒、没有留下 WPS 进程。剩下 contract 0.8492、manual 0.8869、pdfsource 0.8823。
+
+| 发现 | 对照图里看到的 | 修复 |
+| --- | --- | --- |
+| contract、manual 的有边框表格每行高 1 px | 浏览器合并边框时相邻两行共用一条边框，WPS 把每个单元格的边框都算进行高 | 合并边框的表格，单元格下内边距减去下边框宽度 |
+| manual 的分隔线低 17 px | `<hr>` 是一个带下边框的空段落，占了一整行 | 分隔线段落固定行距 1 磅，上下外边距（浏览器默认 8 px）与前后段落按 CSS 合并 |
+| manual 的编号紧贴文字 | 悬挂 0.95 em 在 10.5 pt 下不够“1.”加空格 | 悬挂改为约 1.05 em |
+| pdfsource 的“采购中心”在浏览器里排在页眉下面，docx 里在页脚 | 夹具用 `data-page="footer"` 标了页脚，docx 按这个放到页脚，但 HTML 没有让浏览器这样打印的 CSS，于是下面整页错开一行 | 夹具加 `[data-page="footer"] { position: fixed; bottom: 0; }`（打印页脚的常规写法），浏览器也把它印在页脚。这是夹具的改动，不是转换器的；`supplier.pdf` 没有重新生成 |
+
+本地 LibreOffice：manual 0.852 → 0.862，pdfsource 0.887 → 0.891，其余不变或略变。基线已重写。第九次检查与第八次相同。
+
 ## 任务拆分
 
 | 任务 | 里程碑 | 对应标准 | 内容 | 在哪做 |

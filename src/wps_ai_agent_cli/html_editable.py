@@ -823,10 +823,11 @@ def convert_html_editable(
                 rule = document.add_paragraph()
                 borders = OxmlElement("w:pBdr")
                 bottom = OxmlElement("w:bottom")
-                for key, value in (("w:val", "single"), ("w:sz", "6"), ("w:space", "1"), ("w:color", "999999")):
+                for key, value in (("w:val", "single"), ("w:sz", "6"), ("w:space", "0"), ("w:color", "999999")):
                     bottom.set(qn(key), value)
                 borders.append(bottom)
                 rule._p.get_or_add_pPr().append(borders)
+                docx_styling.apply_rule(rule, node, context)
                 counts["rules"] = counts.get("rules", 0) + 1
             elif tag == "figcaption":
                 if _text(node):
