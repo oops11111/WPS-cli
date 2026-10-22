@@ -2,13 +2,15 @@
 
 from __future__ import annotations
 
-import sys
+import importlib.util
 import unittest
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
-
-import fidelity_baselines  # noqa: E402
+_spec = importlib.util.spec_from_file_location(
+    "fidelity_baselines", Path(__file__).resolve().parents[1] / "scripts" / "fidelity_baselines.py"
+)
+fidelity_baselines = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(fidelity_baselines)
 
 
 def _result(layout: float, renderer: str = "wps", text_ok: bool = True) -> dict:
