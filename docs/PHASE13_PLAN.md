@@ -153,7 +153,7 @@ D 组只考核文字和数据（F5）：pptx → docx 的结构 70% 和动画 0%
 ### Windows 上要做的（P13-008、P13-013、P13-018，可以一次做完）
 
 1. `pip install -e ".[html,fidelity,pdf,test]"`，`npm install`，WPS 设为默认应用。
-2. `python scripts/fidelity_baselines.py --renderer wps --wps`：A、C、D、E 组用 WPS 测版面，加上 B 组经 WPS 的 9 个方向（.doc、.odt、.xls、.ppt 转 OOXML，OOXML 转 .wps、.et、.dps、.odt，pptx 转 PNG）。看 F2、F3、F6 的门槛。
+2. `python scripts/fidelity_baselines.py --renderer wps --wps --out <结果目录>`：A、C、D、E 组用 WPS 测版面，加上 B 组经 WPS 的 9 个方向（.doc、.odt、.xls、.ppt 转 OOXML，OOXML 转 .wps、.et、.dps、.odt，pptx 转 PNG）。看 F2、F3、F6 的门槛。
 3. `python scripts/run_windows_check.py eval --prefix convert- --repeat 3 --min-passes 2` 和 `--prefix html-`：F7。
 4. 在 WPS 演示里放映 `training.html` 转出的 pptx（外观模式），确认退出、强调、单击和“上一项之后”的动画。
 5. 结果按惯例提交并推送到 `cursor/phase13-windows-<commit>`。
@@ -166,6 +166,22 @@ D 组只考核文字和数据（F5）：pptx → docx 的结构 70% 和动画 0%
 - 评测：`--prefix convert-` 4/5（`convert-legacy-doc-with-wps` 0/3，没有生成 `brief.pdf`）；`--prefix html-` 5/5（报告 2/3，其余 3/3）。
 - 放映：`training.html` 的外观 pptx 在 WPS 里确认了退出、强调、单击和“上一项之后”的动画（第 2 页的单击动画需要多按一次才翻页）。
 - 结论：F2 的 A 组版面、F3 的 B-doc-docx/B-odt-docx、F6 的 E-supplier-docx 和 F7 的一个评测任务未达标，P13-008、P13-013、P13-018 不能算完成。检查还修掉了保真度脚本的两处 Windows 问题（临时目录清理、WPS 分数比 LibreOffice 基线）。
+
+### 第一次 Windows 检查之后的修复（待第二次检查）
+
+| 发现 | 原因 | 修复 |
+| --- | --- | --- |
+| contract 0.369、E-supplier-docx 0.5626 | 分数正好是“少一页”的样子：WPS 把 docx 排成了比浏览器或 PDF 多一页（缺页按 0 分计）。HTML 没写 `@page` 时浏览器按 A4 打印，docx 却用模板的 US Letter（矮 18 mm）；WPS 还在中文和西文、数字之间自动加空（`autoSpaceDE/DN`），并按文档网格对齐，浏览器都不做 | 没有 `@page` 时 docx 用 A4；文档默认段落关掉自动加空和网格对齐，段后 0、单倍行距（浏览器的默认） |
+| HTML → docx 版面普遍在 0.81–0.86 | 表格单元格的边框和底纹又被当成段落边框画了一遍（每格多一条线）；列表文字没有按浏览器缩进 40 px | 单元格的边框和底纹只给单元格；列表项的左缩进取浏览器里 `<li>` 的位置，编号悬挂在前 |
+| E-supplier-docx | PDF 的行距和段距没有带过来，WPS 按字体的自然行高排 | PDF → docx 每段带上页面上量到的段前距离和行距（固定值） |
+| B-doc-docx 0.8687 | 拿 WPS 渲染的 `.docx` 结果和 `brief.docx`（`.doc` 的来源，由 LibreOffice 另存）比，比的是两个不同的文件 | 版面改为比较 WPS 渲染的 `.doc`/`.odt` 源文件本身和转换结果（F3 的原意），文字和结构仍和来源 OOXML 比 |
+| B-odt-docx 超时 | 推测 WPS 打开 `.odt` 时弹出“转换文件”确认 | 文字的 `Documents.Open` 传 `ConfirmConversions=$false`；待复测 |
+| B-docx-wps、B-docx-odt 级联失败 | 上一例超时后 WPS 仍占用文件、拒绝调用 | 每个 B 用例用自己的目录；`RPC_E_CALL_REJECTED` 时等待后重试两次 |
+| `convert-legacy-doc-with-wps` 0/3 | `fidelity_fixtures` 把 `brief.docx` 也复制进工作目录，任务要的输出已存在，`convert` 拒绝覆盖 | 任务改为输出 `legacy.docx`、`legacy.pdf`；新测试保证任务输出不和夹具重名 |
+
+本地 LibreOffice 基线随之更新（contract 0.739 → 0.806，其余小幅上升）。LibreOffice 的替代字体和 Chromium 不同，本地分数上不去，WPS 上两边都是微软雅黑。
+
+第二次检查：`python scripts/fidelity_baselines.py --renderer wps --wps --out <结果目录>`，`--out` 会写出每例的完整报告（含页数、逐页分数）和每页的对照图（左源右结果，文件名带分数），一并提交；再跑 `eval --prefix convert-`。
 
 ## 任务拆分
 

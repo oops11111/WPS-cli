@@ -4,6 +4,14 @@ All notable changes to `wps-ai-agent-cli`. The versioning rule and release steps
 
 ## [Unreleased]
 
+### Fixed
+
+- `html-editable` (docx) lays text out as the browser does, which WPS did not: without `@page` the page is A4 (the browser's print size) instead of US Letter, and the document defaults turn off WPS's extra space between Chinese and Latin text, grid snapping, and the template's 10 pt after paragraphs. Before, WPS put two of the fixtures on one more page than the browser. Table cells no longer repeat their border and shading as paragraph borders, and list text is indented where the browser puts it. (P13-008)
+- PDF to docx keeps each paragraph's measured space before and line pitch (exact line spacing), so WPS paginates it like the PDF. (P13-018)
+- `convert` through WPS opens Writer documents without the conversion prompt (`.odt` timed out), and retries twice when WPS rejects a call while it is still busy (`RPC_E_CALL_REJECTED`). (P13-007)
+- `fidelity-check` takes `layout_source` (render another file for the layout, as a legacy `.doc` itself) and `images_dir` (each page pair side by side); `scripts/fidelity_baselines.py --out` writes the full reports and the page images, and runs each group B case in its own folder.
+- The `convert-legacy-doc-with-wps` evaluation task writes `legacy.docx` and `legacy.pdf`: its outputs had the names of fixtures the setup copies in, so `convert` refused them.
+
 ## [0.10.0] - 2026-10-18
 
 Phase 13: high-fidelity conversion between all formats, measured by one check. The three milestones the plan describes (0.10.0, 0.11.0, 0.12.0) were built in one change, so 0.10.0 carries all of them; their Windows checks (P13-008, P13-013, P13-018) are still to run.

@@ -388,6 +388,41 @@ class WpsConvertTests(_Workspace):
         self.assertEqual([Path(p).name for p in data["pages"]], ["slide-001.png", "slide-002.png"])
         self.assertTrue(all(Path(p).is_file() for p in data["pages"]))
 
+    def test_a_busy_wps_is_retried(self):
+        replies = [
+            (
+                None,
+                {
+                    "ok": False,
+                    "errors": [{"code": "COM_OPERATION_FAILED", "message": "0x80010001 (RPC_E_CALL_REJECTED)"}],
+                    "data": {},
+                },
+            ),
+            ({"ok": True, "conversion_method": "SaveAs"}, None),
+        ]
+
+        def fake_run(script, timeout_seconds, **_kwargs):
+            params = json.loads(script.split("@'\n", 1)[1].split("\n'@", 1)[0])
+            reply = replies.pop(0)
+            if reply[0]:
+                Path(params["output_path"]).write_bytes(b"converted")
+            return reply
+
+        with (
+            mock.patch.object(wps_convert, "probe_wps_capabilities", return_value=self.CAPABILITIES),
+            mock.patch.object(wps_convert, "run_powershell_script", side_effect=fake_run) as run,
+            mock.patch.object(wps_convert.time, "sleep") as sleep,
+        ):
+            ok, _data, errors = wps_convert.wps_convert(self.work / "brief.docx", self.work / "out.wps")
+        self.assertTrue(ok, errors)
+        self.assertEqual(run.call_count, 2)
+        sleep.assert_called_once()
+
+    def test_writer_opens_without_the_conversion_prompt(self):
+        (ok, _data, errors), scripts = self.run_fake("brief.odt", "out.docx")
+        self.assertTrue(ok, errors)
+        self.assertIn("Documents.Open($source, $false)", scripts[0])
+
     def test_pairs_wps_cannot_write_are_refused_before_wps_starts(self):
         with mock.patch.object(wps_convert, "run_powershell_script") as run:
             ok, _data, errors = wps_convert.wps_convert(self.work / "brief.docx", self.work / "out.xlsx")
@@ -403,6 +438,62 @@ class WpsConvertTests(_Workspace):
             ok, _data, errors = wps_convert.wps_convert(self.work / "brief.docx", self.work / "out.doc")
         self.assertFalse(ok)
         self.assertEqual(errors[0]["code"], "COM_BACKEND_UNAVAILABLE")
+
+
+class WpsLayoutTests(_Workspace):
+    """What the Windows check on 4b263d9 found: WPS paginated the docx files longer than the browser."""
+
+    def test_docx_pages_and_paragraph_defaults_follow_the_browser(self):
+        convert_html_to_office(self.work / "contract.html", self.work / "contract.docx", "docx")
+        document = Document(self.work / "contract.docx")
+        section = document.sections[0]
+        self.assertEqual((round(section.page_width.mm), round(section.page_height.mm)), (210, 297))  # A4
+        defaults = document.styles.element.find(
+            "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}docDefaults"
+        )
+        w = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
+        props = defaults.find(f"{w}pPrDefault/{w}pPr")
+        for name in ("autoSpaceDE", "autoSpaceDN", "snapToGrid"):
+            self.assertEqual(props.find(f"{w}{name}").get(f"{w}val"), "0")
+        self.assertEqual(props.find(f"{w}spacing").get(f"{w}after"), "0")
+        cell = document.tables[1].cell(2, 0).paragraphs[0]._p
+        self.assertIsNone(cell.find(".//{http://schemas.openxmlformats.org/wordprocessingml/2006/main}pBdr"))
+
+    def test_list_text_starts_where_the_browser_puts_it(self):
+        convert_html_to_office(self.work / "contract.html", self.work / "contract.docx", "docx")
+        items = [p for p in Document(self.work / "contract.docx").paragraphs if p.style.name.startswith("List")]
+        first, nested = items[0].paragraph_format, items[1].paragraph_format
+        self.assertAlmostEqual(first.left_indent.pt, 30, delta=0.5)  # 40 px
+        self.assertAlmostEqual(nested.left_indent.pt, 60, delta=0.5)
+        self.assertLess(first.first_line_indent.pt, 0)  # the number hangs
+
+    def test_pdf_lines_keep_their_measured_pitch(self):
+        from docx.enum.text import WD_LINE_SPACING
+
+        pdf_convert.pdf_to_office(self.work / "supplier.pdf", self.work / "s.docx")
+        body = [p for p in Document(self.work / "s.docx").paragraphs if p.text.startswith("东方精密需在")][0]
+        form = body.paragraph_format
+        self.assertEqual(form.line_spacing_rule, WD_LINE_SPACING.EXACTLY)
+        self.assertGreater(form.line_spacing.pt, 12)
+
+    def test_layout_keeps_page_pairs_and_can_render_another_source(self):
+        pdf_convert.pdf_to_office(self.work / "supplier.pdf", self.work / "s.docx")
+        with mock.patch("wps_ai_agent_cli.fidelity._images_for") as images:
+            from PIL import Image
+
+            page = Image.new("L", (40, 60), 255)
+            images.side_effect = lambda path, *a: ([page, page], None)
+            ok, report, _errors = fidelity_check(
+                self.work / "supplier.pdf",
+                self.work / "s.docx",
+                renderer="libreoffice",
+                layout_source=self.work / "supplier_scanned.pdf",
+                images_dir=self.work / "pages",
+            )
+        self.assertTrue(ok)
+        self.assertEqual(images.call_args_list[0].args[0], self.work / "supplier_scanned.pdf")
+        self.assertEqual(len(report["aspects"]["layout"]["images"]), 2)
+        self.assertTrue((self.work / "pages" / "page-001-1.000.png").is_file())
 
 
 class ConvertDispatchTests(_Workspace):

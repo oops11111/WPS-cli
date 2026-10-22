@@ -209,7 +209,9 @@ def apply_paragraph(paragraph, node, ancestors, context: Context, *, list_item: 
         form.alignment = align
     line = px(style.get("line-height"), size, size)
     if line:
-        form.line_spacing_rule = WD_LINE_SPACING.AT_LEAST
+        # data-line-rule="exact": lines placed at a measured pitch (PDF conversion); else at least the CSS height.
+        exact = getattr(node, "attrs", {}).get("data-line-rule") == "exact"
+        form.line_spacing_rule = WD_LINE_SPACING.EXACTLY if exact else WD_LINE_SPACING.AT_LEAST
         form.line_spacing = Pt(line * 0.75)
     else:
         # CSS "normal" is about 1.2 times the font size.
@@ -225,14 +227,28 @@ def apply_paragraph(paragraph, node, ancestors, context: Context, *, list_item: 
         offset = _left_offset(context, node, ancestors)
         if offset:
             form.left_indent = Pt(offset * 0.75)
+    elif getattr(node, "tag", "") == "li":
+        # The item's text starts where the browser puts the <li> box (the lists' 40 px padding each), with the
+        # number or bullet hanging in the padding before it.
+        if context.styled.box(node) is not None:
+            offset = _left_offset(context, node, ancestors) or 0.0
+        else:
+            offset = 40.0 * sum(1 for a in ancestors if a.tag in {"ul", "ol"})
+        if offset:
+            form.left_indent = Pt(offset * 0.75)
+            form.first_line_indent = Pt(-min(offset, 24.0) * 0.75)
     indent = px(style.get("text-indent"), size)
     if indent:
         form.first_line_indent = Pt(indent * 0.75)
     if style.get("break-before") in {"page", "always", "left", "right"} or style.get("page-break-before") == "always":
         form.page_break_before = True
     props = paragraph._p.get_or_add_pPr()
+    # A table cell's own background and borders belong to the cell (apply_table), not to its paragraphs.
+    cell = getattr(node, "tag", "") in {"td", "th"}
     fill = color(style.get("background-color"))
     holder = node if fill else _container_with(context, node, ancestors, "background-color")
+    if cell:
+        holder = None
     if holder is not None:
         fill = color(context.styled.style(holder).get("background-color"))
         props.append(_element("w:shd", **{"w:val": "clear", "w:color": "auto", "w:fill": fill}))
@@ -242,7 +258,7 @@ def apply_paragraph(paragraph, node, ancestors, context: Context, *, list_item: 
         if any(_border(style, s) for s in ("top", "right", "bottom", "left"))
         else (_container_with(context, node, ancestors, "border"))
     )
-    if border_holder is not None:
+    if border_holder is not None and not cell:
         holder_style = context.styled.style(border_holder)
         borders = {side: b for side in ("top", "left", "bottom", "right") if (b := _border(holder_style, side))}
         props.append(_borders_xml("w:pBdr", borders))
@@ -397,10 +413,44 @@ def image_size(context: Context, node) -> tuple[int | None, int | None]:
     return (int(width * EMU_PER_PX) if width else None, int(height * EMU_PER_PX) if height else None)
 
 
+def browser_defaults(document) -> None:
+    """Paragraph defaults that lay text out as a browser does, which WPS otherwise does not.
+
+    WPS (like Word with East Asian layout) adds space between Chinese text and Latin letters or digits
+    (autoSpaceDE/autoSpaceDN) and snaps lines to the document grid; a browser does neither, so lines grow
+    longer and pages overflow. The template's 10 pt after and 1.15 lines become the browser's 0 and single.
+    """
+    styles = document.styles.element
+    defaults = styles.find(_qn("w:docDefaults"))
+    if defaults is None:
+        return
+    paragraph = defaults.find(_qn("w:pPrDefault"))
+    if paragraph is None:
+        paragraph = _element("w:pPrDefault")
+        defaults.append(paragraph)
+    props = paragraph.find(_qn("w:pPr"))
+    if props is None:
+        props = _element("w:pPr")
+        paragraph.append(props)
+    for tag in ("w:snapToGrid", "w:autoSpaceDE", "w:autoSpaceDN", "w:spacing"):
+        for old in props.findall(_qn(tag)):
+            props.remove(old)
+    # Schema order: ..., autoSpaceDE, autoSpaceDN, ..., snapToGrid, spacing, ... (ind, jc and later stay after).
+    later = [child for child in props if child.tag in {_qn(t) for t in ("w:ind", "w:jc", "w:rPr")}]
+    for child in later:
+        props.remove(child)
+    props.append(_element("w:autoSpaceDE", **{"w:val": "0"}))
+    props.append(_element("w:autoSpaceDN", **{"w:val": "0"}))
+    props.append(_element("w:snapToGrid", **{"w:val": "0"}))
+    props.append(_element("w:spacing", **{"w:after": "0", "w:line": "240", "w:lineRule": "auto"}))
+    props.extend(later)
+
+
 def apply_page(document, styled: StyledDocument | None) -> float:
     """@page size and margins on the first section; returns the text width in CSS px."""
     from docx.shared import Mm
 
+    browser_defaults(document)
     section = document.sections[0]
     page = styled.page if styled is not None else {}
     size = page.get("size", "").casefold().split()
@@ -414,6 +464,9 @@ def apply_page(document, styled: StyledDocument | None) -> float:
             section.page_width, section.page_height = Mm(width), Mm(height)
         elif len(lengths) == 2:
             section.page_width, section.page_height = Mm(lengths[0] * 25.4 / 96), Mm(lengths[1] * 25.4 / 96)
+    else:
+        # Without @page size the browser prints on A4 (html-render too), not the template's US Letter.
+        section.page_width, section.page_height = Mm(210), Mm(297)
     # Without @page margins, the browser prints with 10 mm margins (and html-render uses the same), not Word's
     # 1 inch; the document follows the browser.
     sides = {k: page.get(f"margin-{k}") for k in ("top", "right", "bottom", "left")}

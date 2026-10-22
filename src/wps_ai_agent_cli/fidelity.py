@@ -834,7 +834,30 @@ def _images_for(
     return None, f"no renderer for {suffix}"
 
 
-def score_layout(source: Path, target: Path, renderer: str = "auto") -> dict[str, Any]:
+def _save_pairs(first: list[Any], second: list[Any], folder: Path, scores: list[float]) -> list[str]:
+    """Each page pair side by side (source left, target right) as page-001.png ..., for looking at a score."""
+    from PIL import Image
+
+    folder.mkdir(parents=True, exist_ok=True)
+    written = []
+    for index in range(max(len(first), len(second))):
+        a = first[index] if index < len(first) else None
+        b = second[index] if index < len(second) else None
+        width = (a.width if a else b.width) + (b.width if b else a.width)
+        height = max(a.height if a else 0, b.height if b else 0)
+        sheet = Image.new("L", (width + 8, height), 128)
+        if a:
+            sheet.paste(a, (0, 0))
+        if b:
+            sheet.paste(b, ((a.width if a else b.width) + 8, 0))
+        score = f"-{scores[index]:.3f}" if index < len(scores) else "-missing"
+        path = folder / f"page-{index + 1:03d}{score}.png"
+        sheet.save(path)
+        written.append(str(path))
+    return written
+
+
+def score_layout(source: Path, target: Path, renderer: str = "auto", images_dir: Path | None = None) -> dict[str, Any]:
     try:
         import numpy as np
     except ImportError:
@@ -868,7 +891,9 @@ def score_layout(source: Path, target: Path, renderer: str = "auto") -> dict[str
             scores.append(round(ssim(np.asarray(a), np.asarray(b)), 4))
         missing = abs(len(first) - len(second))
         mean = sum(scores) / (len(scores) + missing) if scores else 0.0
+        images = _save_pairs(first, second, Path(images_dir), scores) if images_dir else None
         return {
+            **({"images": images} if images else {}),
             "status": "measured",
             "renderer": renderer,
             "score": round(mean, 4),
@@ -931,7 +956,11 @@ def fidelity_check(
     layout: bool = True,
     baseline: float | None = None,
     use_browser: bool = True,
+    layout_source: str | Path | None = None,
+    images_dir: str | Path | None = None,
 ) -> tuple[bool, dict[str, Any], list[dict[str, str]]]:
+    """Compare ``target`` with ``source``. ``layout_source`` renders another file for the layout side (a legacy
+    .doc whose text is compared through the .docx it was saved from); ``images_dir`` keeps the page pairs."""
     source, target = Path(source), Path(target)
     for path in (source, target):
         if not path.is_file():
@@ -988,7 +1017,12 @@ def fidelity_check(
     else:
         aspects["data"] = {"status": "not applicable"}
     if layout and "layout" in thresholds:
-        aspects["layout"] = score_layout(source, target, renderer)
+        aspects["layout"] = score_layout(
+            Path(layout_source) if layout_source else source,
+            target,
+            renderer,
+            Path(images_dir) if images_dir else None,
+        )
     else:
         aspects["layout"] = {"status": "not applicable" if "layout" not in thresholds else "skipped"}
     verdict: dict[str, Any] = {}

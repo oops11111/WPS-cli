@@ -1852,7 +1852,7 @@
       "setup": [
         "fidelity_fixtures"
       ],
-      "prompt": "Using the wps-agent MCP tools, convert the legacy Word file brief.doc in the current directory to brief.docx with WPS, and also save it as a PDF named brief.pdf in the same directory. Do not change brief.doc.",
+      "prompt": "Using the wps-agent MCP tools, convert the legacy Word file brief.doc in the current directory with WPS to a new Word document named legacy.docx in the same directory, and also save brief.doc as a PDF named legacy.pdf in the same directory. Do not change brief.doc.",
       "expected_tools": [
         "convert",
         "fidelity_check"
@@ -1864,7 +1864,7 @@
         },
         {
           "kind": "file_text",
-          "path": "brief.docx",
+          "path": "legacy.docx",
           "contains": [
             "技术服务合同",
             "第二条 费用与支付",
@@ -1873,7 +1873,7 @@
         },
         {
           "kind": "pdf_file",
-          "path": "brief.pdf",
+          "path": "legacy.pdf",
           "min_bytes": 1000
         }
       ]

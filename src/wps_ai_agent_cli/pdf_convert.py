@@ -56,6 +56,8 @@ class Item:
     size: float = 0.0
     columns: list[float] = field(default_factory=list)  # table column widths in points
     ruled: bool = True  # a table drawn with lines (else its columns were found from the text alignment)
+    bottom: float = 0.0
+    pitches: list[float] = field(default_factory=list)  # distances between the tops of its lines
 
 
 @dataclass
@@ -339,9 +341,9 @@ def analyse_pdf(path: str | Path, ocr: bool = False, images: bool = True) -> Ana
                 if rows and any(any(row) for row in rows):
                     edges = sorted({round(cell[0], 1) for cell in table.cells} | {round(table.bbox[2], 1)})
                     widths = [b - a for a, b in zip(edges, edges[1:], strict=False)]
-                    page.items.append(Item("table", rows=rows, top=table.bbox[1], columns=widths))
-            for top, _bottom, rows, widths in text_tables:
-                page.items.append(Item("table", rows=rows, top=top, columns=widths, ruled=False))
+                    page.items.append(Item("table", rows=rows, top=table.bbox[1], columns=widths, bottom=table.bbox[3]))
+            for top, bottom, rows, widths in text_tables:
+                page.items.append(Item("table", rows=rows, top=top, columns=widths, ruled=False, bottom=bottom))
             bounds.append((page, lines, [t.bbox for t in tables] + [(0, t[0], 0, t[1]) for t in text_tables]))
             if not plumber_page.chars:
                 page.scanned = True
@@ -353,8 +355,8 @@ def analyse_pdf(path: str | Path, ocr: bool = False, images: bool = True) -> Ana
                     words = _ocr_words(rendered, engine, page.width / rendered.width)
                     text_tables = []
                     lines = _lines_of(plumber_page, [], text_tables, words)
-                    for top, _bottom, rows, widths in text_tables:
-                        page.items.append(Item("table", rows=rows, top=top, columns=widths, ruled=False))
+                    for top, bottom, rows, widths in text_tables:
+                        page.items.append(Item("table", rows=rows, top=top, columns=widths, ruled=False, bottom=bottom))
                     page.ocr = True
             if images and not page.scanned:
                 for picture in plumber_page.images:
@@ -372,7 +374,9 @@ def analyse_pdf(path: str | Path, ocr: bool = False, images: bool = True) -> Ana
                         continue
                     buffer = io.BytesIO()
                     crop.save(buffer, format="PNG")
-                    page.items.append(Item("image", image=buffer.getvalue(), width=bbox[2] - bbox[0], top=bbox[1]))
+                    page.items.append(
+                        Item("image", image=buffer.getvalue(), width=bbox[2] - bbox[0], top=bbox[1], bottom=bbox[3])
+                    )
             raw.append((page, lines))
             pages.append(page)
     sizes = [line.size for _page, lines in raw for line in lines for _ in range(max(1, len(line.text)))]
@@ -431,8 +435,10 @@ def analyse_pdf(path: str | Path, ocr: bool = False, images: bool = True) -> Ana
                     and line.top - previous.bottom < line.size * 0.8
                 ):
                     current.text = _join(current.text, line.text)
+                    current.pitches.append(line.top - previous.top)
+                    current.bottom = line.bottom
                 else:
-                    current = Item("heading", line.text, level, top=line.top, size=line.size)
+                    current = Item("heading", line.text, level, top=line.top, size=line.size, bottom=line.bottom)
                     page.items.append(current)
             elif bullet is not None:
                 text = (
@@ -457,8 +463,12 @@ def analyse_pdf(path: str | Path, ocr: bool = False, images: bool = True) -> Ana
                 if continues and current is not None:
                     current.text = _join(current.text, line.text)
                     current.bold = current.bold and line.bold
+                    current.pitches.append(line.top - previous.top)
+                    current.bottom = line.bottom
                 else:
-                    current = Item("paragraph", line.text, top=line.top, bold=line.bold, size=line.size)
+                    current = Item(
+                        "paragraph", line.text, top=line.top, bold=line.bold, size=line.size, bottom=line.bottom
+                    )
                     page.items.append(current)
             previous = line
             body_lines.append((page, line))
@@ -500,33 +510,63 @@ def _table_html(rows: list[list[str]], widths: list[float] | None = None, ruled:
     return f"<table{border}>{cols}<thead><tr>{head}</tr></thead><tbody>{body}</tbody></table>"
 
 
-def _size_style(item: Item, body: float, extra: str = "") -> str:
+def _size_style(item: Item, body: float, extra: str = "", spacing: tuple[float, float] | None = None) -> str:
+    """The item's style: its size when it differs from the body text and, for a document, the space above it
+    and its line pitch as measured on the page (spacing), so that lines fall where the PDF has them."""
     parts = [extra] if extra else []
     if item.size and (item.kind == "heading" or abs(item.size - body) > 0.4):
         parts.append(f"font-size:{item.size:g}pt")
+    if spacing is not None:
+        before, pitch = spacing
+        parts.append(f"margin:{before:.1f}pt 0 0 0")
+        parts.append(f"line-height:{pitch:.1f}pt")
     return f' style="{";".join(parts)}"' if parts else ""
 
 
-def _items_html(items: list[Item], body: float = 12.0, page_break: bool = False) -> str:
+def _items_html(items: list[Item], body: float = 12.0, page_break: bool = False, top: float | None = None) -> str:
+    """The page's items as HTML. With ``top`` (the page's top margin, for DOCX output) each block keeps the gap
+    above it and its line pitch from the page, marked data-line-rule="exact" for html-editable."""
     out: list[str] = []
     in_list = False
+    previous_bottom = top
     for index, item in enumerate(items):
         extra = "break-before:page" if page_break and index == 0 else ""
+        spacing = None
+        exact = ""
+        if previous_bottom is not None and item.kind in {"heading", "paragraph", "list"}:
+            pitch = statistics.median(item.pitches) if item.pitches else (item.bottom - item.top) * 1.25
+            pitch = max(pitch, (item.size or body) * 1.05)
+            # Each line box is a pitch tall with its glyphs (about one font size) centred in it, so the space
+            # between two blocks is the gap between their glyphs less the box padding around them.
+            glyphs = item.size or (item.bottom - item.top)
+            before = max(0.0, item.top - previous_bottom - (pitch - glyphs))
+            spacing = (min(before, 72.0), pitch)
+            exact = ' data-line-rule="exact"'
+        if previous_bottom is not None and item.bottom:
+            previous_bottom = item.bottom
         if item.kind == "list":
             if not in_list:
                 out.append("<ul>")
                 in_list = True
             text = _escape(item.text)
-            out.append(f"<li{_size_style(item, body, extra)}>{f'<strong>{text}</strong>' if item.bold else text}</li>")
+            out.append(
+                f"<li{_size_style(item, body, extra, spacing)}{exact}>"
+                f"{f'<strong>{text}</strong>' if item.bold else text}</li>"
+            )
             continue
         if in_list:
             out.append("</ul>")
             in_list = False
         if item.kind == "heading":
-            out.append(f"<h{item.level}{_size_style(item, body, extra)}>{_escape(item.text)}</h{item.level}>")
+            out.append(
+                f"<h{item.level}{_size_style(item, body, extra, spacing)}{exact}>{_escape(item.text)}</h{item.level}>"
+            )
         elif item.kind == "paragraph":
             text = _escape(item.text)
-            out.append(f"<p{_size_style(item, body, extra)}>{f'<strong>{text}</strong>' if item.bold else text}</p>")
+            out.append(
+                f"<p{_size_style(item, body, extra, spacing)}{exact}>"
+                f"{f'<strong>{text}</strong>' if item.bold else text}</p>"
+            )
         elif item.kind == "table":
             if extra:
                 out.append(f'<p style="{extra};font-size:1pt"> </p>')
@@ -608,7 +648,8 @@ def pdf_to_office(
             parts.append(f'<div data-page="header">{_escape(_display(analysis.headers[0]))}</div>')
         if analysis.footers:
             parts.append(f'<div data-page="footer">{_escape(_display(analysis.footers[0]))}</div>')
-        parts += [_items_html(page.items, analysis.body_size, page.number > 1) for page in pages]
+        margin_top = analysis.margins[0] if analysis.margins else None
+        parts += [_items_html(page.items, analysis.body_size, page.number > 1, margin_top) for page in pages]
         body = "\n".join(parts)
     css = ""
     if pages and suffix == ".docx":
