@@ -562,7 +562,8 @@ def _table_html(
         for index, row in enumerate(rows[1:], start=1)
     )
     border = ' border="1"' if ruled else ""
-    return f"<table{border}>{cols}<thead>{tr(0)}{head}</tr></thead><tbody>{body}</tbody></table>"
+    # The row heights are the PDF's row pitch: no border-spacing between the rows on top of them.
+    return f'<table{border} style="border-collapse:collapse">{cols}<thead>{tr(0)}{head}</tr></thead><tbody>{body}</tbody></table>'
 
 
 def _size_style(

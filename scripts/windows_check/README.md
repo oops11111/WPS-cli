@@ -26,6 +26,8 @@ python scripts/windows_check/run_windows_check.py --installed undo
 | `close-diag` | 先做 `prereq`（不问 `claude`），再查常规打开的工作簿为什么关不上（P8-005）：每种关法都新写一个工作簿，用注册的打开命令打开（和双击一样），再用这一种方法关：`Close()`、`Close($false)`、三个参数都给的 `Close`、先设 `Saved=$true` 再 `Close()`、经 `$app.Workbooks.Item(名字)` 拿到的对象、Running Object Table 里登记的对象本身、绕过 PowerShell COM 适配层的 `InvokeMember`、关它唯一的窗口；先在另一个进程里写入 A1 并保存、再 `Close()` 或 `Close($false)`（P7-007 关不上的工作簿就是刚被写入保存过的）；以及产品自己的路径：备份、写入并保存、再 `restore-backup --close-in-wps`，看它是否关上并恢复成功；另用 `/Automation` 启动做对照组（`Close()`、`Close($false)`）。记录脚本怎么连上的、工作簿在不在 Running Object Table 里、调用失败时最内层异常的 HRESULT 和消息、两秒后 `Workbooks` 里还有没有它、`open-documents` 还列不列出它，以及之后的 WPS 进程和命令行（命令行带 `recover` 的是恢复实例）。之后用 runner 的清理关掉剩下的、结束这次启动的进程。只动它自己写的工作簿（`workbook_close.py`）。`--method` 和 `--launch` 可以只跑一部分 |
 | `wheel` | 从 Release 下载 wheel，与 Release 列出的 SHA-256 对比；在新的虚拟环境里只装它，不带 `PYTHONPATH`，在仓库以外跑 `inspect-env` 和 safe 档。`--source pypi` 改为用 pip 从 PyPI 下载同一版本的 wheel，SHA-256 仍要和 Release 列出的一致（P12-005） |
 
+`odt_probe.py --out <目录>`（Phase 13，B-odt-docx）不经 runner，单独运行：把 WPS 自己写的 ODT、LibreOffice 的 `brief.odt`、去掉缩略图和设置的同一文件，以及三份手写的最小 ODT 各转一次 docx（每次 60 秒超时，之间结束 WPS），结果写到 `<目录>/odt-probe.json`，说明 WPS 打开哪些 ODT 时会弹“文件损坏提示”。
+
 放在子命令前面的 `--installed` 让检查和评测 runner 用当前 Python 里安装的 `wps-ai-agent-cli`（比如从 PyPI 装的），不再把仓库的 `src/` 加进路径或 `PYTHONPATH`；`prereq` 会多一项 `installed package`，要求包来自 `site-packages`。`RESULTS.md` 开头的 `Package` 一行写明被测包的版本和路径。干净账户上的用法见 `docs/COMPATIBILITY_MATRIX.md` 的“干净环境”一节（P12-007）。
 
 必需项没通过时，脚本不跑任何检查，只写出前提检查的结果。确实需要照跑时加 `--force`，结果里会照实记录哪一项没通过。

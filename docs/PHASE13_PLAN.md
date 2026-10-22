@@ -301,6 +301,29 @@ D 组只考核文字和数据（F5）：pptx → docx 的结构 70% 和动画 0%
 - 放映：`training.html` 的外观 pptx 仍然正确。
 - 结论：仍未达标的是 A 组 5 份 docx 的版面（0.833–0.895，要求 0.90）和 `B-odt-docx`。ODF 1.2 没有消除 WPS 的损坏提示；下一步可以用 WPS 自己保存的 ODT、自动点“继续打开”，或按决定 9 记为不支持。另需修复超时窗口截图回归。P13-008、P13-013、P13-018 仍不能算完成。
 
+### Windows 检查结果（第六轮，2026-10-22，`f8ed7bd`）
+
+结果在 `scripts/windows_check/results/20261022T115711Z-f8ed7bd-fidelity/` 和相邻的两个 `*-eval` 目录。
+
+- 保真度（WPS）：A 组 docx 0.8328–0.8951（report 0.8927、contract 0.8328、newsletter 0.8951、manual 0.8770、pdfsource 0.8853），仍都低于 0.90；其余各组和 B 组（除 `B-odt-docx`）都通过。
+- `B-odt-docx`：ODF 1.2 的 `brief.odt` 仍弹“文件损坏提示”（“当前文档无法正确读取，继续打开将显示乱码”）。
+- #125 的窗口截图在 PowerShell 7 上编译失败（CS1069），超时信息里没有窗口列表。
+- 评测：两组都是 5/5。
+
+### 第六次 Windows 检查之后的修复（待第七次检查）
+
+| 发现 | 对照图里看到的 | 修复 |
+| --- | --- | --- |
+| 超时时没有窗口列表 | C# 类型引用 `System.Drawing.Graphics`，PowerShell 7 上找不到 | C# 只声明 `PrintWindow(hWnd, hdc, flags)`，设备上下文在 PowerShell 里取 |
+| `B-odt-docx` 仍弹“文件损坏提示” | ODF 版本不是原因 | 新增 `scripts/windows_check/odt_probe.py`：WPS 自己写的 ODT、LibreOffice 的 ODT、去掉附加部件的 ODT 和手写的最小 ODT 各转一次，看 WPS 接受哪种，再决定换夹具还是按决定 9 记为这一版 WPS 不支持 |
+| manual 的代码块两行之间多一空行 | Windows 上检出的夹具是 CRLF，`\r` 和 `\n` 各成一个换行 | 保留空白的文字先把 CRLF、CR 归一为一个换行 |
+| manual 的代码块、注意框没有内边距 | 段落边框紧贴文字，底色只到文字 | 内边距写成段落边框与文字的距离（只有底色时用同色边框），文字按自身内边距和边框缩进，盒子左边缘留在浏览器的位置 |
+| report 的项目符号列表文字偏左 16 px | 模板的列表编号在 360 缇有制表位，窄的项目符号停在那里 | 列表段落清除编号的制表位，在缩进处设一个 |
+| report 的表格每行矮 2 px | 默认 `border-spacing: 2px` 没有映射 | 分离边框的表格把行间距算进行高；PDF 转来的表格标为合并边框 |
+| 代码块的 normal 行高偏大 | 测量用的样本带汉字，回退字体让纯拉丁文的行变高（Consolas 17 px，浏览器 14 px） | 元素文字里有汉字才用带汉字的样本 |
+
+本地 LibreOffice 基线已重写：newsletter 0.886 → 0.901，report 0.893 → 0.896，contract 0.791 → 0.804；manual 0.863 → 0.852（本地替代字体让窄列里的 “WPS Office” 换行，WPS 上两边都是雅黑）。
+
 ## 任务拆分
 
 | 任务 | 里程碑 | 对应标准 | 内容 | 在哪做 |

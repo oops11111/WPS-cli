@@ -419,6 +419,13 @@ class WpsConvertTests(_Workspace):
         self.assertEqual(run.call_count, 2)
         sleep.assert_called_once()
 
+    def test_the_window_capture_type_compiles_without_system_drawing(self):
+        # Windows check on f8ed7bd: a Graphics parameter in the C# type failed to compile on PowerShell 7 (CS1069).
+        script = wps_convert._WINDOW_TITLES_SCRIPT
+        csharp = script.split("Add-Type @'", 1)[1].split("'@", 1)[0]
+        self.assertNotIn("System.Drawing", csharp)
+        self.assertIn("$graphics.GetHdc()", script)
+
     def test_a_file_wps_still_holds_is_retried_and_a_timeout_says_where_wps_was(self):
         held = {"ok": False, "errors": [{"code": "DOCUMENT_HELD_OPEN", "message": "held"}], "data": {}}
         timeout = {"ok": False, "errors": [{"code": "COM_OPERATION_TIMEOUT", "message": "timed out."}], "data": {}}
@@ -577,6 +584,31 @@ class WpsLayoutTests(_Workspace):
         before, after = Document(self.work / "gap.docx").paragraphs[:2]
         self.assertAlmostEqual(before.paragraph_format.space_after.pt, 24, delta=0.1)
         self.assertAlmostEqual(after.paragraph_format.space_before.pt, 30, delta=0.1)
+
+    def test_code_boxes_and_bullets_match_the_browser(self):
+        # Windows check on f8ed7bd: CRLF code lines got a blank line between them, padded boxes had no padding,
+        # bullet text stopped at the template's 360-twip tab, and rows lost the 2 px border-spacing.
+        w = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
+        (self.work / "box.html").write_bytes(
+            b"<html><head><style>pre{background:#f2f2f2;padding:6px} .warn{border:1px solid #e06666;padding:8px}"
+            b"</style></head><body><pre>one\r\ntwo</pre><p class='warn'>note</p><ul><li>item</li></ul>"
+            b"<table><tr style='height:20px'><td>cell</td></tr></table></body></html>"
+        )
+        convert_html_to_office(self.work / "box.html", self.work / "box.docx", "docx", use_browser=False)
+        document = Document(self.work / "box.docx")
+        code, note, item = document.paragraphs[:3]
+        self.assertEqual(len(code._p.findall(f".//{w}br")), 1)
+        self.assertEqual(code.text, "one\ntwo")
+        code_border = code._p.pPr.find(f"{w}pBdr/{w}left")
+        self.assertEqual(code_border.get(f"{w}color"), "F2F2F2")  # an invisible border carries the padding
+        self.assertEqual(code_border.get(f"{w}space"), "4")  # 6 px = 4.5 pt, rounded
+        self.assertAlmostEqual(code.paragraph_format.left_indent.pt, 4.5, delta=0.01)  # the 6 px padding
+        self.assertEqual(note._p.pPr.find(f"{w}pBdr/{w}top").get(f"{w}space"), "6")
+        self.assertAlmostEqual(note.paragraph_format.left_indent.pt, 6.75, delta=0.01)  # 8 px padding + 1 px border
+        tabs = [(t.get(f"{w}val"), t.get(f"{w}pos")) for t in item._p.pPr.findall(f"{w}tabs/{w}tab")]
+        self.assertIn(("clear", "360"), tabs)
+        self.assertIn(("left", str(item.paragraph_format.left_indent.twips)), tabs)
+        self.assertAlmostEqual(document.tables[0].rows[0].height.pt, 16.5, delta=0.1)  # 20 px + 2 px spacing
 
     def test_list_text_starts_where_the_browser_puts_it(self):
         convert_html_to_office(self.work / "contract.html", self.work / "contract.docx", "docx")
