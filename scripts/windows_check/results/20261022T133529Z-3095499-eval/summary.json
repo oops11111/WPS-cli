@@ -1,0 +1,2975 @@
+{
+  "generated_at": "20261022T134541Z",
+  "claude_cli": "claude",
+  "model": "CLI default",
+  "wps_launch": "default",
+  "passed": 5,
+  "total": 5,
+  "skipped": 0,
+  "wps_tool_calls": 92,
+  "wps_tool_errors": 5,
+  "off_path_calls": 60,
+  "off_path_calls_after_write": 0,
+  "wrong_tool_calls": 0,
+  "unverified_writes": 0,
+  "tasks_without_expected_tools": [],
+  "results": [
+    {
+      "id": "convert-pdf-to-docx",
+      "passed": true,
+      "repeat": 3,
+      "min_passes": 2,
+      "passes": 3,
+      "pass_rate": 1.0,
+      "metrics": {
+        "wps_tool_calls": 19,
+        "wps_tool_errors": 0,
+        "off_path_calls": 14,
+        "off_path_tools": [
+          "inspect_env",
+          "register_document",
+          "snapshot_document",
+          "writer_structure",
+          "writer_table_write"
+        ],
+        "off_path_calls_before_write": 14,
+        "off_path_calls_after_write": 0,
+        "wrong_tool_calls": null,
+        "unverified_writes": 0
+      },
+      "runs": [
+        {
+          "id": "convert-pdf-to-docx",
+          "passed": true,
+          "agent": {
+            "ran": true,
+            "exit_code": 1,
+            "is_error": true,
+            "num_turns": 16,
+            "duration_ms": 46481,
+            "total_cost_usd": 0.6241099999999999,
+            "result_excerpt": "",
+            "stderr_excerpt": "",
+            "tool_calls": [
+              {
+                "name": "PowerShell",
+                "input": {
+                  "command": "Get-ChildItem -Force | Select-Object Name, Length, LastWriteTime",
+                  "description": "List files in working directory"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "PowerShell",
+                "input": {
+                  "command": "Get-FileHash -Algorithm SHA256 supplier.pdf, supplier_scanned.pdf | Format-List",
+                  "description": "Compute SHA256 hashes of PDFs"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "PowerShell",
+                "input": {
+                  "command": "Get-FileHash -Algorithm SHA256 -Path supplier.pdf | Format-List",
+                  "description": "Compute SHA256 hash of supplier.pdf"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Read",
+                "input": {
+                  "file_path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-1\\convert-pdf-to-docx\\supplier.pdf",
+                  "pages": "1-5"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_inspect_env",
+                "input": {},
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_convert",
+                "input": {
+                  "input": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-1\\convert-pdf-to-docx\\supplier.pdf",
+                  "output": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-1\\convert-pdf-to-docx\\supplier.docx",
+                  "check": true
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_register_document",
+                "input": {
+                  "component": "writer",
+                  "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-1\\convert-pdf-to-docx\\supplier.docx"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_writer_structure",
+                "input": {
+                  "document_id": "doc_7440b7199701982b",
+                  "section": "all",
+                  "limit": 100
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_snapshot_document",
+                "input": {
+                  "document_id": "doc_7440b7199701982b"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "PowerShell",
+                "input": {
+                  "command": "Get-FileHash -Algorithm SHA256 -Path supplier.pdf | Format-List",
+                  "description": "Recompute SHA256 hash of supplier.pdf"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "PowerShell",
+                "input": {
+                  "command": "python -I -c \"import docx; d=docx.Document(r'C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-1\\convert-pdf-to-docx\\supplier.docx'); print('tables:',len(d.tables)); [print('TABLE',i+1,'rows',len(t.rows),'cols',len(t.columns),'| header:',[c.text for c in t.rows[0].cells],'| row1:',[c.text for c in t.rows[1].cells]) for i,t in enumerate(d.tables)]; print('styles:',sorted({p.style.name for p in d.paragraphs}))\"",
+                  "description": "Inspect tables and styles in supplier.docx"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_writer_table_write",
+                "input": {
+                  "document_id": "doc_7440b7199701982b",
+                  "table_index": 1,
+                  "row": 1,
+                  "column": 1,
+                  "text": "x",
+                  "dry_run": true
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_writer_table_write",
+                "input": {
+                  "column": 1,
+                  "document_id": "doc_7440b7199701982b",
+                  "dry_run": true,
+                  "row": 1,
+                  "table_index": 2,
+                  "text": "x"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_fidelity_check",
+                "input": {
+                  "source": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-1\\convert-pdf-to-docx\\supplier.pdf",
+                  "target": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-1\\convert-pdf-to-docx\\supplier.docx"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "PowerShell",
+                "input": {
+                  "command": "Get-ChildItem -Path supplier.docx | Select-Object Name, Length, LastWriteTime; Get-FileHash -Algorithm SHA256 -Path supplier.docx | Select-Object Hash",
+                  "description": "Show output file details and hash"
+                },
+                "is_error": false,
+                "error_codes": []
+              }
+            ]
+          },
+          "metrics": {
+            "wps_tool_calls": 8,
+            "wps_tool_errors": 0,
+            "other_tool_calls": 7,
+            "tools_used": [
+              "convert",
+              "fidelity_check",
+              "inspect_env",
+              "register_document",
+              "snapshot_document",
+              "writer_structure",
+              "writer_table_write"
+            ],
+            "expected_tools": [
+              "convert",
+              "fidelity_check"
+            ],
+            "off_path_calls": 6,
+            "off_path_tools": [
+              "inspect_env",
+              "register_document",
+              "snapshot_document",
+              "writer_structure",
+              "writer_table_write"
+            ],
+            "off_path_calls_before_write": 6,
+            "off_path_calls_after_write": 0,
+            "wrong_tool_calls": null,
+            "unverified_writes": 0
+          },
+          "checks": [
+            {
+              "kind": "tool_called",
+              "passed": true,
+              "detail": "1 matching call(s)",
+              "tool": "convert"
+            },
+            {
+              "kind": "fidelity",
+              "passed": true,
+              "detail": {
+                "text": true,
+                "data": true
+              },
+              "source": "supplier.pdf",
+              "path": "supplier.docx"
+            },
+            {
+              "kind": "file_text",
+              "passed": true,
+              "detail": "ok",
+              "path": "supplier.docx",
+              "contains": [
+                "供应商评估报告",
+                "二、评分明细",
+                "华星电子",
+                "东方精密需在 30 天内提交交付改进计划"
+              ]
+            },
+            {
+              "kind": "docx_table_cell",
+              "passed": true,
+              "detail": "91.7",
+              "path": "supplier.docx",
+              "table": 1,
+              "row": 2,
+              "column": 5,
+              "text": "91.7"
+            }
+          ]
+        },
+        {
+          "id": "convert-pdf-to-docx",
+          "passed": true,
+          "agent": {
+            "ran": true,
+            "exit_code": 0,
+            "is_error": false,
+            "num_turns": 11,
+            "duration_ms": 26145,
+            "total_cost_usd": 0.500736,
+            "result_excerpt": "Done. `supplier.pdf` was converted in place to `supplier.docx` (no trial copies, source untouched).\n\n**Result** — `C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-2\\convert-pdf-to-docx\\supplier.docx` (39,767 bytes, editable DOCX, route `pdf-to-office`, 2 pages)\n\nStructure preserved, verified from the OOXML:\n- **Headings — 5**: `供应商评估报告` (Heading 1), plus Heading 2: `一、评估结论`, `二、评分明细`, `三、整改要求`, `四、下季度计划`\n- **Lists — 3 bullet items** under 一、评估结论 (styled `Lis",
+            "stderr_excerpt": "",
+            "tool_calls": [
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "ls -la \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261022T133529Z-3095499-eval/run-2/convert-pdf-to-docx\"",
+                  "description": "List files in working directory"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_convert",
+                "input": {
+                  "input": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-2\\convert-pdf-to-docx\\supplier.pdf",
+                  "output": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-2\\convert-pdf-to-docx\\supplier.docx",
+                  "check": true
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_register_document",
+                "input": {
+                  "component": "writer",
+                  "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-2\\convert-pdf-to-docx\\supplier.docx"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "cd \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261022T133529Z-3095499-eval/run-2/convert-pdf-to-docx\" && sha256sum supplier.pdf && ls -la supplier.pdf supplier.docx",
+                  "description": "Hash source PDF and list output"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_writer_structure",
+                "input": {
+                  "document_id": "doc_4e4a1b8fcd719542",
+                  "section": "all",
+                  "limit": 50
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_snapshot_document",
+                "input": {
+                  "document_id": "doc_4e4a1b8fcd719542"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "cd \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261022T133529Z-3095499-eval/run-2/convert-pdf-to-docx\" && unzip -p supplier.docx word/document.xml > /tmp/doc.xml && grep -o \"<w:tbl>\" /tmp/doc.xml | wc -l && grep -o \"<w:numPr>\" /tmp/doc.xml | wc -l",
+                  "description": "Count tables and numbered-list markers in docx XML"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "PowerShell",
+                "input": {
+                  "command": "Add-Type -AssemblyName System.IO.Compression.FileSystem; $z=[System.IO.Compression.ZipFile]::OpenRead(\"C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-2\\convert-pdf-to-docx\\supplier.docx\"); $e=$z.Entries | Where-Object {$_.FullName -eq \"word/document.xml\"}; $r=New-Object System.IO.StreamReader($e.Open()); $x=$r.ReadToEnd(); $r.Close(); $z.Dispose(); \"tables=\" + ([regex]::Matches($x,\"<w:tbl>\")).Count; \"numPr=\" + ([regex]::Matches($x,\"<w:numPr>\")).Count",
+                  "description": "Count tables and list numbering in generated DOCX"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "PowerShell",
+                "input": {
+                  "command": "$z=[System.IO.Compression.ZipFile]::OpenRead(\"C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-2\\convert-pdf-to-docx\\supplier.docx\"); $e=$z.Entries | Where-Object {$_.FullName -eq \"word/document.xml\"}; $r=New-Object System.IO.StreamReader($e.Open()); $x=$r.ReadToEnd(); $r.Close(); $z.Dispose(); Write-Output (\"tables=\" + ([regex]::Matches($x,\"<w:tbl>\")).Count); Write-Output (\"numPr=\" + ([regex]::Matches($x,\"<w:numPr>\")).Count); Write-Output (\"rows=\" + ([regex]::Matches($x,\"<w:tr[ >]\")).Count)",
+                  "description": "Count tables, rows and list numbering in generated DOCX"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "python -I -c \"import zipfile,re,sys; p=r'C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-2\\convert-pdf-to-docx\\supplier.docx'; x=zipfile.ZipFile(p).read('word/document.xml').decode('utf-8'); print('tables',x.count('<w:tbl>')); print('rows',len(re.findall(r'<w:tr[ >]',x))); print('numPr',x.count('<w:numPr>'))\"",
+                  "description": "Count tables, rows and list markers in DOCX"
+                },
+                "is_error": true,
+                "error_codes": []
+              }
+            ]
+          },
+          "metrics": {
+            "wps_tool_calls": 4,
+            "wps_tool_errors": 0,
+            "other_tool_calls": 6,
+            "tools_used": [
+              "convert",
+              "register_document",
+              "snapshot_document",
+              "writer_structure"
+            ],
+            "expected_tools": [
+              "convert",
+              "fidelity_check"
+            ],
+            "off_path_calls": 3,
+            "off_path_tools": [
+              "register_document",
+              "snapshot_document",
+              "writer_structure"
+            ],
+            "off_path_calls_before_write": 3,
+            "off_path_calls_after_write": 0,
+            "wrong_tool_calls": null,
+            "unverified_writes": 0
+          },
+          "checks": [
+            {
+              "kind": "tool_called",
+              "passed": true,
+              "detail": "1 matching call(s)",
+              "tool": "convert"
+            },
+            {
+              "kind": "fidelity",
+              "passed": true,
+              "detail": {
+                "text": true,
+                "data": true
+              },
+              "source": "supplier.pdf",
+              "path": "supplier.docx"
+            },
+            {
+              "kind": "file_text",
+              "passed": true,
+              "detail": "ok",
+              "path": "supplier.docx",
+              "contains": [
+                "供应商评估报告",
+                "二、评分明细",
+                "华星电子",
+                "东方精密需在 30 天内提交交付改进计划"
+              ]
+            },
+            {
+              "kind": "docx_table_cell",
+              "passed": true,
+              "detail": "91.7",
+              "path": "supplier.docx",
+              "table": 1,
+              "row": 2,
+              "column": 5,
+              "text": "91.7"
+            }
+          ]
+        },
+        {
+          "id": "convert-pdf-to-docx",
+          "passed": true,
+          "agent": {
+            "ran": true,
+            "exit_code": 0,
+            "is_error": false,
+            "num_turns": 11,
+            "duration_ms": 25109,
+            "total_cost_usd": 0.516352,
+            "result_excerpt": "Done. `supplier.docx` was created in the working directory from `supplier.pdf` using the `wps_agent_convert` tool (route: `pdf-to-office`, editable mapping backend).\n\n**Conversion result**\n- 2 pages → a single editable DOCX (39.8 KB), no OCR needed, no warnings\n- **Headings (5):** 供应商评估报告 (Heading 1); 一、评估结论 / 二、评分明细 / 三、整改要求 / 四、下季度计划 (Heading 2)\n- **Lists (3):** the three bullets under 一、评估结论, preserved with the *List Bullet* style\n- **Tables (2):**\n  - 6 rows × 5 cols — 供应商 / 交付 / 质量 / 价格 / 总",
+            "stderr_excerpt": "",
+            "tool_calls": [
+              {
+                "name": "mcp__wps-agent__wps_agent_convert",
+                "input": {
+                  "input": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-3\\convert-pdf-to-docx\\supplier.pdf",
+                  "output": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-3\\convert-pdf-to-docx\\supplier.docx"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_fidelity_check",
+                "input": {
+                  "source": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-3\\convert-pdf-to-docx\\supplier.pdf",
+                  "target": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-3\\convert-pdf-to-docx\\supplier.docx",
+                  "no_layout": true
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_register_document",
+                "input": {
+                  "component": "writer",
+                  "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-3\\convert-pdf-to-docx\\supplier.docx"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_writer_structure",
+                "input": {
+                  "document_id": "doc_ab4dd1adabc1d684",
+                  "section": "all",
+                  "limit": 50
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "PowerShell",
+                "input": {
+                  "command": "Get-ChildItem -Path . -Filter \"supplier.*\" | Select-Object Name, Length, LastWriteTime | Format-Table -AutoSize; Get-FileHash -Algorithm SHA256 .\\supplier.pdf, .\\supplier.docx | Format-Table -AutoSize",
+                  "description": "List supplier files and compute their SHA-256 hashes"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "PowerShell",
+                "input": {
+                  "command": "Get-ChildItem -Path . -Filter \"supplier.*\" | Select-Object Name, Length, LastWriteTime | Format-Table -AutoSize; Get-FileHash -Algorithm SHA256 .\\supplier.pdf | Format-List; Get-FileHash -Algorithm SHA256 .\\supplier.docx | Format-List",
+                  "description": "List supplier files and compute each file hash"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_snapshot_document",
+                "input": {
+                  "document_id": "doc_ab4dd1adabc1d684"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_writer_table_write",
+                "input": {
+                  "column": 1,
+                  "document_id": "doc_ab4dd1adabc1d684",
+                  "dry_run": true,
+                  "row": 1,
+                  "table_index": 1,
+                  "text": "x"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_writer_table_write",
+                "input": {
+                  "column": 1,
+                  "document_id": "doc_ab4dd1adabc1d684",
+                  "dry_run": true,
+                  "row": 1,
+                  "table_index": 2,
+                  "text": "x"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "PowerShell",
+                "input": {
+                  "command": "Get-FileHash -Algorithm SHA256 .\\supplier.pdf | Select-Object Hash; Get-FileHash -Algorithm SHA256 .\\supplier.docx | Select-Object Hash; Get-ChildItem -Path . -Filter \"*supplier*\" | Select-Object Name, Length, LastWriteTime | Format-Table -AutoSize",
+                  "description": "Recheck hashes to confirm files unchanged after dry-runs"
+                },
+                "is_error": false,
+                "error_codes": []
+              }
+            ]
+          },
+          "metrics": {
+            "wps_tool_calls": 7,
+            "wps_tool_errors": 0,
+            "other_tool_calls": 3,
+            "tools_used": [
+              "convert",
+              "fidelity_check",
+              "register_document",
+              "snapshot_document",
+              "writer_structure",
+              "writer_table_write"
+            ],
+            "expected_tools": [
+              "convert",
+              "fidelity_check"
+            ],
+            "off_path_calls": 5,
+            "off_path_tools": [
+              "register_document",
+              "snapshot_document",
+              "writer_structure",
+              "writer_table_write"
+            ],
+            "off_path_calls_before_write": 5,
+            "off_path_calls_after_write": 0,
+            "wrong_tool_calls": null,
+            "unverified_writes": 0
+          },
+          "checks": [
+            {
+              "kind": "tool_called",
+              "passed": true,
+              "detail": "1 matching call(s)",
+              "tool": "convert"
+            },
+            {
+              "kind": "fidelity",
+              "passed": true,
+              "detail": {
+                "text": true,
+                "data": true
+              },
+              "source": "supplier.pdf",
+              "path": "supplier.docx"
+            },
+            {
+              "kind": "file_text",
+              "passed": true,
+              "detail": "ok",
+              "path": "supplier.docx",
+              "contains": [
+                "供应商评估报告",
+                "二、评分明细",
+                "华星电子",
+                "东方精密需在 30 天内提交交付改进计划"
+              ]
+            },
+            {
+              "kind": "docx_table_cell",
+              "passed": true,
+              "detail": "91.7",
+              "path": "supplier.docx",
+              "table": 1,
+              "row": 2,
+              "column": 5,
+              "text": "91.7"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "convert-gbk-csv-to-xlsx",
+      "passed": true,
+      "repeat": 3,
+      "min_passes": 2,
+      "passes": 3,
+      "pass_rate": 1.0,
+      "metrics": {
+        "wps_tool_calls": 17,
+        "wps_tool_errors": 0,
+        "off_path_calls": 14,
+        "off_path_tools": [
+          "inspect_env",
+          "register_document",
+          "scan_dir",
+          "snapshot_document",
+          "spreadsheet_inspect",
+          "spreadsheet_read",
+          "validate_document"
+        ],
+        "off_path_calls_before_write": 14,
+        "off_path_calls_after_write": 0,
+        "wrong_tool_calls": null,
+        "unverified_writes": 0
+      },
+      "runs": [
+        {
+          "id": "convert-gbk-csv-to-xlsx",
+          "passed": true,
+          "agent": {
+            "ran": true,
+            "exit_code": 0,
+            "is_error": false,
+            "num_turns": 18,
+            "duration_ms": 54062,
+            "total_cost_usd": 0.6647048,
+            "result_excerpt": "Done. `sales.xlsx` was created in the working directory from `sales_gbk.csv`.\n\n**How it was done** — `wps_agent_convert` with an explicit `encoding: gbk` and `delimiter: ,`, route `csv-to-xlsx`, sheet `sales_gbk`, dimensions `A1:F4`.\n\n**Verified contents** (read back with `spreadsheet_read` and cross-checked against a live WPS recalculation with `spreadsheet_inspect`):\n\n| | A 地区 | B 门店编号 | C 销量 | D 增长率 | E 销售额 | F 备注 |\n|---|---|---|---|---|---|---|\n| 1 | 地区 | 门店编号 | 销量 | 增长率 | 销售额 | 备注 |\n| 2 | 华",
+            "stderr_excerpt": "",
+            "tool_calls": [
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "ls -la \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261022T133529Z-3095499-eval/run-1/convert-gbk-csv-to-xlsx\"",
+                  "description": "List files in working directory"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "cd \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261022T133529Z-3095499-eval/run-1/convert-gbk-csv-to-xlsx\" && xxd sales_gbk.csv | head -20",
+                  "description": "Inspect CSV bytes"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "xxd \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261022T133529Z-3095499-eval/run-1/convert-gbk-csv-to-xlsx/sales_gbk.csv\"",
+                  "description": "Hex dump the CSV file"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "Read",
+                "input": {
+                  "file_path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-1\\convert-gbk-csv-to-xlsx\\api.md"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "PowerShell",
+                "input": {
+                  "command": "$p = \"C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-1\\convert-gbk-csv-to-xlsx\\sales_gbk.csv\"; $bytes = [System.IO.File]::ReadAllBytes($p); Write-Output \"Length: $($bytes.Length)\"; Write-Output \"First bytes: $(($bytes[0..7] | ForEach-Object { $_.ToString('X2') }) -join ' ')\"; Write-Output \"--- GBK decoded ---\"; [System.Text.Encoding]::GetEncoding(936).GetString($bytes); Write-Output \"--- UTF8 decoded ---\"; [System.Text.Encoding]::UTF8.GetString($bytes)",
+                  "description": "Read CSV bytes and decode as GBK and UTF-8"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_inspect_env",
+                "input": {},
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_scan_dir",
+                "input": {
+                  "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-1\\convert-gbk-csv-to-xlsx"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Read",
+                "input": {
+                  "file_path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-1\\convert-gbk-csv-to-xlsx\\sales_gbk.csv"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_convert",
+                "input": {
+                  "input": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-1\\convert-gbk-csv-to-xlsx\\sales_gbk.csv",
+                  "output": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-1\\convert-gbk-csv-to-xlsx\\sales.xlsx",
+                  "encoding": "gbk",
+                  "delimiter": ",",
+                  "check": true
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_register_document",
+                "input": {
+                  "component": "spreadsheets",
+                  "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-1\\convert-gbk-csv-to-xlsx\\sales.xlsx"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_spreadsheet_read",
+                "input": {
+                  "document_id": "doc_06b3da2456cd648c",
+                  "range": "A1:F4"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_spreadsheet_inspect",
+                "input": {
+                  "document_id": "doc_06b3da2456cd648c",
+                  "range": "A1:F4"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_validate_document",
+                "input": {
+                  "cell": "B2",
+                  "document_id": "doc_06b3da2456cd648c",
+                  "equals": "007"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_snapshot_document",
+                "input": {
+                  "document_id": "doc_06b3da2456cd648c"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "PowerShell",
+                "input": {
+                  "command": "$p = \"C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-1\\convert-gbk-csv-to-xlsx\\sales.xlsx\"; Add-Type -AssemblyName System.IO.Compression.FileSystem; $z = [System.IO.Compression.ZipFile]::OpenRead($p); $e = $z.GetEntry(\"xl/worksheets/sheet1.xml\"); $r = New-Object System.IO.StreamReader($e.Open()); $xml = $r.ReadToEnd(); $r.Close(); $z.Dispose(); Write-Output $xml.Substring($xml.IndexOf(\"<sheetData\"))",
+                  "description": "Extract worksheet XML from the xlsx"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "unzip -p \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261022T133529Z-3095499-eval/run-1/convert-gbk-csv-to-xlsx/sales.xlsx\" xl/worksheets/sheet1.xml",
+                  "description": "Print worksheet XML from the xlsx"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "PowerShell",
+                "input": {
+                  "command": "Get-Item \"C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-1\\convert-gbk-csv-to-xlsx\\sales.xlsx\" | Format-List Name, Length, LastWriteTime",
+                  "description": "Confirm the output workbook exists on disk"
+                },
+                "is_error": false,
+                "error_codes": []
+              }
+            ]
+          },
+          "metrics": {
+            "wps_tool_calls": 8,
+            "wps_tool_errors": 0,
+            "other_tool_calls": 9,
+            "tools_used": [
+              "convert",
+              "inspect_env",
+              "register_document",
+              "scan_dir",
+              "snapshot_document",
+              "spreadsheet_inspect",
+              "spreadsheet_read",
+              "validate_document"
+            ],
+            "expected_tools": [
+              "convert",
+              "fidelity_check"
+            ],
+            "off_path_calls": 7,
+            "off_path_tools": [
+              "inspect_env",
+              "register_document",
+              "scan_dir",
+              "snapshot_document",
+              "spreadsheet_inspect",
+              "spreadsheet_read",
+              "validate_document"
+            ],
+            "off_path_calls_before_write": 7,
+            "off_path_calls_after_write": 0,
+            "wrong_tool_calls": null,
+            "unverified_writes": 0
+          },
+          "checks": [
+            {
+              "kind": "tool_called",
+              "passed": true,
+              "detail": "1 matching call(s)",
+              "tool": "convert"
+            },
+            {
+              "kind": "fidelity",
+              "passed": true,
+              "detail": {
+                "text": true,
+                "structure": true,
+                "data": true
+              },
+              "source": "sales_gbk.csv",
+              "path": "sales.xlsx"
+            },
+            {
+              "kind": "xlsx_cell",
+              "passed": true,
+              "detail": "华东",
+              "path": "sales.xlsx",
+              "cell": "A2",
+              "value": "华东"
+            },
+            {
+              "kind": "xlsx_cell",
+              "passed": true,
+              "detail": "007",
+              "path": "sales.xlsx",
+              "cell": "B2",
+              "value": "007"
+            },
+            {
+              "kind": "xlsx_cell",
+              "passed": true,
+              "detail": 1200,
+              "path": "sales.xlsx",
+              "cell": "C2",
+              "value": 1200
+            }
+          ]
+        },
+        {
+          "id": "convert-gbk-csv-to-xlsx",
+          "passed": true,
+          "agent": {
+            "ran": true,
+            "exit_code": 0,
+            "is_error": false,
+            "num_turns": 9,
+            "duration_ms": 20010,
+            "total_cost_usd": 0.4353538,
+            "result_excerpt": "`sales.xlsx` is created in the current directory from `sales_gbk.csv`.\n\n**Conversion:** `wps_agent_convert` auto-detected the encoding as gb18030 (`gb18030`), comma delimiter, header row, and took the direct `csv-to-xlsx` route — 4 rows × 6 columns, no warnings. Sheet name: `sales_gbk` (A1:F4).\n\n**Verification against the source:**\n- Chinese headers and values decoded correctly (地区, 门店编号, 销量, 增长率, 销售额, 备注; 华东/华南/华北, 旗舰店, 含,逗号).\n- Store codes are stored as **text** (`number_format \"@\"`, `value_ty",
+            "stderr_excerpt": "",
+            "tool_calls": [
+              {
+                "name": "mcp__wps-agent__wps_agent_convert",
+                "input": {
+                  "input": "sales_gbk.csv",
+                  "output": "sales.xlsx"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_register_document",
+                "input": {
+                  "component": "spreadsheets",
+                  "path": "sales.xlsx"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_spreadsheet_read",
+                "input": {
+                  "document_id": "doc_79aa1d722d6415ac",
+                  "range": "A1:F4"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "PowerShell",
+                "input": {
+                  "command": "$enc = [System.Text.Encoding]::GetEncoding(936); [System.IO.File]::ReadAllText(\"$PWD\\sales_gbk.csv\", $enc)",
+                  "description": "Read source CSV as GBK for comparison"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "PowerShell",
+                "input": {
+                  "command": "$enc = [System.Text.Encoding]::GetEncoding(936); [System.IO.File]::ReadAllText((Join-Path (Get-Location) 'sales_gbk.csv'), $enc)",
+                  "description": "Read source CSV as GBK for comparison"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "PowerShell",
+                "input": {
+                  "command": "$enc = [System.Text.Encoding]::GetEncoding(936)\n$path = Join-Path (Get-Location) 'sales_gbk.csv'\n[System.IO.File]::ReadAllText($path, $enc)",
+                  "description": "Read source CSV as GBK for comparison"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "PowerShell",
+                "input": {
+                  "command": "Get-Content -Path .\\sales_gbk.csv -Encoding 936",
+                  "description": "Read source CSV as code page 936"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_validate_document",
+                "input": {
+                  "document_id": "doc_79aa1d722d6415ac",
+                  "cell": "B2",
+                  "equals": "007"
+                },
+                "is_error": false,
+                "error_codes": []
+              }
+            ]
+          },
+          "metrics": {
+            "wps_tool_calls": 4,
+            "wps_tool_errors": 0,
+            "other_tool_calls": 4,
+            "tools_used": [
+              "convert",
+              "register_document",
+              "spreadsheet_read",
+              "validate_document"
+            ],
+            "expected_tools": [
+              "convert",
+              "fidelity_check"
+            ],
+            "off_path_calls": 3,
+            "off_path_tools": [
+              "register_document",
+              "spreadsheet_read",
+              "validate_document"
+            ],
+            "off_path_calls_before_write": 3,
+            "off_path_calls_after_write": 0,
+            "wrong_tool_calls": null,
+            "unverified_writes": 0
+          },
+          "checks": [
+            {
+              "kind": "tool_called",
+              "passed": true,
+              "detail": "1 matching call(s)",
+              "tool": "convert"
+            },
+            {
+              "kind": "fidelity",
+              "passed": true,
+              "detail": {
+                "text": true,
+                "structure": true,
+                "data": true
+              },
+              "source": "sales_gbk.csv",
+              "path": "sales.xlsx"
+            },
+            {
+              "kind": "xlsx_cell",
+              "passed": true,
+              "detail": "华东",
+              "path": "sales.xlsx",
+              "cell": "A2",
+              "value": "华东"
+            },
+            {
+              "kind": "xlsx_cell",
+              "passed": true,
+              "detail": "007",
+              "path": "sales.xlsx",
+              "cell": "B2",
+              "value": "007"
+            },
+            {
+              "kind": "xlsx_cell",
+              "passed": true,
+              "detail": 1200,
+              "path": "sales.xlsx",
+              "cell": "C2",
+              "value": 1200
+            }
+          ]
+        },
+        {
+          "id": "convert-gbk-csv-to-xlsx",
+          "passed": true,
+          "agent": {
+            "ran": true,
+            "exit_code": 0,
+            "is_error": false,
+            "num_turns": 11,
+            "duration_ms": 36393,
+            "total_cost_usd": 0.5078547999999999,
+            "result_excerpt": "Done — `sales.xlsx` is created in the same directory from the GBK CSV.\n\n**What happened:** `wps_agent_convert` auto-detected the source encoding as **gb18030** (superset of GBK), so Chinese text decoded correctly (地区, 门店编号, 华东, 旗舰店, etc.) — no mojibake. Route was `csv-to-xlsx`, 4 rows × 6 columns.\n\n**Verified cell-by-cell with `wps_agent_spreadsheet_inspect`:**\n\n| Row | 门店编号 | Behavior |\n|---|---|---|\n| 2 | `007` | text (`@` format), preserved exactly ✔ |\n| 3 | `008` | text, preserved ✔ |\n| 4 | ",
+            "stderr_excerpt": "",
+            "tool_calls": [
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "ls -la \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261022T133529Z-3095499-eval/run-3/convert-gbk-csv-to-xlsx\"",
+                  "description": "List files in working directory"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "cd \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261022T133529Z-3095499-eval/run-3/convert-gbk-csv-to-xlsx\" && xxd sales_gbk.csv | head -30",
+                  "description": "Inspect CSV raw bytes"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "xxd \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261022T133529Z-3095499-eval/run-3/convert-gbk-csv-to-xlsx/sales_gbk.csv\"",
+                  "description": "Show hex dump of CSV"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "PowerShell",
+                "input": {
+                  "command": "$p='C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-3\\convert-gbk-csv-to-xlsx\\sales_gbk.csv'; [System.IO.File]::ReadAllBytes($p).Length; $enc=[System.Text.Encoding]::GetEncoding(936); $enc.GetString([System.IO.File]::ReadAllBytes($p))",
+                  "description": "Read CSV bytes decoded as GBK"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "PowerShell",
+                "input": {
+                  "command": "Get-Content -LiteralPath 'C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-3\\convert-gbk-csv-to-xlsx\\sales_gbk.csv' -Encoding 936",
+                  "description": "Read GBK CSV content"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_convert",
+                "input": {
+                  "input": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-3\\convert-gbk-csv-to-xlsx\\sales_gbk.csv",
+                  "output": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-3\\convert-gbk-csv-to-xlsx\\sales.xlsx"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_register_document",
+                "input": {
+                  "component": "spreadsheets",
+                  "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-3\\convert-gbk-csv-to-xlsx\\sales.xlsx"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_spreadsheet_inspect",
+                "input": {
+                  "document_id": "doc_90d52d55eab7c2c2",
+                  "range": "A1:F4"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_validate_document",
+                "input": {
+                  "cell": "B2",
+                  "document_id": "doc_90d52d55eab7c2c2",
+                  "equals": "007"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_validate_document",
+                "input": {
+                  "cell": "B4",
+                  "document_id": "doc_90d52d55eab7c2c2",
+                  "equals": "012"
+                },
+                "is_error": false,
+                "error_codes": []
+              }
+            ]
+          },
+          "metrics": {
+            "wps_tool_calls": 5,
+            "wps_tool_errors": 0,
+            "other_tool_calls": 5,
+            "tools_used": [
+              "convert",
+              "register_document",
+              "spreadsheet_inspect",
+              "validate_document"
+            ],
+            "expected_tools": [
+              "convert",
+              "fidelity_check"
+            ],
+            "off_path_calls": 4,
+            "off_path_tools": [
+              "register_document",
+              "spreadsheet_inspect",
+              "validate_document"
+            ],
+            "off_path_calls_before_write": 4,
+            "off_path_calls_after_write": 0,
+            "wrong_tool_calls": null,
+            "unverified_writes": 0
+          },
+          "checks": [
+            {
+              "kind": "tool_called",
+              "passed": true,
+              "detail": "1 matching call(s)",
+              "tool": "convert"
+            },
+            {
+              "kind": "fidelity",
+              "passed": true,
+              "detail": {
+                "text": true,
+                "structure": true,
+                "data": true
+              },
+              "source": "sales_gbk.csv",
+              "path": "sales.xlsx"
+            },
+            {
+              "kind": "xlsx_cell",
+              "passed": true,
+              "detail": "华东",
+              "path": "sales.xlsx",
+              "cell": "A2",
+              "value": "华东"
+            },
+            {
+              "kind": "xlsx_cell",
+              "passed": true,
+              "detail": "007",
+              "path": "sales.xlsx",
+              "cell": "B2",
+              "value": "007"
+            },
+            {
+              "kind": "xlsx_cell",
+              "passed": true,
+              "detail": 1200,
+              "path": "sales.xlsx",
+              "cell": "C2",
+              "value": 1200
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "convert-markdown-to-docx",
+      "passed": true,
+      "repeat": 3,
+      "min_passes": 2,
+      "passes": 3,
+      "pass_rate": 1.0,
+      "metrics": {
+        "wps_tool_calls": 19,
+        "wps_tool_errors": 2,
+        "off_path_calls": 13,
+        "off_path_tools": [
+          "register_document",
+          "snapshot_document",
+          "validate_document",
+          "writer_structure",
+          "writer_table_write"
+        ],
+        "off_path_calls_before_write": 13,
+        "off_path_calls_after_write": 0,
+        "wrong_tool_calls": null,
+        "unverified_writes": 0
+      },
+      "runs": [
+        {
+          "id": "convert-markdown-to-docx",
+          "passed": true,
+          "agent": {
+            "ran": true,
+            "exit_code": 0,
+            "is_error": false,
+            "num_turns": 16,
+            "duration_ms": 42446,
+            "total_cost_usd": 0.6751947,
+            "result_excerpt": "Done. `guide.md` was converted to `guide.docx` (38,620 bytes) in the same directory.\n\n**Conversion path:** Markdown → Office, using the built-in Markdown reader with semantic mapping to native Word objects (`python-docx-semantic-mapping` backend).\n\n**Verified in the output:**\n- **Headings** — 3 real Heading 1/Heading 2 styles: 项目周报, 进展, 数据 (outline levels 0/1, so they populate the navigation pane)\n- **Lists** — nested bullets use `List Bullet` / `List Bullet 2` (数据层 → 缓存命中率 92%, 索引重建; 接口层); the ",
+            "stderr_excerpt": "",
+            "tool_calls": [
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "ls -la \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261022T133529Z-3095499-eval/run-1/convert-markdown-to-docx\"",
+                  "description": "List working directory contents"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Read",
+                "input": {
+                  "file_path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-1\\convert-markdown-to-docx\\guide.md"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_convert",
+                "input": {
+                  "input": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-1\\convert-markdown-to-docx\\guide.md",
+                  "output": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-1\\convert-markdown-to-docx\\guide.docx",
+                  "check": true
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_register_document",
+                "input": {
+                  "component": "writer",
+                  "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-1\\convert-markdown-to-docx\\guide.docx"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_writer_structure",
+                "input": {
+                  "document_id": "doc_d3c94837090d3965",
+                  "section": "all",
+                  "limit": 200
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_writer_table_write",
+                "input": {
+                  "column": 1,
+                  "document_id": "doc_d3c94837090d3965",
+                  "dry_run": true,
+                  "row": 1,
+                  "table_index": 1,
+                  "text": "x"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "cd \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261022T133529Z-3095499-eval/run-1/convert-markdown-to-docx\" && python -I -c \"\nimport zipfile, re\nz = zipfile.ZipFile('guide.docx')\nnames = z.namelist()\nprint([n for n in names if 'media' in n])\nxml = z.read('word/document.xml').decode('utf-8')\nprint('drawings:', xml.count('<w:drawing>'), 'tables:', xml.count('<w:tbl>'))\nprint('rows:', xml.count('<w:tr '), 'widths:', re.findall(r'<w:jc w:val=\\\"(\\w+)\\\"/>', xml)[:10])\n\"",
+                  "description": "Inspect DOCX media and table XML"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_convert",
+                "input": {
+                  "input": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-1\\convert-markdown-to-docx\\guide.docx",
+                  "output": "C:\\Users\\admin\\AppData\\Local\\Temp\\guide_verify_20261022\\guide.html"
+                },
+                "is_error": true,
+                "error_codes": [
+                  "OUTPUT_DIRECTORY_NOT_FOUND"
+                ]
+              },
+              {
+                "name": "PowerShell",
+                "input": {
+                  "command": "New-Item -ItemType Directory -Force \"C:\\Users\\admin\\AppData\\Local\\Temp\\guide_verify_20261022\" | Select-Object -ExpandProperty FullName",
+                  "description": "Create scratch verification folder"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "PowerShell",
+                "input": {
+                  "command": "Add-Type -AssemblyName System.IO.Compression.FileSystem\n$z = [System.IO.Compression.ZipFile]::OpenRead(\"C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-1\\convert-markdown-to-docx\\guide.docx\")\n$z.Entries | Select-Object FullName, Length | Format-Table -AutoSize\n$e = $z.Entries | Where-Object { $_.FullName -eq \"word/document.xml\" }\n$sr = New-Object System.IO.StreamReader($e.Open())\n$xml = $sr.ReadToEnd(); $sr.Close()\n\"drawings: \" + ([regex]::Matches($xml, \"<w:drawing>\")).Count\n\"tables: \" + ([regex]::Matches($xml, \"<w:tbl>\")).Count\n\"tableRows: \" + ([regex]::Matches($xml, \"<w:tr[ >]\")).Count\n\"hyperlinks: \" + ([regex]::Matches($xml, \"<w:hyperlink\")).Count\n\"boldRuns: \" + ([regex]::Matches($xml, \"<w:b/>\")).Count\n\"italicRuns: \" + ([regex]::Matches($xml, \"<w:i/>\")).Count\n\"strikeRuns: \" + ([regex]::Matches($xml, \"<w:strike/>\")).Count\n$z.Dispose()",
+                  "description": "Inspect DOCX package entries and formatting counts"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "PowerShell",
+                "input": {
+                  "command": "$path = \"C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-1\\convert-markdown-to-docx\\guide.docx\"\n$z = [System.IO.Compression.ZipFile]::OpenRead($path)\n$z.Entries | ForEach-Object { \"$($_.FullName)  $($_.Length)\" }\n$e = $z.Entries | Where-Object { $_.FullName -eq \"word/document.xml\" }\n$sr = New-Object System.IO.StreamReader($e.Open())\n$xml = $sr.ReadToEnd(); $sr.Close()\n\"drawings: \" + ([regex]::Matches($xml, \"<w:drawing>\")).Count\n\"tables: \" + ([regex]::Matches($xml, \"<w:tbl>\")).Count\n\"tableRows: \" + ([regex]::Matches($xml, \"<w:tr[ >]\")).Count\n\"hyperlinks: \" + ([regex]::Matches($xml, \"<w:hyperlink\")).Count\n\"boldRuns: \" + ([regex]::Matches($xml, \"<w:b/>\")).Count\n\"italicRuns: \" + ([regex]::Matches($xml, \"<w:i/>\")).Count\n\"strikeRuns: \" + ([regex]::Matches($xml, \"<w:strike/>\")).Count\n$z.Dispose()",
+                  "description": "Inspect DOCX package entries and formatting counts"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "mkdir -p \".verify_tmp\"",
+                  "description": "Create scratch verification subfolder"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_snapshot_document",
+                "input": {
+                  "document_id": "doc_d3c94837090d3965"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "python -I -c \"import zipfile; p=r'C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-1\\convert-markdown-to-docx\\guide.docx'; z=zipfile.ZipFile(p); print('media:', [n for n in z.namelist() if n.startswith('word/media')]); x=z.read('word/document.xml').decode('utf-8'); print('drawings', x.count('<w:drawing>'), 'tables', x.count('<w:tbl>'), 'rows', x.count('<w:tr'), 'hyperlinks', x.count('<w:hyperlink'), 'bold', x.count('<w:b/>'), 'italic', x.count('<w:i/>'), 'strike', x.count('<w:strike/>'))\"",
+                  "description": "Count images, tables, links and character formatting in DOCX XML"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "Glob",
+                "input": {
+                  "pattern": "guide.docx"
+                },
+                "is_error": false,
+                "error_codes": []
+              }
+            ]
+          },
+          "metrics": {
+            "wps_tool_calls": 6,
+            "wps_tool_errors": 1,
+            "other_tool_calls": 9,
+            "tools_used": [
+              "convert",
+              "register_document",
+              "snapshot_document",
+              "writer_structure",
+              "writer_table_write"
+            ],
+            "expected_tools": [
+              "convert",
+              "fidelity_check"
+            ],
+            "off_path_calls": 4,
+            "off_path_tools": [
+              "register_document",
+              "snapshot_document",
+              "writer_structure",
+              "writer_table_write"
+            ],
+            "off_path_calls_before_write": 4,
+            "off_path_calls_after_write": 0,
+            "wrong_tool_calls": null,
+            "unverified_writes": 0
+          },
+          "checks": [
+            {
+              "kind": "tool_called",
+              "passed": true,
+              "detail": "2 matching call(s)",
+              "tool": "convert"
+            },
+            {
+              "kind": "fidelity",
+              "passed": true,
+              "detail": {
+                "text": true,
+                "structure": true,
+                "data": true
+              },
+              "source": "guide.md",
+              "path": "guide.docx"
+            },
+            {
+              "kind": "docx_table_cell",
+              "passed": true,
+              "detail": "张三",
+              "path": "guide.docx",
+              "table": 1,
+              "row": 2,
+              "column": 2,
+              "text": "张三"
+            }
+          ]
+        },
+        {
+          "id": "convert-markdown-to-docx",
+          "passed": true,
+          "agent": {
+            "ran": true,
+            "exit_code": 0,
+            "is_error": false,
+            "num_turns": 17,
+            "duration_ms": 43258,
+            "total_cost_usd": 0.6917232,
+            "result_excerpt": "`guide.docx` is created in the same directory (38,620 bytes) — a fully editable Word file, not a rendered copy.\n\n**What went in, verified against the source:**\n\n| Element | Result |\n|---|---|\n| Headings | 3 — `Heading1` for 项目周报, `Heading2` for 进展 and 数据 |\n| Lists | Nested bullets (`ListBullet` → `ListBullet2` for 缓存命中率/索引重建) plus a numbered list (`ListNumber`) |\n| Table | 1 table, 3×3, header row 模块 / 负责人 / 完成度 with the two data rows |\n| Picture | `chart.png` embedded as a native image (1 drawi",
+            "stderr_excerpt": "",
+            "tool_calls": [
+              {
+                "name": "Read",
+                "input": {
+                  "file_path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-2\\convert-markdown-to-docx\\guide.md"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "ls -la \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261022T133529Z-3095499-eval/run-2/convert-markdown-to-docx\"",
+                  "description": "List working directory contents"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_convert",
+                "input": {
+                  "input": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-2\\convert-markdown-to-docx\\guide.md",
+                  "output": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-2\\convert-markdown-to-docx\\guide.docx"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_fidelity_check",
+                "input": {
+                  "source": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-2\\convert-markdown-to-docx\\guide.md",
+                  "target": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-2\\convert-markdown-to-docx\\guide.docx"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_register_document",
+                "input": {
+                  "component": "writer",
+                  "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-2\\convert-markdown-to-docx\\guide.docx"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_writer_structure",
+                "input": {
+                  "document_id": "doc_9c0076e923f25035",
+                  "section": "headings"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "cd \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261022T133529Z-3095499-eval/run-2/convert-markdown-to-docx\" && python -I -c \"\nimport zipfile,re\nz=zipfile.ZipFile('guide.docx')\nd=z.read('word/document.xml').decode('utf-8')\nprint('numPr (list items):', d.count('<w:numPr>'))\nprint('drawing (pictures):', d.count('<w:drawing>'))\nprint('tbl (tables):', d.count('<w:tbl>'))\nprint('pStyle Heading:', sorted(set(re.findall(r'w:pStyle w:val=\\\"(Heading\\d|Title)\\\"',d))))\nprint('hlink:', 'w:hyperlink' in d)\nprint('strike:', 'w:strike' in d)\nprint('italic:', 'w:i/' in d or '<w:i ' in d)\nprint('bold:', '<w:b/' in d or '<w:b ' in d)\nprint('media:', [n for n in z.namelist() if n.startswith('word/media')])\n\"",
+                  "description": "Inspect DOCX XML for lists, pictures, tables, styles"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "PowerShell",
+                "input": {
+                  "command": "$p=\"C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-2\\convert-markdown-to-docx\\guide.docx\"\nAdd-Type -AssemblyName System.IO.Compression.FileSystem\n$z=[System.IO.Compression.ZipFile]::OpenRead($p)\n$e=$z.GetEntry('word/document.xml'); $r=New-Object System.IO.StreamReader($e.Open()); $d=$r.ReadToEnd(); $r.Close()\n\"list items (numPr): \" + ([regex]::Matches($d,'<w:numPr>').Count)\n\"pictures (drawing): \" + ([regex]::Matches($d,'<w:drawing>').Count)\n\"tables (tbl): \" + ([regex]::Matches($d,'<w:tbl>').Count)\n\"hyperlink tags: \" + ([regex]::Matches($d,'<w:hyperlink').Count)\n\"strike runs: \" + ([regex]::Matches($d,'<w:strike').Count)\n\"italic runs: \" + ([regex]::Matches($d,'<w:i/>').Count)\n\"bold runs: \" + ([regex]::Matches($d,'<w:b/>').Count)\n\"styles: \" + (([regex]::Matches($d,'w:pStyle w:val=\"([^\"]+)\"') | ForEach-Object { $_.Groups[1].Value }) | Sort-Object -Unique) -join ', '\n\"media: \" + (($z.Entries | Where-Object { $_.FullName -like 'word/media/*' } | ForEach-Object { $_.FullName + ' (' + $_.Length + 'B)' }) -join ', ')\n$z.Dispose()",
+                  "description": "Inspect guide.docx XML for lists, table, picture, formatting"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "PowerShell",
+                "input": {
+                  "command": "$p=\"C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-2\\convert-markdown-to-docx\\guide.docx\"\nAdd-Type -AssemblyName System.IO.Compression.FileSystem\n$z=[System.IO.Compression.ZipFile]::OpenRead($p)\n$r=New-Object System.IO.StreamReader($z.GetEntry('word/document.xml').Open())\n$d=$r.ReadToEnd(); $r.Close()\nforeach($t in 'numPr','drawing','tbl>','hyperlink','strike','w:i/>','w:b/>'){ \"$t = \" + ([regex]::Matches($d,[regex]::Escape('<')+$t).Count) }\n($z.Entries | Where-Object FullName -like 'word/media/*' | ForEach-Object { $_.FullName })\n$z.Dispose()",
+                  "description": "Count lists, pictures, tables and formatting runs in guide.docx"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "python -I -c \"import zipfile;z=zipfile.ZipFile(r'C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-2\\convert-markdown-to-docx\\guide.docx');d=z.read('word/document.xml').decode();print('numPr',d.count('<w:numPr>'));print('drawing',d.count('<w:drawing>'));print('tbl',d.count('<w:tbl>'));print('media',[n for n in z.namelist() if 'media' in n])\"",
+                  "description": "Count lists, pictures and tables inside guide.docx"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_convert",
+                "input": {
+                  "input": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-2\\convert-markdown-to-docx\\guide.docx",
+                  "output": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-docx-verify\\guide_roundtrip.md"
+                },
+                "is_error": true,
+                "error_codes": [
+                  "OUTPUT_DIRECTORY_NOT_FOUND"
+                ]
+              },
+              {
+                "name": "PowerShell",
+                "input": {
+                  "command": "New-Item -ItemType Directory -Force \"C:\\Users\\admin\\AppData\\Local\\Temp\\wps-docx-verify\" | Select-Object -ExpandProperty FullName",
+                  "description": "Create scratch verification directory"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "PowerShell",
+                "input": {
+                  "command": "New-Item -ItemType Directory -Force \".\\verify-tmp\" | Select-Object -ExpandProperty FullName",
+                  "description": "Create temporary verification subfolder"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_snapshot_document",
+                "input": {
+                  "document_id": "doc_9c0076e923f25035"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_writer_table_write",
+                "input": {
+                  "document_id": "doc_9c0076e923f25035",
+                  "table_index": 1,
+                  "row": 1,
+                  "column": 1,
+                  "text": "x",
+                  "dry_run": true
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "ls -l \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261022T133529Z-3095499-eval/run-2/convert-markdown-to-docx/guide.docx\" \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261022T133529Z-3095499-eval/run-2/convert-markdown-to-docx/chart.png\"",
+                  "description": "Confirm output file and source image exist"
+                },
+                "is_error": false,
+                "error_codes": []
+              }
+            ]
+          },
+          "metrics": {
+            "wps_tool_calls": 7,
+            "wps_tool_errors": 1,
+            "other_tool_calls": 9,
+            "tools_used": [
+              "convert",
+              "fidelity_check",
+              "register_document",
+              "snapshot_document",
+              "writer_structure",
+              "writer_table_write"
+            ],
+            "expected_tools": [
+              "convert",
+              "fidelity_check"
+            ],
+            "off_path_calls": 4,
+            "off_path_tools": [
+              "register_document",
+              "snapshot_document",
+              "writer_structure",
+              "writer_table_write"
+            ],
+            "off_path_calls_before_write": 4,
+            "off_path_calls_after_write": 0,
+            "wrong_tool_calls": null,
+            "unverified_writes": 0
+          },
+          "checks": [
+            {
+              "kind": "tool_called",
+              "passed": true,
+              "detail": "2 matching call(s)",
+              "tool": "convert"
+            },
+            {
+              "kind": "fidelity",
+              "passed": true,
+              "detail": {
+                "text": true,
+                "structure": true,
+                "data": true
+              },
+              "source": "guide.md",
+              "path": "guide.docx"
+            },
+            {
+              "kind": "docx_table_cell",
+              "passed": true,
+              "detail": "张三",
+              "path": "guide.docx",
+              "table": 1,
+              "row": 2,
+              "column": 2,
+              "text": "张三"
+            }
+          ]
+        },
+        {
+          "id": "convert-markdown-to-docx",
+          "passed": true,
+          "agent": {
+            "ran": true,
+            "exit_code": 0,
+            "is_error": false,
+            "num_turns": 13,
+            "duration_ms": 28083,
+            "total_cost_usd": 0.5125702,
+            "result_excerpt": "Done. `guide.md` was converted to `guide.docx` in the same directory.\n\n**Result** — `wps_agent_convert` (route: `markdown-to-office`, editable native DOCX, 38,620 bytes):\n\n| Element | Mapped |\n|---|---|\n| Headings | 3 (H1 `项目周报`, H2 `进展`, `数据`) |\n| Lists | 6 (bullet `List Bullet` + nested `List Bullet 2`, numbered `List Number`) |\n| Table | 1 (模块 / 负责人 / 完成度, with header row and column alignment) |\n| Picture | 1 (`chart.png` embedded) |\n| Inline formatting | bold, italic, strikethrough, hyperlin",
+            "stderr_excerpt": "",
+            "tool_calls": [
+              {
+                "name": "Read",
+                "input": {
+                  "file_path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-3\\convert-markdown-to-docx\\guide.md"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "ls -la \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261022T133529Z-3095499-eval/run-3/convert-markdown-to-docx\"",
+                  "description": "List files in working directory"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_convert",
+                "input": {
+                  "input": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-3\\convert-markdown-to-docx\\guide.md",
+                  "output": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-3\\convert-markdown-to-docx\\guide.docx",
+                  "check": true
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_register_document",
+                "input": {
+                  "component": "writer",
+                  "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-3\\convert-markdown-to-docx\\guide.docx"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_snapshot_document",
+                "input": {
+                  "document_id": "doc_5db9f1f8618fc41b"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_writer_structure",
+                "input": {
+                  "document_id": "doc_5db9f1f8618fc41b",
+                  "section": "headings"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "PowerShell",
+                "input": {
+                  "command": "$p='C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-3\\convert-markdown-to-docx\\guide.docx'; Add-Type -AssemblyName System.IO.Compression.FileSystem; $z=[System.IO.Compression.ZipFile]::OpenRead($p); $z.Entries | Where-Object { $_.FullName -like '*media*' -or $_.FullName -eq 'word/document.xml' } | Select-Object FullName,Length; $doc=$z.Entries | Where-Object FullName -eq 'word/document.xml'; $sr=New-Object System.IO.StreamReader($doc.Open()); $xml=$sr.ReadToEnd(); $sr.Close(); $z.Dispose(); \"tables=$(([regex]::Matches($xml,'<w:tbl>')).Count)\"; \"drawings=$(([regex]::Matches($xml,'<w:drawing>')).Count)\"; \"hyperlinks=$(([regex]::Matches($xml,'<w:hyperlink')).Count)\"",
+                  "description": "Inspect DOCX package for media, tables, drawings"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "PowerShell",
+                "input": {
+                  "command": "Add-Type -AssemblyName System.IO.Compression.FileSystem\n$p='C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-3\\convert-markdown-to-docx\\guide.docx'\n$z=[System.IO.Compression.ZipFile]::OpenRead($p)\n$z.Entries | ForEach-Object { $_.FullName }\n$z.Dispose()",
+                  "description": "List DOCX package entries"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "cd \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261022T133529Z-3095499-eval/run-3/convert-markdown-to-docx\" && python -X utf8 -c \"\nimport zipfile,re\nz=zipfile.ZipFile('guide.docx')\nprint([n for n in z.namelist()])\nx=z.read('word/document.xml').decode('utf-8')\nprint('tables',x.count('<w:tbl>'),'drawings',x.count('<w:drawing>'),'hyperlinks',x.count('<w:hyperlink'))\nprint(z.read('word/_rels/document.xml.rels').decode('utf-8')[:1200])\n\"",
+                  "description": "Inspect DOCX package contents"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "python -X utf8 -c \"import zipfile;z=zipfile.ZipFile(r'C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-3\\convert-markdown-to-docx\\guide.docx');print(z.namelist());x=z.read('word/document.xml').decode('utf-8');print('tables',x.count('<w:tbl>'),'drawings',x.count('<w:drawing>'),'hyperlinks',x.count('<w:hyperlink'))\"",
+                  "description": "Inspect DOCX package entries and object counts"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_writer_structure",
+                "input": {
+                  "document_id": "doc_5db9f1f8618fc41b",
+                  "section": "warnings"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_validate_document",
+                "input": {
+                  "document_id": "doc_5db9f1f8618fc41b",
+                  "contains": "注意：下周冻结代码。"
+                },
+                "is_error": false,
+                "error_codes": []
+              }
+            ]
+          },
+          "metrics": {
+            "wps_tool_calls": 6,
+            "wps_tool_errors": 0,
+            "other_tool_calls": 6,
+            "tools_used": [
+              "convert",
+              "register_document",
+              "snapshot_document",
+              "validate_document",
+              "writer_structure"
+            ],
+            "expected_tools": [
+              "convert",
+              "fidelity_check"
+            ],
+            "off_path_calls": 5,
+            "off_path_tools": [
+              "register_document",
+              "snapshot_document",
+              "validate_document",
+              "writer_structure"
+            ],
+            "off_path_calls_before_write": 5,
+            "off_path_calls_after_write": 0,
+            "wrong_tool_calls": null,
+            "unverified_writes": 0
+          },
+          "checks": [
+            {
+              "kind": "tool_called",
+              "passed": true,
+              "detail": "1 matching call(s)",
+              "tool": "convert"
+            },
+            {
+              "kind": "fidelity",
+              "passed": true,
+              "detail": {
+                "text": true,
+                "structure": true,
+                "data": true
+              },
+              "source": "guide.md",
+              "path": "guide.docx"
+            },
+            {
+              "kind": "docx_table_cell",
+              "passed": true,
+              "detail": "张三",
+              "path": "guide.docx",
+              "table": 1,
+              "row": 2,
+              "column": 2,
+              "text": "张三"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "convert-docx-to-pptx",
+      "passed": true,
+      "repeat": 3,
+      "min_passes": 2,
+      "passes": 3,
+      "pass_rate": 1.0,
+      "metrics": {
+        "wps_tool_calls": 13,
+        "wps_tool_errors": 0,
+        "off_path_calls": 9,
+        "off_path_tools": [
+          "register_document",
+          "scan_dir",
+          "snapshot_document",
+          "writer_structure"
+        ],
+        "off_path_calls_before_write": 9,
+        "off_path_calls_after_write": 0,
+        "wrong_tool_calls": null,
+        "unverified_writes": 0
+      },
+      "runs": [
+        {
+          "id": "convert-docx-to-pptx",
+          "passed": true,
+          "agent": {
+            "ran": true,
+            "exit_code": 0,
+            "is_error": false,
+            "num_turns": 6,
+            "duration_ms": 16069,
+            "total_cost_usd": 0.3527171,
+            "result_excerpt": "Created `brief.pptx` in the working directory from `brief.docx` via the wps-agent converter (route `docx-to-pptx`).\n\n**Result: 5 slides**\n1. 技术服务合同 (Heading 1 title)\n2. 第一条 服务内容\n3. 第二条 费用与支付\n4. 第三条 保密\n5. 第四条 违约责任\n\nThe fidelity check passed: text score 1.0 (no missing text), structure score 1.0, and no warnings. Three tables from the document were carried over. The document has one Heading 1 (the title) plus four Heading 2 sections, so the deck is a title slide followed by one slide per section —",
+            "stderr_excerpt": "",
+            "tool_calls": [
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "ls -la \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261022T133529Z-3095499-eval/run-1/convert-docx-to-pptx\"",
+                  "description": "List working directory contents"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_register_document",
+                "input": {
+                  "component": "writer",
+                  "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-1\\convert-docx-to-pptx\\brief.docx"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_writer_structure",
+                "input": {
+                  "document_id": "doc_04a02faa5e10a15e",
+                  "section": "headings",
+                  "limit": 200
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_convert",
+                "input": {
+                  "input": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-1\\convert-docx-to-pptx\\brief.docx",
+                  "output": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-1\\convert-docx-to-pptx\\brief.pptx",
+                  "check": true
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "ls -l \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261022T133529Z-3095499-eval/run-1/convert-docx-to-pptx/brief.pptx\"",
+                  "description": "Confirm output file exists"
+                },
+                "is_error": false,
+                "error_codes": []
+              }
+            ]
+          },
+          "metrics": {
+            "wps_tool_calls": 3,
+            "wps_tool_errors": 0,
+            "other_tool_calls": 2,
+            "tools_used": [
+              "convert",
+              "register_document",
+              "writer_structure"
+            ],
+            "expected_tools": [
+              "convert",
+              "fidelity_check"
+            ],
+            "off_path_calls": 2,
+            "off_path_tools": [
+              "register_document",
+              "writer_structure"
+            ],
+            "off_path_calls_before_write": 2,
+            "off_path_calls_after_write": 0,
+            "wrong_tool_calls": null,
+            "unverified_writes": 0
+          },
+          "checks": [
+            {
+              "kind": "tool_called",
+              "passed": true,
+              "detail": "1 matching call(s)",
+              "tool": "convert"
+            },
+            {
+              "kind": "fidelity",
+              "passed": true,
+              "detail": {
+                "text": true,
+                "data": true
+              },
+              "source": "brief.docx",
+              "path": "brief.pptx"
+            },
+            {
+              "kind": "file_text",
+              "passed": true,
+              "detail": "ok",
+              "path": "brief.pptx",
+              "contains": [
+                "第一条 服务内容",
+                "第二条 费用与支付",
+                "90,000"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "convert-docx-to-pptx",
+          "passed": true,
+          "agent": {
+            "ran": true,
+            "exit_code": 0,
+            "is_error": false,
+            "num_turns": 7,
+            "duration_ms": 15933,
+            "total_cost_usd": 0.3807416,
+            "result_excerpt": "`brief.pptx` is created in the working directory.\n\n**Result:** 5 slides, one per heading in `brief.docx`:\n\n| # | Slide title |\n|---|---|\n| 1 | 技术服务合同 (document title, Heading 1) |\n| 2 | 第一条 服务内容 |\n| 3 | 第二条 费用与支付 |\n| 4 | 第三条 保密 |\n| 5 | 第四条 违约责任 |\n\nEach slide carries the body content that sat under its heading, including the 3 tables from the source. Fidelity check passed — text and data both scored 1.0 with no missing content and no warnings.\n\nOne note on interpretation: the document has a title",
+            "stderr_excerpt": "",
+            "tool_calls": [
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "ls -la \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261022T133529Z-3095499-eval/run-2/convert-docx-to-pptx\"",
+                  "description": "List working directory contents"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_register_document",
+                "input": {
+                  "component": "writer",
+                  "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-2\\convert-docx-to-pptx\\brief.docx"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_writer_structure",
+                "input": {
+                  "document_id": "doc_b48df0e70c9250d1",
+                  "section": "headings",
+                  "limit": 200
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_convert",
+                "input": {
+                  "input": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-2\\convert-docx-to-pptx\\brief.docx",
+                  "output": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-2\\convert-docx-to-pptx\\brief.pptx"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_fidelity_check",
+                "input": {
+                  "source": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-2\\convert-docx-to-pptx\\brief.docx",
+                  "target": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-2\\convert-docx-to-pptx\\brief.pptx"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "ls -la \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261022T133529Z-3095499-eval/run-2/convert-docx-to-pptx/brief.pptx\"",
+                  "description": "Confirm brief.pptx exists"
+                },
+                "is_error": false,
+                "error_codes": []
+              }
+            ]
+          },
+          "metrics": {
+            "wps_tool_calls": 4,
+            "wps_tool_errors": 0,
+            "other_tool_calls": 2,
+            "tools_used": [
+              "convert",
+              "fidelity_check",
+              "register_document",
+              "writer_structure"
+            ],
+            "expected_tools": [
+              "convert",
+              "fidelity_check"
+            ],
+            "off_path_calls": 2,
+            "off_path_tools": [
+              "register_document",
+              "writer_structure"
+            ],
+            "off_path_calls_before_write": 2,
+            "off_path_calls_after_write": 0,
+            "wrong_tool_calls": null,
+            "unverified_writes": 0
+          },
+          "checks": [
+            {
+              "kind": "tool_called",
+              "passed": true,
+              "detail": "1 matching call(s)",
+              "tool": "convert"
+            },
+            {
+              "kind": "fidelity",
+              "passed": true,
+              "detail": {
+                "text": true,
+                "data": true
+              },
+              "source": "brief.docx",
+              "path": "brief.pptx"
+            },
+            {
+              "kind": "file_text",
+              "passed": true,
+              "detail": "ok",
+              "path": "brief.pptx",
+              "contains": [
+                "第一条 服务内容",
+                "第二条 费用与支付",
+                "90,000"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "convert-docx-to-pptx",
+          "passed": true,
+          "agent": {
+            "ran": true,
+            "exit_code": 0,
+            "is_error": false,
+            "num_turns": 9,
+            "duration_ms": 20829,
+            "total_cost_usd": 0.4257411,
+            "result_excerpt": "Done. Created `brief.pptx` in the working directory from `brief.docx` using `wps_agent_convert` (route `docx-to-pptx`).\n\n**Result:** 5 slides — one title slide (Heading 1) plus one slide per section heading (Heading 2):\n\n| # | Slide title |\n|---|---|\n| 1 | 技术服务合同 (title) |\n| 2 | 第一条 服务内容 |\n| 3 | 第二条 费用与支付 |\n| 4 | 第三条 保密 |\n| 5 | 第四条 违约责任 |\n\nVerified independently by registering the output as a presentation and taking a structural snapshot: 5 slides, 13 text objects, titles and body text intact. A",
+            "stderr_excerpt": "",
+            "tool_calls": [
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "ls -la \"C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-3\\convert-docx-to-pptx\"",
+                  "description": "List working directory contents"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_scan_dir",
+                "input": {
+                  "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-3\\convert-docx-to-pptx"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_register_document",
+                "input": {
+                  "component": "writer",
+                  "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-3\\convert-docx-to-pptx\\brief.docx"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_writer_structure",
+                "input": {
+                  "document_id": "doc_0c32f34fd02e98a2",
+                  "section": "headings",
+                  "limit": 200
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_convert",
+                "input": {
+                  "input": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-3\\convert-docx-to-pptx\\brief.docx",
+                  "output": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-3\\convert-docx-to-pptx\\brief.pptx",
+                  "check": true
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "cd \"C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-3\\convert-docx-to-pptx\" && ls -la brief.pptx && python -I -c \"\nfrom pptx import Presentation\np = Presentation('brief.pptx')\nprint('slides:', len(p.slides))\nfor i, s in enumerate(p.slides, 1):\n    texts = [sh.text_frame.text.replace(chr(10),' | ') for sh in s.shapes if sh.has_text_frame and sh.text_frame.text.strip()]\n    print(i, texts[:3])\n\"",
+                  "description": "Verify slide count and text of generated PPTX"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_register_document",
+                "input": {
+                  "component": "presentation",
+                  "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-3\\convert-docx-to-pptx\\brief.pptx"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_snapshot_document",
+                "input": {
+                  "document_id": "doc_4288806d17ed4140"
+                },
+                "is_error": false,
+                "error_codes": []
+              }
+            ]
+          },
+          "metrics": {
+            "wps_tool_calls": 6,
+            "wps_tool_errors": 0,
+            "other_tool_calls": 2,
+            "tools_used": [
+              "convert",
+              "register_document",
+              "scan_dir",
+              "snapshot_document",
+              "writer_structure"
+            ],
+            "expected_tools": [
+              "convert",
+              "fidelity_check"
+            ],
+            "off_path_calls": 5,
+            "off_path_tools": [
+              "register_document",
+              "scan_dir",
+              "snapshot_document",
+              "writer_structure"
+            ],
+            "off_path_calls_before_write": 5,
+            "off_path_calls_after_write": 0,
+            "wrong_tool_calls": null,
+            "unverified_writes": 0
+          },
+          "checks": [
+            {
+              "kind": "tool_called",
+              "passed": true,
+              "detail": "1 matching call(s)",
+              "tool": "convert"
+            },
+            {
+              "kind": "fidelity",
+              "passed": true,
+              "detail": {
+                "text": true,
+                "data": true
+              },
+              "source": "brief.docx",
+              "path": "brief.pptx"
+            },
+            {
+              "kind": "file_text",
+              "passed": true,
+              "detail": "ok",
+              "path": "brief.pptx",
+              "contains": [
+                "第一条 服务内容",
+                "第二条 费用与支付",
+                "90,000"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "convert-legacy-doc-with-wps",
+      "passed": true,
+      "repeat": 3,
+      "min_passes": 2,
+      "passes": 3,
+      "pass_rate": 1.0,
+      "metrics": {
+        "wps_tool_calls": 24,
+        "wps_tool_errors": 3,
+        "off_path_calls": 10,
+        "off_path_tools": [
+          "inspect_env",
+          "register_document",
+          "snapshot_document",
+          "validate_document",
+          "writer_structure"
+        ],
+        "off_path_calls_before_write": 10,
+        "off_path_calls_after_write": 0,
+        "wrong_tool_calls": null,
+        "unverified_writes": 0
+      },
+      "runs": [
+        {
+          "id": "convert-legacy-doc-with-wps",
+          "passed": true,
+          "agent": {
+            "ran": true,
+            "exit_code": 1,
+            "is_error": true,
+            "num_turns": 16,
+            "duration_ms": 57994,
+            "total_cost_usd": 0.6905678000000001,
+            "result_excerpt": "",
+            "stderr_excerpt": "",
+            "tool_calls": [
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "ls -la \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261022T133529Z-3095499-eval/run-1/convert-legacy-doc-with-wps\"",
+                  "description": "List files in working directory"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_inspect_env",
+                "input": {},
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_convert",
+                "input": {
+                  "input": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-1\\convert-legacy-doc-with-wps\\brief.doc",
+                  "output": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-1\\convert-legacy-doc-with-wps\\legacy.docx"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_convert",
+                "input": {
+                  "input": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-1\\convert-legacy-doc-with-wps\\brief.doc",
+                  "output": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-1\\convert-legacy-doc-with-wps\\legacy.pdf"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "cd \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261022T133529Z-3095499-eval/run-1/convert-legacy-doc-with-wps\" && ls -la brief.doc legacy.docx legacy.pdf && echo \"---\" && file brief.doc legacy.docx legacy.pdf 2>/dev/null; echo \"---\"; head -c 200 legacy.pdf | tr -d '\\0'",
+                  "description": "Check output files and PDF header"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_fidelity_check",
+                "input": {
+                  "no_layout": true,
+                  "source": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-1\\convert-legacy-doc-with-wps\\brief.doc",
+                  "target": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-1\\convert-legacy-doc-with-wps\\legacy.docx"
+                },
+                "is_error": true,
+                "error_codes": [
+                  "UNSUPPORTED_FORMAT"
+                ]
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_register_document",
+                "input": {
+                  "component": "writer",
+                  "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-1\\convert-legacy-doc-with-wps\\legacy.docx"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_snapshot_document",
+                "input": {
+                  "document_id": "doc_e9ed6a98c57efbff"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "cd /tmp && python -I -c \"\nimport sys\ntry:\n    import pypdf; print('pypdf', pypdf.__version__)\nexcept Exception as e: print('no pypdf', e)\ntry:\n    import fitz; print('fitz ok')\nexcept Exception as e: print('no fitz', e)\n\"",
+                  "description": "Check available PDF libraries"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "PowerShell",
+                "input": {
+                  "command": "python -I -c \"import importlib.util as u; print([m for m in ('pypdf','fitz','pdfminer') if u.find_spec(m)])\"",
+                  "description": "Check for installed PDF libraries"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_fidelity_check",
+                "input": {
+                  "no_layout": true,
+                  "source": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-1\\convert-legacy-doc-with-wps\\legacy.docx",
+                  "target": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-1\\convert-legacy-doc-with-wps\\legacy.pdf"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "mkdir -p \"$TEMP/wps-verify-run1\" && echo \"$TEMP/wps-verify-run1\"",
+                  "description": "Create scratch dir for verification output"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "PowerShell",
+                "input": {
+                  "command": "New-Item -ItemType Directory -Force \"C:\\Users\\admin\\AppData\\Local\\Temp\\wps-verify-run1\" | Select-Object -ExpandProperty FullName",
+                  "description": "Create scratch directory for verification"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "PowerShell",
+                "input": {
+                  "command": "New-Item -ItemType Directory -Force \"C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-1\\convert-legacy-doc-with-wps\\_verify\" | Select-Object -ExpandProperty FullName",
+                  "description": "Create scratch subfolder for verification"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "Write",
+                "input": {
+                  "file_path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-1\\convert-legacy-doc-with-wps\\_verify\\placeholder.txt",
+                  "content": "scratch\n"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_fidelity_check",
+                "input": {
+                  "renderer": "wps",
+                  "source": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-1\\convert-legacy-doc-with-wps\\legacy.docx",
+                  "target": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-1\\convert-legacy-doc-with-wps\\legacy.pdf"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "cd \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261022T133529Z-3095499-eval/run-1/convert-legacy-doc-with-wps\" && ls -la --time-style=full-iso brief.doc legacy.* && sha256sum brief.doc",
+                  "description": "Confirm outputs exist and source timestamp unchanged"
+                },
+                "is_error": false,
+                "error_codes": []
+              }
+            ]
+          },
+          "metrics": {
+            "wps_tool_calls": 8,
+            "wps_tool_errors": 1,
+            "other_tool_calls": 9,
+            "tools_used": [
+              "convert",
+              "fidelity_check",
+              "inspect_env",
+              "register_document",
+              "snapshot_document"
+            ],
+            "expected_tools": [
+              "convert",
+              "fidelity_check"
+            ],
+            "off_path_calls": 3,
+            "off_path_tools": [
+              "inspect_env",
+              "register_document",
+              "snapshot_document"
+            ],
+            "off_path_calls_before_write": 3,
+            "off_path_calls_after_write": 0,
+            "wrong_tool_calls": null,
+            "unverified_writes": 0
+          },
+          "checks": [
+            {
+              "kind": "tool_called",
+              "passed": true,
+              "detail": "2 matching call(s)",
+              "tool": "convert"
+            },
+            {
+              "kind": "file_text",
+              "passed": true,
+              "detail": "ok",
+              "path": "legacy.docx",
+              "contains": [
+                "技术服务合同",
+                "第二条 费用与支付",
+                "叁拾万元整"
+              ]
+            },
+            {
+              "kind": "pdf_file",
+              "passed": true,
+              "detail": {
+                "bytes": 143725,
+                "starts_with_pdf_header": true
+              },
+              "path": "legacy.pdf",
+              "min_bytes": 1000
+            }
+          ]
+        },
+        {
+          "id": "convert-legacy-doc-with-wps",
+          "passed": true,
+          "agent": {
+            "ran": true,
+            "exit_code": 1,
+            "is_error": true,
+            "num_turns": 16,
+            "duration_ms": 55942,
+            "total_cost_usd": 0.6521372999999999,
+            "result_excerpt": "",
+            "stderr_excerpt": "",
+            "tool_calls": [
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "ls -la \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261022T133529Z-3095499-eval/run-2/convert-legacy-doc-with-wps\"",
+                  "description": "List files in working directory"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_inspect_env",
+                "input": {},
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "cd \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261022T133529Z-3095499-eval/run-2/convert-legacy-doc-with-wps\" && sha256sum brief.doc",
+                  "description": "Hash brief.doc before conversion"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_convert",
+                "input": {
+                  "input": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-2\\convert-legacy-doc-with-wps\\brief.doc",
+                  "output": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-2\\convert-legacy-doc-with-wps\\legacy.docx"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_convert",
+                "input": {
+                  "input": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-2\\convert-legacy-doc-with-wps\\brief.doc",
+                  "output": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-2\\convert-legacy-doc-with-wps\\legacy.pdf"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "cd \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261022T133529Z-3095499-eval/run-2/convert-legacy-doc-with-wps\" && sha256sum brief.doc && ls -la legacy.docx legacy.pdf && head -c 8 legacy.pdf | od -c | head -2",
+                  "description": "Verify source hash and output files"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_fidelity_check",
+                "input": {
+                  "source": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-2\\convert-legacy-doc-with-wps\\brief.doc",
+                  "target": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-2\\convert-legacy-doc-with-wps\\legacy.docx"
+                },
+                "is_error": true,
+                "error_codes": [
+                  "UNSUPPORTED_FORMAT"
+                ]
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_register_document",
+                "input": {
+                  "component": "writer",
+                  "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-2\\convert-legacy-doc-with-wps\\legacy.docx"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_writer_structure",
+                "input": {
+                  "document_id": "doc_e130e391c472910d",
+                  "section": "headings"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_validate_document",
+                "input": {
+                  "contains": "技术服务合同",
+                  "document_id": "doc_e130e391c472910d"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "cd \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261022T133529Z-3095499-eval/run-2/convert-legacy-doc-with-wps\" && python -I -c \"\nimport re,zlib,sys\ndata=open('legacy.pdf','rb').read()\nprint('pages_marker_count', len(re.findall(rb'/Type\\s*/Page[^s]', data)))\nprint('has_eof', data.rstrip().endswith(b'%%EOF'))\nprint('size', len(data))\n\"",
+                  "description": "Check PDF page count and structure"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "PowerShell",
+                "input": {
+                  "command": "$p='C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-2\\convert-legacy-doc-with-wps\\legacy.pdf'; $b=[IO.File]::ReadAllBytes($p); $t=[Text.Encoding]::Latin1.GetString($b); \"size=$($b.Length)\"; \"page_objs=$([regex]::Matches($t,'/Type\\s*/Page[^s]').Count)\"; \"count_entry=$([regex]::Match($t,'/Count\\s+\\d+').Value)\"; \"eof=$($t.TrimEnd().EndsWith('%%EOF'))\"",
+                  "description": "Inspect PDF page objects and EOF marker"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "PowerShell",
+                "input": {
+                  "command": "$p='C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-2\\convert-legacy-doc-with-wps\\legacy.pdf'\n$b=[IO.File]::ReadAllBytes($p)\n$t=[Text.Encoding]::Latin1.GetString($b)\n$pages=[regex]::Matches($t,'/Type\\s*/Page[^s]').Count\n$counts=[regex]::Matches($t,'/Count\\s+(\\d+)')\nWrite-Output \"size=$($b.Length) pages=$pages eof=$($t.TrimEnd().EndsWith('%%EOF'))\"\nforeach ($c in $counts) { Write-Output \"count=$($c.Value)\" }",
+                  "description": "Inspect PDF page objects and EOF marker"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "PowerShell",
+                "input": {
+                  "command": "$p = 'C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-2\\convert-legacy-doc-with-wps\\legacy.pdf'\n$b = [IO.File]::ReadAllBytes($p)\n$t = [Text.Encoding]::Latin1.GetString($b)\n$pages = [regex]::Matches($t, '/Type\\s*/Page[^s]').Count\n$eof = $t.TrimEnd().EndsWith('%%EOF')\n$counts = [regex]::Matches($t, '/Count\\s+\\d+').Value -join ', '\nWrite-Output ('size=' + $b.Length + ' pages=' + $pages + ' eof=' + $eof)\nWrite-Output ('counts=' + $counts)",
+                  "description": "Inspect PDF page objects and EOF marker"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "PowerShell",
+                "input": {
+                  "command": "$t = [Text.Encoding]::Latin1.GetString([IO.File]::ReadAllBytes('C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-2\\convert-legacy-doc-with-wps\\legacy.pdf')); [regex]::Matches($t, '/Type\\s*/Page[^s]').Count",
+                  "description": "Count PDF page objects"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_fidelity_check",
+                "input": {
+                  "source": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-2\\convert-legacy-doc-with-wps\\brief.docx",
+                  "target": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-2\\convert-legacy-doc-with-wps\\legacy.pdf"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Read",
+                "input": {
+                  "file_path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-2\\convert-legacy-doc-with-wps\\legacy.pdf",
+                  "pages": "1"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "cd \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261022T133529Z-3095499-eval/run-2/convert-legacy-doc-with-wps\" && ls -la brief.doc legacy.docx legacy.pdf && sha256sum brief.doc",
+                  "description": "Final check of source and outputs"
+                },
+                "is_error": false,
+                "error_codes": []
+              }
+            ]
+          },
+          "metrics": {
+            "wps_tool_calls": 8,
+            "wps_tool_errors": 1,
+            "other_tool_calls": 10,
+            "tools_used": [
+              "convert",
+              "fidelity_check",
+              "inspect_env",
+              "register_document",
+              "validate_document",
+              "writer_structure"
+            ],
+            "expected_tools": [
+              "convert",
+              "fidelity_check"
+            ],
+            "off_path_calls": 4,
+            "off_path_tools": [
+              "inspect_env",
+              "register_document",
+              "validate_document",
+              "writer_structure"
+            ],
+            "off_path_calls_before_write": 4,
+            "off_path_calls_after_write": 0,
+            "wrong_tool_calls": null,
+            "unverified_writes": 0
+          },
+          "checks": [
+            {
+              "kind": "tool_called",
+              "passed": true,
+              "detail": "2 matching call(s)",
+              "tool": "convert"
+            },
+            {
+              "kind": "file_text",
+              "passed": true,
+              "detail": "ok",
+              "path": "legacy.docx",
+              "contains": [
+                "技术服务合同",
+                "第二条 费用与支付",
+                "叁拾万元整"
+              ]
+            },
+            {
+              "kind": "pdf_file",
+              "passed": true,
+              "detail": {
+                "bytes": 143725,
+                "starts_with_pdf_header": true
+              },
+              "path": "legacy.pdf",
+              "min_bytes": 1000
+            }
+          ]
+        },
+        {
+          "id": "convert-legacy-doc-with-wps",
+          "passed": true,
+          "agent": {
+            "ran": true,
+            "exit_code": 1,
+            "is_error": true,
+            "num_turns": 16,
+            "duration_ms": 49026,
+            "total_cost_usd": 0.6577537999999998,
+            "result_excerpt": "",
+            "stderr_excerpt": "",
+            "tool_calls": [
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "ls -la \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261022T133529Z-3095499-eval/run-3/convert-legacy-doc-with-wps\"",
+                  "description": "List working directory contents"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_inspect_env",
+                "input": {},
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "cd \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261022T133529Z-3095499-eval/run-3/convert-legacy-doc-with-wps\" && sha256sum brief.doc && ls legacy.docx legacy.pdf 2>&1",
+                  "description": "Record source hash and check outputs absent"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_convert",
+                "input": {
+                  "input": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-3\\convert-legacy-doc-with-wps\\brief.doc",
+                  "output": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-3\\convert-legacy-doc-with-wps\\legacy.docx"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_convert",
+                "input": {
+                  "input": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-3\\convert-legacy-doc-with-wps\\brief.doc",
+                  "output": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-3\\convert-legacy-doc-with-wps\\legacy.pdf"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "cd \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261022T133529Z-3095499-eval/run-3/convert-legacy-doc-with-wps\" && sha256sum brief.doc && ls -la legacy.docx legacy.pdf",
+                  "description": "Verify source hash and outputs exist"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_fidelity_check",
+                "input": {
+                  "source": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-3\\convert-legacy-doc-with-wps\\brief.doc",
+                  "target": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-3\\convert-legacy-doc-with-wps\\legacy.docx"
+                },
+                "is_error": true,
+                "error_codes": [
+                  "UNSUPPORTED_FORMAT"
+                ]
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_register_document",
+                "input": {
+                  "component": "writer",
+                  "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-3\\convert-legacy-doc-with-wps\\legacy.docx"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_snapshot_document",
+                "input": {
+                  "document_id": "doc_891b197234a66a95"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "cd \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261022T133529Z-3095499-eval/run-3/convert-legacy-doc-with-wps\" && python -c \"import pypdf,sys; r=pypdf.PdfReader('legacy.pdf'); print('pages',len(r.pages)); print(r.pages[0].extract_text()[:600])\" 2>&1 | head -40",
+                  "description": "Inspect PDF page count and text"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "PowerShell",
+                "input": {
+                  "command": "python -c \"import pypdf; r=pypdf.PdfReader(r'C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-3\\convert-legacy-doc-with-wps\\legacy.pdf'); print('pages', len(r.pages)); print(r.pages[0].extract_text()[:500])\"",
+                  "description": "Extract PDF page count and first-page text"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_fidelity_check",
+                "input": {
+                  "no_layout": true,
+                  "source": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-3\\convert-legacy-doc-with-wps\\legacy.docx",
+                  "target": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-3\\convert-legacy-doc-with-wps\\legacy.pdf"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "mkdir -p /c/Users/admin/AppData/Local/Temp/wps-legacy-check-3095499 && ls -la /c/Users/admin/AppData/Local/Temp/wps-legacy-check-3095499",
+                  "description": "Create temp check directory"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "mkdir -p /c/Users/admin/AppData/Local/Temp/wps-legacy-check-3095499",
+                  "description": "Create temp check directory"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "Read",
+                "input": {
+                  "file_path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-3\\convert-legacy-doc-with-wps\\legacy.pdf",
+                  "pages": "1-3"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_fidelity_check",
+                "input": {
+                  "no_layout": true,
+                  "source": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-3\\convert-legacy-doc-with-wps\\legacy.pdf",
+                  "target": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T133529Z-3095499-eval\\run-3\\convert-legacy-doc-with-wps\\legacy.docx"
+                },
+                "is_error": false,
+                "error_codes": []
+              }
+            ]
+          },
+          "metrics": {
+            "wps_tool_calls": 8,
+            "wps_tool_errors": 1,
+            "other_tool_calls": 8,
+            "tools_used": [
+              "convert",
+              "fidelity_check",
+              "inspect_env",
+              "register_document",
+              "snapshot_document"
+            ],
+            "expected_tools": [
+              "convert",
+              "fidelity_check"
+            ],
+            "off_path_calls": 3,
+            "off_path_tools": [
+              "inspect_env",
+              "register_document",
+              "snapshot_document"
+            ],
+            "off_path_calls_before_write": 3,
+            "off_path_calls_after_write": 0,
+            "wrong_tool_calls": null,
+            "unverified_writes": 0
+          },
+          "checks": [
+            {
+              "kind": "tool_called",
+              "passed": true,
+              "detail": "2 matching call(s)",
+              "tool": "convert"
+            },
+            {
+              "kind": "file_text",
+              "passed": true,
+              "detail": "ok",
+              "path": "legacy.docx",
+              "contains": [
+                "技术服务合同",
+                "第二条 费用与支付",
+                "叁拾万元整"
+              ]
+            },
+            {
+              "kind": "pdf_file",
+              "passed": true,
+              "detail": {
+                "bytes": 143725,
+                "starts_with_pdf_header": true
+              },
+              "path": "legacy.pdf",
+              "min_bytes": 1000
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

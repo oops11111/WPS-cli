@@ -1,0 +1,3202 @@
+{
+  "generated_at": "20261022T135608Z",
+  "claude_cli": "claude",
+  "model": "CLI default",
+  "wps_launch": "default",
+  "passed": 5,
+  "total": 5,
+  "skipped": 0,
+  "wps_tool_calls": 79,
+  "wps_tool_errors": 4,
+  "off_path_calls": 55,
+  "off_path_calls_after_write": 0,
+  "wrong_tool_calls": 0,
+  "unverified_writes": 0,
+  "tasks_without_expected_tools": [],
+  "results": [
+    {
+      "id": "html-table-to-xlsx",
+      "passed": true,
+      "repeat": 3,
+      "min_passes": 2,
+      "passes": 3,
+      "pass_rate": 1.0,
+      "metrics": {
+        "wps_tool_calls": 11,
+        "wps_tool_errors": 0,
+        "off_path_calls": 8,
+        "off_path_tools": [
+          "fidelity_check",
+          "register_document",
+          "spreadsheet_read",
+          "spreadsheet_sheets"
+        ],
+        "off_path_calls_before_write": 8,
+        "off_path_calls_after_write": 0,
+        "wrong_tool_calls": null,
+        "unverified_writes": 0
+      },
+      "runs": [
+        {
+          "id": "html-table-to-xlsx",
+          "passed": true,
+          "agent": {
+            "ran": true,
+            "exit_code": 0,
+            "is_error": false,
+            "num_turns": 7,
+            "duration_ms": 15084,
+            "total_cost_usd": 0.37216319999999997,
+            "result_excerpt": "`table.xlsx` is created in the working directory.\n\n**What was done**\n- `wps_agent_html_editable` (format `xlsx`) mapped the HTML table to a native, editable worksheet — 3 rows, 1 sheet named `Sales` (taken from the `<h2>`), header/alignment styles applied, no warnings, output validation passed.\n- Registered the workbook (`doc_b8c2a6aa2828a04a`) and read the range back:\n\n| A | B |\n|---|---|\n| Region | Q1 |\n| North | 120 |\n| South | 95 |\n\n`Region`/`Q1`/`North`/`South` are text cells; `120` and `95",
+            "stderr_excerpt": "",
+            "tool_calls": [
+              {
+                "name": "Read",
+                "input": {
+                  "file_path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-1\\html-table-to-xlsx\\table.html"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "PowerShell",
+                "input": {
+                  "command": "Get-ChildItem -Force | Select-Object Name,Length",
+                  "description": "List files in working directory"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_html_editable",
+                "input": {
+                  "input": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-1\\html-table-to-xlsx\\table.html",
+                  "output": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-1\\html-table-to-xlsx\\table.xlsx",
+                  "format": "xlsx"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_register_document",
+                "input": {
+                  "component": "spreadsheets",
+                  "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-1\\html-table-to-xlsx\\table.xlsx"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_spreadsheet_read",
+                "input": {
+                  "document_id": "doc_b8c2a6aa2828a04a",
+                  "range": "A1:C3",
+                  "sheet": "Sales"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_fidelity_check",
+                "input": {
+                  "no_layout": true,
+                  "source": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-1\\html-table-to-xlsx\\table.html",
+                  "target": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-1\\html-table-to-xlsx\\table.xlsx"
+                },
+                "is_error": false,
+                "error_codes": []
+              }
+            ]
+          },
+          "metrics": {
+            "wps_tool_calls": 4,
+            "wps_tool_errors": 0,
+            "other_tool_calls": 2,
+            "tools_used": [
+              "fidelity_check",
+              "html_editable",
+              "register_document",
+              "spreadsheet_read"
+            ],
+            "expected_tools": [
+              "html_editable"
+            ],
+            "off_path_calls": 3,
+            "off_path_tools": [
+              "fidelity_check",
+              "register_document",
+              "spreadsheet_read"
+            ],
+            "off_path_calls_before_write": 3,
+            "off_path_calls_after_write": 0,
+            "wrong_tool_calls": null,
+            "unverified_writes": 0
+          },
+          "checks": [
+            {
+              "kind": "tool_called",
+              "passed": true,
+              "detail": "1 matching call(s)",
+              "tool": "html_editable",
+              "input": {
+                "format": "xlsx"
+              }
+            },
+            {
+              "kind": "xlsx_cell",
+              "passed": true,
+              "detail": "Region",
+              "path": "table.xlsx",
+              "cell": "A1",
+              "value": "Region"
+            },
+            {
+              "kind": "xlsx_cell",
+              "passed": true,
+              "detail": 120,
+              "path": "table.xlsx",
+              "cell": "B2",
+              "value": 120
+            },
+            {
+              "kind": "file_unchanged",
+              "passed": true,
+              "detail": "unchanged"
+            }
+          ]
+        },
+        {
+          "id": "html-table-to-xlsx",
+          "passed": true,
+          "agent": {
+            "ran": true,
+            "exit_code": 0,
+            "is_error": false,
+            "num_turns": 6,
+            "duration_ms": 12660,
+            "total_cost_usd": 0.33702220000000005,
+            "result_excerpt": "Done. `table.xlsx` was created in the working directory from `table.html` using `wps_agent_html_editable` (editable mode), and I verified the contents by reading the saved file back:\n\n**Sheet \"Sales\"** — 3 rows × 2 columns:\n| Region | Q1 |\n|---|---|\n| North | 120 |\n| South | 95 |\n\nNotes:\n- Numbers (`120`, `95`) were written as real numeric cells, not text.\n- Header styling (font, alignment) carried over from the HTML.\n- No warnings or errors; conversion validation passed.",
+            "stderr_excerpt": "",
+            "tool_calls": [
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "ls -la \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261022T134558Z-3095499-eval/run-2/html-table-to-xlsx\"",
+                  "description": "List files in working directory"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Read",
+                "input": {
+                  "file_path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-2\\html-table-to-xlsx\\table.html"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_html_editable",
+                "input": {
+                  "input": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-2\\html-table-to-xlsx\\table.html",
+                  "output": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-2\\html-table-to-xlsx\\table.xlsx",
+                  "format": "xlsx"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_register_document",
+                "input": {
+                  "component": "spreadsheets",
+                  "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-2\\html-table-to-xlsx\\table.xlsx"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_spreadsheet_read",
+                "input": {
+                  "document_id": "doc_2d6de54852d9bf7b",
+                  "range": "A1:B3"
+                },
+                "is_error": false,
+                "error_codes": []
+              }
+            ]
+          },
+          "metrics": {
+            "wps_tool_calls": 3,
+            "wps_tool_errors": 0,
+            "other_tool_calls": 2,
+            "tools_used": [
+              "html_editable",
+              "register_document",
+              "spreadsheet_read"
+            ],
+            "expected_tools": [
+              "html_editable"
+            ],
+            "off_path_calls": 2,
+            "off_path_tools": [
+              "register_document",
+              "spreadsheet_read"
+            ],
+            "off_path_calls_before_write": 2,
+            "off_path_calls_after_write": 0,
+            "wrong_tool_calls": null,
+            "unverified_writes": 0
+          },
+          "checks": [
+            {
+              "kind": "tool_called",
+              "passed": true,
+              "detail": "1 matching call(s)",
+              "tool": "html_editable",
+              "input": {
+                "format": "xlsx"
+              }
+            },
+            {
+              "kind": "xlsx_cell",
+              "passed": true,
+              "detail": "Region",
+              "path": "table.xlsx",
+              "cell": "A1",
+              "value": "Region"
+            },
+            {
+              "kind": "xlsx_cell",
+              "passed": true,
+              "detail": 120,
+              "path": "table.xlsx",
+              "cell": "B2",
+              "value": 120
+            },
+            {
+              "kind": "file_unchanged",
+              "passed": true,
+              "detail": "unchanged"
+            }
+          ]
+        },
+        {
+          "id": "html-table-to-xlsx",
+          "passed": true,
+          "agent": {
+            "ran": true,
+            "exit_code": 0,
+            "is_error": false,
+            "num_turns": 7,
+            "duration_ms": 13353,
+            "total_cost_usd": 0.34335119999999997,
+            "result_excerpt": "Done. `table.html` → `table.xlsx` created in the same directory.\n\n**Result**\n- Sheet name: `Sales` (taken from the `<h2>`), one worksheet, range `A1:B3`\n- Contents: `Region/Q1` header row, then `North/120` and `South/95`\n- The numbers `120` and `95` were stored as real numeric cells (not text), so they're ready for formulas\n- Header row carries bold/alignment styling from the HTML; no merged cells, no warnings\n\nThe file was registered as document `doc_dca64235487880da`, and the read-back confirm",
+            "stderr_excerpt": "",
+            "tool_calls": [
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "ls -la \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261022T134558Z-3095499-eval/run-3/html-table-to-xlsx\"",
+                  "description": "List files in working directory"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Read",
+                "input": {
+                  "file_path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-3\\html-table-to-xlsx\\table.html"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_html_editable",
+                "input": {
+                  "input": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-3\\html-table-to-xlsx\\table.html",
+                  "output": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-3\\html-table-to-xlsx\\table.xlsx",
+                  "format": "xlsx"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_register_document",
+                "input": {
+                  "component": "spreadsheets",
+                  "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-3\\html-table-to-xlsx\\table.xlsx"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_spreadsheet_sheets",
+                "input": {
+                  "document_id": "doc_dca64235487880da"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_spreadsheet_read",
+                "input": {
+                  "range": "A1:B3",
+                  "document_id": "doc_dca64235487880da"
+                },
+                "is_error": false,
+                "error_codes": []
+              }
+            ]
+          },
+          "metrics": {
+            "wps_tool_calls": 4,
+            "wps_tool_errors": 0,
+            "other_tool_calls": 2,
+            "tools_used": [
+              "html_editable",
+              "register_document",
+              "spreadsheet_read",
+              "spreadsheet_sheets"
+            ],
+            "expected_tools": [
+              "html_editable"
+            ],
+            "off_path_calls": 3,
+            "off_path_tools": [
+              "register_document",
+              "spreadsheet_read",
+              "spreadsheet_sheets"
+            ],
+            "off_path_calls_before_write": 3,
+            "off_path_calls_after_write": 0,
+            "wrong_tool_calls": null,
+            "unverified_writes": 0
+          },
+          "checks": [
+            {
+              "kind": "tool_called",
+              "passed": true,
+              "detail": "1 matching call(s)",
+              "tool": "html_editable",
+              "input": {
+                "format": "xlsx"
+              }
+            },
+            {
+              "kind": "xlsx_cell",
+              "passed": true,
+              "detail": "Region",
+              "path": "table.xlsx",
+              "cell": "A1",
+              "value": "Region"
+            },
+            {
+              "kind": "xlsx_cell",
+              "passed": true,
+              "detail": 120,
+              "path": "table.xlsx",
+              "cell": "B2",
+              "value": 120
+            },
+            {
+              "kind": "file_unchanged",
+              "passed": true,
+              "detail": "unchanged"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "html-table-to-docx",
+      "passed": true,
+      "repeat": 3,
+      "min_passes": 2,
+      "passes": 3,
+      "pass_rate": 1.0,
+      "metrics": {
+        "wps_tool_calls": 5,
+        "wps_tool_errors": 0,
+        "off_path_calls": 2,
+        "off_path_tools": [
+          "fidelity_check"
+        ],
+        "off_path_calls_before_write": 2,
+        "off_path_calls_after_write": 0,
+        "wrong_tool_calls": null,
+        "unverified_writes": 0
+      },
+      "runs": [
+        {
+          "id": "html-table-to-docx",
+          "passed": true,
+          "agent": {
+            "ran": true,
+            "exit_code": 0,
+            "is_error": false,
+            "num_turns": 3,
+            "duration_ms": 9080,
+            "total_cost_usd": 0.2651837,
+            "result_excerpt": "Converted `table.html` to an editable Word document:\n\n`C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-1\\html-table-to-docx\\table.docx`\n\nThe conversion mapped 1 heading and 1 native Word table; validation passed with no warnings or errors.",
+            "stderr_excerpt": "",
+            "tool_calls": [
+              {
+                "name": "Read",
+                "input": {
+                  "file_path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-1\\html-table-to-docx\\table.html"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_html_editable",
+                "input": {
+                  "input": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-1\\html-table-to-docx\\table.html",
+                  "output": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-1\\html-table-to-docx\\table.docx",
+                  "format": "docx",
+                  "fidelity": "editable"
+                },
+                "is_error": false,
+                "error_codes": []
+              }
+            ]
+          },
+          "metrics": {
+            "wps_tool_calls": 1,
+            "wps_tool_errors": 0,
+            "other_tool_calls": 1,
+            "tools_used": [
+              "html_editable"
+            ],
+            "expected_tools": [
+              "html_editable"
+            ],
+            "off_path_calls": 0,
+            "off_path_tools": [],
+            "off_path_calls_before_write": 0,
+            "off_path_calls_after_write": 0,
+            "wrong_tool_calls": null,
+            "unverified_writes": 0
+          },
+          "checks": [
+            {
+              "kind": "tool_called",
+              "passed": true,
+              "detail": "1 matching call(s)",
+              "tool": "html_editable"
+            },
+            {
+              "kind": "file_text",
+              "passed": true,
+              "detail": "ok",
+              "path": "table.docx",
+              "contains": [
+                "Region",
+                "North",
+                "120",
+                "South",
+                "95"
+              ]
+            },
+            {
+              "kind": "file_unchanged",
+              "passed": true,
+              "detail": "unchanged"
+            }
+          ]
+        },
+        {
+          "id": "html-table-to-docx",
+          "passed": true,
+          "agent": {
+            "ran": true,
+            "exit_code": 0,
+            "is_error": false,
+            "num_turns": 3,
+            "duration_ms": 11516,
+            "total_cost_usd": 0.2660422,
+            "result_excerpt": "Done. `table.html` → `table.docx` in the same directory, converted as native editable Word content (python-docx semantic mapping, not an embedded image).\n\n- **Mapped objects:** 1 heading, 1 table (with column widths and paragraph/character styling applied), 0 images, 0 lists\n- **No warnings**, no unsupported CSS, no remote resources fetched\n- **Fidelity check passed** on all applicable dimensions: text 1.0, structure 1.0, formatting 1.0, data 1.0 (layout comparison skipped)\n\nFile: `C:\\Users\\admi",
+            "stderr_excerpt": "",
+            "tool_calls": [
+              {
+                "name": "mcp__wps-agent__wps_agent_html_editable",
+                "input": {
+                  "input": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-2\\html-table-to-docx\\table.html",
+                  "output": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-2\\html-table-to-docx\\table.docx",
+                  "format": "docx",
+                  "fidelity": "editable"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_fidelity_check",
+                "input": {
+                  "no_layout": true,
+                  "source": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-2\\html-table-to-docx\\table.html",
+                  "target": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-2\\html-table-to-docx\\table.docx"
+                },
+                "is_error": false,
+                "error_codes": []
+              }
+            ]
+          },
+          "metrics": {
+            "wps_tool_calls": 2,
+            "wps_tool_errors": 0,
+            "other_tool_calls": 0,
+            "tools_used": [
+              "fidelity_check",
+              "html_editable"
+            ],
+            "expected_tools": [
+              "html_editable"
+            ],
+            "off_path_calls": 1,
+            "off_path_tools": [
+              "fidelity_check"
+            ],
+            "off_path_calls_before_write": 1,
+            "off_path_calls_after_write": 0,
+            "wrong_tool_calls": null,
+            "unverified_writes": 0
+          },
+          "checks": [
+            {
+              "kind": "tool_called",
+              "passed": true,
+              "detail": "1 matching call(s)",
+              "tool": "html_editable"
+            },
+            {
+              "kind": "file_text",
+              "passed": true,
+              "detail": "ok",
+              "path": "table.docx",
+              "contains": [
+                "Region",
+                "North",
+                "120",
+                "South",
+                "95"
+              ]
+            },
+            {
+              "kind": "file_unchanged",
+              "passed": true,
+              "detail": "unchanged"
+            }
+          ]
+        },
+        {
+          "id": "html-table-to-docx",
+          "passed": true,
+          "agent": {
+            "ran": true,
+            "exit_code": 0,
+            "is_error": false,
+            "num_turns": 5,
+            "duration_ms": 15172,
+            "total_cost_usd": 0.3156717,
+            "result_excerpt": "Done. `table.html` was converted to `table.docx` in the same directory.\n\n- **Tool:** `wps_agent_html_editable` (editable DOCX, semantic mapping via python-docx)\n- **Content mapped:** 1 native heading (\"Sales\"), 1 native table (header row Region/Q1, rows North 120 and South 95)\n- **Output:** `table.docx`, 37,042 bytes — new file, nothing overwritten\n- **Validation:** output-created check passed; fidelity check (text, structure, formatting, data) scored 1.0 on every aspect with no missing content,",
+            "stderr_excerpt": "",
+            "tool_calls": [
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "ls -la \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261022T134558Z-3095499-eval/run-3/html-table-to-docx\"",
+                  "description": "List files in working directory"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Read",
+                "input": {
+                  "file_path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-3\\html-table-to-docx\\table.html"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_html_editable",
+                "input": {
+                  "input": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-3\\html-table-to-docx\\table.html",
+                  "output": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-3\\html-table-to-docx\\table.docx",
+                  "format": "docx"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_fidelity_check",
+                "input": {
+                  "source": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-3\\html-table-to-docx\\table.html",
+                  "target": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-3\\html-table-to-docx\\table.docx",
+                  "no_layout": true
+                },
+                "is_error": false,
+                "error_codes": []
+              }
+            ]
+          },
+          "metrics": {
+            "wps_tool_calls": 2,
+            "wps_tool_errors": 0,
+            "other_tool_calls": 2,
+            "tools_used": [
+              "fidelity_check",
+              "html_editable"
+            ],
+            "expected_tools": [
+              "html_editable"
+            ],
+            "off_path_calls": 1,
+            "off_path_tools": [
+              "fidelity_check"
+            ],
+            "off_path_calls_before_write": 1,
+            "off_path_calls_after_write": 0,
+            "wrong_tool_calls": null,
+            "unverified_writes": 0
+          },
+          "checks": [
+            {
+              "kind": "tool_called",
+              "passed": true,
+              "detail": "1 matching call(s)",
+              "tool": "html_editable"
+            },
+            {
+              "kind": "file_text",
+              "passed": true,
+              "detail": "ok",
+              "path": "table.docx",
+              "contains": [
+                "Region",
+                "North",
+                "120",
+                "South",
+                "95"
+              ]
+            },
+            {
+              "kind": "file_unchanged",
+              "passed": true,
+              "detail": "unchanged"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "html-complex-report-to-docx",
+      "passed": true,
+      "repeat": 3,
+      "min_passes": 2,
+      "passes": 3,
+      "pass_rate": 1.0,
+      "metrics": {
+        "wps_tool_calls": 13,
+        "wps_tool_errors": 1,
+        "off_path_calls": 7,
+        "off_path_tools": [
+          "convert",
+          "fidelity_check",
+          "register_document",
+          "snapshot_document"
+        ],
+        "off_path_calls_before_write": 7,
+        "off_path_calls_after_write": 0,
+        "wrong_tool_calls": null,
+        "unverified_writes": 0
+      },
+      "runs": [
+        {
+          "id": "html-complex-report-to-docx",
+          "passed": true,
+          "agent": {
+            "ran": true,
+            "exit_code": 0,
+            "is_error": false,
+            "num_turns": 7,
+            "duration_ms": 30548,
+            "total_cost_usd": 0.3897842000000001,
+            "result_excerpt": "Done. Both files were created in the working directory:\n\n| File | Size | Details |\n|---|---|---|\n| `report.docx` | 39,622 B | Editable native Word content — 6 headings, 10 paragraphs, 8 list items, 1 table, 1 image |\n| `report.pdf` | 222,975 B | Exported from `report.docx` via WPS Writer (COM `ExportAsFixedFormat`) |\n\n- **HTML → DOCX**: `html_editable` mapped the report semantically (headings, nested ordered/unordered lists, the KPI table with merged `rowspan`/`colspan` cells and caption, the ch",
+            "stderr_excerpt": "",
+            "tool_calls": [
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "ls -la \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261022T134558Z-3095499-eval/run-1/html-complex-report-to-docx\"",
+                  "description": "List files in working directory"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Read",
+                "input": {
+                  "file_path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-1\\html-complex-report-to-docx\\report.html"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_html_editable",
+                "input": {
+                  "input": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-1\\html-complex-report-to-docx\\report.html",
+                  "output": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-1\\html-complex-report-to-docx\\report.docx",
+                  "format": "docx",
+                  "fidelity": "editable"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_convert_smoke",
+                "input": {
+                  "component": "writer",
+                  "format": "pdf",
+                  "input": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-1\\html-complex-report-to-docx\\report.docx",
+                  "output": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-1\\html-complex-report-to-docx\\report.pdf"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "cd \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261022T134558Z-3095499-eval/run-1/html-complex-report-to-docx\" && ls -la --time-style=full-iso report.html report.docx report.pdf",
+                  "description": "Check output files and source mtime"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_fidelity_check",
+                "input": {
+                  "no_layout": true,
+                  "source": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-1\\html-complex-report-to-docx\\report.html",
+                  "target": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-1\\html-complex-report-to-docx\\report.docx"
+                },
+                "is_error": false,
+                "error_codes": []
+              }
+            ]
+          },
+          "metrics": {
+            "wps_tool_calls": 3,
+            "wps_tool_errors": 0,
+            "other_tool_calls": 3,
+            "tools_used": [
+              "convert_smoke",
+              "fidelity_check",
+              "html_editable"
+            ],
+            "expected_tools": [
+              "convert_smoke",
+              "html_editable"
+            ],
+            "off_path_calls": 1,
+            "off_path_tools": [
+              "fidelity_check"
+            ],
+            "off_path_calls_before_write": 1,
+            "off_path_calls_after_write": 0,
+            "wrong_tool_calls": null,
+            "unverified_writes": 0
+          },
+          "checks": [
+            {
+              "kind": "tool_called",
+              "passed": true,
+              "detail": "1 matching call(s)",
+              "tool": "html_editable"
+            },
+            {
+              "kind": "file_text",
+              "passed": true,
+              "detail": "ok",
+              "path": "report.docx",
+              "contains": [
+                "2026 年第三季度经营报告",
+                "一、摘要",
+                "4,820 万元",
+                "质量第一",
+                "上海 6 家",
+                "汇率风险",
+                "SELECT region",
+                "finance@example.com",
+                "表 1 分区域收入（万元）",
+                "图 1 季度收入趋势",
+                "收入按权责发生制确认"
+              ],
+              "absent": [
+                "document.title",
+                "alert(1)"
+              ]
+            },
+            {
+              "kind": "docx_table_cell",
+              "passed": true,
+              "detail": "收入",
+              "path": "report.docx",
+              "table": 1,
+              "row": 1,
+              "column": 2,
+              "text": "收入"
+            },
+            {
+              "kind": "docx_table_cell",
+              "passed": true,
+              "detail": "Q2",
+              "path": "report.docx",
+              "table": 1,
+              "row": 2,
+              "column": 2,
+              "text": "Q2"
+            },
+            {
+              "kind": "docx_table_cell",
+              "passed": true,
+              "detail": "华东",
+              "path": "report.docx",
+              "table": 1,
+              "row": 3,
+              "column": 1,
+              "text": "华东"
+            },
+            {
+              "kind": "docx_table_cell",
+              "passed": true,
+              "detail": "2,050",
+              "path": "report.docx",
+              "table": 1,
+              "row": 3,
+              "column": 3,
+              "text": "2,050"
+            },
+            {
+              "kind": "tool_called",
+              "passed": true,
+              "detail": "1 matching call(s)",
+              "tool": "convert_smoke",
+              "input": {
+                "component": "writer",
+                "format": "pdf"
+              },
+              "or": [
+                {
+                  "tool": "convert",
+                  "input_suffix": {
+                    "output": ".pdf"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "pdf_file",
+              "passed": true,
+              "detail": {
+                "bytes": 222975,
+                "starts_with_pdf_header": true
+              },
+              "path": "report.pdf",
+              "min_bytes": 1000
+            }
+          ]
+        },
+        {
+          "id": "html-complex-report-to-docx",
+          "passed": true,
+          "agent": {
+            "ran": true,
+            "exit_code": 1,
+            "is_error": true,
+            "num_turns": 16,
+            "duration_ms": 64087,
+            "total_cost_usd": 0.7360732,
+            "result_excerpt": "",
+            "stderr_excerpt": "",
+            "tool_calls": [
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "ls -la \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261022T134558Z-3095499-eval/run-2/html-complex-report-to-docx\"",
+                  "description": "List files in working directory"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Read",
+                "input": {
+                  "file_path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-2\\html-complex-report-to-docx\\report.html"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_html_editable",
+                "input": {
+                  "input": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-2\\html-complex-report-to-docx\\report.html",
+                  "output": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-2\\html-complex-report-to-docx\\report.docx",
+                  "format": "docx"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_convert_smoke",
+                "input": {
+                  "component": "writer",
+                  "format": "pdf",
+                  "input": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-2\\html-complex-report-to-docx\\report.docx",
+                  "output": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-2\\html-complex-report-to-docx\\report.pdf"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_register_document",
+                "input": {
+                  "component": "writer",
+                  "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-2\\html-complex-report-to-docx\\report.docx"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "cd \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261022T134558Z-3095499-eval/run-2/html-complex-report-to-docx\" && ls -la report.* && python -c \"\nimport re\nd=open('report.pdf','rb').read()\nprint('pages:', len(re.findall(rb'/Type\\s*/Page[^s]', d)))\n\" 2>&1",
+                  "description": "Check output files and PDF page count"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_snapshot_document",
+                "input": {
+                  "document_id": "doc_07d36f7ccc6b7206"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Read",
+                "input": {
+                  "file_path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-2\\html-complex-report-to-docx\\report.pdf",
+                  "pages": "1-3"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_fidelity_check",
+                "input": {
+                  "source": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-2\\html-complex-report-to-docx\\report.docx",
+                  "target": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-2\\html-complex-report-to-docx\\report.pdf"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_convert",
+                "input": {
+                  "input": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-2\\html-complex-report-to-docx\\report.pdf",
+                  "output": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-verify-report\\report_pdf_check.docx"
+                },
+                "is_error": true,
+                "error_codes": [
+                  "OUTPUT_DIRECTORY_NOT_FOUND"
+                ]
+              },
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "mkdir -p \"C:/Users/admin/AppData/Local/Temp/wps-verify-report\"",
+                  "description": "Create verification output directory"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "PowerShell",
+                "input": {
+                  "command": "New-Item -ItemType Directory -Force \"C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-2\\html-complex-report-to-docx\\_verify\" | Out-Null; Get-ChildItem \"C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-2\\html-complex-report-to-docx\"",
+                  "description": "Create temporary verification folder"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "PowerShell",
+                "input": {
+                  "command": "$docx = \"C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-2\\html-complex-report-to-docx\\report.docx\"\nAdd-Type -AssemblyName System.IO.Compression.FileSystem\n$zip = [System.IO.Compression.ZipFile]::OpenRead($docx)\n$entry = $zip.Entries | Where-Object { $_.FullName -eq 'word/document.xml' }\n$reader = New-Object System.IO.StreamReader($entry.Open())\n$xmlText = $reader.ReadToEnd(); $reader.Close(); $zip.Dispose()\n[xml]$doc = $xmlText\n$ns = New-Object System.Xml.XmlNamespaceManager($doc.NameTable)\n$ns.AddNamespace('w','http://schemas.openxmlformats.org/wordprocessingml/2006/main')\n$tbl = $doc.SelectSingleNode('//w:tbl', $ns)\n\"table_rows=\" + $tbl.SelectNodes('./w:tr', $ns).Count\nforeach ($tr in $tbl.SelectNodes('./w:tr', $ns)) {\n  $cells = @()\n  foreach ($tc in $tr.SelectNodes('./w:tc', $ns)) {\n    $span = $tc.SelectSingleNode('./w:tcPr/w:gridSpan', $ns)\n    $vm = $tc.SelectSingleNode('./w:tcPr/w:vMerge', $ns)\n    $txt = ($tc.SelectNodes('.//w:t', $ns) | ForEach-Object { $_.InnerText }) -join ''\n    $cells += ($txt + $(if ($span) { \"[span=$($span.GetAttribute('val','http://schemas.openxmlformats.org/wordprocessingml/2006/main'))]\" } else { '' }) + $(if ($vm) { \"[vMerge=$($vm.GetAttribute('val','http://schemas.openxmlformats.org/wordprocessingml/2006/main'))]\" } else { '' }))\n  }\n  \"ROW: \" + ($cells -join ' | ')\n}\n$drawings = $doc.SelectNodes('//w:drawing', $ns).Count\n\"drawings=$drawings\"",
+                  "description": "Inspect DOCX table structure and image count"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "PowerShell",
+                "input": {
+                  "command": "$docx = \"C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-2\\html-complex-report-to-docx\\report.docx\"\nAdd-Type -AssemblyName System.IO.Compression.FileSystem\n$zip = [System.IO.Compression.ZipFile]::OpenRead($docx)\n$entry = $zip.Entries | Where-Object { $_.FullName -eq 'word/document.xml' }\n$reader = New-Object System.IO.StreamReader($entry.Open())\n$xmlText = $reader.ReadToEnd(); $reader.Close(); $zip.Dispose()\n\"rows=\" + ([regex]::Matches($xmlText, '<w:tr[ >]')).Count\n\"cells=\" + ([regex]::Matches($xmlText, '<w:tc[ >]')).Count\n\"gridSpan=\" + ([regex]::Matches($xmlText, 'w:gridSpan')).Count\n\"vMerge=\" + ([regex]::Matches($xmlText, 'w:vMerge')).Count\n\"drawings=\" + ([regex]::Matches($xmlText, '<w:drawing')).Count\n$tableText = [regex]::Matches($xmlText, '<w:t(?: [^>]*)?>([^<]*)</w:t>') | ForEach-Object { $_.Groups[1].Value }\n\"textnodes=\" + $tableText.Count\n($tableText -join ' ') -match '区域.*Q2.*Q3.*合计' \n([regex]::Matches($xmlText, '<w:hyperlink')).Count",
+                  "description": "Count DOCX table rows, merges, drawings and hyperlinks"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "python -c \"import zipfile,re; x=zipfile.ZipFile(r'C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-2\\html-complex-report-to-docx\\report.docx').read('word/document.xml').decode('utf-8'); print('rows',len(re.findall(r'<w:tr[ >]',x)),'cells',len(re.findall(r'<w:tc[ >]',x)),'gridSpan',len(re.findall(r'w:gridSpan',x)),'vMerge',len(re.findall(r'w:vMerge',x)),'drawings',len(re.findall(r'<w:drawing',x)),'hyperlinks',len(re.findall(r'<w:hyperlink',x))); t=re.findall(r'<w:t(?: [^>]*)?>([^<]*)</w:t>',x); print('TEXT:', ' '.join(t))\"",
+                  "description": "Inspect DOCX table and content via Python"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_convert",
+                "input": {
+                  "input": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-2\\html-complex-report-to-docx\\report.pdf",
+                  "output": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-2\\html-complex-report-to-docx\\report_pdf_check.md"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Read",
+                "input": {
+                  "file_path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-2\\html-complex-report-to-docx\\report_pdf_check.md"
+                },
+                "is_error": false,
+                "error_codes": []
+              }
+            ]
+          },
+          "metrics": {
+            "wps_tool_calls": 7,
+            "wps_tool_errors": 1,
+            "other_tool_calls": 10,
+            "tools_used": [
+              "convert",
+              "convert_smoke",
+              "fidelity_check",
+              "html_editable",
+              "register_document",
+              "snapshot_document"
+            ],
+            "expected_tools": [
+              "convert_smoke",
+              "html_editable"
+            ],
+            "off_path_calls": 5,
+            "off_path_tools": [
+              "convert",
+              "fidelity_check",
+              "register_document",
+              "snapshot_document"
+            ],
+            "off_path_calls_before_write": 5,
+            "off_path_calls_after_write": 0,
+            "wrong_tool_calls": null,
+            "unverified_writes": 0
+          },
+          "checks": [
+            {
+              "kind": "tool_called",
+              "passed": true,
+              "detail": "1 matching call(s)",
+              "tool": "html_editable"
+            },
+            {
+              "kind": "file_text",
+              "passed": true,
+              "detail": "ok",
+              "path": "report.docx",
+              "contains": [
+                "2026 年第三季度经营报告",
+                "一、摘要",
+                "4,820 万元",
+                "质量第一",
+                "上海 6 家",
+                "汇率风险",
+                "SELECT region",
+                "finance@example.com",
+                "表 1 分区域收入（万元）",
+                "图 1 季度收入趋势",
+                "收入按权责发生制确认"
+              ],
+              "absent": [
+                "document.title",
+                "alert(1)"
+              ]
+            },
+            {
+              "kind": "docx_table_cell",
+              "passed": true,
+              "detail": "收入",
+              "path": "report.docx",
+              "table": 1,
+              "row": 1,
+              "column": 2,
+              "text": "收入"
+            },
+            {
+              "kind": "docx_table_cell",
+              "passed": true,
+              "detail": "Q2",
+              "path": "report.docx",
+              "table": 1,
+              "row": 2,
+              "column": 2,
+              "text": "Q2"
+            },
+            {
+              "kind": "docx_table_cell",
+              "passed": true,
+              "detail": "华东",
+              "path": "report.docx",
+              "table": 1,
+              "row": 3,
+              "column": 1,
+              "text": "华东"
+            },
+            {
+              "kind": "docx_table_cell",
+              "passed": true,
+              "detail": "2,050",
+              "path": "report.docx",
+              "table": 1,
+              "row": 3,
+              "column": 3,
+              "text": "2,050"
+            },
+            {
+              "kind": "tool_called",
+              "passed": true,
+              "detail": "1 matching call(s)",
+              "tool": "convert_smoke",
+              "input": {
+                "component": "writer",
+                "format": "pdf"
+              },
+              "or": [
+                {
+                  "tool": "convert",
+                  "input_suffix": {
+                    "output": ".pdf"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "pdf_file",
+              "passed": true,
+              "detail": {
+                "bytes": 222975,
+                "starts_with_pdf_header": true
+              },
+              "path": "report.pdf",
+              "min_bytes": 1000
+            }
+          ]
+        },
+        {
+          "id": "html-complex-report-to-docx",
+          "passed": true,
+          "agent": {
+            "ran": true,
+            "exit_code": 0,
+            "is_error": false,
+            "num_turns": 7,
+            "duration_ms": 33551,
+            "total_cost_usd": 0.40390919999999997,
+            "result_excerpt": "Done. Both files are in the working directory, and `report.html` was read only.\n\n**Steps**\n1. **HTML → editable DOCX** via `wps_agent_html_editable` (editable fidelity, python-docx semantic mapping). Native objects: 6 headings, 1 table, 8 lists, 10 paragraphs, 1 image. Non-executable content was dropped as expected — the `<script>` was not run and the `javascript:` link was omitted; the mailto/tel/https links, the nested list, the merged-cell KPI table, the figure caption and the blockquote all ",
+            "stderr_excerpt": "",
+            "tool_calls": [
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "ls -la \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261022T134558Z-3095499-eval/run-3/html-complex-report-to-docx\"",
+                  "description": "List files in working directory"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Read",
+                "input": {
+                  "file_path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-3\\html-complex-report-to-docx\\report.html"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_html_editable",
+                "input": {
+                  "input": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-3\\html-complex-report-to-docx\\report.html",
+                  "output": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-3\\html-complex-report-to-docx\\report.docx",
+                  "format": "docx",
+                  "fidelity": "editable"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_convert_smoke",
+                "input": {
+                  "component": "writer",
+                  "format": "pdf",
+                  "input": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-3\\html-complex-report-to-docx\\report.docx",
+                  "output": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-3\\html-complex-report-to-docx\\report.pdf"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "cd \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261022T134558Z-3095499-eval/run-3/html-complex-report-to-docx\" && ls -la report.html report.docx report.pdf && sha256sum report.html",
+                  "description": "Verify output files exist and source untouched"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_fidelity_check",
+                "input": {
+                  "no_layout": true,
+                  "renderer": "none",
+                  "source": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-3\\html-complex-report-to-docx\\report.html",
+                  "target": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-3\\html-complex-report-to-docx\\report.docx"
+                },
+                "is_error": false,
+                "error_codes": []
+              }
+            ]
+          },
+          "metrics": {
+            "wps_tool_calls": 3,
+            "wps_tool_errors": 0,
+            "other_tool_calls": 3,
+            "tools_used": [
+              "convert_smoke",
+              "fidelity_check",
+              "html_editable"
+            ],
+            "expected_tools": [
+              "convert_smoke",
+              "html_editable"
+            ],
+            "off_path_calls": 1,
+            "off_path_tools": [
+              "fidelity_check"
+            ],
+            "off_path_calls_before_write": 1,
+            "off_path_calls_after_write": 0,
+            "wrong_tool_calls": null,
+            "unverified_writes": 0
+          },
+          "checks": [
+            {
+              "kind": "tool_called",
+              "passed": true,
+              "detail": "1 matching call(s)",
+              "tool": "html_editable"
+            },
+            {
+              "kind": "file_text",
+              "passed": true,
+              "detail": "ok",
+              "path": "report.docx",
+              "contains": [
+                "2026 年第三季度经营报告",
+                "一、摘要",
+                "4,820 万元",
+                "质量第一",
+                "上海 6 家",
+                "汇率风险",
+                "SELECT region",
+                "finance@example.com",
+                "表 1 分区域收入（万元）",
+                "图 1 季度收入趋势",
+                "收入按权责发生制确认"
+              ],
+              "absent": [
+                "document.title",
+                "alert(1)"
+              ]
+            },
+            {
+              "kind": "docx_table_cell",
+              "passed": true,
+              "detail": "收入",
+              "path": "report.docx",
+              "table": 1,
+              "row": 1,
+              "column": 2,
+              "text": "收入"
+            },
+            {
+              "kind": "docx_table_cell",
+              "passed": true,
+              "detail": "Q2",
+              "path": "report.docx",
+              "table": 1,
+              "row": 2,
+              "column": 2,
+              "text": "Q2"
+            },
+            {
+              "kind": "docx_table_cell",
+              "passed": true,
+              "detail": "华东",
+              "path": "report.docx",
+              "table": 1,
+              "row": 3,
+              "column": 1,
+              "text": "华东"
+            },
+            {
+              "kind": "docx_table_cell",
+              "passed": true,
+              "detail": "2,050",
+              "path": "report.docx",
+              "table": 1,
+              "row": 3,
+              "column": 3,
+              "text": "2,050"
+            },
+            {
+              "kind": "tool_called",
+              "passed": true,
+              "detail": "1 matching call(s)",
+              "tool": "convert_smoke",
+              "input": {
+                "component": "writer",
+                "format": "pdf"
+              },
+              "or": [
+                {
+                  "tool": "convert",
+                  "input_suffix": {
+                    "output": ".pdf"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "pdf_file",
+              "passed": true,
+              "detail": {
+                "bytes": 222975,
+                "starts_with_pdf_header": true
+              },
+              "path": "report.pdf",
+              "min_bytes": 1000
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "html-complex-budget-to-xlsx",
+      "passed": true,
+      "repeat": 3,
+      "min_passes": 2,
+      "passes": 3,
+      "pass_rate": 1.0,
+      "metrics": {
+        "wps_tool_calls": 31,
+        "wps_tool_errors": 2,
+        "off_path_calls": 25,
+        "off_path_tools": [
+          "convert",
+          "fidelity_check",
+          "inspect_env",
+          "register_document",
+          "spreadsheet_read",
+          "spreadsheet_sheets"
+        ],
+        "off_path_calls_before_write": 25,
+        "off_path_calls_after_write": 0,
+        "wrong_tool_calls": null,
+        "unverified_writes": 0
+      },
+      "runs": [
+        {
+          "id": "html-complex-budget-to-xlsx",
+          "passed": true,
+          "agent": {
+            "ran": true,
+            "exit_code": 1,
+            "is_error": true,
+            "num_turns": 16,
+            "duration_ms": 61532,
+            "total_cost_usd": 0.7396537999999999,
+            "result_excerpt": "",
+            "stderr_excerpt": "",
+            "tool_calls": [
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "ls -la \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261022T134558Z-3095499-eval/run-1/html-complex-budget-to-xlsx\"",
+                  "description": "List files in working directory"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_inspect_env",
+                "input": {},
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Read",
+                "input": {
+                  "file_path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-1\\html-complex-budget-to-xlsx\\budget.html"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_html_editable",
+                "input": {
+                  "input": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-1\\html-complex-budget-to-xlsx\\budget.html",
+                  "output": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-1\\html-complex-budget-to-xlsx\\budget.xlsx",
+                  "format": "xlsx"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_register_document",
+                "input": {
+                  "component": "spreadsheets",
+                  "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-1\\html-complex-budget-to-xlsx\\budget.xlsx"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_spreadsheet_sheets",
+                "input": {
+                  "document_id": "doc_b3f341f2f32b60b1"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_spreadsheet_read",
+                "input": {
+                  "document_id": "doc_b3f341f2f32b60b1",
+                  "range": "A1:F6"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_spreadsheet_read",
+                "input": {
+                  "document_id": "doc_b3f341f2f32b60b1",
+                  "range": "A1:F5",
+                  "sheet": "人员编制"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_spreadsheet_read",
+                "input": {
+                  "document_id": "doc_b3f341f2f32b60b1",
+                  "range": "A1:B3",
+                  "sheet": "部门费用预算 2"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_spreadsheet_read",
+                "input": {
+                  "document_id": "doc_b3f341f2f32b60b1",
+                  "range": "A1:B3",
+                  "sheet": "一个名字很长很长很长很长的汇总表 包含 非法字符 以及 方括号"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "cd \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261022T134558Z-3095499-eval/run-1/html-complex-budget-to-xlsx\" && python -I -c \"\nimport openpyxl\nwb=openpyxl.load_workbook('budget.xlsx')\nfor ws in wb.worksheets:\n    print('SHEET',repr(ws.title),'dims',ws.dimensions,'imgs',len(ws._images),'merged',[str(r) for r in ws.merged_cells.ranges])\n    for row in ws.iter_rows():\n        for c in row:\n            if c.hyperlink: print('  HYPERLINK',c.coordinate,c.value,c.hyperlink.target)\n            if c.value is not None and c.font and c.font.bold: print('  BOLD',c.coordinate,repr(c.value))\nprint('colwidths',[(ws.title,{k:round(v.width,1) for k,v in ws.column_dimensions.items() if v.width}) for ws in wb.worksheets])\n\"",
+                  "description": "Inspect workbook details with openpyxl"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "PowerShell",
+                "input": {
+                  "command": "python -I -c \"import openpyxl; wb=openpyxl.load_workbook(r'C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-1\\html-complex-budget-to-xlsx\\budget.xlsx'); [print('SHEET',repr(ws.title),'dims',ws.dimensions,'imgs',len(ws._images),'merged',[str(r) for r in ws.merged_cells.ranges]) for ws in wb.worksheets]; [print('  HYPERLINK',c.coordinate,c.value,c.hyperlink.target) for ws in wb.worksheets for row in ws.iter_rows() for c in row if c.hyperlink]; [print('  BOLD',ws.title,c.coordinate,repr(c.value)) for ws in wb.worksheets for row in ws.iter_rows() for c in row if c.value is not None and c.font and c.font.bold]\"",
+                  "description": "Inspect workbook objects with openpyxl"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "PowerShell",
+                "input": {
+                  "command": "Add-Type -AssemblyName System.IO.Compression.FileSystem; $z=[IO.Compression.ZipFile]::OpenRead('C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-1\\html-complex-budget-to-xlsx\\budget.xlsx'); $z.Entries | Select-Object FullName,Length | Format-Table -AutoSize; foreach($n in @('xl/worksheets/sheet2.xml','xl/worksheets/_rels/sheet2.xml.rels','xl/workbook.xml')){ $e=$z.GetEntry($n); if($e){ \"--- $n\"; $r=New-Object IO.StreamReader($e.Open()); $t=$r.ReadToEnd(); $r.Close(); $t.Substring(0,[Math]::Min(1500,$t.Length)) } }; $z.Dispose()",
+                  "description": "List xlsx zip entries and view sheet XML"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "PowerShell",
+                "input": {
+                  "command": "$src='C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-1\\html-complex-budget-to-xlsx\\budget.xlsx'; $tmp=Join-Path $env:TEMP ('xlsxinspect_'+[guid]::NewGuid().ToString('N')); New-Item -ItemType Directory $tmp | Out-Null; Copy-Item $src (Join-Path $tmp 'b.zip'); Expand-Archive (Join-Path $tmp 'b.zip') -DestinationPath (Join-Path $tmp 'x') -Force; Get-ChildItem -Recurse (Join-Path $tmp 'x') -File | ForEach-Object { $_.FullName.Substring((Join-Path $tmp 'x').Length) }; \"=== rels ===\"; Get-ChildItem (Join-Path $tmp 'x\\xl\\worksheets\\_rels') -File -ErrorAction SilentlyContinue | ForEach-Object { $_.Name; Get-Content $_.FullName }; \"TMP=$tmp\"",
+                  "description": "Extract xlsx and list internal parts"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "which unzip || echo no-unzip",
+                  "description": "Check for unzip availability"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "cd \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261022T134558Z-3095499-eval/run-1/html-complex-budget-to-xlsx\" && unzip -l budget.xlsx && echo \"=== sheet2 rels ===\" && unzip -p budget.xlsx xl/worksheets/_rels/sheet2.xml.rels 2>/dev/null && echo \"=== sheet2 hyperlinks ===\" && unzip -p budget.xlsx xl/worksheets/sheet2.xml | grep -o '<hyperlink[^>]*>' ",
+                  "description": "List xlsx internals and sheet2 hyperlinks"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "unzip -l \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261022T134558Z-3095499-eval/run-1/html-complex-budget-to-xlsx/budget.xlsx\"",
+                  "description": "List xlsx internal parts"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_convert_smoke",
+                "input": {
+                  "component": "spreadsheets",
+                  "format": "pdf",
+                  "input": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-1\\html-complex-budget-to-xlsx\\budget.xlsx",
+                  "output": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-1\\html-complex-budget-to-xlsx\\budget.pdf"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_fidelity_check",
+                "input": {
+                  "source": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-1\\html-complex-budget-to-xlsx\\budget.xlsx",
+                  "target": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-1\\html-complex-budget-to-xlsx\\budget.pdf",
+                  "no_layout": true
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "ls -l --time-style=full-iso \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261022T134558Z-3095499-eval/run-1/html-complex-budget-to-xlsx\"",
+                  "description": "List files with timestamps"
+                },
+                "is_error": false,
+                "error_codes": []
+              }
+            ]
+          },
+          "metrics": {
+            "wps_tool_calls": 10,
+            "wps_tool_errors": 0,
+            "other_tool_calls": 10,
+            "tools_used": [
+              "convert_smoke",
+              "fidelity_check",
+              "html_editable",
+              "inspect_env",
+              "register_document",
+              "spreadsheet_read",
+              "spreadsheet_sheets"
+            ],
+            "expected_tools": [
+              "convert_smoke",
+              "html_editable"
+            ],
+            "off_path_calls": 8,
+            "off_path_tools": [
+              "fidelity_check",
+              "inspect_env",
+              "register_document",
+              "spreadsheet_read",
+              "spreadsheet_sheets"
+            ],
+            "off_path_calls_before_write": 8,
+            "off_path_calls_after_write": 0,
+            "wrong_tool_calls": null,
+            "unverified_writes": 0
+          },
+          "checks": [
+            {
+              "kind": "tool_called",
+              "passed": true,
+              "detail": "1 matching call(s)",
+              "tool": "html_editable",
+              "input": {
+                "format": "xlsx"
+              }
+            },
+            {
+              "kind": "xlsx_sheets",
+              "passed": true,
+              "detail": [
+                "部门费用预算",
+                "人员编制",
+                "部门费用预算 2",
+                "一个名字很长很长很长很长的汇总表 包含 非法字符 以及 方括号"
+              ],
+              "path": "budget.xlsx",
+              "names": [
+                "部门费用预算",
+                "人员编制",
+                "部门费用预算 2",
+                "一个名字很长很长很长很长的汇总表 包含 非法字符 以及 方括号"
+              ]
+            },
+            {
+              "kind": "xlsx_cell",
+              "passed": true,
+              "detail": 120000,
+              "path": "budget.xlsx",
+              "sheet": "部门费用预算",
+              "cell": "B3",
+              "value": 120000
+            },
+            {
+              "kind": "xlsx_cell",
+              "passed": true,
+              "detail": 135000.5,
+              "path": "budget.xlsx",
+              "sheet": "部门费用预算",
+              "cell": "C3",
+              "value": 135000.5
+            },
+            {
+              "kind": "xlsx_cell",
+              "passed": true,
+              "detail": -5000,
+              "path": "budget.xlsx",
+              "sheet": "部门费用预算",
+              "cell": "D4",
+              "value": -5000
+            },
+            {
+              "kind": "xlsx_cell",
+              "passed": true,
+              "detail": "000127",
+              "path": "budget.xlsx",
+              "sheet": "人员编制",
+              "cell": "A2",
+              "value": "000127"
+            },
+            {
+              "kind": "xlsx_cell",
+              "passed": true,
+              "detail": "Émile O'Brien",
+              "path": "budget.xlsx",
+              "sheet": "人员编制",
+              "cell": "B4",
+              "value": "Émile O'Brien"
+            },
+            {
+              "kind": "xlsx_cell",
+              "passed": true,
+              "detail": "Q1",
+              "path": "budget.xlsx",
+              "sheet": "部门费用预算",
+              "cell": "B2",
+              "value": "Q1"
+            },
+            {
+              "kind": "xlsx_cell",
+              "passed": true,
+              "detail": 18500,
+              "path": "budget.xlsx",
+              "sheet": "人员编制",
+              "cell": "D2",
+              "value": 18500
+            },
+            {
+              "kind": "xlsx_cell",
+              "passed": true,
+              "detail": 0.95,
+              "path": "budget.xlsx",
+              "sheet": "人员编制",
+              "cell": "E3",
+              "value": 0.95
+            },
+            {
+              "kind": "xlsx_cell",
+              "passed": true,
+              "detail": "王\n小明",
+              "path": "budget.xlsx",
+              "sheet": "人员编制",
+              "cell": "B5",
+              "value": "王\n小明"
+            },
+            {
+              "kind": "tool_called",
+              "passed": true,
+              "detail": "1 matching call(s)",
+              "tool": "convert_smoke",
+              "input": {
+                "component": "spreadsheets",
+                "format": "pdf"
+              }
+            },
+            {
+              "kind": "pdf_file",
+              "passed": true,
+              "detail": {
+                "bytes": 95070,
+                "starts_with_pdf_header": true
+              },
+              "path": "budget.pdf",
+              "min_bytes": 1000
+            }
+          ]
+        },
+        {
+          "id": "html-complex-budget-to-xlsx",
+          "passed": true,
+          "agent": {
+            "ran": true,
+            "exit_code": 1,
+            "is_error": true,
+            "num_turns": 16,
+            "duration_ms": 57891,
+            "total_cost_usd": 0.7371707999999999,
+            "result_excerpt": "",
+            "stderr_excerpt": "",
+            "tool_calls": [
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "ls -la \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261022T134558Z-3095499-eval/run-2/html-complex-budget-to-xlsx\"",
+                  "description": "List working directory contents"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_inspect_env",
+                "input": {
+                  "request_id": "inspect-env-1"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Read",
+                "input": {
+                  "file_path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-2\\html-complex-budget-to-xlsx\\budget.html"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_html_editable",
+                "input": {
+                  "input": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-2\\html-complex-budget-to-xlsx\\budget.html",
+                  "output": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-2\\html-complex-budget-to-xlsx\\budget.xlsx",
+                  "format": "xlsx",
+                  "fidelity": "editable",
+                  "request_id": "budget-html-xlsx-1"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_register_document",
+                "input": {
+                  "component": "spreadsheets",
+                  "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-2\\html-complex-budget-to-xlsx\\budget.xlsx",
+                  "request_id": "register-budget-xlsx"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_spreadsheet_sheets",
+                "input": {
+                  "document_id": "doc_a997c0ad3ecff586",
+                  "request_id": "sheets-1"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_spreadsheet_read",
+                "input": {
+                  "document_id": "doc_a997c0ad3ecff586",
+                  "range": "A1:F6",
+                  "request_id": "read-s1"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_spreadsheet_read",
+                "input": {
+                  "document_id": "doc_a997c0ad3ecff586",
+                  "range": "A1:F5",
+                  "request_id": "read-s2",
+                  "sheet": "人员编制"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_spreadsheet_read",
+                "input": {
+                  "document_id": "doc_a997c0ad3ecff586",
+                  "range": "A1:B3",
+                  "request_id": "read-s3",
+                  "sheet": "部门费用预算 2"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_spreadsheet_read",
+                "input": {
+                  "document_id": "doc_a997c0ad3ecff586",
+                  "range": "A1:B3",
+                  "request_id": "read-s4",
+                  "sheet": "一个名字很长很长很长很长的汇总表 包含 非法字符 以及 方括号"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_convert_smoke",
+                "input": {
+                  "component": "spreadsheets",
+                  "format": "pdf",
+                  "input": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-2\\html-complex-budget-to-xlsx\\budget.xlsx",
+                  "output": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-2\\html-complex-budget-to-xlsx\\budget.pdf",
+                  "request_id": "budget-xlsx-pdf-1"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_fidelity_check",
+                "input": {
+                  "request_id": "fidelity-1",
+                  "source": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-2\\html-complex-budget-to-xlsx\\budget.xlsx",
+                  "target": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-2\\html-complex-budget-to-xlsx\\budget.pdf"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Read",
+                "input": {
+                  "file_path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-2\\html-complex-budget-to-xlsx\\budget.pdf",
+                  "pages": "1-4"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "cd \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261022T134558Z-3095499-eval/run-2/html-complex-budget-to-xlsx\" && python -I -c \"\nimport sys\ntry:\n    import pypdf; print('pypdf', pypdf.__version__)\nexcept Exception as e: print('no pypdf', e)\ntry:\n    import fitz; print('fitz', fitz.__doc__)\nexcept Exception as e: print('no fitz', e)\ntry:\n    import pdfplumber; print('pdfplumber ok')\nexcept Exception as e: print('no pdfplumber', e)\n\"",
+                  "description": "Check available PDF libraries"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_convert",
+                "input": {
+                  "input": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-2\\html-complex-budget-to-xlsx\\budget.pdf",
+                  "output": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-pdf-verify\\budget_pdf_extract.xlsx",
+                  "request_id": "verify-pdf-to-xlsx",
+                  "task_id": "verify-pdf-1"
+                },
+                "is_error": true,
+                "error_codes": [
+                  "OUTPUT_DIRECTORY_NOT_FOUND"
+                ]
+              },
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "mkdir -p \"C:/Users/admin/AppData/Local/Temp/wps-pdf-verify\"",
+                  "description": "Create scratch verification directory"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "mkdir -p \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261022T134558Z-3095499-eval/run-2/html-complex-budget-to-xlsx/_verify\" && ls -la \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261022T134558Z-3095499-eval/run-2/html-complex-budget-to-xlsx\"",
+                  "description": "Create scratch folder inside working directory"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_convert",
+                "input": {
+                  "input": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-2\\html-complex-budget-to-xlsx\\budget.pdf",
+                  "output": "C:\\Users\\admin\\AppData\\Local\\Temp\\budget_pdf_extract_verify.xlsx",
+                  "request_id": "verify-pdf-to-xlsx-2"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_register_document",
+                "input": {
+                  "component": "spreadsheets",
+                  "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\budget_pdf_extract_verify.xlsx",
+                  "request_id": "register-verify"
+                },
+                "is_error": false,
+                "error_codes": []
+              }
+            ]
+          },
+          "metrics": {
+            "wps_tool_calls": 13,
+            "wps_tool_errors": 1,
+            "other_tool_calls": 6,
+            "tools_used": [
+              "convert",
+              "convert_smoke",
+              "fidelity_check",
+              "html_editable",
+              "inspect_env",
+              "register_document",
+              "spreadsheet_read",
+              "spreadsheet_sheets"
+            ],
+            "expected_tools": [
+              "convert_smoke",
+              "html_editable"
+            ],
+            "off_path_calls": 11,
+            "off_path_tools": [
+              "convert",
+              "fidelity_check",
+              "inspect_env",
+              "register_document",
+              "spreadsheet_read",
+              "spreadsheet_sheets"
+            ],
+            "off_path_calls_before_write": 11,
+            "off_path_calls_after_write": 0,
+            "wrong_tool_calls": null,
+            "unverified_writes": 0
+          },
+          "checks": [
+            {
+              "kind": "tool_called",
+              "passed": true,
+              "detail": "1 matching call(s)",
+              "tool": "html_editable",
+              "input": {
+                "format": "xlsx"
+              }
+            },
+            {
+              "kind": "xlsx_sheets",
+              "passed": true,
+              "detail": [
+                "部门费用预算",
+                "人员编制",
+                "部门费用预算 2",
+                "一个名字很长很长很长很长的汇总表 包含 非法字符 以及 方括号"
+              ],
+              "path": "budget.xlsx",
+              "names": [
+                "部门费用预算",
+                "人员编制",
+                "部门费用预算 2",
+                "一个名字很长很长很长很长的汇总表 包含 非法字符 以及 方括号"
+              ]
+            },
+            {
+              "kind": "xlsx_cell",
+              "passed": true,
+              "detail": 120000,
+              "path": "budget.xlsx",
+              "sheet": "部门费用预算",
+              "cell": "B3",
+              "value": 120000
+            },
+            {
+              "kind": "xlsx_cell",
+              "passed": true,
+              "detail": 135000.5,
+              "path": "budget.xlsx",
+              "sheet": "部门费用预算",
+              "cell": "C3",
+              "value": 135000.5
+            },
+            {
+              "kind": "xlsx_cell",
+              "passed": true,
+              "detail": -5000,
+              "path": "budget.xlsx",
+              "sheet": "部门费用预算",
+              "cell": "D4",
+              "value": -5000
+            },
+            {
+              "kind": "xlsx_cell",
+              "passed": true,
+              "detail": "000127",
+              "path": "budget.xlsx",
+              "sheet": "人员编制",
+              "cell": "A2",
+              "value": "000127"
+            },
+            {
+              "kind": "xlsx_cell",
+              "passed": true,
+              "detail": "Émile O'Brien",
+              "path": "budget.xlsx",
+              "sheet": "人员编制",
+              "cell": "B4",
+              "value": "Émile O'Brien"
+            },
+            {
+              "kind": "xlsx_cell",
+              "passed": true,
+              "detail": "Q1",
+              "path": "budget.xlsx",
+              "sheet": "部门费用预算",
+              "cell": "B2",
+              "value": "Q1"
+            },
+            {
+              "kind": "xlsx_cell",
+              "passed": true,
+              "detail": 18500,
+              "path": "budget.xlsx",
+              "sheet": "人员编制",
+              "cell": "D2",
+              "value": 18500
+            },
+            {
+              "kind": "xlsx_cell",
+              "passed": true,
+              "detail": 0.95,
+              "path": "budget.xlsx",
+              "sheet": "人员编制",
+              "cell": "E3",
+              "value": 0.95
+            },
+            {
+              "kind": "xlsx_cell",
+              "passed": true,
+              "detail": "王\n小明",
+              "path": "budget.xlsx",
+              "sheet": "人员编制",
+              "cell": "B5",
+              "value": "王\n小明"
+            },
+            {
+              "kind": "tool_called",
+              "passed": true,
+              "detail": "1 matching call(s)",
+              "tool": "convert_smoke",
+              "input": {
+                "component": "spreadsheets",
+                "format": "pdf"
+              }
+            },
+            {
+              "kind": "pdf_file",
+              "passed": true,
+              "detail": {
+                "bytes": 95070,
+                "starts_with_pdf_header": true
+              },
+              "path": "budget.pdf",
+              "min_bytes": 1000
+            }
+          ]
+        },
+        {
+          "id": "html-complex-budget-to-xlsx",
+          "passed": true,
+          "agent": {
+            "ran": true,
+            "exit_code": 1,
+            "is_error": true,
+            "num_turns": 16,
+            "duration_ms": 60439,
+            "total_cost_usd": 0.7004087999999999,
+            "result_excerpt": "",
+            "stderr_excerpt": "",
+            "tool_calls": [
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "ls -la \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261022T134558Z-3095499-eval/run-3/html-complex-budget-to-xlsx\"",
+                  "description": "List files in working directory"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Read",
+                "input": {
+                  "file_path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-3\\html-complex-budget-to-xlsx\\budget.html"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_html_editable",
+                "input": {
+                  "input": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-3\\html-complex-budget-to-xlsx\\budget.html",
+                  "output": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-3\\html-complex-budget-to-xlsx\\budget.xlsx",
+                  "format": "xlsx"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_register_document",
+                "input": {
+                  "component": "spreadsheets",
+                  "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-3\\html-complex-budget-to-xlsx\\budget.xlsx"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_spreadsheet_sheets",
+                "input": {
+                  "document_id": "doc_59685874e6fb2942"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_spreadsheet_read",
+                "input": {
+                  "document_id": "doc_59685874e6fb2942",
+                  "range": "A1:F6",
+                  "sheet": "部门费用预算"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_convert_smoke",
+                "input": {
+                  "component": "spreadsheets",
+                  "format": "pdf",
+                  "input": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-3\\html-complex-budget-to-xlsx\\budget.xlsx",
+                  "output": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-3\\html-complex-budget-to-xlsx\\budget.pdf"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_fidelity_check",
+                "input": {
+                  "no_layout": true,
+                  "source": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-3\\html-complex-budget-to-xlsx\\budget.xlsx",
+                  "target": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-3\\html-complex-budget-to-xlsx\\budget.pdf"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "cd \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261022T134558Z-3095499-eval/run-3/html-complex-budget-to-xlsx\" && ls -la && sha256sum budget.html",
+                  "description": "List outputs and hash source HTML"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Read",
+                "input": {
+                  "file_path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-3\\html-complex-budget-to-xlsx\\budget.pdf",
+                  "pages": "1-4"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "cd \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261022T134558Z-3095499-eval/run-3/html-complex-budget-to-xlsx\" && python -c \"\nimport importlib\nfor m in ['pypdf','PyPDF2','pdfplumber','fitz']:\n    try:\n        importlib.import_module(m); print(m,'OK')\n    except Exception as e: print(m,'NO')\n\"",
+                  "description": "Check available PDF libraries"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "PowerShell",
+                "input": {
+                  "command": "python -c \"import importlib; [print(m, 'OK' if importlib.util.find_spec(m) else 'NO') for m in ['pypdf','PyPDF2','pdfplumber','fitz','pdfminer']]\"",
+                  "description": "Check installed PDF libraries"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "PowerShell",
+                "input": {
+                  "command": "python --version; py --version",
+                  "description": "Check Python availability"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_convert",
+                "input": {
+                  "input": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-3\\html-complex-budget-to-xlsx\\budget.pdf",
+                  "output": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-3\\html-complex-budget-to-xlsx\\preview\\page.png",
+                  "dpi": 110
+                },
+                "is_error": true,
+                "error_codes": [
+                  "OUTPUT_DIRECTORY_NOT_FOUND"
+                ]
+              },
+              {
+                "name": "PowerShell",
+                "input": {
+                  "command": "New-Item -ItemType Directory -Force \"C:\\Users\\admin\\AppData\\Local\\Temp\\wps-preview-run3\" | Out-Null; \"created\"",
+                  "description": "Create temp preview directory"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "PowerShell",
+                "input": {
+                  "command": "New-Item -ItemType Directory -Force \"C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-3\\html-complex-budget-to-xlsx\\preview\" | Out-Null; \"created\"",
+                  "description": "Create preview directory in workspace"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "mkdir -p \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261022T134558Z-3095499-eval/run-3/html-complex-budget-to-xlsx/preview\" && echo ok",
+                  "description": "Create preview directory"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_convert",
+                "input": {
+                  "dpi": 110,
+                  "input": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-3\\html-complex-budget-to-xlsx\\budget.pdf",
+                  "output": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-3\\html-complex-budget-to-xlsx\\preview_page.png"
+                },
+                "is_error": false,
+                "error_codes": []
+              }
+            ]
+          },
+          "metrics": {
+            "wps_tool_calls": 8,
+            "wps_tool_errors": 1,
+            "other_tool_calls": 10,
+            "tools_used": [
+              "convert",
+              "convert_smoke",
+              "fidelity_check",
+              "html_editable",
+              "register_document",
+              "spreadsheet_read",
+              "spreadsheet_sheets"
+            ],
+            "expected_tools": [
+              "convert_smoke",
+              "html_editable"
+            ],
+            "off_path_calls": 6,
+            "off_path_tools": [
+              "convert",
+              "fidelity_check",
+              "register_document",
+              "spreadsheet_read",
+              "spreadsheet_sheets"
+            ],
+            "off_path_calls_before_write": 6,
+            "off_path_calls_after_write": 0,
+            "wrong_tool_calls": null,
+            "unverified_writes": 0
+          },
+          "checks": [
+            {
+              "kind": "tool_called",
+              "passed": true,
+              "detail": "1 matching call(s)",
+              "tool": "html_editable",
+              "input": {
+                "format": "xlsx"
+              }
+            },
+            {
+              "kind": "xlsx_sheets",
+              "passed": true,
+              "detail": [
+                "部门费用预算",
+                "人员编制",
+                "部门费用预算 2",
+                "一个名字很长很长很长很长的汇总表 包含 非法字符 以及 方括号"
+              ],
+              "path": "budget.xlsx",
+              "names": [
+                "部门费用预算",
+                "人员编制",
+                "部门费用预算 2",
+                "一个名字很长很长很长很长的汇总表 包含 非法字符 以及 方括号"
+              ]
+            },
+            {
+              "kind": "xlsx_cell",
+              "passed": true,
+              "detail": 120000,
+              "path": "budget.xlsx",
+              "sheet": "部门费用预算",
+              "cell": "B3",
+              "value": 120000
+            },
+            {
+              "kind": "xlsx_cell",
+              "passed": true,
+              "detail": 135000.5,
+              "path": "budget.xlsx",
+              "sheet": "部门费用预算",
+              "cell": "C3",
+              "value": 135000.5
+            },
+            {
+              "kind": "xlsx_cell",
+              "passed": true,
+              "detail": -5000,
+              "path": "budget.xlsx",
+              "sheet": "部门费用预算",
+              "cell": "D4",
+              "value": -5000
+            },
+            {
+              "kind": "xlsx_cell",
+              "passed": true,
+              "detail": "000127",
+              "path": "budget.xlsx",
+              "sheet": "人员编制",
+              "cell": "A2",
+              "value": "000127"
+            },
+            {
+              "kind": "xlsx_cell",
+              "passed": true,
+              "detail": "Émile O'Brien",
+              "path": "budget.xlsx",
+              "sheet": "人员编制",
+              "cell": "B4",
+              "value": "Émile O'Brien"
+            },
+            {
+              "kind": "xlsx_cell",
+              "passed": true,
+              "detail": "Q1",
+              "path": "budget.xlsx",
+              "sheet": "部门费用预算",
+              "cell": "B2",
+              "value": "Q1"
+            },
+            {
+              "kind": "xlsx_cell",
+              "passed": true,
+              "detail": 18500,
+              "path": "budget.xlsx",
+              "sheet": "人员编制",
+              "cell": "D2",
+              "value": 18500
+            },
+            {
+              "kind": "xlsx_cell",
+              "passed": true,
+              "detail": 0.95,
+              "path": "budget.xlsx",
+              "sheet": "人员编制",
+              "cell": "E3",
+              "value": 0.95
+            },
+            {
+              "kind": "xlsx_cell",
+              "passed": true,
+              "detail": "王\n小明",
+              "path": "budget.xlsx",
+              "sheet": "人员编制",
+              "cell": "B5",
+              "value": "王\n小明"
+            },
+            {
+              "kind": "tool_called",
+              "passed": true,
+              "detail": "1 matching call(s)",
+              "tool": "convert_smoke",
+              "input": {
+                "component": "spreadsheets",
+                "format": "pdf"
+              }
+            },
+            {
+              "kind": "pdf_file",
+              "passed": true,
+              "detail": {
+                "bytes": 95070,
+                "starts_with_pdf_header": true
+              },
+              "path": "budget.pdf",
+              "min_bytes": 1000
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "html-complex-launch-to-pptx",
+      "passed": true,
+      "repeat": 3,
+      "min_passes": 2,
+      "passes": 3,
+      "pass_rate": 1.0,
+      "metrics": {
+        "wps_tool_calls": 19,
+        "wps_tool_errors": 1,
+        "off_path_calls": 13,
+        "off_path_tools": [
+          "convert",
+          "fidelity_check",
+          "inspect_env",
+          "register_document",
+          "snapshot_document"
+        ],
+        "off_path_calls_before_write": 13,
+        "off_path_calls_after_write": 0,
+        "wrong_tool_calls": null,
+        "unverified_writes": 0
+      },
+      "runs": [
+        {
+          "id": "html-complex-launch-to-pptx",
+          "passed": true,
+          "agent": {
+            "ran": true,
+            "exit_code": 0,
+            "is_error": false,
+            "num_turns": 9,
+            "duration_ms": 36297,
+            "total_cost_usd": 0.4448463000000001,
+            "result_excerpt": "Done. Both files are in the working directory:\n\n- **`launch.pptx`** (41 KB) — 6 editable slides, produced with `html_editable` (python-pptx backend)\n- **`launch.pdf`** (102 KB) — exported via WPS (`kwpp.Application`, SaveAs)\n\n`launch.html` was not modified (original 21:53:29 timestamp intact).\n\n**What carried over:** 6 slides, 1 table, 1 image (`chart.png`), 1 speaker-note block, 6 entrance animations, 6 slide transitions. The no-layout fidelity check passed with 1.0 on text, structure, formatti",
+            "stderr_excerpt": "",
+            "tool_calls": [
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "ls -la \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261022T134558Z-3095499-eval/run-1/html-complex-launch-to-pptx\"",
+                  "description": "List working directory contents"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Read",
+                "input": {
+                  "file_path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-1\\html-complex-launch-to-pptx\\launch.html"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_html_editable",
+                "input": {
+                  "input": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-1\\html-complex-launch-to-pptx\\launch.html",
+                  "output": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-1\\html-complex-launch-to-pptx\\launch.pptx",
+                  "format": "pptx"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_convert_smoke",
+                "input": {
+                  "component": "presentation",
+                  "format": "pdf",
+                  "input": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-1\\html-complex-launch-to-pptx\\launch.pptx",
+                  "output": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-1\\html-complex-launch-to-pptx\\launch.pdf"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "cd \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261022T134558Z-3095499-eval/run-1/html-complex-launch-to-pptx\" && ls -la launch.html launch.pptx launch.pdf && python -c \"\nimport zipfile\nz=zipfile.ZipFile('launch.pptx')\nslides=[n for n in z.namelist() if n.startswith('ppt/slides/slide')]\nprint('slides:', len(slides))\nprint('media:', [n for n in z.namelist() if n.startswith('ppt/media')])\n\"",
+                  "description": "Verify output files and PPTX slide count"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "PowerShell",
+                "input": {
+                  "command": "Get-ChildItem -Path \"C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-1\\html-complex-launch-to-pptx\" -Filter \"launch.*\" | Select-Object Name, Length, LastWriteTime",
+                  "description": "List launch output files with sizes"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Read",
+                "input": {
+                  "file_path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-1\\html-complex-launch-to-pptx\\launch.pdf",
+                  "pages": "1"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_fidelity_check",
+                "input": {
+                  "no_layout": true,
+                  "source": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-1\\html-complex-launch-to-pptx\\launch.html",
+                  "target": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-1\\html-complex-launch-to-pptx\\launch.pptx"
+                },
+                "is_error": false,
+                "error_codes": []
+              }
+            ]
+          },
+          "metrics": {
+            "wps_tool_calls": 3,
+            "wps_tool_errors": 0,
+            "other_tool_calls": 5,
+            "tools_used": [
+              "convert_smoke",
+              "fidelity_check",
+              "html_editable"
+            ],
+            "expected_tools": [
+              "convert_smoke",
+              "html_editable"
+            ],
+            "off_path_calls": 1,
+            "off_path_tools": [
+              "fidelity_check"
+            ],
+            "off_path_calls_before_write": 1,
+            "off_path_calls_after_write": 0,
+            "wrong_tool_calls": null,
+            "unverified_writes": 0
+          },
+          "checks": [
+            {
+              "kind": "tool_called",
+              "passed": true,
+              "detail": "1 matching call(s)",
+              "tool": "html_editable",
+              "input": {
+                "format": "pptx"
+              }
+            },
+            {
+              "kind": "file_text",
+              "passed": true,
+              "detail": "ok",
+              "path": "launch.pptx",
+              "contains": [
+                "星河 X1 新品发布会",
+                "为什么是 X1",
+                "续航提升 40%",
+                "支持 Wi-Fi 7",
+                "首年目标 50 万台",
+                "标准版 ¥6,999",
+                "Q & A"
+              ],
+              "absent": [
+                "setInterval",
+                "SVG 文本"
+              ]
+            },
+            {
+              "kind": "tool_called",
+              "passed": true,
+              "detail": "1 matching call(s)",
+              "tool": "convert_smoke",
+              "input": {
+                "component": "presentation",
+                "format": "pdf"
+              }
+            },
+            {
+              "kind": "pdf_file",
+              "passed": true,
+              "detail": {
+                "bytes": 101938,
+                "starts_with_pdf_header": true
+              },
+              "path": "launch.pdf",
+              "min_bytes": 1000
+            }
+          ]
+        },
+        {
+          "id": "html-complex-launch-to-pptx",
+          "passed": true,
+          "agent": {
+            "ran": true,
+            "exit_code": 1,
+            "is_error": true,
+            "num_turns": 16,
+            "duration_ms": 45529,
+            "total_cost_usd": 0.6746048,
+            "result_excerpt": "",
+            "stderr_excerpt": "",
+            "tool_calls": [
+              {
+                "name": "mcp__wps-agent__wps_agent_inspect_env",
+                "input": {},
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "ls -la \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261022T134558Z-3095499-eval/run-2/html-complex-launch-to-pptx\"",
+                  "description": "List working directory contents"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Read",
+                "input": {
+                  "file_path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-2\\html-complex-launch-to-pptx\\launch.html"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "cd \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261022T134558Z-3095499-eval/run-2/html-complex-launch-to-pptx\" && sha256sum launch.html chart.png",
+                  "description": "Record source hashes before conversion"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_html_editable",
+                "input": {
+                  "input": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-2\\html-complex-launch-to-pptx\\launch.html",
+                  "output": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-2\\html-complex-launch-to-pptx\\launch.pptx",
+                  "format": "pptx",
+                  "fidelity": "editable"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_fidelity_check",
+                "input": {
+                  "no_layout": true,
+                  "source": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-2\\html-complex-launch-to-pptx\\launch.html",
+                  "target": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-2\\html-complex-launch-to-pptx\\launch.pptx"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_register_document",
+                "input": {
+                  "component": "presentation",
+                  "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-2\\html-complex-launch-to-pptx\\launch.pptx"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_convert_smoke",
+                "input": {
+                  "component": "presentation",
+                  "format": "pdf",
+                  "input": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-2\\html-complex-launch-to-pptx\\launch.pptx",
+                  "output": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-2\\html-complex-launch-to-pptx\\launch.pdf"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "cd \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261022T134558Z-3095499-eval/run-2/html-complex-launch-to-pptx\" && sha256sum launch.html && ls -la launch.pptx launch.pdf",
+                  "description": "Verify source unchanged and outputs exist"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Read",
+                "input": {
+                  "file_path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-2\\html-complex-launch-to-pptx\\launch.pdf",
+                  "pages": "1-6"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_fidelity_check",
+                "input": {
+                  "no_layout": true,
+                  "source": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-2\\html-complex-launch-to-pptx\\launch.pptx",
+                  "target": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-2\\html-complex-launch-to-pptx\\launch.pdf"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "cd \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261022T134558Z-3095499-eval/run-2/html-complex-launch-to-pptx\" && python -I -c \"\nimport re\nd=open('launch.pdf','rb').read()\nprint('pages(Count):', re.findall(rb'/Count\\s+(\\d+)', d)[:5])\nprint('header:', d[:9])\nprint('EOF ok:', b'%%EOF' in d[-1024:])\n\"",
+                  "description": "Check PDF page count and validity"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "python -I -c \"import re;d=open(r'C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-2\\html-complex-launch-to-pptx\\launch.pdf','rb').read();print('header',d[:9]);print('counts',re.findall(rb'/Count\\s+(\\d+)',d)[:10]);print('eof',b'%%EOF' in d[-2048:]);print('pages_tags',d.count(b'/Type /Page'),d.count(b'/Type/Page'))\"",
+                  "description": "Inspect PDF header, page count, EOF"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_snapshot_document",
+                "input": {
+                  "document_id": "doc_8828c7cc1eba2200"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "mkdir -p \"C:/Users/admin/AppData/Local/Temp/wps-pdfcheck-3095499\" && ls -d \"C:/Users/admin/AppData/Local/Temp/wps-pdfcheck-3095499\"",
+                  "description": "Create scratch directory for PDF verification"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "PowerShell",
+                "input": {
+                  "command": "New-Item -ItemType Directory -Force \"C:\\Users\\admin\\AppData\\Local\\Temp\\wps-pdfcheck-3095499\" | Out-Null; Get-Item \"C:\\Users\\admin\\AppData\\Local\\Temp\\wps-pdfcheck-3095499\" | Select-Object FullName",
+                  "description": "Create scratch directory for PDF page rendering"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_convert",
+                "input": {
+                  "input": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-2\\html-complex-launch-to-pptx\\launch.pdf",
+                  "output": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-2\\html-complex-launch-to-pptx\\_check\\page.png",
+                  "dpi": 110
+                },
+                "is_error": true,
+                "error_codes": [
+                  "OUTPUT_DIRECTORY_NOT_FOUND"
+                ]
+              },
+              {
+                "name": "PowerShell",
+                "input": {
+                  "command": "New-Item -ItemType Directory -Force \"C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-2\\html-complex-launch-to-pptx\\_check\" | Out-Null; Test-Path \"C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-2\\html-complex-launch-to-pptx\\_check\"",
+                  "description": "Create temp verification subfolder"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "Write",
+                "input": {
+                  "file_path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-2\\html-complex-launch-to-pptx\\_check\\.keep",
+                  "content": "temporary verification folder\n"
+                },
+                "is_error": true,
+                "error_codes": []
+              }
+            ]
+          },
+          "metrics": {
+            "wps_tool_calls": 8,
+            "wps_tool_errors": 1,
+            "other_tool_calls": 11,
+            "tools_used": [
+              "convert",
+              "convert_smoke",
+              "fidelity_check",
+              "html_editable",
+              "inspect_env",
+              "register_document",
+              "snapshot_document"
+            ],
+            "expected_tools": [
+              "convert_smoke",
+              "html_editable"
+            ],
+            "off_path_calls": 6,
+            "off_path_tools": [
+              "convert",
+              "fidelity_check",
+              "inspect_env",
+              "register_document",
+              "snapshot_document"
+            ],
+            "off_path_calls_before_write": 6,
+            "off_path_calls_after_write": 0,
+            "wrong_tool_calls": null,
+            "unverified_writes": 0
+          },
+          "checks": [
+            {
+              "kind": "tool_called",
+              "passed": true,
+              "detail": "1 matching call(s)",
+              "tool": "html_editable",
+              "input": {
+                "format": "pptx"
+              }
+            },
+            {
+              "kind": "file_text",
+              "passed": true,
+              "detail": "ok",
+              "path": "launch.pptx",
+              "contains": [
+                "星河 X1 新品发布会",
+                "为什么是 X1",
+                "续航提升 40%",
+                "支持 Wi-Fi 7",
+                "首年目标 50 万台",
+                "标准版 ¥6,999",
+                "Q & A"
+              ],
+              "absent": [
+                "setInterval",
+                "SVG 文本"
+              ]
+            },
+            {
+              "kind": "tool_called",
+              "passed": true,
+              "detail": "1 matching call(s)",
+              "tool": "convert_smoke",
+              "input": {
+                "component": "presentation",
+                "format": "pdf"
+              }
+            },
+            {
+              "kind": "pdf_file",
+              "passed": true,
+              "detail": {
+                "bytes": 101938,
+                "starts_with_pdf_header": true
+              },
+              "path": "launch.pdf",
+              "min_bytes": 1000
+            }
+          ]
+        },
+        {
+          "id": "html-complex-launch-to-pptx",
+          "passed": true,
+          "agent": {
+            "ran": true,
+            "exit_code": 0,
+            "is_error": false,
+            "num_turns": 17,
+            "duration_ms": 60332,
+            "total_cost_usd": 0.6555218,
+            "result_excerpt": "Both outputs are created and verified.\n\n**1. launch.html → launch.pptx** (`html_editable`, editable fidelity)\n\n| Result | Detail |\n|---|---|\n| Slides | 6 |\n| Native objects | 6 entrance animations, 6 slide transitions, 1 table, 1 image (chart.png), 1 speaker-note slide |\n| Fidelity (vs. HTML, rendered by WPS) | text 1.0, structure 1.0, formatting 1.0, data 1.0, animations 1.0, layout 0.914 — **all thresholds met** |\n\nMapped faithfully: h1/h2 titles, the three-item bullet list with bold/italic ru",
+            "stderr_excerpt": "",
+            "tool_calls": [
+              {
+                "name": "mcp__wps-agent__wps_agent_inspect_env",
+                "input": {},
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "ls -la \"C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261022T134558Z-3095499-eval/run-3/html-complex-launch-to-pptx\"",
+                  "description": "List files in working directory"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Read",
+                "input": {
+                  "file_path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-3\\html-complex-launch-to-pptx\\launch.html"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_html_editable",
+                "input": {
+                  "input": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-3\\html-complex-launch-to-pptx\\launch.html",
+                  "output": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-3\\html-complex-launch-to-pptx\\launch.pptx",
+                  "format": "pptx",
+                  "fidelity": "editable"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_register_document",
+                "input": {
+                  "component": "presentation",
+                  "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-3\\html-complex-launch-to-pptx\\launch.pptx"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Bash",
+                "input": {
+                  "command": "cd /tmp && python -c \"\nfrom pptx import Presentation\nfrom pptx.util import Emu\np = Presentation(r'C:/Users/admin/AppData/Local/Temp/wps-windows-check/20261022T134558Z-3095499-eval/run-3/html-complex-launch-to-pptx/launch.pptx')\nprint('slides:', len(p.slides), 'size:', p.slide_width, p.slide_height)\nfor i, s in enumerate(p.slides, 1):\n    print('--- slide', i, 'layout:', s.slide_layout.name)\n    for sh in s.shapes:\n        t = sh.has_text_frame and sh.text_frame.text.replace(chr(10),' | ') or ''\n        print('   ', sh.shape_type, sh.name, repr(t)[:160])\n    if s.has_notes_slide:\n        print('   NOTES:', repr(s.notes_slide.notes_text_frame.text))\n\"\n",
+                  "description": "Dump generated PPTX structure"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "Write",
+                "input": {
+                  "file_path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-check-scripts\\dump_pptx.py",
+                  "content": "import sys\nfrom pptx import Presentation\n\np = Presentation(sys.argv[1])\nprint('slides:', len(p.slides), 'size:', p.slide_width, p.slide_height)\nfor i, s in enumerate(p.slides, 1):\n    print('--- slide', i, 'layout:', s.slide_layout.name)\n    for sh in s.shapes:\n        t = ''\n        if sh.has_text_frame:\n            t = sh.text_frame.text.replace('\\n', ' | ')\n        print('   ', sh.shape_type, '|', sh.name, '|', repr(t)[:200])\n    if s.has_notes_slide:\n        print('    NOTES:', repr(s.notes_slide.notes_text_frame.text))\n"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "PowerShell",
+                "input": {
+                  "command": "python -c @'\nimport sys\nfrom pptx import Presentation\np = Presentation(r\"C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-3\\html-complex-launch-to-pptx\\launch.pptx\")\nprint(\"slides:\", len(p.slides), \"size:\", p.slide_width, p.slide_height)\nfor i, s in enumerate(p.slides, 1):\n    print(\"--- slide\", i, \"layout:\", s.slide_layout.name)\n    for sh in s.shapes:\n        t = sh.text_frame.text.replace(\"\\n\", \" | \") if sh.has_text_frame else \"\"\n        print(\"   \", sh.shape_type, \"|\", sh.name, \"|\", repr(t)[:200])\n    if s.has_notes_slide:\n        print(\"    NOTES:\", repr(s.notes_slide.notes_text_frame.text))\n'@",
+                  "description": "Dump generated PPTX structure"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_fidelity_check",
+                "input": {
+                  "source": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-3\\html-complex-launch-to-pptx\\launch.html",
+                  "target": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-3\\html-complex-launch-to-pptx\\launch.pptx",
+                  "renderer": "wps"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_convert_smoke",
+                "input": {
+                  "component": "presentation",
+                  "format": "pdf",
+                  "input": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-3\\html-complex-launch-to-pptx\\launch.pptx",
+                  "output": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-3\\html-complex-launch-to-pptx\\launch.pdf"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_fidelity_check",
+                "input": {
+                  "no_layout": true,
+                  "source": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-3\\html-complex-launch-to-pptx\\launch.pptx",
+                  "target": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-3\\html-complex-launch-to-pptx\\launch.pdf"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "PowerShell",
+                "input": {
+                  "command": "Get-ChildItem \"C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-3\\html-complex-launch-to-pptx\" | Select-Object Name,Length,LastWriteTime | Format-Table -AutoSize",
+                  "description": "List output directory with sizes and timestamps"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "Read",
+                "input": {
+                  "file_path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-3\\html-complex-launch-to-pptx\\launch.pdf",
+                  "pages": "1-6"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "PowerShell",
+                "input": {
+                  "command": "$b = [System.IO.File]::ReadAllBytes(\"C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-3\\html-complex-launch-to-pptx\\launch.pdf\"); $s = [System.Text.Encoding]::ASCII.GetString($b); ([regex]::Matches($s, '/Type\\s*/Page[^s]')).Count",
+                  "description": "Count PDF page objects"
+                },
+                "is_error": true,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_fidelity_check",
+                "input": {
+                  "renderer": "wps",
+                  "source": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-3\\html-complex-launch-to-pptx\\launch.pptx",
+                  "target": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-windows-check\\20261022T134558Z-3095499-eval\\run-3\\html-complex-launch-to-pptx\\launch.pdf"
+                },
+                "is_error": false,
+                "error_codes": []
+              },
+              {
+                "name": "mcp__wps-agent__wps_agent_snapshot_document",
+                "input": {
+                  "document_id": "doc_678b915f19001242"
+                },
+                "is_error": false,
+                "error_codes": []
+              }
+            ]
+          },
+          "metrics": {
+            "wps_tool_calls": 8,
+            "wps_tool_errors": 0,
+            "other_tool_calls": 8,
+            "tools_used": [
+              "convert_smoke",
+              "fidelity_check",
+              "html_editable",
+              "inspect_env",
+              "register_document",
+              "snapshot_document"
+            ],
+            "expected_tools": [
+              "convert_smoke",
+              "html_editable"
+            ],
+            "off_path_calls": 6,
+            "off_path_tools": [
+              "fidelity_check",
+              "inspect_env",
+              "register_document",
+              "snapshot_document"
+            ],
+            "off_path_calls_before_write": 6,
+            "off_path_calls_after_write": 0,
+            "wrong_tool_calls": null,
+            "unverified_writes": 0
+          },
+          "checks": [
+            {
+              "kind": "tool_called",
+              "passed": true,
+              "detail": "1 matching call(s)",
+              "tool": "html_editable",
+              "input": {
+                "format": "pptx"
+              }
+            },
+            {
+              "kind": "file_text",
+              "passed": true,
+              "detail": "ok",
+              "path": "launch.pptx",
+              "contains": [
+                "星河 X1 新品发布会",
+                "为什么是 X1",
+                "续航提升 40%",
+                "支持 Wi-Fi 7",
+                "首年目标 50 万台",
+                "标准版 ¥6,999",
+                "Q & A"
+              ],
+              "absent": [
+                "setInterval",
+                "SVG 文本"
+              ]
+            },
+            {
+              "kind": "tool_called",
+              "passed": true,
+              "detail": "1 matching call(s)",
+              "tool": "convert_smoke",
+              "input": {
+                "component": "presentation",
+                "format": "pdf"
+              }
+            },
+            {
+              "kind": "pdf_file",
+              "passed": true,
+              "detail": {
+                "bytes": 101938,
+                "starts_with_pdf_header": true
+              },
+              "path": "launch.pdf",
+              "min_bytes": 1000
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
