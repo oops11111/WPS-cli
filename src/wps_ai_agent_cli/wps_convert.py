@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import json
 import tempfile
+import time
 from pathlib import Path
 from typing import Any
 
@@ -22,13 +23,17 @@ from .powershell_runner import run_powershell_script
 from .wps_script_snippets import ACQUIRE_WPS_APP, HIDE_LAUNCHED_APP, PRE_OPEN_GUARD, QUIET_ALERTS, RELEASE_WPS_APP
 
 FORMAT_NOT_SUPPORTED_BY_WPS = "FORMAT_NOT_SUPPORTED_BY_WPS"
+BUSY_RETRIES = 2
+BUSY_WAIT_SECONDS = 5
+_BUSY = ("0x80010001", "RPC_E_CALL_REJECTED", "0x8001010A", "RPC_E_SERVERCALL_RETRYLATER")
 
 # Component, the formats WPS opens, and the SaveAs code for each format it writes (None: by extension). The Open
 # calls are the ones the conversion smoke test verified on Windows; the source is never saved, only copied.
 FAMILIES: dict[str, dict[str, Any]] = {
     "writer": {
         "collection": "Documents",
-        "open": "$document = $app.Documents.Open($source)",
+        # ConfirmConversions $false: no "convert file from" prompt for .odt, .rtf or .txt, which would hang.
+        "open": "$document = $app.Documents.Open($source, $false)",
         "inputs": {".doc", ".docx", ".docm", ".dot", ".dotx", ".wps", ".wpt", ".rtf", ".odt", ".txt", ".xml"},
         "outputs": {
             ".doc": 0,
@@ -278,13 +283,19 @@ def wps_convert(
             "pdf_path": pdf_path,
             "format_code": code,
         }
-        payload, failure = run_powershell_script(
-            _script(component, mode, params),
-            timeout_seconds,
-            timeout_message=f"WPS conversion timed out after {timeout_seconds} seconds.",
-            timeout_data={"component": component, "input_path": str(source)},
-            failure_data={"component": component},
-        )
+        for attempt in range(BUSY_RETRIES + 1):
+            payload, failure = run_powershell_script(
+                _script(component, mode, params),
+                timeout_seconds,
+                timeout_message=f"WPS conversion timed out after {timeout_seconds} seconds.",
+                timeout_data={"component": component, "input_path": str(source)},
+                failure_data={"component": component},
+            )
+            # WPS still finishing the previous call rejects new ones (RPC_E_CALL_REJECTED): wait and retry.
+            reply = json.dumps(failure if failure is not None else payload, ensure_ascii=False)
+            if attempt == BUSY_RETRIES or not any(marker in reply for marker in _BUSY):
+                break
+            time.sleep(BUSY_WAIT_SECONDS * (attempt + 1))
         if failure is not None:
             return False, failure.get("data", {}), failure["errors"]
         if not payload.get("ok"):

@@ -3,7 +3,8 @@
     python scripts/fidelity_baselines.py              # run the matrix, print the scores, compare with the baselines
     python scripts/fidelity_baselines.py --write      # record the scores in config/fidelity_baselines.json
     python scripts/fidelity_baselines.py --make-fixtures   # rebuild the binary fixtures (needs LibreOffice)
-    python scripts/fidelity_baselines.py --renderer wps --wps   # on Windows: WPS layout scores and group B
+    python scripts/fidelity_baselines.py --renderer wps --wps --out DIR   # on Windows: WPS scores, group B and
+                                                                          # page images in DIR
 
 Each case converts a fixture from fixtures/fidelity/ (or fixtures/html_complex/) with `convert` and scores it with
 `fidelity-check`. Layout is measured with LibreOffice here (decision 1: the regression baseline); on Windows,
@@ -77,15 +78,31 @@ WPS_CASES: list[tuple[str, Path, str, Path | None]] = [
 ]
 
 
-def run_wps(renderer: str) -> dict[str, dict]:
-    """Group B with WPS: text, structure and the layout of WPS's PDFs before and after (F3)."""
+def _entry(report: dict, route) -> dict:
+    return {
+        "converted": True,
+        "group": report["group"],
+        "route": route,
+        "scores": {n: a["score"] for n, a in report["aspects"].items() if "score" in a},
+        "verdict": report["verdict"],
+        "passed": report["passed"],
+        "layout_renderer": report["aspects"]["layout"].get("renderer"),
+        "report": report,
+    }
+
+
+def run_wps(renderer: str, out: Path | None = None) -> dict[str, dict]:
+    """Group B with WPS (F3): text and structure against the OOXML file a legacy or ODF source was saved from,
+    and the layout of WPS's PDF of the source itself against WPS's PDF of the result. Each case works in its own
+    folder, so a WPS that still holds one case's file does not fail the next."""
     results: dict[str, dict] = {}
-    with tempfile.TemporaryDirectory(prefix="wps-fidelity-b-") as tmp:
-        work = Path(tmp)
-        for item in FIXTURES.iterdir():
-            if item.is_file():
-                shutil.copyfile(item, work / item.name)
+    with tempfile.TemporaryDirectory(prefix="wps-fidelity-b-", ignore_cleanup_errors=True) as tmp:
         for case, fixture, suffix, reference in WPS_CASES:
+            work = Path(tmp) / case
+            work.mkdir()
+            for item in FIXTURES.iterdir():
+                if item.is_file():
+                    shutil.copyfile(item, work / item.name)
             source = work / fixture.name
             target = work / f"{case}{suffix}"
             ok, data, errors = convert(source, target)
@@ -104,24 +121,23 @@ def run_wps(renderer: str) -> dict[str, dict]:
                     results[case] = {"converted": True, "errors": errors}
                     continue
                 converted = back
-            checked, report, check_errors = fidelity_check(original, converted, renderer=renderer)
+            checked, report, check_errors = fidelity_check(
+                original,
+                converted,
+                renderer=renderer,
+                layout_source=source if reference else None,
+                images_dir=out / "pages" / case if out else None,
+            )
             if not checked:
                 results[case] = {"converted": True, "errors": check_errors}
                 continue
-            results[case] = {
-                "converted": True,
-                "group": "B",
-                "route": data.get("route"),
-                "scores": {n: a["score"] for n, a in report["aspects"].items() if "score" in a},
-                "verdict": report["verdict"],
-                "passed": report["passed"],
-            }
+            results[case] = _entry(report, data.get("route"))
     return results
 
 
-def run(renderer: str, use_browser: bool) -> dict[str, dict]:
+def run(renderer: str, use_browser: bool, out: Path | None = None) -> dict[str, dict]:
     results: dict[str, dict] = {}
-    with tempfile.TemporaryDirectory(prefix="wps-fidelity-matrix-") as tmp:
+    with tempfile.TemporaryDirectory(prefix="wps-fidelity-matrix-", ignore_cleanup_errors=True) as tmp:
         work = Path(tmp)
         for folder in (FIXTURES, COMPLEX):
             for item in folder.iterdir():
@@ -135,21 +151,17 @@ def run(renderer: str, use_browser: bool) -> dict[str, dict]:
                 results[case] = {"converted": False, "errors": errors}
                 continue
             checked, report, check_errors = fidelity_check(
-                source, target, renderer=renderer if layout else "none", layout=layout, use_browser=use_browser
+                source,
+                target,
+                renderer=renderer if layout else "none",
+                layout=layout,
+                use_browser=use_browser,
+                images_dir=out / "pages" / case if out and layout else None,
             )
             if not checked:
                 results[case] = {"converted": True, "errors": check_errors}
                 continue
-            scores = {name: aspect["score"] for name, aspect in report["aspects"].items() if "score" in aspect}
-            results[case] = {
-                "converted": True,
-                "group": report["group"],
-                "route": data.get("route"),
-                "scores": scores,
-                "verdict": report["verdict"],
-                "passed": report["passed"],
-                "layout_renderer": report["aspects"]["layout"].get("renderer"),
-            }
+            results[case] = _entry(report, data.get("route"))
     return results
 
 
@@ -164,9 +176,15 @@ def compare(results: dict[str, dict], baselines: dict[str, dict]) -> list[str]:
         if not result["passed"]:
             failed = [name for name, ok in result["verdict"].items() if not ok]
             problems.append(f"{case}: below threshold in {failed}: {result['scores']}")
+        # The recorded baselines are LibreOffice's; with the official WPS renderer only the threshold applies.
         recorded = baselines.get(case, {}).get("scores", {}).get("layout")
         layout = result["scores"].get("layout")
-        if recorded is not None and layout is not None and layout < recorded - 0.02:
+        if (
+            result.get("layout_renderer") == "libreoffice"
+            and recorded is not None
+            and layout is not None
+            and layout < recorded - 0.02
+        ):
             problems.append(f"{case}: layout {layout} fell below the baseline {recorded} - 0.02")
     return problems
 
@@ -246,15 +264,26 @@ def main() -> int:
     parser.add_argument("--renderer", default="libreoffice", choices=["libreoffice", "wps", "none"])
     parser.add_argument("--no-browser", action="store_true", help="use the built-in CSS cascade")
     parser.add_argument("--wps", action="store_true", help="also run group B through WPS (Windows)")
+    parser.add_argument(
+        "--out", type=Path, help="write results.json (full reports, page counts) and each case's page pairs here"
+    )
     args = parser.parse_args()
     if args.make_fixtures:
         make_fixtures()
         return 0
-    results = run(args.renderer, not args.no_browser)
+    results = run(args.renderer, not args.no_browser, args.out)
     if args.wps:
-        results.update(run_wps(args.renderer))
+        results.update(run_wps(args.renderer, args.out))
     for case, result in results.items():
-        print(case, json.dumps(result.get("scores") or result.get("errors"), ensure_ascii=False))
+        layout = (result.get("report") or {}).get("aspects", {}).get("layout", {})
+        pages = f" pages {layout['pages']}" if layout.get("pages") else ""
+        print(case, json.dumps(result.get("scores") or result.get("errors"), ensure_ascii=False) + pages)
+    if args.out:
+        args.out.mkdir(parents=True, exist_ok=True)
+        (args.out / "results.json").write_text(
+            json.dumps({"renderer": args.renderer, "cases": results}, ensure_ascii=False, indent=2, default=str),
+            encoding="utf-8",
+        )
     baselines = json.loads(BASELINES.read_text(encoding="utf-8"))["cases"] if BASELINES.is_file() else {}
     if args.write:
         BASELINES.write_text(

@@ -1642,6 +1642,18 @@ class AgentEvalJudgeTests(unittest.TestCase):
                 failed = [check["kind"] for check in no_pdf["checks"] if not check["passed"]]
                 self.assertEqual(failed, ["tool_called", "pdf_file"])
 
+    def test_fidelity_tasks_do_not_write_over_a_fixture(self):
+        # The fidelity_fixtures step copies every file in fixtures/fidelity; an output with one of those names
+        # already exists, and convert refuses it (convert-legacy-doc-with-wps, Windows check on 4b263d9).
+        fixtures = {item.name for item in (REPO_ROOT / "fixtures" / "fidelity").iterdir()}
+        tasks = json.loads((REPO_ROOT / "config" / "agent_eval_tasks.json").read_text(encoding="utf-8"))["tasks"]
+        for task in tasks:
+            if "fidelity_fixtures" not in task.get("setup", []):
+                continue
+            outputs = {c["path"] for c in task["checks"] if "path" in c}
+            with self.subTest(task=task["id"]):
+                self.assertFalse(outputs & fixtures)
+
     def test_convert_tasks_pass_on_what_convert_makes_from_the_fixtures(self):
         # The Phase 13 conversion tasks that need no WPS, judged on convert's output; a lost table fails them.
         from wps_ai_agent_cli.convert import convert

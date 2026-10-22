@@ -13,7 +13,7 @@
         "structure": 1.0,
         "formatting": 1.0,
         "data": 1.0,
-        "layout": 0.8832
+        "layout": 0.8736
       },
       "passed": true
     },
@@ -27,7 +27,7 @@
         "structure": 1.0,
         "formatting": 1.0,
         "data": 1.0,
-        "layout": 0.739
+        "layout": 0.8057
       },
       "passed": true
     },
@@ -40,7 +40,7 @@
         "text": 1.0,
         "structure": 1.0,
         "formatting": 1.0,
-        "layout": 0.8607
+        "layout": 0.8689
       },
       "passed": true
     },
@@ -54,7 +54,7 @@
         "structure": 1.0,
         "formatting": 1.0,
         "data": 1.0,
-        "layout": 0.8313
+        "layout": 0.8395
       },
       "passed": true
     },
@@ -68,7 +68,7 @@
         "structure": 1.0,
         "formatting": 1.0,
         "data": 1.0,
-        "layout": 0.8758
+        "layout": 0.8795
       },
       "passed": true
     },
@@ -309,7 +309,7 @@
         "text": 1.0,
         "structure": 1.0,
         "data": 1.0,
-        "layout": 0.8728
+        "layout": 0.8837
       },
       "passed": true
     },
