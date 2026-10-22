@@ -1,0 +1,150 @@
+[
+  {
+    "variant": "wps-written",
+    "ok": true,
+    "seconds": 3.8,
+    "errors": [],
+    "stage": null,
+    "wps_windows": null
+  },
+  {
+    "variant": "libreoffice",
+    "ok": false,
+    "seconds": 61.3,
+    "errors": [
+      {
+        "code": "COM_OPERATION_TIMEOUT",
+        "message": "WPS conversion timed out after 60 seconds. WPS was opening the input. Open WPS windows: untitled Qt5QWindowIcon 440x260 (C:\\Users\\admin\\AppData\\Local\\Temp\\wps-agent-timeout-20261022T215743-1.png); untitled Qt5QWindowIcon 420x240 (C:\\Users\\admin\\AppData\\Local\\Temp\\wps-agent-timeout-20261022T215743-2.png). WPS may be asking whether to open a file it reads as damaged; ODF 1.3 files with LibreOffice extensions do this, so save the file as ODF 1.2 or as .docx/.xlsx/.pptx."
+      }
+    ],
+    "stage": "opening the input",
+    "wps_windows": [
+      {
+        "title": "",
+        "class": "Qt5QWindowIcon",
+        "width": 440,
+        "height": 260,
+        "image": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-agent-timeout-20261022T215743-1.png"
+      },
+      {
+        "title": "",
+        "class": "Qt5QWindowIcon",
+        "width": 420,
+        "height": 240,
+        "image": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-agent-timeout-20261022T215743-2.png"
+      }
+    ]
+  },
+  {
+    "variant": "libreoffice-trimmed",
+    "ok": false,
+    "seconds": 61.3,
+    "errors": [
+      {
+        "code": "COM_OPERATION_TIMEOUT",
+        "message": "WPS conversion timed out after 60 seconds. WPS was opening the input. Open WPS windows: untitled Qt5QWindowIcon 440x260 (C:\\Users\\admin\\AppData\\Local\\Temp\\wps-agent-timeout-20261022T215915-1.png); untitled Qt5QWindowIcon 420x240 (C:\\Users\\admin\\AppData\\Local\\Temp\\wps-agent-timeout-20261022T215915-2.png). WPS may be asking whether to open a file it reads as damaged; ODF 1.3 files with LibreOffice extensions do this, so save the file as ODF 1.2 or as .docx/.xlsx/.pptx."
+      }
+    ],
+    "stage": "opening the input",
+    "wps_windows": [
+      {
+        "title": "",
+        "class": "Qt5QWindowIcon",
+        "width": 440,
+        "height": 260,
+        "image": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-agent-timeout-20261022T215915-1.png"
+      },
+      {
+        "title": "",
+        "class": "Qt5QWindowIcon",
+        "width": 420,
+        "height": 240,
+        "image": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-agent-timeout-20261022T215915-2.png"
+      }
+    ]
+  },
+  {
+    "variant": "minimal-ascii",
+    "ok": false,
+    "seconds": 61.3,
+    "errors": [
+      {
+        "code": "COM_OPERATION_TIMEOUT",
+        "message": "WPS conversion timed out after 60 seconds. WPS was opening the input. Open WPS windows: untitled Qt5QWindowIcon 440x260 (C:\\Users\\admin\\AppData\\Local\\Temp\\wps-agent-timeout-20261022T220048-1.png); untitled Qt5QWindowIcon 420x240 (C:\\Users\\admin\\AppData\\Local\\Temp\\wps-agent-timeout-20261022T220048-2.png). WPS may be asking whether to open a file it reads as damaged; ODF 1.3 files with LibreOffice extensions do this, so save the file as ODF 1.2 or as .docx/.xlsx/.pptx."
+      }
+    ],
+    "stage": "opening the input",
+    "wps_windows": [
+      {
+        "title": "",
+        "class": "Qt5QWindowIcon",
+        "width": 440,
+        "height": 260,
+        "image": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-agent-timeout-20261022T220048-1.png"
+      },
+      {
+        "title": "",
+        "class": "Qt5QWindowIcon",
+        "width": 420,
+        "height": 240,
+        "image": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-agent-timeout-20261022T220048-2.png"
+      }
+    ]
+  },
+  {
+    "variant": "minimal-cjk",
+    "ok": false,
+    "seconds": 61.3,
+    "errors": [
+      {
+        "code": "COM_OPERATION_TIMEOUT",
+        "message": "WPS conversion timed out after 60 seconds. WPS was opening the input. Open WPS windows: untitled Qt5QWindowIcon 440x260 (C:\\Users\\admin\\AppData\\Local\\Temp\\wps-agent-timeout-20261022T220221-1.png); untitled Qt5QWindowIcon 420x240 (C:\\Users\\admin\\AppData\\Local\\Temp\\wps-agent-timeout-20261022T220221-2.png). WPS may be asking whether to open a file it reads as damaged; ODF 1.3 files with LibreOffice extensions do this, so save the file as ODF 1.2 or as .docx/.xlsx/.pptx."
+      }
+    ],
+    "stage": "opening the input",
+    "wps_windows": [
+      {
+        "title": "",
+        "class": "Qt5QWindowIcon",
+        "width": 440,
+        "height": 260,
+        "image": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-agent-timeout-20261022T220221-1.png"
+      },
+      {
+        "title": "",
+        "class": "Qt5QWindowIcon",
+        "width": 420,
+        "height": 240,
+        "image": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-agent-timeout-20261022T220221-2.png"
+      }
+    ]
+  },
+  {
+    "variant": "minimal-cjk-styles",
+    "ok": false,
+    "seconds": 66.8,
+    "errors": [
+      {
+        "code": "COM_OPERATION_TIMEOUT",
+        "message": "WPS conversion timed out after 60 seconds. WPS was opening the input. Open WPS windows: untitled Qt5QWindowIcon 440x260 (C:\\Users\\admin\\AppData\\Local\\Temp\\wps-agent-timeout-20261022T220359-1.png); untitled Qt5QWindowIcon 420x240 (C:\\Users\\admin\\AppData\\Local\\Temp\\wps-agent-timeout-20261022T220359-2.png). WPS may be asking whether to open a file it reads as damaged; ODF 1.3 files with LibreOffice extensions do this, so save the file as ODF 1.2 or as .docx/.xlsx/.pptx."
+      }
+    ],
+    "stage": "opening the input",
+    "wps_windows": [
+      {
+        "title": "",
+        "class": "Qt5QWindowIcon",
+        "width": 440,
+        "height": 260,
+        "image": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-agent-timeout-20261022T220359-1.png"
+      },
+      {
+        "title": "",
+        "class": "Qt5QWindowIcon",
+        "width": 420,
+        "height": 240,
+        "image": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-agent-timeout-20261022T220359-2.png"
+      }
+    ]
+  }
+]

@@ -10,6 +10,7 @@ as framed paragraphs.
 
 from __future__ import annotations
 
+import math
 import re
 from dataclasses import dataclass, field
 from typing import Any
@@ -213,6 +214,33 @@ def _left_offset(context: Context, node, ancestors) -> float | None:
     return total
 
 
+_BLOCK_CHILDREN = {"p", "div", "ul", "ol", "li", "table", "pre", "blockquote", "h1", "h2", "h3", "h4", "h5", "h6"}
+
+
+def _measured_pitch(node, line: float, context: Context) -> float:
+    """The line pitch the browser drew: the element's content height over its number of lines. A line with a
+    subscript or superscript is taller than line-height says (the report's H2O line was 3 px taller, Windows check
+    on 3095499). Only for an element with text and inline content alone, and only when it is near the CSS line."""
+    box = context.styled.box(node) if context.styled is not None else None
+    if box is None or any(getattr(c, "tag", None) in _BLOCK_CHILDREN for c in getattr(node, "children", [])):
+        return line
+    style = context.styled.style(node)
+    height = box["height"] - sum(
+        (px(style.get(name)) or 0)
+        for name in ("padding-top", "padding-bottom", "border-top-width", "border-bottom-width")
+    )
+    lines = max(1, round(height / line))
+    pitch = height / lines
+    # A subscript and a superscript on one line made it up to 1.47 times the normal line in the browser; without
+    # them, keep close to the CSS line.
+    stack, raised = [node], False
+    while stack and not raised:
+        element = stack.pop()
+        raised = element.tag in {"sub", "sup"}
+        stack.extend(c for c in element.children if not isinstance(c, str))
+    return pitch if line <= pitch < line * (1.5 if raised else 1.25) else line
+
+
 def _fits_line(node, line: float, context: Context) -> bool:
     """Whether every piece of text in ``node`` is at most ``line`` px high and there is no image or object in it."""
     stack = [node]
@@ -285,6 +313,8 @@ def apply_paragraph(paragraph, node, ancestors, context: Context, *, list_item: 
         # 1.3 times higher than in the browser. An image or a larger inline font keeps "at least", not to clip it.
         # data-line-rule="exact" (PDF conversion) places lines at a measured pitch either way.
         exact = getattr(node, "attrs", {}).get("data-line-rule") == "exact" or _fits_line(node, line, context)
+        if exact and getattr(node, "attrs", {}).get("data-line-rule") != "exact":
+            line = _measured_pitch(node, line, context)
         form.line_spacing_rule = WD_LINE_SPACING.EXACTLY if exact else WD_LINE_SPACING.AT_LEAST
         form.line_spacing = Pt(line * 0.75)
     else:
@@ -313,7 +343,13 @@ def apply_paragraph(paragraph, node, ancestors, context: Context, *, list_item: 
             offset = 40.0 * sum(1 for a in ancestors if a.tag in {"ul", "ol"})
         if offset:
             form.left_indent = Pt(offset * 0.75)
-            form.first_line_indent = Pt(-min(offset, 24.0) * 0.75)
+            # The browser puts the marker just before the text ("1. " or "• ", about 0.95 em), not 24 px before it;
+            # a number with more digits needs more room.
+            parent = ancestors[-1] if ancestors else None
+            items = sum(1 for c in getattr(parent, "children", []) if getattr(c, "tag", None) == "li")
+            digits = len(str(items)) if getattr(parent, "tag", "") == "ol" and items else 1
+            hanging = size * (0.95 + 0.55 * (digits - 1))
+            form.first_line_indent = Pt(-min(offset, hanging) * 0.75)
             _list_tab(paragraph, form.left_indent)
     indent = px(style.get("text-indent"), size)
     if indent:
@@ -391,12 +427,14 @@ def apply_table(table, node, grid, rows, context: Context, page_width_px: float)
         table.autofit = False
         total = sum(widths)
         scale = min(1.0, page_width_px / total) if total else 1.0
+        # Whole twips, rounded up: Word stores twips, and a width cut short by the conversion could wrap.
+        sizes = [Emu(math.ceil(w * scale * 15) * 635) for w in widths]
         for row in table.rows:
-            for index, cell in enumerate(row.cells[: len(widths)]):
-                cell.width = Emu(int(widths[index] * scale * EMU_PER_PX))
+            for index, cell in enumerate(row.cells[: len(sizes)]):
+                cell.width = sizes[index]
         for index, column in enumerate(table.columns):
-            if index < len(widths):
-                column.width = Emu(int(widths[index] * scale * EMU_PER_PX))
+            if index < len(sizes):
+                column.width = sizes[index]
         context.applied.add("column widths")
     if table_style.get("margin-left") == "auto" or node.attrs.get("align") == "center":
         table.alignment = WD_TABLE_ALIGNMENT.CENTER
@@ -508,8 +546,8 @@ def _column_widths(styled: StyledDocument, node, grid, page_width_px: float) -> 
             box = styled.box(cell)
             if box is not None:
                 # The browser's cell box includes its padding and borders, as a Word cell width does; 1 px more
-                # keeps a cell that only just fits from wrapping on a rounding (2 px a column still made the
-                # contract table 8 px wider in WPS, Windows check on c205851).
+                # keeps a cell that only just fits from wrapping on a rounding (2 px a column made the contract
+                # table 8 px wider in WPS, Windows check on c205851; half a pixel let "Windows 10 / 11" wrap).
                 widths[index] = box["width"] + 1
                 continue
             declared = cell.attrs.get("width") or styled.style(cell).get("width")
