@@ -19,6 +19,8 @@ All notable changes to `wps-ai-agent-cli`. The versioning rule and release steps
 - PDF to docx no longer takes the bottom margin from where a short page's text ends (427 pt for the supplier fixture, which pushed a paragraph onto a third page in WPS); it mirrors the top margin unless the text reaches lower. (P13-018)
 - `convert` through WPS opens Writer sources read-only and out of the recent list, and a timeout lists the titles of WPS's visible windows (`wps_windows`), so a dialog WPS waits on can be named. `scripts/fidelity_baselines.py --wps` waits for WPS to exit between group B steps and ends one it started that is still running after 30 seconds.
 - Evaluation `tool_called` checks accept other tools for the same step (`or`, with `input_suffix` matching the end of a path); `html-complex-report-to-docx` accepts `convert` writing the PDF.
+- docx table cells put their top and bottom padding in paragraph spacing instead of a cell margin, which made each such row about 7 pt taller in WPS; cell properties are written in schema order. Paragraphs with `line-height: normal` get the line the browser measured for their font, exactly, instead of single spacing, which WPS made taller for Microsoft YaHei. (P13-008)
+- A WPS conversion timeout lists every visible WPS window, untitled ones by class and size, and saves a screenshot of each to `%TEMP%` (`wps-agent-timeout-*.png`).
 
 ## [0.10.0] - 2026-10-18
 

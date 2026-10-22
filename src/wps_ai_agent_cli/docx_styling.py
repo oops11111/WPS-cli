@@ -220,7 +220,8 @@ def apply_paragraph(paragraph, node, ancestors, context: Context, *, list_item: 
     }.get(style.get("text-align", "start"))
     if align is not None:
         form.alignment = align
-    line = px(style.get("line-height"), size, size)
+    # "normal" is the browser's measured line for the font, when it was laid out (line-height-normal).
+    line = px(style.get("line-height"), size, size) or px(style.get("line-height-normal"))
     if line:
         # Exactly the CSS height when nothing in the paragraph is taller than a line: as "at least", WPS and Word
         # give an East Asian font its own taller line (Microsoft YaHei is about 1.7 em), so a 1.5 line came out
@@ -387,22 +388,31 @@ def apply_table(table, node, grid, rows, context: Context, page_width_px: float)
                 color(styled.style(row_node).get("background-color")) if row_node is not None else None
             )
             props = cell._tc.get_or_add_tcPr()
-            if fill:
-                props.append(_element("w:shd", **{"w:val": "clear", "w:color": "auto", "w:fill": fill}))
-                context.applied.add("cell shading")
+            # Schema order in tcPr: tcW, gridSpan, vMerge, tcBorders, shd, noWrap, tcMar, ..., vAlign.
             borders = {side: b for side in ("top", "left", "bottom", "right") if (b := _border(style, side))}
             if not borders and has_borders:
                 borders = {side: (1.0, "single", "808080") for side in ("top", "left", "bottom", "right")}
             if borders:
                 props.append(_borders_xml("w:tcBorders", borders))
                 context.applied.add("cell borders")
+            if fill:
+                props.append(_element("w:shd", **{"w:val": "clear", "w:color": "auto", "w:fill": fill}))
+                context.applied.add("cell shading")
             margins = _element("w:tcMar")
-            for side, name in (("top", "top"), ("left", "left"), ("bottom", "bottom"), ("right", "right")):
+            for side in ("left", "right"):
                 value = px(style.get(f"padding-{side}"))
                 if value is not None:
-                    margins.append(_element(f"w:{name}", **{"w:w": str(int(value * 15)), "w:type": "dxa"}))
+                    margins.append(_element(f"w:{side}", **{"w:w": str(int(value * 15)), "w:type": "dxa"}))
             if len(margins):
                 props.append(margins)
+            # Top and bottom padding become space before the first paragraph and after the last: WPS made every
+            # row with a top/bottom cell margin about 7 pt taller than the browser (Windows check on c55d04e),
+            # while rows without one (the PDF tables) matched.
+            top, bottom = px(style.get("padding-top")), px(style.get("padding-bottom"))
+            if top:
+                cell.paragraphs[0].paragraph_format.space_before = Pt(top * 0.75)
+            if bottom:
+                cell.paragraphs[-1].paragraph_format.space_after = Pt(bottom * 0.75)
             vertical = {
                 "middle": WD_CELL_VERTICAL_ALIGNMENT.CENTER,
                 "bottom": WD_CELL_VERTICAL_ALIGNMENT.BOTTOM,

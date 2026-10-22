@@ -46,11 +46,34 @@ async function main() {
     await page.evaluate(() => document.fonts.ready);
     const elements = await page.evaluate(properties => {
       const result = {};
+      // "line-height: normal" depends on the font: measure it once per font, so that a document can set the line
+      // the browser drew (WPS gives Microsoft YaHei a taller "single" line than the browser's normal one).
+      const normal = new Map();
+      const normalLine = style => {
+        const key = [style.fontFamily, style.fontSize, style.fontWeight, style.fontStyle].join('|');
+        if (!normal.has(key)) {
+          const probe = document.createElement('div');
+          probe.style.cssText = 'position:absolute;left:-10000px;top:0;visibility:hidden;white-space:nowrap;' +
+            'line-height:normal;margin:0;padding:0;border:0';
+          probe.style.fontFamily = style.fontFamily;
+          probe.style.fontSize = style.fontSize;
+          probe.style.fontWeight = style.fontWeight;
+          probe.style.fontStyle = style.fontStyle;
+          probe.textContent = '\u56fdAg';
+          document.body.appendChild(probe);
+          normal.set(key, probe.getBoundingClientRect().height);
+          probe.remove();
+        }
+        return normal.get(key);
+      };
       for (const element of document.querySelectorAll('[data-wps-i]')) {
         const style = getComputedStyle(element);
         const box = element.getBoundingClientRect();
         const values = {};
         for (const name of properties) values[name] = style.getPropertyValue(name);
+        if (values['line-height'] === 'normal' && document.body) {
+          values['line-height-normal'] = `${normalLine(style)}px`;
+        }
         result[element.getAttribute('data-wps-i')] = {
           tag: element.tagName.toLowerCase(),
           box: { x: box.left + window.scrollX, y: box.top + window.scrollY, width: box.width, height: box.height },

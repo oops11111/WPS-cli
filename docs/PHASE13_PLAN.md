@@ -243,6 +243,24 @@ D 组只考核文字和数据（F5）：pptx → docx 的结构 70% 和动画 0%
 - 放映：`training.html` 的外观 pptx 仍然正确。
 - 结论：E-supplier-docx、B 组连续用例和两组评测都已修好；仍未达标的是 A 组 5 份 docx 的版面和 `B-odt-docx` 超时。P13-008、P13-013、P13-018 仍不能算完成。
 
+### Windows 检查结果（第四轮，2026-10-22，`c55d04e`）
+
+结果在 `scripts/windows_check/results/20261022T065744Z-c55d04e-fidelity/`（`b-odt-timeout.txt` 是超时时的窗口枚举）和相邻的两个 `*-eval` 目录。
+
+- 保真度（WPS）：E-supplier-docx **0.8745 通过**（2 → 2 页）。B 组整轮里 `B-docx-wps`、`B-docx-odt` 都是 1.0，WPS 占用级联消失；除 `B-odt-docx` 外 B 组全过。`B-odt-docx` 仍在打开输入时超时：没有可见的带标题窗口，只有两个可见的无标题 Qt 窗口。A 组 5 份 docx 仍是 0.7589–0.8779；pptx、C、D 组通过。
+- 评测：`--prefix convert-` 5/5，`--prefix html-` **5/5**（报告任务回到 3/3）。
+- 结论：剩下 A 组 docx 版面和 `B-odt-docx`。
+
+### 第四次 Windows 检查之后的修复（待第五次检查）
+
+| 发现 | 对照图里看到的 | 修复 |
+| --- | --- | --- |
+| contract 表格行仍高约 7 pt | 有上下单元格边距（`tcMar` top/bottom）的行都高出一截；PDF 来的表格没有上下边距，行高与源一致 | 上下内边距改为单元格首段的段前、末段的段后，`tcMar` 只留左右；`tcPr` 子元素按架构顺序（`tcBorders` 在 `shd` 前） |
+| report、manual、newsletter 的正文行距仍偏大 | 这些页面没有写 `line-height`（`normal`），docx 用“单倍”，WPS 给微软雅黑的单倍行比浏览器的 normal 高 | 浏览器布局时按字体测出 normal 的行高（`line-height-normal`），docx 按这个值用“固定值”（同样只在段内没有更高的内容时）。本地 report 0.874 → 0.890、newsletter 0.869 → 0.883、manual 0.842 → 0.857 |
+| `B-odt-docx` 超时时没有带标题的窗口 | 两个可见的无标题 Qt 窗口 | 超时报告列出所有可见的 WPS 窗口（无标题的写成“untitled 类名 宽x高”），并把每个窗口截图存到 `%TEMP%\wps-agent-timeout-*.png`，路径写在错误信息里 |
+
+第五次检查与第四次相同。`B-odt-docx` 若仍超时，请把错误信息里列出的截图一并带回。
+
 ## 任务拆分
 
 | 任务 | 里程碑 | 对应标准 | 内容 | 在哪做 |
