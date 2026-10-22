@@ -1,6 +1,6 @@
 # Phase 13 计划：全格式高保真互转
 
-状态：**active**（2026-10-18 规划，同日你决定把全部格式并入本阶段；同日你说“phase13三个里程碑做一个提交”，按默认决定激活。三个里程碑的本地任务已在一次提交中完成，版本号 0.10.0 包含全部内容；Windows 上的三次检查 P13-008、P13-013、P13-018 于 2026-10-18 在 `4b263d9`、2026-10-22 到 10-23 在 `c117637`、`8899219`、`c55d04e`、`c205851`、`f8ed7bd`、`3095499`、`c149caf` 和 `3f82375` 上各跑过一遍，仍未全部通过，见“Windows 检查结果”）。
+状态：**active**（2026-10-18 规划，同日你决定把全部格式并入本阶段；同日你说“phase13三个里程碑做一个提交”，按默认决定激活。三个里程碑的本地任务已在一次提交中完成，版本号 0.10.0 包含全部内容；Windows 上的三次检查 P13-008、P13-013、P13-018 于 2026-10-18 在 `4b263d9`、2026-10-22 到 10-23 在 `c117637`、`8899219`、`c55d04e`、`c205851`、`f8ed7bd`、`3095499`、`c149caf`、`3f82375` 和 `45b0d4b` 上各跑过一遍；**第十轮保真度矩阵和两组评测全部通过**，见“Windows 检查结果（第十轮）”。三个任务剩下的只是各自的发布步骤。。
 
 ## 目标
 
@@ -104,17 +104,17 @@ Phase 12 之后，HTML 转换为 WPS 三种格式已经保留语义、行内格�
 | P13-005 | 完成 | `office_html.py`：docx → 内联样式的干净 HTML，往返 100% |
 | P13-006 | 完成 | `html_slides.py`：有浏览器时按 section 的布局摆放到 16:9 幻灯片，背景、字体、退出和强调动画、单击和“上一项之后”；`--fidelity appearance` 画出装饰框 |
 | P13-007 | 完成 | `wps_convert.py`：SaveAs 格式码（doc 0、docx 16、odt 23、xls 56、xlsx 51、ods 60、ppt 1、pptx 24、odp 35，.wps/.et/.dps 按扩展名）、PDF、每页 PNG；`FORMAT_NOT_SUPPORTED_BY_WPS`；用假 COM 测试 |
-| P13-008 | 未通过 | 第九轮 2026-10-23（`3f82375`）：A 组 report 0.9236、newsletter 0.9170 通过；contract 0.8491、manual 0.8873、pdfsource 0.8980 仍低于 0.90；`convert-`/`html-` 都是 5/5；见“Windows 检查结果（第九轮）” |
+| P13-008 | Windows 检查通过，发布待做 | 第十轮 2026-10-23（`45b0d4b`）：保真度矩阵全部通过（pdfsource 0.9123；contract 0.8491、manual 0.8873 按下限 0.84/0.88 记为 known deviation）；`convert-`/`html-` 都是 5/5；0.10.0 发布尚未做 |
 | P13-009 | 完成 | pptx → HTML：每页一个定位的 section，动画转回 `@keyframes`，切换转回 `data-transition`，备注 |
 | P13-010 | 完成 | HTML → xlsx 的字体、填充、边框、对齐、列宽、冻结表头，`data-formula` 还原公式；xlsx → HTML |
 | P13-011 | 完成 | `tabular.py`（编码、分隔符、类型）、`markdown_convert.py`（markdown-it-py 或内置读取器） |
 | P13-012 | 完成 | `cross_type.py`：docx ↔ pptx（决定 8 的分页），工作表区域 → docx/pptx 表格 |
-| P13-013 | 未通过 | 第九轮：C、D 组通过；A 组还剩 3 份未达标（pdfsource 0.8980）；两组评测都是 5/5 |
+| P13-013 | Windows 检查通过，发布待做 | 第十轮：C、D 组通过；A 组全部通过；两组评测都是 5/5；0.11.0 发布尚未做 |
 | P13-014 | 完成 | `pdf_convert.py`：标题（按字号）、列表、有线框和按对齐识别的表格、图片、页眉页脚（进 docx 的页眉页脚）、页面大小和边距 |
 | P13-015 | 完成 | PDF → xlsx 每个表格一个工作表；PDF → pptx 每页一张幻灯片（按阅读顺序排版，不按页面坐标定位） |
 | P13-016 | 完成 | `--ocr` 和 `ocr` 可选依赖（RapidOCR）；没装或不加 `--ocr` 时报 `PDF_NEEDS_OCR`；本地扫描件字符准确率 98.5%（300 dpi） |
 | P13-017 | 完成 | `convert` 统一入口（CLI、MCP `wps_agent_convert`），5 个 `convert-` 评测任务和离线判定 `fidelity`，离线测试确认判定在真实转换结果上通过 |
-| P13-018 | 未通过 | 第九轮：E-supplier-docx 0.8741 达标；ODF 两个方向仍记为 `FORMAT_NOT_SUPPORTED_BY_WPS`，B-odt-docx 60 秒内结束、无残留；B 组其余方向通过；见“Windows 检查结果（第九轮）” |
+| P13-018 | Windows 检查通过，发布待做 | 第十轮：E、B 组通过（ODF 按决定 9 记为不支持）；两组评测都是 5/5；0.12.0 发布尚未做 |
 
 ### 离线转换矩阵
 
@@ -393,6 +393,16 @@ D 组只考核文字和数据（F5）：pptx → docx 的结构 70% 和动画 0%
 本地 LibreOffice：pdfsource 0.891 → 0.900，supplier 0.930 → 0.929，其余不变。基线已重写。
 
 按决定 10，`A-contract-docx`（下限 0.84）和 `A-manual-docx`（下限 0.88）记为已知偏差：矩阵输出标注 “known deviation”，不再算失败。第十次检查与第九次相同，看 pdfsource 是否过 0.90、两份已知偏差是否仍在下限以上。
+
+### Windows 检查结果（第十轮，2026-10-23，`45b0d4b`）
+
+结果和原始输出在 `scripts/windows_check/results/20261022T230854Z-45b0d4b-fidelity/`（保真度 `results.json`/`pages/`、放映）以及相邻的两个 `*-eval` 目录。
+
+- 保真度（WPS）：**矩阵退出码 0，全部通过**。A 组 report 0.9236、newsletter 0.9170；pdfsource **0.9123（首次越过 0.90）**；contract 0.8491（下限 0.84）和 manual 0.8873（下限 0.88）按下限记为 known deviation（决定 10），输出标注 “known deviation: glyph rendering differs from the browser; layout aligned”。pptx 三份 0.9137–0.9573；E-supplier-docx 0.8746（2 → 2 页）；C、D 组全部通过。
+- B 组：除两个 ODF 方向外全部通过；`B-odt-docx`/`B-docx-odt` 仍按决定 9 记为 `FORMAT_NOT_SUPPORTED_BY_WPS`，`B-odt-docx` 60 秒内结束，矩阵 6 分 03 秒、无 WPS 残留。
+- 评测：`--prefix convert-` **5/5**、`--prefix html-` **5/5**；都是 0 `wrong_tool_calls`、0 未验证写入。
+- 放映：`training.html` 的外观 pptx 仍然正确。
+- 结论：P13-008、P13-013、P13-018 的 Windows 检查部分全部通过；三个任务还包含各自的发布步骤（0.10.0、0.11.0、0.12.0），发布尚未做。
 
 ## 任务拆分
 
