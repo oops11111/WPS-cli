@@ -4,6 +4,31 @@ All notable changes to `wps-ai-agent-cli`. The versioning rule and release steps
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-10-23
+
+Phase 13: high-fidelity conversion between all formats, measured by one check. The three milestones the plan describes (0.10.0, 0.11.0, 0.12.0) were built in one change, so 0.10.0 carries all of them; their Windows checks (P13-008, P13-013, P13-018) ran ten rounds, and the fixes they led to are under Fixed. Two A-group docx layouts are accepted below 0.90 as known deviations (decision 10), and WPS 12.8 does not convert ODF (decision 9).
+
+### Added
+
+- `fidelity-check` (MCP `wps_agent_fidelity_check`) compares a converted file with its source and scores text, structure (headings, list levels, tables, images, slides), character formatting, animations (effect, kind and start time), table data (by value: `1.2e4` equals `12000`) and layout (SSIM per page, with WPS on Windows or LibreOffice; LibreOffice scores count only against a `--baseline`), against the Phase 13 thresholds for that kind of conversion. Aspects that do not apply are marked. (P13-001, P13-002)
+- `convert` (MCP `wps_agent_convert`) picks the converter from the two file extensions; a pair without a direct route goes through one intermediate file, and the result lists the `route`. `--check` adds the fidelity report. (P13-017)
+  - DOCX, PPTX and XLSX to clean HTML with inline styles (no class names); images as data URIs or in a `<name>_files` folder. Slides become fixed-size sections with absolutely placed shapes, `@keyframes` animations, `data-transition` and speaker notes; workbook formulas keep their displayed value and the formula in `data-formula`, which the way back restores. (P13-005, P13-009)
+  - CSV/TSV to and from XLSX with the encoding (BOM, UTF-8, GBK/GB18030) and delimiter detected; numbers become numbers only when they display the same (`007` stays text, `3.50` gets `0.00`); a header row is bold and frozen. (P13-011)
+  - Markdown to HTML, DOCX and PPTX (markdown-it-py with the `markdown` extra, else a built-in reader), and HTML, DOCX, PPTX and XLSX to Markdown with images in a `<name>_files` folder. (P13-011)
+  - DOCX to PPTX (a slide per Heading 1 or 2, a continuation slide past eight lines), PPTX to DOCX (a heading per slide, notes kept) and a worksheet range (`--sheet`, `--range`) to a DOCX or PPTX table. (P13-012)
+  - PDF to DOCX, XLSX and PPTX: headings by font size, lists, ruled tables and tables found from column alignment, pictures, running headers and footers (to the page header and footer in DOCX), page size and margins. A scanned PDF is refused with `PDF_NEEDS_OCR`; with `--ocr` and the `ocr` extra RapidOCR reads it. (P13-014, P13-015, P13-016)
+  - Through WPS: .doc/.xls/.ppt, .wps/.et/.dps, .odt/.ods/.odp, .rtf and templates to and from docx/xlsx/pptx, PDF, and one PNG per page or slide; a pair WPS cannot write is refused with `FORMAT_NOT_SUPPORTED_BY_WPS` before WPS starts. (P13-007)
+- `html-editable --fidelity appearance` (pptx): every element is placed where the browser lays it out, with backgrounds and the boxes behind the text; it needs the browser. (P13-006)
+- Optional extras `fidelity` (numpy, Pillow, pypdfium2), `markdown` (markdown-it-py), `pdf` (pdfplumber) and `ocr` (RapidOCR); `html` now includes openpyxl.
+- `fixtures/fidelity/` (Writer pages, decks, a GBK CSV and a UTF-8 TSV, Markdown, a PDF with a text layer and its scanned copy, and legacy and ODF copies), `scripts/fidelity_baselines.py`, which converts them all and checks the scores, and `config/fidelity_baselines.json` with the LibreOffice baselines. (P13-003)
+- Agent evaluation: `convert-pdf-to-docx`, `convert-gbk-csv-to-xlsx`, `convert-markdown-to-docx`, `convert-docx-to-pptx` and `convert-legacy-doc-with-wps`, judged offline with the new `fidelity` check. (P13-017)
+
+### Changed
+
+- `html-editable` reads each element's computed style from the browser (Edge, or Chromium through `WPS_AGENT_EDGE`) and falls back to a built-in CSS cascade: fonts (East Asian too), sizes, colours, highlights, letter spacing, paragraph alignment, indents and spacing, borders, cell shading and padding, column widths, image sizes, `@page` size and margins, and page header and footer blocks. `<thead>` rows repeat as table headers; blockquotes keep the Quote style; `<hr>` becomes a rule; data-URI images are embedded; image alt text is kept. The result has `style_source` and `applied_styles`. (P13-004)
+- `html-editable --format pptx` places each element where the browser lays out its section on a 16:9 slide, with section backgrounds, fonts and sizes; exit and emphasis animations, click and after-previous triggers are converted. Without the browser the slides use the title-and-content layout as before. (P13-006)
+- `html-editable --format xlsx` sets fonts, fills, borders, alignment and column widths from the computed styles, freezes `<thead>` rows, shows decimals and dates as written, and restores `data-formula` formulas. (P13-010)
+
 ### Fixed
 
 - `html-editable` (docx) lays text out as the browser does, which WPS did not: without `@page` the page is A4 (the browser's print size) instead of US Letter, and the document defaults turn off WPS's extra space between Chinese and Latin text, grid snapping, and the template's 10 pt after paragraphs. Before, WPS put two of the fixtures on one more page than the browser. Table cells no longer repeat their border and shading as paragraph borders, and list text is indented where the browser puts it. (P13-008)
@@ -30,31 +55,6 @@ All notable changes to `wps-ai-agent-cli`. The versioning rule and release steps
 - docx from HTML: in tables with collapsed borders a cell's bottom padding gives up the border the rows share (each bordered row was a pixel taller in WPS); an `<hr>` is a one-point line between its collapsed margins instead of a text line with a border; list markers hang about 1.05 em. The `pdf_source.html` fixture prints its running footer at the foot of the page, where the docx puts it. (P13-008)
 - docx page header and footer distances follow the page: from HTML the header starts at the top margin plus the body's top margin and the footer sits on the bottom margin, where the browser prints them (Word's default half inch put them 3 px low and 10 px high); from PDF they are where the PDF has its running header and footer. (P13-008, P13-018)
 - `scripts/fidelity_baselines.py` accepts the WPS layout of `A-contract-docx` and `A-manual-docx` above a floor (0.84 and 0.88) as known deviations (decision 10): their text lines up with the browser's, and what keeps them under 0.90 is how the two draw the same glyphs. Below the floor they still fail.
-
-## [0.10.0] - 2026-10-18
-
-Phase 13: high-fidelity conversion between all formats, measured by one check. The three milestones the plan describes (0.10.0, 0.11.0, 0.12.0) were built in one change, so 0.10.0 carries all of them; their Windows checks (P13-008, P13-013, P13-018) are still to run.
-
-### Added
-
-- `fidelity-check` (MCP `wps_agent_fidelity_check`) compares a converted file with its source and scores text, structure (headings, list levels, tables, images, slides), character formatting, animations (effect, kind and start time), table data (by value: `1.2e4` equals `12000`) and layout (SSIM per page, with WPS on Windows or LibreOffice; LibreOffice scores count only against a `--baseline`), against the Phase 13 thresholds for that kind of conversion. Aspects that do not apply are marked. (P13-001, P13-002)
-- `convert` (MCP `wps_agent_convert`) picks the converter from the two file extensions; a pair without a direct route goes through one intermediate file, and the result lists the `route`. `--check` adds the fidelity report. (P13-017)
-  - DOCX, PPTX and XLSX to clean HTML with inline styles (no class names); images as data URIs or in a `<name>_files` folder. Slides become fixed-size sections with absolutely placed shapes, `@keyframes` animations, `data-transition` and speaker notes; workbook formulas keep their displayed value and the formula in `data-formula`, which the way back restores. (P13-005, P13-009)
-  - CSV/TSV to and from XLSX with the encoding (BOM, UTF-8, GBK/GB18030) and delimiter detected; numbers become numbers only when they display the same (`007` stays text, `3.50` gets `0.00`); a header row is bold and frozen. (P13-011)
-  - Markdown to HTML, DOCX and PPTX (markdown-it-py with the `markdown` extra, else a built-in reader), and HTML, DOCX, PPTX and XLSX to Markdown with images in a `<name>_files` folder. (P13-011)
-  - DOCX to PPTX (a slide per Heading 1 or 2, a continuation slide past eight lines), PPTX to DOCX (a heading per slide, notes kept) and a worksheet range (`--sheet`, `--range`) to a DOCX or PPTX table. (P13-012)
-  - PDF to DOCX, XLSX and PPTX: headings by font size, lists, ruled tables and tables found from column alignment, pictures, running headers and footers (to the page header and footer in DOCX), page size and margins. A scanned PDF is refused with `PDF_NEEDS_OCR`; with `--ocr` and the `ocr` extra RapidOCR reads it. (P13-014, P13-015, P13-016)
-  - Through WPS: .doc/.xls/.ppt, .wps/.et/.dps, .odt/.ods/.odp, .rtf and templates to and from docx/xlsx/pptx, PDF, and one PNG per page or slide; a pair WPS cannot write is refused with `FORMAT_NOT_SUPPORTED_BY_WPS` before WPS starts. (P13-007)
-- `html-editable --fidelity appearance` (pptx): every element is placed where the browser lays it out, with backgrounds and the boxes behind the text; it needs the browser. (P13-006)
-- Optional extras `fidelity` (numpy, Pillow, pypdfium2), `markdown` (markdown-it-py), `pdf` (pdfplumber) and `ocr` (RapidOCR); `html` now includes openpyxl.
-- `fixtures/fidelity/` (Writer pages, decks, a GBK CSV and a UTF-8 TSV, Markdown, a PDF with a text layer and its scanned copy, and legacy and ODF copies), `scripts/fidelity_baselines.py`, which converts them all and checks the scores, and `config/fidelity_baselines.json` with the LibreOffice baselines. (P13-003)
-- Agent evaluation: `convert-pdf-to-docx`, `convert-gbk-csv-to-xlsx`, `convert-markdown-to-docx`, `convert-docx-to-pptx` and `convert-legacy-doc-with-wps`, judged offline with the new `fidelity` check. (P13-017)
-
-### Changed
-
-- `html-editable` reads each element's computed style from the browser (Edge, or Chromium through `WPS_AGENT_EDGE`) and falls back to a built-in CSS cascade: fonts (East Asian too), sizes, colours, highlights, letter spacing, paragraph alignment, indents and spacing, borders, cell shading and padding, column widths, image sizes, `@page` size and margins, and page header and footer blocks. `<thead>` rows repeat as table headers; blockquotes keep the Quote style; `<hr>` becomes a rule; data-URI images are embedded; image alt text is kept. The result has `style_source` and `applied_styles`. (P13-004)
-- `html-editable --format pptx` places each element where the browser lays out its section on a 16:9 slide, with section backgrounds, fonts and sizes; exit and emphasis animations, click and after-previous triggers are converted. Without the browser the slides use the title-and-content layout as before. (P13-006)
-- `html-editable --format xlsx` sets fonts, fills, borders, alignment and column widths from the computed styles, freezes `<thead>` rows, shows decimals and dates as written, and restores `data-formula` formulas. (P13-010)
 
 ## [0.9.0] - 2026-10-17
 
