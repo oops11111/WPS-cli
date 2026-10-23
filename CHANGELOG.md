@@ -4,6 +4,10 @@ All notable changes to `wps-ai-agent-cli`. The versioning rule and release steps
 
 ## [Unreleased]
 
+## [0.11.0] - 2026-10-23
+
+Phase 14: a one-command Windows install and a guide for users. The CLI and MCP interface are unchanged; the new extra, installer and `WPS_AGENT_WORKSPACE` make this a minor release.
+
 ### Added
 
 - `scripts/install/install.ps1`, attached to every GitHub Release: one PowerShell command installs wps-agent for the current Windows user (a virtual environment with the wheel and the new `[all]` extra, `-Ocr` for `[ocr]`; Playwright on the local Node.js driving Edge, with `NODE_PATH`; a `wps-agent` shim on the user's PATH; `inspect-env`), connects Claude Desktop (`-McpClient claude-desktop`, backing its config up first) or Claude Code (`-McpClient claude-code`), and `-Uninstall` removes it again. A Windows CI job runs it end to end under Windows PowerShell 5.1. (P14-002, P14-003)
