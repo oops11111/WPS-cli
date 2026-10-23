@@ -21,6 +21,37 @@ class InstallerContentTests(unittest.TestCase):
         # Windows PowerShell 5.1 reads a file without a BOM in the ANSI code page.
         self.assertTrue(self.text.isascii())
 
+    def test_every_line_closes_its_strings(self):
+        # A string left open swallows the rest of the script (it failed to parse on Windows in CI once); this
+        # catches that without PowerShell. The script has no here-strings or strings spanning lines.
+        open_lines = []
+        in_block_comment = False
+        for number, line in enumerate(self.text.splitlines(), 1):
+            stripped = line.strip()
+            if in_block_comment or stripped.startswith("<#"):
+                in_block_comment = "#>" not in stripped
+                continue
+            quote = None
+            index = 0
+            while index < len(line):
+                char = line[index]
+                if quote is None and char == "#":
+                    break
+                if char == "`" and quote != "'":
+                    index += 2
+                    continue
+                if quote is None and char in "\"'":
+                    quote = char
+                elif char == quote:
+                    if index + 1 < len(line) and line[index + 1] == quote:
+                        index += 1  # a doubled quote inside the string
+                    else:
+                        quote = None
+                index += 1
+            if quote is not None:
+                open_lines.append(number)
+        self.assertEqual(open_lines, [])
+
     def test_it_installs_the_all_extra_and_ocr_only_when_asked(self):
         self.assertIn("$extras = if ($Ocr) { 'all,ocr' } else { 'all' }", self.text)
         self.assertIn('"$($wheel)[$extras]"', self.text)

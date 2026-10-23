@@ -167,7 +167,7 @@ if ($Uninstall) {
         [Environment]::SetEnvironmentVariable('NODE_PATH', $null, 'User')
     }
     Write-Note 'Done. Remove the "wps-agent" server from your MCP client yourself if you added it.'
-    Write-Note "Backups and records in $DataDir are kept; delete that folder too if you do not need them.
+    Write-Note "Backups and records in $DataDir are kept; delete that folder too if you do not need them."
     return
 }
 
