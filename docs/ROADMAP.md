@@ -173,7 +173,7 @@
 
 出口标准和任务拆分见 `docs/PHASE12_PLAN.md`。
 
-### Phase 13 全格式高保真互转（planned）
+### Phase 13 全格式高保真互转（done）
 
 目标是让各种格式之间的转换在 WPS 里的样子和原文件一致且仍可编辑，并用同一个保真度检查判定：文字、结构、格式、动画 100%，版面相似度（SSIM）按方向设门槛（HTML ↔ Office 在 WPS 上至少 0.90，WPS 格式家族至少 0.95，PDF 转可编辑至少 0.85）。
 
@@ -185,7 +185,7 @@
 - CSV/TSV ↔ xlsx，Markdown ↔ docx/HTML
 - 跨类型：docx ↔ pptx，xlsx 区域 → 文字/演示表格
 - PDF → docx / xlsx / pptx（含扫描件 OCR）
-- 每组的评测任务，三个里程碑各自上机检查并发布 0.10.0、0.11.0、0.12.0
+- 每组的评测任务；三个里程碑一次实现，合并发布为 0.10.0（2026-10-23），Windows 上检查十轮后通过。这版 WPS（12.8）不转换 ODF（决定 9）；contract、manual 两份 docx 的版面按下限记为已知偏差（决定 10）
 
 出口标准和任务拆分见 `docs/PHASE13_PLAN.md`。
 
