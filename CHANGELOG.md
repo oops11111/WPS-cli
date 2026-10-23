@@ -4,6 +4,14 @@ All notable changes to `wps-ai-agent-cli`. The versioning rule and release steps
 
 ## [Unreleased]
 
+### Added
+
+- `scripts/install/install.ps1`, attached to every GitHub Release: one PowerShell command installs wps-agent for the current Windows user (a virtual environment with the wheel and the new `[all]` extra, `-Ocr` for `[ocr]`; Playwright on the local Node.js driving Edge, with `NODE_PATH`; a `wps-agent` shim on the user's PATH; `inspect-env`), connects Claude Desktop (`-McpClient claude-desktop`, backing its config up first) or Claude Code (`-McpClient claude-code`), and `-Uninstall` removes it again. A Windows CI job runs it end to end under Windows PowerShell 5.1. (P14-002, P14-003)
+- The `all` extra: every optional dependency a WPS user needs except OCR. (P14-001)
+- `python -m wps_ai_agent_cli.client_config` prints or writes the MCP client entry for an installed wps-agent (Claude Desktop, Claude Code, or any client as JSON). (P14-002)
+- `mcp-server` works in the folder named by `WPS_AGENT_WORKSPACE` when it is set, so the document registry, operation records and backups do not depend on the directory an MCP client starts it in; the installer sets it to `%LOCALAPPDATA%\wps-agent-data`, which uninstalling keeps. (P14-002)
+- `docs/USER_GUIDE.md`: a Chinese guide for users (requirements, installing, connecting MCP clients, what it does, backups, limits, troubleshooting). The README now starts from it; development, tests and runtime details moved to `CONTRIBUTING.md`. (P14-004)
+
 ## [0.10.0] - 2026-10-23
 
 Phase 13: high-fidelity conversion between all formats, measured by one check. The three milestones the plan describes (0.10.0, 0.11.0, 0.12.0) were built in one change, so 0.10.0 carries all of them; their Windows checks (P13-008, P13-013, P13-018) ran ten rounds, and the fixes they led to are under Fixed. Two A-group docx layouts are accepted below 0.90 as known deviations (decision 10), and WPS 12.8 does not convert ODF (decision 9).

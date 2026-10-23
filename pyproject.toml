@@ -20,6 +20,18 @@ fidelity = ["numpy>=1.24", "Pillow>=10", "pypdfium2>=4"]
 markdown = ["markdown-it-py>=3"]
 pdf = ["pdfplumber>=0.11", "pypdfium2>=4", "Pillow>=10"]
 ocr = ["rapidocr_onnxruntime>=1.2", "pdfplumber>=0.11", "numpy>=1.24"]
+# Everything a WPS user needs except OCR (heavy; add [ocr] for scanned PDFs): what the installer installs.
+all = [
+    "pywin32>=306; platform_system == 'Windows'",
+    "python-docx>=1.1",
+    "python-pptx>=1.0",
+    "openpyxl>=3.1",
+    "numpy>=1.24",
+    "Pillow>=10",
+    "pypdfium2>=4",
+    "markdown-it-py>=3",
+    "pdfplumber>=0.11",
+]
 test = [
     "python-docx>=1.1",
     "Pillow>=10",

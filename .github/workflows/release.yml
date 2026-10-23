@@ -1,7 +1,8 @@
 name: release
 
-# Pushing a tag v<version> on main publishes that version as a GitHub Release with the wheel and the sdist, then
-# uploads the same two files to PyPI (P12-004). The steps are in docs/RELEASING.md; the maintainer pushes the tag.
+# Pushing a tag v<version> on main publishes that version as a GitHub Release with the wheel, the sdist and the
+# Windows installer (scripts/install/install.ps1, P14-003), then uploads the wheel and the sdist to PyPI
+# (P12-004). The steps are in docs/RELEASING.md; the maintainer pushes the tag.
 on:
   push:
     tags: ["v*"]
@@ -18,7 +19,9 @@ jobs:
         with:
           python-version: "3.12"
       - name: Check the tag against the package version and take the notes from CHANGELOG.md
-        run: python scripts/release_notes.py --tag "$GITHUB_REF_NAME" > release-notes.md
+        run: |
+          python scripts/release_notes.py --tag "$GITHUB_REF_NAME" > release-notes.md
+          cat scripts/install/release_install.md >> release-notes.md
       - name: Build the wheel and the source distribution
         run: |
           python -m pip install build
@@ -45,7 +48,7 @@ jobs:
       - name: Publish the GitHub Release with the wheel and the sdist
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" dist/* --title "$GITHUB_REF_NAME" --notes-file release-notes.md --verify-tag
+        run: gh release create "$GITHUB_REF_NAME" dist/* scripts/install/install.ps1 --title "$GITHUB_REF_NAME" --notes-file release-notes.md --verify-tag
       - name: Keep the published files for the PyPI upload
         uses: actions/upload-artifact@v4
         with:

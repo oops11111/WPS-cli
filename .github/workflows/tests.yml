@@ -55,6 +55,56 @@ jobs:
           pwsh -NoProfile -Command '$PSVersionTable.PSVersion.ToString()'
           python -m unittest discover -s tests
 
+  # P14-003: the installer, end to end, as a Windows user runs it (Windows PowerShell 5.1): wheel with [all],
+  # Playwright on the runner's Node.js driving its Edge, PATH shim, Claude Desktop config, uninstall.
+  windows-install:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Build the wheel
+        run: |
+          python -m pip install build
+          python -m build --wheel
+      - name: Install with scripts/install/install.ps1
+        shell: powershell
+        run: |
+          $wheel = (Get-ChildItem dist\*.whl)[0].FullName
+          powershell -NoProfile -ExecutionPolicy Bypass -File scripts\install\install.ps1 -WheelPath $wheel -InstallDir "$env:RUNNER_TEMP\wps-agent" -McpClient claude-desktop
+          if ($LASTEXITCODE -ne 0) { throw "installer failed: $LASTEXITCODE" }
+      - name: Use the installed wps-agent outside the repository
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $home_ = "$env:RUNNER_TEMP\wps-agent"
+          $env:NODE_PATH = [Environment]::GetEnvironmentVariable('NODE_PATH', 'User')
+          $userPath = [Environment]::GetEnvironmentVariable('Path', 'User')
+          if ($userPath -notlike "*$home_\bin*") { throw "bin is not on the user PATH: $userPath" }
+          $agent = "$home_\bin\wps-agent.cmd"
+          $work = New-Item -ItemType Directory -Force -Path "$env:RUNNER_TEMP\use"
+          Copy-Item fixtures\fidelity\contract.html $work
+          Push-Location $work
+          $inspect = (& $agent inspect-env) | Out-String | ConvertFrom-Json
+          if (-not $inspect.ok) { throw 'inspect-env failed' }
+          $render = (& $agent html-render --input contract.html --output contract.pdf --format pdf) | Out-String | ConvertFrom-Json
+          if (-not $render.ok) { throw ("html-render failed: " + ($render.errors | ConvertTo-Json -Compress)) }
+          if ((Get-Item contract.pdf).Length -lt 1000) { throw 'contract.pdf is empty' }
+          Pop-Location
+          $config = Get-Content "$env:APPDATA\Claude\claude_desktop_config.json" -Raw | ConvertFrom-Json
+          $server = $config.mcpServers.'wps-agent'
+          if ($server.args[0] -ne 'mcp-server') { throw 'Claude Desktop config not written' }
+          if (-not $server.env.WPS_AGENT_WORKSPACE) { throw 'no WPS_AGENT_WORKSPACE in the server entry' }
+          Write-Host "installed wps-agent $($inspect.data.platform.python) renders HTML and is in Claude Desktop's config"
+      - name: Uninstall
+        shell: powershell
+        run: |
+          powershell -NoProfile -ExecutionPolicy Bypass -File scripts\install\install.ps1 -Uninstall -InstallDir "$env:RUNNER_TEMP\wps-agent"
+          if (Test-Path "$env:RUNNER_TEMP\wps-agent") { throw 'install folder left behind' }
+          $userPath = [Environment]::GetEnvironmentVariable('Path', 'User')
+          if ($userPath -like '*wps-agent\bin*') { throw 'PATH entry left behind' }
+
   build:
     runs-on: ubuntu-latest
     steps:
