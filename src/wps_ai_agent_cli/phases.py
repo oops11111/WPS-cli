@@ -139,12 +139,22 @@ PHASES: tuple[Phase, ...] = (
     Phase(
         id="phase13",
         name="High-fidelity conversion between all formats",
-        status="active",
+        status="done",
         goal=(
             "Measure conversion fidelity with one check, and convert with high fidelity between HTML and the three "
             "WPS formats, across the WPS format family (legacy, WPS-native, ODF, PNG), CSV, Markdown, across "
-            "document types, and from PDF to editable documents, released in three milestones (0.10.0, 0.11.0, "
-            "0.12.0)."
+            "document types, and from PDF to editable documents, planned in three milestones and released "
+            "together as 0.10.0."
+        ),
+    ),
+    Phase(
+        id="phase14",
+        name="One-command install and a user guide",
+        status="active",
+        goal=(
+            "Let a Windows user with WPS install wps-agent with one PowerShell command (the wheel with every "
+            "optional dependency, HTML rendering, PATH, an MCP client connected), document it for users in "
+            "docs/USER_GUIDE.md, and release 0.11.0."
         ),
     ),
 )

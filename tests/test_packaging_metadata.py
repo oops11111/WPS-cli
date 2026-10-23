@@ -39,6 +39,21 @@ class PackagingMetadataTests(unittest.TestCase):
         for module, distribution in THIRD_PARTY_TO_DISTRIBUTION.items():
             self.assertIn(distribution, declared, module)
 
+    def test_the_all_extra_is_every_user_extra_but_ocr(self):
+        # P14-001: the installer installs [all]; it must not fall behind the extras it stands for.
+        pyproject = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
+
+        def extra(name):
+            match = re.search(rf"^{name}\s*=\s*\[(.*?)\]", pyproject, re.M | re.S)
+            self.assertIsNotNone(match, name)
+            return set(re.findall(r'"([^"]+)"', match.group(1)))
+
+        everything = set().union(*(extra(name) for name in ("wps", "html", "fidelity", "markdown", "pdf")))
+        names = {re.split(r"[<>=;\s]", spec, maxsplit=1)[0].lower() for spec in everything}
+        all_names = {re.split(r"[<>=;\s]", spec, maxsplit=1)[0].lower() for spec in extra("all")}
+        self.assertEqual(all_names, names)
+        self.assertNotIn("rapidocr_onnxruntime", all_names)
+
     def test_pyproject_has_no_inert_unittest_table(self):
         self.assertNotIn("[tool.unittest]", (ROOT / "pyproject.toml").read_text(encoding="utf-8"))
 
@@ -78,8 +93,8 @@ class PackagingMetadataTests(unittest.TestCase):
         self.assertIn('pip install -e ".[test]"', workflow)
         self.assertIn("python -m unittest discover -s tests", workflow)
         self.assertIn("WPS_TEST_PWSH", workflow)
-        readme = (ROOT / "README.md").read_text(encoding="utf-8")
-        self.assertIn(".github/workflows/tests.yml", readme)
+        contributing = (ROOT / "CONTRIBUTING.md").read_text(encoding="utf-8")
+        self.assertIn(".github/workflows/tests.yml", contributing)
 
 
 if __name__ == "__main__":

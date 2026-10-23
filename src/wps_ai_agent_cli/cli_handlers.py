@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import argparse
+import os
 import sys
 from collections.abc import Callable
+from pathlib import Path
 from typing import Any, TextIO
 
 from .models import CommandResponse
@@ -701,6 +703,12 @@ def build_command_handlers(
             if rpc_response is not None:
                 print(cli.dumps_json(rpc_response), file=output_stream or sys.stdout)
             return 0
+        # An MCP client starts the server in a directory of its own choosing; WPS_AGENT_WORKSPACE names the folder
+        # whose .wps-agent holds the registry, operations and backups (the installer sets it, P14-002).
+        workspace = os.environ.get("WPS_AGENT_WORKSPACE")
+        if workspace:
+            Path(workspace).expanduser().mkdir(parents=True, exist_ok=True)
+            os.chdir(Path(workspace).expanduser())
         return cli.serve_stdio()
 
     def _handle_mcp_smoke(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
