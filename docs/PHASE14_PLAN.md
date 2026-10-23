@@ -42,7 +42,7 @@ Phase 14 补上这三块，发布 0.11.0。
 | P14-002 | G2 | `client_config` 模块、`WPS_AGENT_WORKSPACE`、测试 | 本地 | 完成 |
 | P14-003 | G3、G4 | `install.ps1`、Windows CI 任务、Release 附带安装脚本和安装说明 | 本地 | 完成，CI 待在 PR 上跑通 |
 | P14-004 | G5 | `USER_GUIDE.md`、README 改写、`CONTRIBUTING.md`、一致性测试 | 本地 | 完成 |
-| P14-005 | G6 | 发布 0.11.0；在 Windows 上用安装脚本装 Release、接 Claude Desktop 做一次读取和写入、卸载；wheel 检查 | Windows + 你 | 待做 |
+| P14-005 | G6 | 发布 0.11.0；在 Windows 上用安装脚本装 Release、接 Claude Desktop 做一次读取和写入、卸载；wheel 检查 | Windows + 你 | 版本号和 CHANGELOG 已准备（发布准备 PR），待合并、打标签和上机 |
 
 ## 上机步骤（P14-005）
 
@@ -55,7 +55,7 @@ Phase 14 补上这三块，发布 0.11.0。
    ```
 
    记录输出，确认 `inspect-env` 报告 WPS 的 COM 组件已注册。
-3. 重启 Claude Desktop，确认工具列表里有 `wps-agent`；让它读一个 xlsx 的前几行，再改一个单元格（带备份），核对结果和数据目录里的备份。
+3. `python scripts/windows_check/mcp_client_smoke.py --out <结果目录>`：按 Claude Desktop 配置里的 `wps-agent` 条目启动服务器（从另一个目录启动），列出工具，读 `book.xlsx` 的一块区域，写一个单元格并读回，确认留下了备份、备份在 `WPS_AGENT_WORKSPACE` 下、启动目录里没写东西。再重启 Claude Desktop，确认工具列表里有 `wps-agent`，让它读一个 xlsx 的前几行、改一个单元格，核对结果和数据目录里的备份。
 4. 新开终端运行 `wps-agent inspect-env`（确认 PATH 生效）。
 5. `powershell -ExecutionPolicy Bypass -File .\install.ps1 -Uninstall`，确认安装目录和 PATH 条目已删除、数据目录还在。
 6. `python scripts/windows_check/run_windows_check.py wheel --version 0.11.0`。
