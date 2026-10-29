@@ -22,6 +22,35 @@ from .errors import COM_OPERATION_FAILED, ROLLBACK_BLOCKED, ROLLBACK_FAILED, ROL
 from .operations import get_operation
 from .sessions import file_identity, get_document
 
+# Failures after which the file is not this command's to restore: it did not write (the source or its backup changed
+# before WPS was called, the registration no longer matches the file), the request is an earlier one replayed
+# (its write was committed, or may have been), or someone else changed the file after WPS saved it. Copying the
+# pre-write backup over the file would then discard a change that is not this command's.
+NO_ROLLBACK_CODES = frozenset(
+    {
+        "BACKUP_CHANGED_AFTER_CREATION",
+        "BACKUP_SOURCE_UNAVAILABLE",
+        "BACKUP_SOURCE_UNVERIFIED",
+        "DOCUMENT_CHANGED_AFTER_BACKUP",
+        "DOCUMENT_CHANGED_AFTER_COM",
+        "DOCUMENT_CHANGED_DURING_BACKUP",
+        "DOCUMENT_IDENTITY_CHANGED",
+        "DOCUMENT_IDENTITY_UNVERIFIED",
+        "IDEMPOTENCY_CONFLICT",
+        "OPERATION_IDENTITY_UNVERIFIED",
+        "OPERATION_SOURCE_CHANGED",
+        "UNRECORDED_MUTATION_AMBIGUOUS",
+    }
+)
+
+
+def _not_ours_to_restore(errors: Any) -> str | None:
+    """The first error code that rules a rollback out, if any."""
+    for error in errors if isinstance(errors, list) else []:
+        if isinstance(error, dict) and error.get("code") in NO_ROLLBACK_CODES:
+            return str(error["code"])
+    return None
+
 
 def _pre_write_backup(result: Any) -> str | None:
     if not isinstance(result, dict):
@@ -183,12 +212,11 @@ def atomic_mutation(operation: Callable[..., Any]) -> Callable[..., Any]:
         try:
             outcome = operation(*args, **kwargs)
         except Exception as exc:
-            # The command raised after its backup was taken: undo any write it made, then report the failure.
-            backup_file = (
-                _backup_for_request(str(request_id), workspace)
-                if document_id is not None and request_id is not None
-                else None
-            )
+            # The command raised after its backup was taken: undo any write it made, then report the failure. Once
+            # the operation itself is recorded its write is committed, and the ledger must keep matching the file.
+            if document_id is None or request_id is None or get_operation(str(request_id), workspace):
+                raise
+            backup_file = _backup_for_request(str(request_id), workspace)
             if backup_file is None:
                 raise
             error = {"code": COM_OPERATION_FAILED, "message": f"The command raised an unexpected exception: {exc}"}
@@ -201,6 +229,15 @@ def atomic_mutation(operation: Callable[..., Any]) -> Callable[..., Any]:
         backup_file = _pre_write_backup(result)
         if backup_file is None:
             return outcome
+        skipped = _not_ours_to_restore(errors)
+        if skipped is not None:
+            rollback = {
+                "performed": False,
+                "skipped_for": skipped,
+                "reason": "the file is not in the state this command left it, so the backup was not copied over it",
+                "backup_path": backup_file,
+            }
+            return False, {**result, "rollback": rollback}, errors, replayed
         return _undo_failed(str(document_id), backup_file, workspace, result, errors, replayed)
 
     return wrapped

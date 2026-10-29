@@ -8,9 +8,10 @@ from unittest.mock import patch
 
 from openpyxl import Workbook
 
-from wps_ai_agent_cli.atomic_mutation import atomic_mutation
-from wps_ai_agent_cli.backups import create_backup
+from wps_ai_agent_cli.atomic_mutation import NO_ROLLBACK_CODES, atomic_mutation
+from wps_ai_agent_cli.backups import create_backup, list_backups
 from wps_ai_agent_cli.errors import ROLLBACK_BLOCKED, ROLLBACK_FAILED, ROLLED_BACK
+from wps_ai_agent_cli.operations import record_operation, replay_operation
 from wps_ai_agent_cli.sessions import register_document
 
 
@@ -170,6 +171,125 @@ class AtomicMutationTests(unittest.TestCase):
         self.assertIn(self.backup_path, errors[-1]["message"])
         self.assertIn("disk full", errors[-1]["message"])
         self.assertNotEqual(_sha(self.document), _sha(Path(self.backup_path)))
+
+    def _failing_with(self, code: str):
+        backup_path = self.backup_path
+
+        @atomic_mutation
+        def write(document_id, request_id, workspace=".", **_):
+            return (
+                False,
+                {"document_id": document_id, "backup": {"backup_path": backup_path}},
+                [{"code": code, "message": "not this command's file"}],
+                False,
+            )
+
+        return write
+
+    def test_a_file_this_command_did_not_write_is_never_restored(self):
+        for code in sorted(NO_ROLLBACK_CODES):
+            with self.subTest(code=code):
+                self.document.write_bytes(b"someone else's change")
+                ok, result, errors, _ = self._failing_with(code)(self.document_id, "req-x", workspace=self.workspace)
+                self.assertFalse(ok)
+                self.assertEqual(self.document.read_bytes(), b"someone else's change")
+                self.assertEqual(
+                    result["rollback"],
+                    {
+                        "performed": False,
+                        "skipped_for": code,
+                        "reason": "the file is not in the state this command left it, so the backup was not copied over it",
+                        "backup_path": self.backup_path,
+                    },
+                )
+                self.assertEqual([error["code"] for error in errors], [code])
+
+    def test_retrying_a_committed_write_after_the_user_edited_the_file_keeps_both(self):
+        document, workspace = self.document, self.workspace
+
+        @atomic_mutation
+        def write(document_id, request_id, workspace=".", **_):
+            replay = replay_operation(request_id, "fake-write", {"document_id": document_id}, workspace)
+            if replay is not None:
+                return replay
+            ok, backup, errors, _ = create_backup(document_id, f"{request_id}:backup", workspace=workspace)
+            self.assertTrue(ok, errors)
+            document.write_bytes(b"the committed write")
+            result = {"document_id": document_id, "backup": backup}
+            record_operation(request_id, "fake-write", result, workspace)
+            return True, result, [], False
+
+        ok, _, errors, _ = write(self.document_id, "req-retry", workspace=workspace)
+        self.assertTrue(ok, errors)
+        document.write_bytes(b"the committed write, then the user's edit")
+
+        ok, result, errors, _ = write(self.document_id, "req-retry", workspace=workspace)
+
+        self.assertFalse(ok)
+        self.assertEqual(document.read_bytes(), b"the committed write, then the user's edit")
+        self.assertIn(errors[0]["code"], NO_ROLLBACK_CODES)
+        self.assertNotIn(ROLLED_BACK, [error["code"] for error in errors])
+
+    def test_an_exception_after_the_operation_was_recorded_leaves_the_committed_write(self):
+        document, backup_path = self.document, self.backup_path
+
+        @atomic_mutation
+        def write(document_id, request_id, workspace=".", **_):
+            document.write_bytes(b"the committed write")
+            record_operation(
+                request_id, "fake-write", {"document_id": document_id, "backup_path": backup_path}, workspace
+            )
+            raise OSError("identity capture failed after the record")
+
+        with self.assertRaises(OSError):
+            write(self.document_id, "req-atomic-write", workspace=self.workspace)
+        self.assertEqual(document.read_bytes(), b"the committed write")
+
+
+class BackupFileTests(unittest.TestCase):
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self._tmp.cleanup)
+        root = Path(self._tmp.name)
+        self.workspace = root / "workspace"
+        self.workspace.mkdir()
+        self.document = root / "book.xlsx"
+        Workbook().save(self.document)
+        ok, record, _ = register_document("spreadsheets", str(self.document), self.workspace)
+        self.assertTrue(ok)
+        self.document_id = record["document_id"]
+
+    def test_a_copy_taken_while_the_file_changed_is_removed_and_not_offered(self):
+        real_copy = __import__("shutil").copy2
+
+        def copy_then_change(source, target):
+            real_copy(source, target)
+            Path(source).write_bytes(b"changed during the copy")
+
+        with patch("wps_ai_agent_cli.backups.shutil.copy2", side_effect=copy_then_change):
+            ok, result, errors, _ = create_backup(self.document_id, "req-unstable:backup", workspace=self.workspace)
+
+        self.assertFalse(ok)
+        self.assertEqual(errors[0]["code"], "DOCUMENT_CHANGED_DURING_BACKUP")
+        self.assertIsNone(result["backup_path"])
+        ok, listed, _ = list_backups(self.document_id, self.workspace)
+        self.assertEqual(listed["backups"], [])
+
+    def test_two_backups_with_the_same_timestamp_get_their_own_files(self):
+        with patch("wps_ai_agent_cli.backups.datetime") as clock:
+            clock.now.return_value.strftime.return_value = "20261029T050000000000Z"
+            first = create_backup(self.document_id, "req-a:backup", workspace=self.workspace)
+            self.document.write_bytes(self.document.read_bytes())  # same bytes, a second backup request
+            second = create_backup(self.document_id, "req-b:backup", workspace=self.workspace)
+
+        self.assertTrue(first[0], first[2])
+        self.assertTrue(second[0], second[2])
+        paths = {first[1]["backup_path"], second[1]["backup_path"]}
+        self.assertEqual(len(paths), 2)
+        self.assertTrue(second[1]["backup_path"].endswith("20261029T050000000000Z-1.xlsx"))
+        ok, listed, _ = list_backups(self.document_id, self.workspace)
+        self.assertEqual(len(listed["backups"]), 2)
+        self.assertTrue(all(item["created_at"] for item in listed["backups"]))
 
 
 if __name__ == "__main__":
