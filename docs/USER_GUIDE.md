@@ -29,7 +29,7 @@ powershell -ExecutionPolicy Bypass -File .\install.ps1 -McpClient claude-desktop
 1. 找到 Python 3.10 及以上；
 2. 从 GitHub Release 下载最新的 wheel，并核对它的 SHA-256；
 3. 在 `%LOCALAPPDATA%\wps-agent` 建一个独立的 Python 环境，装好 `wps-agent` 和全部可选功能（OCR 除外）；
-4. 有 Node.js 时装好 Playwright（使用本机的 Edge，不另下载浏览器），并设置 `NODE_PATH`；
+4. 有 Node.js 时装好 Playwright（使用本机的 Edge，不另下载浏览器），并把它放在 `NODE_PATH` 最前面（你原有的条目保留）；
 5. 把 `wps-agent` 加到当前用户的 PATH（新开的终端里生效）；
 6. 运行 `wps-agent inspect-env`，告诉你 WPS 的 COM 自动化是否可用；
 7. 按 `-McpClient` 连接 AI 客户端（见第 3 节）。
@@ -49,9 +49,9 @@ powershell -ExecutionPolicy Bypass -File .\install.ps1 -McpClient claude-desktop
 | `-InstallDir`、`-DataDir` | 安装目录（默认 `%LOCALAPPDATA%\wps-agent`）、数据目录（默认 `%LOCALAPPDATA%\wps-agent-data`） |
 | `-Uninstall` | 卸载 |
 
-**升级**：再运行一次安装脚本即可，Python 环境会重建，数据目录不动。
+**升级**：先退出 Claude Desktop（或其他正在用 wps-agent 的 AI 客户端），再运行一次安装脚本即可，Python 环境会重建，数据目录不动。客户端还开着时脚本会提示先退出，不会删到一半。
 
-**卸载**：`powershell -ExecutionPolicy Bypass -File .\install.ps1 -Uninstall`。会删除安装目录、PATH 里的条目和指向安装目录的 `NODE_PATH`；数据目录（备份和操作记录）保留，不需要时自己删除；AI 客户端里的 `wps-agent` 条目也请自己删掉。
+**卸载**：`powershell -ExecutionPolicy Bypass -File .\install.ps1 -Uninstall`。会删除安装脚本放进安装目录的内容（目录空了就一并删除）、PATH 里的那一条和 `NODE_PATH` 里指向安装目录的那一条，PATH 和 `NODE_PATH` 里的其他条目不动；数据目录（备份和操作记录）保留，不需要时自己删除；AI 客户端里的 `wps-agent` 条目也请自己删掉。
 
 不想用脚本时，也可以手动安装：
 

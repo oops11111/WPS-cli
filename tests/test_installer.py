@@ -58,7 +58,26 @@ class InstallerContentTests(unittest.TestCase):
 
     def test_playwright_uses_edge_instead_of_downloading_browsers(self):
         self.assertIn("PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD = '1'", self.text)
-        self.assertIn("[Environment]::SetEnvironmentVariable('NODE_PATH', $modules, 'User')", self.text)
+        # Ours first, then the user's own entries; -Uninstall removes only entries under the install folder.
+        self.assertIn("Set-UserEnv 'NODE_PATH' ((@($modules) + $others) -join ';')", self.text)
+        self.assertIn("Where-Object { -not (Test-UnderPath $_ $InstallDir) }", self.text)
+
+    def test_user_variables_are_edited_in_the_registry_without_expanding_them(self):
+        # [Environment]::SetEnvironmentVariable(..., 'User') stores the expanded value as REG_SZ, so %USERPROFILE%
+        # and the like in the user's PATH were written out for good.
+        self.assertNotIn("SetEnvironmentVariable", self.text)
+        self.assertIn("[Microsoft.Win32.RegistryValueOptions]::DoNotExpandEnvironmentNames", self.text)
+        self.assertIn("$key.GetValueKind($Name)", self.text)
+        self.assertIn("SendMessageTimeout", self.text)  # new terminals see the change
+
+    def test_the_shim_names_no_path_so_any_user_name_works(self):
+        # Written as ASCII, a path with a Chinese user name in it became question marks.
+        self.assertIn('"@echo off`r`n`"%~dp0..\\venv\\Scripts\\wps-agent.exe`" %*`r`n"', self.text)
+
+    def test_relative_folders_follow_the_powershell_location(self):
+        self.assertIn("$InstallDir = Resolve-FullPath $InstallDir", self.text)
+        self.assertIn("$DataDir = Resolve-FullPath $DataDir", self.text)
+        self.assertIn("GetUnresolvedProviderPathFromPSPath", self.text)
 
     def test_the_mcp_client_is_configured_by_the_package_module(self):
         self.assertIn("'wps_ai_agent_cli.client_config'", self.text)
@@ -70,11 +89,32 @@ class InstallerContentTests(unittest.TestCase):
         self.assertIn("(Join-Path $env:LOCALAPPDATA 'wps-agent-data')", self.text)
 
     def test_uninstall_only_removes_a_folder_the_installer_made(self):
-        self.assertIn("Test-Path -LiteralPath (Join-Path $InstallDir 'install.json')", self.text)
         self.assertIn("not removing a folder this installer did not create", self.text)
+        self.assertIn("foreach ($part in 'venv', 'node', 'bin')", self.text)
+        self.assertIn("if (@(Get-ChildItem -LiteralPath $InstallDir -Force).Count -eq 0)", self.text)
+        self.assertIn("if ($state -and $state.data_dir) { $dataDir = [string]$state.data_dir }", self.text)
+
+    def test_the_install_record_is_written_before_anything_else_goes_in(self):
+        # So -Uninstall can clean up after an install that failed half way.
+        first_record = self.text.index("status = 'installing'")
+        self.assertLess(first_record, self.text.index("& $pythonExe -m venv $venvDir"))
+        self.assertLess(first_record, self.text.index("Install-Browser $nodeDir"))
+
+    def test_files_of_a_running_server_stop_the_upgrade_or_uninstall_before_anything_is_removed(self):
+        self.assertIn("if (Test-Path -LiteralPath $venvDir) { Assert-NotRunning $venvDir }", self.text)
+        self.assertLess(self.text.index("Assert-NotRunning $InstallDir"), self.text.index("foreach ($part in"))
+
+    def test_claude_code_registration_replaces_an_old_entry_and_checks_the_result(self):
+        self.assertIn("& claude mcp remove --scope user $result.name", self.text)
+        self.assertIn("claude mcp add failed (exit code $LASTEXITCODE)", self.text)
+
+    def test_native_output_is_read_as_utf8_and_the_session_is_restored(self):
+        self.assertIn("$env:PYTHONUTF8 = '1'", self.text)
+        self.assertIn("[Console]::OutputEncoding = $savedEncoding", self.text)
 
     def test_the_download_is_checked_against_the_release_digest(self):
         self.assertIn("Get-FileHash -LiteralPath $target -Algorithm SHA256", self.text)
+        self.assertIn("the download was not checked", self.text)  # said when GitHub lists no digest
 
 
 class InstallerWorkflowTests(unittest.TestCase):
@@ -86,13 +126,24 @@ class InstallerWorkflowTests(unittest.TestCase):
         self.assertIn("-McpClient claude-desktop", job)
         self.assertIn("html-render", job)
         self.assertIn("-Uninstall", job)
+        # A Chinese folder name with a space, a %VARIABLE% PATH entry and a NODE_PATH of the user's own, all kept.
+        self.assertIn("(0x5B89, 0x88C5)", job)
+        self.assertIn("%USERPROFILE%\\wps-agent-ci-marker", job)
+        self.assertIn("C:\\ci\\own_node_modules", job)
+        self.assertIn("foreach ($run in 1, 2)", job)  # the second run is an upgrade
 
     def test_the_release_carries_the_installer_and_install_steps(self):
         workflow = (ROOT / ".github" / "workflows" / "release.yml").read_text(encoding="utf-8")
         self.assertIn("dist/* scripts/install/install.ps1", workflow)
-        self.assertIn("cat scripts/install/release_install.md >> release-notes.md", workflow)
         notes = (ROOT / "scripts" / "install" / "release_install.md").read_text(encoding="utf-8")
         self.assertIn("releases/latest/download/install.ps1", notes)
+        self.assertIn("install.ps1 -McpClient", notes)
+        # Each version's notes install that version.
+        self.assertIn(
+            "s#releases/latest/download/install.ps1#releases/download/${GITHUB_REF_NAME}/install.ps1#", workflow
+        )
+        self.assertIn("s#install.ps1 -McpClient#install.ps1 -Version ${GITHUB_REF_NAME#v} -McpClient#", workflow)
+        self.assertIn("scripts/install/release_install.md >> release-notes.md", workflow)
         self.assertIn("docs/USER_GUIDE.md", notes)
 
 
