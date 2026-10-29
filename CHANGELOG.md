@@ -6,6 +6,14 @@ All notable changes to `wps-ai-agent-cli`. The versioning rule and release steps
 
 ### Fixed
 
+- `install.ps1`:
+  - The `wps-agent` shim no longer contains the install path, which it wrote as ASCII: with a Chinese (or any non-ASCII) user name, `wps-agent` on PATH pointed at a folder that does not exist.
+  - The user's PATH and NODE_PATH are edited in the registry entry by entry, keeping the value's type and unexpanded `%VARIABLES%`. `[Environment]::SetEnvironmentVariable` had written the user PATH back expanded, as REG_SZ, on every install and uninstall. NODE_PATH gets the installer's folder first and keeps the user's own entries, and `-Uninstall` removes only its own entry instead of the whole variable.
+  - `-Uninstall` removes only what the installer put in the install folder, and the folder only when it is then empty; it reads the data folder from `install.json`. `install.json` is written before anything else, so an install that failed half way can be uninstalled.
+  - Upgrading or uninstalling while an MCP client runs wps-agent stops with a message to quit it, before anything is deleted, instead of failing half way.
+  - `-McpClient claude-code` replaces an earlier `wps-agent` entry and reports when `claude mcp add` fails. A release without a SHA-256 is installed with a warning. Relative `-InstallDir` and `-DataDir` follow the PowerShell location, and JSON from Python is read as UTF-8.
+- Each Release's notes install that version (`releases/download/v<version>/install.ps1 -Version <version>`), not whatever is latest.
+- `mcp-config-audit` passes the config the installer writes: it reads a config with a BOM, falls back to the server name `wps-agent` when the default name is not there, and needs `cwd` and `PYTHONPATH` only for a `python -m wps_ai_agent_cli` launch line.
 - A failed write no longer copies its pre-write backup over a file it did not write. Retrying a request whose write was already committed, after the file had been edited (`OPERATION_SOURCE_CHANGED`, `UNRECORDED_MUTATION_AMBIGUOUS`), or a failure because the file or its backup changed before WPS was called, or changed by someone else after WPS saved it, used to restore the backup and discard both the write and the later edit. The result's `rollback` now says the restore was skipped and why, and names the backup. A command that raises after its operation was recorded is no longer undone either, so the file keeps matching the ledger.
 - A backup copy taken while the document changed, or that failed part way, is deleted instead of left in the backup folder, where `list-backups` showed it and `restore-backup` would restore it. Two backups of a document within the same timestamp get their own files (`<name>.<time>-1.xlsx`) instead of the second overwriting the first.
 

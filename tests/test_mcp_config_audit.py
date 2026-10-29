@@ -864,3 +864,28 @@ class McpConfigAuditTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+@unittest.skipIf(sys.platform == "win32", "the stand-in for the installed executable is a shell script")
+class InstalledConfigAuditTests(unittest.TestCase):
+    def test_the_config_the_installer_writes_passes(self):
+        from wps_ai_agent_cli.client_config import server_entry
+
+        source = Path(__file__).resolve().parents[1] / "src"
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            executable = root / "wps-agent"  # what pip puts in the venv's Scripts folder
+            executable.write_text(
+                f'#!/bin/sh\nPYTHONPATH="{source}" exec "{sys.executable}" -m wps_ai_agent_cli "$@"\n', encoding="utf-8"
+            )
+            executable.chmod(0o755)
+            entry = server_entry(str(executable), {"WPS_AGENT_WORKSPACE": str(root / "data")})
+            config = root / "claude_desktop_config.json"
+            # As Windows PowerShell 5's Set-Content -Encoding UTF8 writes it: with a BOM.
+            config.write_bytes(b"\xef\xbb\xbf" + json.dumps({"mcpServers": {"wps-agent": entry}}).encode("utf-8"))
+
+            ok, result, errors = audit_mcp_client_config(config, restrict_launch=False, timeout_seconds=60)
+
+        failed = [check["name"] for check in result["checks"] if not check["passed"]]
+        self.assertTrue(ok, (failed, errors))
+        self.assertEqual(result["server_name"], "wps-agent")
