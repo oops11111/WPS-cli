@@ -21,7 +21,11 @@ jobs:
       - name: Check the tag against the package version and take the notes from CHANGELOG.md
         run: |
           python scripts/release_notes.py --tag "$GITHUB_REF_NAME" > release-notes.md
-          cat scripts/install/release_install.md >> release-notes.md
+          # The notes of version X install X: the download URL and -Version are pinned to this tag.
+          sed -e "s#releases/latest/download/install.ps1#releases/download/${GITHUB_REF_NAME}/install.ps1#" \
+              -e "s#install.ps1 -McpClient#install.ps1 -Version ${GITHUB_REF_NAME#v} -McpClient#" \
+              scripts/install/release_install.md >> release-notes.md
+          grep -q "releases/download/${GITHUB_REF_NAME}/install.ps1" release-notes.md
       - name: Build the wheel and the source distribution
         run: |
           python -m pip install build

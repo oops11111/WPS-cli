@@ -35,6 +35,7 @@ MCP_CONFIG_AUDIT_MAX_SERVER_NAME_CHARS = 256
 LAUNCH_RESTRICTED: ContextVar[bool] = ContextVar("mcp_config_audit_launch_restricted", default=False)
 
 EXPECTED_ARGS = ["-m", "wps_ai_agent_cli", "mcp-server"]
+INSTALLER_SERVER_NAME = "wps-agent"
 ALLOWED_ENV_KEYS = {"PYTHONPATH"}
 _PACKAGE_INIT = Path(__file__).with_name("__init__.py").resolve()
 
@@ -165,7 +166,9 @@ def _load_config(path: Path) -> tuple[dict[str, Any] | None, list[dict[str, Any]
         )
     )
     try:
-        config_text = raw_config.decode("utf-8")
+        # Windows editors and PowerShell 5's Set-Content -Encoding UTF8 start the file with a BOM; Claude Desktop
+        # and client_config accept it, so the audit does too.
+        config_text = raw_config.removeprefix(b"\xef\xbb\xbf").decode("utf-8")
     except UnicodeDecodeError:
         return None, checks + [_check("config_utf8_valid", False, None)]
     checks.append(_check("config_utf8_valid", True, None))
@@ -540,6 +543,10 @@ def audit_mcp_client_config(
         return False, result, [{"code": "MCP_CONFIG_AUDIT_FAILED", "message": "mcpServers must be an object."}]
     checks.append(_check("mcp_servers_is_object", True, None))
     server = servers.get(server_name)
+    if server is None and server_name == DEFAULT_SERVER_NAME and isinstance(servers.get(INSTALLER_SERVER_NAME), dict):
+        # The installer (scripts/install/install.ps1) names the server wps-agent.
+        server_name = INSTALLER_SERVER_NAME
+        server = servers[server_name]
     checks.append(_check("server_found", isinstance(server, dict), server_name))
     if not isinstance(server, dict):
         result = {
@@ -565,9 +572,12 @@ def audit_mcp_client_config(
         and "\0" not in value
         for key, value in env_overrides.items()
     )
+    # A source launch (python -m wps_ai_agent_cli with PYTHONPATH) needs its working folder; an installed
+    # wps-agent executable runs from wherever the client starts it, so cwd is optional there.
+    source_launch = command_valid and _is_python_interpreter(command)
     cwd_path = Path(cwd) if isinstance(cwd, str) and cwd.strip() else None
     try:
-        cwd_ok = bool(cwd_path and cwd_path.exists())
+        cwd_ok = bool(cwd_path and cwd_path.exists()) if (source_launch or cwd_path) else True
     except OSError:
         cwd_ok = False
     checks.append(
@@ -604,7 +614,7 @@ def audit_mcp_client_config(
     checks.append(
         _check(
             "env_pythonpath_present",
-            isinstance(env_overrides, dict) and bool(env_overrides.get("PYTHONPATH")),
+            not source_launch or (isinstance(env_overrides, dict) and bool(env_overrides.get("PYTHONPATH"))),
             bool(env_overrides.get("PYTHONPATH")) if isinstance(env_overrides, dict) else False,
         )
     )
@@ -653,7 +663,7 @@ def audit_mcp_client_config(
             deadline = time.monotonic() + timeout_seconds
             process = subprocess.Popen(
                 base_command,
-                cwd=str(cwd_path),
+                cwd=str(cwd_path) if cwd_path else None,
                 env=env,
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
