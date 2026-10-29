@@ -156,9 +156,11 @@ def annotate(html: str) -> str:
     finder = _Positions()
     finder.feed(html)
     finder.close()
+    # HTMLParser.getpos() counts lines by "\n" alone; splitlines() would also break at a lone "\r", U+2028 and
+    # other separators and put every later number in the wrong place.
     offsets = [0]
-    for line in html.splitlines(keepends=True):
-        offsets.append(offsets[-1] + len(line))
+    for line in html.split("\n"):
+        offsets.append(offsets[-1] + len(line) + 1)
     insertions = []
     for number, (line, column, tag) in enumerate(finder.starts):
         start = offsets[line - 1] + column

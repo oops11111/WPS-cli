@@ -22,11 +22,13 @@ from pathlib import Path
 from typing import Any
 
 from .html_editable import (
+    HTML_SPACE,
     INLINE_FORMATS,
     _Node,
     _text,
     _walk,
     cell_text,
+    collapse_space,
     local_image,
     style_formats,
     table_grid,
@@ -63,7 +65,7 @@ _TIME = re.compile(r"(\d+(?:\.\d+)?)(ms|s)\b")
 
 
 def _normalise(text: str) -> str:
-    return " ".join(text.split())
+    return collapse_space(text).strip(HTML_SPACE)
 
 
 def _ms(token: str) -> int | None:
@@ -337,7 +339,7 @@ def _runs(node: _Node, formats: dict[str, Any] | None = None) -> list[tuple[str,
     runs: list[tuple[str, dict[str, Any]]] = []
     for child in node.children:
         if isinstance(child, str):
-            runs.append((re.sub(r"\s+", " ", child), formats))
+            runs.append((collapse_space(child), formats))
         elif child.tag == "br":
             runs.append(("\v", formats))
         elif child.tag in {"ul", "ol", "table", "img", *(_MEDIA)} or _is_notes(child):
@@ -350,13 +352,13 @@ def _runs(node: _Node, formats: dict[str, Any] | None = None) -> list[tuple[str,
                 inner.update(style_formats(child.attrs["style"]))
             runs += _runs(child, inner)
     # Trim the source's whitespace at both ends.
-    while runs and not runs[0][0].strip():
+    while runs and not runs[0][0].strip(HTML_SPACE):
         runs.pop(0)
-    while runs and not runs[-1][0].strip():
+    while runs and not runs[-1][0].strip(HTML_SPACE + "\v"):  # a <br> at the end shows no line in a browser
         runs.pop()
     if runs:
-        runs[0] = (runs[0][0].lstrip(), runs[0][1])
-        runs[-1] = (runs[-1][0].rstrip(), runs[-1][1])
+        runs[0] = (runs[0][0].lstrip(HTML_SPACE), runs[0][1])
+        runs[-1] = (runs[-1][0].rstrip(HTML_SPACE), runs[-1][1])
     return runs
 
 
@@ -364,6 +366,10 @@ def _fill_paragraph(paragraph, runs: list[tuple[str, dict[str, Any]]], heading: 
     from pptx.dml.color import RGBColor
 
     for text, formats in runs:
+        if text == "\v":
+            # A <br>: python-pptx would store a vertical tab in a run as the literal text "_x000B_".
+            paragraph.add_line_break()
+            continue
         run = paragraph.add_run()
         run.text = text
         font = run.font

@@ -6,6 +6,13 @@ All notable changes to `wps-ai-agent-cli`. The versioning rule and release steps
 
 ### Fixed
 
+- HTML to DOCX, XLSX, PPTX and Markdown:
+  - Text and inline elements (`a`, `span`, `b`, `code`…) placed directly in a `div` or other block container are kept, as one paragraph: their text was dropped and the text around them split into separate paragraphs.
+  - Only ASCII whitespace collapses, as in a browser: `&nbsp;` and the ideographic space (the two-character indent of Chinese paragraphs) are kept instead of being removed or merged.
+  - A line separator other than a newline (U+2028, a lone CR) no longer shifts the elements the computed styles are matched to, which corrupted the HTML.
+  - `<br>` on a slide is a line break; it showed as the text `_x000B_`.
+  - Table cells with more than 15 digits (ID and bank card numbers) stay text in XLSX instead of becoming numbers that lose their last digits.
+  - Image paths are also tried percent-decoded, so Markdown images in folders or files with non-ASCII names or spaces are found. An image Word cannot embed (SVG, WebP) is left out with a warning instead of failing the whole document.
 - A failed write no longer copies its pre-write backup over a file it did not write. Retrying a request whose write was already committed, after the file had been edited (`OPERATION_SOURCE_CHANGED`, `UNRECORDED_MUTATION_AMBIGUOUS`), or a failure because the file or its backup changed before WPS was called, or changed by someone else after WPS saved it, used to restore the backup and discard both the write and the later edit. The result's `rollback` now says the restore was skipped and why, and names the backup. A command that raises after its operation was recorded is no longer undone either, so the file keeps matching the ledger.
 - A backup copy taken while the document changed, or that failed part way, is deleted instead of left in the backup folder, where `list-backups` showed it and `restore-backup` would restore it. Two backups of a document within the same timestamp get their own files (`<name>.<time>-1.xlsx`) instead of the second overwriting the first.
 
