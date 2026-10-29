@@ -320,12 +320,12 @@ class _Writer:
         return f"![{_escape_md(alt)}]({src.replace(' ', '%20')})"
 
     def inline(self, node, in_table: bool = False) -> str:
-        from .html_editable import _Node, style_formats
+        from .html_editable import _Node, collapse_space, style_formats
 
         parts: list[str] = []
         for child in node.children:
             if isinstance(child, str):
-                parts.append(_escape_md(re.sub(r"\s+", " ", child)))
+                parts.append(_escape_md(collapse_space(child)))
                 continue
             if not isinstance(child, _Node) or child.tag in {"script", "style", "ul", "ol", "table"}:
                 continue
@@ -390,7 +390,7 @@ class _Writer:
         return "\n".join(lines)
 
     def blocks(self, node, depth: int = 0) -> list[str]:
-        from .html_editable import _HEADINGS, _Node
+        from .html_editable import _HEADINGS, HTML_SPACE, _Node, collapse_space
 
         out: list[str] = []
         pending: list[str] = []
@@ -403,8 +403,8 @@ class _Writer:
 
         for child in node.children:
             if isinstance(child, str):
-                if child.strip():
-                    pending.append(_escape_md(re.sub(r"\s+", " ", child)))
+                if child.strip(HTML_SPACE):
+                    pending.append(_escape_md(collapse_space(child)))
                 continue
             if not isinstance(child, _Node):
                 continue

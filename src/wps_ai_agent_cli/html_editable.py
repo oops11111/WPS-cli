@@ -16,6 +16,16 @@ from .html_text import decode_html_bytes
 
 _VOID = {"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr"}
 _SKIP = {"script", "style", "noscript", "template", "svg", "iframe", "object", "canvas"}
+# HTML collapses and trims only ASCII whitespace: &nbsp; (U+00A0) and the ideographic space (U+3000), which
+# Chinese text uses to indent a paragraph, are text. Python's \s, str.split() and str.strip() remove them.
+HTML_SPACE = " \t\n\r\f"
+_SPACE_RUN = re.compile(r"[ \t\n\r\f]+")
+
+
+def collapse_space(text: str) -> str:
+    return _SPACE_RUN.sub(" ", text)
+
+
 _BLOCKS = {"p", "div", "section", "article", "header", "footer", "main", "aside", "blockquote", "pre", "address"}
 _HEADINGS = {f"h{i}": i for i in range(1, 7)}
 _MAX_HTML_BYTES = 10 * 1024 * 1024
@@ -118,7 +128,7 @@ def _text(node: _Node) -> str:
             pieces.append(f"{label} ({href})" if href and href not in label else label)
         else:
             pieces.append(_text(child))
-    return re.sub(r"[\t\r\f\v ]+", " ", "".join(pieces)).strip()
+    return re.sub(r"[\t\r\f\v ]+", " ", "".join(pieces)).strip(HTML_SPACE)
 
 
 def _walk(node: _Node):
@@ -212,6 +222,31 @@ def _data_image(raw: str) -> Path | None:
     return path
 
 
+# Magic numbers of the picture formats python-docx and python-pptx embed.
+_IMAGE_SIGNATURES = (b"\x89PNG\r\n\x1a\n", b"\xff\xd8\xff", b"GIF87a", b"GIF89a", b"BM", b"II*\x00", b"MM\x00*")
+
+
+def _resolve_local_image(folder: Path, raw: str) -> Path:
+    """The file an <img src> names in ``folder``: as written, or percent-decoded (markdown-it encodes every non-ASCII
+    or space character, so ``图片/截图.png`` arrives as ``%E5%9B%BE...``). Raises OSError when neither exists."""
+    from urllib.parse import unquote
+
+    written = raw.split("#", 1)[0].split("?", 1)[0]
+    candidates = [written] + ([unquote(written)] if "%" in written else [])
+    for candidate in candidates:
+        try:
+            return (folder / candidate).resolve(strict=True)
+        except OSError:
+            continue
+    raise FileNotFoundError(written)
+
+
+def _embeddable_image(path: Path) -> bool:
+    with path.open("rb") as handle:
+        head = handle.read(8)
+    return head.startswith(_IMAGE_SIGNATURES)
+
+
 def local_image(source: Path, raw: str) -> tuple[Path | None, str | None]:
     """The local image file an <img src> names, inside the HTML file's folder, or the warning why not.
 
@@ -224,7 +259,7 @@ def local_image(source: Path, raw: str) -> tuple[Path | None, str | None]:
     if not raw or re.match(r"^[a-zA-Z][a-zA-Z0-9+.-]*:", raw):
         return None, f"Image with non-local or empty source omitted: {raw or '(empty)'}"
     try:
-        image = (source.parent / raw.split("#", 1)[0].split("?", 1)[0]).resolve(strict=True)
+        image = _resolve_local_image(source.parent, raw)
         image.relative_to(source.parent.resolve())
         if not image.is_file() or image.stat().st_size > _MAX_IMAGE_BYTES:
             raise ValueError("image size or type limit exceeded")
@@ -240,7 +275,7 @@ def cell_text(cell: _Node) -> str:
     def collect(node: _Node) -> None:
         for child in node.children:
             if isinstance(child, str):
-                pieces.append(re.sub(r"\s+", " ", child))
+                pieces.append(collapse_space(child))
             elif child.tag == "br":
                 pieces.append("\n")
             elif child.tag == "img":
@@ -249,7 +284,7 @@ def cell_text(cell: _Node) -> str:
                 collect(child)
 
     collect(cell)
-    return "\n".join(line.strip() for line in "".join(pieces).split("\n")).strip()
+    return "\n".join(line.strip(HTML_SPACE) for line in "".join(pieces).split("\n")).strip(HTML_SPACE)
 
 
 def has_nested_table(cell: _Node) -> bool:
@@ -278,6 +313,8 @@ INLINE_FORMATS = {
     "tt": "code",
     "mark": "highlight",
 }
+# Elements that flow inside a line; a run of them directly in a block container becomes one paragraph.
+_INLINE = set(INLINE_FORMATS) | {"a", "span", "small", "abbr", "q", "br", "font", "label", "time", "bdi", "bdo"}
 _NAMED_COLORS = {
     "black": "000000",
     "white": "FFFFFF",
@@ -535,11 +572,15 @@ def convert_html_editable(
             warnings.append(f"Image with non-local or empty source omitted: {raw or '(empty)'}")
             continue
         try:
-            image = (source.parent / raw.split("#", 1)[0].split("?", 1)[0]).resolve(strict=True)
+            image = _resolve_local_image(source.parent, raw)
             image.relative_to(root)
             size = image.stat().st_size
             if not image.is_file() or size > _MAX_IMAGE_BYTES or image_bytes + size > _MAX_TOTAL_IMAGE_BYTES:
                 raise ValueError("image size or type limit exceeded")
+            if not _embeddable_image(image):
+                # SVG, WebP and the like: Word cannot take them, and add_picture would fail the whole document.
+                warnings.append(f"Image format not supported in Word, omitted: {raw}")
+                continue
             image_nodes.append((node, image))
             image_bytes += size
         except (OSError, ValueError):
@@ -612,7 +653,7 @@ def convert_html_editable(
             if isinstance(child, str):
                 # HTML reads CRLF and CR as one line break; python-docx would make each of \r and \n a break (a
                 # blank line in every code block of a file checked out with CRLF endings, Windows check on f8ed7bd).
-                text = re.sub(r"\r\n?", "\n", child) if preserve else re.sub(r"\s+", " ", child)
+                text = re.sub(r"\r\n?", "\n", child) if preserve else collapse_space(child)
                 if text:
                     run = paragraph.add_run(text)
                     docx_styling.apply_run(run, node_props)
@@ -624,7 +665,7 @@ def convert_html_editable(
             elif child.tag == "img":
                 add_image(child, paragraph)
             elif child.tag == "a":
-                label = re.sub(r"\s+", " ", _text(child))
+                label = collapse_space(_text(child))
                 href = child.attrs.get("href", "").strip()
                 if label and href and _safe_link_target(href):
                     relation = paragraph.part.relate_to(href, RT.HYPERLINK, is_external=True)
@@ -678,7 +719,7 @@ def convert_html_editable(
                 if element.tag != qn("w:r") or element.find(qn("w:t")) is None:
                     break
                 run = Run(element, paragraph)
-                text = run.text.rstrip() if reverse else run.text.lstrip()
+                text = run.text.rstrip(HTML_SPACE) if reverse else run.text.lstrip(HTML_SPACE)
                 if text:
                     run.text = text
                     break
@@ -700,7 +741,7 @@ def convert_html_editable(
             runs = [run for run in paragraph.runs if run.text]
             if runs:
                 runs[0].text = runs[0].text.lstrip("\r\n")
-                runs[-1].text = runs[-1].text.rstrip()
+                runs[-1].text = runs[-1].text.rstrip(HTML_SPACE)
         else:
             trim(paragraph)
         return paragraph
@@ -767,14 +808,25 @@ def convert_html_editable(
         docx_styling.apply_table_spacing(table, node, context)
         counts["tables"] += 1
 
+    def add_inline_run(container: _Node, pending: list[_Node | str]) -> None:
+        """Text and inline elements (a, span, b, code...) that sit directly in a block container, as one paragraph."""
+        holder = _Node(container.tag, dict(container.attrs), pending)
+        if not _text(holder):
+            return
+        paragraph = document.add_paragraph()
+        add_text_with_links(paragraph, holder)
+        trim(paragraph)
+        counts["paragraphs"] += 1
+
     def add_blocks(container: _Node, list_style: str | None = None) -> None:
+        pending: list[_Node | str] = []
         for node in container.children:
-            if isinstance(node, str):
-                text = re.sub(r"\s+", " ", node).strip()
-                if text:
-                    document.add_paragraph(text)
-                    counts["paragraphs"] += 1
+            if isinstance(node, str) or node.tag in _INLINE:
+                pending.append(node)
                 continue
+            if pending:
+                add_inline_run(container, pending)
+                pending = []
             tag = node.tag
             role = docx_styling.page_role(node)
             if role:
@@ -845,6 +897,8 @@ def convert_html_editable(
                 "dl",
             }:
                 add_blocks(node)
+        if pending:
+            add_inline_run(container, pending)
 
     try:
         add_blocks(parser.root)

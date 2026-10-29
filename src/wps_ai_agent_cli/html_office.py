@@ -14,7 +14,7 @@ import re
 from pathlib import Path
 from typing import Any
 
-from .html_editable import validate_office_paths
+from .html_editable import HTML_SPACE, collapse_space, validate_office_paths
 from .html_text import decode_html_bytes
 
 _HEADINGS = {"h1", "h2", "h3", "h4", "h5", "h6"}
@@ -26,7 +26,7 @@ _SHEET_TITLE_LIMIT = 31  # Excel's limit
 
 
 def _normalise(text: str) -> str:
-    return " ".join(text.split())
+    return collapse_space(text).strip(HTML_SPACE)
 
 
 def _read_html(source: Path) -> tuple[str, str | None]:
@@ -57,6 +57,10 @@ def _cell_value(text: str) -> tuple[Any, bool, str | None]:
     if text.startswith("="):
         return text, True, None
     stripped = text.strip()
+    if sum(char.isdigit() for char in stripped) > 15:
+        # More digits than a spreadsheet number keeps (15 significant): an ID card or bank card number would lose its
+        # last digits, so it stays text.
+        return text, False, None
     plain = stripped.lstrip("+")
     if _NUMBER.fullmatch(plain):
         decimals = _decimals(plain)

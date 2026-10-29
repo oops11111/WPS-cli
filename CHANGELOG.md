@@ -6,6 +6,13 @@ All notable changes to `wps-ai-agent-cli`. The versioning rule and release steps
 
 ### Fixed
 
+- HTML to DOCX, XLSX, PPTX and Markdown:
+  - Text and inline elements (`a`, `span`, `b`, `code`…) placed directly in a `div` or other block container are kept, as one paragraph: their text was dropped and the text around them split into separate paragraphs.
+  - Only ASCII whitespace collapses, as in a browser: `&nbsp;` and the ideographic space (the two-character indent of Chinese paragraphs) are kept instead of being removed or merged.
+  - A line separator other than a newline (U+2028, a lone CR) no longer shifts the elements the computed styles are matched to, which corrupted the HTML.
+  - `<br>` on a slide is a line break; it showed as the text `_x000B_`.
+  - Table cells with more than 15 digits (ID and bank card numbers) stay text in XLSX instead of becoming numbers that lose their last digits.
+  - Image paths are also tried percent-decoded, so Markdown images in folders or files with non-ASCII names or spaces are found. An image Word cannot embed (SVG, WebP) is left out with a warning instead of failing the whole document.
 - `install.ps1`:
   - The `wps-agent` shim no longer contains the install path, which it wrote as ASCII: with a Chinese (or any non-ASCII) user name, `wps-agent` on PATH pointed at a folder that does not exist.
   - The user's PATH and NODE_PATH are edited in the registry entry by entry, keeping the value's type and unexpanded `%VARIABLES%`. `[Environment]::SetEnvironmentVariable` had written the user PATH back expanded, as REG_SZ, on every install and uninstall. NODE_PATH gets the installer's folder first and keeps the user's own entries, and `-Uninstall` removes only its own entry instead of the whole variable.
