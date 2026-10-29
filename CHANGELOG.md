@@ -4,6 +4,11 @@ All notable changes to `wps-ai-agent-cli`. The versioning rule and release steps
 
 ## [Unreleased]
 
+### Fixed
+
+- A failed write no longer copies its pre-write backup over a file it did not write. Retrying a request whose write was already committed, after the file had been edited (`OPERATION_SOURCE_CHANGED`, `UNRECORDED_MUTATION_AMBIGUOUS`), or a failure because the file or its backup changed before WPS was called, or changed by someone else after WPS saved it, used to restore the backup and discard both the write and the later edit. The result's `rollback` now says the restore was skipped and why, and names the backup. A command that raises after its operation was recorded is no longer undone either, so the file keeps matching the ledger.
+- A backup copy taken while the document changed, or that failed part way, is deleted instead of left in the backup folder, where `list-backups` showed it and `restore-backup` would restore it. Two backups of a document within the same timestamp get their own files (`<name>.<time>-1.xlsx`) instead of the second overwriting the first.
+
 ## [0.11.0] - 2026-10-23
 
 Phase 14: a one-command Windows install and a guide for users. The CLI and MCP interface are unchanged; the new extra, installer and `WPS_AGENT_WORKSPACE` make this a minor release.

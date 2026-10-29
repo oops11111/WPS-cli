@@ -24,6 +24,29 @@ def _backup_path(document_id: str, source_path: Path, workspace: str | Path = ".
     return Path(workspace) / ".wps-agent" / "backups" / document_id / filename
 
 
+def _reserve_backup_file(path: Path, suffix: str) -> Path:
+    """Create the backup file exclusively, so two backups with the same timestamp never share a file.
+
+    A taken name gets a counter before the document's own suffix: book.<stamp>-1.xlsx.
+    """
+    base = path.name[: -len(suffix)] if suffix and path.name.endswith(suffix) else path.name
+    for number in range(1000):
+        candidate = path if number == 0 else path.with_name(f"{base}-{number}{suffix}")
+        try:
+            os.close(os.open(candidate, os.O_CREAT | os.O_EXCL | os.O_WRONLY))
+            return candidate
+        except FileExistsError:
+            continue
+    raise FileExistsError(f"No free backup name next to {path}")
+
+
+def _discard_partial_backup(path: Path) -> None:
+    try:
+        path.unlink()
+    except OSError:
+        pass
+
+
 def _backup_dir(document_id: str, workspace: str | Path = ".") -> Path:
     return Path(workspace) / ".wps-agent" / "backups" / document_id
 
@@ -178,6 +201,8 @@ def create_backup(
         return True, result, [], False
 
     target_path.parent.mkdir(parents=True, exist_ok=True)
+    target_path = _reserve_backup_file(target_path, "".join(source_path.suffixes) or ".bak")
+    result["backup_path"] = str(target_path)
     try:
         shutil.copy2(source_path, target_path)
         stable_copy = (
@@ -186,12 +211,15 @@ def create_backup(
         )
     except OSError as exc:
         if is_share_conflict(exc):
-            return False, {**result, "backup_path": str(target_path)}, [share_conflict_error(exc, what)], False
+            _discard_partial_backup(target_path)
+            return False, {**result, "backup_path": None}, [share_conflict_error(exc, what)], False
         stable_copy = False
     if not stable_copy:
+        # The copy may hold half of the file: it is removed, so it can be neither listed, restored nor rolled back to.
+        _discard_partial_backup(target_path)
         return (
             False,
-            {**result, "backup_path": str(target_path)},
+            {**result, "backup_path": None},
             [
                 {
                     "code": "DOCUMENT_CHANGED_DURING_BACKUP",
