@@ -4,6 +4,10 @@ All notable changes to `wps-ai-agent-cli`. The versioning rule and release steps
 
 ## [Unreleased]
 
+## [0.11.1] - 2026-10-29
+
+Fixes from a code review of the whole repository after 0.11.0: a failed write could overwrite edits it did not make, the installer broke for non-ASCII user names and rewrote the user's PATH, and HTML conversion lost inline text and spaces. The CLI and MCP interface are unchanged.
+
 ### Fixed
 
 - HTML to DOCX, XLSX, PPTX and Markdown:
