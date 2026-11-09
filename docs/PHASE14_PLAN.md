@@ -21,7 +21,7 @@ Phase 14 补上这三块，发布 0.11.0。
 | G3 | `scripts/install/install.ps1` 在 GitHub 的 Windows 运行器上用 Windows PowerShell 5.1 跑通：装 wheel 和 `[all]`、装 Playwright 并用 Edge 渲染一份 HTML、PATH 上的 `wps-agent` 可用、写入 Claude Desktop 配置，`-Uninstall` 清理干净；每次 CI 都跑 |
 | G4 | 每个 GitHub Release 附带 `install.ps1`，发布说明里有安装步骤 |
 | G5 | `docs/USER_GUIDE.md`：准备、安装、连接客户端、能做什么、命令行、备份和恢复、已知限制、故障排查；文中的错误码和安装参数都有测试核对；README 以使用者为入口，开发内容移到 `CONTRIBUTING.md` |
-| G6 | 在装了 WPS 的 Windows 上，从 0.11.1 的 Release 用 `install.ps1 -McpClient claude-desktop` 安装：`inspect-env` 检测到 WPS，Claude Desktop 里能列出工具并完成一次读取和一次带备份的写入；`-Uninstall` 后不留安装目录和 PATH 条目；wheel 检查通过 |
+| G6 | 在装了 WPS 的 Windows 上，从 0.11.2 的 Release 用 `install.ps1 -McpClient claude-desktop` 安装：`inspect-env` 检测到 WPS，Claude Desktop 里能列出工具并完成一次读取和一次带备份的写入；`-Uninstall` 后不留安装目录和 PATH 条目；wheel 检查通过 |
 
 ## 已做的决定
 
@@ -42,11 +42,11 @@ Phase 14 补上这三块，发布 0.11.0。
 | P14-002 | G2 | `client_config` 模块、`WPS_AGENT_WORKSPACE`、测试 | 本地 | 完成 |
 | P14-003 | G3、G4 | `install.ps1`、Windows CI 任务、Release 附带安装脚本和安装说明 | 本地 | 完成，CI 待在 PR 上跑通 |
 | P14-004 | G5 | `USER_GUIDE.md`、README 改写、`CONTRIBUTING.md`、一致性测试 | 本地 | 完成 |
-| P14-005 | G6 | 发布 0.11.0；在 Windows 上用安装脚本装 Release、接 Claude Desktop 做一次读取和写入、卸载；wheel 检查 | Windows + 你 | 0.11.0 已发布（2026-10-23）。上机前做了一次全仓代码审查，安装脚本、回滚、HTML 转换的问题在 0.11.1 修复（PR #133～#136），上机检查改用 0.11.1 |
+| P14-005 | G6 | 发布 0.11.0；在 Windows 上用安装脚本装 Release、接 Claude Desktop 做一次读取和写入、卸载；wheel 检查 | Windows + 你 | 0.11.0 已发布（2026-10-23）。上机前做了一次全仓代码审查，安装脚本、回滚、HTML 转换的问题在 0.11.1 修复（PR #133～#136），上机检查改用 0.11.1。2026-11-09 第一次上机：两处安装问题（下面“上机结果”），修复后发 0.11.2 再上机一次 |
 
 ## 上机步骤（P14-005）
 
-1. 按 `docs/RELEASING.md` 发布 0.11.1（版本号和 CHANGELOG 由发布准备的 PR 改）。
+1. 按 `docs/RELEASING.md` 发布 0.11.2（版本号和 CHANGELOG 由发布准备的 PR 改）。
 2. 在装了 WPS 的 Windows 上，新开 PowerShell：
 
    ```powershell
@@ -58,7 +58,20 @@ Phase 14 补上这三块，发布 0.11.0。
 3. `python scripts/windows_check/mcp_client_smoke.py --out <结果目录>`：按 Claude Desktop 配置里的 `wps-agent` 条目启动服务器（从另一个目录启动），列出工具，读 `book.xlsx` 的一块区域，写一个单元格并读回，确认留下了备份、备份在 `WPS_AGENT_WORKSPACE` 下、启动目录里没写东西。再重启 Claude Desktop，确认工具列表里有 `wps-agent`，让它读一个 xlsx 的前几行、改一个单元格，核对结果和数据目录里的备份。
 4. 新开终端运行 `wps-agent inspect-env`（确认 PATH 生效）。
 5. `powershell -ExecutionPolicy Bypass -File .\install.ps1 -Uninstall`，确认安装目录和 PATH 条目已删除、数据目录还在。
-6. `python scripts/windows_check/run_windows_check.py wheel --version 0.11.1`。
+6. `python scripts/windows_check/run_windows_check.py wheel --version 0.11.2`。
+
+## 上机结果
+
+### 第一次（0.11.1，2026-11-09，main@8fd1db2）
+
+结果在 `scripts/windows_check/results/20261109T020158Z-8fd1db2-install-0.11.1/`（按说明直接装）和 `20261109T021439Z-8fd1db2-install-0.11.1/`（绕过后重装），wheel 检查在 `20261109T023917Z-wheel-0.11.1/`。机器：Windows 10 19045，WPS 12.8.2.18913，Node.js 22，Edge；之前装过 0.11.0。
+
+- **按说明直接装失败**：`Python 3.10 or later was not found`。这台机器的 `python` 是 Microsoft Store 占位程序，没有 `py`，Python 3.12 是 uv 装的、不在 PATH 上。安装脚本在动任何东西之前停下，0.11.0 没受影响。
+- **GitHub API 被限流**：安装脚本要先查 API 拿 wheel 的地址，未登录调用被拒时无法安装。
+- **绕过后（`-Python` 指向 uv 的 Python，`-WheelPath` 用手动下载的 wheel）全部通过**：0.11.0 原地升级到 0.11.1；shim 是相对路径；用户 PATH 只有一条 `wps-agent\bin`，其他条目和类型与安装前相同；`NODE_PATH` 以安装目录的 `node_modules` 开头；Claude Desktop 配置先备份再写入；新终端里 `wps-agent` 指向安装目录，`inspect-env` 检测到三个 WPS 组件；`mcp_client_smoke.py` 按 Claude Desktop 的方式读写通过（87 个工具，备份在数据目录下，启动目录里没写东西）；`-Uninstall` 只删自己的东西、数据目录保留；重装成功；wheel 检查 SHA-256 一致，安全档 7/7。
+- 这台机器的用户 PATH 在检查前已是 REG_SZ、条目全部展开，应是 0.11.0 的安装脚本留下的（0.11.1 修复了这一点，但不能还原）。
+
+两处安装问题在 0.11.2 修复：找 Python 时也试上次安装用的 Python、`uv python find` 和 python.org、uv 的默认目录；API 被拒时从 Release 页面下载，用 Release 附带的 `SHA256SUMS.txt` 核对。
 
 ## 主要风险
 

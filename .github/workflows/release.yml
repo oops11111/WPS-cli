@@ -52,7 +52,12 @@ jobs:
       - name: Publish the GitHub Release with the wheel and the sdist
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" dist/* scripts/install/install.ps1 --title "$GITHUB_REF_NAME" --notes-file release-notes.md --verify-tag
+        run: |
+          # SHA256SUMS.txt lets install.ps1 check the wheel when the GitHub API, which also lists each file's digest,
+          # is rate-limited. Kept out of dist/, which goes to PyPI unchanged.
+          (cd dist && sha256sum *) > SHA256SUMS.txt
+          (cd scripts/install && sha256sum install.ps1) >> SHA256SUMS.txt
+          gh release create "$GITHUB_REF_NAME" dist/* scripts/install/install.ps1 SHA256SUMS.txt --title "$GITHUB_REF_NAME" --notes-file release-notes.md --verify-tag
       - name: Keep the published files for the PyPI upload
         uses: actions/upload-artifact@v4
         with:

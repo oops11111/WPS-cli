@@ -1,0 +1,45 @@
+=== Machine Info ===
+OS: Microsoft Windows 10 企业版 10.0.19045
+WPS Version: 12.8.2.18913 (C:\Program Files (x86)\Kingsoft\WPS Office\12.8.2.18913\office6\wps.exe)
+Python: `python` on PATH resolves to WindowsApps stub (non-functional). Actual: C:\Users\admin\AppData\Roaming\uv\python\cpython-3.12-windows-x86_64-none\python.exe -> Python 3.12.15
+py launcher: no py launcher
+Node: v22.22.2
+Edge exists: True
+
+=== Registry (HKCU\Environment, unexpanded) ===
+Path [String] = C:\Users\admin\.local\bin;C:\Users\admin\.cargo\bin;C:\Users\admin\AppData\Local\Programs\Python\Python312\Scripts\;C:\Users\admin\AppData\Local\Programs\Python\Python312\;C:\Users\admin\AppData\Local\Programs\Python\Launcher\;C:\Users\admin\AppData\Local\Microsoft\WindowsApps;C:\Program Files (x86)\Tencent\QQGameTempest\Hall.58195\;C:\Users\admin\AppData\Local\Programs\Microsoft VS Code\bin;C:\Users\admin\AppData\Local\Microsoft\WinGet\Links;C:\Users\admin\.dotnet\tools;C:\Users\admin\AppData\Roaming\npm;C:\Program Files\Git\bin;C:\Users\admin\AppData\Local\Microsoft\WinGet\Packages\Google.PlatformTools_Microsoft.Winget.Source_8wekyb3d8bbwe\platform-tools;C:\Users\admin\.dotnet\tools;C:\Users\admin\AppData\Local\Docker\cli;C:\Users\admin\.bun\bin;C:\Users\admin\bin;C:\Program Files (x86)\Microsoft Visual Studio\Installer;C:\Users\admin\AppData\Local\Programs\cursor\resources\app\bin;C:\Users\admin\AppData\Local\wps-agent\bin;C:\Users\admin\AppData\Local\Temp\dotnetcli_m2dv\.dotnet\tools;C:\Program Files\Git\cmd
+NODE_PATH [String] = C:\Users\admin\AppData\Local\wps-agent\node\node_modules
+
+=== Install dirs ===
+LOCALAPPDATA\wps-agent exists: True
+LOCALAPPDATA\wps-agent-data exists: True
+install.json:
+{
+    "version":  "0.11.0",
+    "installed_at":  "2026-10-23T11:27:49",
+    "python":  "C:\\Users\\admin\\AppData\\Roaming\\uv\\python\\cpython-3.12-windows-x86_64-none\\python.exe",
+    "executable":  "C:\\Users\\admin\\AppData\\Local\\wps-agent\\venv\\Scripts\\wps-agent.exe",
+    "node_path":  "C:\\Users\\admin\\AppData\\Local\\wps-agent\\node\\node_modules",
+    "ocr":  false,
+    "data_dir":  "C:\\Users\\admin\\AppData\\Local\\wps-agent-data"
+}
+
+
+=== Claude Desktop config ===
+Config exists: True
+mcpServers names: wps-agent
+wps-agent entry:
+{
+  "command": "C:\\Users\\admin\\AppData\\Local\\wps-agent\\venv\\Scripts\\wps-agent.exe",
+  "args": [
+    "mcp-server"
+  ],
+  "env": {
+    "NODE_PATH": "C:\\Users\\admin\\AppData\\Local\\wps-agent\\node\\node_modules",
+    "WPS_AGENT_WORKSPACE": "C:\\Users\\admin\\AppData\\Local\\wps-agent-data"
+  }
+}
+
+=== Processes ===
+WPS processes: none
+Claude processes: 4408=claude, 9196=claude, 10312=claude, 29288=claude, 30896=claude, 31420=claude, 39408=claude, 40388=claude, 40888=claude, 43072=claude, 45740=claude, 64364=claude, 65160=claude

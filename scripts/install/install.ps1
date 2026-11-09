@@ -128,11 +128,31 @@ function Assert-NotRunning([string]$Directory) {
 }
 
 function Find-Python {
-    # A real Python 3.10+ interpreter, not the Microsoft Store placeholder.
+    # A real Python 3.10+ interpreter, not the Microsoft Store placeholder that "python" often is on Windows.
     $candidates = @()
     if ($Python) { $candidates += , @($Python) }
+    # An upgrade uses the Python the previous install used, wherever it is.
+    $previous = Read-InstallRecord
+    if ($previous -and $previous.python) { $candidates += , @([string]$previous.python) }
     if (Get-Command py -ErrorAction SilentlyContinue) { $candidates += , @('py', '-3') }
     if (Get-Command python -ErrorAction SilentlyContinue) { $candidates += , @('python') }
+    if (Get-Command uv -ErrorAction SilentlyContinue) {
+        $saved = $ErrorActionPreference
+        $ErrorActionPreference = 'Continue'
+        try { $found = & uv python find '>=3.10' 2>$null } catch { $found = $null } finally { $ErrorActionPreference = $saved }
+        if ($LASTEXITCODE -eq 0 -and $found) { $candidates += , @([string]@($found)[0]) }
+    }
+    # Where python.org's installer and uv put Python when PATH was not updated; newest first.
+    $patterns = @(
+        (Join-Path $env:LOCALAPPDATA 'Programs\Python\Python3*\python.exe'),
+        (Join-Path $env:ProgramFiles 'Python3*\python.exe'),
+        (Join-Path $env:APPDATA 'uv\python\cpython-3.*\python.exe')
+    )
+    foreach ($pattern in $patterns) {
+        foreach ($file in @(Get-ChildItem -Path $pattern -ErrorAction SilentlyContinue | Sort-Object Name, FullName -Descending)) {
+            $candidates += , @($file.FullName)
+        }
+    }
     foreach ($candidate in $candidates) {
         $exe = $candidate[0]
         $extra = @($candidate | Select-Object -Skip 1)
@@ -143,7 +163,20 @@ function Find-Python {
             return $probe[1]
         }
     }
-    throw 'Python 3.10 or later was not found. Install it from https://www.python.org/downloads/ (tick "Add python.exe to PATH") or pass -Python <path to python.exe>.'
+    throw 'Python 3.10 or later was not found ("python" may be only the Microsoft Store placeholder). Install it from https://www.python.org/downloads/ (tick "Add python.exe to PATH"), or pass -Python <path to python.exe>.'
+}
+
+function Get-LatestTag {
+    # The latest release's page redirects to .../releases/tag/<tag>; reading that takes no GitHub API call.
+    $request = [Net.HttpWebRequest]::Create("https://github.com/$Repository/releases/latest")
+    $request.AllowAutoRedirect = $false
+    $request.UserAgent = 'wps-agent-installer'
+    $response = $request.GetResponse()
+    try { $location = [string]$response.Headers['Location'] } finally { $response.Close() }
+    if ($location -notmatch '/releases/tag/(?<tag>[^/?#]+)$') {
+        throw "Could not find the latest release of $Repository (https://github.com/$Repository/releases/latest)."
+    }
+    return $Matches['tag']
 }
 
 function Get-ReleaseWheel([string]$Directory) {
@@ -153,13 +186,40 @@ function Get-ReleaseWheel([string]$Directory) {
     } else {
         "https://api.github.com/repos/$Repository/releases/tags/v$($Version.TrimStart('v'))"
     }
-    $release = Invoke-RestMethod -Uri $api -Headers @{ 'User-Agent' = 'wps-agent-installer' }
-    $asset = @($release.assets | Where-Object { $_.name -like '*.whl' })[0]
-    if (-not $asset) { throw "Release $($release.tag_name) has no wheel." }
-    $target = Join-Path $Directory $asset.name
-    Write-Note "Downloading $($asset.name) from $($release.tag_name)"
-    Invoke-WebRequest -Uri $asset.browser_download_url -OutFile $target -UseBasicParsing
-    $digest = [string]$asset.digest
+    $release = $null
+    try {
+        $release = Invoke-RestMethod -Uri $api -Headers @{ 'User-Agent' = 'wps-agent-installer' }
+    } catch {
+        # Unauthenticated API calls are limited to 60 an hour per address, often shared behind one network.
+        Write-Warn "The GitHub API did not answer ($($_.Exception.Message)); downloading from the release page instead."
+    }
+    if ($release) {
+        $asset = @($release.assets | Where-Object { $_.name -like '*.whl' })[0]
+        if (-not $asset) { throw "Release $($release.tag_name) has no wheel." }
+        $tag = [string]$release.tag_name
+        $name = [string]$asset.name
+        $url = [string]$asset.browser_download_url
+        $digest = [string]$asset.digest
+    } else {
+        $tag = if ($Version -eq 'latest') { Get-LatestTag } else { 'v' + $Version.TrimStart('v') }
+        $name = "wps_ai_agent_cli-$($tag.TrimStart('v'))-py3-none-any.whl"
+        $url = "https://github.com/$Repository/releases/download/$tag/$name"
+        $digest = ''
+    }
+    $target = Join-Path $Directory $name
+    Write-Note "Downloading $name from $tag"
+    Invoke-WebRequest -Uri $url -OutFile $target -UseBasicParsing
+    if ($digest -notlike 'sha256:*') {
+        # Releases from 0.11.2 on carry SHA256SUMS.txt; earlier ones have only the API's digest.
+        $sums = Join-Path $Directory 'SHA256SUMS.txt'
+        try {
+            Invoke-WebRequest -Uri "https://github.com/$Repository/releases/download/$tag/SHA256SUMS.txt" -OutFile $sums -UseBasicParsing
+            foreach ($line in Get-Content -LiteralPath $sums) {
+                $fields = $line -split '\s+', 2
+                if ($fields.Count -eq 2 -and $fields[1].TrimStart('*') -eq $name) { $digest = 'sha256:' + $fields[0] }
+            }
+        } catch { }
+    }
     if ($digest -like 'sha256:*') {
         $actual = (Get-FileHash -LiteralPath $target -Algorithm SHA256).Hash.ToLowerInvariant()
         if ($actual -ne $digest.Substring(7).ToLowerInvariant()) {
@@ -167,7 +227,7 @@ function Get-ReleaseWheel([string]$Directory) {
         }
         Write-Note 'SHA-256 matches the Release.'
     } else {
-        Write-Warn "GitHub lists no SHA-256 for $($asset.name): the download was not checked."
+        Write-Warn "The Release lists no SHA-256 for ${name}: the download was not checked."
     }
     return $target
 }

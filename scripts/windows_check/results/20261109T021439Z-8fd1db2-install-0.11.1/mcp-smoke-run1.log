@@ -1,0 +1,13 @@
+ok: read the client config (C:\Users\admin\AppData\Local\wps-agent\venv\Scripts\wps-agent.exe)
+ok: the entry sets WPS_AGENT_WORKSPACE (C:\Users\admin\AppData\Local\wps-agent-data)
+ok: initialize ({'name': 'wps-ai-agent-cli', 'version': '0.11.1', 'protocolVersion': '2025-11-25'})
+ok: tools/list (87 tools)
+ok: register the workbook (doc_b6285e79acb77c3f)
+ok: read sales_gbk!A1:F3 ([['鍦板尯', '闂ㄥ簵缂栧彿', '閿€閲?, '澧為暱鐜?, '閿€鍞', '澶囨敞'], ['鍗庝笢', '007', 1200, 0.125, 1234.5, '鏃楄埌搴?], ['鍗庡崡', '008', 3.5, -0.03, 99, '鍚?閫楀彿']])
+ok: write sales_gbk!F2
+ok: read the written cell back ([['wps-agent MCP smoke']])
+ok: the write left a backup (1)
+ok: the backup is under WPS_AGENT_WORKSPACE (.wps-agent\backups\doc_b6285e79acb77c3f\book.20261109T023029159610Z.xlsx)
+ok: nothing was written where the server was started
+passed; results: C:\Users\admin\Documents\wps cli\scripts\windows_check\results\20261109T021439Z-8fd1db2-install-0.11.1\MCP_CLIENT_SMOKE.md
+exit=0

@@ -1,0 +1,54 @@
+﻿===== release assets v0.11.1 =====
+{"assets":[{"apiUrl":"https://api.github.com/repos/oops11111/WPS-cli/releases/assets/688981543","contentType":"application/x-powershell","createdAt":"2026-10-29T15:24:20Z","digest":"sha256:62c01f8e86ae6d9757c80e15e56ff2eed008801a847e63b61d1cfe8f90ce9020","downloadCount":1,"id":"RA_kwDOVBSVec4pEQYn","label":"","name":"install.ps1","size":20598,"state":"uploaded","updatedAt":"2026-10-29T15:24:20Z","url":"https://github.com/oops11111/WPS-cli/releases/download/v0.11.1/install.ps1"},{"apiUrl":"https://api.github.com/repos/oops11111/WPS-cli/releases/assets/688981535","contentType":"application/octet-stream","createdAt":"2026-10-29T15:24:20Z","digest":"sha256:c517bd4065ed74426f6d78d0ce90763c1c7872c6196e2d7c9c24f25c78e27576","downloadCount":1,"id":"RA_kwDOVBSVec4pEQYf","label":"","name":"wps_ai_agent_cli-0.11.1-py3-none-any.whl","size":434320,"state":"uploaded","updatedAt":"2026-10-29T15:24:20Z","url":"https://github.com/oops11111/WPS-cli/releases/download/v0.11.1/wps_ai_agent_cli-0.11.1-py3-none-any.whl"},{"apiUrl":"https://api.github.com/repos/oops11111/WPS-cli/releases/assets/688981534","contentType":"application/x-gtar","createdAt":"2026-10-29T15:24:20Z","digest":"sha256:a6d2ebd8ab805229b117b2de2088eb77b89a2223ce8b8ecc3855fd242a8d9ac6","downloadCount":1,"id":"RA_kwDOVBSVec4pEQYe","label":"","name":"wps_ai_agent_cli-0.11.1.tar.gz","size":673515,"state":"uploaded","updatedAt":"2026-10-29T15:24:20Z","url":"https://github.com/oops11111/WPS-cli/releases/download/v0.11.1/wps_ai_agent_cli-0.11.1.tar.gz"}],"tagName":"v0.11.1"}
+
+gh_exit=0
+===== processes: wps et wpp =====
+(none)
+===== processes: claude / wps-agent =====
+PID=4408 NAME=claude PATH=C:\Program Files\WindowsApps\AnthropicPBC.Claude_4.16336.0.0_x64__fnn82j28hfe8t\app\Claude.exe
+PID=9196 NAME=claude PATH=C:\Program Files\WindowsApps\AnthropicPBC.Claude_4.16336.0.0_x64__fnn82j28hfe8t\app\Claude.exe
+PID=10312 NAME=claude PATH=
+PID=29288 NAME=claude PATH=C:\Program Files\WindowsApps\AnthropicPBC.Claude_4.16336.0.0_x64__fnn82j28hfe8t\app\Claude.exe
+PID=30896 NAME=claude PATH=C:\Program Files\WindowsApps\AnthropicPBC.Claude_4.16336.0.0_x64__fnn82j28hfe8t\app\Claude.exe
+PID=31420 NAME=claude PATH=C:\Program Files\WindowsApps\AnthropicPBC.Claude_4.16336.0.0_x64__fnn82j28hfe8t\app\Claude.exe
+PID=39408 NAME=claude PATH=C:\Program Files\WindowsApps\AnthropicPBC.Claude_4.16336.0.0_x64__fnn82j28hfe8t\app\Claude.exe
+PID=40388 NAME=claude PATH=C:\Program Files\WindowsApps\AnthropicPBC.Claude_4.16336.0.0_x64__fnn82j28hfe8t\app\Claude.exe
+PID=40888 NAME=claude PATH=C:\Program Files\WindowsApps\AnthropicPBC.Claude_4.16336.0.0_x64__fnn82j28hfe8t\app\Claude.exe
+PID=43072 NAME=claude PATH=C:\Program Files\WindowsApps\AnthropicPBC.Claude_4.16336.0.0_x64__fnn82j28hfe8t\app\Claude.exe
+PID=45740 NAME=claude PATH=C:\Program Files\WindowsApps\AnthropicPBC.Claude_4.16336.0.0_x64__fnn82j28hfe8t\app\Claude.exe
+PID=64364 NAME=claude PATH=C:\Users\admin\AppData\Local\Claude-3p\claude-code\2.1.317\a33aa5518497\claude.exe
+PID=65160 NAME=claude PATH=C:\Users\admin\AppData\Local\Claude-3p\claude-code\2.1.317\a33aa5518497\claude.exe
+===== registry Environment (raw, DoNotExpandEnvironmentNames) =====
+Path [String] = C:\Users\admin\.local\bin;C:\Users\admin\.cargo\bin;C:\Users\admin\AppData\Local\Programs\Python\Python312\Scripts\;C:\Users\admin\AppData\Local\Programs\Python\Python312\;C:\Users\admin\AppData\Local\Programs\Python\Launcher\;C:\Users\admin\AppData\Local\Microsoft\WindowsApps;C:\Program Files (x86)\Tencent\QQGameTempest\Hall.58195\;C:\Users\admin\AppData\Local\Programs\Microsoft VS Code\bin;C:\Users\admin\AppData\Local\Microsoft\WinGet\Links;C:\Users\admin\.dotnet\tools;C:\Users\admin\AppData\Roaming\npm;C:\Program Files\Git\bin;C:\Users\admin\AppData\Local\Microsoft\WinGet\Packages\Google.PlatformTools_Microsoft.Winget.Source_8wekyb3d8bbwe\platform-tools;C:\Users\admin\.dotnet\tools;C:\Users\admin\AppData\Local\Docker\cli;C:\Users\admin\.bun\bin;C:\Users\admin\bin;C:\Program Files (x86)\Microsoft Visual Studio\Installer;C:\Users\admin\AppData\Local\Programs\cursor\resources\app\bin;C:\Users\admin\AppData\Local\wps-agent\bin;C:\Users\admin\AppData\Local\Temp\dotnetcli_m2dv\.dotnet\tools;C:\Program Files\Git\cmd
+NODE_PATH [String] = C:\Users\admin\AppData\Local\wps-agent\node\node_modules
+===== install dirs =====
+wps-agent_dir_exists=True path=C:\Users\admin\AppData\Local\wps-agent
+--- dir listing ---
+d----- 1 bin
+d----- 1 node
+d----- 1 venv
+-a---- 465 install.json
+--- install.json ---
+{
+    "version":  "0.11.0",
+    "installed_at":  "2026-10-23T11:27:49",
+    "python":  "C:\\Users\\admin\\AppData\\Roaming\\uv\\python\\cpython-3.12-windows-x86_64-none\\python.exe",
+    "executable":  "C:\\Users\\admin\\AppData\\Local\\wps-agent\\venv\\Scripts\\wps-agent.exe",
+    "node_path":  "C:\\Users\\admin\\AppData\\Local\\wps-agent\\node\\node_modules",
+    "ocr":  false,
+    "data_dir":  "C:\\Users\\admin\\AppData\\Local\\wps-agent-data"
+}
+
+wps-agent-data_dir_exists=True path=C:\Users\admin\AppData\Local\wps-agent-data
+===== Claude Desktop config =====
+config_exists=True path=C:\Users\admin\AppData\Roaming\Claude\claude_desktop_config.json
+mcpServers_names=wps-agent
+wps-agent_present=True
+===== toolchain =====
+python= exit=9009
+py0= exit=9009
+node=v24.16.0 exit=0
+edge=C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe
+===== machine =====
+os=Microsoft Windows 10 企业版 10.0.19045
+commit_short=8fd1db2

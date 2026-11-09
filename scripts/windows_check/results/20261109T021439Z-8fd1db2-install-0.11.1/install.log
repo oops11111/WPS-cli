@@ -1,0 +1,21 @@
+==> Finding Python 3.10+
+    C:\Users\admin\AppData\Roaming\uv\python\cpython-3.12-windows-x86_64-none\python.exe
+==> Getting the wheel
+    C:\Users\admin\AppData\Local\Temp\wps-agent-install-test\wps_ai_agent_cli-0.11.1-py3-none-any.whl
+==> Creating the virtual environment in C:\Users\admin\AppData\Local\wps-agent\venv
+==> Installing wps-agent with [all]
+    wps-agent 0.11.1
+==> Setting up HTML rendering (Node.js, Playwright, Edge)
+
+up to date in 1s
+    Playwright installed; NODE_PATH starts with C:\Users\admin\AppData\Local\wps-agent\node\node_modules
+==> Adding C:\Users\admin\AppData\Local\wps-agent\bin to your PATH
+    Already on PATH.
+==> Checking the environment (wps-agent inspect-env)
+    WPS COM automation is registered (kwps.Application, ket.Application, kwpp.Application).
+==> Connecting the MCP client (claude-desktop)
+    Added to C:\Users\admin\AppData\Roaming\Claude\claude_desktop_config.json; restart Claude Desktop.
+    Previous config saved as C:\Users\admin\AppData\Roaming\Claude\claude_desktop_config.bak-20261109T102842.json
+==> wps-agent 0.11.1 is installed.
+    Try: wps-agent inspect-env    (in a new terminal)
+exit=0
