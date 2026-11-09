@@ -24,7 +24,7 @@ from zipfile import ZIP_DEFLATED, ZipFile
 from .atomic_mutation import atomic_mutation
 from .backups import create_backup, record_after_com_identity
 from .conversion_paths import missing_dependency
-from .errors import INPUT_FILE_NOT_FOUND
+from .errors import DOCUMENT_HELD_OPEN, INPUT_FILE_NOT_FOUND
 from .file_hold import probe_file_not_held
 from .mutation_lock import coordinated_mutation
 from .ooxml import check_archive_limits, read_zip_part
@@ -298,6 +298,14 @@ def writer_merge(
         )
     held = probe_file_not_held(path, read_only=True, what="document")
     if held is not None:
+        if held.get("code") == DOCUMENT_HELD_OPEN:
+            # The shared text is about WPS's Open(), which this command never calls; say what applies here.
+            reason = str(held["message"]).split(" Open() was not called", 1)[0]
+            held = {
+                "code": DOCUMENT_HELD_OPEN,
+                "message": f"{reason} writer-merge writes the file itself, without WPS, so it refused and nothing "
+                "was written. Save and close the document in WPS, then retry.",
+            }
         return False, {"document_id": document_id, "path": str(path)}, [held], False
 
     found = scan(path, values)

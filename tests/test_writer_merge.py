@@ -150,11 +150,16 @@ class WriterMergeTests(unittest.TestCase):
         self.assertEqual(self.path.read_bytes(), before)
 
     def test_a_held_document_is_refused(self):
-        held = {"code": "DOCUMENT_HELD_OPEN", "message": "held"}
+        from wps_ai_agent_cli.file_hold import held_open_error
+
+        held = held_open_error("document", "being used by another process")
         with patch.object(merge, "probe_file_not_held", return_value=held):
             ok, _result, errors, _ = self.call(DATA)
         self.assertFalse(ok)
         self.assertEqual(errors[0]["code"], "DOCUMENT_HELD_OPEN")
+        self.assertIn("being used by another process", errors[0]["message"])
+        self.assertIn("without WPS", errors[0]["message"])
+        self.assertNotIn("Open()", errors[0]["message"])
 
     def test_other_components_are_refused(self):
         sheet = self.root / "b.xlsx"

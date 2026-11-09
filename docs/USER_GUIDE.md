@@ -180,6 +180,17 @@ wps-agent pdf-merge --input 一.pdf --input 二.pdf --output 合并.pdf
 wps-agent pdf-watermark --input 合同.pdf --output 合同-草稿.pdf --text 草稿
 ```
 
+在 Windows PowerShell 5.1 里，参数中的双引号传给 `wps-agent` 时会被去掉，所以 `--values-json '[["月","值"]]'` 到程序那里已经不是 JSON，会报 `INVALID_JSON`。带引号的 JSON 参数用下面任一种写法：
+
+```powershell
+# 1. 在命令名后加 --%，后面的内容原样传给程序（引号写成 \"）
+wps-agent --% spreadsheet-write --document-id doc_xxx --range A1:B2 --values-json [[\"月\",\"值\"],[\"7月\",1]]
+# 2. 把 JSON 放进文件（writer-merge 用 --data-file）
+wps-agent writer-merge --document-id doc_xxx --data-file 数据.json
+```
+
+数字和不含引号的 JSON（如 `--values-json "[[42]]"`）不受影响；经 MCP 由 AI 调用时也不受影响。
+
 命令失败时进程以退出码 1 结束（成功 0、参数错误 2），请同时看 JSON 里的 `ok`；需要旧行为的脚本加 `--lenient-exit`。完整的命令列表：`wps-agent --help`，某个命令的参数：`wps-agent <命令> --help`。
 
 ## 6. 备份和恢复

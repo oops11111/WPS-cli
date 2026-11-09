@@ -48,6 +48,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import urllib.error
 import urllib.request
 from pathlib import Path, PureWindowsPath
 from typing import Any
@@ -533,13 +534,34 @@ def release_wheel(version: str) -> tuple[str, str]:
     token = os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN")
     if token:
         request.add_header("Authorization", f"Bearer {token}")
-    with urllib.request.urlopen(request, timeout=60) as response:  # noqa: S310 - a fixed https URL
-        release = json.load(response)
+    try:
+        with urllib.request.urlopen(request, timeout=60) as response:  # noqa: S310 - a fixed https URL
+            release = json.load(response)
+    except urllib.error.URLError as exc:
+        # The 0.12.0 check hit HTTP 403 rate limit exceeded here. Like install.ps1, fall back to the Release page:
+        # the wheel's own download URL, checked against the Release's SHA256SUMS.txt.
+        return _release_wheel_from_page(version, name, exc)
     for asset in release.get("assets", []):
         if asset.get("name") == name:
             digest = str(asset.get("digest") or "")
             return asset["browser_download_url"], digest.removeprefix("sha256:")
     raise RuntimeError(f"Release v{version} has no asset {name}")
+
+
+def _release_wheel_from_page(version: str, name: str, cause: Exception) -> tuple[str, str]:
+    base = f"https://github.com/{REPOSITORY}/releases/download/v{version}"
+    try:
+        with urllib.request.urlopen(f"{base}/SHA256SUMS.txt", timeout=60) as response:  # noqa: S310 - fixed https URL
+            sums = response.read().decode("utf-8")
+    except urllib.error.URLError as exc:
+        raise RuntimeError(
+            f"The GitHub API did not answer ({cause}) and the Release has no readable SHA256SUMS.txt ({exc})"
+        ) from exc
+    for line in sums.splitlines():
+        parts = line.split()
+        if len(parts) == 2 and parts[1].lstrip("*") == name:
+            return f"{base}/{name}", parts[0].lower()
+    raise RuntimeError(f"The GitHub API did not answer ({cause}) and SHA256SUMS.txt lists no {name}")
 
 
 PYPI_INDEX = "https://pypi.org/simple"
