@@ -264,6 +264,20 @@ def verify_backup_source(path: str | Path, backup: dict[str, Any]) -> dict[str, 
     return None
 
 
+# The file identity each successful COM mutation left behind, by resolved path. Rollback consults it:
+# a file that no longer matches what the command itself wrote is not that command's to restore.
+_after_com_identities: dict[str, dict[str, Any]] = {}
+
+
+def record_after_com_identity(path: str | Path, identity: dict[str, Any]) -> None:
+    _after_com_identities[str(Path(path).resolve())] = dict(identity)
+
+
+def last_after_com_identity(path: str | Path) -> dict[str, Any] | None:
+    identity = _after_com_identities.get(str(Path(path).resolve()))
+    return dict(identity) if identity is not None else None
+
+
 def guarded_com_mutation(
     path: str | Path, backup: dict[str, Any], operation: Callable[[], dict[str, Any]]
 ) -> dict[str, Any]:
@@ -291,7 +305,9 @@ def guarded_com_mutation(
         }
     if result.get("ok"):
         try:
-            result["data"] = {**result.get("data", {}), "source_identity_after_com": file_identity(Path(path))}
+            after_identity = file_identity(Path(path))
+            record_after_com_identity(path, after_identity)
+            result["data"] = {**result.get("data", {}), "source_identity_after_com": after_identity}
         except OSError as exc:
             return {
                 "ok": False,

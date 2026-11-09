@@ -11,7 +11,28 @@ permissions:
   contents: write
 
 jobs:
+  # A tag alone used to publish with no test run at all. The release now waits for the same lint and
+  # unit suite as CI (tests.yml does not run on tags, so the gate lives here).
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install package with the test and lint extras
+        run: python -m pip install -e ".[test,lint]"
+      - name: Run ruff
+        run: |
+          ruff check .
+          ruff format --check .
+      - name: Run unit tests (COM-dependent cases are skipped without WPS)
+        env:
+          PYTHONPATH: src
+        run: python -m unittest discover -s tests
+
   release:
+    needs: verify
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

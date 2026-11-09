@@ -6,7 +6,11 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 from docx import Document
-from PIL import Image
+
+try:
+    from PIL import Image
+except ImportError as exc:  # optional test dependency: skip this module instead of erroring the suite
+    raise unittest.SkipTest("Pillow is not installed") from exc
 
 from wps_ai_agent_cli.html_roundtrip import (
     build_html_roundtrip_mapping,

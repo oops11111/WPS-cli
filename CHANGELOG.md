@@ -4,6 +4,24 @@ All notable changes to `wps-ai-agent-cli`. The versioning rule and release steps
 
 ## [Unreleased]
 
+Batch-1 hardening from the November code review. The CLI and MCP interface are unchanged, except that WPS conversion now refuses macro-enabled sources (see Security).
+
+### Security
+
+- Every script that opens a document from disk now sets `AutomationSecurity` to force-disable macros while it works (restored afterwards, like the alert settings), and also turns off external-link updates and events. The Writer and presentation scripts, which opened documents without quieting the app at all, now apply the same settings as the spreadsheet and conversion scripts.
+- `convert` through WPS refuses macro-enabled sources (`.docm`, `.xlsm`, `.pptm`): save a macro-free copy and convert that. The Python API keeps an explicit escape hatch, `wps_convert(..., allow_macro_enabled=True)`, for trusted files; macros stay disabled while such a file is open.
+- Rollback is whitelist-based: a failed write is undone only over the exact bytes that command's own COM write left behind (recorded after each successful COM mutation). If the file changed after the write — the user kept editing, a sync client, another program — the backup is no longer copied over it, and the result says why. Rollback also verifies the backup is inside the document's backup directory and matches its creation record before restoring it.
+- The installer fails closed: when a release provides no SHA-256 for the wheel (API digest and `SHA256SUMS.txt` both unavailable), it now refuses to install instead of warning and continuing with an unchecked download.
+
+### Added
+
+- `LICENSE` (MIT) at the repository root and the matching `license` metadata in `pyproject.toml`; the wheel now carries `License: MIT` and the license file.
+
+### Fixed
+
+- The release workflow runs the lint and unit suite in a `verify` job and the `release` job now needs it: a version tag alone previously published with no test run at all.
+- Test modules that need an optional dependency (`python-pptx`, `Pillow`, `pypdfium2`) now skip as a module when it is missing instead of failing to import, which used to turn one missing package into dozens of suite errors (and more through cross-test imports).
+
 ## [0.11.3] - 2026-11-09
 
 HTML decks written with `<div class="slide">` convert to slides that look like the page in the browser (`--fidelity appearance`). These fixes were meant for 0.11.2, whose tag was pushed on the commit before them. The CLI and MCP interface are unchanged.

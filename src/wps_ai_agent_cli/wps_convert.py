@@ -106,6 +106,12 @@ FAMILIES: dict[str, dict[str, Any]] = {
     },
 }
 
+# Macro-enabled formats are refused as conversion sources: opening one is only safe with macros
+# disabled, and a conversion result must never depend on macro behaviour. Save a macro-free copy
+# (.docx/.xlsx/.pptx) and convert that, or pass allow_macro_enabled=True from Python when the file
+# is trusted; even then the scripts open it with AutomationSecurity forced to disable macros.
+MACRO_ENABLED_INPUTS = {".docm", ".xlsm", ".pptm"}
+
 WPS_INPUTS = set().union(*(family["inputs"] for family in FAMILIES.values()))
 WPS_OUTPUTS = set().union(*(family["outputs"] for family in FAMILIES.values())) | {".pdf", ".png"}
 
@@ -118,8 +124,25 @@ def family_of(path: Path) -> str | None:
     return None
 
 
-def plan(source: Path, destination: Path) -> tuple[str | None, int | None, str, list[dict[str, str]]]:
+def plan(
+    source: Path, destination: Path, allow_macro_enabled: bool = False
+) -> tuple[str | None, int | None, str, list[dict[str, str]]]:
     """(component, SaveAs code, mode: save, save_default, pdf or png) for the pair, or the refusal."""
+    if source.suffix.casefold() in MACRO_ENABLED_INPUTS and not allow_macro_enabled:
+        return (
+            None,
+            None,
+            "",
+            [
+                {
+                    "code": FORMAT_NOT_SUPPORTED_BY_WPS,
+                    "message": (
+                        f"Macro-enabled files ({source.suffix}) are refused as conversion sources. "
+                        "Save a macro-free copy and convert that instead."
+                    ),
+                }
+            ],
+        )
     component = family_of(source)
     suffix = destination.suffix.casefold()
     if component is None:
@@ -363,18 +386,22 @@ def _describe_window(window: dict[str, Any]) -> str:
 
 
 def wps_convert(
-    input_path: str | Path, output_path: str | Path, dpi: int = 150, timeout_seconds: int = 180
+    input_path: str | Path,
+    output_path: str | Path,
+    dpi: int = 150,
+    timeout_seconds: int = 180,
+    allow_macro_enabled: bool = False,
 ) -> tuple[bool, dict[str, Any], list[dict[str, str]]]:
     from .conversion_paths import check_paths
 
     source, destination, errors = check_paths(input_path, output_path, WPS_INPUTS, WPS_OUTPUTS)
     if errors:
         if errors[0]["code"] in {"INVALID_INPUT", "INVALID_OUTPUT"}:
-            _component, _code, _mode, refusal = plan(Path(input_path), Path(output_path))
+            _component, _code, _mode, refusal = plan(Path(input_path), Path(output_path), allow_macro_enabled)
             if refusal:
                 return False, {}, refusal
         return False, {}, errors
-    component, code, mode, refusal = plan(source, destination)
+    component, code, mode, refusal = plan(source, destination, allow_macro_enabled)
     if refusal:
         return False, {}, refusal
     if mode == "png":

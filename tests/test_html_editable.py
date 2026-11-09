@@ -5,7 +5,11 @@ from tempfile import TemporaryDirectory
 from unittest import mock
 
 from docx import Document
-from PIL import Image
+
+try:
+    from PIL import Image
+except ImportError as exc:  # optional test dependency: skip this module instead of erroring the suite
+    raise unittest.SkipTest("Pillow is not installed") from exc
 
 from wps_ai_agent_cli.com_backend import run_com_smoke
 from wps_ai_agent_cli.html_editable import convert_html_editable

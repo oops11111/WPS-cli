@@ -36,6 +36,7 @@ from .wps_script_snippets import (
     ACQUIRE_WPS_APP,
     HIDE_LAUNCHED_APP,
     PRE_OPEN_GUARD,
+    QUIET_ALERTS,
     RELEASE_WPS_APP,
 )
 from .writer_structure import (
@@ -99,6 +100,7 @@ $document = $null
 try {{
   {ACQUIRE_WPS_APP}
   {HIDE_LAUNCHED_APP}
+  {QUIET_ALERTS}
   $wpsPreOpen = Test-WpsPathOpen $app.Documents $params.path
   $document = Open-WpsDocument $app.Documents $params.path $wpsPreOpen
   Assert-WpsPreOpenSaved $wpsPreOpen $document
@@ -224,6 +226,7 @@ $document = $null
 try {{
   {ACQUIRE_WPS_APP}
   {HIDE_LAUNCHED_APP}
+  {QUIET_ALERTS}
   $wpsPreOpen = Test-WpsPathOpen $app.Documents $params.path
   $document = Open-WpsDocument $app.Documents $params.path $wpsPreOpen
   Assert-WpsPreOpenSaved $wpsPreOpen $document
@@ -576,6 +579,7 @@ $document = $null
 try {{
   {ACQUIRE_WPS_APP}
   {HIDE_LAUNCHED_APP}
+  {QUIET_ALERTS}
   $wpsPreOpen = Test-WpsPathOpen $app.Documents $params.path
   $document = Open-WpsDocument $app.Documents $params.path $wpsPreOpen
   Assert-WpsPreOpenSaved $wpsPreOpen $document

@@ -127,7 +127,7 @@ class InstallerContentTests(unittest.TestCase):
 
     def test_the_download_is_checked_against_the_release_digest(self):
         self.assertIn("Get-FileHash -LiteralPath $target -Algorithm SHA256", self.text)
-        self.assertIn("the download was not checked", self.text)  # said when GitHub lists no digest
+        self.assertIn("refusing to install an unchecked download", self.text)  # no digest: fail closed
 
 
 class InstallerWorkflowTests(unittest.TestCase):

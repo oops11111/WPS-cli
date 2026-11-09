@@ -5,13 +5,20 @@ import tempfile
 import unittest
 from pathlib import Path
 
-import pypdfium2
+try:
+    import pypdfium2
+except ImportError as exc:  # optional test dependency: skip this module instead of erroring the suite
+    raise unittest.SkipTest("pypdfium2 is not installed") from exc
 from docx import Document
 from docx.opc.constants import RELATIONSHIP_TYPE as RT
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from docx.shared import Inches
-from PIL import Image, ImageChops
+
+try:
+    from PIL import Image, ImageChops
+except ImportError as exc:  # optional test dependency: skip this module instead of erroring the suite
+    raise unittest.SkipTest("Pillow is not installed") from exc
 
 from tests.isolation import chdir
 from wps_ai_agent_cli.backups import create_backup
