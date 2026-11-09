@@ -1,0 +1,4 @@
+﻿computed click point: 226,281 (cell left=145.8 top=14.4 width=48.6 height=14.4)
+dropdown screenshot: C:\Users\admin\.lody\repos\github---oops11111---wps-cli\worktrees\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\scripts\windows_check\results\20261109T234313Z-fd1d64a-c05\dropdown.png
+closed without saving
+quit

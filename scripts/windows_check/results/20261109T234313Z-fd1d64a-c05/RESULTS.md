@@ -31,7 +31,7 @@
 | 3.4 | ok | G2:G7 text-length <= 10, no blanks: checks true (`dv-v4.json`) |
 | 3.5 | ok | H1:H3 written 甲/乙/丙, then I2:I7 list `=$H$1:$H$3`: checks true (`dv-v5.json`, `write-h1h3.json`) |
 | 4.1 | ok | Workbook copied to `数据.xlsx` and opened in WPS 表格; `sheet.png` shows the sorted values, data bars, colour scale, 完成 highlights and the formula result |
-| 4.2 | ok | D2 selected: dropdown arrow and the input message 请选择状态 are visible in `dropdown.png` |
+| 4.2 | ok (list not expanded) | D2 selected: the list arrow and the input message 请选择状态 are visible in `dropdown.png`; the list itself did not open with Alt+Down or with the attempted arrow clicks (`step4b-log.txt`, `step4c-log.txt`, `step4d-log.txt`; the last click landed on D5, see `dropdown-click-miss-window.png`) |
 | 4.3 | ok | Typing 200 in E2 was refused: WPS showed 错误提示 / 您输入的内容，不符合限制条件。 (`reject.png`); the edit was cancelled and the workbook closed without saving (`step4-log.txt`) |
 | 5 | ok | Results committed on `cursor/c05-windows-fd1d64a` (not main, not c05-sheet-tools) |
 
@@ -73,8 +73,11 @@ They are openpyxl warnings about WPS's conditional-formatting extension; the com
   45929 (min) red; D column highlights all three 完成 cells in pink and leaves 未开始/进行中 plain; A column
   has no highlight (no duplicates); F1 shows 2 from `=1+1`.
 - `dropdown.png`: D2 is selected (name box `D2`), the list arrow is shown, and the input message
-  请选择状态 appears next to the cell. The list itself was not expanded for the shot; the arrow and input
-  message are visible.
+  请选择状态 appears next to the cell. The list itself was not expanded: Alt+Down did not open it and the
+  synthetic arrow clicks landed on other cells (D5, `dropdown-click-miss-window.png`); the attempts and
+  computed coordinates are in `step4b-log.txt`, `step4c-log.txt` and `step4d-log.txt`. The dropdown control
+  and its input message are confirmed; the three list values themselves are proven by the saved rule
+  (`dv-v1.json`) and were not captured in an open dropdown.
 - `reject.png`: E2 is in edit mode with 200 typed; WPS shows 错误提示 / 您输入的内容，不符合限制条件。
   The edit was then cancelled with ESC and the workbook closed with `Close($false)`; nothing was saved.
 

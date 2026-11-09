@@ -1,0 +1,5 @@
+﻿dropdown list screenshot: C:\Users\admin\.lody\repos\github---oops11111---wps-cli\worktrees\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\scripts\windows_check\results\20261109T234313Z-fd1d64a-c05\dropdown.png
+windows:
+  class=XLMAIN title=数据.xlsx - WPS 表格
+closed without saving
+quit
