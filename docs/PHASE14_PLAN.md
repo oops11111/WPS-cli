@@ -42,7 +42,7 @@ Phase 14 补上这三块，发布 0.11.0。
 | P14-002 | G2 | `client_config` 模块、`WPS_AGENT_WORKSPACE`、测试 | 本地 | 完成 |
 | P14-003 | G3、G4 | `install.ps1`、Windows CI 任务、Release 附带安装脚本和安装说明 | 本地 | 完成，CI 待在 PR 上跑通 |
 | P14-004 | G5 | `USER_GUIDE.md`、README 改写、`CONTRIBUTING.md`、一致性测试 | 本地 | 完成 |
-| P14-005 | G6 | 发布 0.11.0；在 Windows 上用安装脚本装 Release、接 Claude Desktop 做一次读取和写入、卸载；wheel 检查 | Windows + 你 | 0.11.0 已发布（2026-10-23）。上机前做了一次全仓代码审查，安装脚本、回滚、HTML 转换的问题在 0.11.1 修复（PR #133～#136），上机检查改用 0.11.1 |
+| P14-005 | G6 | 发布 0.11.0；在 Windows 上用安装脚本装 Release、接 Claude Desktop 做一次读取和写入、卸载；wheel 检查 | Windows + 你 | 0.11.0 已发布（2026-10-23）。上机前做了一次全仓代码审查，安装脚本、回滚、HTML 转换的问题在 0.11.1 修复（PR #133～#136），上机检查改用 0.11.1。2026-11-09 第一次上机：两处安装问题（下面“上机结果”），修复后发 0.11.2 再上机一次 |
 
 ## 上机步骤（P14-005）
 
@@ -59,6 +59,19 @@ Phase 14 补上这三块，发布 0.11.0。
 4. 新开终端运行 `wps-agent inspect-env`（确认 PATH 生效）。
 5. `powershell -ExecutionPolicy Bypass -File .\install.ps1 -Uninstall`，确认安装目录和 PATH 条目已删除、数据目录还在。
 6. `python scripts/windows_check/run_windows_check.py wheel --version 0.11.1`。
+
+## 上机结果
+
+### 第一次（0.11.1，2026-11-09，main@8fd1db2）
+
+结果在 `scripts/windows_check/results/20261109T020158Z-8fd1db2-install-0.11.1/`（按说明直接装）和 `20261109T021439Z-8fd1db2-install-0.11.1/`（绕过后重装），wheel 检查在 `20261109T023917Z-wheel-0.11.1/`。机器：Windows 10 19045，WPS 12.8.2.18913，Node.js 22，Edge；之前装过 0.11.0。
+
+- **按说明直接装失败**：`Python 3.10 or later was not found`。这台机器的 `python` 是 Microsoft Store 占位程序，没有 `py`，Python 3.12 是 uv 装的、不在 PATH 上。安装脚本在动任何东西之前停下，0.11.0 没受影响。
+- **GitHub API 被限流**：安装脚本要先查 API 拿 wheel 的地址，未登录调用被拒时无法安装。
+- **绕过后（`-Python` 指向 uv 的 Python，`-WheelPath` 用手动下载的 wheel）全部通过**：0.11.0 原地升级到 0.11.1；shim 是相对路径；用户 PATH 只有一条 `wps-agent\bin`，其他条目和类型与安装前相同；`NODE_PATH` 以安装目录的 `node_modules` 开头；Claude Desktop 配置先备份再写入；新终端里 `wps-agent` 指向安装目录，`inspect-env` 检测到三个 WPS 组件；`mcp_client_smoke.py` 按 Claude Desktop 的方式读写通过（87 个工具，备份在数据目录下，启动目录里没写东西）；`-Uninstall` 只删自己的东西、数据目录保留；重装成功；wheel 检查 SHA-256 一致，安全档 7/7。
+- 这台机器的用户 PATH 在检查前已是 REG_SZ、条目全部展开，应是 0.11.0 的安装脚本留下的（0.11.1 修复了这一点，但不能还原）。
+
+两处安装问题在 0.11.2 修复：找 Python 时也试上次安装用的 Python、`uv python find` 和 python.org、uv 的默认目录；API 被拒时从 Release 页面下载，用 Release 附带的 `SHA256SUMS.txt` 核对。
 
 ## 主要风险
 

@@ -112,6 +112,19 @@ class InstallerContentTests(unittest.TestCase):
         self.assertIn("$env:PYTHONUTF8 = '1'", self.text)
         self.assertIn("[Console]::OutputEncoding = $savedEncoding", self.text)
 
+    def test_python_is_also_found_off_path(self):
+        # Windows check of 0.11.1: "python" was the Store placeholder and Python 3.12 lived in uv's folder.
+        self.assertIn("$previous = Read-InstallRecord", self.text)
+        self.assertIn("& uv python find '>=3.10'", self.text)
+        self.assertIn("'Programs\\Python\\Python3*\\python.exe'", self.text)
+        self.assertIn("'uv\\python\\cpython-3.*\\python.exe'", self.text)
+
+    def test_a_refused_api_call_falls_back_to_the_release_page_and_its_sums(self):
+        self.assertIn("downloading from the release page instead", self.text)
+        self.assertIn('"https://github.com/$Repository/releases/latest"', self.text)
+        self.assertIn("$request.AllowAutoRedirect = $false", self.text)
+        self.assertIn('/releases/download/$tag/SHA256SUMS.txt"', self.text)
+
     def test_the_download_is_checked_against_the_release_digest(self):
         self.assertIn("Get-FileHash -LiteralPath $target -Algorithm SHA256", self.text)
         self.assertIn("the download was not checked", self.text)  # said when GitHub lists no digest
@@ -134,7 +147,9 @@ class InstallerWorkflowTests(unittest.TestCase):
 
     def test_the_release_carries_the_installer_and_install_steps(self):
         workflow = (ROOT / ".github" / "workflows" / "release.yml").read_text(encoding="utf-8")
-        self.assertIn("dist/* scripts/install/install.ps1", workflow)
+        self.assertIn("dist/* scripts/install/install.ps1 SHA256SUMS.txt", workflow)
+        # Outside dist/, which goes to PyPI unchanged.
+        self.assertIn("(cd dist && sha256sum *) > SHA256SUMS.txt", workflow)
         notes = (ROOT / "scripts" / "install" / "release_install.md").read_text(encoding="utf-8")
         self.assertIn("releases/latest/download/install.ps1", notes)
         self.assertIn("install.ps1 -McpClient", notes)

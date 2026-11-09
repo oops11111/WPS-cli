@@ -1,0 +1,4 @@
+==> Removing wps-agent from C:\Users\admin\AppData\Local\wps-agent
+    Done. Remove the "wps-agent" server from your MCP client yourself if you added it.
+    Backups and records in C:\Users\admin\AppData\Local\wps-agent-data are kept; delete that folder too if you do not need them.
+exit=0

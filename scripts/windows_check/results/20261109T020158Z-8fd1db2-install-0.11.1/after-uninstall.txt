@@ -1,0 +1,18 @@
+UNINSTALL NOT RUN
+=================
+
+Step 6 was skipped intentionally.
+
+Reason: Step 2 (install v0.11.1) failed because Python 3.10+ is not on PATH.
+Step 7 (reinstall with the same command) fails for the same reason. Running the
+uninstall would remove the only working wps-agent installation (0.11.0) and
+leave no way to reinstall it, which contradicts the final requirement to leave
+wps-agent installed and usable on this machine.
+
+Evidence:
+- C:\Users\admin\AppData\Local\wps-agent\install.json still reports version 0.11.0.
+- The MCP client smoke passed against that 0.11.0 installation.
+- reinstall.log: same "Python 3.10 or later was not found." error, exit 1.
+
+If a clean uninstall test is required later, install Python 3.10+ on PATH (or
+pass -Python <path>) first, then repeat steps 6 and 7.

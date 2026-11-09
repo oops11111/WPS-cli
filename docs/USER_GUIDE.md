@@ -26,8 +26,8 @@ powershell -ExecutionPolicy Bypass -File .\install.ps1 -McpClient claude-desktop
 
 安装脚本会：
 
-1. 找到 Python 3.10 及以上；
-2. 从 GitHub Release 下载最新的 wheel，并核对它的 SHA-256；
+1. 找到 Python 3.10 及以上：依次看 `-Python`、上次安装用的 Python、`py`、`python`、`uv python find`，以及 python.org 和 uv 的默认安装目录（PATH 里的 `python` 常常只是 Microsoft Store 的占位程序）；
+2. 从 GitHub Release 下载最新的 wheel，并核对它的 SHA-256（GitHub API 限流时改从 Release 页面下载，用 Release 附带的 `SHA256SUMS.txt` 核对）；
 3. 在 `%LOCALAPPDATA%\wps-agent` 建一个独立的 Python 环境，装好 `wps-agent` 和全部可选功能（OCR 除外）；
 4. 有 Node.js 时装好 Playwright（使用本机的 Edge，不另下载浏览器），并把它放在 `NODE_PATH` 最前面（你原有的条目保留）；
 5. 把 `wps-agent` 加到当前用户的 PATH（新开的终端里生效）；
@@ -168,7 +168,8 @@ wps-agent open-documents
 
 | 现象或错误码 | 原因和处理 |
 | --- | --- |
-| 安装时 “Python 3.10 or later was not found” | 装 Python 3.10+ 并勾选加入 PATH，或用 `-Python C:\...\python.exe` 指定 |
+| 安装时 “Python 3.10 or later was not found” | 装 Python 3.10+ 并勾选加入 PATH，或用 `-Python C:\...\python.exe` 指定。`python` 只打开 Microsoft Store 时，它是占位程序，不是真的 Python |
+| 安装时 “The GitHub API did not answer” | GitHub 限制了未登录的 API 调用（同一出口 IP 每小时 60 次）。脚本会自动改从 Release 页面下载，不用处理；如果仍下载失败，到 Release 页面手动下载 wheel，用 `-WheelPath` 安装 |
 | 运行脚本时提示“禁止运行脚本” | 按上面的写法用 `powershell -ExecutionPolicy Bypass -File .\install.ps1` 运行 |
 | `inspect-env` 里没有任何组件 `detected: true`，或 `COM_BACKEND_UNAVAILABLE` | WPS 没装，或没有开启“兼容第三方系统和软件”（第 1 节） |
 | `WPS_INSTANCE_NOT_AUTOMATABLE` | 双击打开的 WPS 不能被外部程序连接。保存后关闭该组件的所有窗口，再用 `wps.exe /Automation "<文档路径>"` 打开 |

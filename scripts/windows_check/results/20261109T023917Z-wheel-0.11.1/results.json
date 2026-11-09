@@ -1,0 +1,96 @@
+{
+  "prerequisites": {
+    "passed": true,
+    "checks": [
+      {
+        "name": "commit",
+        "ok": true,
+        "detail": "8fd1db2 on HEAD",
+        "required": true
+      },
+      {
+        "name": "python",
+        "ok": true,
+        "detail": "C:\\Users\\admin\\AppData\\Local\\wps-agent\\venv\\Scripts\\python.exe",
+        "required": true
+      },
+      {
+        "name": "windows",
+        "ok": true,
+        "detail": "Windows-10-10.0.19045-SP0",
+        "required": true
+      },
+      {
+        "name": "installed package",
+        "ok": true,
+        "detail": "0.11.1 from C:\\Users\\admin\\AppData\\Local\\wps-agent\\venv\\Lib\\site-packages\\wps_ai_agent_cli\\__init__.py",
+        "required": true
+      },
+      {
+        "name": "no WPS process running",
+        "ok": true,
+        "detail": "none",
+        "required": true
+      },
+      {
+        "name": "open command .docx",
+        "ok": true,
+        "detail": "\"C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\wps.exe\" \"%1\"",
+        "required": true
+      },
+      {
+        "name": "open command .xlsx",
+        "ok": true,
+        "detail": "\"C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\et.exe\" \"%1\"",
+        "required": true
+      },
+      {
+        "name": "open command .pptx",
+        "ok": true,
+        "detail": "\"C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\wpp.exe\" \"%1\"",
+        "required": true
+      },
+      {
+        "name": "inspect-env",
+        "ok": true,
+        "detail": "{\"presentation\": \"kwpp.Application\", \"spreadsheets\": \"ket.Application\", \"writer\": \"kwps.Application\"}",
+        "required": true
+      }
+    ],
+    "info": {
+      "commit": "8fd1db2",
+      "branch": "HEAD",
+      "python": "C:\\Users\\admin\\AppData\\Local\\wps-agent\\venv\\Scripts\\python.exe",
+      "platform": "Windows-10-10.0.19045-SP0",
+      "package": {
+        "version": "0.11.1",
+        "file": "C:\\Users\\admin\\AppData\\Local\\wps-agent\\venv\\Lib\\site-packages\\wps_ai_agent_cli\\__init__.py"
+      },
+      "wps_versions": {
+        "wps.exe": "12,8,2,18913",
+        "et.exe": "12,8,2,18913",
+        "wpp.exe": "12,8,2,18913"
+      }
+    }
+  },
+  "wheel": {
+    "version": "0.11.1",
+    "source": "github",
+    "wheel": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-wheel-04ziul7u\\wps_ai_agent_cli-0.11.1-py3-none-any.whl",
+    "sha256": "c517bd4065ed74426f6d78d0ce90763c1c7872c6196e2d7c9c24f25c78e27576",
+    "expected_sha256": "c517bd4065ed74426f6d78d0ce90763c1c7872c6196e2d7c9c24f25c78e27576",
+    "sha256_matches": true,
+    "installed": true,
+    "install_error": "",
+    "package_version": "0.11.1",
+    "package_file": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-wheel-04ziul7u\\venv\\Lib\\site-packages\\wps_ai_agent_cli\\__init__.py",
+    "inspect_env_ok": true,
+    "inspect_env_errors": [],
+    "safe_ok": true,
+    "safe_passed": 7,
+    "safe_total": 7,
+    "safe_failed": 0,
+    "manifest_path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-wheel-04ziul7u\\venv\\Lib\\site-packages\\wps_ai_agent_cli\\resources\\regression_manifest.json"
+  },
+  "passed": true
+}

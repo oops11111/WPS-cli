@@ -1,0 +1,46 @@
+=== wps-agent install dir ===
+LOCALAPPDATA\wps-agent exists: False
+
+=== Registry (HKCU\Environment, unexpanded) ===
+Path [String] = C:\Users\admin\.local\bin;C:\Users\admin\.cargo\bin;C:\Users\admin\AppData\Local\Programs\Python\Python312\Scripts\;C:\Users\admin\AppData\Local\Programs\Python\Python312\;C:\Users\admin\AppData\Local\Programs\Python\Launcher\;C:\Users\admin\AppData\Local\Microsoft\WindowsApps;C:\Program Files (x86)\Tencent\QQGameTempest\Hall.58195\;C:\Users\admin\AppData\Local\Programs\Microsoft VS Code\bin;C:\Users\admin\AppData\Local\Microsoft\WinGet\Links;C:\Users\admin\.dotnet\tools;C:\Users\admin\AppData\Roaming\npm;C:\Program Files\Git\bin;C:\Users\admin\AppData\Local\Microsoft\WinGet\Packages\Google.PlatformTools_Microsoft.Winget.Source_8wekyb3d8bbwe\platform-tools;C:\Users\admin\.dotnet\tools;C:\Users\admin\AppData\Local\Docker\cli;C:\Users\admin\.bun\bin;C:\Users\admin\bin;C:\Program Files (x86)\Microsoft Visual Studio\Installer;C:\Users\admin\AppData\Local\Programs\cursor\resources\app\bin;C:\Users\admin\AppData\Local\Temp\dotnetcli_m2dv\.dotnet\tools;C:\Program Files\Git\cmd
+NODE_PATH (none)
+
+wps-agent entries in PATH: 0
+
+
+wps-agent entries in NODE_PATH: 0
+
+
+=== wps-agent-data ===
+LOCALAPPDATA\wps-agent-data exists: True
+documents.json exists: True
+documents.json content:
+{
+  "documents": {
+    "doc_99aa3f7e6acec262": {
+      "component": "spreadsheets",
+      "document_id": "doc_99aa3f7e6acec262",
+      "exists": true,
+      "file_device": 11882268654517892920,
+      "file_inode": 22517998137181453,
+      "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-agent-mcp-smoke-uu_op3oc\\documents\\book.xlsx",
+      "registered_at": "2026-11-09T02:05:23.212352+00:00",
+      "source_sha256": "60E7F03AC2F1728F228D10C332E875D15DD154B04A5E5E9957E2209AE7627A2B"
+    },
+    "doc_b6285e79acb77c3f": {
+      "component": "spreadsheets",
+      "document_id": "doc_b6285e79acb77c3f",
+      "exists": true,
+      "file_device": 11882268654517892920,
+      "file_inode": 2251799815720614,
+      "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-agent-mcp-smoke-ih1rgssd\\documents\\book.xlsx",
+      "registered_at": "2026-11-09T02:30:29.076207+00:00",
+      "source_sha256": "34AA28DE90AAA70AB1224A370BD8272E0607A0883334E8840F94E45C9145E157"
+    }
+  }
+}
+
+=== Claude Desktop config ===
+Config exists: True
+mcpServers names: wps-agent
+wps-agent entry: present
