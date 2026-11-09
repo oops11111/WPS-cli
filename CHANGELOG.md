@@ -4,6 +4,12 @@ All notable changes to `wps-ai-agent-cli`. The versioning rule and release steps
 
 ## [Unreleased]
 
+### Fixed
+
+- `writer-merge` refusing a document held open in WPS no longer says WPS's `Open()` was not called (it never calls WPS); it says the command writes the file itself and to close the document first.
+- The Windows wheel check (`run_windows_check.py wheel`) falls back to the Release page and its `SHA256SUMS.txt` when the GitHub API refuses (the 0.12.0 check hit HTTP 403 rate limit exceeded), as `install.ps1` already does.
+- The user guide says how to pass JSON with quotes from Windows PowerShell 5.1, which strips them (`--%`, or a data file).
+
 ## [0.12.0] - 2026-11-09
 
 Eight new commands (C-01 to C-04: new documents, PDF page tools, template merge, charts) and three batches of hardening from the November code review. **Two changes can break existing callers**: a failed command now exits 1 instead of 0 (`--lenient-exit` restores the old behaviour), and six destructive MCP tools need `confirm: true`. WPS conversion also refuses macro-enabled sources. The MCP tool count goes from 87 to 95.

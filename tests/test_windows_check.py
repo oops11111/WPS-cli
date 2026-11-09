@@ -436,6 +436,31 @@ class WheelTests(unittest.TestCase):
         # A token, when there is one, avoids the unauthenticated quota that once failed the P7-009 run.
         self.assertEqual(urlopen.call_args.args[0].get_header("Authorization"), "Bearer t0ken")
 
+    def test_a_refused_api_falls_back_to_the_release_page(self):
+        # The 0.12.0 Windows check: the unauthenticated quota was used up (HTTP 403), like install.ps1 once saw.
+        name = "wps_ai_agent_cli-0.12.0-py3-none-any.whl"
+        sums = f"323a34aa  {name}\n9c30  install.ps1\n".encode()
+
+        class Response(io.BytesIO):
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *exc):
+                return False
+
+        limited = windows_check.urllib.error.HTTPError("api", 403, "rate limit exceeded", {}, None)
+        with patch.object(windows_check.urllib.request, "urlopen", side_effect=[limited, Response(sums)]) as urlopen:
+            url, digest = windows_check.release_wheel("0.12.0")
+        base = "https://github.com/oops11111/WPS-cli/releases/download/v0.12.0"
+        self.assertEqual((url, digest), (f"{base}/{name}", "323a34aa"))
+        self.assertEqual(urlopen.call_args.args[0], f"{base}/SHA256SUMS.txt")
+
+        with (
+            patch.object(windows_check.urllib.request, "urlopen", side_effect=[limited, Response(b"x  other.whl\n")]),
+            self.assertRaisesRegex(RuntimeError, "lists no"),
+        ):
+            windows_check.release_wheel("0.12.0")
+
 
 class PypiWheelTests(unittest.TestCase):
     def setUp(self):

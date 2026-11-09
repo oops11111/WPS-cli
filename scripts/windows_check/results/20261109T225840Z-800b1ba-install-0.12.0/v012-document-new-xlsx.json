@@ -1,0 +1,51 @@
+{
+  "backend": "python",
+  "command": "document-new",
+  "data": {
+    "component": "spreadsheets",
+    "contents": {
+      "sheet_names": [
+        "数据"
+      ]
+    },
+    "document": {
+      "component": "spreadsheets",
+      "document_id": "doc_75142bb61f9db968",
+      "exists": true,
+      "file_device": 11882268654517892920,
+      "file_inode": 7318349395111446,
+      "path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T225840Z-800b1ba-install-0.12.0\\work\\b.xlsx",
+      "registered_at": "2026-11-09T23:03:42.097184+00:00",
+      "source_sha256": "7A18F689B4B52DB20621E00E48B9AEDAEFCB8F575F9A7EB8955FE74D391D435F"
+    },
+    "document_id": "doc_75142bb61f9db968",
+    "path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T225840Z-800b1ba-install-0.12.0\\work\\b.xlsx",
+    "registered": true,
+    "size": 4798,
+    "title": "数据",
+    "validation_passed": true
+  },
+  "errors": [],
+  "ok": true,
+  "request_id": "9faebbda-089c-4274-8fbd-5e091c228bbf",
+  "summary": "Created C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T225840Z-800b1ba-install-0.12.0\\work\\b.xlsx as doc_75142bb61f9db968.",
+  "validation": {
+    "checks": [
+      {
+        "details": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T225840Z-800b1ba-install-0.12.0\\work\\b.xlsx",
+        "name": "document_created",
+        "passed": true
+      },
+      {
+        "details": {
+          "sheet_names": [
+            "数据"
+          ]
+        },
+        "name": "contents_read_back",
+        "passed": true
+      }
+    ],
+    "status": "passed"
+  }
+}

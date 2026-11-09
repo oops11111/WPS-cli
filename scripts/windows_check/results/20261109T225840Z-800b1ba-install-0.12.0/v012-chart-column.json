@@ -1,0 +1,86 @@
+{
+  "backend": "wps-com",
+  "command": "spreadsheet-chart-create",
+  "data": {
+    "anchor": "D1",
+    "backup": {
+      "backup_bytes": 8932,
+      "backup_path": ".wps-agent\\backups\\doc_75142bb61f9db968\\b.20261109T230432621087Z.xlsx",
+      "component": "spreadsheets",
+      "created": true,
+      "document_id": "doc_75142bb61f9db968",
+      "dry_run": false,
+      "source_identity": {
+        "file_device": 11882268654517892920,
+        "file_inode": 1688849862299816,
+        "source_sha256": "52A8A601825E87B878D49919502E728F8F82F42DEB413B15288679AB49AB5EE8"
+      },
+      "source_path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T225840Z-800b1ba-install-0.12.0\\work\\b.xlsx"
+    },
+    "backup_replayed": false,
+    "chart_backend": "powershell-com",
+    "chart_read_back": {
+      "part": "xl/charts/chart1.xml",
+      "refs": [
+        "数据!$B$1",
+        "数据!$A$2:$A$3",
+        "数据!$B$2:$B$3"
+      ],
+      "title": "测试",
+      "types": [
+        {
+          "bar_dir": "col",
+          "element": "barChart"
+        }
+      ]
+    },
+    "chart_type": "column",
+    "charts_after": 1,
+    "charts_before": 0,
+    "checks": {
+      "one_chart_added": true,
+      "series_inside_range": true,
+      "title_matches": true,
+      "type_matches": true
+    },
+    "document_id": "doc_75142bb61f9db968",
+    "dry_run": false,
+    "height": 288,
+    "normalized_range": "A1:B3",
+    "numeric_cells": 2,
+    "path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T225840Z-800b1ba-install-0.12.0\\work\\b.xlsx",
+    "range": "A1:B3",
+    "series_in": "auto",
+    "sheet_name": "数据",
+    "title": "测试",
+    "validation_passed": true,
+    "width": 480,
+    "wps_report": {
+      "chart_name": "Chart 1",
+      "chart_type": 51,
+      "charts_after": 1,
+      "charts_before": 0,
+      "series_count": 1,
+      "title": "测试"
+    }
+  },
+  "errors": [],
+  "ok": true,
+  "request_id": "86e83ad4-e999-4562-a45d-84158716745e",
+  "summary": "Added a column chart of 数据!A1:B3 at D1.",
+  "validation": {
+    "checks": [
+      {
+        "details": {
+          "one_chart_added": true,
+          "series_inside_range": true,
+          "title_matches": true,
+          "type_matches": true
+        },
+        "name": "chart_read_back",
+        "passed": true
+      }
+    ],
+    "status": "passed"
+  }
+}

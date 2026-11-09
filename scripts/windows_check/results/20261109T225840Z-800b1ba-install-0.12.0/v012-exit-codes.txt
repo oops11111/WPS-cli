@@ -1,0 +1,14 @@
+=== Step 5b exit codes (working directory = results\work, PATH wps-agent, PYTHONPATH unset) ===
+wps-agent mcp-tool-schema --name does-not-exist => exit 1 (ok:false, MCP_TOOL_SCHEMA_NOT_FOUND)
+wps-agent mcp-tool-schema --name does-not-exist --lenient-exit => exit 0 (same JSON)
+wps-agent document-new --component writer --path a.docx --title 测试 => exit 0
+wps-agent convert --input a.docx --output a.pdf => exit 0
+wps-agent pdf-info --input a.pdf => exit 0 (ok:true)
+wps-agent document-new --component spreadsheets --path b.xlsx --title 数据 => exit 0 (doc_75142bb61f9db968)
+wps-agent spreadsheet-write --document-id doc_75142bb61f9db968 --range A1:B3 --values-json [["月","值"],["7月",1],["8月",2]] => exit 1 (INVALID_JSON: the inner quotes were stripped by PowerShell -> cmd.exe -> C runtime before the CLI saw them; invocation/quoting issue, not a product defect)
+wps-agent --% spreadsheet-write --document-id doc_75142bb61f9db968 --range A1:B3 --values-json [[\"月\",\"值\"],[\"7月\",1],[\"8月\",2]] => exit 0 (ok:true)
+wps-agent spreadsheet-chart-create --document-id doc_75142bb61f9db968 --sheet-name 数据 --range A1:B3 --chart-type column --title 测试 => exit 0 (ok:true, all four checks true)
+
+=== Other exit codes ===
+install.ps1 -McpClient claude-desktop => 0 (install.log)
+mcp_client_smoke.py => 0 (Passed)
