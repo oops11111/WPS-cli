@@ -1,0 +1,7 @@
+opened: C:\Users\admin\.lody\repos\github---oops11111---wps-cli\worktrees\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\scripts\windows_check\results\20261109T162108Z-e0cdf0b-install-0.11.3\report.pptx
+slides: 5
+slide 1: 2026 年第三季度经营报告 / 编制：财务部 · 版本 v3 · 机密等级 内部
+slide 2: 一、摘要 / 本季度营业收入 4,820 万元，同比增长 12.5%； 毛利率 38.2%，较上季度下降 1.1 0.9 个百分点。H2O 项目进入试产， x2 模型已上线。
+slide 3: 二、重点事项 / 华东区新开门店 14 家 | 上海 6 家 | 杭州 5 家 | 南京 3 家 | 完成 ERP 系统升级 | 启动海外市场调研（越南、泰国） | 2.1 风险
+slide 4: 三、分区域业绩 / 图 1 季度收入趋势 / 区域
+slide 5: 四、附录 / SELECT region, SUM(amount) FROM sales WHERE quarter = 'Q3' GROUP BY region; | 计算
