@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<style>
+  body {
+    font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+    margin: 0;
+    padding: 0;
+    background: #ffffff;
+  }
+
+  /* === Slide 1: Cover === */
+  section.cover {
+    background-color: #1e3a5f;
+    color: #ffffff;
+    padding: 60px 80px;
+  }
+  section.cover h1 {
+    font-size: 44px;
+    font-weight: bold;
+    color: #ffffff;
+    margin-bottom: 16px;
+    line-height: 1.4;
+  }
+  section.cover p {
+    font-size: 20px;
+    color: #93c5fd;
+    margin-bottom: 40px;
+  }
+  section.cover table.meta {
+    border-collapse: collapse;
+  }
+  section.cover table.meta td {
+    font-size: 16px;
+    color: #cbd5e1;
+    padding: 6px 24px 6px 0;
+  }
+  section.cover table.meta td.label {
+    color: #64748b;
+  }
+
+  /* === Slide 2: Overview === */
+  section.overview {
+    background-color: #f8fafc;
+    color: #1e293b;
+    padding: 50px 70px;
+  }
+  section.overview h2 {
+    font-size: 32px;
+    color: #1e3a5f;
+    border-bottom: 3px solid #3b82f6;
+    padding-bottom: 10px;
+    margin-bottom: 30px;
+  }
+  section.overview table.cards {
+    border-collapse: separate;
+    border-spacing: 16px;
+    width: 100%;
+  }
+  section.overview table.cards td {
+    background-color: #ffffff;
+    border-left: 6px solid #3b82f6;
+    padding: 20px 24px;
+    vertical-align: top;
+    width: 50%;
+  }
+  section.overview table.cards td.purple { border-left-color: #8b5cf6; }
+  section.overview table.cards td.green { border-left-color: #10b981; }
+  section.overview table.cards td.orange { border-left-color: #f59e0b; }
+  section.overview table.cards td h3 {
+    font-size: 17px;
+    color: #334155;
+    margin-bottom: 8px;
+  }
+  section.overview table.cards td p {
+    font-size: 14px;
+    color: #64748b;
+    line-height: 1.6;
+  }
+
+  /* === Slide 3: Steps === */
+  section.steps-page {
+    background-color: #1e293b;
+    color: #e2e8f0;
+    padding: 50px 70px;
+  }
+  section.steps-page h2 {
+    font-size: 32px;
+    color: #f1f5f9;
+    margin-bottom: 24px;
+  }
+  section.steps-page table.timeline {
+    border-collapse: separate;
+    border-spacing: 0 8px;
+    width: 100%;
+  }
+  section.steps-page table.timeline td.num-cell {
+    background-color: #10b981;
+    color: #ffffff;
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center;
+    vertical-align: middle;
+    width: 44px;
+    height: 40px;
+  }
+  section.steps-page table.timeline td.num-cell.retry {
+    background-color: #f59e0b;
+  }
+  section.steps-page table.timeline td.title-cell {
+    background-color: #334155;
+    color: #e2e8f0;
+    font-size: 16px;
+    font-weight: 600;
+    padding: 10px 20px;
+    vertical-align: middle;
+  }
+  section.steps-page table.timeline td.result-cell {
+    background-color: #10b981;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: bold;
+    text-align: center;
+    vertical-align: middle;
+    width: 100px;
+    padding: 10px 12px;
+  }
+  section.steps-page table.timeline td.result-cell.retry {
+    background-color: #f59e0b;
+  }
+
+  /* === Slide 4: Results === */
+  section.results-page {
+    background-color: #1e3a5f;
+    color: #e2e8f0;
+    padding: 50px 70px;
+  }
+  section.results-page h2 {
+    font-size: 32px;
+    color: #f1f5f9;
+    margin-bottom: 30px;
+  }
+  section.results-page table.metrics {
+    border-collapse: separate;
+    border-spacing: 16px;
+    width: 100%;
+  }
+  section.results-page table.metrics td {
+    background-color: #334155;
+    color: #e2e8f0;
+    text-align: center;
+    padding: 24px 16px;
+    vertical-align: middle;
+    width: 33.3%;
+  }
+  section.results-page table.metrics td.passed {
+    border-bottom: 5px solid #10b981;
+  }
+  section.results-page table.metrics td.info {
+    border-bottom: 5px solid #3b82f6;
+  }
+  section.results-page table.metrics td.warn {
+    border-bottom: 5px solid #f59e0b;
+  }
+  section.results-page p.footer {
+    margin-top: 24px;
+    text-align: center;
+    font-size: 14px;
+    color: #64748b;
+    border-top: 1px solid #475569;
+    padding-top: 16px;
+  }
+</style>
+</head>
+<body>
+
+<!-- Slide 1: Cover -->
+<section class="cover">
+  <h1>wps-agent 0.11.1 Windows 安装验证报告</h1>
+  <p>从 GitHub Release 安装、MCP 读写测试、卸载重装、Wheel 检查 | P14-005</p>
+  <table class="meta">
+    <tr>
+      <td class="label">分支</td>
+      <td>cursor/phase14-windows-8fd1db2</td>
+      <td class="label">日期</td>
+      <td>2026-11-09</td>
+      <td class="label">版本</td>
+      <td>v0.11.1</td>
+    </tr>
+  </table>
+</section>
+
+<!-- Slide 2: Overview -->
+<section class="overview">
+  <h2>验证概览</h2>
+  <table class="cards">
+    <tr>
+      <td>
+        <h3>步骤全部通过</h3>
+        <p>从准备到 Wheel 检查，9 个步骤全部完成，无一失败。所有检查项均为 OK 或 Passed。</p>
+      </td>
+      <td class="purple">
+        <h3>MCP 工具数量</h3>
+        <p>wps-agent 0.11.1 注册了 87 个 MCP 工具，覆盖文档读写、备份恢复、格式转换等操作。</p>
+      </td>
+    </tr>
+    <tr>
+      <td class="green">
+        <h3>Safe Profile 通过</h3>
+        <p>Wheel 检查的回归测试 7 项全部通过，SHA-256 校验值与 GitHub Release 一致。</p>
+      </td>
+      <td class="orange">
+        <h3>适配调整</h3>
+        <p>Python 路径、GitHub API 限速、Wheel 检查 Python 环境三处做了适配，均不影响最终结果。</p>
+      </td>
+    </tr>
+  </table>
+</section>
+
+<!-- Slide 3: Steps Timeline -->
+<section class="steps-page">
+  <h2>执行步骤</h2>
+  <table class="timeline">
+    <tr>
+      <td class="num-cell">0</td>
+      <td class="title-cell">准备：fetch tags、检查进程、记录安装前状态</td>
+      <td class="result-cell">OK</td>
+    </tr>
+    <tr>
+      <td class="num-cell">1</td>
+      <td class="title-cell">下载 install.ps1 并核对 git hash 一致性</td>
+      <td class="result-cell">OK</td>
+    </tr>
+    <tr>
+      <td class="num-cell retry">2</td>
+      <td class="title-cell">安装 wps-agent（首次失败，加 -Python 重试成功）</td>
+      <td class="result-cell retry">OK retry</td>
+    </tr>
+    <tr>
+      <td class="num-cell">3</td>
+      <td class="title-cell">检查安装结果：install.json、PATH、Claude 配置</td>
+      <td class="result-cell">OK</td>
+    </tr>
+    <tr>
+      <td class="num-cell">4</td>
+      <td class="title-cell">模拟新终端：wps-agent 命令路径、inspect-env</td>
+      <td class="result-cell">OK</td>
+    </tr>
+    <tr>
+      <td class="num-cell">5</td>
+      <td class="title-cell">MCP 读写冒烟测试：注册、读 A1:F3、写 F2、读回</td>
+      <td class="result-cell">Passed</td>
+    </tr>
+    <tr>
+      <td class="num-cell">6</td>
+      <td class="title-cell">卸载：安装目录删除、PATH/NODE_PATH 清理</td>
+      <td class="result-cell">OK</td>
+    </tr>
+    <tr>
+      <td class="num-cell">7</td>
+      <td class="title-cell">重新安装：0.11.1 再次安装，留供使用</td>
+      <td class="result-cell">OK</td>
+    </tr>
+    <tr>
+      <td class="num-cell">8</td>
+      <td class="title-cell">Wheel 检查：SHA-256、Safe Profile 7/7</td>
+      <td class="result-cell">Passed</td>
+    </tr>
+  </table>
+</section>
+
+<!-- Slide 4: Results -->
+<section class="results-page">
+  <h2>关键结果</h2>
+  <table class="metrics">
+    <tr>
+      <td class="passed">安装版本 0.11.1</td>
+      <td class="info">MCP 工具 87</td>
+      <td class="passed">Safe Profile 7/7</td>
+    </tr>
+    <tr>
+      <td class="info">COM ProgID 3</td>
+      <td class="warn">适配调整 3</td>
+      <td class="passed">SHA-256 校验通过</td>
+    </tr>
+  </table>
+  <p class="footer">分支 cursor/phase14-windows-8fd1db2 已推送至 origin | Windows 10 19045 | WPS 12.8.2.18913 | Python 3.12.15 | Node v22.22.2</p>
+</section>
+
+</body>
+</html>
