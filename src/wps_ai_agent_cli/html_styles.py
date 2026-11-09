@@ -373,6 +373,110 @@ def color(value: str | None) -> str | None:
     return None
 
 
+def color_alpha(value: str | None) -> tuple[str | None, float]:
+    """A colour as RRGGBB and its opacity from 0 to 1; (None, 0.0) when transparent or unknown."""
+    if not value:
+        return None, 0.0
+    match = re.fullmatch(
+        r"rgba?\(\s*(\d+)[,\s]+(\d+)[,\s]+(\d+)(?:[,\s/]+([\d.]+)(%?))?\s*\)", value.strip().casefold()
+    )
+    if match:
+        alpha = 1.0 if match.group(4) is None else float(match.group(4)) / (100.0 if match.group(5) else 1.0)
+        if alpha <= 0:
+            return None, 0.0
+        return "".join(f"{int(match.group(i)):02X}" for i in (1, 2, 3)), min(alpha, 1.0)
+    hue = color(value)
+    return (hue, 1.0) if hue else (None, 0.0)
+
+
+def split_top_level(value: str, separator: str = ",") -> list[str]:
+    """Split at separators outside parentheses: the parts of a gradient, or the layers of a background."""
+    parts, depth, start = [], 0, 0
+    for index, char in enumerate(value):
+        if char == "(":
+            depth += 1
+        elif char == ")":
+            depth -= 1
+        elif char == separator and depth == 0:
+            parts.append(value[start:index].strip())
+            start = index + 1
+    parts.append(value[start:].strip())
+    return [part for part in parts if part]
+
+
+_GRADIENT = re.compile(r"(repeating-)?(linear|radial)-gradient\((.*)\)$", re.S)
+_SIDES = {"top": 0.0, "right": 90.0, "bottom": 180.0, "left": 270.0}
+
+
+def parse_gradient(value: str | None) -> dict[str, Any] | None:
+    """The first gradient layer of a computed background-image.
+
+    {"kind": "linear" or "radial", "angle": CSS degrees (0 is upwards, 90 to the right), "stops": [(RRGGBB, opacity,
+    position from 0 to 1)]}, or None when there is no gradient this can read.
+    """
+    if not value or "gradient(" not in value:
+        return None
+    layer = split_top_level(value.strip())[0]
+    match = _GRADIENT.match(layer)
+    if not match:
+        return None
+    kind, args = match.group(2), split_top_level(match.group(3))
+    angle = 180.0
+    if args and not re.match(r"(rgba?\(|#|[a-z]+\s+\d|[a-z]+$)", args[0]) or (args and args[0].startswith("to ")):
+        head = args.pop(0)
+        degrees = re.fullmatch(r"(-?[\d.]+)(deg|turn|rad)", head)
+        if degrees:
+            number = float(degrees.group(1))
+            angle = number * {"deg": 1.0, "turn": 360.0, "rad": 57.29577951308232}[degrees.group(2)]
+        elif head.startswith("to "):
+            sides = [_SIDES[word] for word in head[3:].split() if word in _SIDES]
+            if len(sides) == 2:
+                # A corner: halfway between the two sides, taking the wrap from left (270) to top (0/360) into account.
+                first, second = sorted(sides)
+                angle = (first + second) / 2 if second - first <= 180 else ((first + second + 360) / 2) % 360
+            elif sides:
+                angle = sides[0]
+    elif kind == "radial" and args and not re.match(r"(rgba?\(|#)", args[0]):
+        args.pop(0)  # shape and size of a radial gradient: drawn as a circle from the centre
+    stops: list[tuple[str, float, float | None]] = []
+    for arg in args:
+        found = re.match(r"(rgba?\([^)]*\)|#[0-9a-fA-F]{3,8}|[a-zA-Z]+)\s*(-?[\d.]+%)?", arg)
+        if not found:
+            continue
+        hue, alpha = color_alpha(found.group(1))
+        position = float(found.group(2)[:-1]) / 100 if found.group(2) else None
+        stops.append((hue or "000000", alpha if hue else 0.0, position))
+    if len(stops) < 2:
+        return None
+    # Stops without a position are spread evenly between their neighbours, as CSS does.
+    positions = [stop[2] for stop in stops]
+    if positions[0] is None:
+        positions[0] = 0.0
+    if positions[-1] is None:
+        positions[-1] = 1.0
+    index = 0
+    while index < len(positions):
+        if positions[index] is None:
+            end = index
+            while positions[end] is None:
+                end += 1
+            low, high = positions[index - 1], positions[end]
+            for offset, slot in enumerate(range(index, end), 1):
+                positions[slot] = low + (high - low) * offset / (end - index + 1)
+            index = end
+        index += 1
+    result = [
+        (hue, alpha, max(0.0, min(1.0, position))) for (hue, alpha, _), position in zip(stops, positions, strict=True)
+    ]
+    # CSS fades to "transparent" in the neighbouring colour; a black transparent stop would darken the fade elsewhere.
+    for index, (_hue, alpha, position) in enumerate(result):
+        if alpha == 0.0:
+            neighbour = next((r for r in result[index + 1 :] + result[:index][::-1] if r[1] > 0), None)
+            if neighbour:
+                result[index] = (neighbour[0], 0.0, position)
+    return {"kind": kind, "angle": angle % 360, "stops": result}
+
+
 def first_font(value: str | None) -> str | None:
     """The first concrete family of a font-family list (generic names map to common fonts)."""
     if not value:
@@ -411,12 +515,17 @@ class StyledDocument:
     section_screenshots: list[str] = field(default_factory=list)
     browser: str | None = None
     parser: Any = None
+    # Decorative ::before/::after boxes the browser reported for an element: {id(node): [computed values]}.
+    pseudo: dict[int, list[dict[str, str]]] = field(default_factory=dict)
 
     def style(self, node: _Node) -> dict[str, str]:
         return self.styles.get(id(node), DEFAULT_STYLE)
 
     def box(self, node: _Node) -> dict[str, float] | None:
         return self.boxes.get(id(node))
+
+    def pseudo_elements(self, node: _Node) -> list[dict[str, str]]:
+        return self.pseudo.get(id(node), [])
 
     def inline_ancestors(self, node: _Node) -> list[_Node]:
         """The node and the inline elements around it, innermost first, up to its block."""
@@ -554,10 +663,13 @@ def load(
         finally:
             Path(handle.name).unlink(missing_ok=True)
         if reply.get("ok"):
-            styles, boxes = {}, {}
+            styles, boxes, pseudo = {}, {}, {}
             for key, entry in reply["elements"].items():
                 node = nodes.get(key)
                 if node is not None:
+                    decorations = entry["style"].pop("pseudo", None)
+                    if decorations:
+                        pseudo[id(node)] = decorations
                     styles[id(node)] = entry["style"]
                     boxes[id(node)] = entry["box"]
             # Elements the browser does not report (the parser's document root) inherit the defaults.
@@ -573,6 +685,7 @@ def load(
                 list(reply.get("section_screenshots") or []),
                 reply.get("browser"),
                 parser,
+                pseudo,
             )
         warnings.append(
             f"The browser could not lay the page out ({reply.get('message', 'no reply')}); used the cascade."

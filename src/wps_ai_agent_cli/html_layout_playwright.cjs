@@ -15,7 +15,18 @@ const PROPERTIES = [
   'border-bottom-style', 'border-bottom-color', 'border-left-width', 'border-left-style', 'border-left-color',
   'border-right-width', 'border-right-style', 'border-right-color', 'break-before', 'page-break-before', 'width',
   'height', 'float', 'visibility', 'opacity', 'white-space', 'border-collapse', 'border-spacing',
+  // Appearance of slide boxes (P13-006): corners, flex alignment, shadows and gradient text.
+  'border-top-left-radius', 'border-top-right-radius', 'border-bottom-left-radius', 'border-bottom-right-radius',
+  'justify-content', 'align-items', 'flex-direction', 'box-shadow', '-webkit-text-fill-color', 'background-clip',
+  '-webkit-background-clip',
 ];
+// What a decorative ::before/::after needs to be drawn: its box comes from these.
+const PSEUDO_PROPERTIES = [
+  'content', 'position', 'top', 'right', 'bottom', 'left', 'width', 'height', 'background-color', 'background-image',
+  'border-top-left-radius', 'opacity', 'display',
+];
+// A slide is a <section> or an element with the class "slide", not inside another one (html_slides.collect_slides).
+const SLIDE_SELECTOR = 'section, .slide';
 
 async function main() {
   const request = JSON.parse(fs.readFileSync(0, 'utf8'));
@@ -44,7 +55,7 @@ async function main() {
     });
     await page.goto(pathToFileURL(mainFile).href, { waitUntil: 'load', timeout: request.timeout_seconds * 1000 });
     await page.evaluate(() => document.fonts.ready);
-    const elements = await page.evaluate(properties => {
+    const elements = await page.evaluate(([properties, pseudoProperties]) => {
       const result = {};
       // "line-height: normal" depends on the font: measure it once per font, so that a document can set the line
       // the browser drew (WPS gives Microsoft YaHei a taller "single" line than the browser's normal one).
@@ -77,6 +88,23 @@ async function main() {
         if (values['line-height'] === 'normal' && document.body) {
           values['line-height-normal'] = `${normalLine(style, element.textContent || '')}px`;
         }
+        // How many lines the element's text takes here, so a slide can keep one line from wrapping in a wider font.
+        if ((element.textContent || '').trim()) {
+          const range = document.createRange();
+          range.selectNodeContents(element);
+          const tops = new Set();
+          for (const rect of range.getClientRects()) if (rect.height > 0) tops.add(Math.round(rect.top / 2));
+          values['text-lines'] = String(tops.size);
+        }
+        const pseudo = [];
+        for (const which of ['::before', '::after']) {
+          const p = getComputedStyle(element, which);
+          if (!p.content || p.content === 'none' || p.content === 'normal' || p.display === 'none') continue;
+          const v = { which };
+          for (const name of pseudoProperties) v[name] = p.getPropertyValue(name);
+          pseudo.push(v);
+        }
+        if (pseudo.length) values['pseudo'] = pseudo;
         result[element.getAttribute('data-wps-i')] = {
           tag: element.tagName.toLowerCase(),
           box: { x: box.left + window.scrollX, y: box.top + window.scrollY, width: box.width, height: box.height },
@@ -84,10 +112,15 @@ async function main() {
         };
       }
       return result;
-    }, PROPERTIES);
+    }, [PROPERTIES, PSEUDO_PROPERTIES]);
     const shots = [];
     if (request.section_screenshots_dir) {
-      const sections = await page.$$('section');
+      const sections = [];
+      for (const element of await page.$$(SLIDE_SELECTOR)) {
+        if (await element.evaluate((node, selector) => !node.parentElement?.closest(selector), SLIDE_SELECTOR)) {
+          sections.push(element);
+        }
+      }
       let index = 0;
       for (const section of sections) {
         index += 1;
