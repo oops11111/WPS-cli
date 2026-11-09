@@ -150,11 +150,11 @@ PHASES: tuple[Phase, ...] = (
     Phase(
         id="phase14",
         name="One-command install and a user guide",
-        status="active",
+        status="done",
         goal=(
             "Let a Windows user with WPS install wps-agent with one PowerShell command (the wheel with every "
             "optional dependency, HTML rendering, PATH, an MCP client connected), document it for users in "
-            "docs/USER_GUIDE.md, and release 0.11.0."
+            "docs/USER_GUIDE.md, and release it (0.11.0 to 0.11.3, the last checked on Windows)."
         ),
     ),
 )

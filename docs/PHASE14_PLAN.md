@@ -1,6 +1,6 @@
 # Phase 14 计划：一键安装和使用说明
 
-状态：**active**（2026-10-23 你提出“下一步打包，发布使用说明”，选定一键安装脚本、仓库文档加 Release；同日本地任务完成，Windows 检查和发布待做）。
+状态：**done**（2026-10-23 你提出“下一步打包，发布使用说明”并激活，2026-11-09 完成）。发布了 0.11.0～0.11.3；第二次上机（0.11.3）按使用说明的原样命令一次装好，经 MCP 读写和 wheel 检查通过，结果见下面“上机结果”。
 
 ## 目标
 
@@ -40,9 +40,9 @@ Phase 14 补上这三块，发布 0.11.0。
 | --- | --- | --- | --- | --- |
 | P14-001 | G1 | `[all]` 可选依赖和测试 | 本地 | 完成 |
 | P14-002 | G2 | `client_config` 模块、`WPS_AGENT_WORKSPACE`、测试 | 本地 | 完成 |
-| P14-003 | G3、G4 | `install.ps1`、Windows CI 任务、Release 附带安装脚本和安装说明 | 本地 | 完成，CI 待在 PR 上跑通 |
+| P14-003 | G3、G4 | `install.ps1`、Windows CI 任务、Release 附带安装脚本和安装说明 | 本地 | 完成，Windows CI 任务每次都跑 |
 | P14-004 | G5 | `USER_GUIDE.md`、README 改写、`CONTRIBUTING.md`、一致性测试 | 本地 | 完成 |
-| P14-005 | G6 | 发布 0.11.0；在 Windows 上用安装脚本装 Release、接 Claude Desktop 做一次读取和写入、卸载；wheel 检查 | Windows + 你 | 0.11.0 已发布（2026-10-23）。上机前做了一次全仓代码审查，安装脚本、回滚、HTML 转换的问题在 0.11.1 修复（PR #133～#136），上机检查改用 0.11.1。2026-11-09 第一次上机：两处安装问题（下面“上机结果”），修复后发 0.11.2 再上机一次 |
+| P14-005 | G6 | 发布 0.11.0；在 Windows 上用安装脚本装 Release、接 Claude Desktop 做一次读取和写入、卸载；wheel 检查 | Windows + 你 | 0.11.0 已发布（2026-10-23）。上机前做了一次全仓代码审查，安装脚本、回滚、HTML 转换的问题在 0.11.1 修复（PR #133～#136），上机检查改用 0.11.1。2026-11-09 第一次上机：两处安装问题（下面“上机结果”），在 0.11.2 修复；幻灯片修复随 0.11.3 发布。第二次上机（0.11.3）通过，完成 |
 
 ## 上机步骤（P14-005）
 
@@ -72,6 +72,19 @@ Phase 14 补上这三块，发布 0.11.0。
 - 这台机器的用户 PATH 在检查前已是 REG_SZ、条目全部展开，应是 0.11.0 的安装脚本留下的（0.11.1 修复了这一点，但不能还原）。
 
 两处安装问题在 0.11.2 修复：找 Python 时也试上次安装用的 Python、`uv python find` 和 python.org、uv 的默认目录；API 被拒时从 Release 页面下载，用 Release 附带的 `SHA256SUMS.txt` 核对。
+
+### 第二次（0.11.3，2026-11-09，main@e0cdf0b）
+
+结果在 `scripts/windows_check/results/20261109T162108Z-e0cdf0b-install-0.11.3/`，wheel 检查在 `20261109T163806Z-wheel-0.11.3/`。同一台机器，从 0.11.1 升级；开始时 `python` 仍是 Microsoft Store 占位程序（退出码 9009），没有 `py`。
+
+- **按说明原样一条命令装好**（不加 `-Python`、`-WheelPath`），退出码 0。下载的 `install.ps1` 与 `v0.11.3:scripts/install/install.ps1` 一致。
+- 找到的是 uv 装的 Python 3.12（上次安装记下的那个）。
+- GitHub API 又一次拒绝（403），安装脚本改从 Release 页面下载 wheel，并报告 “SHA-256 matches the Release”。
+- `install.json` 为 0.11.3、`installed`；安装脚本没有改 PATH（“Already on PATH”）和 `NODE_PATH`，PATH 里只有一条 `wps-agent\bin`；新终端里 `wps-agent` 指向安装目录的 `wps-agent.cmd`，`inspect-env` 检测到三个 WPS 组件；Claude Desktop 配置先备份再写入。
+- `mcp_client_smoke.py` 用安装环境里的 Python、按 Claude Desktop 的方式启动服务器：0.11.3、87 个工具，读 `sales_gbk!A1:F3`、写 `F2` 并读回，备份在 `WPS_AGENT_WORKSPACE` 下，启动目录里没写东西，通过。
+- wheel 检查：SHA-256 与 Release 一致，从 site-packages 加载 0.11.3，安全档 7/7。
+- 另把 `fixtures/html_complex/report.html` 转成 PPTX（可编辑模式，5 页），在 WPS 里打开正常。
+- 与步骤的出入：安装做完后，按你的要求另装了 Python 3.13 修好 `python` 命令（原 3.12 的 MSI 注册已坏），并整理了 PATH 的重复条目，所以安装后的 PATH 与安装前不逐字相同；这不是安装脚本改的。这次按你的要求装好后保留、没有卸载；`-Uninstall` 已在第一次上机和每次的 Windows CI 里验证过。
 
 ## 主要风险
 

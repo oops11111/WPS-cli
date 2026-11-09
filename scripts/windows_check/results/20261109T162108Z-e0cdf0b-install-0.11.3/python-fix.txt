@@ -1,0 +1,32 @@
+Python unavailable: diagnosis and fix (2026-11-10)
+
+Before: `python --version` exited 9009 (the only python.exe on PATH was the
+Microsoft Store alias at %LOCALAPPDATA%\Microsoft\WindowsApps\python.exe);
+`py` was not found. `uv` was on PATH at C:\Users\admin\.local\bin\uv.exe.
+
+winget said Python 3.12.10 (64-bit) was installed, but
+%LOCALAPPDATA%\Programs\Python\Python312 did not exist and the MSI product
+was unregistered for this user (msiexec /x returned 1605). Running the
+official python-3.12.10 installer failed with exit 1603:
+  Could not load or read state file ...\Package Cache\{b6ce88eb-...}\state.rsm (0x80070003)
+  Failed to uninstall MSI package (0x80070643)
+The HKCU uninstall key {b6ce88eb-2ce3-4d91-8efc-425ae1f48caf} and
+HKCU\Software\Python\PythonCore\3.12 pointed at the missing installation.
+Deleting those pre-existing registry keys was not done.
+
+Fix: installed Python 3.13.17 per-user with winget (Python.Python.3.13),
+which has no broken registration. It installed to
+%LOCALAPPDATA%\Programs\Python\Python313 and put py.exe in
+%LOCALAPPDATA%\Programs\Python\Launcher (already on PATH). The Python313
+directory and its Scripts directory were added to the front of the user
+PATH (deduplicated; 26 -> 23 entries, duplicates such as .dotnet\tools
+removed). The stale Python312 PATH entries were left alone.
+
+After: `python --version` -> Python 3.13.17 (exit 0);
+`py --version` -> Python 3.13.17 (exit 0);
+`where python` -> %LOCALAPPDATA%\Programs\Python\Python313\python.exe then
+the WindowsApps alias.
+
+Timing: the 0.11.3 install (step 2) had already completed before this fix;
+the installer found uv's Python. The fix was requested mid-run and does not
+change the install result.

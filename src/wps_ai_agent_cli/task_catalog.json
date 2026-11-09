@@ -3537,8 +3537,8 @@
   {
     "id": "P14-005",
     "phase": "phase14",
-    "title": "0.11.0 on Windows",
-    "status": "todo",
-    "acceptance": "G6: release 0.11.0; install it with install.ps1 on Windows with WPS, use it from Claude Desktop, uninstall, and check the wheel."
+    "title": "0.11.3 on Windows",
+    "status": "done",
+    "acceptance": "G6: release 0.11.3; install it with install.ps1 on Windows with WPS, use it from Claude Desktop, uninstall, and check the wheel."
   }
 ]

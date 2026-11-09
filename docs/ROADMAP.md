@@ -189,7 +189,7 @@
 
 出口标准和任务拆分见 `docs/PHASE13_PLAN.md`。
 
-### Phase 14 一键安装和使用说明（active）
+### Phase 14 一键安装和使用说明（done）
 
 目标是让只装了 WPS 的 Windows 用户用一条 PowerShell 命令装好 `wps-agent` 并接上 AI 客户端，并有一份给使用者看的说明。
 
@@ -197,7 +197,7 @@
 
 - `scripts/install/install.ps1`：独立环境、`[all]` 可选依赖、HTML 渲染、PATH、连接 Claude Desktop 或 Claude Code、卸载；每个 Release 附带
 - `docs/USER_GUIDE.md`：准备、安装、连接客户端、能做什么、备份和恢复、已知限制、故障排查；README 改为面向使用者
-- 发布 0.11.0，并在 Windows 上从 Release 安装、使用、卸载
+- 发布 0.11.0，并在 Windows 上从 Release 安装、使用、卸载。第一次上机（0.11.1）发现两处安装问题，在 0.11.2 修复；0.11.3（2026-11-09）在 Windows 上按说明一条命令装好，经 MCP 读写和 wheel 检查通过
 
 出口标准和任务拆分见 `docs/PHASE14_PLAN.md`。
 
