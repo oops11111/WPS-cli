@@ -127,7 +127,7 @@ class InstallerContentTests(unittest.TestCase):
 
     def test_the_download_is_checked_against_the_release_digest(self):
         self.assertIn("Get-FileHash -LiteralPath $target -Algorithm SHA256", self.text)
-        self.assertIn("the download was not checked", self.text)  # said when GitHub lists no digest
+        self.assertIn("refusing to install an unchecked download", self.text)  # no digest: fail closed
 
 
 class InstallerWorkflowTests(unittest.TestCase):
@@ -188,7 +188,11 @@ class UserGuideTests(unittest.TestCase):
         import re
 
         known = set(json.loads((ROOT / "config" / "public_interface.json").read_text(encoding="utf-8"))["error_codes"])
-        named = set(re.findall(r"`([A-Z][A-Z0-9_]{4,})`", self.guide)) - {"NODE_PATH", "WPS_AGENT_WORKSPACE"}
+        named = set(re.findall(r"`([A-Z][A-Z0-9_]{4,})`", self.guide)) - {
+            "NODE_PATH",
+            "WPS_AGENT_WORKSPACE",
+            "WPS_AGENT_WORKSPACE_ROOT",
+        }
         self.assertTrue(named)
         self.assertLessEqual(named, known)
 

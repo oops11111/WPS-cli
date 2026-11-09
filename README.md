@@ -2,6 +2,8 @@
 
 `wps-agent` 让 AI 助手读写和转换 WPS 文档。它通过 MCP 把八十多个工具交给 Claude Desktop、Claude Code 等客户端，也可以直接在命令行里用。
 
+> 先分清三个同名项目：本项目是 `wps-agent`（PyPI 包名 `wps-ai-agent-cli`），不是金山官方的 `wpscli`（转换为主、带云端服务），也不是社区的 jjchen17/wps-cli（命令为 `wps`、`pip install wps-cli` 装到的是它）。本项目的特点是操作 WPS 里已打开的文档，并为每次写入提供备份、读回核对与失败恢复。
+
 - **读取和检查**：文字的结构、表格的单元格和公式、核对文档内容，按文件读取不需要 WPS。
 - **安全地修改**：写入前自动备份，写入后读回核对，失败时自动恢复；同一个请求重复提交不会重复执行。
 - **已打开的文档**：在 WPS 里选中内容，让 AI 替换、插入、删除，失败时在 WPS 里撤回。
@@ -31,7 +33,7 @@ wps-agent open-documents                                # 列出 WPS 里打开�
 wps-agent mcp-server                                    # 启动 stdio MCP 服务器
 ```
 
-命令失败时默认仍以退出码 0 结束，请看 JSON 里的 `ok`；脚本里需要非零退出码时加 `--strict-exit`。
+命令失败时退出码为 1（成功 0、参数错误 2），请同时看 JSON 里的 `ok`；需要旧行为（失败也以 0 退出）的调用方加 `--lenient-exit`，`--strict-exit` 仍被接受但已是默认。
 
 ## 文档
 
@@ -43,4 +45,4 @@ wps-agent mcp-server                                    # 启动 stdio MCP 服�
 
 ## 状态
 
-当前版本 0.11.3。Phase 0 到 14 已完成，各阶段的结果见 [CONTRIBUTING.md](CONTRIBUTING.md#各阶段) 和 [docs/ROADMAP.md](docs/ROADMAP.md)。问题和建议请提交到 <https://github.com/oops11111/WPS-cli/issues>。
+当前版本 0.11.3。Phase 0 到 14 已完成，各阶段的结果见 [CONTRIBUTING.md](CONTRIBUTING.md#各阶段) 和 `docs/` 下的 PHASE 计划，后续计划见 [docs/ROADMAP.md](docs/ROADMAP.md)。问题和建议请提交到 <https://github.com/oops11111/WPS-cli/issues>。

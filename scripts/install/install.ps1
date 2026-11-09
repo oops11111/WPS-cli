@@ -227,7 +227,9 @@ function Get-ReleaseWheel([string]$Directory) {
         }
         Write-Note 'SHA-256 matches the Release.'
     } else {
-        Write-Warn "The Release lists no SHA-256 for ${name}: the download was not checked."
+        # Fail closed: an unchecked wheel is never installed. The digest comes from the Release API or
+        # its SHA256SUMS.txt; when neither answers there is nothing trustworthy to install.
+        throw "The Release lists no SHA-256 for ${name}: refusing to install an unchecked download."
     }
     return $target
 }

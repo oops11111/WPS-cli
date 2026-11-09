@@ -14,6 +14,14 @@ from wps_ai_agent_cli.backups import create_backup, list_backups, restore_backup
 from wps_ai_agent_cli.operations import record_operation
 from wps_ai_agent_cli.sessions import register_document, stable_document_id
 
+
+def _require_modules(*names: str) -> None:
+    """Skip the calling test when an optional dependency its fixtures need is not installed."""
+    missing = [name for name in names if importlib.util.find_spec(name) is None]
+    if missing:
+        raise unittest.SkipTest(f"optional test dependencies not installed: {', '.join(missing)}")
+
+
 REPO_ROOT = Path(__file__).resolve().parents[1]
 TASKS_PATH = REPO_ROOT / "config" / "agent_eval_tasks.json"
 
@@ -188,6 +196,7 @@ class AgentEvalTaskFileTests(unittest.TestCase):
         self.assertLessEqual(OPEN_DOCUMENT_WRITE_TOOLS, covered)
 
     def test_docx_and_pptx_fixtures_hold_the_text_the_tasks_replace(self):
+        _require_modules("pptx")
         with tempfile.TemporaryDirectory() as tmp:
             for name in ("report.docx", "deck.pptx"):
                 run_agent_eval.write_fixture(Path(tmp), name)
@@ -220,6 +229,7 @@ class AgentEvalTaskFileTests(unittest.TestCase):
                 self.assertTrue(task.get("unsaved_text"), task["id"])
 
     def test_the_selected_text_is_in_the_fixture(self):
+        _require_modules("pptx")
         spec = json.loads(TASKS_PATH.read_text(encoding="utf-8"))
         with tempfile.TemporaryDirectory() as tmp:
             for task in spec["tasks"]:
@@ -880,6 +890,7 @@ class AgentEvalJudgeTests(unittest.TestCase):
         self.assertLessEqual(run_agent_eval.FILE_BASED_WRITE_TOOLS, names)
 
     def test_wrong_tool_calls_add_up_over_runs_and_tasks(self):
+        _require_modules("pptx")
         calls = [_call("presentation_replace", error_codes=["DOCUMENT_HELD_OPEN"])]
         open_task = _task("wps-open-presentation-selection-insert")
         with (
@@ -1137,6 +1148,8 @@ class AgentEvalJudgeTests(unittest.TestCase):
     def run_wps_task(self, task_id, root, actions, calls):
         task = _task(task_id)
         fixture = task.get("fixture", "book.xlsx")
+        if fixture.endswith(".pptx"):
+            _require_modules("pptx")
         component = task.get("component", "spreadsheets")
         return run_agent_eval.run_task(
             task,
@@ -1173,6 +1186,7 @@ class AgentEvalJudgeTests(unittest.TestCase):
 
     @staticmethod
     def replace_in_pptx(path, old, new):
+        _require_modules("pptx")
         from pptx import Presentation
 
         presentation = Presentation(path)
@@ -1499,6 +1513,7 @@ class AgentEvalJudgeTests(unittest.TestCase):
                 self.assertIn(problem, reason)
 
     def workspace_for_caret(self):
+        _require_modules("pptx")
         tmp = tempfile.TemporaryDirectory()
         self.addCleanup(tmp.cleanup)
         run_agent_eval.write_fixture(Path(tmp.name), "deck.pptx")
@@ -1633,6 +1648,7 @@ class AgentEvalJudgeTests(unittest.TestCase):
         self.assertEqual(failed[0]["detail"]["missing"], ["South", "95"])
 
     def test_complex_html_tasks_pass_on_what_the_converter_makes_from_the_fixtures(self):
+        _require_modules("pptx", "PIL")
         # The three html-complex tasks, judged on the real converter's output and a stand-in for WPS's PDF.
         from wps_ai_agent_cli.html_editable import convert_html_editable
         from wps_ai_agent_cli.html_office import convert_html_to_pptx, convert_html_to_xlsx
@@ -1677,6 +1693,7 @@ class AgentEvalJudgeTests(unittest.TestCase):
                 self.assertFalse(outputs & fixtures)
 
     def test_convert_tasks_pass_on_what_convert_makes_from_the_fixtures(self):
+        _require_modules("pptx", "pdfplumber", "pypdfium2")
         # The Phase 13 conversion tasks that need no WPS, judged on convert's output; a lost table fails them.
         from wps_ai_agent_cli.convert import convert
 
@@ -2124,6 +2141,7 @@ class OpenDocumentSetupTests(unittest.TestCase):
         self.assertEqual(self.released, ["report.docx"])
 
     def test_a_presentation_selection_must_be_a_text_selection(self):
+        _require_modules("pptx")
         deck = self.workspace / "deck.pptx"
         run_agent_eval.write_fixture(self.workspace, "deck.pptx")
         options = {"selection": {"text": "DRAFT"}}

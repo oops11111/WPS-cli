@@ -333,6 +333,11 @@ def _add_document_commands(subparsers: argparse._SubParsersAction) -> None:
         ),
     )
     restore_backup_parser.add_argument("--task-id", help="Optional long-running task status id to update.")
+    restore_backup_parser.add_argument(
+        "--confirm",
+        action="store_true",
+        help="Acknowledge this destructive command (the MCP server requires it when not --dry-run; a person typing the command confirms by running it).",
+    )
 
     replace_parser = subparsers.add_parser(
         "writer-replace",
@@ -474,6 +479,11 @@ def _add_document_commands(subparsers: argparse._SubParsersAction) -> None:
     spreadsheet_selection_delete_parser.add_argument(
         "--task-id", help="Optional long-running task status id to update."
     )
+    spreadsheet_selection_delete_parser.add_argument(
+        "--confirm",
+        action="store_true",
+        help="Acknowledge this destructive command (the MCP server requires it when not --dry-run; a person typing the command confirms by running it).",
+    )
 
     presentation_selection_replace_parser = subparsers.add_parser(
         "presentation-selection-replace",
@@ -554,6 +564,11 @@ def _add_document_commands(subparsers: argparse._SubParsersAction) -> None:
         "--task-id",
         help="Optional long-running task status id to update.",
     )
+    presentation_selection_delete_parser.add_argument(
+        "--confirm",
+        action="store_true",
+        help="Acknowledge this destructive command (the MCP server requires it when not --dry-run; a person typing the command confirms by running it).",
+    )
 
     selection_replace_parser = subparsers.add_parser(
         "writer-selection-replace",
@@ -601,6 +616,11 @@ def _add_document_commands(subparsers: argparse._SubParsersAction) -> None:
         "--dry-run", action="store_true", help="Preview the selection deletion without modifying the file."
     )
     selection_delete_parser.add_argument("--task-id", help="Optional long-running task status id to update.")
+    selection_delete_parser.add_argument(
+        "--confirm",
+        action="store_true",
+        help="Acknowledge this destructive command (the MCP server requires it when not --dry-run; a person typing the command confirms by running it).",
+    )
 
     save_open_parser = subparsers.add_parser(
         "save-open-document",
@@ -642,6 +662,11 @@ def _add_document_commands(subparsers: argparse._SubParsersAction) -> None:
         help="Preview whether SaveAs would write the untitled document to --output.",
     )
     save_as_open_parser.add_argument("--task-id", help="Optional long-running task status id to update.")
+    save_as_open_parser.add_argument(
+        "--confirm",
+        action="store_true",
+        help="Acknowledge this destructive command (the MCP server requires it when not --dry-run; a person typing the command confirms by running it).",
+    )
 
     export_open_parser = subparsers.add_parser(
         "export-open-document",
@@ -1066,6 +1091,11 @@ def _add_spreadsheet_commands(subparsers: argparse._SubParsersAction) -> None:
         "--dry-run", action="store_true", help="Validate and preview without backup or WPS."
     )
     spreadsheet_delete_parser.add_argument("--task-id", help="Optional long-running task status id to update.")
+    spreadsheet_delete_parser.add_argument(
+        "--confirm",
+        action="store_true",
+        help="Acknowledge this destructive command (the MCP server requires it when not --dry-run; a person typing the command confirms by running it).",
+    )
 
     spreadsheet_copy_parser = subparsers.add_parser(
         "spreadsheet-copy-sheet", help="Copy a worksheet with backup and ordered read-back validation."
@@ -1168,7 +1198,8 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--request-id", help="Stable request id for idempotent agent calls.")
     parser.epilog = (
-        "Add --strict-exit anywhere to exit with status 1 when the response has ok=false (default exit status is 0)."
+        "Exit status is 1 when the response has ok=false (0 on success, 2 for argument errors). "
+        "Add --lenient-exit anywhere to exit 0 on failure instead, as versions before 0.12 did."
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
     _add_environment_and_status_commands(subparsers)

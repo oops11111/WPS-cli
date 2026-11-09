@@ -12,7 +12,10 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from pptx import Presentation
+try:
+    from pptx import Presentation
+except ImportError as exc:  # optional test dependency: skip this module instead of erroring the suite
+    raise unittest.SkipTest("python-pptx is not installed") from exc
 
 from wps_ai_agent_cli.fidelity import fidelity_check
 from wps_ai_agent_cli.html_office import convert_html_to_office

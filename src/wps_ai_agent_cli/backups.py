@@ -264,6 +264,20 @@ def verify_backup_source(path: str | Path, backup: dict[str, Any]) -> dict[str, 
     return None
 
 
+# The file identity each successful COM mutation left behind, by resolved path. Rollback consults it:
+# a file that no longer matches what the command itself wrote is not that command's to restore.
+_after_com_identities: dict[str, dict[str, Any]] = {}
+
+
+def record_after_com_identity(path: str | Path, identity: dict[str, Any]) -> None:
+    _after_com_identities[str(Path(path).resolve())] = dict(identity)
+
+
+def last_after_com_identity(path: str | Path) -> dict[str, Any] | None:
+    identity = _after_com_identities.get(str(Path(path).resolve()))
+    return dict(identity) if identity is not None else None
+
+
 def guarded_com_mutation(
     path: str | Path, backup: dict[str, Any], operation: Callable[[], dict[str, Any]]
 ) -> dict[str, Any]:
@@ -291,7 +305,9 @@ def guarded_com_mutation(
         }
     if result.get("ok"):
         try:
-            result["data"] = {**result.get("data", {}), "source_identity_after_com": file_identity(Path(path))}
+            after_identity = file_identity(Path(path))
+            record_after_com_identity(path, after_identity)
+            result["data"] = {**result.get("data", {}), "source_identity_after_com": after_identity}
         except OSError as exc:
             return {
                 "ok": False,
@@ -392,7 +408,8 @@ def _verify_backup_integrity(document_id: str, backup_file: Path, workspace: str
     return None
 
 
-def _restore_file_atomically(backup_file: Path, target_path: Path) -> dict[str, str] | None:
+def restore_file_atomically(backup_file: Path, target_path: Path) -> dict[str, str] | None:
+    """Copy ``backup_file`` over ``target_path`` atomically, verifying the copy before the swap."""
     temporary = None
     try:
         descriptor, temporary_name = tempfile.mkstemp(
@@ -517,7 +534,7 @@ def restore_backup(
     if not pre_restore_ok:
         return False, {"restore": result, "pre_restore_backup": pre_restore_result}, pre_restore_errors, False
 
-    write_error = _restore_file_atomically(backup_file, target_path)
+    write_error = restore_file_atomically(backup_file, target_path)
     if write_error is not None:
         return False, {"restore": result, "pre_restore_backup": pre_restore_result}, [write_error], False
     result["restored"] = True
@@ -526,3 +543,7 @@ def restore_backup(
     result["pre_restore_backup_replayed"] = pre_restore_replayed
     record_operation(request_id, "restore-backup", result, workspace)
     return True, result, [], False
+
+
+# Kept for compatibility; new code uses the public name.
+_restore_file_atomically = restore_file_atomically

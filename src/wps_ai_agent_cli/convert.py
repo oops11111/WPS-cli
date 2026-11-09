@@ -26,6 +26,7 @@ from pathlib import Path
 from typing import Any
 
 from .conversion_paths import check_paths
+from .workspace_boundary import boundary_error
 
 HTML = {".html", ".htm"}
 MARKDOWN = {".md", ".markdown"}
@@ -202,6 +203,10 @@ def convert(input_path: str | Path, output_path: str | Path, **options: Any) -> 
     encoding, delimiter, dpi."""
     source = Path(input_path).expanduser().resolve()
     destination = Path(output_path).expanduser().resolve()
+    for candidate, what in ((source, "Input path"), (destination, "Output path")):
+        outside = boundary_error(candidate, what)
+        if outside is not None:
+            return False, {}, [outside]
     steps = routes(source.suffix, destination.suffix)
     if not steps:
         from .wps_convert import FORMAT_NOT_SUPPORTED_BY_WPS, family_of

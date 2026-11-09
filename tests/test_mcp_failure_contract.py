@@ -21,7 +21,11 @@ from pathlib import Path
 from unittest.mock import patch
 
 from openpyxl import Workbook
-from pptx import Presentation
+
+try:
+    from pptx import Presentation
+except ImportError as exc:  # optional test dependency: skip this module instead of erroring the suite
+    raise unittest.SkipTest("python-pptx is not installed") from exc
 
 from tests.isolation import use_temporary_cwd
 from tests.test_writer_ops import write_minimal_docx
@@ -204,7 +208,10 @@ class FailureContractTests(unittest.TestCase):
             patch("wps_ai_agent_cli.cli_parser.build_parser", stricter_parser),
             patch("wps_ai_agent_cli.cli.build_parser", stricter_parser),
         ):
-            response = _call("wps_agent_restore_backup", {"document_id": "doc_missing0000000", "backup_name": "x"})
+            response = _call(
+                "wps_agent_restore_backup",
+                {"document_id": "doc_missing0000000", "backup_name": "x", "confirm": True},
+            )
 
         text = json.loads(response["result"]["content"][0]["text"])
         self.assertEqual(text["errors"][0]["code"], "MCP_CLI_ARGUMENTS_REJECTED")

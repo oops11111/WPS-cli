@@ -17,7 +17,7 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
-from .backups import _restore_file_atomically
+from .backups import _backup_dir, _verify_backup_integrity, last_after_com_identity, restore_file_atomically
 from .errors import COM_OPERATION_FAILED, ROLLBACK_BLOCKED, ROLLBACK_FAILED, ROLLED_BACK
 from .operations import get_operation
 from .sessions import file_identity, get_document
@@ -97,6 +97,18 @@ def _undo_write(
         return {"performed": False}, _rollback_error(document_id, backup_file, "the document is no longer registered")
     target = Path(document["path"])
     backup = Path(backup_file)
+    # The backup must be one this workspace recorded for this document, inside its backup directory and
+    # byte-identical to its creation record; a path a result merely claims is not trusted on its own.
+    backup_root = _backup_dir(document_id, workspace).resolve()
+    try:
+        backup.resolve().relative_to(backup_root)
+    except ValueError:
+        return {"performed": False}, _rollback_error(
+            document_id, backup_file, "the backup is outside the document backup directory"
+        )
+    integrity_error = _verify_backup_integrity(document_id, backup, workspace)
+    if integrity_error is not None:
+        return {"performed": False}, _rollback_error(document_id, backup_file, integrity_error["message"])
     try:
         backup_sha = file_identity(backup)["source_sha256"]
         current_sha = file_identity(target)["source_sha256"]
@@ -104,7 +116,17 @@ def _undo_write(
         return {"performed": False}, _rollback_error(document_id, backup_file, f"the file could not be read ({exc})")
     if current_sha == backup_sha:
         return {"performed": False, "reason": "the file already matches the pre-write backup"}, None
-    write_error = _restore_file_atomically(backup, target)
+    # Whitelist, not blacklist: restore only over the exact bytes this command's own COM write left
+    # behind. Anything else means someone else changed the file after the write (the user kept editing,
+    # a sync client, another program), and copying the backup over it would discard that change.
+    after_write = last_after_com_identity(target)
+    if after_write is not None and str(after_write.get("source_sha256", "")).upper() != current_sha.upper():
+        return {
+            "performed": False,
+            "reason": "the file changed after this command wrote it, so the backup was not copied over it",
+            "backup_path": backup_file,
+        }, None
+    write_error = restore_file_atomically(backup, target)
     if write_error is not None and write_error.get("reason") == "file_locked":
         return {"performed": False, "blocked": "file_locked"}, None
     if write_error is not None:

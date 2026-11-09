@@ -10,6 +10,7 @@ from typing import Any
 from .errors import DocumentHeldOpenError, identity_error
 from .mutation_lock import DocumentBusyError, document_mutation_lock
 from .state_store import atomic_write_json, read_json_state
+from .workspace_boundary import boundary_error
 
 STATE_DIR = ".wps-agent"
 DOCUMENTS_FILE = "documents.json"
@@ -85,6 +86,9 @@ def register_document(
         )
 
     document_path = Path(path)
+    outside = boundary_error(document_path, "Document path")
+    if outside is not None:
+        return False, {}, [outside]
     resolved = str(document_path.resolve())
     document_id = stable_document_id(component, resolved)
     try:

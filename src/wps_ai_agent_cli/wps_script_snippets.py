@@ -386,6 +386,12 @@ function Restore-WpsAppSettings($app) {
   }
   $script:wpsPrevSettings = @{}
 }
+function Disable-WpsMacros($app) {
+  # msoAutomationSecurityForceDisable (3): a document opened by a command must never run macros.
+  # The previous value is remembered and put back by Restore-WpsAppSettings, like the quiet settings.
+  try { $script:wpsPrevSettings['AutomationSecurity'] = $app.AutomationSecurity } catch { }
+  try { $app.AutomationSecurity = 3 } catch { }
+}
 """
 )
 
@@ -400,7 +406,7 @@ ACQUIRE_WPS_APP = (
 HIDE_LAUNCHED_APP = "if ($weLaunched) { try { $app.Visible = $false } catch { } }"
 
 # Settings are remembered and put back by RELEASE_WPS_APP.
-QUIET_ALERTS = "Set-WpsAppQuiet $app @('DisplayAlerts')"
+QUIET_ALERTS = "Set-WpsAppQuiet $app @('DisplayAlerts', 'AskToUpdateLinks', 'EnableEvents'); Disable-WpsMacros $app"
 
 
 # Used in `finally`: undo setting changes, then Quit() only an instance the script launched itself

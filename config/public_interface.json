@@ -567,6 +567,10 @@
     ],
     "presentation-selection-delete": [
       {
+        "name": "--confirm",
+        "required": false
+      },
+      {
         "name": "--document-id",
         "required": true
       },
@@ -694,6 +698,10 @@
         "required": false
       },
       {
+        "name": "--confirm",
+        "required": false
+      },
+      {
         "name": "--document-id",
         "required": true
       },
@@ -715,6 +723,10 @@
           "spreadsheets",
           "writer"
         ]
+      },
+      {
+        "name": "--confirm",
+        "required": false
       },
       {
         "name": "--dry-run",
@@ -814,6 +826,10 @@
     ],
     "spreadsheet-delete-sheet": [
       {
+        "name": "--confirm",
+        "required": false
+      },
+      {
         "name": "--document-id",
         "required": true
       },
@@ -911,6 +927,10 @@
       }
     ],
     "spreadsheet-selection-delete": [
+      {
+        "name": "--confirm",
+        "required": false
+      },
       {
         "name": "--document-id",
         "required": true
@@ -1218,6 +1238,10 @@
       }
     ],
     "writer-selection-delete": [
+      {
+        "name": "--confirm",
+        "required": false
+      },
       {
         "name": "--document-id",
         "required": true
@@ -1919,6 +1943,7 @@
       "cli_command": "presentation-selection-delete",
       "mutates_document": true,
       "parameters": [
+        "confirm",
         "document_id",
         "dry_run",
         "expected_selection_text",
@@ -2015,6 +2040,7 @@
         "backup_name",
         "backup_path",
         "close_in_wps",
+        "confirm",
         "document_id",
         "dry_run",
         "request_id",
@@ -2029,6 +2055,7 @@
       "mutates_document": true,
       "parameters": [
         "component",
+        "confirm",
         "dry_run",
         "name",
         "output",
@@ -2123,6 +2150,7 @@
       "cli_command": "spreadsheet-delete-sheet",
       "mutates_document": true,
       "parameters": [
+        "confirm",
         "document_id",
         "dry_run",
         "request_id",
@@ -2203,6 +2231,7 @@
       "cli_command": "spreadsheet-selection-delete",
       "mutates_document": true,
       "parameters": [
+        "confirm",
         "document_id",
         "dry_run",
         "expected_selection_text",
@@ -2460,6 +2489,7 @@
       "cli_command": "writer-selection-delete",
       "mutates_document": true,
       "parameters": [
+        "confirm",
         "document_id",
         "dry_run",
         "expected_selection_text",
@@ -2640,6 +2670,7 @@
     "FILE_CONVERSION_FAILED",
     "FIND_TEXT_TOO_LONG",
     "FORMAT_NOT_SUPPORTED_BY_WPS",
+    "FORMULA_FUNCTION_NOT_ALLOWED",
     "FORMULA_PREFIX_REJECTED",
     "IDEMPOTENCY_CONFLICT",
     "INPUT_DECODE_FAILED",
@@ -2716,6 +2747,7 @@
     "OUTPUT_UNAVAILABLE",
     "OUTPUT_WRITE_FAILED",
     "PARAGRAPH_NOT_FOUND",
+    "PATH_OUTSIDE_WORKSPACE",
     "PDF_NEEDS_OCR",
     "PERFORMANCE_BASELINE_COMMAND_FAILED",
     "PERFORMANCE_BASELINE_WPS_SCENARIO_INCLUDED",

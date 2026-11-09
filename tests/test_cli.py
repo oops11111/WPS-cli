@@ -303,7 +303,7 @@ class CliParsingTests(unittest.TestCase):
                     ]
                 )
             response = json.loads(stdout.getvalue())
-            self.assertEqual(code, 0)
+            self.assertEqual(code, 1)
             self.assertFalse(response["ok"])
             self.assertTrue(response["data"]["cancelled"])
             self.assertEqual(response["data"]["summary"]["processed"], 1)
@@ -362,7 +362,7 @@ class CliParsingTests(unittest.TestCase):
                 self.assertFalse(thread.is_alive())
                 self.assertEqual(get_task_status("live_cancel")["state"], "cancelled")
             response = json.loads(stdout.getvalue())
-            self.assertEqual(outcome["exit_code"], 0)
+            self.assertEqual(outcome["exit_code"], 1)
             self.assertFalse(response["ok"])
             self.assertTrue(response["data"]["cancelled"])
             self.assertEqual(response["data"]["summary"]["processed"], 1)

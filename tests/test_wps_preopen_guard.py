@@ -169,6 +169,14 @@ function New-Object { param([string]$ComObject) Write-FakeLog 'new-object'; retu
 """
 
 
+def assert_quieted_and_restored(case, settings, label, *context):
+    """QUIET_ALERTS turns off alerts, link updates and events in that order; Restore-WpsAppSettings puts each
+    back from a hashtable, so the restore order is not fixed."""
+    quiet = [f"alerts=False:{label}", f"links=False:{label}", f"events=False:{label}"]
+    case.assertEqual(settings[:3], quiet, *context)
+    case.assertEqual(sorted(settings[3:]), sorted(entry.replace("False", "True") for entry in quiet), *context)
+
+
 @unittest.skipUnless(PWSH, "PowerShell (pwsh) is required to execute the generated scripts against a fake COM object")
 class PreOpenGuardBehaviourTests(unittest.TestCase):
     def setUp(self):
@@ -338,15 +346,15 @@ class PreOpenGuardBehaviourTests(unittest.TestCase):
         self.assertTrue(result["ok"], result)
         self.assertEqual(self.open_calls(), [f"open:{self.document}"])
 
-    def test_cell_write_keeps_alerts_quiet_and_restores_them(self):
+    def test_cell_write_keeps_the_app_quiet_and_restores_it(self):
         with patch.dict(os.environ, {"WPSFAKE_OPEN": "1", "WPSFAKE_SAVED": "1", "WPSFAKE_ATTACH": "1"}):
             result = spreadsheet_ops._run_spreadsheet_write_com(str(self.document), None, "A1", [[1]])
-        self.assertEqual(self.settings(), ["alerts=False:attached", "alerts=True:attached"], result)
+        assert_quieted_and_restored(self, self.settings(), "attached", result)
 
-    def test_formula_write_keeps_alerts_quiet_and_restores_them(self):
+    def test_formula_write_keeps_the_app_quiet_and_restores_it(self):
         with patch.dict(os.environ, {"WPSFAKE_OPEN": "1", "WPSFAKE_SAVED": "1", "WPSFAKE_ATTACH": "1"}):
             result = spreadsheet_ops._run_spreadsheet_formula_write_com(str(self.document), None, "A1", [["=1"]])
-        self.assertEqual(self.settings(), ["alerts=False:attached", "alerts=True:attached"], result)
+        assert_quieted_and_restored(self, self.settings(), "attached", result)
 
 
 @unittest.skipUnless(PWSH, "PowerShell (pwsh) is required to syntax-check the generated scripts")

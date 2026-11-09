@@ -42,7 +42,7 @@ class WriterStructureParityTests(unittest.TestCase):
         self.assertEqual(errors[0]["code"], "WPS_OPT_IN_REQUIRED")
         process.assert_not_called()
         output = io.StringIO()
-        self.assertEqual(run(["writer-structure-parity"], output_stream=output), 0)
+        self.assertEqual(run(["writer-structure-parity"], output_stream=output), 1)
         self.assertEqual(json.loads(output.getvalue())["errors"][0]["code"], "WPS_OPT_IN_REQUIRED")
 
     def test_localized_style_names_pass_when_grouping_matches(self):

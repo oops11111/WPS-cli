@@ -6,7 +6,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from tests.test_wps_preopen_guard import FAKE_SPREADSHEET_PRELUDE, all_scripts
+from tests.test_wps_preopen_guard import FAKE_SPREADSHEET_PRELUDE, all_scripts, assert_quieted_and_restored
 from tests.test_wps_quit_guard import CAPABILITIES, capture_scripts
 from wps_ai_agent_cli import (
     com_backend,
@@ -597,9 +597,9 @@ class AttachBehaviourTests(unittest.TestCase):
         self.assertEqual(self.events(), ["delete", "save", "close"])
         self.assertNotIn("new-object", self.log_lines())
 
-    def test_attached_instance_keeps_its_window_and_gets_its_alert_setting_back(self):
+    def test_attached_instance_keeps_its_window_and_gets_its_settings_back(self):
         self.delete_sheet(WPSFAKE_ATTACH="1", WPSFAKE_OPEN="1", WPSFAKE_SAVED="1")
-        self.assertEqual(self.settings(), ["alerts=False:attached", "alerts=True:attached"])
+        assert_quieted_and_restored(self, self.settings(), "attached")
 
     def test_instance_launched_by_the_script_is_hidden_closed_and_quit(self):
         result = self.delete_sheet(WPSFAKE_ATTACH="0", WPSFAKE_OPEN="0", WPSFAKE_SAVED="1")

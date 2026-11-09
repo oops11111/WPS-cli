@@ -3785,7 +3785,7 @@ class CliWiringTests(unittest.TestCase):
             open_documents, "_run_open_documents_com", return_value=com_ok({"ok": True, "instances": []})
         ):
             code, response = self.run_cli(["open-documents", "--component", "writer", "--request-id", "cli-open"])
-        self.assertEqual(code, 0)
+        self.assertEqual(code, 1)
         self.assertFalse(response["ok"])
         self.assertEqual(response["errors"][0]["code"], "NO_RUNNING_WPS_INSTANCE")
         self.assertEqual(response["request_id"], "cli-open")

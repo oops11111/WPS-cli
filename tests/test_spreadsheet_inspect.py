@@ -145,7 +145,7 @@ class SpreadsheetInspectTests(unittest.TestCase):
             self.assertEqual(envelope["command"], "spreadsheet-inspect")
             self.assertEqual(envelope["request_id"], "req-held-inspect")
             self.assertEqual(envelope["errors"][0]["code"], "DOCUMENT_HELD_OPEN")
-            self.assertEqual(code, 0)
+            self.assertEqual(code, 1)
 
 
 @unittest.skipUnless(os.environ.get("WPS_AGENT_RUN_INTEGRATION") == "1", "Requires explicit local WPS integration run")

@@ -121,7 +121,7 @@ class CliStructuredErrorTests(unittest.TestCase):
                 payload = json.loads(stream.getvalue())
             finally:
                 os.chdir(previous)
-        self.assertEqual(code, 0)
+        self.assertEqual(code, 1)
         self.assertFalse(payload["ok"])
         self.assertEqual(payload["errors"][0]["code"], "INPUT_TOO_LARGE")
         self.assertEqual(payload["request_id"], "big-1")

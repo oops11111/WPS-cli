@@ -66,6 +66,8 @@ def replace_on_disk(path, text):
                 paragraph.text = paragraph.text.replace("DRAFT", text)
         document.save(path)
     else:
+        if importlib.util.find_spec("pptx") is None:
+            raise unittest.SkipTest("python-pptx is not installed")
         from pptx import Presentation
 
         presentation = Presentation(path)
@@ -196,6 +198,8 @@ class ScenarioTests(unittest.TestCase):
         self.root = Path(tmp.name)
 
     def run_scenario(self, name, wps, runner=None, saved=True):
+        if name == "presentation-replace" and importlib.util.find_spec("pptx") is None:
+            raise unittest.SkipTest("python-pptx is not installed")
         runner = runner or OfflineRunner()
         component = injection.SCENARIOS[name]["component"]
 

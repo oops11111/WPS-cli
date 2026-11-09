@@ -104,7 +104,7 @@ class AtomicMutationTests(unittest.TestCase):
 
     def test_locked_file_blocks_the_undo_and_says_how_to_restore(self):
         locked = {"code": "RESTORE_TARGET_WRITE_FAILED", "message": "Access denied", "reason": "file_locked"}
-        with patch("wps_ai_agent_cli.atomic_mutation._restore_file_atomically", return_value=locked):
+        with patch("wps_ai_agent_cli.atomic_mutation.restore_file_atomically", return_value=locked):
             ok, result, errors, _ = self._mutation(change_file=True)
 
         self.assertFalse(ok)
@@ -163,7 +163,7 @@ class AtomicMutationTests(unittest.TestCase):
 
     def test_restore_failure_is_reported_with_the_backup_to_use(self):
         failed_restore = {"code": "COM_OPERATION_FAILED", "message": "disk full"}
-        with patch("wps_ai_agent_cli.atomic_mutation._restore_file_atomically", return_value=failed_restore):
+        with patch("wps_ai_agent_cli.atomic_mutation.restore_file_atomically", return_value=failed_restore):
             ok, result, errors, _ = self._mutation(change_file=True)
 
         self.assertFalse(ok)

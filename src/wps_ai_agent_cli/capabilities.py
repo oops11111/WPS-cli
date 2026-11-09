@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+import json
 import platform
 import shutil
 import sys
@@ -30,7 +31,12 @@ def _load_pythoncom() -> Any | None:
 def _resolve_with_powershell(prog_id: str) -> bool:
     from .powershell_runner import run_powershell_command
 
-    command = "$t = [type]::GetTypeFromProgID(" + repr(prog_id) + "); if ($null -ne $t) { 'true' } else { 'false' }"
+    # The ProgID travels as JSON, like every other script parameter, never interpolated into the command.
+    params_json = json.dumps({"prog_id": prog_id})
+    command = (
+        "$params = @'\n" + params_json + "\n'@ | ConvertFrom-Json; "
+        "$t = [type]::GetTypeFromProgID($params.prog_id); if ($null -ne $t) { 'true' } else { 'false' }"
+    )
     completed = run_powershell_command(command, timeout_seconds=10)
     return completed.returncode == 0 and completed.stdout.strip().lower() == "true"
 

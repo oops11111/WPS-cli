@@ -6,8 +6,12 @@ from unittest.mock import patch
 from zipfile import ZipFile
 
 from openpyxl import Workbook
-from pptx import Presentation
-from pptx.util import Inches
+
+try:
+    from pptx import Presentation
+    from pptx.util import Inches
+except ImportError as exc:  # optional test dependency: skip this module instead of erroring the suite
+    raise unittest.SkipTest("python-pptx is not installed") from exc
 
 from tests.test_writer_structure import write_document
 from wps_ai_agent_cli import writer_ops

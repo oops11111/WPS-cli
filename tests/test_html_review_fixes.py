@@ -9,7 +9,11 @@ import zipfile
 from pathlib import Path
 
 from docx import Document
-from PIL import Image
+
+try:
+    from PIL import Image
+except ImportError as exc:  # optional test dependency: skip this module instead of erroring the suite
+    raise unittest.SkipTest("Pillow is not installed") from exc
 
 from wps_ai_agent_cli.html_editable import collapse_space, convert_html_editable
 from wps_ai_agent_cli.html_office import _cell_value

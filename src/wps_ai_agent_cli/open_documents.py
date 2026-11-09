@@ -25,7 +25,7 @@ from .errors import (
 )
 from .mutation_lock import coordinated_mutation, coordinated_request
 from .ooxml import load_workbook_guarded
-from .open_document_scripts import (  # noqa: F401  (re-exported; tests read these names from open_documents)
+from .open_document_scripts import (
     _ATTACHED_PRESENTATION_WRAPPER,
     _ATTACHED_SPREADSHEET_WRAPPER,
     _ATTACHED_WRITER_WRAPPER,
@@ -46,7 +46,6 @@ from .open_document_scripts import (  # noqa: F401  (re-exported; tests read the
     _PRESENTATION_SELECTION_REPLACE_BODY,
     _PRESENTATION_SELECTION_REVERT_BODY,
     _SAVE_AS_UNTITLED_SCRIPT,
-    _SCRIPT_HEAD,
     _SELECTION_DELETE_BODY,
     _SELECTION_INSERT_BODY,
     _SELECTION_READ_BODY,
