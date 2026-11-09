@@ -21,7 +21,7 @@ Phase 14 补上这三块，发布 0.11.0。
 | G3 | `scripts/install/install.ps1` 在 GitHub 的 Windows 运行器上用 Windows PowerShell 5.1 跑通：装 wheel 和 `[all]`、装 Playwright 并用 Edge 渲染一份 HTML、PATH 上的 `wps-agent` 可用、写入 Claude Desktop 配置，`-Uninstall` 清理干净；每次 CI 都跑 |
 | G4 | 每个 GitHub Release 附带 `install.ps1`，发布说明里有安装步骤 |
 | G5 | `docs/USER_GUIDE.md`：准备、安装、连接客户端、能做什么、命令行、备份和恢复、已知限制、故障排查；文中的错误码和安装参数都有测试核对；README 以使用者为入口，开发内容移到 `CONTRIBUTING.md` |
-| G6 | 在装了 WPS 的 Windows 上，从 0.11.1 的 Release 用 `install.ps1 -McpClient claude-desktop` 安装：`inspect-env` 检测到 WPS，Claude Desktop 里能列出工具并完成一次读取和一次带备份的写入；`-Uninstall` 后不留安装目录和 PATH 条目；wheel 检查通过 |
+| G6 | 在装了 WPS 的 Windows 上，从 0.11.2 的 Release 用 `install.ps1 -McpClient claude-desktop` 安装：`inspect-env` 检测到 WPS，Claude Desktop 里能列出工具并完成一次读取和一次带备份的写入；`-Uninstall` 后不留安装目录和 PATH 条目；wheel 检查通过 |
 
 ## 已做的决定
 
@@ -46,7 +46,7 @@ Phase 14 补上这三块，发布 0.11.0。
 
 ## 上机步骤（P14-005）
 
-1. 按 `docs/RELEASING.md` 发布 0.11.1（版本号和 CHANGELOG 由发布准备的 PR 改）。
+1. 按 `docs/RELEASING.md` 发布 0.11.2（版本号和 CHANGELOG 由发布准备的 PR 改）。
 2. 在装了 WPS 的 Windows 上，新开 PowerShell：
 
    ```powershell
@@ -58,7 +58,7 @@ Phase 14 补上这三块，发布 0.11.0。
 3. `python scripts/windows_check/mcp_client_smoke.py --out <结果目录>`：按 Claude Desktop 配置里的 `wps-agent` 条目启动服务器（从另一个目录启动），列出工具，读 `book.xlsx` 的一块区域，写一个单元格并读回，确认留下了备份、备份在 `WPS_AGENT_WORKSPACE` 下、启动目录里没写东西。再重启 Claude Desktop，确认工具列表里有 `wps-agent`，让它读一个 xlsx 的前几行、改一个单元格，核对结果和数据目录里的备份。
 4. 新开终端运行 `wps-agent inspect-env`（确认 PATH 生效）。
 5. `powershell -ExecutionPolicy Bypass -File .\install.ps1 -Uninstall`，确认安装目录和 PATH 条目已删除、数据目录还在。
-6. `python scripts/windows_check/run_windows_check.py wheel --version 0.11.1`。
+6. `python scripts/windows_check/run_windows_check.py wheel --version 0.11.2`。
 
 ## 上机结果
 

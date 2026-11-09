@@ -4,6 +4,10 @@ All notable changes to `wps-ai-agent-cli`. The versioning rule and release steps
 
 ## [Unreleased]
 
+## [0.11.2] - 2026-11-09
+
+The installer works on the machine the 0.11.1 Windows check ran on: Python installed off PATH, and the GitHub API refusing unauthenticated calls. Releases now carry `SHA256SUMS.txt`.
+
 ### Fixed
 
 - `install.ps1` found no Python on a machine where `python` is only the Microsoft Store placeholder and Python was installed without adding it to PATH (by uv, say), as on the Windows check of 0.11.1. It now also tries the Python the previous install used, `uv python find`, and the default folders of python.org's installer and uv.
