@@ -1,8 +1,8 @@
 {
   "schema_version": "mcp-catalog-guard-2026-10-04",
-  "expected_tool_count": 95,
-  "expected_mutating_tool_count": 39,
-  "expected_requires_wps_tool_count": 37,
+  "expected_tool_count": 98,
+  "expected_mutating_tool_count": 42,
+  "expected_requires_wps_tool_count": 40,
   "expected_read_only_tool_count": 56,
   "expected_safety_notes_missing_count": 0,
   "expected_category_counts": {
@@ -22,7 +22,7 @@
     "safety": 3,
     "security": 1,
     "smoke": 4,
-    "spreadsheet": 15,
+    "spreadsheet": 18,
     "tasks": 4,
     "validation": 2,
     "writer": 10

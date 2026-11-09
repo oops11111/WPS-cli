@@ -1207,6 +1207,90 @@ def _add_spreadsheet_commands(subparsers: argparse._SubParsersAction) -> None:
     )
     spreadsheet_chart_parser.add_argument("--task-id", help="Optional long-running task status id to update.")
 
+    sort_parser = subparsers.add_parser(
+        "spreadsheet-sort", help="Sort a range's rows by up to three columns, with backup and read-back."
+    )
+    sort_parser.add_argument("--document-id", required=True, help="Registered spreadsheet document_id.")
+    sort_parser.add_argument("--sheet-name", required=True, help="Worksheet holding the range.")
+    sort_parser.add_argument("--range", required=True, help="Range to sort, header row included, such as A1:D20.")
+    sort_parser.add_argument(
+        "--key",
+        action="append",
+        required=True,
+        help="Sort key: column letter or header name, then :asc or :desc (B:desc, 销量:asc); repeat up to three times.",
+    )
+    sort_parser.add_argument("--no-header", action="store_true", help="The first row is data, not a header.")
+    sort_parser.add_argument("--dry-run", action="store_true", help="Validate and preview without backup or WPS.")
+    sort_parser.add_argument("--task-id", help="Optional long-running task status id to update.")
+
+    format_parser = subparsers.add_parser(
+        "spreadsheet-conditional-format",
+        help="Add a conditional format (cell value, color scale, data bar, duplicates) to a range.",
+    )
+    format_parser.add_argument("--document-id", required=True, help="Registered spreadsheet document_id.")
+    format_parser.add_argument("--sheet-name", required=True, help="Worksheet holding the range.")
+    format_parser.add_argument("--range", required=True, help="Range to format, such as C2:C50.")
+    format_parser.add_argument(
+        "--kind", required=True, choices=["cell-value", "color-scale", "data-bar", "duplicates"], help="Rule kind."
+    )
+    format_parser.add_argument(
+        "--operator",
+        choices=[
+            "between",
+            "not-between",
+            "equal",
+            "not-equal",
+            "greater",
+            "less",
+            "greater-or-equal",
+            "less-or-equal",
+        ],
+        help="cell-value: how to compare.",
+    )
+    format_parser.add_argument("--value1", help="cell-value: a number, text, or a formula starting with =.")
+    format_parser.add_argument("--value2", help="cell-value: the upper bound for between and not-between.")
+    format_parser.add_argument("--fill-color", default="#FFC7CE", help="cell-value/duplicates fill, #RRGGBB.")
+    format_parser.add_argument("--font-color", default="#9C0006", help="cell-value/duplicates font colour, #RRGGBB.")
+    format_parser.add_argument("--color-scale-points", type=int, default=3, help="color-scale: 2 or 3 colours.")
+    format_parser.add_argument("--replace", action="store_true", help="Delete the range's existing rules first.")
+    format_parser.add_argument("--dry-run", action="store_true", help="Validate and preview without backup or WPS.")
+    format_parser.add_argument("--task-id", help="Optional long-running task status id to update.")
+
+    validation_parser = subparsers.add_parser(
+        "spreadsheet-data-validation",
+        help="Set the data validation of a range (a drop-down list, number, date or text-length limits).",
+    )
+    validation_parser.add_argument("--document-id", required=True, help="Registered spreadsheet document_id.")
+    validation_parser.add_argument("--sheet-name", required=True, help="Worksheet holding the range.")
+    validation_parser.add_argument("--range", required=True, help="Range to validate, such as D2:D100.")
+    validation_parser.add_argument(
+        "--type", required=True, choices=["list", "whole", "decimal", "date", "text-length"], help="What is allowed."
+    )
+    validation_parser.add_argument(
+        "--value", action="append", help="list: one choice per --value, or a single =range such as =$H$1:$H$5."
+    )
+    validation_parser.add_argument(
+        "--operator",
+        choices=[
+            "between",
+            "not-between",
+            "equal",
+            "not-equal",
+            "greater",
+            "less",
+            "greater-or-equal",
+            "less-or-equal",
+        ],
+        help="Other types: how to compare (between).",
+    )
+    validation_parser.add_argument("--value1", help="Other types: a number, a date YYYY-MM-DD, or a formula.")
+    validation_parser.add_argument("--value2", help="Other types: the upper bound for between and not-between.")
+    validation_parser.add_argument("--no-blank", action="store_true", help="Do not allow empty cells.")
+    validation_parser.add_argument("--input-message", help="Message shown when a cell is selected.")
+    validation_parser.add_argument("--error-message", help="Message shown when a value is refused.")
+    validation_parser.add_argument("--dry-run", action="store_true", help="Validate and preview without backup or WPS.")
+    validation_parser.add_argument("--task-id", help="Optional long-running task status id to update.")
+
     spreadsheet_tab_color_parser = subparsers.add_parser(
         "spreadsheet-set-sheet-tab-color", help="Set worksheet tab color with backup and read-back validation."
     )

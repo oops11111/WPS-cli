@@ -20,6 +20,7 @@ from .spreadsheet_ops import (
     write_spreadsheet_formulas,
     write_spreadsheet_range,
 )
+from .spreadsheet_tools import add_conditional_format, set_data_validation, sort_spreadsheet_range
 
 
 def spreadsheet_read_response(
@@ -316,6 +317,84 @@ def spreadsheet_chart_create_response(
             ],
         ),
         errors=errors,
+    )
+
+
+def _sheet_tool_response(command: str, request_id: str, outcome, dry_run: bool, done: str) -> CommandResponse:
+    ok, result, errors, replayed = outcome
+    return CommandResponse(
+        ok=ok,
+        command=command,
+        request_id=request_id,
+        backend="wps-com" if ok and not dry_run and not replayed else BACKEND,
+        summary=(
+            f"{command} request replayed."
+            if replayed
+            else f"{command} preview completed."
+            if dry_run and ok
+            else done
+            if ok
+            else f"{command} could not complete."
+        ),
+        data=result,
+        validation=ValidationResult(
+            status="passed" if ok else "failed",
+            checks=[
+                {
+                    "name": "read_back",
+                    "passed": bool(ok and (dry_run or result.get("validation_passed"))),
+                    "details": result.get("checks"),
+                }
+            ],
+        ),
+        errors=errors,
+    )
+
+
+def spreadsheet_sort_response(
+    request_id: str,
+    document_id: str,
+    sheet_name: str,
+    range_address: str,
+    keys: list[str],
+    has_header: bool,
+    dry_run: bool,
+) -> CommandResponse:
+    outcome = sort_spreadsheet_range(
+        document_id, sheet_name, range_address, keys, request_id, has_header=has_header, dry_run=dry_run
+    )
+    data = outcome[1]
+    return _sheet_tool_response(
+        "spreadsheet-sort",
+        request_id,
+        outcome,
+        dry_run,
+        f"Sorted {data.get('data_rows')} rows of {sheet_name}!{data.get('normalized_range')} "
+        f"({data.get('read_back', {}).get('order_check', '')}).",
+    )
+
+
+def spreadsheet_conditional_format_response(request_id: str, document_id: str, **options) -> CommandResponse:
+    dry_run = options.get("dry_run", False)
+    outcome = add_conditional_format(document_id, request_id=request_id, **options)
+    return _sheet_tool_response(
+        "spreadsheet-conditional-format",
+        request_id,
+        outcome,
+        dry_run,
+        f"Added a {options.get('kind')} rule to {options.get('sheet_name')}!{outcome[1].get('normalized_range')}.",
+    )
+
+
+def spreadsheet_data_validation_response(request_id: str, document_id: str, **options) -> CommandResponse:
+    dry_run = options.get("dry_run", False)
+    outcome = set_data_validation(document_id, request_id=request_id, **options)
+    return _sheet_tool_response(
+        "spreadsheet-data-validation",
+        request_id,
+        outcome,
+        dry_run,
+        f"Set {options.get('validation_type')} validation on {options.get('sheet_name')}!{outcome[1].get('normalized_range')}.",
     )
 
 
