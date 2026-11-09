@@ -4,7 +4,19 @@ All notable changes to `wps-ai-agent-cli`. The versioning rule and release steps
 
 ## [Unreleased]
 
-First tier of the capability gaps from the November comparison with Kingsoft's wpscli and jjchen17's wps-cli (C-01 to C-04): tasks that start from no file, PDF page work, filling a template in one call, and charts. Eight new commands and MCP tools (87 to 95); nothing existing changes.
+## [0.12.0] - 2026-11-09
+
+Eight new commands (C-01 to C-04: new documents, PDF page tools, template merge, charts) and three batches of hardening from the November code review. **Two changes can break existing callers**: a failed command now exits 1 instead of 0 (`--lenient-exit` restores the old behaviour), and six destructive MCP tools need `confirm: true`. WPS conversion also refuses macro-enabled sources. The MCP tool count goes from 87 to 95.
+
+### Changed
+
+- **Exit status (U-02)**: a command whose response has `ok: false` now exits 1 (success 0, argument errors 2), so scripts no longer mistake a failed command for a successful one. `--lenient-exit` restores the pre-0.12 behaviour (exit 0 on failure) for callers that only read the JSON envelope; `--strict-exit` is still accepted and stripped, but strict is now the default it used to request. MCP tool calls are unaffected (`isError` already follows `ok`).
+- Six destructive MCP tools — `restore-backup`, `save-as-open-document`, the three selection deletes and `spreadsheet-delete-sheet` — now refuse to run through MCP unless the call carries `confirm: true` (a `dry_run` preview never needs it). The refusal is `MCP_DESTRUCTIVE_CONFIRMATION_REQUIRED` and changes nothing. The matching CLI commands gained an optional `--confirm` flag for parity; a person typing the command confirms by running it.
+- `backups._restore_file_atomically` is now the public `restore_file_atomically` (the private name stays as an alias); `atomic_mutation` no longer reaches into a private helper of another module (A-08, first step).
+- The script constants in `open_documents` are imported from `open_document_scripts` by the one test that reads them, and the misleading "re-exported for tests" comment is gone (A-01, first step). Splitting the module itself stays a roadmap item, to be driven by new work rather than a big-bang refactor.
+- `docs/ROADMAP.md` rewritten: it now lists only what is not done yet — the 1.0 close-out, the capability additions in priority order, later items gated on measurements, and the decided boundaries (no cloud, HTML scope frozen at its current formats with docx as the fidelity path). Phase history stays in the PHASE documents and git history.
+- `docs/RELEASING.md` gains the release cadence (a minor every two weeks) and the five conditions for 1.0 (U-06).
+- `capabilities` resolves COM ProgIDs through the JSON parameter channel instead of interpolating the ProgID into the PowerShell command (S-06, last known case).
 
 ### Added
 
@@ -12,49 +24,21 @@ First tier of the capability gaps from the November comparison with Kingsoft's w
 - PDF page tools (C-02), offline with pypdf, which joins the `pdf` extra (and `all`): `pdf-info` (pages, sizes, rotation, metadata, text layer, likely_scanned), `pdf-merge`, `pdf-split` (every N pages or by ranges; every name is checked first and a failure removes what was written), `pdf-extract-pages` (keeps the order given) and `pdf-watermark` (one line of text, Chinese included, drawn in the reader-supplied STSong-Light font, semi-transparent and turned). Outputs are new files, read back before success; password-protected PDFs are refused with `PDF_ENCRYPTED`, bad page lists with `PAGE_RANGE_INVALID`.
 - `writer-merge` (C-03): fill every `{{name}}` placeholder of a .docx (body, tables, headers, footers, footnotes, endnotes) from a JSON object or file. Placeholders split over several runs are found; each value keeps the formatting where its placeholder starts, newlines and tabs become breaks and tab marks. Unfilled placeholders are listed (`require_all` refuses with `PLACEHOLDER_UNFILLED`), names that match nothing are listed, none at all is `PLACEHOLDER_NOT_FOUND`. It edits the package offline (the document must be closed in WPS), with the usual backup, atomic replace, read-back of every story and rollback.
 - `spreadsheet-chart-create` (C-04): a column, bar, line or pie chart of a range, with title, anchor, size and series direction, added through WPS (ChartObjects().Add, SetSourceData). The saved workbook is read back offline: exactly one new chart, of that type and title, every series inside the range; otherwise the backup is restored. Checked on Windows 10 with WPS 12.8.2: all four types added, read back and shown correctly in WPS (`scripts/windows_check/results/20261109T214837Z-e06c0ba-tier1/`, which also covers writer-merge with a document made in WPS and refused while open, the new documents opened in WPS, and the PDF commands with the watermark checked in Edge).
-
-Batch-3 from the November code review: internal clean-ups and the forward roadmap — on top of batch-2 (exit codes, MCP boundary, formula denylist) and batch-1 (macro disabling, installer fail-closed, rollback whitelist, LICENSE, release test gate). No behaviour changes in this batch.
-
-### Changed
-
-- `backups._restore_file_atomically` is now the public `restore_file_atomically` (the private name stays as an alias); `atomic_mutation` no longer reaches into a private helper of another module (A-08, first step).
-- The script constants in `open_documents` are imported from `open_document_scripts` by the one test that reads them, and the misleading "re-exported for tests" comment is gone (A-01, first step). Splitting the module itself stays a roadmap item, to be driven by new work rather than a big-bang refactor.
-- `docs/ROADMAP.md` rewritten: it now lists only what is not done yet — the 1.0 close-out, the capability additions in priority order, later items gated on measurements, and the decided boundaries (no cloud, HTML scope frozen at its current formats with docx as the fidelity path). Phase history stays in the PHASE documents and git history.
-- `docs/RELEASING.md` gains the release cadence (a minor every two weeks) and the five conditions for 1.0 (U-06).
-
-### Fixed
-
-- Test modules that build presentation fixtures per method (`test_agent_eval`, `test_undo_injection`) now skip those tests when python-pptx (or the PDF extras) are missing, instead of erroring one by one — the rest of T-04 after batch-1's module-level guards.
-
-Batch-2 from the November code review: exit codes, the MCP boundary, and the formula denylist. Two behaviours change on purpose and are called out below: failed commands now exit 1, and six destructive MCP tools require confirmation.
-
-### Changed
-
-- **Exit status (U-02)**: a command whose response has `ok: false` now exits 1 (success 0, argument errors 2), so scripts no longer mistake a failed command for a successful one. `--lenient-exit` restores the pre-0.12 behaviour (exit 0 on failure) for callers that only read the JSON envelope; `--strict-exit` is still accepted and stripped, but strict is now the default it used to request. MCP tool calls are unaffected (`isError` already follows `ok`).
-- Six destructive MCP tools — `restore-backup`, `save-as-open-document`, the three selection deletes and `spreadsheet-delete-sheet` — now refuse to run through MCP unless the call carries `confirm: true` (a `dry_run` preview never needs it). The refusal is `MCP_DESTRUCTIVE_CONFIRMATION_REQUIRED` and changes nothing. The matching CLI commands gained an optional `--confirm` flag for parity; a person typing the command confirms by running it.
-- `capabilities` resolves COM ProgIDs through the JSON parameter channel instead of interpolating the ProgID into the PowerShell command (S-06, last known case).
+- `LICENSE` (MIT) at the repository root and the matching `license` metadata in `pyproject.toml`; the wheel now carries `License: MIT` and the license file.
 
 ### Security
 
 - Workspace boundary (S-02): when the environment variable `WPS_AGENT_WORKSPACE_ROOT` names a directory, registering a document or converting is only accepted for paths inside it (anything else returns `PATH_OUTSIDE_WORKSPACE`); `*` disables the boundary. It is a deployment setting — an MCP server configuration sets it in the server's `env` to confine tool calls to a chosen tree. It is deliberately not defaulted to the server's working directory, because documents legitimately live elsewhere.
 - Formula denylist (S-07): `spreadsheet-formula-write` now rejects formulas that call CALL, DDE, EXEC, HYPERLINK, INDIRECT, REGISTER, RTD, SHELL, SQL.REQUEST or WEBSERVICE, also when spelled with the file format's `_xlfn.`/`_xlws.` prefix (`FORMULA_FUNCTION_NOT_ALLOWED`) — functions that reach outside the document. The HTML to XLSX path applies the same list to restored `data-formula` formulas: a forbidden one is kept as text instead of becoming a live formula.
 - The README now names and distinguishes the two other projects called wps-cli (Kingsoft's official `wpscli` and jjchen17's community `wps-cli`) so nobody installs the wrong one (U-01, disambiguation half; the rename half is still open).
-
-Batch-1 hardening from the November code review. The CLI and MCP interface are unchanged, except that WPS conversion now refuses macro-enabled sources (see Security).
-
-### Security
-
 - Every script that opens a document from disk now sets `AutomationSecurity` to force-disable macros while it works (restored afterwards, like the alert settings), and also turns off external-link updates and events. The Writer and presentation scripts, which opened documents without quieting the app at all, now apply the same settings as the spreadsheet and conversion scripts.
 - `convert` through WPS refuses macro-enabled sources (`.docm`, `.xlsm`, `.pptm`): save a macro-free copy and convert that. The Python API keeps an explicit escape hatch, `wps_convert(..., allow_macro_enabled=True)`, for trusted files; macros stay disabled while such a file is open.
 - Rollback is whitelist-based: a failed write is undone only over the exact bytes that command's own COM write left behind (recorded after each successful COM mutation). If the file changed after the write — the user kept editing, a sync client, another program — the backup is no longer copied over it, and the result says why. Rollback also verifies the backup is inside the document's backup directory and matches its creation record before restoring it.
 - The installer fails closed: when a release provides no SHA-256 for the wheel (API digest and `SHA256SUMS.txt` both unavailable), it now refuses to install instead of warning and continuing with an unchecked download.
 
-### Added
-
-- `LICENSE` (MIT) at the repository root and the matching `license` metadata in `pyproject.toml`; the wheel now carries `License: MIT` and the license file.
-
 ### Fixed
 
+- Test modules that build presentation fixtures per method (`test_agent_eval`, `test_undo_injection`) now skip those tests when python-pptx (or the PDF extras) are missing, instead of erroring one by one — the rest of T-04 after batch-1's module-level guards.
 - The release workflow runs the lint and unit suite in a `verify` job and the `release` job now needs it: a version tag alone previously published with no test run at all.
 - Test modules that need an optional dependency (`python-pptx`, `Pillow`, `pypdfium2`) now skip as a module when it is missing instead of failing to import, which used to turn one missing package into dozens of suite errors (and more through cross-test imports).
 
