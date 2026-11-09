@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<style>
+  /* === Reset & Base === */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: "Microsoft YaHei", "PingFang SC", "Helvetica Neue", sans-serif;
+    background: #0f172a;
+    color: #e2e8f0;
+  }
+
+  /* === Slide System: each .slide is one PPT page === */
+  .slide {
+    width: 1280px;
+    height: 720px;
+    position: relative;
+    overflow: hidden;
+    page-break-after: always;
+  }
+
+  /* === Slide 1: Cover === */
+  .cover {
+    background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 50%, #1a1a2e 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 80px 100px;
+  }
+  .cover::before {
+    content: "";
+    position: absolute;
+    top: -100px;
+    right: -100px;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(59,130,246,0.3) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+  .cover::after {
+    content: "";
+    position: absolute;
+    bottom: -150px;
+    left: 200px;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(139,92,246,0.2) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+  .cover .badge {
+    display: inline-block;
+    background: rgba(59,130,246,0.2);
+    border: 1px solid rgba(59,130,246,0.4);
+    color: #93c5fd;
+    font-size: 16px;
+    padding: 6px 18px;
+    border-radius: 20px;
+    margin-bottom: 30px;
+    letter-spacing: 2px;
+  }
+  .cover h1 {
+    font-size: 52px;
+    font-weight: 800;
+    line-height: 1.3;
+    background: linear-gradient(90deg, #60a5fa, #a78bfa, #60a5fa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 20px;
+  }
+  .cover .subtitle {
+    font-size: 22px;
+    color: #94a3b8;
+    margin-bottom: 50px;
+  }
+  .cover .meta {
+    display: flex;
+    gap: 40px;
+    font-size: 16px;
+    color: #64748b;
+  }
+  .cover .meta span {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .cover .meta strong {
+    color: #cbd5e1;
+    font-weight: 600;
+  }
+
+  /* === Slide 2: Overview === */
+  .overview {
+    background: #f8fafc;
+    color: #1e293b;
+    padding: 60px 80px;
+    display: flex;
+    flex-direction: column;
+  }
+  .overview h2 {
+    font-size: 36px;
+    color: #1e3a5f;
+    margin-bottom: 40px;
+    border-bottom: 3px solid #3b82f6;
+    padding-bottom: 12px;
+  }
+  .overview .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    flex: 1;
+  }
+  .overview .card {
+    background: white;
+    border-radius: 12px;
+    padding: 28px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    border-left: 4px solid #3b82f6;
+  }
+  .overview .card.purple { border-left-color: #8b5cf6; }
+  .overview .card.green { border-left-color: #10b981; }
+  .overview .card.orange { border-left-color: #f59e0b; }
+  .overview .card h3 {
+    font-size: 18px;
+    margin-bottom: 12px;
+    color: #334155;
+  }
+  .overview .card p {
+    font-size: 15px;
+    color: #64748b;
+    line-height: 1.7;
+  }
+  .overview .card .num {
+    font-size: 32px;
+    font-weight: 700;
+    color: #3b82f6;
+    margin-bottom: 8px;
+  }
+  .overview .card.purple .num { color: #8b5cf6; }
+  .overview .card.green .num { color: #10b981; }
+  .overview .card.orange .num { color: #f59e0b; }
+
+  /* === Slide 3: Steps Timeline === */
+  .steps {
+    background: #0f172a;
+    color: #e2e8f0;
+    padding: 60px 80px;
+    display: flex;
+    flex-direction: column;
+  }
+  .steps h2 {
+    font-size: 36px;
+    margin-bottom: 40px;
+    color: #f1f5f9;
+  }
+  .steps h2 span { color: #3b82f6; }
+  .timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    flex: 1;
+  }
+  .timeline-item {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    background: rgba(30,41,59,0.6);
+    border-radius: 10px;
+    padding: 16px 24px;
+    border: 1px solid rgba(51,65,85,0.5);
+  }
+  .timeline-item .step-num {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .timeline-item.ok .step-num { background: #10b981; color: white; }
+  .timeline-item.retry .step-num { background: #f59e0b; color: white; }
+  .timeline-item .step-title {
+    font-size: 17px;
+    font-weight: 600;
+    color: #e2e8f0;
+    flex: 1;
+  }
+  .timeline-item .step-result {
+    font-size: 14px;
+    padding: 4px 12px;
+    border-radius: 6px;
+    font-weight: 600;
+  }
+  .timeline-item.ok .step-result { background: rgba(16,185,129,0.15); color: #34d399; }
+  .timeline-item.retry .step-result { background: rgba(245,158,11,0.15); color: #fbbf24; }
+
+  /* === Slide 4: Results === */
+  .results {
+    background: linear-gradient(180deg, #1e3a5f 0%, #0f172a 100%);
+    color: #e2e8f0;
+    padding: 60px 80px;
+    display: flex;
+    flex-direction: column;
+  }
+  .results h2 {
+    font-size: 36px;
+    margin-bottom: 40px;
+    color: #f1f5f9;
+  }
+  .results-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    flex: 1;
+  }
+  .result-card {
+    background: rgba(30,41,59,0.5);
+    border: 1px solid rgba(51,65,85,0.6);
+    border-radius: 12px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  }
+  .result-card .icon {
+    font-size: 36px;
+    margin-bottom: 16px;
+  }
+  .result-card .value {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .result-card .label {
+    font-size: 14px;
+    color: #94a3b8;
+  }
+  .result-card.passed .value { color: #34d399; }
+  .result-card.info .value { color: #60a5fa; }
+  .result-card.warn .value { color: #fbbf24; }
+
+  .results .footer-note {
+    margin-top: 30px;
+    text-align: center;
+    font-size: 15px;
+    color: #64748b;
+    border-top: 1px solid rgba(51,65,85,0.5);
+    padding-top: 20px;
+  }
+  .results .footer-note strong { color: #93c5fd; }
+</style>
+</head>
+<body>
+
+<!-- Slide 1: Cover -->
+<div class="slide cover">
+  <div class="badge">P14-005</div>
+  <h1>wps-agent 0.11.1<br>Windows 安装验证报告</h1>
+  <div class="subtitle">从 GitHub Release 安装、MCP 读写测试、卸载重装、Wheel 检查</div>
+  <div class="meta">
+    <span>分支: <strong>cursor/phase14-windows-8fd1db2</strong></span>
+    <span>日期: <strong>2026-11-09</strong></span>
+    <span>版本: <strong>v0.11.1</strong></span>
+  </div>
+</div>
+
+<!-- Slide 2: Overview -->
+<div class="slide overview">
+  <h2>验证概览</h2>
+  <div class="grid">
+    <div class="card">
+      <div class="num">9 / 9</div>
+      <h3>步骤全部通过</h3>
+      <p>从准备到 Wheel 检查，9 个步骤全部完成，无一失败。</p>
+    </div>
+    <div class="card purple">
+      <div class="num">87</div>
+      <h3>MCP 工具数量</h3>
+      <p>wps-agent 0.11.1 注册了 87 个 MCP 工具，覆盖读写、备份、转换等操作。</p>
+    </div>
+    <div class="card green">
+      <div class="num">7 / 7</div>
+      <h3>Safe Profile 通过</h3>
+      <p>Wheel 检查的 Safe Profile 回归测试 7 项全部通过，SHA-256 匹配 Release。</p>
+    </div>
+    <div class="card orange">
+      <div class="num">3</div>
+      <h3>适配调整</h3>
+      <p>Python 路径、GitHub API 限速、Wheel 检查 Python 环境三处做了适配，均不影响结果。</p>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 3: Steps Timeline -->
+<div class="slide steps">
+  <h2>执行<span>步骤</span></h2>
+  <div class="timeline">
+    <div class="timeline-item ok">
+      <div class="step-num">0</div>
+      <div class="step-title">准备：fetch tags、检查进程、记录安装前状态</div>
+      <div class="step-result">OK</div>
+    </div>
+    <div class="timeline-item ok">
+      <div class="step-num">1</div>
+      <div class="step-title">下载 install.ps1 并核对 git hash 一致性</div>
+      <div class="step-result">OK</div>
+    </div>
+    <div class="timeline-item retry">
+      <div class="step-num">2</div>
+      <div class="step-title">安装 wps-agent（首次失败，加 -Python 重试成功）</div>
+      <div class="step-result">OK (retry)</div>
+    </div>
+    <div class="timeline-item ok">
+      <div class="step-num">3</div>
+      <div class="step-title">检查安装结果：install.json、PATH、Claude 配置</div>
+      <div class="step-result">OK</div>
+    </div>
+    <div class="timeline-item ok">
+      <div class="step-num">4</div>
+      <div class="step-title">模拟新终端：wps-agent 命令路径、inspect-env</div>
+      <div class="step-result">OK</div>
+    </div>
+    <div class="timeline-item ok">
+      <div class="step-num">5</div>
+      <div class="step-title">MCP 读写冒烟测试：注册、读 A1:F3、写 F2、读回</div>
+      <div class="step-result">Passed</div>
+    </div>
+    <div class="timeline-item ok">
+      <div class="step-num">6</div>
+      <div class="step-title">卸载：安装目录删除、PATH/NODE_PATH 清理</div>
+      <div class="step-result">OK</div>
+    </div>
+    <div class="timeline-item ok">
+      <div class="step-num">7</div>
+      <div class="step-title">重新安装：0.11.1 再次安装，留供使用</div>
+      <div class="step-result">OK</div>
+    </div>
+    <div class="timeline-item ok">
+      <div class="step-num">8</div>
+      <div class="step-title">Wheel 检查：SHA-256、Safe Profile 7/7</div>
+      <div class="step-result">Passed</div>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 4: Results -->
+<div class="slide results">
+  <h2>关键结果</h2>
+  <div class="results-grid">
+    <div class="result-card passed">
+      <div class="icon">&#10003;</div>
+      <div class="value">0.11.1</div>
+      <div class="label">安装版本</div>
+    </div>
+    <div class="result-card info">
+      <div class="icon">&#9881;</div>
+      <div class="value">87</div>
+      <div class="label">MCP 工具</div>
+    </div>
+    <div class="result-card passed">
+      <div class="icon">&#10003;</div>
+      <div class="value">7/7</div>
+      <div class="label">Safe Profile</div>
+    </div>
+    <div class="result-card info">
+      <div class="icon">&#128279;</div>
+      <div class="value">3</div>
+      <div class="label">COM ProgID 注册</div>
+    </div>
+    <div class="result-card warn">
+      <div class="icon">&#9888;</div>
+      <div class="value">3</div>
+      <div class="label">适配调整</div>
+    </div>
+    <div class="result-card passed">
+      <div class="icon">&#10003;</div>
+      <div class="value">SHA-256</div>
+      <div class="label">Wheel 校验</div>
+    </div>
+  </div>
+  <div class="footer-note">
+    分支 <strong>cursor/phase14-windows-8fd1db2</strong> 已推送至 origin &nbsp;|&nbsp;
+    Windows 10 19045 &nbsp;|&nbsp; WPS 12.8.2.18913 &nbsp;|&nbsp; Python 3.12.15 &nbsp;|&nbsp; Node v22.22.2
+  </div>
+</div>
+
+</body>
+</html>

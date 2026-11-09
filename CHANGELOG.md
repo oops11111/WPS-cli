@@ -4,6 +4,20 @@ All notable changes to `wps-ai-agent-cli`. The versioning rule and release steps
 
 ## [Unreleased]
 
+### Fixed
+
+- HTML to PPTX takes an element with the class `slide` (`<div class="slide">`) as a slide, like `<section>`, and an `<h1>`/`<h2>` inside a slide no longer starts another one: a deck written with `<div class="slide">`, or with a badge before a slide's title, came out split at its headings into title-and-content slides without the browser's layout. (The install report from the 0.11.1 Windows check: 5 such slides, now 4 placed ones.)
+- `--fidelity appearance` slides look like the page in the browser:
+  - linear and radial gradients as gradient fills, on the slide background (from the slide, or the nearest ancestor with a background), on boxes and on `background-clip: text` headings;
+  - colours keep their opacity (`rgba()`), which were drawn solid;
+  - `border-radius` as rounded rectangles and circles;
+  - borders that differ by side as bars along that side (a card's coloured edge, a heading's underline);
+  - `box-shadow` as a shadow;
+  - positioned `::before`/`::after` decorations such as glows;
+  - flex-centred text centred in its box;
+  - padding as text insets.
+- Positioned slides in either mode keep each title's alignment and each inline element's colour (`执行<span>步骤</span>`), and text the browser shows on one line gets room to stay on one line in a wider font. Tables take their column widths and row heights from the browser, their CSS borders and cell fills, without the default table style's header and banding.
+
 ## [0.11.2] - 2026-11-09
 
 The installer works on the machine the 0.11.1 Windows check ran on: Python installed off PATH, and the GitHub API refusing unauthenticated calls. Releases now carry `SHA256SUMS.txt`.

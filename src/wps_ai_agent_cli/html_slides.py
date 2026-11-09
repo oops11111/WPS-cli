@@ -1,6 +1,7 @@
 """Convert a semantic HTML slide deck into an editable presentation (pptx), with its animations.
 
-Each <section>, and each <h1>/<h2> outside a section, starts a slide. The first h1/h2 is the slide's title;
+Each slide container (a <section>, or an element with the class "slide" such as <div class="slide">) is one
+slide, and outside containers each <h1>/<h2> starts one. A container's first h1/h2 is the slide's title;
 paragraphs, list items (with their nesting level) and h3 to h6 become the body, keeping bold, italic,
 underline, strike-through and colour. Tables become slide tables (with merged cells), local images become
 pictures and local video or audio becomes media; they share the space below the title. <aside class="notes">
@@ -347,7 +348,9 @@ def collect_slides(root: _Node) -> list[_Slide]:
     return [slide for slide in slides if not slide.empty()]
 
 
-def _runs(node: _Node, formats: dict[str, Any] | None = None) -> list[tuple[str, dict[str, Any]]]:
+def _runs(node: _Node, formats: dict[str, Any] | None = None, styled=None) -> list[tuple[str, dict[str, Any]]]:
+    """The text runs of a node. With the browser's styles (styled), an inline element keeps its own colour and
+    weight, as in "执行<span style="color: blue">步骤</span>"."""
     formats = formats or {}
     runs: list[tuple[str, dict[str, Any]]] = []
     for child in node.children:
@@ -363,7 +366,16 @@ def _runs(node: _Node, formats: dict[str, Any] | None = None) -> list[tuple[str,
                 inner[INLINE_FORMATS[child.tag]] = True
             if child.attrs.get("style"):
                 inner.update(style_formats(child.attrs["style"]))
-            runs += _runs(child, inner)
+            if styled is not None:
+                from .html_styles import color, is_bold
+
+                child_style = styled.style(child)
+                hue = color(child_style.get("-webkit-text-fill-color")) or color(child_style.get("color"))
+                if hue:
+                    inner["color"] = hue
+                if is_bold(child_style):
+                    inner["bold"] = True
+            runs += _runs(child, inner, styled)
     # Trim the source's whitespace at both ends.
     while runs and not runs[0][0].strip(HTML_SPACE):
         runs.pop(0)
@@ -629,7 +641,7 @@ def _bullets(paragraph, on: bool) -> None:
         etree.SubElement(props, f"{{{a}}}buNone")
 
 
-def _style_runs(paragraph, styled, node, factor: float) -> None:
+def _style_runs(paragraph, styled, node, factor: float, left: bool = False) -> None:
     """Font, size and colour from the computed style, scaled from CSS pixels to the slide."""
     from pptx.dml.color import RGBColor
     from pptx.util import Pt
@@ -658,18 +670,18 @@ def _style_runs(paragraph, styled, node, factor: float) -> None:
         if is_bold(style) and font.bold is None:
             font.bold = True
     align = {"center": 2, "right": 3, "end": 3, "justify": 4}.get(style.get("text-align", ""))
-    if align:
+    if align or left:
         from pptx.enum.text import PP_ALIGN
 
-        paragraph.alignment = {2: PP_ALIGN.CENTER, 3: PP_ALIGN.RIGHT, 4: PP_ALIGN.JUSTIFY}[align]
+        # A placed title keeps the browser's alignment; the slide layout's own would centre it.
+        paragraph.alignment = {2: PP_ALIGN.CENTER, 3: PP_ALIGN.RIGHT, 4: PP_ALIGN.JUSTIFY}.get(align, PP_ALIGN.LEFT)
 
 
 def _positioned_slide(slide, data: _Slide, styled, css: _Css, source: Path, appearance: bool, counts, warnings):
     """Place the slide's elements where the browser put them (P13-006); returns the animation effects."""
-    from pptx.dml.color import RGBColor
     from pptx.util import Emu, Pt
 
-    from .html_styles import color, px
+    from .html_styles import px
 
     section_box = styled.box(data.section)
     width, height = slide.part.package.presentation_part.presentation.slide_width, None
@@ -689,12 +701,18 @@ def _positioned_slide(slide, data: _Slide, styled, css: _Css, source: Path, appe
             Emu(max(1, int(box["height"] * 9525 * factor))),
         )
 
+    from . import slide_appearance as look
+
     section_style = styled.style(data.section)
-    fill = color(section_style.get("background-color"))
-    if fill:
-        background = slide.background.fill
-        background.solid()
-        background.fore_color.rgb = RGBColor.from_string(fill)
+    # The slide's background: the section's, or the nearest ancestor's that has one (often the body's).
+    parents = {id(c): n for n in _walk(styled.root) for c in n.children if isinstance(c, _Node)}
+    holder: _Node | None = data.section
+    while holder is not None:
+        background_fill = look.fill_of(styled.style(holder))
+        if background_fill is not None:
+            look.set_background(slide, background_fill)
+            break
+        holder = parents.get(id(holder))
     image = re.search(r"url\([\"']?([^\"')]+)", section_style.get("background-image", "") or "")
     if image:
         path, warning = local_image(
@@ -707,39 +725,35 @@ def _positioned_slide(slide, data: _Slide, styled, css: _Css, source: Path, appe
         elif warning:
             warnings.append(warning)
     if appearance:
-        # Decorative boxes: containers with a background or a border become rectangles behind the text.
-        from pptx.enum.shapes import MSO_SHAPE
-
+        # Every element with a background, a border or a shadow becomes a shape behind the text, in document order
+        # so that inner boxes lie on outer ones; tables draw their own cells.
+        in_tables = {id(n) for table in _walk(data.section) if table.tag == "table" for n in _walk(table)}
+        # The slide's own ::before/::after (a glow over its background) come first, behind everything.
+        for decoration in styled.pseudo_elements(data.section):
+            _draw_decoration(slide, place, data.section, styled, decoration, factor, counts)
         for node in _walk(data.section):
-            if node is data.section or node.tag not in {"div", "aside", "header", "footer", "article", "figure"}:
+            if node is data.section or id(node) in in_tables or node.tag in {"br", "img", *(_MEDIA)}:
                 continue
-            style = styled.style(node)
-            box_fill = color(style.get("background-color"))
-            line = (px(style.get("border-top-width")) or 0) > 0 and style.get("border-top-style") not in {"none", None}
             spot = place(node)
-            if spot and (box_fill or line):
-                shape = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, *spot)
-                if box_fill:
-                    shape.fill.solid()
-                    shape.fill.fore_color.rgb = RGBColor.from_string(box_fill)
-                else:
-                    shape.fill.background()
-                if line:
-                    shape.line.color.rgb = RGBColor.from_string(color(style.get("border-top-color")) or "000000")
-                else:
-                    shape.line.fill.background()
-                counts["shapes"] = counts.get("shapes", 0) + 1
+            box = styled.box(node)
+            if spot is None or not box or box["width"] <= 0 or box["height"] <= 0:
+                continue
+            _draw_box(slide, spot, box, styled.style(node), factor, counts)
+            for decoration in styled.pseudo_elements(node):
+                _draw_decoration(slide, place, node, styled, decoration, factor, counts)
     effects: list[tuple[int, int | None, Animation, str]] = []
     title_shape = slide.shapes.title
     if data.title is not None and title_shape is not None:
         spot = place(data.title)
         if spot:
             title_shape.left, title_shape.top, title_shape.width, title_shape.height = spot
+        # Drawn last of all so far: the boxes added above must not cover it.
+        title_shape._element.getparent().append(title_shape._element)
         frame = title_shape.text_frame
         frame.word_wrap = True
-        _fill_paragraph(frame.paragraphs[0], _runs(data.title))
-        _style_runs(frame.paragraphs[0], styled, data.title, factor)
-        _no_insets(frame)
+        _fill_paragraph(frame.paragraphs[0], _runs(data.title, styled=styled))
+        _style_runs(frame.paragraphs[0], styled, data.title, factor, left=True)
+        _text_box_like(frame, styled, data.title, factor, width)
         animation = _animation_of(data.title, css)
         if animation:
             effects.append((title_shape.shape_id, None, animation, "text"))
@@ -779,12 +793,14 @@ def _positioned_slide(slide, data: _Slide, styled, css: _Css, source: Path, appe
         for index, line in enumerate(lines):
             paragraph = frame.paragraphs[0] if index == 0 else frame.add_paragraph()
             paragraph.level = min(line.level, 4)
-            _fill_paragraph(paragraph, _runs(line.node), heading=False)
             original = next(
                 (n for n in _walk(data.section) if n.attrs.get("data-wps-i") == line.node.attrs.get("data-wps-i")),
                 line.node,
             )
+            _fill_paragraph(paragraph, _runs(line.node, styled=styled), heading=False)
             _style_runs(paragraph, styled, original, factor)
+            if len(lines) == 1:
+                _text_box_like(frame, styled, original, factor, width)
             _bullets(paragraph, line.node.tag == "li")
             animated = _animation_of(original, css) or _animation_of(line.node, css)
             if animated is None:
@@ -801,6 +817,7 @@ def _positioned_slide(slide, data: _Slide, styled, css: _Css, source: Path, appe
             continue
         frame = slide.shapes.add_table(len(grid), len(grid[0]), *spot)
         table = frame.table
+        _table_like_html(table, grid, styled, factor)
         for r, row in enumerate(grid):
             for c, cell_node in enumerate(row):
                 if cell_node is None:
@@ -813,10 +830,7 @@ def _positioned_slide(slide, data: _Slide, styled, css: _Css, source: Path, appe
                 for side in ("left", "right", "top", "bottom"):
                     pad = px(cell_style.get(f"padding-{side}")) or 0.0
                     setattr(cell, f"margin_{side}", Emu(int(pad * 9525 * factor)))
-                cell_fill = color(cell_style.get("background-color"))
-                if cell_fill:
-                    cell.fill.solid()
-                    cell.fill.fore_color.rgb = RGBColor.from_string(cell_fill)
+                _cell_like_html(cell, cell_style, factor)
         for first_row, first_column, last_row, last_column in merges:
             table.cell(first_row, first_column).merge(table.cell(last_row, last_column))
         counts["tables"] += 1
@@ -844,6 +858,222 @@ def _positioned_slide(slide, data: _Slide, styled, css: _Css, source: Path, appe
         counts["media"] += 1
     del Pt
     return effects
+
+
+# PowerPoint's built-in "No Style, No Grid": the table shows only what the HTML gives it.
+_PLAIN_TABLE_STYLE = "{2D5ABB26-0587-4C30-8999-92F81FD0307C}"
+
+
+def _table_like_html(table, grid, styled, factor: float) -> None:
+    """Column widths and row heights from the browser's cell boxes, without the default style's banding and fills."""
+    from pptx.util import Emu
+
+    table.first_row = False
+    table.horz_banding = False
+    properties = table._tbl.tblPr
+    style_id = properties.find("{http://schemas.openxmlformats.org/drawingml/2006/main}tableStyleId")
+    if style_id is not None:
+        style_id.text = _PLAIN_TABLE_STYLE
+
+    def single(node, attribute: str) -> bool:
+        try:
+            return int(node.attrs.get(attribute, "1") or 1) == 1
+        except ValueError:
+            return True
+
+    for c in range(len(grid[0])):
+        widths = [
+            box["width"]
+            for row in grid
+            if row[c] is not None and single(row[c], "colspan") and (box := styled.box(row[c]))
+        ]
+        if widths:
+            table.columns[c].width = Emu(max(1, int(widths[0] * 9525 * factor)))
+    for r, row in enumerate(grid):
+        heights = [
+            box["height"] for cell in row if cell is not None and single(cell, "rowspan") and (box := styled.box(cell))
+        ]
+        if heights:
+            table.rows[r].height = Emu(max(1, int(max(heights) * 9525 * factor)))
+
+
+def _cell_like_html(cell, style: dict[str, str], factor: float) -> None:
+    """A table cell's fill (with its opacity), CSS borders as cell lines, and vertical alignment."""
+    from lxml import etree
+    from pptx.enum.text import MSO_ANCHOR
+
+    from . import slide_appearance as look
+
+    fill = look.fill_of(style)
+    if fill is None:
+        cell.fill.background()
+    else:
+        cell.fill.solid()
+        properties = cell._tc.get_or_add_tcPr()
+        look._replace_fill(properties, fill, ("lnL", "lnR", "lnT", "lnB", "lnTlToBr", "lnBlToTr", "cell3D"))
+    properties = cell._tc.get_or_add_tcPr()
+    a = look.A
+    drawn = {side: (width, hue, alpha) for side, width, hue, alpha in look.borders(style)}
+    for index, (side, tag) in enumerate((("left", "lnL"), ("right", "lnR"), ("top", "lnT"), ("bottom", "lnB"))):
+        for old in properties.findall(f"{{{a}}}{tag}"):
+            properties.remove(old)
+        line = etree.Element(f"{{{a}}}{tag}")
+        if side in drawn:
+            width, hue, alpha = drawn[side]
+            line.set("w", str(max(1, int(width * look.EMU_PER_PX * factor))))
+            line.append(look.solid_fill(hue, alpha))
+        else:
+            line.set("w", "0")
+            line.append(etree.Element(f"{{{a}}}noFill"))
+        properties.insert(index, line)
+    cell.vertical_anchor = {"top": MSO_ANCHOR.TOP, "bottom": MSO_ANCHOR.BOTTOM}.get(
+        style.get("vertical-align", ""), MSO_ANCHOR.MIDDLE
+    )
+
+
+def _draw_box(slide, spot, box: dict[str, float], style: dict[str, str], factor: float, counts) -> None:
+    """One HTML box as a shape: fill (gradient, opacity), corners, borders and shadow; nothing when it shows none."""
+    from pptx.enum.shapes import MSO_SHAPE
+    from pptx.util import Emu
+
+    from . import slide_appearance as look
+
+    if style.get("visibility") == "hidden" or style.get("display") == "none":
+        return
+    try:
+        opacity = float(style.get("opacity") or 1.0)
+    except ValueError:
+        opacity = 1.0
+    fill = None if look.text_is_clipped_background(style) else look.fill_of(style, opacity)
+    sides = look.borders(style)
+    shadow = look.parse_shadow(style.get("box-shadow"), factor) if fill is not None else None
+    if fill is None and not sides and shadow is None:
+        return
+    width, height = box["width"], box["height"]
+    corner = look.radius(style.get("border-top-left-radius"), width, height)
+    uniform = len(sides) == 4 and len({(w, h, a) for _side, w, h, a in sides}) == 1
+    if fill is not None or uniform:
+        if corner * 2 >= min(width, height) - 0.5 and abs(width - height) < 1:
+            shape = slide.shapes.add_shape(MSO_SHAPE.OVAL, *spot)
+        elif corner > 0:
+            shape = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, *spot)
+            shape.adjustments[0] = min(0.5, corner / min(width, height))
+        else:
+            shape = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, *spot)
+        look.set_shape_fill(shape, fill)
+        if uniform:
+            _side, line_width, hue, alpha = sides[0]
+            look.set_outline(shape, hue, alpha * opacity, int(line_width * look.EMU_PER_PX * factor))
+        else:
+            shape.line.fill.background()
+        if shadow is not None:
+            look.add_shadow(shape, shadow)
+        counts["shapes"] = counts.get("shapes", 0) + 1
+    if not uniform:
+        # Borders that differ by side (a card's coloured left edge, a heading's underline) are bars along them.
+        left, top, w, h = (int(value) for value in spot)
+        for side, line_width, hue, alpha in sides:
+            thick = max(1, int(line_width * look.EMU_PER_PX * factor))
+            bar = {
+                "top": (left, top, w, thick),
+                "bottom": (left, top + h - thick, w, thick),
+                "left": (left, top, thick, h),
+                "right": (left + w - thick, top, thick, h),
+            }[side]
+            shape = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, *(Emu(v) for v in bar))
+            look.set_shape_fill(shape, look.solid_fill(hue, alpha * opacity))
+            shape.line.fill.background()
+            counts["shapes"] = counts.get("shapes", 0) + 1
+
+
+def _draw_decoration(slide, place, node, styled, decoration: dict[str, str], factor: float, counts) -> None:
+    """A positioned ::before/::after with a size and a background (a glow, a blob) as a shape."""
+    from pptx.util import Emu
+
+    from .html_styles import px
+
+    box = styled.box(node)
+    width, height = px(decoration.get("width")), px(decoration.get("height"))
+    if not box or decoration.get("position") not in {"absolute", "fixed"} or not width or not height:
+        return
+    left, right = px(decoration.get("left")), px(decoration.get("right"))
+    top, bottom = px(decoration.get("top")), px(decoration.get("bottom"))
+    x = box["x"] + left if left is not None else box["x"] + box["width"] - (right or 0.0) - width
+    y = box["y"] + top if top is not None else box["y"] + box["height"] - (bottom or 0.0) - height
+    origin = place(node)
+    if origin is None:
+        return
+    spot = (
+        Emu(int(origin[0] + (x - box["x"]) * 9525 * factor)),
+        Emu(int(origin[1] + (y - box["y"]) * 9525 * factor)),
+        Emu(max(1, int(width * 9525 * factor))),
+        Emu(max(1, int(height * 9525 * factor))),
+    )
+    style = {**decoration, "border-top-left-radius": decoration.get("border-top-left-radius", "")}
+    _draw_box(slide, spot, {"x": x, "y": y, "width": width, "height": height}, style, factor, counts)
+
+
+def _widen(frame, slide_width: int, share: float = 0.25) -> None:
+    from pptx.enum.text import MSO_AUTO_SIZE, PP_ALIGN
+
+    shape = frame._parent
+    frame.auto_size = MSO_AUTO_SIZE.NONE
+    alignment = frame.paragraphs[0].alignment
+    extra = int(shape.width * share)
+    if alignment == PP_ALIGN.CENTER:
+        extra = min(extra, 2 * shape.left, 2 * max(0, slide_width - shape.left - shape.width))
+        shape.left, shape.width = shape.left - extra // 2, shape.width + extra
+    elif alignment == PP_ALIGN.RIGHT:
+        extra = min(extra, shape.left)
+        shape.left, shape.width = shape.left - extra, shape.width + extra
+    else:
+        shape.width = shape.width + max(0, min(extra, slide_width - shape.left - shape.width))
+
+
+def _text_box_like(frame, styled, node, factor: float, slide_width: int) -> None:
+    """Fit a text frame to its HTML box: padding as insets, flex centring, one browser line kept on one line, and
+    `background-clip: text` gradients on the glyphs."""
+    from pptx.enum.text import MSO_ANCHOR, PP_ALIGN
+    from pptx.util import Emu
+
+    from . import slide_appearance as look
+    from .html_styles import parse_gradient, px
+
+    style = styled.style(node)
+    for side, attribute in (
+        ("left", "margin_left"),
+        ("right", "margin_right"),
+        ("top", "margin_top"),
+        ("bottom", "margin_bottom"),
+    ):
+        inset = (px(style.get(f"padding-{side}")) or 0.0) + (px(style.get(f"border-{side}-width")) or 0.0)
+        setattr(frame, attribute, Emu(int(inset * 9525 * factor)))
+    frame.vertical_anchor = MSO_ANCHOR.TOP
+    if style.get("display") in {"flex", "inline-flex"}:
+        column = style.get("flex-direction", "row").startswith("column")
+        main, cross = style.get("justify-content", ""), style.get("align-items", "")
+        vertical, horizontal = (main, cross) if column else (cross, main)
+        if vertical == "center":
+            frame.vertical_anchor = MSO_ANCHOR.MIDDLE
+        if horizontal == "center":
+            for paragraph in frame.paragraphs:
+                paragraph.alignment = PP_ALIGN.CENTER
+    try:
+        lines = int(style.get("text-lines") or 0)
+    except ValueError:
+        lines = 0
+    breaks = sum(1 for n in _walk(node) if n.tag == "br")
+    if 0 < lines <= breaks + 1:
+        # The browser broke the text only at its <br>s; a wider font (a fallback where Microsoft YaHei is missing)
+        # must not wrap it further. Wrapping stays on, which every renderer honours, and the box gets room to grow
+        # on the side its alignment leaves free.
+        _widen(frame, slide_width)
+    if look.text_is_clipped_background(style):
+        gradient = parse_gradient(style.get("background-image"))
+        if gradient:
+            for paragraph in frame.paragraphs:
+                for run in paragraph.runs:
+                    look.gradient_text(run, gradient)
 
 
 def _media_source(source: Path, node, warnings: list[str]):
@@ -928,7 +1158,8 @@ def convert_html_to_pptx(
                 {
                     "code": "BROWSER_BACKEND_UNAVAILABLE",
                     "message": "Appearance mode places elements where the browser puts them: it needs Node.js, "
-                    "Playwright and Edge (or Chromium via WPS_AGENT_EDGE), and every slide in a <section>.",
+                    "Playwright and Edge (or Chromium via WPS_AGENT_EDGE), and every slide in a <section> or an element with "
+                    'class="slide".',
                 }
             ],
         )
