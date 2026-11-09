@@ -4,7 +4,20 @@ All notable changes to `wps-ai-agent-cli`. The versioning rule and release steps
 
 ## [Unreleased]
 
-Batch-2 from the November code review: exit codes, the MCP boundary, and the formula denylist — on top of batch-1 (macro disabling, installer fail-closed, rollback whitelist, LICENSE, release test gate). Two behaviours change on purpose and are called out below: failed commands now exit 1, and six destructive MCP tools require confirmation.
+Batch-3 from the November code review: internal clean-ups and the forward roadmap — on top of batch-2 (exit codes, MCP boundary, formula denylist) and batch-1 (macro disabling, installer fail-closed, rollback whitelist, LICENSE, release test gate). No behaviour changes in this batch.
+
+### Changed
+
+- `backups._restore_file_atomically` is now the public `restore_file_atomically` (the private name stays as an alias); `atomic_mutation` no longer reaches into a private helper of another module (A-08, first step).
+- The script constants in `open_documents` are imported from `open_document_scripts` by the one test that reads them, and the misleading "re-exported for tests" comment is gone (A-01, first step). Splitting the module itself stays a roadmap item, to be driven by new work rather than a big-bang refactor.
+- `docs/ROADMAP.md` rewritten: it now lists only what is not done yet — the 1.0 close-out, the capability additions in priority order, later items gated on measurements, and the decided boundaries (no cloud, HTML scope frozen at its current formats with docx as the fidelity path). Phase history stays in the PHASE documents and git history.
+- `docs/RELEASING.md` gains the release cadence (a minor every two weeks) and the five conditions for 1.0 (U-06).
+
+### Fixed
+
+- Test modules that build presentation fixtures per method (`test_agent_eval`, `test_undo_injection`) now skip those tests when python-pptx (or the PDF extras) are missing, instead of erroring one by one — the rest of T-04 after batch-1's module-level guards.
+
+Batch-2 from the November code review: exit codes, the MCP boundary, and the formula denylist. Two behaviours change on purpose and are called out below: failed commands now exit 1, and six destructive MCP tools require confirmation.
 
 ### Changed
 

@@ -17,7 +17,7 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
-from .backups import _backup_dir, _restore_file_atomically, _verify_backup_integrity, last_after_com_identity
+from .backups import _backup_dir, _verify_backup_integrity, last_after_com_identity, restore_file_atomically
 from .errors import COM_OPERATION_FAILED, ROLLBACK_BLOCKED, ROLLBACK_FAILED, ROLLED_BACK
 from .operations import get_operation
 from .sessions import file_identity, get_document
@@ -126,7 +126,7 @@ def _undo_write(
             "reason": "the file changed after this command wrote it, so the backup was not copied over it",
             "backup_path": backup_file,
         }, None
-    write_error = _restore_file_atomically(backup, target)
+    write_error = restore_file_atomically(backup, target)
     if write_error is not None and write_error.get("reason") == "file_locked":
         return {"performed": False, "blocked": "file_locked"}, None
     if write_error is not None:

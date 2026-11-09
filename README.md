@@ -45,4 +45,4 @@ wps-agent mcp-server                                    # 启动 stdio MCP 服�
 
 ## 状态
 
-当前版本 0.11.3。Phase 0 到 14 已完成，各阶段的结果见 [CONTRIBUTING.md](CONTRIBUTING.md#各阶段) 和 [docs/ROADMAP.md](docs/ROADMAP.md)。问题和建议请提交到 <https://github.com/oops11111/WPS-cli/issues>。
+当前版本 0.11.3。Phase 0 到 14 已完成，各阶段的结果见 [CONTRIBUTING.md](CONTRIBUTING.md#各阶段) 和 `docs/` 下的 PHASE 计划，后续计划见 [docs/ROADMAP.md](docs/ROADMAP.md)。问题和建议请提交到 <https://github.com/oops11111/WPS-cli/issues>。

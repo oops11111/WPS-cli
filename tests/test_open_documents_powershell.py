@@ -316,7 +316,9 @@ class CellTextMatchTests(unittest.TestCase):
         import re
         import subprocess
 
-        body = open_documents._SPREADSHEET_SELECTION_REPLACE_BODY
+        from wps_ai_agent_cli.open_document_scripts import _SPREADSHEET_SELECTION_REPLACE_BODY
+
+        body = _SPREADSHEET_SELECTION_REPLACE_BODY
         function = re.search(r"  function Test-CellTextMatch.*?\n  }\n", body, re.S).group(0)
         cases = [
             ("x", "x"),

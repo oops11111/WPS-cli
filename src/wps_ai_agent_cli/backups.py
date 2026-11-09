@@ -408,7 +408,8 @@ def _verify_backup_integrity(document_id: str, backup_file: Path, workspace: str
     return None
 
 
-def _restore_file_atomically(backup_file: Path, target_path: Path) -> dict[str, str] | None:
+def restore_file_atomically(backup_file: Path, target_path: Path) -> dict[str, str] | None:
+    """Copy ``backup_file`` over ``target_path`` atomically, verifying the copy before the swap."""
     temporary = None
     try:
         descriptor, temporary_name = tempfile.mkstemp(
@@ -533,7 +534,7 @@ def restore_backup(
     if not pre_restore_ok:
         return False, {"restore": result, "pre_restore_backup": pre_restore_result}, pre_restore_errors, False
 
-    write_error = _restore_file_atomically(backup_file, target_path)
+    write_error = restore_file_atomically(backup_file, target_path)
     if write_error is not None:
         return False, {"restore": result, "pre_restore_backup": pre_restore_result}, [write_error], False
     result["restored"] = True
@@ -542,3 +543,7 @@ def restore_backup(
     result["pre_restore_backup_replayed"] = pre_restore_replayed
     record_operation(request_id, "restore-backup", result, workspace)
     return True, result, [], False
+
+
+# Kept for compatibility; new code uses the public name.
+_restore_file_atomically = restore_file_atomically
