@@ -268,6 +268,11 @@ _BLOCK_LEVEL = {
 }  # fmt: skip
 
 
+def _is_slide_container(node: _Node) -> bool:
+    """A <section>, or an element whose class names it a slide (<div class="slide">, a common way to write decks)."""
+    return node.tag == "section" or "slide" in node.attrs.get("class", "").split()
+
+
 def collect_slides(root: _Node) -> list[_Slide]:
     slides = [_Slide()]
 
@@ -286,13 +291,21 @@ def collect_slides(root: _Node) -> list[_Slide]:
             tag = child.tag
             if tag in {"head", "title", "meta", "link"}:
                 continue
-            if tag == "section":
+            if _is_slide_container(child) and slides[-1].section is None:
                 start(child)
                 visit(child)
                 start()
             elif tag in {"h1", "h2"}:
                 current = slides[-1]
-                if current.title is not None or current.lines or current.tables or current.images or current.media:
+                if current.section is not None:
+                    # Inside a slide container the slide is the container: its first h1/h2 is the title, and
+                    # content before it (a badge, a kicker) stays on the same slide.
+                    if current.title is None:
+                        current.title = child
+                    else:
+                        current.lines.append(_Line(child, level, heading=True))
+                    continue
+                if current.title is not None or current.tables or current.images or current.media:
                     start()
                 slides[-1].title = child
             elif _is_notes(child):
