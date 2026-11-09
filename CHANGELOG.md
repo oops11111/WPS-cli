@@ -4,6 +4,20 @@ All notable changes to `wps-ai-agent-cli`. The versioning rule and release steps
 
 ## [Unreleased]
 
+Batch-2 from the November code review: exit codes, the MCP boundary, and the formula denylist — on top of batch-1 (macro disabling, installer fail-closed, rollback whitelist, LICENSE, release test gate). Two behaviours change on purpose and are called out below: failed commands now exit 1, and six destructive MCP tools require confirmation.
+
+### Changed
+
+- **Exit status (U-02)**: a command whose response has `ok: false` now exits 1 (success 0, argument errors 2), so scripts no longer mistake a failed command for a successful one. `--lenient-exit` restores the pre-0.12 behaviour (exit 0 on failure) for callers that only read the JSON envelope; `--strict-exit` is still accepted and stripped, but strict is now the default it used to request. MCP tool calls are unaffected (`isError` already follows `ok`).
+- Six destructive MCP tools — `restore-backup`, `save-as-open-document`, the three selection deletes and `spreadsheet-delete-sheet` — now refuse to run through MCP unless the call carries `confirm: true` (a `dry_run` preview never needs it). The refusal is `MCP_DESTRUCTIVE_CONFIRMATION_REQUIRED` and changes nothing. The matching CLI commands gained an optional `--confirm` flag for parity; a person typing the command confirms by running it.
+- `capabilities` resolves COM ProgIDs through the JSON parameter channel instead of interpolating the ProgID into the PowerShell command (S-06, last known case).
+
+### Security
+
+- Workspace boundary (S-02): when the environment variable `WPS_AGENT_WORKSPACE_ROOT` names a directory, registering a document or converting is only accepted for paths inside it (anything else returns `PATH_OUTSIDE_WORKSPACE`); `*` disables the boundary. It is a deployment setting — an MCP server configuration sets it in the server's `env` to confine tool calls to a chosen tree. It is deliberately not defaulted to the server's working directory, because documents legitimately live elsewhere.
+- Formula denylist (S-07): `spreadsheet-formula-write` now rejects formulas that call CALL, DDE, EXEC, HYPERLINK, INDIRECT, REGISTER, RTD, SHELL, SQL.REQUEST or WEBSERVICE (`FORMULA_FUNCTION_NOT_ALLOWED`) — functions that reach outside the document. The HTML to XLSX path applies the same list to restored `data-formula` formulas: a forbidden one is kept as text instead of becoming a live formula.
+- The README now names and distinguishes the two other projects called wps-cli (Kingsoft's official `wpscli` and jjchen17's community `wps-cli`) so nobody installs the wrong one (U-01, disambiguation half; the rename half is still open).
+
 Batch-1 hardening from the November code review. The CLI and MCP interface are unchanged, except that WPS conversion now refuses macro-enabled sources (see Security).
 
 ### Security

@@ -87,6 +87,8 @@ py -3 -m venv %LOCALAPPDATA%\wps-agent\venv
 
 `WPS_AGENT_WORKSPACE` 指定服务器存放文档登记、操作记录和备份的目录（其中的 `.wps-agent` 文件夹）。不设置时用服务器启动时的当前目录，而客户端启动服务器的目录不一定可写，所以请保留这一项。
 
+可选的环境变量 `WPS_AGENT_WORKSPACE_ROOT` 是路径边界：设置后，登记文档和转换只接受该目录之内的路径（越界返回 `PATH_OUTSIDE_WORKSPACE`）。想把 AI 能碰的文件限制在一个目录（比如文档目录）时，在服务器配置的 `env` 里加上它；设为 `*` 表示不限制。另外，恢复备份、删除工作表、删除选区、另存已打开文档这六个破坏性工具在 MCP 里必须带 `confirm: true` 才会真正执行（先用 `dry_run` 预览不需要），命令行里对应命令也有 `--confirm` 参数（人工执行时可省略）。
+
 连上之后，可以这样试：“列出 WPS 里打开的文档”“读一下 D:\报表\三季度.xlsx 的 Sheet1 前 10 行”。
 
 ## 4. 能做什么
@@ -149,7 +151,7 @@ wps-agent spreadsheet-write --document-id doc_xxx --sheet Sheet1 --range B2 --va
 wps-agent open-documents
 ```
 
-命令失败时进程默认仍以 0 退出，请看 JSON 里的 `ok`；脚本里需要非零退出码时加 `--strict-exit`。完整的命令列表：`wps-agent --help`，某个命令的参数：`wps-agent <命令> --help`。
+命令失败时进程以退出码 1 结束（成功 0、参数错误 2），请同时看 JSON 里的 `ok`；需要旧行为的脚本加 `--lenient-exit`。完整的命令列表：`wps-agent --help`，某个命令的参数：`wps-agent <命令> --help`。
 
 ## 6. 备份和恢复
 

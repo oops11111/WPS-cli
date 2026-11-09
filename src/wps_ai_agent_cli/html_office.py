@@ -14,6 +14,7 @@ import re
 from pathlib import Path
 from typing import Any
 
+from .formula_safety import forbidden_formula_function
 from .html_editable import HTML_SPACE, collapse_space, validate_office_paths
 from .html_text import decode_html_bytes
 
@@ -279,13 +280,18 @@ def convert_html_to_xlsx(
                 value, is_formula, number_format = _cell_value(text)
                 cell = sheet.cell(row=row_index, column=column_index)
                 formula = node.attrs.get("data-formula", "").strip()
-                if formula.startswith("=") and len(formula) > 1:
+                if formula.startswith("=") and len(formula) > 1 and forbidden_formula_function(formula) is None:
                     # Written by office-to-html from a workbook formula: restore it (decision 7).
                     cell.value = formula
                     restored += 1
                 else:
                     cell.value = value
-                if is_formula and not formula:
+                if formula and forbidden_formula_function(formula) is not None:
+                    # A restored formula may not reach outside the document; keep its text instead.
+                    cell.value = formula
+                    cell.data_type = "s"
+                    formula_like += 1
+                elif is_formula and not formula:
                     cell.data_type = "s"
                     formula_like += 1
                 if number_format:

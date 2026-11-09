@@ -14,7 +14,8 @@ from openpyxl.utils.cell import get_column_letter, range_boundaries
 from .atomic_mutation import atomic_mutation
 from .backups import create_backup, guarded_com_mutation, verify_post_com_source
 from .capabilities import probe_wps_capabilities
-from .errors import COM_BACKEND_UNAVAILABLE, COM_OPERATION_FAILED, INPUT_FILE_NOT_FOUND
+from .errors import COM_BACKEND_UNAVAILABLE, COM_OPERATION_FAILED, FORMULA_FUNCTION_NOT_ALLOWED, INPUT_FILE_NOT_FOUND
+from .formula_safety import forbidden_formula_function
 from .mutation_lock import coordinated_mutation
 from .ooxml import load_workbook_guarded as load_workbook
 from .ooxml import parse_xml_part
@@ -2019,6 +2020,24 @@ def write_spreadsheet_formulas(
             [{"code": "INVALID_ARGUMENT", "message": "Every formula must be a string starting with '='."}],
             False,
         )
+    for row in formulas:
+        for formula in row:
+            forbidden = forbidden_formula_function(formula)
+            if forbidden is not None:
+                return (
+                    False,
+                    {},
+                    [
+                        {
+                            "code": FORMULA_FUNCTION_NOT_ALLOWED,
+                            "message": (
+                                f"Formula uses {forbidden}(), which is not allowed: it reaches outside the "
+                                "document (external programs, data or links). See formula_safety for the list."
+                            ),
+                        }
+                    ],
+                    False,
+                )
 
     try:
         expected_rows, expected_cols = _matrix_shape(expected_values)

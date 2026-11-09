@@ -84,7 +84,14 @@ def _tool(
     idempotency: str = "Optional request_id is accepted for traceability.",
     cli_example: str | None = None,
     safety_notes: list[str] | None = None,
+    destructive: bool = False,
 ) -> dict[str, Any]:
+    properties = dict(properties or {})
+    if destructive:
+        # Enforced by mcp_adapter.call_mcp_tool: without dry_run, the call must carry confirm=true.
+        properties["confirm"] = _boolean(
+            "Destructive tool: set true to confirm the operation on the named target (not needed with dry_run)."
+        )
     return {
         "schema_version": SCHEMA_VERSION,
         "name": name,
@@ -93,9 +100,10 @@ def _tool(
         "description": description,
         "category": category,
         "mutates_document": mutates_document,
+        "destructive": destructive,
         "requires_wps": requires_wps,
         "idempotency": idempotency,
-        "input_schema": _object_schema(properties or {}, required),
+        "input_schema": _object_schema(properties, required),
         "output_contract": MCP_TOOL_RESULT_OUTPUT_CONTRACT,
         "cli_example": cli_example or f"python -m wps_ai_agent_cli {cli_command}",
         "safety_notes": safety_notes or [],
@@ -568,6 +576,7 @@ MCP_TOOL_SCHEMAS: tuple[dict[str, Any], ...] = (
             "task_id": _string("Optional long-running task status id."),
         },
         mutates_document=True,
+        destructive=True,
         idempotency="Mutating command; request_id should be supplied and is replayed by the operation ledger.",
         safety_notes=[
             "Restores a registered document from a backup and creates a pre-restore backup before overwriting.",
@@ -710,6 +719,7 @@ MCP_TOOL_SCHEMAS: tuple[dict[str, Any], ...] = (
             "task_id": _string("Optional long-running task status id."),
         },
         mutates_document=True,
+        destructive=True,
         requires_wps=True,
         idempotency="Mutating command; request_id should be supplied and is replayed by the operation ledger.",
         safety_notes=[
@@ -792,6 +802,7 @@ MCP_TOOL_SCHEMAS: tuple[dict[str, Any], ...] = (
             "task_id": _string("Optional long-running task status id."),
         },
         mutates_document=True,
+        destructive=True,
         requires_wps=True,
         idempotency="Mutating command; request_id should be supplied and is replayed by the operation ledger.",
         safety_notes=[
@@ -1273,6 +1284,7 @@ MCP_TOOL_SCHEMAS: tuple[dict[str, Any], ...] = (
             "task_id": _string("Optional long-running task status id."),
         },
         mutates_document=True,
+        destructive=True,
         requires_wps=True,
         idempotency="Mutating command; request_id should be supplied and is replayed by the operation ledger.",
         safety_notes=[
@@ -1416,6 +1428,7 @@ MCP_TOOL_SCHEMAS: tuple[dict[str, Any], ...] = (
             "task_id": _string("Optional long-running task status id."),
         },
         mutates_document=True,
+        destructive=True,
         requires_wps=True,
         idempotency="Mutating command; request_id is bound to document, worksheet name and dry_run.",
         safety_notes=[
@@ -1602,6 +1615,7 @@ MCP_TOOL_SCHEMAS: tuple[dict[str, Any], ...] = (
             "task_id": _string("Optional long-running task status id."),
         },
         mutates_document=True,
+        destructive=True,
         requires_wps=True,
         idempotency="Mutating command; request_id should be supplied and is replayed by the operation ledger.",
         safety_notes=[

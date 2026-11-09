@@ -208,7 +208,10 @@ class FailureContractTests(unittest.TestCase):
             patch("wps_ai_agent_cli.cli_parser.build_parser", stricter_parser),
             patch("wps_ai_agent_cli.cli.build_parser", stricter_parser),
         ):
-            response = _call("wps_agent_restore_backup", {"document_id": "doc_missing0000000", "backup_name": "x"})
+            response = _call(
+                "wps_agent_restore_backup",
+                {"document_id": "doc_missing0000000", "backup_name": "x", "confirm": True},
+            )
 
         text = json.loads(response["result"]["content"][0]["text"])
         self.assertEqual(text["errors"][0]["code"], "MCP_CLI_ARGUMENTS_REJECTED")

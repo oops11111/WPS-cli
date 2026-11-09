@@ -343,6 +343,10 @@ def _argparse_error(argv: list[str]) -> str | None:
 
 
 def call_mcp_tool(tool_name: str, arguments: dict[str, Any]) -> tuple[bool, dict[str, Any], list[dict[str, Any]]]:
+    # `confirm` is an adapter-level gate for destructive tools, not a CLI argument: pop it before the
+    # arguments are mapped to argv.
+    arguments = dict(arguments)
+    confirm = arguments.pop("confirm", None)
     ok, argv, schema, errors = build_cli_argv(tool_name, arguments)
     if not ok:
         return (
@@ -354,6 +358,23 @@ def call_mcp_tool(tool_name: str, arguments: dict[str, Any]) -> tuple[bool, dict
                 "response": None,
             },
             errors,
+        )
+    if schema and schema.get("destructive") and not arguments.get("dry_run") and confirm is not True:
+        return (
+            False,
+            {
+                "tool_name": schema["name"],
+                "cli_command": schema["cli_command"],
+                "cli_argv": argv,
+                "response": None,
+            },
+            [
+                _error(
+                    "MCP_DESTRUCTIVE_CONFIRMATION_REQUIRED",
+                    "This tool deletes or overwrites data. Preview it with dry_run first, then repeat the "
+                    "call with confirm=true to run it. Nothing was changed.",
+                )
+            ],
         )
 
     from .cli import run

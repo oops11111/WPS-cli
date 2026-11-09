@@ -48,7 +48,7 @@ class StateCorruptionTests(unittest.TestCase):
                 code, payload = invoke(["documents", "--request-id", "r-corrupt"])
             finally:
                 os.chdir(previous)
-        self.assertEqual(code, 0)
+        self.assertEqual(code, 1)
         self.assertFalse(payload["ok"])
         self.assertEqual(payload["errors"][0]["code"], "STATE_CORRUPT")
         self.assertIn("state_path", payload["data"])
@@ -66,8 +66,15 @@ class StrictExitTests(unittest.TestCase):
             finally:
                 os.chdir(previous)
 
-    def test_default_exit_code_stays_zero_on_failure(self):
+    def test_default_exit_code_is_one_on_failure(self):
         code, payload = self.run_in_tmp(["backup-document", "--document-id", "nope", "--request-id", "x"])
+        self.assertFalse(payload["ok"])
+        self.assertEqual(code, 1)
+
+    def test_lenient_exit_restores_the_old_zero_on_failure(self):
+        code, payload = self.run_in_tmp(
+            ["--lenient-exit", "backup-document", "--document-id", "nope", "--request-id", "x"]
+        )
         self.assertFalse(payload["ok"])
         self.assertEqual(code, 0)
 
@@ -85,10 +92,10 @@ class StrictExitTests(unittest.TestCase):
 
 
 class ExitCodeDocumentationTests(unittest.TestCase):
-    def test_default_exit_code_stays_zero_on_failure_and_readme_says_so(self):
+    def test_default_exit_code_is_one_on_failure_and_readme_says_so(self):
         stream = io.StringIO()
         code = run(["mcp-tool-schema", "--name", "does-not-exist"], output_stream=stream)
-        self.assertEqual(code, 0)
+        self.assertEqual(code, 1)
         self.assertFalse(json.loads(stream.getvalue())["ok"])
 
         strict_stream = io.StringIO()
@@ -96,7 +103,7 @@ class ExitCodeDocumentationTests(unittest.TestCase):
         self.assertEqual(strict_code, 1)
 
         readme = (Path(__file__).resolve().parents[1] / "README.md").read_text(encoding="utf-8")
-        self.assertIn("--strict-exit", readme)
+        self.assertIn("--lenient-exit", readme)
         self.assertIn("退出码", readme)
 
 

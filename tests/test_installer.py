@@ -188,7 +188,11 @@ class UserGuideTests(unittest.TestCase):
         import re
 
         known = set(json.loads((ROOT / "config" / "public_interface.json").read_text(encoding="utf-8"))["error_codes"])
-        named = set(re.findall(r"`([A-Z][A-Z0-9_]{4,})`", self.guide)) - {"NODE_PATH", "WPS_AGENT_WORKSPACE"}
+        named = set(re.findall(r"`([A-Z][A-Z0-9_]{4,})`", self.guide)) - {
+            "NODE_PATH",
+            "WPS_AGENT_WORKSPACE",
+            "WPS_AGENT_WORKSPACE_ROOT",
+        }
         self.assertTrue(named)
         self.assertLessEqual(named, known)
 

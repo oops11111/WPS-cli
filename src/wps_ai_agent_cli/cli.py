@@ -375,7 +375,7 @@ from .cli_handlers import build_command_handlers  # noqa: E402
 COMMAND_HANDLERS = build_command_handlers(sys.modules[__name__])
 
 
-def _run_command(argv: list[str], output_stream: TextIO | None = None, strict_exit: bool = False) -> int:
+def _run_command(argv: list[str], output_stream: TextIO | None = None, lenient_exit: bool = False) -> int:
     if output_stream is None:
         _configure_stdout()
     argv, extracted_request_id = _extract_request_id(list(argv))
@@ -396,15 +396,18 @@ def _run_command(argv: list[str], output_stream: TextIO | None = None, strict_ex
         response = dataclasses.replace(response, summary=summary)
 
     print(dumps_json(response.to_dict()), file=output_stream or sys.stdout)
-    return 0 if response.ok or not strict_exit else 1
+    return 0 if response.ok or lenient_exit else 1
 
 
 def run(argv: list[str] | None = None, output_stream: TextIO | None = None) -> int:
     argv = list(sys.argv[1:] if argv is None else argv)
-    strict_exit = "--strict-exit" in argv
-    argv = [item for item in argv if item != "--strict-exit"]
+    # Failure exits 1 by default. --lenient-exit restores the pre-0.12 behaviour (always 0) for callers
+    # that still detect failure only through the JSON envelope; --strict-exit is still accepted and
+    # stripped, but strict is now the default it used to request.
+    lenient_exit = "--lenient-exit" in argv
+    argv = [item for item in argv if item not in ("--strict-exit", "--lenient-exit")]
     try:
-        return _run_command(argv, output_stream, strict_exit)
+        return _run_command(argv, output_stream, lenient_exit)
     except (StateCorruptError, OoxmlTooLargeError) as exc:
         command = next((item for item in argv if not item.startswith("-")), "unknown")
         _, request_id = _extract_request_id(argv)
@@ -424,7 +427,7 @@ def run(argv: list[str] | None = None, output_stream: TextIO | None = None) -> i
             errors=[{"code": exc.code, "message": str(exc)}],
         )
         print(dumps_json(response.to_dict()), file=output_stream or sys.stdout)
-        return 1 if strict_exit else 0
+        return 0 if lenient_exit else 1
     except OSError as exc:
         # A command that does not check for a held file itself (for example spreadsheet-read or batch-report)
         # still answers with a DOCUMENT_HELD_OPEN envelope, not an uncaught PermissionError.
@@ -445,7 +448,7 @@ def run(argv: list[str] | None = None, output_stream: TextIO | None = None) -> i
         )
         add_open_document_hint(command, response.errors)
         print(dumps_json(response.to_dict()), file=output_stream or sys.stdout)
-        return 1 if strict_exit else 0
+        return 0 if lenient_exit else 1
 
 
 def _command_mutates_document(command: str) -> bool:

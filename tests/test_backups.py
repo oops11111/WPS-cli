@@ -275,14 +275,19 @@ class BackupTests(unittest.TestCase):
 
             ok, _, errors = call_mcp_tool(
                 "wps_agent_restore_backup",
-                {"document_id": document_id, "backup_name": first_path.name, "backup_path": str(other_path)},
+                {
+                    "document_id": document_id,
+                    "backup_name": first_path.name,
+                    "backup_path": str(other_path),
+                    "confirm": True,
+                },
             )
             self.assertFalse(ok)
             self.assertEqual(errors[0]["code"], "INVALID_ARGUMENT")
             self.assertIn("name different files", errors[0]["message"])
             self.assertEqual(document.read_bytes(), b"changed")
 
-            ok, _, errors = call_mcp_tool("wps_agent_restore_backup", {"document_id": document_id})
+            ok, _, errors = call_mcp_tool("wps_agent_restore_backup", {"document_id": document_id, "confirm": True})
             self.assertFalse(ok)
             self.assertEqual(errors[0]["code"], "INVALID_ARGUMENT")
 
@@ -293,6 +298,7 @@ class BackupTests(unittest.TestCase):
                     "backup_name": first_path.name,
                     "backup_path": str(relative),
                     "request_id": "both-restore",
+                    "confirm": True,
                 },
             )
             self.assertTrue(ok, errors)
@@ -312,7 +318,7 @@ class BackupTests(unittest.TestCase):
                         ["backup-document", "--document-id", record["document_id"], "--request-id", "stale-cli-backup"],
                         output_stream=output,
                     ),
-                    0,
+                    1,
                 )
                 cli = json.loads(output.getvalue())
                 mcp_ok, mcp, mcp_errors = call_mcp_tool(

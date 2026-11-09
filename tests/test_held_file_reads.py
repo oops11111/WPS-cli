@@ -76,7 +76,7 @@ class HeldFileReadTests(unittest.TestCase):
             with self.subTest(command=argv[0]):
                 exit_code, envelope = self.run_cli(argv)
 
-                self.assertEqual(exit_code, 0)
+                self.assertEqual(exit_code, 1)
                 self.assertFalse(envelope["ok"])
                 self.assertEqual(envelope["command"], argv[0])
                 self.assertEqual([error["code"] for error in envelope["errors"]], ["DOCUMENT_HELD_OPEN"])
@@ -88,7 +88,7 @@ class HeldFileReadTests(unittest.TestCase):
     def test_snapshot_document_reports_document_held_open(self):
         exit_code, envelope = self.run_cli(["snapshot-document", "--document-id", self.document_id])
 
-        self.assertEqual(exit_code, 0)
+        self.assertEqual(exit_code, 1)
         self.assertFalse(envelope["ok"])
         self.assertEqual([error["code"] for error in envelope["errors"]], ["DOCUMENT_HELD_OPEN"])
         self.assertIn(_SHARING_VIOLATION, envelope["errors"][0]["message"])

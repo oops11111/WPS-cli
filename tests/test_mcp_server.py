@@ -762,7 +762,7 @@ class McpServerTests(unittest.TestCase):
                 "method": "tools/call",
                 "params": {
                     "name": "wps_agent_restore_backup",
-                    "arguments": {"document_id": "doc_missing", "backup_name": "x.xlsx"},
+                    "arguments": {"document_id": "doc_missing", "backup_name": "x.xlsx", "confirm": True},
                 },
             }
         )
