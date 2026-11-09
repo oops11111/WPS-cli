@@ -4,6 +4,10 @@ All notable changes to `wps-ai-agent-cli`. The versioning rule and release steps
 
 ## [Unreleased]
 
+## [0.11.2] - 2026-11-09
+
+The installer works on the machine the 0.11.1 Windows check ran on: Python installed off PATH, and the GitHub API refusing unauthenticated calls. Releases now carry `SHA256SUMS.txt`. HTML decks written with `<div class="slide">` convert to slides that look like the page in the browser (`--fidelity appearance`).
+
 ### Fixed
 
 - HTML to PPTX takes an element with the class `slide` (`<div class="slide">`) as a slide, like `<section>`, and an `<h1>`/`<h2>` inside a slide no longer starts another one: a deck written with `<div class="slide">`, or with a badge before a slide's title, came out split at its headings into title-and-content slides without the browser's layout. (The install report from the 0.11.1 Windows check: 5 such slides, now 4 placed ones.)
@@ -17,13 +21,6 @@ All notable changes to `wps-ai-agent-cli`. The versioning rule and release steps
   - flex-centred text centred in its box;
   - padding as text insets.
 - Positioned slides in either mode keep each title's alignment and each inline element's colour (`执行<span>步骤</span>`), and text the browser shows on one line gets room to stay on one line in a wider font. Tables take their column widths and row heights from the browser, their CSS borders and cell fills, without the default table style's header and banding.
-
-## [0.11.2] - 2026-11-09
-
-The installer works on the machine the 0.11.1 Windows check ran on: Python installed off PATH, and the GitHub API refusing unauthenticated calls. Releases now carry `SHA256SUMS.txt`.
-
-### Fixed
-
 - `install.ps1` found no Python on a machine where `python` is only the Microsoft Store placeholder and Python was installed without adding it to PATH (by uv, say), as on the Windows check of 0.11.1. It now also tries the Python the previous install used, `uv python find`, and the default folders of python.org's installer and uv.
 - `install.ps1` failed when the GitHub API refused the request (60 unauthenticated calls an hour per address). It now downloads the wheel from the release page instead, finding the latest version from the page's redirect, and checks it against the `SHA256SUMS.txt` each Release now carries.
 
