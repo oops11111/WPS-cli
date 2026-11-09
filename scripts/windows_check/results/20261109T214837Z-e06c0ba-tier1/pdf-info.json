@@ -1,0 +1,59 @@
+{
+  "backend": "python",
+  "command": "pdf-info",
+  "data": {
+    "encrypted": false,
+    "file_size": 51640,
+    "likely_scanned": false,
+    "metadata": {
+      "author": "admin",
+      "comments": "",
+      "company": "",
+      "creationdate": "D:20261110055509+08'00'",
+      "creator": "WPS 文字",
+      "keywords": "",
+      "moddate": "D:20261110055509+08'00'",
+      "producer": "",
+      "sourcemodified": "D:20261110055509+08'00'",
+      "subject": "",
+      "title": "",
+      "trapped": "/False"
+    },
+    "outline_items": 0,
+    "page_sizes": [
+      {
+        "count": 1,
+        "height_mm": 297.0,
+        "height_pt": 841.9,
+        "orientation": "portrait",
+        "paper": "A4",
+        "width_mm": 210.0,
+        "width_pt": 595.3
+      }
+    ],
+    "pages": 1,
+    "path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T214837Z-e06c0ba-tier1\\work\\合同.pdf",
+    "pdf_version": "1.7",
+    "rotations": {
+      "0": 1
+    },
+    "text_layer": {
+      "pages_checked": 1,
+      "pages_with_text": 1
+    }
+  },
+  "errors": [],
+  "ok": true,
+  "request_id": "c4953690-9ed4-4caf-bd81-a2d5cfe814ac",
+  "summary": "Read the PDF (1 pages).",
+  "validation": {
+    "checks": [
+      {
+        "details": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T214837Z-e06c0ba-tier1\\work\\合同.pdf",
+        "name": "pdf_read",
+        "passed": true
+      }
+    ],
+    "status": "passed"
+  }
+}

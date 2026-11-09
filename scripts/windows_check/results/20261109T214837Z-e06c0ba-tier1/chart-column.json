@@ -1,0 +1,89 @@
+{
+  "backend": "wps-com",
+  "command": "spreadsheet-chart-create",
+  "data": {
+    "anchor": "E1",
+    "backup": {
+      "backup_bytes": 8985,
+      "backup_path": ".wps-agent\\backups\\doc_d8d84e33ba92fc52\\销售.20261109T214940449647Z.xlsx",
+      "component": "spreadsheets",
+      "created": true,
+      "document_id": "doc_d8d84e33ba92fc52",
+      "dry_run": false,
+      "source_identity": {
+        "file_device": 11882268654517892920,
+        "file_inode": 3377699722558990,
+        "source_sha256": "BA4D096494A7D8198E388105894712BA8F5B0767C4F590D58EE70613D0E6E903"
+      },
+      "source_path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T214837Z-e06c0ba-tier1\\work\\销售.xlsx"
+    },
+    "backup_replayed": false,
+    "chart_backend": "powershell-com",
+    "chart_read_back": {
+      "part": "xl/charts/chart1.xml",
+      "refs": [
+        "'Sales Q3'!$B$1",
+        "'Sales Q3'!$A$2:$A$4",
+        "'Sales Q3'!$B$2:$B$4",
+        "'Sales Q3'!$C$1",
+        "'Sales Q3'!$A$2:$A$4",
+        "'Sales Q3'!$C$2:$C$4"
+      ],
+      "title": "季度销售",
+      "types": [
+        {
+          "bar_dir": "col",
+          "element": "barChart"
+        }
+      ]
+    },
+    "chart_type": "column",
+    "charts_after": 1,
+    "charts_before": 0,
+    "checks": {
+      "one_chart_added": true,
+      "series_inside_range": true,
+      "title_matches": true,
+      "type_matches": true
+    },
+    "document_id": "doc_d8d84e33ba92fc52",
+    "dry_run": false,
+    "height": 288,
+    "normalized_range": "A1:C4",
+    "numeric_cells": 6,
+    "path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T214837Z-e06c0ba-tier1\\work\\销售.xlsx",
+    "range": "A1:C4",
+    "series_in": "auto",
+    "sheet_name": "Sales Q3",
+    "title": "季度销售",
+    "validation_passed": true,
+    "width": 480,
+    "wps_report": {
+      "chart_name": "Chart 1",
+      "chart_type": 51,
+      "charts_after": 1,
+      "charts_before": 0,
+      "series_count": 2,
+      "title": "季度销售"
+    }
+  },
+  "errors": [],
+  "ok": true,
+  "request_id": "c1",
+  "summary": "Added a column chart of Sales Q3!A1:C4 at E1.",
+  "validation": {
+    "checks": [
+      {
+        "details": {
+          "one_chart_added": true,
+          "series_inside_range": true,
+          "title_matches": true,
+          "type_matches": true
+        },
+        "name": "chart_read_back",
+        "passed": true
+      }
+    ],
+    "status": "passed"
+  }
+}

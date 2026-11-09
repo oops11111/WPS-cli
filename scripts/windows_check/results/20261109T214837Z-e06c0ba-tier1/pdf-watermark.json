@@ -1,0 +1,39 @@
+{
+  "backend": "python",
+  "command": "pdf-watermark",
+  "data": {
+    "angle": 45,
+    "font_size": 48,
+    "input_path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T214837Z-e06c0ba-tier1\\work\\合同.pdf",
+    "marked_pages": [
+      1
+    ],
+    "opacity": 15,
+    "output_path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T214837Z-e06c0ba-tier1\\work\\合同-草稿.pdf",
+    "outputs": [
+      {
+        "pages": 1,
+        "pages_match": true,
+        "path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T214837Z-e06c0ba-tier1\\work\\合同-草稿.pdf",
+        "size": 54182,
+        "text_found_on_first_marked_page": true
+      }
+    ],
+    "text": "内部资料 草稿",
+    "validation_passed": true
+  },
+  "errors": [],
+  "ok": true,
+  "request_id": "8bd0d597-65bc-4cc5-ab35-052910339f52",
+  "summary": "Watermarked into C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T214837Z-e06c0ba-tier1\\work\\合同-草稿.pdf.",
+  "validation": {
+    "checks": [
+      {
+        "details": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T214837Z-e06c0ba-tier1\\work\\合同-草稿.pdf",
+        "name": "output_read_back",
+        "passed": true
+      }
+    ],
+    "status": "passed"
+  }
+}

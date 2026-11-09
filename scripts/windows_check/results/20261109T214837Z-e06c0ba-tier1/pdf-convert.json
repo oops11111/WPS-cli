@@ -1,0 +1,33 @@
+{
+  "backend": "powershell-com",
+  "command": "convert",
+  "data": {
+    "backend": "powershell-com",
+    "component": "writer",
+    "conversion_method": "ExportAsFixedFormat",
+    "format": "pdf",
+    "format_code": null,
+    "input_path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T214837Z-e06c0ba-tier1\\work\\合同.docx",
+    "output_path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T214837Z-e06c0ba-tier1\\work\\合同.pdf",
+    "output_summary": {},
+    "prog_id": "kwps.Application",
+    "route": [
+      "wps"
+    ],
+    "warnings": []
+  },
+  "errors": [],
+  "ok": true,
+  "request_id": "0ac44288-69c1-40bd-b20f-b14e7e665a40",
+  "summary": "Converted (wps).",
+  "validation": {
+    "checks": [
+      {
+        "details": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T214837Z-e06c0ba-tier1\\work\\合同.pdf",
+        "name": "output_created",
+        "passed": true
+      }
+    ],
+    "status": "passed"
+  }
+}

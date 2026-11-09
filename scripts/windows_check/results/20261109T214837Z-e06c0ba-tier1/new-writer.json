@@ -1,0 +1,51 @@
+{
+  "backend": "python",
+  "command": "document-new",
+  "data": {
+    "component": "writer",
+    "contents": {
+      "paragraphs": [
+        "第45周周报"
+      ]
+    },
+    "document": {
+      "component": "writer",
+      "document_id": "doc_d3de0212eeed2cd8",
+      "exists": true,
+      "file_device": 11882268654517892920,
+      "file_inode": 1688849862295696,
+      "path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T214837Z-e06c0ba-tier1\\work\\周报.docx",
+      "registered_at": "2026-11-09T21:54:26.162988+00:00",
+      "source_sha256": "823258654163B00B79305B7751D81874DF6FF1C4C4C69E7D931DDAA492A3ACB5"
+    },
+    "document_id": "doc_d3de0212eeed2cd8",
+    "path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T214837Z-e06c0ba-tier1\\work\\周报.docx",
+    "registered": true,
+    "size": 36626,
+    "title": "第45周周报",
+    "validation_passed": true
+  },
+  "errors": [],
+  "ok": true,
+  "request_id": "275c580e-e3b7-4ed8-bd13-80cd5047d0df",
+  "summary": "Created C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T214837Z-e06c0ba-tier1\\work\\周报.docx as doc_d3de0212eeed2cd8.",
+  "validation": {
+    "checks": [
+      {
+        "details": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T214837Z-e06c0ba-tier1\\work\\周报.docx",
+        "name": "document_created",
+        "passed": true
+      },
+      {
+        "details": {
+          "paragraphs": [
+            "第45周周报"
+          ]
+        },
+        "name": "contents_read_back",
+        "passed": true
+      }
+    ],
+    "status": "passed"
+  }
+}

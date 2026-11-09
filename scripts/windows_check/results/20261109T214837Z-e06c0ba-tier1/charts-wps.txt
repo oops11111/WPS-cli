@@ -1,0 +1,94 @@
+{
+  "path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T214837Z-e06c0ba-tier1\\销售.xlsx",
+  "zoom": 40,
+  "charts": [
+    {
+      "index": 1,
+      "chart_type": 51,
+      "has_title": true,
+      "title": "季度销售",
+      "series": [
+        {
+          "name": "华东",
+          "values": [
+            120.0,
+            135.0,
+            150.0
+          ]
+        },
+        {
+          "name": "华南",
+          "values": [
+            90.0,
+            98.0,
+            110.0
+          ]
+        }
+      ]
+    },
+    {
+      "index": 2,
+      "chart_type": 57,
+      "has_title": true,
+      "title": "条形",
+      "series": [
+        {
+          "name": "华东",
+          "values": [
+            120.0,
+            135.0,
+            150.0
+          ]
+        },
+        {
+          "name": "华南",
+          "values": [
+            90.0,
+            98.0,
+            110.0
+          ]
+        }
+      ]
+    },
+    {
+      "index": 3,
+      "chart_type": 4,
+      "has_title": true,
+      "title": "趋势",
+      "series": [
+        {
+          "name": "华东",
+          "values": [
+            120.0,
+            135.0,
+            150.0
+          ]
+        },
+        {
+          "name": "华南",
+          "values": [
+            90.0,
+            98.0,
+            110.0
+          ]
+        }
+      ]
+    },
+    {
+      "index": 4,
+      "chart_type": 5,
+      "has_title": true,
+      "title": "华东占比",
+      "series": [
+        {
+          "name": "华东",
+          "values": [
+            120.0,
+            135.0,
+            150.0
+          ]
+        }
+      ]
+    }
+  ]
+}

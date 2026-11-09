@@ -1,0 +1,86 @@
+{
+  "backend": "wps-com",
+  "command": "spreadsheet-chart-create",
+  "data": {
+    "anchor": "N20",
+    "backup": {
+      "backup_bytes": 16057,
+      "backup_path": ".wps-agent\\backups\\doc_d8d84e33ba92fc52\\销售.20261109T215017989312Z.xlsx",
+      "component": "spreadsheets",
+      "created": true,
+      "document_id": "doc_d8d84e33ba92fc52",
+      "dry_run": false,
+      "source_identity": {
+        "file_device": 11882268654517892920,
+        "file_inode": 1407374885584434,
+        "source_sha256": "C42F900620429E6EF40C974E51ECAE0B0D00177769A5F42C4AF03F272D4AF72C"
+      },
+      "source_path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T214837Z-e06c0ba-tier1\\work\\销售.xlsx"
+    },
+    "backup_replayed": false,
+    "chart_backend": "powershell-com",
+    "chart_read_back": {
+      "part": "xl/charts/chart4.xml",
+      "refs": [
+        "'Sales Q3'!$B$1",
+        "'Sales Q3'!$A$2:$A$4",
+        "'Sales Q3'!$B$2:$B$4"
+      ],
+      "title": "华东占比",
+      "types": [
+        {
+          "bar_dir": null,
+          "element": "pieChart"
+        }
+      ]
+    },
+    "chart_type": "pie",
+    "charts_after": 4,
+    "charts_before": 3,
+    "checks": {
+      "one_chart_added": true,
+      "series_inside_range": true,
+      "title_matches": true,
+      "type_matches": true
+    },
+    "document_id": "doc_d8d84e33ba92fc52",
+    "dry_run": false,
+    "height": 288,
+    "normalized_range": "A1:B4",
+    "numeric_cells": 3,
+    "path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T214837Z-e06c0ba-tier1\\work\\销售.xlsx",
+    "range": "A1:B4",
+    "series_in": "auto",
+    "sheet_name": "Sales Q3",
+    "title": "华东占比",
+    "validation_passed": true,
+    "width": 480,
+    "wps_report": {
+      "chart_name": "Chart 4",
+      "chart_type": 5,
+      "charts_after": 4,
+      "charts_before": 3,
+      "series_count": 1,
+      "title": "华东占比"
+    }
+  },
+  "errors": [],
+  "ok": true,
+  "request_id": "c4",
+  "summary": "Added a pie chart of Sales Q3!A1:B4 at N20.",
+  "validation": {
+    "checks": [
+      {
+        "details": {
+          "one_chart_added": true,
+          "series_inside_range": true,
+          "title_matches": true,
+          "type_matches": true
+        },
+        "name": "chart_read_back",
+        "passed": true
+      }
+    ],
+    "status": "passed"
+  }
+}

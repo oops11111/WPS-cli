@@ -1,0 +1,53 @@
+{
+  "backend": "python",
+  "command": "document-new",
+  "data": {
+    "component": "presentation",
+    "contents": {
+      "slide_count": 1,
+      "slide_titles": [
+        "季度汇报"
+      ]
+    },
+    "document": {
+      "component": "presentation",
+      "document_id": "doc_c7100f62cc8b78b8",
+      "exists": true,
+      "file_device": 11882268654517892920,
+      "file_inode": 1970324839006359,
+      "path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T214837Z-e06c0ba-tier1\\work\\汇报.pptx",
+      "registered_at": "2026-11-09T21:54:27.638738+00:00",
+      "source_sha256": "5C602B9EB26DC3F9EF5DB22677E28DBEF716A97ABE67E7D73D7C27623D6F5CEF"
+    },
+    "document_id": "doc_c7100f62cc8b78b8",
+    "path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T214837Z-e06c0ba-tier1\\work\\汇报.pptx",
+    "registered": true,
+    "size": 28258,
+    "title": "季度汇报",
+    "validation_passed": true
+  },
+  "errors": [],
+  "ok": true,
+  "request_id": "293ab29a-dd6c-44a4-8774-d6b308c2d2c8",
+  "summary": "Created C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T214837Z-e06c0ba-tier1\\work\\汇报.pptx as doc_c7100f62cc8b78b8.",
+  "validation": {
+    "checks": [
+      {
+        "details": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T214837Z-e06c0ba-tier1\\work\\汇报.pptx",
+        "name": "document_created",
+        "passed": true
+      },
+      {
+        "details": {
+          "slide_count": 1,
+          "slide_titles": [
+            "季度汇报"
+          ]
+        },
+        "name": "contents_read_back",
+        "passed": true
+      }
+    ],
+    "status": "passed"
+  }
+}
