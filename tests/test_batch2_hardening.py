@@ -46,6 +46,15 @@ class FormulaSafetyTests(unittest.TestCase):
         for formula in ('=DDE("x")', '=WEBSERVICE("http://x")', '=HYPERLINK("http://x")', '=1+INDIRECT("A1")'):
             self.assertIsNotNone(forbidden_formula_function(formula), formula)
 
+    def test_the_file_format_prefix_does_not_hide_a_forbidden_function(self):
+        for formula, name in (
+            ('=_xlfn.WEBSERVICE("http://x")', "WEBSERVICE"),
+            ('=SUM(A1)+_XLFN.webservice("u")', "WEBSERVICE"),
+            ('=_xlws.CALL("x")', "CALL"),
+        ):
+            self.assertEqual(forbidden_formula_function(formula), name, formula)
+        self.assertIsNone(forbidden_formula_function("=_xlfn.XLOOKUP(A1,B:B,C:C)"))
+
     def test_ordinary_formulas_are_clean(self):
         for formula in ("=SUM(A1:A9)", '=IF(B2>0,"yes","no")', "=VLOOKUP(A1,Sheet2!A:B,2,FALSE)"):
             self.assertIsNone(forbidden_formula_function(formula), formula)

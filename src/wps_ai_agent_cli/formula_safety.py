@@ -24,8 +24,11 @@ FORBIDDEN_FORMULA_FUNCTIONS = (
     "WEBSERVICE",
 )
 
+# Excel stores functions newer than 2007 with a namespace prefix in the file (=_xlfn.WEBSERVICE(...),
+# _xlws. for worksheet-only ones), and both spellings calculate; the prefix must not hide the name.
+_PREFIX = r"(?:_xlfn\.|_xlws\.)?"
 _FORBIDDEN = re.compile(
-    r"(?<![A-Z0-9_.])(" + "|".join(re.escape(name) for name in FORBIDDEN_FORMULA_FUNCTIONS) + r")\s*\(",
+    r"(?<![A-Z0-9_.])" + _PREFIX + r"(" + "|".join(re.escape(name) for name in FORBIDDEN_FORMULA_FUNCTIONS) + r")\s*\(",
     re.IGNORECASE,
 )
 
