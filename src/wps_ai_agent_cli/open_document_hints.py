@@ -51,11 +51,18 @@ _SHEET_STRUCTURE = (
     "structure. Save the workbook in WPS (wps_agent_save_open_document) and close it there, then retry."
 )
 
+_CLOSE_FIRST = (
+    "If the document is open in WPS, this command cannot change it, and there is no open-document tool that does "
+    "the same. Save it in WPS (wps_agent_save_open_document) and close it there, then retry."
+)
+
 # The file-based commands that change a document, and what to use when the document is open in WPS.
 OPEN_DOCUMENT_ALTERNATIVES: dict[str, str] = {
     "writer-replace": _WRITER,
     "writer-fill-bookmark": _WRITER,
     "writer-table-write": _WRITER,
+    "writer-merge": _CLOSE_FIRST,
+    "spreadsheet-chart-create": _CLOSE_FIRST,
     "presentation-replace": _PRESENTATION,
     "spreadsheet-write": _SPREADSHEET,
     "spreadsheet-formula-write": _SPREADSHEET,

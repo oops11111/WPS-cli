@@ -190,6 +190,33 @@
         "required": true
       }
     ],
+    "document-new": [
+      {
+        "name": "--component",
+        "required": true,
+        "choices": [
+          "presentation",
+          "spreadsheets",
+          "writer"
+        ]
+      },
+      {
+        "name": "--no-register",
+        "required": false
+      },
+      {
+        "name": "--path",
+        "required": true
+      },
+      {
+        "name": "--task-id",
+        "required": false
+      },
+      {
+        "name": "--title",
+        "required": false
+      }
+    ],
     "documents": [],
     "export-open-document": [
       {
@@ -537,6 +564,100 @@
       }
     ],
     "operations": [],
+    "pdf-extract-pages": [
+      {
+        "name": "--input",
+        "required": true
+      },
+      {
+        "name": "--output",
+        "required": true
+      },
+      {
+        "name": "--pages",
+        "required": true
+      },
+      {
+        "name": "--task-id",
+        "required": false
+      }
+    ],
+    "pdf-info": [
+      {
+        "name": "--input",
+        "required": true
+      }
+    ],
+    "pdf-merge": [
+      {
+        "name": "--input",
+        "required": true
+      },
+      {
+        "name": "--output",
+        "required": true
+      },
+      {
+        "name": "--task-id",
+        "required": false
+      }
+    ],
+    "pdf-split": [
+      {
+        "name": "--every",
+        "required": false
+      },
+      {
+        "name": "--input",
+        "required": true
+      },
+      {
+        "name": "--output-dir",
+        "required": true
+      },
+      {
+        "name": "--ranges",
+        "required": false
+      },
+      {
+        "name": "--task-id",
+        "required": false
+      }
+    ],
+    "pdf-watermark": [
+      {
+        "name": "--angle",
+        "required": false
+      },
+      {
+        "name": "--font-size",
+        "required": false
+      },
+      {
+        "name": "--input",
+        "required": true
+      },
+      {
+        "name": "--opacity",
+        "required": false
+      },
+      {
+        "name": "--output",
+        "required": true
+      },
+      {
+        "name": "--pages",
+        "required": false
+      },
+      {
+        "name": "--task-id",
+        "required": false
+      },
+      {
+        "name": "--text",
+        "required": true
+      }
+    ],
     "performance-baseline": [],
     "plan": [],
     "presentation-replace": [
@@ -774,6 +895,63 @@
       {
         "name": "--document-id",
         "required": true
+      }
+    ],
+    "spreadsheet-chart-create": [
+      {
+        "name": "--anchor",
+        "required": false
+      },
+      {
+        "name": "--chart-type",
+        "required": true,
+        "choices": [
+          "bar",
+          "column",
+          "line",
+          "pie"
+        ]
+      },
+      {
+        "name": "--document-id",
+        "required": true
+      },
+      {
+        "name": "--dry-run",
+        "required": false
+      },
+      {
+        "name": "--height",
+        "required": false
+      },
+      {
+        "name": "--range",
+        "required": true
+      },
+      {
+        "name": "--series-in",
+        "required": false,
+        "choices": [
+          "auto",
+          "columns",
+          "rows"
+        ]
+      },
+      {
+        "name": "--sheet-name",
+        "required": true
+      },
+      {
+        "name": "--task-id",
+        "required": false
+      },
+      {
+        "name": "--title",
+        "required": false
+      },
+      {
+        "name": "--width",
+        "required": false
       }
     ],
     "spreadsheet-copy-sheet": [
@@ -1211,6 +1389,32 @@
         "required": true
       }
     ],
+    "writer-merge": [
+      {
+        "name": "--data-file",
+        "required": false
+      },
+      {
+        "name": "--data-json",
+        "required": false
+      },
+      {
+        "name": "--document-id",
+        "required": true
+      },
+      {
+        "name": "--dry-run",
+        "required": false
+      },
+      {
+        "name": "--require-all",
+        "required": false
+      },
+      {
+        "name": "--task-id",
+        "required": false
+      }
+    ],
     "writer-replace": [
       {
         "name": "--document-id",
@@ -1569,6 +1773,22 @@
         "output"
       ]
     },
+    "wps_agent_document_new": {
+      "cli_command": "document-new",
+      "mutates_document": true,
+      "parameters": [
+        "component",
+        "no_register",
+        "path",
+        "request_id",
+        "task_id",
+        "title"
+      ],
+      "required": [
+        "component",
+        "path"
+      ]
+    },
     "wps_agent_documents": {
       "cli_command": "documents",
       "mutates_document": false,
@@ -1905,6 +2125,83 @@
       ],
       "required": []
     },
+    "wps_agent_pdf_extract_pages": {
+      "cli_command": "pdf-extract-pages",
+      "mutates_document": true,
+      "parameters": [
+        "input",
+        "output",
+        "pages",
+        "request_id",
+        "task_id"
+      ],
+      "required": [
+        "input",
+        "output",
+        "pages"
+      ]
+    },
+    "wps_agent_pdf_info": {
+      "cli_command": "pdf-info",
+      "mutates_document": false,
+      "parameters": [
+        "input",
+        "request_id"
+      ],
+      "required": [
+        "input"
+      ]
+    },
+    "wps_agent_pdf_merge": {
+      "cli_command": "pdf-merge",
+      "mutates_document": true,
+      "parameters": [
+        "input",
+        "output",
+        "request_id",
+        "task_id"
+      ],
+      "required": [
+        "input",
+        "output"
+      ]
+    },
+    "wps_agent_pdf_split": {
+      "cli_command": "pdf-split",
+      "mutates_document": true,
+      "parameters": [
+        "every",
+        "input",
+        "output_dir",
+        "ranges",
+        "request_id",
+        "task_id"
+      ],
+      "required": [
+        "input",
+        "output_dir"
+      ]
+    },
+    "wps_agent_pdf_watermark": {
+      "cli_command": "pdf-watermark",
+      "mutates_document": true,
+      "parameters": [
+        "angle",
+        "font_size",
+        "input",
+        "opacity",
+        "output",
+        "pages",
+        "request_id",
+        "task_id",
+        "text"
+      ],
+      "required": [
+        "input",
+        "output",
+        "text"
+      ]
+    },
     "wps_agent_performance_baseline": {
       "cli_command": "performance-baseline",
       "mutates_document": false,
@@ -2110,6 +2407,30 @@
       ],
       "required": [
         "document_id"
+      ]
+    },
+    "wps_agent_spreadsheet_chart_create": {
+      "cli_command": "spreadsheet-chart-create",
+      "mutates_document": true,
+      "parameters": [
+        "anchor",
+        "chart_type",
+        "document_id",
+        "dry_run",
+        "height",
+        "range",
+        "request_id",
+        "series_in",
+        "sheet_name",
+        "task_id",
+        "title",
+        "width"
+      ],
+      "required": [
+        "chart_type",
+        "document_id",
+        "range",
+        "sheet_name"
       ]
     },
     "wps_agent_spreadsheet_copy_sheet": {
@@ -2467,6 +2788,22 @@
         "text"
       ]
     },
+    "wps_agent_writer_merge": {
+      "cli_command": "writer-merge",
+      "mutates_document": true,
+      "parameters": [
+        "data_file",
+        "data_json",
+        "document_id",
+        "dry_run",
+        "request_id",
+        "require_all",
+        "task_id"
+      ],
+      "required": [
+        "document_id"
+      ]
+    },
     "wps_agent_writer_replace": {
       "cli_command": "writer-replace",
       "mutates_document": true,
@@ -2746,11 +3083,15 @@
     "OUTPUT_TOO_LARGE",
     "OUTPUT_UNAVAILABLE",
     "OUTPUT_WRITE_FAILED",
+    "PAGE_RANGE_INVALID",
     "PARAGRAPH_NOT_FOUND",
     "PATH_OUTSIDE_WORKSPACE",
+    "PDF_ENCRYPTED",
     "PDF_NEEDS_OCR",
     "PERFORMANCE_BASELINE_COMMAND_FAILED",
     "PERFORMANCE_BASELINE_WPS_SCENARIO_INCLUDED",
+    "PLACEHOLDER_NOT_FOUND",
+    "PLACEHOLDER_UNFILLED",
     "POST_COM_SOURCE_UNVERIFIED",
     "RANGE_SHAPE_MISMATCH",
     "RANGE_TOO_LARGE",

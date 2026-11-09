@@ -2,10 +2,14 @@
 
 from __future__ import annotations
 
+import json
+from pathlib import Path
+
 from .artifacts import write_json_artifact
 from .cli_common import BACKEND
 from .models import CommandResponse, ValidationResult
 from .writer_inspect import inspect_writer_structure
+from .writer_merge import writer_merge
 from .writer_ops import writer_fill_bookmark, writer_replace, writer_table_write
 from .writer_structure_parity import run_writer_structure_parity
 from .writer_table_smoke import run_writer_table_smoke
@@ -63,6 +67,71 @@ def writer_table_smoke_response(
             ],
         ),
         errors=result["errors"],
+    )
+
+
+def writer_merge_response(
+    request_id: str,
+    document_id: str,
+    data_json: str | None,
+    data_file: str | None,
+    dry_run: bool,
+    require_all: bool,
+) -> CommandResponse:
+    try:
+        if data_file is None and data_json is None:
+            raise ValueError("give data_json or data_file")
+        if data_file is not None:
+            data = json.loads(Path(data_file).read_text(encoding="utf-8-sig"))
+        else:
+            data = json.loads(data_json or "")
+    except (OSError, ValueError) as exc:
+        ok, result, errors, replayed = (
+            False,
+            {},
+            [{"code": "INVALID_ARGUMENT", "message": f"data is not JSON: {exc}"}],
+            False,
+        )
+    else:
+        ok, result, errors, replayed = writer_merge(
+            document_id=document_id, data=data, request_id=request_id, dry_run=dry_run, require_all=require_all
+        )
+    return CommandResponse(
+        ok=ok,
+        command="writer-merge",
+        request_id=request_id,
+        backend="python" if not dry_run else BACKEND,
+        summary=(
+            "Writer merge request replayed from idempotency record."
+            if replayed
+            else f"Found {sum(result.get('placeholders', {}).values())} placeholders; nothing changed (dry run)."
+            if dry_run and ok
+            else f"Filled {result.get('replaced')} placeholders."
+            + (f" No value for: {', '.join(result['unfilled'])}." if result.get("unfilled") else "")
+            if ok
+            else "Writer merge could not complete."
+        ),
+        data=result,
+        validation=ValidationResult(
+            status="passed" if ok else "failed",
+            checks=[
+                {
+                    "name": "backup_created",
+                    "passed": bool(dry_run or result.get("backup", {}).get("created")),
+                    "details": result.get("backup", {}).get("backup_path"),
+                },
+                {
+                    "name": "merge_read_back",
+                    "passed": bool(dry_run and ok or result.get("validation_passed")),
+                    "details": {
+                        "replaced": result.get("replaced"),
+                        "remaining_filled_placeholders": result.get("remaining_filled_placeholders"),
+                        "unfilled": result.get("unfilled"),
+                    },
+                },
+            ],
+        ),
+        errors=errors,
     )
 
 

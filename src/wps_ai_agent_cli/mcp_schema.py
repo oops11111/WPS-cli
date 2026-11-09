@@ -525,6 +525,139 @@ MCP_TOOL_SCHEMAS: tuple[dict[str, Any], ...] = (
         cli_example="python -m wps_ai_agent_cli register-document --component writer --path input.docx",
     ),
     _tool(
+        "wps_agent_document_new",
+        "document-new",
+        "Create a new document",
+        "Create a blank document from nothing: an empty .docx, .xlsx or .pptx (16:9), optionally with a title, "
+        "written without WPS and registered, so the returned document_id goes straight into the writer, "
+        "spreadsheet and presentation tools. Use it when the task starts from no file at all.",
+        "documents",
+        required=["component", "path"],
+        properties={
+            "component": _string("Document component.", ["writer", "spreadsheets", "presentation"]),
+            "path": _string("New file path; .docx, .xlsx or .pptx to match the component. Never overwritten."),
+            "title": _string(
+                "Optional title: a Title paragraph (writer), the first worksheet's name (spreadsheets) or a title "
+                "slide (presentation)."
+            ),
+            "no_register": _boolean("Create the file without registering it."),
+            "task_id": _string("Optional task status id."),
+        },
+        mutates_document=True,
+        idempotency="Optional request_id is accepted for traceability; creates a new file and refuses an existing path, so repeating the call cannot overwrite it.",
+        cli_example="python -m wps_ai_agent_cli document-new --component writer --path report.docx --title 周报",
+        safety_notes=[
+            "Creates a new file only, so no backup is needed: existing files are protected, an existing path is refused "
+            "with OUTPUT_ALREADY_EXISTS and never overwritten.",
+            "Runs offline with python-docx, openpyxl and python-pptx; WPS is not started.",
+        ],
+    ),
+    _tool(
+        "wps_agent_pdf_info",
+        "pdf-info",
+        "Describe a PDF",
+        "Read a PDF without changing it: page count, page sizes (points, millimetres, A4/Letter), rotation, "
+        "metadata, outline items, whether pages carry text (likely_scanned when none do) and whether it is "
+        "encrypted. Use it before pdf-split or pdf-extract-pages to know the page numbers.",
+        "pdf",
+        required=["input"],
+        properties={"input": _string("PDF path.")},
+        cli_example="python -m wps_ai_agent_cli pdf-info --input report.pdf",
+        safety_notes=["Read-only: the PDF is opened with pypdf and never written."],
+    ),
+    _tool(
+        "wps_agent_pdf_merge",
+        "pdf-merge",
+        "Merge PDFs",
+        "Join two or more PDFs, in the order given, into one new PDF (bookmarks are kept). The result is read back "
+        "and its pages compared with the inputs'.",
+        "pdf",
+        required=["input", "output"],
+        properties={
+            "input": _array("Input PDF paths, in order (two or more)."),
+            "output": _string("New PDF path; never overwritten."),
+            "task_id": _string("Optional task status id."),
+        },
+        mutates_document=True,
+        idempotency="Optional request_id is accepted for traceability; creates a new file and refuses an existing output path.",
+        cli_example="python -m wps_ai_agent_cli pdf-merge --input a.pdf --input b.pdf --output all.pdf",
+        safety_notes=[
+            "Creates new files only: existing outputs are refused with OUTPUT_ALREADY_EXISTS and the input is only read.",
+            "Runs offline with pypdf; WPS is not started. A password-protected PDF is refused with PDF_ENCRYPTED.",
+        ],
+    ),
+    _tool(
+        "wps_agent_pdf_split",
+        "pdf-split",
+        "Split a PDF",
+        "Split a PDF into new files in an existing folder: every N pages (one page per file by default) or one "
+        "file per item of ranges such as 1-3,4-6,7-. Files are named <name>_p<first>-<last>.pdf; every name is "
+        "checked before anything is written, and a failure removes the files already written.",
+        "pdf",
+        required=["input", "output_dir"],
+        properties={
+            "input": _string("PDF path."),
+            "output_dir": _string("Existing folder for the new files."),
+            "every": _integer("Pages per file.", minimum=1),
+            "ranges": _string('One file per comma-separated item, such as "1-3,4-6,7-".'),
+            "task_id": _string("Optional task status id."),
+        },
+        mutates_document=True,
+        idempotency="Optional request_id is accepted for traceability; creates new files and refuses any name that already exists.",
+        cli_example="python -m wps_ai_agent_cli pdf-split --input book.pdf --output-dir parts --every 10",
+        safety_notes=[
+            "Creates new files only: existing outputs are refused with OUTPUT_ALREADY_EXISTS and the input is only read.",
+            "Runs offline with pypdf; WPS is not started. A password-protected PDF is refused with PDF_ENCRYPTED.",
+        ],
+    ),
+    _tool(
+        "wps_agent_pdf_extract_pages",
+        "pdf-extract-pages",
+        "Extract PDF pages",
+        "Copy chosen pages of a PDF, in the order given, into a new PDF; 3,1 puts page 3 first.",
+        "pdf",
+        required=["input", "output", "pages"],
+        properties={
+            "input": _string("PDF path."),
+            "output": _string("New PDF path; never overwritten."),
+            "pages": _string('Pages, 1-based: "1,3-5,8-" ("8-" runs to the last page).'),
+            "task_id": _string("Optional task status id."),
+        },
+        mutates_document=True,
+        idempotency="Optional request_id is accepted for traceability; creates a new file and refuses an existing output path.",
+        cli_example="python -m wps_ai_agent_cli pdf-extract-pages --input book.pdf --output ch2.pdf --pages 12-30",
+        safety_notes=[
+            "Creates new files only: existing outputs are refused with OUTPUT_ALREADY_EXISTS and the input is only read.",
+            "Runs offline with pypdf; WPS is not started. A password-protected PDF is refused with PDF_ENCRYPTED.",
+        ],
+    ),
+    _tool(
+        "wps_agent_pdf_watermark",
+        "pdf-watermark",
+        "Watermark a PDF",
+        "Write a new PDF with one line of text (Chinese works) drawn grey and semi-transparent across the centre "
+        "of every page, or of the pages listed. The text is checked in the result before success is reported.",
+        "pdf",
+        required=["input", "output", "text"],
+        properties={
+            "input": _string("PDF path."),
+            "output": _string("New PDF path; never overwritten."),
+            "text": _string("Watermark text, one line of 1 to 100 characters."),
+            "pages": _string('Pages, 1-based: "1,3-5,8-" ("8-" runs to the last page). Every page by default.'),
+            "font_size": _integer("Font size in points.", minimum=6, maximum=300),
+            "opacity": _integer("Opacity in percent.", minimum=1, maximum=100),
+            "angle": _integer("Rotation in degrees, counter-clockwise.", minimum=-360, maximum=360),
+            "task_id": _string("Optional task status id."),
+        },
+        mutates_document=True,
+        idempotency="Optional request_id is accepted for traceability; creates a new file and refuses an existing output path.",
+        cli_example='python -m wps_ai_agent_cli pdf-watermark --input a.pdf --output a-draft.pdf --text "内部资料"',
+        safety_notes=[
+            "Creates new files only: existing outputs are refused with OUTPUT_ALREADY_EXISTS and the input is only read.",
+            "Runs offline with pypdf; WPS is not started. A password-protected PDF is refused with PDF_ENCRYPTED.",
+        ],
+    ),
+    _tool(
         "wps_agent_documents",
         "documents",
         "List documents",
@@ -607,6 +740,39 @@ MCP_TOOL_SCHEMAS: tuple[dict[str, Any], ...] = (
             "Works in the running WPS instance when there is one. A document that is not open yet is opened there only for the duration of the command (its window may briefly appear) and closed again afterwards; a document that was already open is never closed.",
             "Uses WPS to mutate a registered Writer document and creates a backup before mutation.",
             "Use dry_run before mutation when possible.",
+        ],
+    ),
+    _tool(
+        "wps_agent_writer_merge",
+        "writer-merge",
+        "Fill a template's placeholders",
+        "Fill every {{name}} placeholder in a registered .docx (body, tables, headers, footers, footnotes) from one "
+        "JSON object in a single call, for contracts, notices and reports made from a template. Each value keeps "
+        "the formatting of the text where its placeholder starts; newlines become line breaks. Placeholders "
+        "without a value are left as they are and listed in unfilled (require_all refuses instead); names that "
+        "appear nowhere are listed in unused_keys. Use dry_run first to see the placeholders. Writes the file "
+        "directly (not through WPS): close the document in WPS first.",
+        "writer",
+        required=["document_id"],
+        properties={
+            "document_id": _string("Registered writer document_id."),
+            "data_json": _string(
+                'JSON object of names and values, such as {"客户": "甲公司", "金额": 1200}. Give this or data_file.'
+            ),
+            "data_file": _string("Path of a UTF-8 JSON file holding that object, instead of data_json."),
+            "require_all": _boolean("Refuse, changing nothing, when a placeholder has no value."),
+            "dry_run": _boolean("List the placeholders without changing the file."),
+            "task_id": _string("Optional task status id."),
+        },
+        mutates_document=True,
+        idempotency="Mutating command; request_id should be supplied and is replayed by the operation ledger.",
+        cli_example='python -m wps_ai_agent_cli writer-merge --document-id doc_xxx --data-json "{\\"客户\\": \\"甲公司\\"}"',
+        safety_notes=[
+            "Takes a backup, replaces the file atomically, reads every story back and restores the backup if the "
+            "result differs from what was asked.",
+            "Refuses a document WPS holds open (DOCUMENT_HELD_OPEN); the file is written without WPS.",
+            "Only {{name}} placeholders whose name is in data_json change; all other text and parts are copied as "
+            "they are.",
         ],
     ),
     _tool(
@@ -1461,6 +1627,39 @@ MCP_TOOL_SCHEMAS: tuple[dict[str, Any], ...] = (
             "Works in the running WPS instance when there is one. A document that is not open yet is opened there only for the duration of the command (its window may briefly appear) and closed again afterwards; a document that was already open is never closed.",
             "Creates a backup before WPS mutation and verifies ordered names and a copied cell value after save.",
             "Rejects invalid/duplicate titles and out-of-range positions before backup or WPS launch.",
+        ],
+    ),
+    _tool(
+        "wps_agent_spreadsheet_chart_create",
+        "spreadsheet-chart-create",
+        "Create a chart",
+        "Add a column, bar, line or pie chart of a worksheet range (labels in its first row and column) to the same "
+        "sheet, with an optional title, through WPS. The saved workbook is read back: exactly one chart added, of "
+        "that type and title, every series reading from inside the range. Turns data into the chart a report ends "
+        "with; use dry_run to check the range first.",
+        "spreadsheet",
+        required=["document_id", "sheet_name", "range", "chart_type"],
+        properties={
+            "document_id": _string("Registered spreadsheet document_id (.xlsx)."),
+            "sheet_name": _string("Worksheet holding the data; the chart goes on it."),
+            "range": _string("Data range with its labels, such as A1:C7."),
+            "chart_type": _string("Chart type.", ["column", "bar", "line", "pie"]),
+            "title": _string("Chart title."),
+            "anchor": _string("Cell for the chart's top-left corner; one column right of the range by default."),
+            "series_in": _string("Where the series run; auto lets WPS decide.", ["auto", "rows", "columns"]),
+            "width": _integer("Width in points.", minimum=50, maximum=2000),
+            "height": _integer("Height in points.", minimum=50, maximum=2000),
+            "dry_run": _boolean("Validate and preview without backup or WPS."),
+            "task_id": _string("Optional long-running task status id."),
+        },
+        mutates_document=True,
+        requires_wps=True,
+        idempotency="Mutating command; request_id is bound to document, sheet, range, chart type, title and dry_run.",
+        safety_notes=[
+            "Only one running WPS instance can be attached. When more than one WPS process of the component has a main window (in this user session) and the document is not already open in the attached instance, the command refuses and lists the pids and window titles; close the extra WPS windows, or set WPS_AGENT_ALLOW_MULTI_INSTANCE=1 to skip this check. Extra background processes without a window do not block the command; they add a warning to the result.",
+            "Works in the running WPS instance when there is one. A document that is not open yet is opened there only for the duration of the command (its window may briefly appear) and closed again afterwards; a document that was already open is never closed.",
+            "Creates a backup before the WPS change; if the saved chart does not read back as requested, the backup is restored.",
+            "Refuses ranges without numbers, unbounded ranges and other formats than .xlsx before backup or WPS launch.",
         ],
     ),
     _tool(

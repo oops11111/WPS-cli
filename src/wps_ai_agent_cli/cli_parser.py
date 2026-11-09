@@ -298,6 +298,64 @@ def _add_document_commands(subparsers: argparse._SubParsersAction) -> None:
     )
     register_parser.add_argument("--path", required=True, help="Document path to register.")
 
+    document_new_parser = subparsers.add_parser(
+        "document-new",
+        help="Create a blank .docx, .xlsx or .pptx offline (no WPS) and register it.",
+    )
+    document_new_parser.add_argument(
+        "--component",
+        choices=["writer", "spreadsheets", "presentation"],
+        required=True,
+    )
+    document_new_parser.add_argument(
+        "--path", required=True, help="New file path (.docx, .xlsx or .pptx to match --component); never overwritten."
+    )
+    document_new_parser.add_argument(
+        "--title",
+        help="Optional title: a Title paragraph (writer), the first worksheet's name (spreadsheets) or a title slide.",
+    )
+    document_new_parser.add_argument(
+        "--no-register", action="store_true", help="Create the file without registering it."
+    )
+    document_new_parser.add_argument("--task-id", help="Optional long-running task status id to update.")
+
+    pdf_info_parser = subparsers.add_parser("pdf-info", help="Pages, page sizes, metadata and text layer of a PDF.")
+    pdf_info_parser.add_argument("--input", required=True, help="PDF path.")
+    pdf_merge_parser = subparsers.add_parser("pdf-merge", help="Merge PDFs, in the order given, into a new PDF.")
+    pdf_merge_parser.add_argument(
+        "--input", action="append", required=True, help="Input PDF; repeat for each file, in order (two or more)."
+    )
+    pdf_merge_parser.add_argument("--output", required=True, help="New PDF path; never overwritten.")
+    pdf_merge_parser.add_argument("--task-id", help="Optional long-running task status id to update.")
+    pdf_split_parser = subparsers.add_parser(
+        "pdf-split", help="Split a PDF into files of N pages, or one file per range."
+    )
+    pdf_split_parser.add_argument("--input", required=True, help="PDF path.")
+    pdf_split_parser.add_argument("--output-dir", required=True, help="Existing folder for the new files.")
+    pdf_split_parser.add_argument("--every", type=int, help="Pages per file (1 by default).")
+    pdf_split_parser.add_argument("--ranges", help='One file per item: "1-3,4-6,7-".')
+    pdf_split_parser.add_argument("--task-id", help="Optional long-running task status id to update.")
+    pdf_extract_parser = subparsers.add_parser("pdf-extract-pages", help="Copy chosen pages into a new PDF.")
+    pdf_extract_parser.add_argument("--input", required=True, help="PDF path.")
+    pdf_extract_parser.add_argument("--output", required=True, help="New PDF path; never overwritten.")
+    pdf_extract_parser.add_argument(
+        "--pages",
+        required=True,
+        help='Pages, 1-based: 1,3-5,8- (8- runs to the last page). Order is kept, so "3,1" reorders.',
+    )
+    pdf_extract_parser.add_argument("--task-id", help="Optional long-running task status id to update.")
+    pdf_watermark_parser = subparsers.add_parser("pdf-watermark", help="Draw a text watermark across PDF pages.")
+    pdf_watermark_parser.add_argument("--input", required=True, help="PDF path.")
+    pdf_watermark_parser.add_argument("--output", required=True, help="New PDF path; never overwritten.")
+    pdf_watermark_parser.add_argument("--text", required=True, help="One line of 1 to 100 characters; Chinese works.")
+    pdf_watermark_parser.add_argument(
+        "--pages", help="Pages, 1-based: 1,3-5,8- (8- runs to the last page). Every page by default."
+    )
+    pdf_watermark_parser.add_argument("--font-size", type=int, default=48, help="Points, 6-300 (48).")
+    pdf_watermark_parser.add_argument("--opacity", type=int, default=15, help="Percent, 1-100 (15).")
+    pdf_watermark_parser.add_argument("--angle", type=int, default=45, help="Degrees counter-clockwise (45).")
+    pdf_watermark_parser.add_argument("--task-id", help="Optional long-running task status id to update.")
+
     subparsers.add_parser("documents", help="List registered documents.")
 
     backup_parser = subparsers.add_parser(
@@ -353,6 +411,20 @@ def _add_document_commands(subparsers: argparse._SubParsersAction) -> None:
         help="Optional 1-based body paragraph index to limit replacement scope.",
     )
     replace_parser.add_argument("--task-id", help="Optional long-running task status id to update.")
+
+    merge_parser = subparsers.add_parser(
+        "writer-merge",
+        help="Fill {{name}} placeholders (body, tables, headers, footers) from JSON data, with backup and read-back.",
+    )
+    merge_parser.add_argument("--document-id", required=True, help="Registered writer document_id (.docx).")
+    merge_source = merge_parser.add_mutually_exclusive_group(required=True)
+    merge_source.add_argument("--data-json", help='JSON object of names and values: {"客户": "甲公司", "金额": 1200}.')
+    merge_source.add_argument("--data-file", help="Path of a UTF-8 JSON file holding that object.")
+    merge_parser.add_argument(
+        "--require-all", action="store_true", help="Refuse, changing nothing, when a placeholder has no value."
+    )
+    merge_parser.add_argument("--dry-run", action="store_true", help="List the placeholders without changing the file.")
+    merge_parser.add_argument("--task-id", help="Optional long-running task status id to update.")
 
     bookmark_fill_parser = subparsers.add_parser(
         "writer-fill-bookmark",
@@ -1108,6 +1180,32 @@ def _add_spreadsheet_commands(subparsers: argparse._SubParsersAction) -> None:
         "--dry-run", action="store_true", help="Validate and preview without backup or WPS."
     )
     spreadsheet_copy_parser.add_argument("--task-id", help="Optional long-running task status id to update.")
+
+    spreadsheet_chart_parser = subparsers.add_parser(
+        "spreadsheet-chart-create",
+        help="Add a column, bar, line or pie chart of a range, with backup and read-back of the saved chart.",
+    )
+    spreadsheet_chart_parser.add_argument("--document-id", required=True, help="Registered spreadsheet document_id.")
+    spreadsheet_chart_parser.add_argument("--sheet-name", required=True, help="Worksheet holding the data.")
+    spreadsheet_chart_parser.add_argument(
+        "--range", required=True, help="Data range with its labels, such as A1:C7 (first row/column as labels)."
+    )
+    spreadsheet_chart_parser.add_argument(
+        "--chart-type", required=True, choices=["column", "bar", "line", "pie"], help="Chart type."
+    )
+    spreadsheet_chart_parser.add_argument("--title", help="Chart title.")
+    spreadsheet_chart_parser.add_argument(
+        "--anchor", help="Cell for the chart's top-left corner; one column right of the range by default."
+    )
+    spreadsheet_chart_parser.add_argument(
+        "--series-in", choices=["auto", "rows", "columns"], default="auto", help="Where the series run (auto)."
+    )
+    spreadsheet_chart_parser.add_argument("--width", type=int, default=480, help="Width in points, 50-2000 (480).")
+    spreadsheet_chart_parser.add_argument("--height", type=int, default=288, help="Height in points, 50-2000 (288).")
+    spreadsheet_chart_parser.add_argument(
+        "--dry-run", action="store_true", help="Validate and preview without backup or WPS."
+    )
+    spreadsheet_chart_parser.add_argument("--task-id", help="Optional long-running task status id to update.")
 
     spreadsheet_tab_color_parser = subparsers.add_parser(
         "spreadsheet-set-sheet-tab-color", help="Set worksheet tab color with backup and read-back validation."

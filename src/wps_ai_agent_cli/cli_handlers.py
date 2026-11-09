@@ -249,6 +249,59 @@ def build_command_handlers(
         response = cli.register_document_response(request_id, component=args.component, path=args.path)
         return response
 
+    def _handle_document_new(
+        args: argparse.Namespace, request_id: str, output_stream: TextIO | None
+    ) -> CommandResponse:
+        return cli._with_optional_task_status(
+            lambda: cli.document_new_response(
+                request_id, args.component, args.path, title=args.title, register=not args.no_register
+            ),
+            task_id=args.task_id,
+            tracked_command="document-new",
+            operation_request_id=request_id,
+        )
+
+    def _handle_pdf_info(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+        return cli.pdf_info_response(request_id, args.input)
+
+    def _handle_pdf_merge(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+        return cli._with_optional_task_status(
+            lambda: cli.pdf_merge_response(request_id, args.input, args.output),
+            task_id=args.task_id,
+            tracked_command="pdf-merge",
+            operation_request_id=request_id,
+        )
+
+    def _handle_pdf_split(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+        return cli._with_optional_task_status(
+            lambda: cli.pdf_split_response(request_id, args.input, args.output_dir, args.every, args.ranges),
+            task_id=args.task_id,
+            tracked_command="pdf-split",
+            operation_request_id=request_id,
+        )
+
+    def _handle_pdf_extract_pages(
+        args: argparse.Namespace, request_id: str, output_stream: TextIO | None
+    ) -> CommandResponse:
+        return cli._with_optional_task_status(
+            lambda: cli.pdf_extract_pages_response(request_id, args.input, args.output, args.pages),
+            task_id=args.task_id,
+            tracked_command="pdf-extract-pages",
+            operation_request_id=request_id,
+        )
+
+    def _handle_pdf_watermark(
+        args: argparse.Namespace, request_id: str, output_stream: TextIO | None
+    ) -> CommandResponse:
+        return cli._with_optional_task_status(
+            lambda: cli.pdf_watermark_response(
+                request_id, args.input, args.output, args.text, args.pages, args.font_size, args.opacity, args.angle
+            ),
+            task_id=args.task_id,
+            tracked_command="pdf-watermark",
+            operation_request_id=request_id,
+        )
+
     def _handle_documents(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
         response = cli.documents_response(request_id)
         return response
@@ -308,6 +361,24 @@ def build_command_handlers(
             document_id=args.document_id,
         )
         return response
+
+    def _handle_writer_merge(
+        args: argparse.Namespace, request_id: str, output_stream: TextIO | None
+    ) -> CommandResponse:
+        return cli._with_optional_task_status(
+            lambda: cli.writer_merge_response(
+                request_id,
+                document_id=args.document_id,
+                data_json=args.data_json,
+                data_file=args.data_file,
+                dry_run=args.dry_run,
+                require_all=args.require_all,
+            ),
+            task_id=args.task_id,
+            tracked_command="writer-merge",
+            operation_request_id=request_id,
+            document_id=args.document_id,
+        )
 
     def _handle_writer_fill_bookmark(
         args: argparse.Namespace, request_id: str, output_stream: TextIO | None
@@ -862,6 +933,29 @@ def build_command_handlers(
         )
         return response
 
+    def _handle_spreadsheet_chart_create(
+        args: argparse.Namespace, request_id: str, output_stream: TextIO | None
+    ) -> CommandResponse:
+        return cli._with_optional_task_status(
+            lambda: cli.spreadsheet_chart_create_response(
+                request_id,
+                args.document_id,
+                args.sheet_name,
+                args.range,
+                args.chart_type,
+                args.title,
+                args.anchor,
+                args.series_in,
+                args.width,
+                args.height,
+                args.dry_run,
+            ),
+            task_id=args.task_id,
+            tracked_command="spreadsheet-chart-create",
+            operation_request_id=request_id,
+            document_id=args.document_id,
+        )
+
     def _handle_spreadsheet_set_sheet_tab_color(
         args: argparse.Namespace, request_id: str, output_stream: TextIO | None
     ) -> CommandResponse:
@@ -966,11 +1060,18 @@ def build_command_handlers(
         "html-roundtrip-export": _handle_html_roundtrip_export,
         "writer-table-smoke": _handle_writer_table_smoke,
         "register-document": _handle_register_document,
+        "document-new": _handle_document_new,
+        "pdf-info": _handle_pdf_info,
+        "pdf-merge": _handle_pdf_merge,
+        "pdf-split": _handle_pdf_split,
+        "pdf-extract-pages": _handle_pdf_extract_pages,
+        "pdf-watermark": _handle_pdf_watermark,
         "documents": _handle_documents,
         "backup-document": _handle_backup_document,
         "list-backups": _handle_list_backups,
         "restore-backup": _handle_restore_backup,
         "writer-replace": _handle_writer_replace,
+        "writer-merge": _handle_writer_merge,
         "writer-fill-bookmark": _handle_writer_fill_bookmark,
         "writer-table-write": _handle_writer_table_write,
         "open-documents": _handle_open_documents,
@@ -1025,6 +1126,7 @@ def build_command_handlers(
         "spreadsheet-set-sheet-visibility": _handle_spreadsheet_set_sheet_visibility,
         "spreadsheet-delete-sheet": _handle_spreadsheet_delete_sheet,
         "spreadsheet-copy-sheet": _handle_spreadsheet_copy_sheet,
+        "spreadsheet-chart-create": _handle_spreadsheet_chart_create,
         "spreadsheet-set-sheet-tab-color": _handle_spreadsheet_set_sheet_tab_color,
         "spreadsheet-inspect": _handle_spreadsheet_inspect,
         "spreadsheet-write": _handle_spreadsheet_write,

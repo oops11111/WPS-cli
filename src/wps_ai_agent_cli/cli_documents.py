@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from .backups import create_backup, list_backups, restore_backup
 from .cli_common import BACKEND
+from .document_new import create_document
 from .models import CommandResponse, ValidationResult
 from .operations import get_operation, inspect_mutation_request, list_operations
 from .sessions import list_documents, register_document
@@ -32,6 +33,36 @@ def register_document_response(request_id: str, component: str, path: str) -> Co
                     "passed": ok,
                     "details": record.get("path") if record else path,
                 }
+            ],
+        ),
+        errors=errors,
+    )
+
+
+def document_new_response(
+    request_id: str, component: str, path: str, title: str | None = None, register: bool = True
+) -> CommandResponse:
+    ok, data, errors = create_document(component, path, title=title, register=register)
+    return CommandResponse(
+        ok=ok,
+        command="document-new",
+        request_id=request_id,
+        backend="python",
+        summary=(
+            f"Created {data.get('path')}" + (f" as {data['document_id']}." if data.get("document_id") else ".")
+            if ok
+            else "The document could not be created."
+        ),
+        data=data,
+        validation=ValidationResult(
+            status="passed" if ok else "failed",
+            checks=[
+                {"name": "document_created", "passed": bool(data.get("size")), "details": data.get("path")},
+                {
+                    "name": "contents_read_back",
+                    "passed": bool(data.get("validation_passed")),
+                    "details": data.get("contents"),
+                },
             ],
         ),
         errors=errors,

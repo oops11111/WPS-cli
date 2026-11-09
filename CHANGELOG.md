@@ -4,6 +4,15 @@ All notable changes to `wps-ai-agent-cli`. The versioning rule and release steps
 
 ## [Unreleased]
 
+First tier of the capability gaps from the November comparison with Kingsoft's wpscli and jjchen17's wps-cli (C-01 to C-04): tasks that start from no file, PDF page work, filling a template in one call, and charts. Eight new commands and MCP tools (87 to 95); nothing existing changes.
+
+### Added
+
+- `document-new` (C-01): create a blank .docx, .xlsx or .pptx (16:9), optionally with a title, offline (python-docx, openpyxl, python-pptx), and register it. An existing path is never overwritten (exclusive create).
+- PDF page tools (C-02), offline with pypdf, which joins the `pdf` extra (and `all`): `pdf-info` (pages, sizes, rotation, metadata, text layer, likely_scanned), `pdf-merge`, `pdf-split` (every N pages or by ranges; every name is checked first and a failure removes what was written), `pdf-extract-pages` (keeps the order given) and `pdf-watermark` (one line of text, Chinese included, drawn in the reader-supplied STSong-Light font, semi-transparent and turned). Outputs are new files, read back before success; password-protected PDFs are refused with `PDF_ENCRYPTED`, bad page lists with `PAGE_RANGE_INVALID`.
+- `writer-merge` (C-03): fill every `{{name}}` placeholder of a .docx (body, tables, headers, footers, footnotes, endnotes) from a JSON object or file. Placeholders split over several runs are found; each value keeps the formatting where its placeholder starts, newlines and tabs become breaks and tab marks. Unfilled placeholders are listed (`require_all` refuses with `PLACEHOLDER_UNFILLED`), names that match nothing are listed, none at all is `PLACEHOLDER_NOT_FOUND`. It edits the package offline (the document must be closed in WPS), with the usual backup, atomic replace, read-back of every story and rollback.
+- `spreadsheet-chart-create` (C-04): a column, bar, line or pie chart of a range, with title, anchor, size and series direction, added through WPS (ChartObjects().Add, SetSourceData). The saved workbook is read back offline: exactly one new chart, of that type and title, every series inside the range; otherwise the backup is restored. Needs a check on Windows with WPS (see ROADMAP).
+
 Batch-3 from the November code review: internal clean-ups and the forward roadmap — on top of batch-2 (exit codes, MCP boundary, formula denylist) and batch-1 (macro disabling, installer fail-closed, rollback whitelist, LICENSE, release test gate). No behaviour changes in this batch.
 
 ### Changed
