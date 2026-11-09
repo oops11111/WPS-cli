@@ -12,6 +12,7 @@ from .cli_common import BACKEND
 from .cli_convert import convert_response, fidelity_check_response  # noqa: F401
 from .cli_documents import (  # noqa: F401
     backup_document_response,
+    document_new_response,
     documents_response,
     list_backups_response,
     mutation_request_inspect_response,
@@ -83,10 +84,18 @@ from .cli_open_documents import (  # noqa: F401
     writer_selection_replace_response,
 )
 from .cli_parser import build_parser
+from .cli_pdf import (  # noqa: F401
+    pdf_extract_pages_response,
+    pdf_info_response,
+    pdf_merge_response,
+    pdf_split_response,
+    pdf_watermark_response,
+)
 from .cli_presentation import (  # noqa: F401
     presentation_replace_response,
 )
 from .cli_spreadsheet import (  # noqa: F401
+    spreadsheet_chart_create_response,
     spreadsheet_copy_sheet_response,
     spreadsheet_create_sheet_response,
     spreadsheet_delete_sheet_response,
@@ -101,6 +110,7 @@ from .cli_spreadsheet import (  # noqa: F401
 )
 from .cli_writer import (  # noqa: F401
     writer_fill_bookmark_response,
+    writer_merge_response,
     writer_replace_response,
     writer_structure_parity_response,
     writer_structure_response,

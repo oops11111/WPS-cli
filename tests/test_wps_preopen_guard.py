@@ -9,6 +9,7 @@ from unittest.mock import patch
 from tests.test_wps_quit_guard import CAPABILITIES, capture_scripts
 from wps_ai_agent_cli import (
     presentation_ops,
+    spreadsheet_chart,
     spreadsheet_inspect,
     spreadsheet_ops,
     writer_ops,
@@ -43,6 +44,13 @@ def mutating_cases(path):
             "sheet_formula_write",
             spreadsheet_ops,
             lambda: spreadsheet_ops._run_spreadsheet_formula_write_com(path, None, "A1", [["=1"]]),
+        ),
+        (
+            "sheet_chart",
+            spreadsheet_chart,
+            lambda: spreadsheet_chart._run_spreadsheet_chart_create_com(
+                path, "S", "A1:B3", "D1", "column", "auto", "T", 480, 288
+            ),
         ),
     ]
 

@@ -66,10 +66,11 @@ python -m wps_ai_agent_cli performance-baseline
 | `environment` | `wps_agent_inspect_env`, `wps_agent_wps_process_audit` |
 | `project` | `wps_agent_plan`, `wps_agent_project_status`, `wps_agent_workspace_health`, `wps_agent_local_handoff_summary`, `wps_agent_validation_runbook`, `wps_agent_documentation_freshness`, `wps_agent_tasks` |
 | `smoke` | `wps_agent_com_smoke`, `wps_agent_calc_smoke`, `wps_agent_convert_smoke`, `wps_agent_writer_table_smoke` |
-| `documents` | `wps_agent_register_document`, `wps_agent_documents`, `wps_agent_open_documents`, `wps_agent_save_open_document` |
+| `documents` | `wps_agent_register_document`, `wps_agent_document_new`, `wps_agent_documents`, `wps_agent_open_documents`, `wps_agent_save_open_document` |
 | `safety` | `wps_agent_backup_document`, `wps_agent_list_backups`, `wps_agent_restore_backup` |
-| `writer` | `wps_agent_writer_replace`, `wps_agent_writer_table_write` |
-| `spreadsheet` | `wps_agent_spreadsheet_read`, `wps_agent_spreadsheet_write`, `wps_agent_spreadsheet_formula_write`, `wps_agent_spreadsheet_sheets`, `wps_agent_spreadsheet_rename_sheet`, `wps_agent_spreadsheet_create_sheet`, `wps_agent_spreadsheet_set_sheet_visibility`, `wps_agent_spreadsheet_delete_sheet`, `wps_agent_spreadsheet_copy_sheet`, `wps_agent_spreadsheet_set_sheet_tab_color` |
+| `writer` | `wps_agent_writer_replace`, `wps_agent_writer_merge`, `wps_agent_writer_table_write` |
+| `spreadsheet` | `wps_agent_spreadsheet_read`, `wps_agent_spreadsheet_write`, `wps_agent_spreadsheet_formula_write`, `wps_agent_spreadsheet_sheets`, `wps_agent_spreadsheet_rename_sheet`, `wps_agent_spreadsheet_create_sheet`, `wps_agent_spreadsheet_set_sheet_visibility`, `wps_agent_spreadsheet_delete_sheet`, `wps_agent_spreadsheet_copy_sheet`, `wps_agent_spreadsheet_set_sheet_tab_color`, `wps_agent_spreadsheet_chart_create` |
+| `pdf` | `wps_agent_pdf_info`, `wps_agent_pdf_merge`, `wps_agent_pdf_split`, `wps_agent_pdf_extract_pages`, `wps_agent_pdf_watermark` |
 | `presentation` | `wps_agent_presentation_replace` |
 | `validation` | `wps_agent_validate_document`, `wps_agent_snapshot_document` |
 | `operations` | `wps_agent_operation`, `wps_agent_operations`, `wps_agent_mutation_request_inspect` |

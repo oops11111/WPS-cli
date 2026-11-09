@@ -62,7 +62,7 @@ py -3 -m venv %LOCALAPPDATA%\wps-agent\venv
 
 ## 3. 连接 AI 客户端
 
-`wps-agent` 通过 MCP（stdio）提供八十多个工具。服务器的启动命令是 `wps-agent mcp-server`。
+`wps-agent` 通过 MCP（stdio）提供九十多个工具。服务器的启动命令是 `wps-agent mcp-server`。
 
 **Claude Desktop**：安装时加 `-McpClient claude-desktop`，然后完全退出并重新打开 Claude Desktop。手动配置时，编辑 `%APPDATA%\Claude\claude_desktop_config.json`：
 
@@ -116,6 +116,30 @@ py -3 -m venv %LOCALAPPDATA%\wps-agent\venv
 
 同一个 `request_id` 重复提交不会重复执行，所以 AI 在网络中断后重试是安全的。
 
+### 从零新建
+
+`document_new` 新建一份空白的 .docx、.xlsx 或 .pptx（16:9），可带标题，不需要 WPS，并直接登记，返回的 `document_id` 可以接着交给上面的读写工具。已存在的路径不会被覆盖。
+
+### 按模板填写
+
+`writer_merge` 用一份 JSON 填写 Word 模板里所有的 `{{名称}}` 占位符：正文、表格、页眉页脚、脚注都算，一次调用完成。每个值沿用占位符起始处的格式，换行变成换行符。没有给值的占位符保留原样并在结果的 `unfilled` 里列出（加 `require_all` 则一个都不改、直接拒绝），给了值却在文档里找不到的名称列在 `unused_keys`。先用 `dry_run` 看文档里有哪些占位符。它直接改文件、不经过 WPS，所以先在 WPS 里关闭这份文档；同样先备份、读回核对，失败时恢复。
+
+### 生成图表
+
+`spreadsheet_chart_create` 把一块数据（第一行、第一列作标签）做成柱形图、条形图、折线图或饼图，放在同一张工作表上，可带标题，需要 WPS。保存后读回工作簿，确认正好多了一张该类型、该标题、数据都来自这块区域的图表，否则从备份恢复。
+
+### PDF 页面处理
+
+不需要 WPS，原文件只读，输出总是新文件：
+
+- `pdf_info`：页数、纸张大小、旋转、元数据，以及是否像扫描件（没有文字层）；
+- `pdf_merge`：按给出的顺序合并多个 PDF，书签保留；
+- `pdf_split`：每 N 页一个文件，或按 `1-3,4-6,7-` 每段一个文件；
+- `pdf_extract_pages`：按给出的顺序抽取页面（`3,1` 会把第 3 页放在前面）；
+- `pdf_watermark`：在每页（或指定页）中央斜着加一行半透明的文字水印，中文可用。
+
+页码从 1 开始，`8-` 表示第 8 页到最后一页。带打开密码的 PDF 会被拒绝（`PDF_ENCRYPTED`）。
+
 ### 修改已在 WPS 里打开的文档
 
 用户正打开着的文档不能按文件改（WPS 占着文件）。这时改用选区工具：先在 WPS 里选中要改的文字、单元格、图形或图表，再让 AI “把选中的内容改成……”（`writer_selection_replace`、`presentation_selection_replace`、`spreadsheet_selection_replace` 等），也可以保存（`save_open_document`）或导出（`export_open_document_pdf`）。写入失败时会在 WPS 里撤回，不会覆盖你在此期间做的修改。
@@ -149,6 +173,11 @@ wps-agent register-document --component spreadsheets --path D:\报表\三季度.
 wps-agent spreadsheet-read --document-id doc_xxx --sheet Sheet1 --range A1:D10
 wps-agent spreadsheet-write --document-id doc_xxx --sheet Sheet1 --range B2 --values-json "[[42]]" --request-id r1
 wps-agent open-documents
+wps-agent document-new --component writer --path D:\报告\周报.docx --title 第45周周报
+wps-agent writer-merge --document-id doc_xxx --data-file 数据.json --dry-run
+wps-agent spreadsheet-chart-create --document-id doc_xxx --sheet-name Sheet1 --range A1:C7 --chart-type column --title 季度销售
+wps-agent pdf-merge --input 一.pdf --input 二.pdf --output 合并.pdf
+wps-agent pdf-watermark --input 合同.pdf --output 合同-草稿.pdf --text 草稿
 ```
 
 命令失败时进程以退出码 1 结束（成功 0、参数错误 2），请同时看 JSON 里的 `ok`；需要旧行为的脚本加 `--lenient-exit`。完整的命令列表：`wps-agent --help`，某个命令的参数：`wps-agent <命令> --help`。

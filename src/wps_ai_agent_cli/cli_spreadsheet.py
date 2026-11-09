@@ -6,6 +6,7 @@ import json
 
 from .cli_common import BACKEND
 from .models import CommandResponse, ValidationResult
+from .spreadsheet_chart import create_spreadsheet_chart
 from .spreadsheet_inspect import inspect_spreadsheet_range
 from .spreadsheet_ops import (
     copy_spreadsheet_sheet,
@@ -257,6 +258,61 @@ def spreadsheet_copy_sheet_response(
                     "passed": bool(ok and (dry_run or result.get("validation_passed"))),
                     "details": result.get("sheet_names_read_back", result.get("sheet_names_after")),
                 },
+            ],
+        ),
+        errors=errors,
+    )
+
+
+def spreadsheet_chart_create_response(
+    request_id: str,
+    document_id: str,
+    sheet_name: str,
+    range_address: str,
+    chart_type: str,
+    title: str | None,
+    anchor: str | None,
+    series_in: str,
+    width: int,
+    height: int,
+    dry_run: bool,
+) -> CommandResponse:
+    ok, result, errors, replayed = create_spreadsheet_chart(
+        document_id,
+        sheet_name,
+        range_address,
+        chart_type,
+        request_id,
+        title=title,
+        anchor=anchor,
+        plot_by=series_in,
+        width=width,
+        height=height,
+        dry_run=dry_run,
+    )
+    return CommandResponse(
+        ok=ok,
+        command="spreadsheet-chart-create",
+        request_id=request_id,
+        backend="wps-com" if ok and not dry_run and not replayed else BACKEND,
+        summary=(
+            "Chart request replayed."
+            if replayed
+            else "Chart preview completed."
+            if dry_run and ok
+            else f"Added a {chart_type} chart of {sheet_name}!{result.get('normalized_range')} at {result.get('anchor')}."
+            if ok
+            else "The chart could not be added."
+        ),
+        data=result,
+        validation=ValidationResult(
+            status="passed" if ok else "failed",
+            checks=[
+                {
+                    "name": "chart_read_back",
+                    "passed": bool(ok and (dry_run or result.get("validation_passed"))),
+                    "details": result.get("checks"),
+                }
             ],
         ),
         errors=errors,
