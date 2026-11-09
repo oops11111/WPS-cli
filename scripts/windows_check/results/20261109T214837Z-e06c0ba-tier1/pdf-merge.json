@@ -1,0 +1,40 @@
+{
+  "backend": "python",
+  "command": "pdf-merge",
+  "data": {
+    "inputs": [
+      {
+        "pages": 1,
+        "path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T214837Z-e06c0ba-tier1\\work\\合同.pdf"
+      },
+      {
+        "pages": 1,
+        "path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T214837Z-e06c0ba-tier1\\work\\合同-草稿.pdf"
+      }
+    ],
+    "output_path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T214837Z-e06c0ba-tier1\\work\\合并.pdf",
+    "outputs": [
+      {
+        "pages": 2,
+        "pages_match": true,
+        "path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T214837Z-e06c0ba-tier1\\work\\合并.pdf",
+        "size": 104679
+      }
+    ],
+    "validation_passed": true
+  },
+  "errors": [],
+  "ok": true,
+  "request_id": "e32d96ef-5425-4a6b-acbf-13b8140cb23f",
+  "summary": "Merged 2 PDFs into C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T214837Z-e06c0ba-tier1\\work\\合并.pdf.",
+  "validation": {
+    "checks": [
+      {
+        "details": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T214837Z-e06c0ba-tier1\\work\\合并.pdf",
+        "name": "output_read_back",
+        "passed": true
+      }
+    ],
+    "status": "passed"
+  }
+}

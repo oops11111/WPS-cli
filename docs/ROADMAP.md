@@ -9,7 +9,6 @@
 - 真机证据补课（T-02/T-03）：第二台机器与第二个 WPS 版本的验证；在 COMPATIBILITY_MATRIX 标注每条证据的版本与日期，过期证据降级为未验证；windows_check 结果必须归档原始 JSON 与 wheel 的 SHA-256，不只留 Markdown 勾选
 - 发布通道打开（U-04）：release 流水线的 PyPI 步骤已就绪，置 `PUBLISH_TO_PYPI=true` 后正式走 PyPI 分发，安装文档随之更新
 - 命名收敛（U-01）：产品名统一为 `wps-agent`——仓库改名、文档与包描述同步；`wps-ai-agent-cli` 作为包名保留一个大版本兼容（README 首屏的消歧说明已先行落地）
-- C-04 图表的真机校准：`spreadsheet-chart-create` 经 WPS 的 ChartObjects().Add 与 SetSourceData 加图，离线读回已覆盖，还需在装 WPS 的 Windows 上把柱、条、线、饼各跑一次，确认 WPS 保存的图表部件能被读回
 - 发版节奏（U-06）：改为每两周一个 minor，只修不加功能时走 patch；满足 RELEASING.md 的 1.0 条件（API 冻结、默认翻转完成、真机自托管 runner、两台机器乘两个版本签核）后发 1.0
 
 ## 接下来（能力补强，顺序即优先级）

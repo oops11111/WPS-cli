@@ -1,0 +1,16 @@
+{
+  "writer": {
+    "paragraphs": [
+      "第45周周报"
+    ],
+    "window": true
+  },
+  "presentation": {
+    "slides": 1,
+    "width": 960.0,
+    "height": 540.0,
+    "ratio": 1.7778,
+    "title": "季度汇报"
+  },
+  "composed": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T214837Z-e06c0ba-tier1\\new-docs.png"
+}

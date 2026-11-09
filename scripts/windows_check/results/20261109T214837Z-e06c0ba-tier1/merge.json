@@ -1,0 +1,90 @@
+{
+  "backend": "python",
+  "command": "writer-merge",
+  "data": {
+    "backup": {
+      "backup_bytes": 12043,
+      "backup_path": ".wps-agent\\backups\\doc_4bd10923eadfb8c1\\合同.20261109T215202159830Z.docx",
+      "component": "writer",
+      "created": true,
+      "document_id": "doc_4bd10923eadfb8c1",
+      "dry_run": false,
+      "source_identity": {
+        "file_device": 11882268654517892920,
+        "file_inode": 1125899908873987,
+        "source_sha256": "51B0445EF2F827C6D09ACF01758A251FCD60E6C24294273533712D310C5A0D4A"
+      },
+      "source_path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T214837Z-e06c0ba-tier1\\work\\合同.docx"
+    },
+    "backup_replayed": false,
+    "data": {
+      "合同编号": "HT-001",
+      "客户": "甲公司",
+      "联系人": "张三",
+      "金额": 1200
+    },
+    "document_id": "doc_4bd10923eadfb8c1",
+    "dry_run": false,
+    "path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T214837Z-e06c0ba-tier1\\work\\合同.docx",
+    "placeholder_parts": {
+      "合同编号": {
+        "document": 1
+      },
+      "客户": {
+        "document": 1,
+        "header1": 1
+      },
+      "未提供": {
+        "footer1": 1
+      },
+      "联系人": {
+        "document": 1
+      },
+      "金额": {
+        "document": 1
+      }
+    },
+    "placeholders": {
+      "合同编号": 1,
+      "客户": 2,
+      "未提供": 1,
+      "联系人": 1,
+      "金额": 1
+    },
+    "readback_matches_expected": true,
+    "remaining_filled_placeholders": 0,
+    "replaced": 5,
+    "replacements": 5,
+    "require_all": false,
+    "unfilled": [
+      "未提供"
+    ],
+    "unused_keys": [],
+    "validation_passed": true
+  },
+  "errors": [],
+  "ok": true,
+  "request_id": "m1",
+  "summary": "Filled 5 placeholders. No value for: 未提供.",
+  "validation": {
+    "checks": [
+      {
+        "details": ".wps-agent\\backups\\doc_4bd10923eadfb8c1\\合同.20261109T215202159830Z.docx",
+        "name": "backup_created",
+        "passed": true
+      },
+      {
+        "details": {
+          "remaining_filled_placeholders": 0,
+          "replaced": 5,
+          "unfilled": [
+            "未提供"
+          ]
+        },
+        "name": "merge_read_back",
+        "passed": true
+      }
+    ],
+    "status": "passed"
+  }
+}

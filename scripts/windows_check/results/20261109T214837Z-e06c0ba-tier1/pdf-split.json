@@ -1,0 +1,49 @@
+{
+  "backend": "python",
+  "command": "pdf-split",
+  "data": {
+    "files": 2,
+    "input_path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T214837Z-e06c0ba-tier1\\work\\合并.pdf",
+    "output_dir": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T214837Z-e06c0ba-tier1\\work\\parts",
+    "outputs": [
+      {
+        "pages": 1,
+        "pages_match": true,
+        "path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T214837Z-e06c0ba-tier1\\work\\parts\\合并_p1.pdf",
+        "size": 51247,
+        "source_pages": [
+          1
+        ]
+      },
+      {
+        "pages": 1,
+        "pages_match": true,
+        "path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T214837Z-e06c0ba-tier1\\work\\parts\\合并_p2.pdf",
+        "size": 53675,
+        "source_pages": [
+          2
+        ]
+      }
+    ],
+    "validation_passed": true
+  },
+  "errors": [],
+  "ok": true,
+  "request_id": "20e260e8-eb02-45d3-b704-4b8538aaaaab",
+  "summary": "Split into 2 files.",
+  "validation": {
+    "checks": [
+      {
+        "details": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T214837Z-e06c0ba-tier1\\work\\parts\\合并_p1.pdf",
+        "name": "output_read_back",
+        "passed": true
+      },
+      {
+        "details": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T214837Z-e06c0ba-tier1\\work\\parts\\合并_p2.pdf",
+        "name": "output_read_back",
+        "passed": true
+      }
+    ],
+    "status": "passed"
+  }
+}

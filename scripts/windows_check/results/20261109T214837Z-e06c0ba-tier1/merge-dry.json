@@ -1,0 +1,71 @@
+{
+  "backend": "local-python",
+  "command": "writer-merge",
+  "data": {
+    "data": {
+      "合同编号": "HT-001",
+      "客户": "甲公司",
+      "联系人": "张三",
+      "金额": 1200
+    },
+    "document_id": "doc_4bd10923eadfb8c1",
+    "dry_run": true,
+    "path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T214837Z-e06c0ba-tier1\\work\\合同.docx",
+    "placeholder_parts": {
+      "合同编号": {
+        "document": 1
+      },
+      "客户": {
+        "document": 1,
+        "header1": 1
+      },
+      "未提供": {
+        "footer1": 1
+      },
+      "联系人": {
+        "document": 1
+      },
+      "金额": {
+        "document": 1
+      }
+    },
+    "placeholders": {
+      "合同编号": 1,
+      "客户": 2,
+      "未提供": 1,
+      "联系人": 1,
+      "金额": 1
+    },
+    "replacements": 5,
+    "require_all": false,
+    "unfilled": [
+      "未提供"
+    ],
+    "unused_keys": []
+  },
+  "errors": [],
+  "ok": true,
+  "request_id": "1b957587-052e-4d03-bdd3-df59c019a699",
+  "summary": "Found 6 placeholders; nothing changed (dry run).",
+  "validation": {
+    "checks": [
+      {
+        "details": null,
+        "name": "backup_created",
+        "passed": true
+      },
+      {
+        "details": {
+          "remaining_filled_placeholders": null,
+          "replaced": null,
+          "unfilled": [
+            "未提供"
+          ]
+        },
+        "name": "merge_read_back",
+        "passed": true
+      }
+    ],
+    "status": "passed"
+  }
+}

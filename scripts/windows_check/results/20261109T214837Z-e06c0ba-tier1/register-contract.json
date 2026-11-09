@@ -1,0 +1,30 @@
+{
+  "backend": "local-python",
+  "command": "register-document",
+  "data": {
+    "document": {
+      "component": "writer",
+      "document_id": "doc_4bd10923eadfb8c1",
+      "exists": true,
+      "file_device": 11882268654517892920,
+      "file_inode": 1125899908873987,
+      "path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T214837Z-e06c0ba-tier1\\work\\合同.docx",
+      "registered_at": "2026-11-09T21:51:45.382643+00:00",
+      "source_sha256": "51B0445EF2F827C6D09ACF01758A251FCD60E6C24294273533712D310C5A0D4A"
+    }
+  },
+  "errors": [],
+  "ok": true,
+  "request_id": "9bd4ff92-9846-4540-b822-45f2fdccc72f",
+  "summary": "Document registered.",
+  "validation": {
+    "checks": [
+      {
+        "details": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T214837Z-e06c0ba-tier1\\work\\合同.docx",
+        "name": "document_path_exists",
+        "passed": true
+      }
+    ],
+    "status": "passed"
+  }
+}

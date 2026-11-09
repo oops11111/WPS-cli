@@ -1,0 +1,24 @@
+{
+  "backend": "local-python",
+  "command": "spreadsheet-chart-create",
+  "data": {},
+  "errors": [
+    {
+      "code": "INVALID_RANGE",
+      "message": "Sales Q3!A1:A4 holds no numbers to chart."
+    }
+  ],
+  "ok": false,
+  "request_id": "c5",
+  "summary": "The chart could not be added.",
+  "validation": {
+    "checks": [
+      {
+        "details": null,
+        "name": "chart_read_back",
+        "passed": false
+      }
+    ],
+    "status": "failed"
+  }
+}

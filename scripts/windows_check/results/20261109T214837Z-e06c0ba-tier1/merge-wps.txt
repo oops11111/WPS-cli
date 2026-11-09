@@ -1,0 +1,21 @@
+{
+  "path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T214837Z-e06c0ba-tier1\\work\\合同.docx",
+  "com_maximize": "ok",
+  "zoom": "80",
+  "windows": [
+    [
+      1313060,
+      "合同.docx - WPS 文字"
+    ]
+  ],
+  "paragraphs": [
+    "合同编号：HT-001",
+    "甲方：甲公司，金额 1200 元。",
+    "联系人",
+    "张三",
+    "",
+    ""
+  ],
+  "header": "甲公司",
+  "footer": "{{未提供}}"
+}
