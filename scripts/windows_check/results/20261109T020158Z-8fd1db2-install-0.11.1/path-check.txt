@@ -1,0 +1,126 @@
+﻿path_user=C:\Users\admin\.local\bin;C:\Users\admin\.cargo\bin;C:\Users\admin\AppData\Local\Programs\Python\Python312\Scripts\;C:\Users\admin\AppData\Local\Programs\Python\Python312\;C:\Users\admin\AppData\Local\Programs\Python\Launcher\;C:\Users\admin\AppData\Local\Microsoft\WindowsApps;C:\Program Files (x86)\Tencent\QQGameTempest\Hall.58195\;C:\Users\admin\AppData\Local\Programs\Microsoft VS Code\bin;C:\Users\admin\AppData\Local\Microsoft\WinGet\Links;C:\Users\admin\.dotnet\tools;C:\Users\admin\AppData\Roaming\npm;C:\Program Files\Git\bin;C:\Users\admin\AppData\Local\Microsoft\WinGet\Packages\Google.PlatformTools_Microsoft.Winget.Source_8wekyb3d8bbwe\platform-tools;C:\Users\admin\.dotnet\tools;C:\Users\admin\AppData\Local\Docker\cli;C:\Users\admin\.bun\bin;C:\Users\admin\bin;C:\Program Files (x86)\Microsoft Visual Studio\Installer;C:\Users\admin\AppData\Local\Programs\cursor\resources\app\bin;C:\Users\admin\AppData\Local\wps-agent\bin;C:\Users\admin\AppData\Local\Temp\dotnetcli_m2dv\.dotnet\tools;C:\Program Files\Git\cmd
+path_machine=C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;C:\Program Files\NVIDIA Corporation\NVIDIA App\NvDLISR;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\Program Files\Git\cmd;C:\Program Files\dotnet\;C:\Program Files (x86)\Windows Kits\10\Windows Performance Toolkit\;C:\Program Files\nodejs\;C:\Program Files\Docker\Docker\resources\bin;C:\Program Files\WSL\;C:\Program Files\PowerShell\7\
+command_source=C:\Users\admin\AppData\Local\wps-agent\bin\wps-agent.cmd
+command_type=Application
+### wps-agent inspect-env
+{
+  "backend": "local-python",
+  "command": "inspect-env",
+  "data": {
+    "components": {
+      "presentation": {
+        "attempts": [
+          {
+            "error": null,
+            "prog_id": "kwpp.Application",
+            "registered": true
+          },
+          {
+            "error": "AttributeError",
+            "prog_id": "wpp.Application",
+            "registered": false
+          },
+          {
+            "error": "AttributeError",
+            "prog_id": "Kingsoft Presentation.Application",
+            "registered": false
+          }
+        ],
+        "detected": true,
+        "selected_prog_id": "kwpp.Application"
+      },
+      "spreadsheets": {
+        "attempts": [
+          {
+            "error": null,
+            "prog_id": "ket.Application",
+            "registered": true
+          },
+          {
+            "error": "AttributeError",
+            "prog_id": "et.Application",
+            "registered": false
+          },
+          {
+            "error": "AttributeError",
+            "prog_id": "Kingsoft Spreadsheets.Application",
+            "registered": false
+          }
+        ],
+        "detected": true,
+        "selected_prog_id": "ket.Application"
+      },
+      "writer": {
+        "attempts": [
+          {
+            "error": null,
+            "prog_id": "kwps.Application",
+            "registered": true
+          },
+          {
+            "error": "AttributeError",
+            "prog_id": "wps.Application",
+            "registered": false
+          },
+          {
+            "error": "AttributeError",
+            "prog_id": "Kingsoft Writer.Application",
+            "registered": false
+          }
+        ],
+        "detected": true,
+        "selected_prog_id": "kwps.Application"
+      }
+    },
+    "dependencies": {
+      "powershell_com_probe_available": true,
+      "pywin32_available": true
+    },
+    "platform": {
+      "is_windows": true,
+      "python": "3.12.15",
+      "release": "10",
+      "system": "Windows"
+    }
+  },
+  "errors": [],
+  "ok": true,
+  "request_id": "f77de618-e7df-46f5-9db2-f7bbc3b4405e",
+  "summary": "Environment capability probe completed.",
+  "validation": {
+    "checks": [
+      {
+        "details": "Windows",
+        "name": "windows_host",
+        "passed": true
+      },
+      {
+        "details": "required for COM integration",
+        "name": "pywin32_available",
+        "passed": true
+      },
+      {
+        "details": "kwps.Application",
+        "name": "writer_prog_id_registered",
+        "passed": true
+      },
+      {
+        "details": "ket.Application",
+        "name": "spreadsheets_prog_id_registered",
+        "passed": true
+      },
+      {
+        "details": "kwpp.Application",
+        "name": "presentation_prog_id_registered",
+        "passed": true
+      }
+    ],
+    "status": "passed"
+  }
+}
+
+inspect_exit=0
+inspect_ok=True
+component_writer detected=True selected_prog_id=kwps.Application
+component_spreadsheets detected=True selected_prog_id=ket.Application
+component_presentation detected=True selected_prog_id=kwpp.Application
