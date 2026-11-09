@@ -1,0 +1,9 @@
+OS: Microsoft Windows 10 企业版 10.0.19045 build 19045
+PowerShell: 7.6.9 (Core)
+WPS InstallRoot: C:\Program Files (x86)\Kingsoft\WPS Office\12.8.2.18913
+WPS wps.exe: C:\Program Files (x86)\Kingsoft\WPS Office\12.8.2.18913\office6\wps.exe version 12,8,2,18913
+Node: v24.16.0 (C:\Program Files\nodejs\node.exe)
+Edge: 157.0.4341.42
+python: WindowsApps stub only, exits 9009
+py: C:\Users\admin\AppData\Local\Programs\Python\Launcher\py.exe
+uv: C:\Users\admin\.local\bin\uv.exe

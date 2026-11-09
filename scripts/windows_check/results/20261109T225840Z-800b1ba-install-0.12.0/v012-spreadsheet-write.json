@@ -1,0 +1,101 @@
+{
+  "backend": "wps-com",
+  "command": "spreadsheet-write",
+  "data": {
+    "backup": {
+      "backup_bytes": 4798,
+      "backup_path": ".wps-agent\\backups\\doc_75142bb61f9db968\\b.20261109T230420285434Z.xlsx",
+      "component": "spreadsheets",
+      "created": true,
+      "document_id": "doc_75142bb61f9db968",
+      "dry_run": false,
+      "source_identity": {
+        "file_device": 11882268654517892920,
+        "file_inode": 7318349395111446,
+        "source_sha256": "7A18F689B4B52DB20621E00E48B9AEDAEFCB8F575F9A7EB8955FE74D391D435F"
+      },
+      "source_path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T225840Z-800b1ba-install-0.12.0\\work\\b.xlsx"
+    },
+    "backup_replayed": false,
+    "column_count": 2,
+    "component": "spreadsheets",
+    "document_id": "doc_75142bb61f9db968",
+    "dry_run": false,
+    "path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T225840Z-800b1ba-install-0.12.0\\work\\b.xlsx",
+    "range": "A1:B3",
+    "read_back_values": [
+      [
+        "月",
+        "值"
+      ],
+      [
+        "7月",
+        1
+      ],
+      [
+        "8月",
+        2
+      ]
+    ],
+    "requested_sheet": null,
+    "row_count": 3,
+    "sheet": "数据",
+    "validation_passed": true,
+    "values": [
+      [
+        "月",
+        "值"
+      ],
+      [
+        "7月",
+        1
+      ],
+      [
+        "8月",
+        2
+      ]
+    ],
+    "write_backend": "powershell-com"
+  },
+  "errors": [],
+  "ok": true,
+  "request_id": "79e6e73a-b390-4e02-b6d5-18e28934ab53",
+  "summary": "Spreadsheet write completed.",
+  "validation": {
+    "checks": [
+      {
+        "details": {
+          "column_count": 2,
+          "range": "A1:B3",
+          "row_count": 3
+        },
+        "name": "range_shape_valid",
+        "passed": true
+      },
+      {
+        "details": ".wps-agent\\backups\\doc_75142bb61f9db968\\b.20261109T230420285434Z.xlsx",
+        "name": "backup_created",
+        "passed": true
+      },
+      {
+        "details": [
+          [
+            "月",
+            "值"
+          ],
+          [
+            "7月",
+            1
+          ],
+          [
+            "8月",
+            2
+          ]
+        ],
+        "name": "write_validated",
+        "passed": true
+      }
+    ],
+    "status": "passed"
+  }
+}

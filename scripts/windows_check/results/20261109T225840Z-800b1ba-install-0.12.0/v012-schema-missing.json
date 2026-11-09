@@ -1,0 +1,24 @@
+{
+  "backend": "local-python",
+  "command": "mcp-tool-schema",
+  "data": {},
+  "errors": [
+    {
+      "code": "MCP_TOOL_SCHEMA_NOT_FOUND",
+      "message": "MCP tool schema not found: does-not-exist"
+    }
+  ],
+  "ok": false,
+  "request_id": "b4dbff62-0236-414a-9465-f5295e14544e",
+  "summary": "MCP tool schema not found.",
+  "validation": {
+    "checks": [
+      {
+        "details": "does-not-exist",
+        "name": "mcp_tool_schema_exists",
+        "passed": false
+      }
+    ],
+    "status": "failed"
+  }
+}

@@ -1,0 +1,49 @@
+=== wheel check, attempt 1 (2026-11-10 ~07:03 local / 2026-11-09T23:03Z) ===
+Command (repo root, new PowerShell, installed venv python):
+  & "$env:LOCALAPPDATA\wps-agent\venv\Scripts\python.exe" scripts\windows_check\run_windows_check.py wheel --version 0.12.0
+Working directory: C:\Users\admin\.lody\repos\github---oops11111---wps-cli\worktrees\892d82f5-59c6-4cf8-bc52-46c8e7df5f60
+WPS processes before run: 0
+Exit code: 1
+
+Output (stderr, verbatim):
+Traceback (most recent call last):
+  File "C:\Users\admin\.lody\repos\github---oops11111---wps-cli\worktrees\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\scripts\windows_check\run_windows_check.py", line 995, in <module>
+    raise SystemExit(main())
+                     ^^^^^^^^^^
+  File "C:\Users\admin\.lody\repos\github---oops11111---wps-cli\worktrees\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\scripts\windows_check\run_windows_check.py", line 991, in main
+    return run_wheel(args, machine)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\admin\.lody\repos\github---oops11111---wps-cli\worktrees\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\scripts\windows_check\run_windows_check.py", line 674, in run_wheel
+    result = check_wheel(
+             ^^^^^^^^^^^^
+  File "C:\Users\admin\.lody\repos\github---oops11111---wps-cli\worktrees\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\scripts\windows_check\run_windows_check.py", line 601, in check_wheel
+    url, listed = release_wheel(version)
+                  ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\admin\.lody\repos\github---oops11111---wps-cli\worktrees\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\scripts\windows_check\run_windows_check.py", line 536, in release_wheel
+    with urllib.request.urlopen(request, timeout=60) as response:  # noqa: S310 - a fixed https URL
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\admin\AppData\Roaming\uv\python\cpython-3.12-windows-x86_64-none\Lib\urllib\request.py", line 215, in urlopen
+    return opener.open(url, data, timeout)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\admin\AppData\Roaming\uv\python\cpython-3.12-windows-x86_64-none\Lib\urllib\request.py", line 521, in open
+    response = meth(req, response)
+               ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\admin\AppData\Roaming\uv\python\cpython-3.12-windows-x86_64-none\Lib\urllib\request.py", line 630, in http_response
+    response = self.parent.error(
+               ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\admin\AppData\Roaming\uv\python\cpython-3.12-windows-x86_64-none\Lib\urllib\request.py", line 559, in error
+    return self._call_chain(*args)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\admin\AppData\Roaming\uv\python\cpython-3.12-windows-x86_64-none\Lib\urllib\request.py", line 492, in _call_chain
+    result = func(*args)
+             ^^^^^^^^^^^^
+  File "C:\Users\admin\AppData\Roaming\uv\python\cpython-3.12-windows-x86_64-none\Lib\urllib\request.py", line 639, in http_error_default
+    raise HTTPError(req.full_url, code, msg, hdrs, fp)
+urllib.error.HTTPError: HTTP Error 403: rate limit exceeded
+
+=== diagnosis ===
+Unauthenticated GitHub REST API core quota for this IP: limit 60, remaining 0,
+used 60, reset at epoch 1794266709 (2026-11-09T23:25:09Z). The script's release_wheel()
+uses an unauthenticated call unless GITHUB_TOKEN/GH_TOKEN is set in the environment
+(see its comment referencing the earlier P7-009 run). No new results directory was
+created by this failed attempt.

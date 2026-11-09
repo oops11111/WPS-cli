@@ -1,0 +1,190 @@
+{
+  "config": "C:\\Users\\admin\\AppData\\Roaming\\Claude\\claude_desktop_config.json",
+  "name": "wps-agent",
+  "environment": "MCP SDK default",
+  "steps": [
+    {
+      "step": "read the client config",
+      "ok": true,
+      "detail": "C:\\Users\\admin\\AppData\\Local\\wps-agent\\venv\\Scripts\\wps-agent.exe"
+    },
+    {
+      "step": "the entry sets WPS_AGENT_WORKSPACE",
+      "ok": true,
+      "detail": "C:\\Users\\admin\\AppData\\Local\\wps-agent-data"
+    },
+    {
+      "step": "initialize",
+      "ok": true,
+      "detail": {
+        "name": "wps-ai-agent-cli",
+        "version": "0.12.0",
+        "protocolVersion": "2025-11-25"
+      }
+    },
+    {
+      "step": "tools/list",
+      "ok": true,
+      "detail": "95 tools"
+    },
+    {
+      "step": "register the workbook",
+      "ok": true,
+      "detail": "doc_079db0be51227f58"
+    },
+    {
+      "step": "read sales_gbk!A1:F3",
+      "ok": true,
+      "detail": [
+        [
+          "地区",
+          "门店编号",
+          "销量",
+          "增长率",
+          "销售额",
+          "备注"
+        ],
+        [
+          "华东",
+          "007",
+          1200,
+          0.125,
+          1234.5,
+          "旗舰店"
+        ],
+        [
+          "华南",
+          "008",
+          3.5,
+          -0.03,
+          99,
+          "含,逗号"
+        ]
+      ]
+    },
+    {
+      "step": "write sales_gbk!F2",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "step": "read the written cell back",
+      "ok": true,
+      "detail": [
+        [
+          "wps-agent MCP smoke"
+        ]
+      ]
+    },
+    {
+      "step": "the write left a backup",
+      "ok": true,
+      "detail": 1
+    },
+    {
+      "step": "the backup is under WPS_AGENT_WORKSPACE",
+      "ok": true,
+      "detail": ".wps-agent\\backups\\doc_079db0be51227f58\\book.20261109T230120825702Z.xlsx"
+    },
+    {
+      "step": "nothing was written where the server was started",
+      "ok": true,
+      "detail": null
+    }
+  ],
+  "entry": {
+    "command": "C:\\Users\\admin\\AppData\\Local\\wps-agent\\venv\\Scripts\\wps-agent.exe",
+    "args": [
+      "mcp-server"
+    ],
+    "env_names": [
+      "NODE_PATH",
+      "WPS_AGENT_WORKSPACE"
+    ]
+  },
+  "server_info": {
+    "name": "wps-ai-agent-cli",
+    "version": "0.12.0"
+  },
+  "protocol_version": {
+    "requested": "2025-11-25",
+    "answered": "2025-11-25"
+  },
+  "tool_count": 95,
+  "read": [
+    [
+      "地区",
+      "门店编号",
+      "销量",
+      "增长率",
+      "销售额",
+      "备注"
+    ],
+    [
+      "华东",
+      "007",
+      1200,
+      0.125,
+      1234.5,
+      "旗舰店"
+    ],
+    [
+      "华南",
+      "008",
+      3.5,
+      -0.03,
+      99,
+      "含,逗号"
+    ]
+  ],
+  "write": {
+    "backup": {
+      "backup_bytes": 5300,
+      "backup_path": ".wps-agent\\backups\\doc_079db0be51227f58\\book.20261109T230120825702Z.xlsx",
+      "component": "spreadsheets",
+      "created": true,
+      "document_id": "doc_079db0be51227f58",
+      "dry_run": false,
+      "source_identity": {
+        "file_device": 11882268654517892920,
+        "file_inode": 3377699721154528,
+        "source_sha256": "D2A3AEA8CE73894A87696A9F3176F229A3DB1C67F10F6BCAE31FA691368797B7"
+      },
+      "source_path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-agent-mcp-smoke-wla0s979\\documents\\book.xlsx"
+    },
+    "backup_replayed": false,
+    "column_count": 1,
+    "component": "spreadsheets",
+    "document_id": "doc_079db0be51227f58",
+    "dry_run": false,
+    "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\wps-agent-mcp-smoke-wla0s979\\documents\\book.xlsx",
+    "range": "F2",
+    "read_back_values": [
+      [
+        "wps-agent MCP smoke"
+      ]
+    ],
+    "requested_sheet": "sales_gbk",
+    "row_count": 1,
+    "sheet": "sales_gbk",
+    "validation_passed": true,
+    "values": [
+      [
+        "wps-agent MCP smoke"
+      ]
+    ],
+    "write_backend": "powershell-com"
+  },
+  "backups": [
+    {
+      "backup_bytes": 5300,
+      "backup_name": "book.20261109T230120825702Z.xlsx",
+      "backup_path": ".wps-agent\\backups\\doc_079db0be51227f58\\book.20261109T230120825702Z.xlsx",
+      "created_at": "2026-11-09T23:01:20.825702+00:00",
+      "document_id": "doc_079db0be51227f58"
+    }
+  ],
+  "server_stderr_tail": [],
+  "backup_folder_removed": "C:\\Users\\admin\\AppData\\Local\\wps-agent-data\\.wps-agent\\backups\\doc_079db0be51227f58",
+  "passed": true
+}

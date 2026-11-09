@@ -1,0 +1,51 @@
+{
+  "backend": "python",
+  "command": "document-new",
+  "data": {
+    "component": "writer",
+    "contents": {
+      "paragraphs": [
+        "测试"
+      ]
+    },
+    "document": {
+      "component": "writer",
+      "document_id": "doc_3084d09e3d885860",
+      "exists": true,
+      "file_device": 11882268654517892920,
+      "file_inode": 3940649674583562,
+      "path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T225840Z-800b1ba-install-0.12.0\\work\\a.docx",
+      "registered_at": "2026-11-09T23:03:18.626713+00:00",
+      "source_sha256": "95E0DF5FE005972B00EDF1CE4ED9ED2D412C5EB57E647253D0F0CB6582DD93F2"
+    },
+    "document_id": "doc_3084d09e3d885860",
+    "path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T225840Z-800b1ba-install-0.12.0\\work\\a.docx",
+    "registered": true,
+    "size": 36617,
+    "title": "测试",
+    "validation_passed": true
+  },
+  "errors": [],
+  "ok": true,
+  "request_id": "3cc00990-db00-4f9e-bac1-06f9934b6c4f",
+  "summary": "Created C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T225840Z-800b1ba-install-0.12.0\\work\\a.docx as doc_3084d09e3d885860.",
+  "validation": {
+    "checks": [
+      {
+        "details": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T225840Z-800b1ba-install-0.12.0\\work\\a.docx",
+        "name": "document_created",
+        "passed": true
+      },
+      {
+        "details": {
+          "paragraphs": [
+            "测试"
+          ]
+        },
+        "name": "contents_read_back",
+        "passed": true
+      }
+    ],
+    "status": "passed"
+  }
+}

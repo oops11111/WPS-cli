@@ -1,0 +1,3 @@
+=== WPS processes after MCP smoke ===
+count before cleanup: 0
+count after cleanup: 0

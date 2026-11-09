@@ -1,0 +1,115 @@
+{
+  "backend": "local-python",
+  "command": "inspect-env",
+  "data": {
+    "components": {
+      "presentation": {
+        "attempts": [
+          {
+            "error": null,
+            "prog_id": "kwpp.Application",
+            "registered": true
+          },
+          {
+            "error": "AttributeError",
+            "prog_id": "wpp.Application",
+            "registered": false
+          },
+          {
+            "error": "AttributeError",
+            "prog_id": "Kingsoft Presentation.Application",
+            "registered": false
+          }
+        ],
+        "detected": true,
+        "selected_prog_id": "kwpp.Application"
+      },
+      "spreadsheets": {
+        "attempts": [
+          {
+            "error": null,
+            "prog_id": "ket.Application",
+            "registered": true
+          },
+          {
+            "error": "AttributeError",
+            "prog_id": "et.Application",
+            "registered": false
+          },
+          {
+            "error": "AttributeError",
+            "prog_id": "Kingsoft Spreadsheets.Application",
+            "registered": false
+          }
+        ],
+        "detected": true,
+        "selected_prog_id": "ket.Application"
+      },
+      "writer": {
+        "attempts": [
+          {
+            "error": null,
+            "prog_id": "kwps.Application",
+            "registered": true
+          },
+          {
+            "error": "AttributeError",
+            "prog_id": "wps.Application",
+            "registered": false
+          },
+          {
+            "error": "AttributeError",
+            "prog_id": "Kingsoft Writer.Application",
+            "registered": false
+          }
+        ],
+        "detected": true,
+        "selected_prog_id": "kwps.Application"
+      }
+    },
+    "dependencies": {
+      "powershell_com_probe_available": true,
+      "pywin32_available": true
+    },
+    "platform": {
+      "is_windows": true,
+      "python": "3.12.15",
+      "release": "10",
+      "system": "Windows"
+    }
+  },
+  "errors": [],
+  "ok": true,
+  "request_id": "7f8ad33b-7449-42cd-8fc2-5805d9f66756",
+  "summary": "Environment capability probe completed.",
+  "validation": {
+    "checks": [
+      {
+        "details": "Windows",
+        "name": "windows_host",
+        "passed": true
+      },
+      {
+        "details": "required for COM integration",
+        "name": "pywin32_available",
+        "passed": true
+      },
+      {
+        "details": "kwps.Application",
+        "name": "writer_prog_id_registered",
+        "passed": true
+      },
+      {
+        "details": "ket.Application",
+        "name": "spreadsheets_prog_id_registered",
+        "passed": true
+      },
+      {
+        "details": "kwpp.Application",
+        "name": "presentation_prog_id_registered",
+        "passed": true
+      }
+    ],
+    "status": "passed"
+  }
+}
