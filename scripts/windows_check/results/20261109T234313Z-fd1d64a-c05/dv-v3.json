@@ -1,0 +1,88 @@
+C:\Users\admin\AppData\Local\wps-agent\venv\Lib\site-packages\openpyxl\worksheet\_reader.py:329: UserWarning: Unknown extension is not supported and will be removed
+  warn(msg)
+C:\Users\admin\AppData\Local\wps-agent\venv\Lib\site-packages\openpyxl\worksheet\_reader.py:329: UserWarning: Conditional Formatting extension is not supported and will be removed
+  warn(msg)
+{
+  "backend": "wps-com",
+  "command": "spreadsheet-data-validation",
+  "data": {
+    "backup": {
+      "backup_bytes": 10064,
+      "backup_path": ".wps-agent\\backups\\doc_6b91b86a6440bcbf\\数据.20261109T235232745239Z.xlsx",
+      "component": "spreadsheets",
+      "created": true,
+      "document_id": "doc_6b91b86a6440bcbf",
+      "dry_run": false,
+      "source_identity": {
+        "file_device": 11882268654517892920,
+        "file_inode": 7036874418069473,
+        "source_sha256": "EC3E660D307C709765B497FB0660E55CE3FC949B9549765CF7035C84456BACBB"
+      },
+      "source_path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T234313Z-fd1d64a-c05\\work\\数据.xlsx"
+    },
+    "backup_replayed": false,
+    "checks": {
+      "one_rule_on_range": true,
+      "operator_matches": true,
+      "type_matches": true,
+      "values_match": true
+    },
+    "document_id": "doc_6b91b86a6440bcbf",
+    "dry_run": false,
+    "formula1": "=DATE(2025,1,1)",
+    "formula2": null,
+    "normalized_range": "C2:C7",
+    "operator": "greater-or-equal",
+    "path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T234313Z-fd1d64a-c05\\work\\数据.xlsx",
+    "range": "C2:C7",
+    "read_back": {
+      "rule": {
+        "allow_blank": true,
+        "error": null,
+        "formula1": "DATE(2025,1,1)",
+        "formula2": null,
+        "operator": "greaterThanOrEqual",
+        "prompt": null,
+        "ranges": [
+          "C2:C7"
+        ],
+        "type": "date"
+      },
+      "validations_on_sheet_after": 3
+    },
+    "sheet_name": "销售",
+    "validation_passed": true,
+    "validation_type": "date",
+    "validations_on_sheet_before": 2,
+    "wps_report": {
+      "backend": "powershell-com",
+      "formula1": "=DATE(2025,1,1)",
+      "sheet_name": "销售",
+      "source_identity_after_com": {
+        "file_device": 11882268654517892920,
+        "file_inode": 7599824371490791,
+        "source_sha256": "F2609F56FCAAC065EF18FC9502506E29E7033E907A60AF427D50F9DDA78C0397"
+      },
+      "validation_type": 4
+    }
+  },
+  "errors": [],
+  "ok": true,
+  "request_id": "v3",
+  "summary": "Set date validation on 销售!C2:C7.",
+  "validation": {
+    "checks": [
+      {
+        "details": {
+          "one_rule_on_range": true,
+          "operator_matches": true,
+          "type_matches": true,
+          "values_match": true
+        },
+        "name": "read_back",
+        "passed": true
+      }
+    ],
+    "status": "passed"
+  }
+}

@@ -1,0 +1,88 @@
+C:\Users\admin\AppData\Local\wps-agent\venv\Lib\site-packages\openpyxl\worksheet\_reader.py:329: UserWarning: Unknown extension is not supported and will be removed
+  warn(msg)
+C:\Users\admin\AppData\Local\wps-agent\venv\Lib\site-packages\openpyxl\worksheet\_reader.py:329: UserWarning: Conditional Formatting extension is not supported and will be removed
+  warn(msg)
+{
+  "backend": "wps-com",
+  "command": "spreadsheet-data-validation",
+  "data": {
+    "backup": {
+      "backup_bytes": 10112,
+      "backup_path": ".wps-agent\\backups\\doc_6b91b86a6440bcbf\\数据.20261109T235252108967Z.xlsx",
+      "component": "spreadsheets",
+      "created": true,
+      "document_id": "doc_6b91b86a6440bcbf",
+      "dry_run": false,
+      "source_identity": {
+        "file_device": 11882268654517892920,
+        "file_inode": 7599824371490791,
+        "source_sha256": "F2609F56FCAAC065EF18FC9502506E29E7033E907A60AF427D50F9DDA78C0397"
+      },
+      "source_path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T234313Z-fd1d64a-c05\\work\\数据.xlsx"
+    },
+    "backup_replayed": false,
+    "checks": {
+      "one_rule_on_range": true,
+      "operator_matches": true,
+      "type_matches": true,
+      "values_match": true
+    },
+    "document_id": "doc_6b91b86a6440bcbf",
+    "dry_run": false,
+    "formula1": "10",
+    "formula2": null,
+    "normalized_range": "G2:G7",
+    "operator": "less-or-equal",
+    "path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T234313Z-fd1d64a-c05\\work\\数据.xlsx",
+    "range": "G2:G7",
+    "read_back": {
+      "rule": {
+        "allow_blank": false,
+        "error": null,
+        "formula1": "10",
+        "formula2": null,
+        "operator": "lessThanOrEqual",
+        "prompt": null,
+        "ranges": [
+          "G2:G7"
+        ],
+        "type": "textLength"
+      },
+      "validations_on_sheet_after": 4
+    },
+    "sheet_name": "销售",
+    "validation_passed": true,
+    "validation_type": "text-length",
+    "validations_on_sheet_before": 3,
+    "wps_report": {
+      "backend": "powershell-com",
+      "formula1": "10",
+      "sheet_name": "销售",
+      "source_identity_after_com": {
+        "file_device": 11882268654517892920,
+        "file_inode": 6755399441358833,
+        "source_sha256": "1AF2A2FA776C816DB8022F540921A5B1A91A2F6DC6DFC1839270705D9CC852F2"
+      },
+      "validation_type": 6
+    }
+  },
+  "errors": [],
+  "ok": true,
+  "request_id": "v4",
+  "summary": "Set text-length validation on 销售!G2:G7.",
+  "validation": {
+    "checks": [
+      {
+        "details": {
+          "one_rule_on_range": true,
+          "operator_matches": true,
+          "type_matches": true,
+          "values_match": true
+        },
+        "name": "read_back",
+        "passed": true
+      }
+    ],
+    "status": "passed"
+  }
+}

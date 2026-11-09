@@ -1,0 +1,25 @@
+{
+  "backend": "local-python",
+  "command": "spreadsheet-write",
+  "data": {
+    "column_count": 4,
+    "component": "spreadsheets",
+    "document_id": "doc_6b91b86a6440bcbf",
+    "dry_run": true,
+    "path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T234313Z-fd1d64a-c05\\work\\数据.xlsx",
+    "range": "A1:D7",
+    "requested_sheet": null,
+    "row_count": 7,
+    "sheet": null,
+    "values": [
+      [
+        "地区",
+        "销量",
+        "日期",
+        "状态"
+      ],
+      [
+        "华东",
+        120,
+        45930,
+        "完成"

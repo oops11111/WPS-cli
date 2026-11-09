@@ -1,0 +1,30 @@
+{
+  "backend": "local-python",
+  "command": "register-document",
+  "data": {
+    "document": {
+      "component": "spreadsheets",
+      "document_id": "doc_6b91b86a6440bcbf",
+      "exists": true,
+      "file_device": 11882268654517892920,
+      "file_inode": 10414574140324771,
+      "path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T234313Z-fd1d64a-c05\\work\\数据.xlsx",
+      "registered_at": "2026-11-09T23:48:11.379120+00:00",
+      "source_sha256": "D26C25E36CB5F6A4EA7FF3BB5C6952BCF7C8DC0A8EAFDEF9DDD0EBA54F2E4435"
+    }
+  },
+  "errors": [],
+  "ok": true,
+  "request_id": "efe25674-cc41-47f6-8be3-bf5eabb20136",
+  "summary": "Document registered.",
+  "validation": {
+    "checks": [
+      {
+        "details": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T234313Z-fd1d64a-c05\\work\\数据.xlsx",
+        "name": "document_path_exists",
+        "passed": true
+      }
+    ],
+    "status": "passed"
+  }
+}

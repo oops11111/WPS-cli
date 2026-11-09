@@ -1,0 +1,95 @@
+{
+  "backend": "wps-com",
+  "command": "spreadsheet-sort",
+  "data": {
+    "backup": {
+      "backup_bytes": 9217,
+      "backup_path": ".wps-agent\\backups\\doc_6b91b86a6440bcbf\\数据.20261109T234915816330Z.xlsx",
+      "component": "spreadsheets",
+      "created": true,
+      "document_id": "doc_6b91b86a6440bcbf",
+      "dry_run": false,
+      "source_identity": {
+        "file_device": 11882268654517892920,
+        "file_inode": 4503599629406800,
+        "source_sha256": "D517B4FD6FEDFF70105DB1A5860F4AB85709ADC3147949B8F65F6AC8AFF1B54C"
+      },
+      "source_path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T234313Z-fd1d64a-c05\\work\\数据.xlsx"
+    },
+    "backup_replayed": false,
+    "checks": {
+      "header_kept": true,
+      "ordered": true,
+      "same_rows": true
+    },
+    "data_rows": 6,
+    "document_id": "doc_6b91b86a6440bcbf",
+    "dry_run": false,
+    "has_header": true,
+    "keys": [
+      "地区:asc"
+    ],
+    "normalized_range": "A1:D7",
+    "path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T234313Z-fd1d64a-c05\\work\\数据.xlsx",
+    "range": "A1:D7",
+    "read_back": {
+      "first_rows": [
+        [
+          "东北",
+          60,
+          45932,
+          "完成"
+        ],
+        [
+          "华北",
+          90,
+          45933,
+          "未开始"
+        ],
+        [
+          "华东",
+          120,
+          45930,
+          "完成"
+        ]
+      ],
+      "order_check": "text keys: grouping only"
+    },
+    "sheet_name": "销售",
+    "sort_keys": [
+      {
+        "column": "A",
+        "order": "asc"
+      }
+    ],
+    "validation_passed": true,
+    "wps_report": {
+      "backend": "powershell-com",
+      "sheet_name": "销售",
+      "sorted_rows": 7,
+      "source_identity_after_com": {
+        "file_device": 11882268654517892920,
+        "file_inode": 2814749769142886,
+        "source_sha256": "0BA0F720D5DC50F9509CAFC4B2F6BBFB54FD3EF3438E63F303C05A07F2ADF8EA"
+      }
+    }
+  },
+  "errors": [],
+  "ok": true,
+  "request_id": "s2",
+  "summary": "Sorted 6 rows of 销售!A1:D7 (text keys: grouping only).",
+  "validation": {
+    "checks": [
+      {
+        "details": {
+          "header_kept": true,
+          "ordered": true,
+          "same_rows": true
+        },
+        "name": "read_back",
+        "passed": true
+      }
+    ],
+    "status": "passed"
+  }
+}

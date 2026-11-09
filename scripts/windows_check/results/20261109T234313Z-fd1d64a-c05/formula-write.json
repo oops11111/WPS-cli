@@ -1,0 +1,80 @@
+{
+  "backend": "wps-com",
+  "command": "spreadsheet-formula-write",
+  "data": {
+    "backup": {
+      "backup_bytes": 9200,
+      "backup_path": ".wps-agent\\backups\\doc_6b91b86a6440bcbf\\数据.20261109T234936210755Z.xlsx",
+      "component": "spreadsheets",
+      "created": true,
+      "document_id": "doc_6b91b86a6440bcbf",
+      "dry_run": false,
+      "source_identity": {
+        "file_device": 11882268654517892920,
+        "file_inode": 2814749769142886,
+        "source_sha256": "0BA0F720D5DC50F9509CAFC4B2F6BBFB54FD3EF3438E63F303C05A07F2ADF8EA"
+      },
+      "source_path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T234313Z-fd1d64a-c05\\work\\数据.xlsx"
+    },
+    "backup_replayed": false,
+    "calculation_triggered": true,
+    "column_count": 1,
+    "component": "spreadsheets",
+    "document_id": "doc_6b91b86a6440bcbf",
+    "dry_run": false,
+    "expected_values": [
+      [
+        2
+      ]
+    ],
+    "formulas": [
+      [
+        "=1+1"
+      ]
+    ],
+    "path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T234313Z-fd1d64a-c05\\work\\数据.xlsx",
+    "range": "F1",
+    "read_back_values": [
+      [
+        2
+      ]
+    ],
+    "requested_sheet": null,
+    "row_count": 1,
+    "sheet": "销售",
+    "validation_passed": true,
+    "write_backend": "powershell-com"
+  },
+  "errors": [],
+  "ok": true,
+  "request_id": "60cda831-5a23-48dc-bae9-66bdf1b086af",
+  "summary": "Spreadsheet formula write completed.",
+  "validation": {
+    "checks": [
+      {
+        "details": {
+          "column_count": 1,
+          "range": "F1",
+          "row_count": 1
+        },
+        "name": "formula_range_shape_valid",
+        "passed": true
+      },
+      {
+        "details": ".wps-agent\\backups\\doc_6b91b86a6440bcbf\\数据.20261109T234936210755Z.xlsx",
+        "name": "backup_created",
+        "passed": true
+      },
+      {
+        "details": [
+          [
+            2
+          ]
+        ],
+        "name": "calculation_validated",
+        "passed": true
+      }
+    ],
+    "status": "passed"
+  }
+}

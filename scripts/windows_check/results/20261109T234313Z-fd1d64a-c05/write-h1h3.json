@@ -1,0 +1,92 @@
+{
+  "backend": "wps-com",
+  "command": "spreadsheet-write",
+  "data": {
+    "backup": {
+      "backup_bytes": 10141,
+      "backup_path": ".wps-agent\\backups\\doc_6b91b86a6440bcbf\\数据.20261109T235304519983Z.xlsx",
+      "component": "spreadsheets",
+      "created": true,
+      "document_id": "doc_6b91b86a6440bcbf",
+      "dry_run": false,
+      "source_identity": {
+        "file_device": 11882268654517892920,
+        "file_inode": 6755399441358833,
+        "source_sha256": "1AF2A2FA776C816DB8022F540921A5B1A91A2F6DC6DFC1839270705D9CC852F2"
+      },
+      "source_path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T234313Z-fd1d64a-c05\\work\\数据.xlsx"
+    },
+    "backup_replayed": false,
+    "column_count": 1,
+    "component": "spreadsheets",
+    "document_id": "doc_6b91b86a6440bcbf",
+    "dry_run": false,
+    "path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T234313Z-fd1d64a-c05\\work\\数据.xlsx",
+    "range": "H1:H3",
+    "read_back_values": [
+      [
+        "甲"
+      ],
+      [
+        "乙"
+      ],
+      [
+        "丙"
+      ]
+    ],
+    "requested_sheet": null,
+    "row_count": 3,
+    "sheet": "销售",
+    "validation_passed": true,
+    "values": [
+      [
+        "甲"
+      ],
+      [
+        "乙"
+      ],
+      [
+        "丙"
+      ]
+    ],
+    "write_backend": "powershell-com"
+  },
+  "errors": [],
+  "ok": true,
+  "request_id": "e28b2601-6883-43f6-92b7-74bad27c3a67",
+  "summary": "Spreadsheet write completed.",
+  "validation": {
+    "checks": [
+      {
+        "details": {
+          "column_count": 1,
+          "range": "H1:H3",
+          "row_count": 3
+        },
+        "name": "range_shape_valid",
+        "passed": true
+      },
+      {
+        "details": ".wps-agent\\backups\\doc_6b91b86a6440bcbf\\数据.20261109T235304519983Z.xlsx",
+        "name": "backup_created",
+        "passed": true
+      },
+      {
+        "details": [
+          [
+            "甲"
+          ],
+          [
+            "乙"
+          ],
+          [
+            "丙"
+          ]
+        ],
+        "name": "write_validated",
+        "passed": true
+      }
+    ],
+    "status": "passed"
+  }
+}
