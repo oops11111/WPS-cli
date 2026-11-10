@@ -956,6 +956,69 @@ def build_command_handlers(
             document_id=args.document_id,
         )
 
+    def _handle_spreadsheet_sort(
+        args: argparse.Namespace, request_id: str, output_stream: TextIO | None
+    ) -> CommandResponse:
+        return cli._with_optional_task_status(
+            lambda: cli.spreadsheet_sort_response(
+                request_id, args.document_id, args.sheet_name, args.range, args.key, not args.no_header, args.dry_run
+            ),
+            task_id=args.task_id,
+            tracked_command="spreadsheet-sort",
+            operation_request_id=request_id,
+            document_id=args.document_id,
+        )
+
+    def _handle_spreadsheet_conditional_format(
+        args: argparse.Namespace, request_id: str, output_stream: TextIO | None
+    ) -> CommandResponse:
+        return cli._with_optional_task_status(
+            lambda: cli.spreadsheet_conditional_format_response(
+                request_id,
+                args.document_id,
+                sheet_name=args.sheet_name,
+                range_address=args.range,
+                kind=args.kind,
+                operator=args.operator,
+                value1=args.value1,
+                value2=args.value2,
+                fill_color=args.fill_color,
+                font_color=args.font_color,
+                color_scale_points=args.color_scale_points,
+                replace=args.replace,
+                dry_run=args.dry_run,
+            ),
+            task_id=args.task_id,
+            tracked_command="spreadsheet-conditional-format",
+            operation_request_id=request_id,
+            document_id=args.document_id,
+        )
+
+    def _handle_spreadsheet_data_validation(
+        args: argparse.Namespace, request_id: str, output_stream: TextIO | None
+    ) -> CommandResponse:
+        return cli._with_optional_task_status(
+            lambda: cli.spreadsheet_data_validation_response(
+                request_id,
+                args.document_id,
+                sheet_name=args.sheet_name,
+                range_address=args.range,
+                validation_type=args.type,
+                values=args.value,
+                operator=args.operator,
+                value1=args.value1,
+                value2=args.value2,
+                allow_blank=not args.no_blank,
+                input_message=args.input_message,
+                error_message=args.error_message,
+                dry_run=args.dry_run,
+            ),
+            task_id=args.task_id,
+            tracked_command="spreadsheet-data-validation",
+            operation_request_id=request_id,
+            document_id=args.document_id,
+        )
+
     def _handle_spreadsheet_set_sheet_tab_color(
         args: argparse.Namespace, request_id: str, output_stream: TextIO | None
     ) -> CommandResponse:
@@ -1127,6 +1190,9 @@ def build_command_handlers(
         "spreadsheet-delete-sheet": _handle_spreadsheet_delete_sheet,
         "spreadsheet-copy-sheet": _handle_spreadsheet_copy_sheet,
         "spreadsheet-chart-create": _handle_spreadsheet_chart_create,
+        "spreadsheet-sort": _handle_spreadsheet_sort,
+        "spreadsheet-conditional-format": _handle_spreadsheet_conditional_format,
+        "spreadsheet-data-validation": _handle_spreadsheet_data_validation,
         "spreadsheet-set-sheet-tab-color": _handle_spreadsheet_set_sheet_tab_color,
         "spreadsheet-inspect": _handle_spreadsheet_inspect,
         "spreadsheet-write": _handle_spreadsheet_write,

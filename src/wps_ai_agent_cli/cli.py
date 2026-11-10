@@ -96,8 +96,10 @@ from .cli_presentation import (  # noqa: F401
 )
 from .cli_spreadsheet import (  # noqa: F401
     spreadsheet_chart_create_response,
+    spreadsheet_conditional_format_response,
     spreadsheet_copy_sheet_response,
     spreadsheet_create_sheet_response,
+    spreadsheet_data_validation_response,
     spreadsheet_delete_sheet_response,
     spreadsheet_formula_write_response,
     spreadsheet_inspect_response,
@@ -106,6 +108,7 @@ from .cli_spreadsheet import (  # noqa: F401
     spreadsheet_set_sheet_tab_color_response,
     spreadsheet_set_sheet_visibility_response,
     spreadsheet_sheets_response,
+    spreadsheet_sort_response,
     spreadsheet_write_response,
 )
 from .cli_writer import (  # noqa: F401

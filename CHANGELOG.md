@@ -4,6 +4,15 @@ All notable changes to `wps-ai-agent-cli`. The versioning rule and release steps
 
 ## [Unreleased]
 
+### Added
+
+- C-05, three more spreadsheet operations through WPS with backup, read-back of the saved workbook and rollback (95 to 98 tools):
+  - `spreadsheet-sort`: by up to three columns (letter or header name, asc/desc), WPS's own collation for text. The read-back checks the same rows came back, numbers and dates in order, and equal text keys grouped. Ranges with formulas (`SORT_RANGE_HAS_FORMULAS`) or merged cells are refused.
+  - `spreadsheet-conditional-format`: highlight by value (eight operators; a number, text or formula), 2- or 3-colour scale, data bars, duplicates; `replace` clears the range's rules first. Read back: one more rule of that kind, operator and values on that range.
+  - `spreadsheet-data-validation`: a drop-down list (choices or an `=range`), whole, decimal, date (YYYY-MM-DD) or text-length limits with an operator, optional input and error messages, replacing what the range had. Read back: one rule with that type, operator and values.
+  - Formula values in rules go through the formula denylist.
+  - Checked on Windows 10 with WPS 12.8.2: every sort, rule and validation of the check read back, Chinese sorted in pinyin order, and WPS shows the data bars, colour scale, highlights, the drop-down with its input message, and refuses a value outside a whole-number rule (`scripts/windows_check/results/20261109T234313Z-fd1d64a-c05/`).
+
 ### Fixed
 
 - `writer-merge` refusing a document held open in WPS no longer says WPS's `Open()` was not called (it never calls WPS); it says the command writes the file itself and to close the document first.

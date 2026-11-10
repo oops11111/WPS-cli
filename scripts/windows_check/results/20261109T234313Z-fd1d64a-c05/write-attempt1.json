@@ -1,0 +1,122 @@
+{
+  "backend": "wps-com",
+  "command": "spreadsheet-write",
+  "data": {
+    "backup": {
+      "backup_bytes": 4798,
+      "backup_path": ".wps-agent\\backups\\doc_6b91b86a6440bcbf\\数据.20261109T234405724344Z.xlsx",
+      "component": "spreadsheets",
+      "created": true,
+      "document_id": "doc_6b91b86a6440bcbf",
+      "dry_run": false,
+      "source_identity": {
+        "file_device": 11882268654517892920,
+        "file_inode": 4503599629406715,
+        "source_sha256": "D26C25E36CB5F6A4EA7FF3BB5C6952BCF7C8DC0A8EAFDEF9DDD0EBA54F2E4435"
+      },
+      "source_path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T234313Z-fd1d64a-c05\\work\\数据.xlsx"
+    },
+    "preview": {
+      "column_count": 4,
+      "component": "spreadsheets",
+      "document_id": "doc_6b91b86a6440bcbf",
+      "dry_run": false,
+      "path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T234313Z-fd1d64a-c05\\work\\数据.xlsx",
+      "range": "A1:D7",
+      "requested_sheet": null,
+      "row_count": 7,
+      "sheet": null,
+      "values": [
+        [
+          "地区",
+          "销量",
+          "日期",
+          "状态"
+        ],
+        [
+          "华东",
+          120,
+          45930,
+          "完成"
+        ],
+        [
+          "华南",
+          90,
+          45931,
+          "进行中"
+        ],
+        [
+          "西北",
+          150,
+          45929,
+          "完成"
+        ],
+        [
+          "华北",
+          90,
+          45933,
+          "未开始"
+        ],
+        [
+          "东北",
+          60,
+          45932,
+          "完成"
+        ],
+        [
+          "西南",
+          135,
+          45934,
+          "进行中"
+        ]
+      ]
+    },
+    "rollback": {
+      "open_in_wps": null,
+      "open_in_wps_error": "probe returned an error (NO_RUNNING_WPS_INSTANCE)",
+      "performed": true,
+      "restored_from": ".wps-agent\\backups\\doc_6b91b86a6440bcbf\\数据.20261109T234405724344Z.xlsx"
+    },
+    "write": {
+      "backend": "powershell-com",
+      "timed_out": true
+    }
+  },
+  "errors": [
+    {
+      "code": "COM_OPERATION_TIMEOUT",
+      "message": "WPS operation timed out after 120 seconds; the document may still be open in WPS and its state is unknown. Run mutation-request-inspect before retrying."
+    },
+    {
+      "code": "MUTATION_ROLLED_BACK",
+      "message": "The write was undone: the document file was restored from the pre-write backup and its hash matches it. Could not check whether the document is open in WPS. If it is, close it without saving or reload it, so WPS does not write the rejected content back."
+    }
+  ],
+  "ok": false,
+  "request_id": "8cacaeae-5095-47a4-8250-a51dfec93891",
+  "summary": "Spreadsheet write failed.",
+  "validation": {
+    "checks": [
+      {
+        "details": {
+          "column_count": null,
+          "range": "A1:D7",
+          "row_count": null
+        },
+        "name": "range_shape_valid",
+        "passed": false
+      },
+      {
+        "details": ".wps-agent\\backups\\doc_6b91b86a6440bcbf\\数据.20261109T234405724344Z.xlsx",
+        "name": "backup_created",
+        "passed": true
+      },
+      {
+        "details": null,
+        "name": "write_validated",
+        "passed": false
+      }
+    ],
+    "status": "failed"
+  }
+}

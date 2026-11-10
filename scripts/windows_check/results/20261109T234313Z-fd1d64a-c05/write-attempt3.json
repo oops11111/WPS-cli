@@ -1,0 +1,5 @@
+usage: wps-agent spreadsheet-write [-h] --document-id DOCUMENT_ID --range
+                                   RANGE --values-json VALUES_JSON
+                                   [--sheet SHEET] [--dry-run]
+                                   [--task-id TASK_ID]
+wps-agent spreadsheet-write: error: argument --document-id: expected one argument

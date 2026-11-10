@@ -1,0 +1,51 @@
+{
+  "backend": "python",
+  "command": "document-new",
+  "data": {
+    "component": "spreadsheets",
+    "contents": {
+      "sheet_names": [
+        "销售"
+      ]
+    },
+    "document": {
+      "component": "spreadsheets",
+      "document_id": "doc_6b91b86a6440bcbf",
+      "exists": true,
+      "file_device": 11882268654517892920,
+      "file_inode": 4503599629406715,
+      "path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T234313Z-fd1d64a-c05\\work\\数据.xlsx",
+      "registered_at": "2026-11-09T23:43:32.951272+00:00",
+      "source_sha256": "D26C25E36CB5F6A4EA7FF3BB5C6952BCF7C8DC0A8EAFDEF9DDD0EBA54F2E4435"
+    },
+    "document_id": "doc_6b91b86a6440bcbf",
+    "path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T234313Z-fd1d64a-c05\\work\\数据.xlsx",
+    "registered": true,
+    "size": 4798,
+    "title": "销售",
+    "validation_passed": true
+  },
+  "errors": [],
+  "ok": true,
+  "request_id": "380587e7-a70f-473b-9c4e-401160c36b41",
+  "summary": "Created C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T234313Z-fd1d64a-c05\\work\\数据.xlsx as doc_6b91b86a6440bcbf.",
+  "validation": {
+    "checks": [
+      {
+        "details": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T234313Z-fd1d64a-c05\\work\\数据.xlsx",
+        "name": "document_created",
+        "passed": true
+      },
+      {
+        "details": {
+          "sheet_names": [
+            "销售"
+          ]
+        },
+        "name": "contents_read_back",
+        "passed": true
+      }
+    ],
+    "status": "passed"
+  }
+}

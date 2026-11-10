@@ -1,0 +1,283 @@
+{
+  "backend": "local-python",
+  "command": "spreadsheet-read",
+  "data": {
+    "cell_metadata": [
+      [
+        {
+          "address": "A1",
+          "format_category": "text",
+          "is_date": false,
+          "number_format": "General",
+          "value_type": "s"
+        },
+        {
+          "address": "B1",
+          "format_category": "text",
+          "is_date": false,
+          "number_format": "General",
+          "value_type": "s"
+        },
+        {
+          "address": "C1",
+          "format_category": "text",
+          "is_date": false,
+          "number_format": "General",
+          "value_type": "s"
+        },
+        {
+          "address": "D1",
+          "format_category": "text",
+          "is_date": false,
+          "number_format": "General",
+          "value_type": "s"
+        }
+      ],
+      [
+        {
+          "address": "A2",
+          "format_category": "text",
+          "is_date": false,
+          "number_format": "General",
+          "value_type": "s"
+        },
+        {
+          "address": "B2",
+          "format_category": "number",
+          "is_date": false,
+          "number_format": "General",
+          "value_type": "n"
+        },
+        {
+          "address": "C2",
+          "format_category": "number",
+          "is_date": false,
+          "number_format": "General",
+          "value_type": "n"
+        },
+        {
+          "address": "D2",
+          "format_category": "text",
+          "is_date": false,
+          "number_format": "General",
+          "value_type": "s"
+        }
+      ],
+      [
+        {
+          "address": "A3",
+          "format_category": "text",
+          "is_date": false,
+          "number_format": "General",
+          "value_type": "s"
+        },
+        {
+          "address": "B3",
+          "format_category": "number",
+          "is_date": false,
+          "number_format": "General",
+          "value_type": "n"
+        },
+        {
+          "address": "C3",
+          "format_category": "number",
+          "is_date": false,
+          "number_format": "General",
+          "value_type": "n"
+        },
+        {
+          "address": "D3",
+          "format_category": "text",
+          "is_date": false,
+          "number_format": "General",
+          "value_type": "s"
+        }
+      ],
+      [
+        {
+          "address": "A4",
+          "format_category": "text",
+          "is_date": false,
+          "number_format": "General",
+          "value_type": "s"
+        },
+        {
+          "address": "B4",
+          "format_category": "number",
+          "is_date": false,
+          "number_format": "General",
+          "value_type": "n"
+        },
+        {
+          "address": "C4",
+          "format_category": "number",
+          "is_date": false,
+          "number_format": "General",
+          "value_type": "n"
+        },
+        {
+          "address": "D4",
+          "format_category": "text",
+          "is_date": false,
+          "number_format": "General",
+          "value_type": "s"
+        }
+      ],
+      [
+        {
+          "address": "A5",
+          "format_category": "text",
+          "is_date": false,
+          "number_format": "General",
+          "value_type": "s"
+        },
+        {
+          "address": "B5",
+          "format_category": "number",
+          "is_date": false,
+          "number_format": "General",
+          "value_type": "n"
+        },
+        {
+          "address": "C5",
+          "format_category": "number",
+          "is_date": false,
+          "number_format": "General",
+          "value_type": "n"
+        },
+        {
+          "address": "D5",
+          "format_category": "text",
+          "is_date": false,
+          "number_format": "General",
+          "value_type": "s"
+        }
+      ],
+      [
+        {
+          "address": "A6",
+          "format_category": "text",
+          "is_date": false,
+          "number_format": "General",
+          "value_type": "s"
+        },
+        {
+          "address": "B6",
+          "format_category": "number",
+          "is_date": false,
+          "number_format": "General",
+          "value_type": "n"
+        },
+        {
+          "address": "C6",
+          "format_category": "number",
+          "is_date": false,
+          "number_format": "General",
+          "value_type": "n"
+        },
+        {
+          "address": "D6",
+          "format_category": "text",
+          "is_date": false,
+          "number_format": "General",
+          "value_type": "s"
+        }
+      ],
+      [
+        {
+          "address": "A7",
+          "format_category": "text",
+          "is_date": false,
+          "number_format": "General",
+          "value_type": "s"
+        },
+        {
+          "address": "B7",
+          "format_category": "number",
+          "is_date": false,
+          "number_format": "General",
+          "value_type": "n"
+        },
+        {
+          "address": "C7",
+          "format_category": "number",
+          "is_date": false,
+          "number_format": "General",
+          "value_type": "n"
+        },
+        {
+          "address": "D7",
+          "format_category": "text",
+          "is_date": false,
+          "number_format": "General",
+          "value_type": "s"
+        }
+      ]
+    ],
+    "column_count": 4,
+    "component": "spreadsheets",
+    "document_id": "doc_6b91b86a6440bcbf",
+    "path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T234313Z-fd1d64a-c05\\work\\数据.xlsx",
+    "range": "A1:D7",
+    "row_count": 7,
+    "sheet": "销售",
+    "values": [
+      [
+        "地区",
+        "销量",
+        "日期",
+        "状态"
+      ],
+      [
+        "西北",
+        150,
+        45929,
+        "完成"
+      ],
+      [
+        "西南",
+        135,
+        45934,
+        "进行中"
+      ],
+      [
+        "华东",
+        120,
+        45930,
+        "完成"
+      ],
+      [
+        "华南",
+        90,
+        45931,
+        "进行中"
+      ],
+      [
+        "华北",
+        90,
+        45933,
+        "未开始"
+      ],
+      [
+        "东北",
+        60,
+        45932,
+        "完成"
+      ]
+    ]
+  },
+  "errors": [],
+  "ok": true,
+  "request_id": "a0a0aa53-d850-4e80-879c-27492ca23159",
+  "summary": "Spreadsheet range read completed.",
+  "validation": {
+    "checks": [
+      {
+        "details": "A1:D7",
+        "name": "range_values_read",
+        "passed": true
+      }
+    ],
+    "status": "passed"
+  }
+}

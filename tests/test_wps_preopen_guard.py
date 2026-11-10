@@ -12,6 +12,7 @@ from wps_ai_agent_cli import (
     spreadsheet_chart,
     spreadsheet_inspect,
     spreadsheet_ops,
+    spreadsheet_tools,
     writer_ops,
 )
 from wps_ai_agent_cli.wps_script_snippets import PRE_OPEN_GUARD
@@ -50,6 +51,50 @@ def mutating_cases(path):
             spreadsheet_chart,
             lambda: spreadsheet_chart._run_spreadsheet_chart_create_com(
                 path, "S", "A1:B3", "D1", "column", "auto", "T", 480, 288
+            ),
+        ),
+        (
+            "sheet_sort",
+            spreadsheet_tools,
+            lambda: spreadsheet_tools._run_sort_com(
+                path, "S", "A1:B3", [{"column": 2, "letter": "B", "descending": True}], True
+            ),
+        ),
+        (
+            "sheet_conditional_format",
+            spreadsheet_tools,
+            lambda: spreadsheet_tools._run_conditional_format_com(
+                path,
+                "S",
+                {
+                    "range": "B2:B3",
+                    "kind": "cell-value",
+                    "operator": 5,
+                    "formula1": "1",
+                    "formula2": None,
+                    "fill": 1,
+                    "font": None,
+                    "replace": False,
+                    "color_scale_points": 3,
+                },
+            ),
+        ),
+        (
+            "sheet_data_validation",
+            spreadsheet_tools,
+            lambda: spreadsheet_tools._run_validation_com(
+                path,
+                "S",
+                {
+                    "range": "B2:B3",
+                    "type": 3,
+                    "formula1": "a,b",
+                    "formula2": None,
+                    "operator": None,
+                    "allow_blank": True,
+                    "input_message": "",
+                    "error_message": "",
+                },
             ),
         ),
     ]

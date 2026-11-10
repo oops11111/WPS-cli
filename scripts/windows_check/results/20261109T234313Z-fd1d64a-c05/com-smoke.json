@@ -1,0 +1,3 @@
+usage: wps-agent com-smoke [-h] --component {writer,spreadsheets,presentation}
+                           --input INPUT --output OUTPUT [--visible]
+wps-agent com-smoke: error: the following arguments are required: --component, --input, --output

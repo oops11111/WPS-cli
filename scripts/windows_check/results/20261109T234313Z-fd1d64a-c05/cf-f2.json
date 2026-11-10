@@ -1,0 +1,82 @@
+{
+  "backend": "wps-com",
+  "command": "spreadsheet-conditional-format",
+  "data": {
+    "backup": {
+      "backup_bytes": 9356,
+      "backup_path": ".wps-agent\\backups\\doc_6b91b86a6440bcbf\\数据.20261109T235019583975Z.xlsx",
+      "component": "spreadsheets",
+      "created": true,
+      "document_id": "doc_6b91b86a6440bcbf",
+      "dry_run": false,
+      "source_identity": {
+        "file_device": 11882268654517892920,
+        "file_inode": 4785074606117426,
+        "source_sha256": "CE6FC3F8A10543B9C5F99DA9CA1076FF262F7730B206688DA3FACB31F70FC511"
+      },
+      "source_path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T234313Z-fd1d64a-c05\\work\\数据.xlsx"
+    },
+    "backup_replayed": false,
+    "checks": {
+      "one_rule_added": true,
+      "rule_matches": true
+    },
+    "document_id": "doc_6b91b86a6440bcbf",
+    "dry_run": false,
+    "kind": "cell-value",
+    "normalized_range": "B2:B7",
+    "operator": "between",
+    "path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T234313Z-fd1d64a-c05\\work\\数据.xlsx",
+    "range": "B2:B7",
+    "read_back": {
+      "new_rules": [
+        {
+          "formula": [
+            "80",
+            "120"
+          ],
+          "operator": "between",
+          "range": "B2:B7",
+          "type": "cellIs"
+        }
+      ],
+      "rules_on_sheet_after": 2
+    },
+    "replace": false,
+    "rules_on_sheet_before": 1,
+    "sheet_name": "销售",
+    "validation_passed": true,
+    "values": [
+      "80",
+      "120"
+    ],
+    "wps_report": {
+      "backend": "powershell-com",
+      "rules_after": 2,
+      "rules_before": 1,
+      "sheet_name": "销售",
+      "source_identity_after_com": {
+        "file_device": 11882268654517892920,
+        "file_inode": 2533274792432245,
+        "source_sha256": "59FA68E35D469D666DAD379D71F55177E82ED56633C33AE4F2F7D495734F8CD6"
+      }
+    }
+  },
+  "errors": [],
+  "ok": true,
+  "request_id": "f2",
+  "summary": "Added a cell-value rule to 销售!B2:B7.",
+  "validation": {
+    "checks": [
+      {
+        "details": {
+          "one_rule_added": true,
+          "rule_matches": true
+        },
+        "name": "read_back",
+        "passed": true
+      }
+    ],
+    "status": "passed"
+  }
+}

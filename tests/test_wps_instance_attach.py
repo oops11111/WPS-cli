@@ -54,7 +54,7 @@ class AttachFirstStaticTests(unittest.TestCase):
             path = str(Path(tmp) / "input.xlsx")
             Path(path).write_bytes(b"x")
             scripts = [script for script, _ in all_scripts(path).values()] + self.smoke_scripts(tmp)
-        self.assertEqual(len(scripts), 16)
+        self.assertEqual(len(scripts), 19)
         for script in scripts:
             self.assertEqual(script.count(ACQUIRE_WPS_APP), 1)
             self.assertEqual(script.count("New-Object -ComObject"), 1)

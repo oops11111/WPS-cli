@@ -1,0 +1,80 @@
+C:\Users\admin\AppData\Local\wps-agent\venv\Lib\site-packages\openpyxl\worksheet\_reader.py:329: UserWarning: Unknown extension is not supported and will be removed
+  warn(msg)
+C:\Users\admin\AppData\Local\wps-agent\venv\Lib\site-packages\openpyxl\worksheet\_reader.py:329: UserWarning: Conditional Formatting extension is not supported and will be removed
+  warn(msg)
+{
+  "backend": "wps-com",
+  "command": "spreadsheet-conditional-format",
+  "data": {
+    "backup": {
+      "backup_bytes": 9542,
+      "backup_path": ".wps-agent\\backups\\doc_6b91b86a6440bcbf\\数据.20261109T235102485266Z.xlsx",
+      "component": "spreadsheets",
+      "created": true,
+      "document_id": "doc_6b91b86a6440bcbf",
+      "dry_run": false,
+      "source_identity": {
+        "file_device": 11882268654517892920,
+        "file_inode": 2814749769142910,
+        "source_sha256": "343C59507D237C9C69714D06C790476A1E3BFB512CB791DF505730CBFD8BB69D"
+      },
+      "source_path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T234313Z-fd1d64a-c05\\work\\数据.xlsx"
+    },
+    "backup_replayed": false,
+    "checks": {
+      "one_rule_added": true,
+      "rule_matches": true
+    },
+    "document_id": "doc_6b91b86a6440bcbf",
+    "dry_run": false,
+    "kind": "data-bar",
+    "normalized_range": "B2:B7",
+    "operator": null,
+    "path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T234313Z-fd1d64a-c05\\work\\数据.xlsx",
+    "range": "B2:B7",
+    "read_back": {
+      "new_rules": [
+        {
+          "formula": [],
+          "operator": null,
+          "range": "B2:B7",
+          "type": "dataBar"
+        }
+      ],
+      "rules_on_sheet_after": 5
+    },
+    "replace": false,
+    "rules_on_sheet_before": 4,
+    "sheet_name": "销售",
+    "validation_passed": true,
+    "values": [],
+    "wps_report": {
+      "backend": "powershell-com",
+      "rules_after": 3,
+      "rules_before": 2,
+      "sheet_name": "销售",
+      "source_identity_after_com": {
+        "file_device": 11882268654517892920,
+        "file_inode": 3096224745853570,
+        "source_sha256": "A53BAC345FA29082967C0CC296AB256A6B4FC3C1342F140874EC58F90A4004A6"
+      }
+    }
+  },
+  "errors": [],
+  "ok": true,
+  "request_id": "f5",
+  "summary": "Added a data-bar rule to 销售!B2:B7.",
+  "validation": {
+    "checks": [
+      {
+        "details": {
+          "one_rule_added": true,
+          "rule_matches": true
+        },
+        "name": "read_back",
+        "passed": true
+      }
+    ],
+    "status": "passed"
+  }
+}

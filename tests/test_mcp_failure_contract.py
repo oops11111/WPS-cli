@@ -69,6 +69,7 @@ PLAUSIBLE = {
     "bookmark_name": "b",
     "visible": False,
     "backup_name": "missing.xlsx",
+    "key": ["A:asc"],
 }
 
 

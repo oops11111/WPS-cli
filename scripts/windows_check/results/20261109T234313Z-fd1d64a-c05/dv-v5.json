@@ -1,0 +1,88 @@
+C:\Users\admin\AppData\Local\wps-agent\venv\Lib\site-packages\openpyxl\worksheet\_reader.py:329: UserWarning: Unknown extension is not supported and will be removed
+  warn(msg)
+C:\Users\admin\AppData\Local\wps-agent\venv\Lib\site-packages\openpyxl\worksheet\_reader.py:329: UserWarning: Conditional Formatting extension is not supported and will be removed
+  warn(msg)
+{
+  "backend": "wps-com",
+  "command": "spreadsheet-data-validation",
+  "data": {
+    "backup": {
+      "backup_bytes": 10169,
+      "backup_path": ".wps-agent\\backups\\doc_6b91b86a6440bcbf\\数据.20261109T235316690733Z.xlsx",
+      "component": "spreadsheets",
+      "created": true,
+      "document_id": "doc_6b91b86a6440bcbf",
+      "dry_run": false,
+      "source_identity": {
+        "file_device": 11882268654517892920,
+        "file_inode": 7881299348201618,
+        "source_sha256": "F7626E40BB8BC0E39644CD5F632922038F14B3C1C6CDADF3544428E713FC292B"
+      },
+      "source_path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T234313Z-fd1d64a-c05\\work\\数据.xlsx"
+    },
+    "backup_replayed": false,
+    "checks": {
+      "one_rule_on_range": true,
+      "operator_matches": true,
+      "type_matches": true,
+      "values_match": true
+    },
+    "document_id": "doc_6b91b86a6440bcbf",
+    "dry_run": false,
+    "formula1": "=$H$1:$H$3",
+    "formula2": null,
+    "normalized_range": "I2:I7",
+    "operator": null,
+    "path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261109T234313Z-fd1d64a-c05\\work\\数据.xlsx",
+    "range": "I2:I7",
+    "read_back": {
+      "rule": {
+        "allow_blank": true,
+        "error": null,
+        "formula1": "$H$1:$H$3",
+        "formula2": null,
+        "operator": null,
+        "prompt": null,
+        "ranges": [
+          "I2:I7"
+        ],
+        "type": "list"
+      },
+      "validations_on_sheet_after": 5
+    },
+    "sheet_name": "销售",
+    "validation_passed": true,
+    "validation_type": "list",
+    "validations_on_sheet_before": 4,
+    "wps_report": {
+      "backend": "powershell-com",
+      "formula1": "=$H$1:$H$3",
+      "sheet_name": "销售",
+      "source_identity_after_com": {
+        "file_device": 11882268654517892920,
+        "file_inode": 9007199255044644,
+        "source_sha256": "54BE7C0B48B593254F4737AACCAC62B6CDC4CFD09CC8532581F471A2A7FAEE55"
+      },
+      "validation_type": 3
+    }
+  },
+  "errors": [],
+  "ok": true,
+  "request_id": "v5",
+  "summary": "Set list validation on 销售!I2:I7.",
+  "validation": {
+    "checks": [
+      {
+        "details": {
+          "one_rule_on_range": true,
+          "operator_matches": true,
+          "type_matches": true,
+          "values_match": true
+        },
+        "name": "read_back",
+        "passed": true
+      }
+    ],
+    "status": "passed"
+  }
+}

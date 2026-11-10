@@ -954,6 +954,76 @@
         "required": false
       }
     ],
+    "spreadsheet-conditional-format": [
+      {
+        "name": "--color-scale-points",
+        "required": false
+      },
+      {
+        "name": "--document-id",
+        "required": true
+      },
+      {
+        "name": "--dry-run",
+        "required": false
+      },
+      {
+        "name": "--fill-color",
+        "required": false
+      },
+      {
+        "name": "--font-color",
+        "required": false
+      },
+      {
+        "name": "--kind",
+        "required": true,
+        "choices": [
+          "cell-value",
+          "color-scale",
+          "data-bar",
+          "duplicates"
+        ]
+      },
+      {
+        "name": "--operator",
+        "required": false,
+        "choices": [
+          "between",
+          "equal",
+          "greater",
+          "greater-or-equal",
+          "less",
+          "less-or-equal",
+          "not-between",
+          "not-equal"
+        ]
+      },
+      {
+        "name": "--range",
+        "required": true
+      },
+      {
+        "name": "--replace",
+        "required": false
+      },
+      {
+        "name": "--sheet-name",
+        "required": true
+      },
+      {
+        "name": "--task-id",
+        "required": false
+      },
+      {
+        "name": "--value1",
+        "required": false
+      },
+      {
+        "name": "--value2",
+        "required": false
+      }
+    ],
     "spreadsheet-copy-sheet": [
       {
         "name": "--document-id",
@@ -999,6 +1069,77 @@
       },
       {
         "name": "--task-id",
+        "required": false
+      }
+    ],
+    "spreadsheet-data-validation": [
+      {
+        "name": "--document-id",
+        "required": true
+      },
+      {
+        "name": "--dry-run",
+        "required": false
+      },
+      {
+        "name": "--error-message",
+        "required": false
+      },
+      {
+        "name": "--input-message",
+        "required": false
+      },
+      {
+        "name": "--no-blank",
+        "required": false
+      },
+      {
+        "name": "--operator",
+        "required": false,
+        "choices": [
+          "between",
+          "equal",
+          "greater",
+          "greater-or-equal",
+          "less",
+          "less-or-equal",
+          "not-between",
+          "not-equal"
+        ]
+      },
+      {
+        "name": "--range",
+        "required": true
+      },
+      {
+        "name": "--sheet-name",
+        "required": true
+      },
+      {
+        "name": "--task-id",
+        "required": false
+      },
+      {
+        "name": "--type",
+        "required": true,
+        "choices": [
+          "date",
+          "decimal",
+          "list",
+          "text-length",
+          "whole"
+        ]
+      },
+      {
+        "name": "--value",
+        "required": false
+      },
+      {
+        "name": "--value1",
+        "required": false
+      },
+      {
+        "name": "--value2",
         "required": false
       }
     ],
@@ -1210,6 +1351,36 @@
       {
         "name": "--document-id",
         "required": true
+      }
+    ],
+    "spreadsheet-sort": [
+      {
+        "name": "--document-id",
+        "required": true
+      },
+      {
+        "name": "--dry-run",
+        "required": false
+      },
+      {
+        "name": "--key",
+        "required": true
+      },
+      {
+        "name": "--no-header",
+        "required": false
+      },
+      {
+        "name": "--range",
+        "required": true
+      },
+      {
+        "name": "--sheet-name",
+        "required": true
+      },
+      {
+        "name": "--task-id",
+        "required": false
       }
     ],
     "spreadsheet-write": [
@@ -2433,6 +2604,32 @@
         "sheet_name"
       ]
     },
+    "wps_agent_spreadsheet_conditional_format": {
+      "cli_command": "spreadsheet-conditional-format",
+      "mutates_document": true,
+      "parameters": [
+        "color_scale_points",
+        "document_id",
+        "dry_run",
+        "fill_color",
+        "font_color",
+        "kind",
+        "operator",
+        "range",
+        "replace",
+        "request_id",
+        "sheet_name",
+        "task_id",
+        "value1",
+        "value2"
+      ],
+      "required": [
+        "document_id",
+        "kind",
+        "range",
+        "sheet_name"
+      ]
+    },
     "wps_agent_spreadsheet_copy_sheet": {
       "cli_command": "spreadsheet-copy-sheet",
       "mutates_document": true,
@@ -2465,6 +2662,32 @@
       "required": [
         "document_id",
         "name"
+      ]
+    },
+    "wps_agent_spreadsheet_data_validation": {
+      "cli_command": "spreadsheet-data-validation",
+      "mutates_document": true,
+      "parameters": [
+        "document_id",
+        "dry_run",
+        "error_message",
+        "input_message",
+        "no_blank",
+        "operator",
+        "range",
+        "request_id",
+        "sheet_name",
+        "task_id",
+        "type",
+        "value",
+        "value1",
+        "value2"
+      ],
+      "required": [
+        "document_id",
+        "range",
+        "sheet_name",
+        "type"
       ]
     },
     "wps_agent_spreadsheet_delete_sheet": {
@@ -2633,6 +2856,26 @@
       ],
       "required": [
         "document_id"
+      ]
+    },
+    "wps_agent_spreadsheet_sort": {
+      "cli_command": "spreadsheet-sort",
+      "mutates_document": true,
+      "parameters": [
+        "document_id",
+        "dry_run",
+        "key",
+        "no_header",
+        "range",
+        "request_id",
+        "sheet_name",
+        "task_id"
+      ],
+      "required": [
+        "document_id",
+        "key",
+        "range",
+        "sheet_name"
       ]
     },
     "wps_agent_spreadsheet_write": {

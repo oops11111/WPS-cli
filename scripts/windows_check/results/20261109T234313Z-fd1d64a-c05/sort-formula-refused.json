@@ -1,0 +1,24 @@
+{
+  "backend": "local-python",
+  "command": "spreadsheet-sort",
+  "data": {},
+  "errors": [
+    {
+      "code": "SORT_RANGE_HAS_FORMULAS",
+      "message": "The range holds formulas (F1); sorting would move them and change what they refer to. Sort a range of values, or copy the values first."
+    }
+  ],
+  "ok": false,
+  "request_id": "s3",
+  "summary": "spreadsheet-sort could not complete.",
+  "validation": {
+    "checks": [
+      {
+        "details": null,
+        "name": "read_back",
+        "passed": false
+      }
+    ],
+    "status": "failed"
+  }
+}
