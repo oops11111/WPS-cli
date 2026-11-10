@@ -250,6 +250,20 @@ class WriterToolTests(unittest.TestCase):
         self.assertTrue(result["rollback"]["performed"])
         self.assertEqual(self.path.read_bytes(), before)
 
+    def test_a_document_held_by_another_program_is_refused_as_held(self):
+        # CI (Python 3.10) saw python-docx turn the held file into "Package not found" (an uncaught error).
+        real_open = open
+
+        def held(file, *args, **kwargs):
+            if Path(file) == self.path:
+                raise PermissionError(13, "The process cannot access the file", str(file))
+            return real_open(file, *args, **kwargs)
+
+        with patch("builtins.open", side_effect=held):
+            ok, _result, errors, _ = self.style("gongwen", dry_run=True)
+        self.assertFalse(ok)
+        self.assertEqual(errors[0]["code"], "DOCUMENT_HELD_OPEN")
+
     def test_an_existing_page_number_is_restyled_not_duplicated(self):
         ok, _result, errors, _ = self.style("report")
         self.assertTrue(ok, errors)

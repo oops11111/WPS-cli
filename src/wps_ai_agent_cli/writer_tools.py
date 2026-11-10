@@ -24,7 +24,7 @@ from .backups import create_backup, record_after_com_identity
 from .capabilities import probe_wps_capabilities
 from .document_text import docx_body_paragraphs
 from .errors import COM_BACKEND_UNAVAILABLE, COM_OPERATION_FAILED, INPUT_FILE_NOT_FOUND
-from .file_hold import probe_file_not_held
+from .file_hold import held_open_error, is_share_conflict, probe_file_not_held
 from .mutation_lock import coordinated_mutation
 from .ooxml import read_zip_part
 from .operations import record_operation, replay_operation
@@ -100,11 +100,23 @@ def _writer(document_id: str, command: str, workspace: str | Path) -> Path:
 
 
 def _docx(path: Path):
+    """The document opened with python-docx; a file another program holds is DOCUMENT_HELD_OPEN, not a parse error."""
     try:
         from docx import Document
     except ImportError as exc:
         raise _Refusal("CONVERTER_UNAVAILABLE", "Install the html optional dependency: python-docx.") from exc
-    return Document(str(path))
+    try:
+        with open(path, "rb") as handle:
+            handle.read(4)
+    except OSError as exc:
+        if is_share_conflict(exc):
+            error = held_open_error("document", str(exc))
+            raise _Refusal(error["code"], error["message"], {"path": str(path)}) from exc
+        raise _Refusal("INVALID_INPUT", f"{path.name} could not be read: {exc}") from exc
+    try:
+        return Document(str(path))
+    except Exception as exc:  # python-docx raises several types for a damaged package
+        raise _Refusal("INVALID_INPUT", f"{path.name} could not be read as a .docx: {exc}") from exc
 
 
 def _run_writer_script(path: str, params: dict[str, Any], body: str) -> dict[str, Any]:
