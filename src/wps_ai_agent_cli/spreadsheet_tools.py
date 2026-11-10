@@ -22,6 +22,7 @@ import datetime as _dt
 import functools
 import json
 import re
+import warnings
 from pathlib import Path
 from typing import Any
 
@@ -82,6 +83,14 @@ class _Refusal(Exception):
 
 
 # ---------------------------------------------------------------------------------------------------- shared
+def _load(path: Path, **options: Any):
+    """Open the workbook for reading only. WPS saves data bars and other rules with x14 extensions that openpyxl
+    does not model; it warns that it would drop them on save, but nothing here saves through openpyxl."""
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", message=r".*extension is not supported.*", category=UserWarning)
+        return load_workbook_guarded(path, **options)
+
+
 def _bounded_range(address: str) -> tuple[str, tuple[int, int, int, int]]:
     try:
         bounds = range_boundaries(str(address).replace("$", "").upper())
@@ -390,7 +399,7 @@ def sort_spreadsheet_range(
     path = _spreadsheet(document_id, "spreadsheet-sort", workspace)
 
     def rows_of(data_only: bool):
-        workbook = load_workbook_guarded(path, data_only=data_only)
+        workbook = _load(path, data_only=data_only)
         try:
             sheet = _sheet(workbook, sheet_name)
             if not data_only:
@@ -466,7 +475,7 @@ def sort_spreadsheet_range(
 
 # ------------------------------------------------------------------------------------- conditional formatting
 def _conditional_rules(path: Path, sheet_name: str) -> list[dict[str, Any]]:
-    workbook = load_workbook_guarded(path)
+    workbook = _load(path)
     try:
         sheet = _sheet(workbook, sheet_name)
         rules = []
@@ -635,7 +644,7 @@ def add_conditional_format(
 
 # ---------------------------------------------------------------------------------------------- data validation
 def _validations(path: Path, sheet_name: str) -> list[dict[str, Any]]:
-    workbook = load_workbook_guarded(path)
+    workbook = _load(path)
     try:
         sheet = _sheet(workbook, sheet_name)
         return [

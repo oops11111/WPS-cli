@@ -195,6 +195,23 @@ class SheetToolTests(unittest.TestCase):
                 self.assertEqual(errors[0]["code"], code)
                 self.assertEqual(self.calls, [])
 
+    def test_reading_wps_extensions_prints_no_openpyxl_warning(self):
+        import warnings
+
+        def warn_like_openpyxl(*args, **kwargs):
+            warnings.warn(
+                "Conditional Formatting extension is not supported and will be removed", UserWarning, stacklevel=2
+            )
+            return load_workbook(self.path)
+
+        with (
+            patch.object(tools, "load_workbook_guarded", side_effect=warn_like_openpyxl),
+            warnings.catch_warnings(record=True) as caught,
+        ):
+            warnings.simplefilter("always")
+            tools._load(self.path).close()
+        self.assertEqual(caught, [])
+
     def test_check_sorted_treats_blanks_as_last(self):
         keys = [{"column": 1, "letter": "A", "descending": False}]
         self.assertEqual(tools.check_sorted([(1,), (2,), (None,)], keys, 1), (True, "strict"))
