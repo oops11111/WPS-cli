@@ -1,0 +1,4 @@
+﻿window=526,117,987,681 client=456x536 clientOrigin=528,142
+target screen=666,175 client=138,33
+saved C:\Users\admin\.lody\repos\github---oops11111---wps-cli\worktrees\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\scripts\windows_check\results\20261110T045945Z-76e1237-c06\page-paper.png
+posted WM_CLOSE

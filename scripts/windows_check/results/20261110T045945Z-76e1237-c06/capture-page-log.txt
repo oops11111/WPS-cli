@@ -1,0 +1,6 @@
+﻿found dialog: False
+screenshot: C:\Users\admin\.lody\repos\github---oops11111---wps-cli\worktrees\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\scripts\windows_check\results\20261110T045945Z-76e1237-c06\page.png
+visible windows:
+  pid=26076 class=bosa_sdm_Microsoft Office Word 11.0 title=页面设置
+  pid=26076 class=OpusApp title=通知.docx * - WPS 文字
+sent ESC

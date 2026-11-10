@@ -1,0 +1,5 @@
+﻿wps pid: 30772
+  h=2426842 class=OpusApp title=通知.docx - WPS 文字 rect=0,0,472,259
+ActiveWindow.WindowState=1
+set WindowState=1 ok
+  after: h=2426842 class=OpusApp title=通知.docx - WPS 文字 rect=0,0,472,259

@@ -1,0 +1,51 @@
+{
+  "backend": "local-python",
+  "command": "writer-style-apply",
+  "data": {
+    "document_id": "doc_8f1c3005de934f0a",
+    "dry_run": true,
+    "font_map": {},
+    "fonts_checked": true,
+    "fonts_needed": [
+      "仿宋_GB2312",
+      "宋体",
+      "方正小标宋简体",
+      "楷体_GB2312",
+      "黑体"
+    ],
+    "missing_fonts": [
+      "仿宋_GB2312",
+      "方正小标宋简体",
+      "楷体_GB2312"
+    ],
+    "paragraph_roles": {
+      "body": 4,
+      "heading1": 1,
+      "heading2": 1,
+      "heading3": 1,
+      "title": 1
+    },
+    "path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261110T045945Z-76e1237-c06\\work\\通知.docx",
+    "preset": "gongwen",
+    "sections": 1
+  },
+  "errors": [
+    {
+      "code": "FONT_NOT_INSTALLED",
+      "message": "These fonts are not installed: 仿宋_GB2312, 方正小标宋简体, 楷体_GB2312. Install them, map each to an installed font (font_map, such as 方正小标宋简体=宋体), or allow_missing_fonts to keep the names. Nothing was changed."
+    }
+  ],
+  "ok": false,
+  "request_id": "94cf07ae-e929-4981-976f-650bb2b20106",
+  "summary": "writer-style-apply could not complete.",
+  "validation": {
+    "checks": [
+      {
+        "details": null,
+        "name": "read_back",
+        "passed": false
+      }
+    ],
+    "status": "failed"
+  }
+}

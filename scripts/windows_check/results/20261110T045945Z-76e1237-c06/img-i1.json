@@ -1,0 +1,75 @@
+{
+  "backend": "wps-com",
+  "command": "writer-insert-image",
+  "data": {
+    "after_paragraph": 3,
+    "after_paragraph_text": "为切实加强安全生产管理，落实各级责任，现就本次安全检查的总体要求作出如下安排：各单位要高度重视，对照检查清单逐项自查，发现问题立即整改，确保不留死角、不走过场，",
+    "backup": {
+      "backup_bytes": 12701,
+      "backup_path": ".wps-agent\\backups\\doc_8f1c3005de934f0a\\通知.20261110T050040195120Z.docx",
+      "component": "writer",
+      "created": true,
+      "document_id": "doc_8f1c3005de934f0a",
+      "dry_run": false,
+      "source_identity": {
+        "file_device": 11882268654517892920,
+        "file_inode": 2814749768338818,
+        "source_sha256": "4B7DF9D17D596033A42EA9CD817CDBA9A2EA753E7137D7422FD42CF6370E75B9"
+      },
+      "source_path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261110T045945Z-76e1237-c06\\work\\通知.docx"
+    },
+    "backup_replayed": false,
+    "caption": "图 1 现场照片",
+    "checks": {
+      "one_picture_added": true,
+      "paragraphs_in_place": true,
+      "picture_after_anchor": true,
+      "width_matches": true
+    },
+    "document_id": "doc_8f1c3005de934f0a",
+    "dry_run": false,
+    "height_mm": 50.0,
+    "image_path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261110T045945Z-76e1237-c06\\work\\图.png",
+    "natural_size_mm": [
+      211.7,
+      132.3
+    ],
+    "path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261110T045945Z-76e1237-c06\\work\\通知.docx",
+    "read_back": {
+      "paragraphs_after": 10,
+      "picture_width_mm": 80.0
+    },
+    "text_width_mm": 146.5,
+    "validation_passed": true,
+    "width_mm": 80.0,
+    "wps_report": {
+      "backend": "powershell-com",
+      "height_pt": 141.0,
+      "source_identity_after_com": {
+        "file_device": 11882268654517892920,
+        "file_inode": 19421773394266901,
+        "source_sha256": "286440E674653888D6F675442AC999CC34CE2DE8FC3F024506B96DD1F44127C8"
+      },
+      "width_pt": 226.5
+    }
+  },
+  "errors": [],
+  "ok": true,
+  "request_id": "i1",
+  "summary": "Inserted the picture after paragraph 3, 80.0 mm wide.",
+  "validation": {
+    "checks": [
+      {
+        "details": {
+          "one_picture_added": true,
+          "paragraphs_in_place": true,
+          "picture_after_anchor": true,
+          "width_matches": true
+        },
+        "name": "read_back",
+        "passed": true
+      }
+    ],
+    "status": "passed"
+  }
+}

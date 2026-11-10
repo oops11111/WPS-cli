@@ -1,0 +1,73 @@
+{
+  "backend": "wps-com",
+  "command": "writer-style-apply",
+  "data": {
+    "backup": {
+      "backup_bytes": 24026,
+      "backup_path": ".wps-agent\\backups\\doc_8f1c3005de934f0a\\通知.20261110T050717153255Z.docx",
+      "component": "writer",
+      "created": true,
+      "document_id": "doc_8f1c3005de934f0a",
+      "dry_run": false,
+      "source_identity": {
+        "file_device": 11882268654517892920,
+        "file_inode": 2533274791628260,
+        "source_sha256": "F8FE63A66B8623DE3F758AF0A4618337A46CC4D1DA6DD6B9DE02509C7C1B3FE3"
+      },
+      "source_path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261110T045945Z-76e1237-c06\\work\\通知.docx"
+    },
+    "backup_replayed": false,
+    "checks": {
+      "page_numbers": true,
+      "page_setup": true,
+      "paragraphs_styled": true,
+      "text_unchanged": true
+    },
+    "document_id": "doc_8f1c3005de934f0a",
+    "dry_run": false,
+    "font_map": {
+      "仿宋_GB2312": "仿宋",
+      "方正小标宋简体": "宋体",
+      "楷体_GB2312": "楷体"
+    },
+    "fonts_checked": true,
+    "fonts_needed": [
+      "仿宋",
+      "宋体",
+      "楷体",
+      "黑体"
+    ],
+    "missing_fonts": [],
+    "paragraph_roles": {
+      "body": 4,
+      "heading1": 1,
+      "heading2": 1,
+      "heading3": 1,
+      "title": 1
+    },
+    "path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261110T045945Z-76e1237-c06\\work\\通知.docx",
+    "preset": "gongwen",
+    "sections": 1,
+    "unstyled_paragraphs": [],
+    "validation_passed": true
+  },
+  "errors": [],
+  "ok": true,
+  "request_id": "g1",
+  "summary": "Applied the gongwen preset to 8 paragraphs.",
+  "validation": {
+    "checks": [
+      {
+        "details": {
+          "page_numbers": true,
+          "page_setup": true,
+          "paragraphs_styled": true,
+          "text_unchanged": true
+        },
+        "name": "read_back",
+        "passed": true
+      }
+    ],
+    "status": "passed"
+  }
+}

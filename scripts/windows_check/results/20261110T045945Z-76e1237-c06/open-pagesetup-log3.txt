@@ -1,0 +1,4 @@
+﻿document opened; showing page setup dialog
+dialog closed
+closed without saving
+quit

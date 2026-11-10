@@ -1,0 +1,23 @@
+﻿screenshot: C:\Users\admin\.lody\repos\github---oops11111---wps-cli\worktrees\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\scripts\windows_check\results\20261110T045945Z-76e1237-c06\gongwen.png (title '通知.docx - WPS 文字')
+page setup: top=37mm bottom=35mm left=28mm right=26mm paper=210x297mm orientation=0
+paragraphs=18 tables=1 inlineShapes=3
+p1: font= size=22 bold=0 align=1 lineSpacing=12 rule=0 firstIndent=0pt text='关于开展安全检查的通知'
+p2: font= size=16 bold=-1 align=3 lineSpacing=28.8 rule=5 firstIndent=0pt text='一、总体要求'
+p3: font= size=16 bold=0 align=3 lineSpacing=28 rule=4 firstIndent=32pt text='为切实加强安全生产管理，落实各级责任，现就本次安...'
+p4: font=宋体 size=10.5 bold=0 align=1 lineSpacing=12 rule=0 firstIndent=0pt text='/'
+p5: font= size=16 bold=0 align=1 lineSpacing=28 rule=4 firstIndent=32pt text='图 1 现场照片'
+p6: font= size=16 bold=-1 align=3 lineSpacing=20.65 rule=5 firstIndent=0pt text='（一）工作目标'
+p7: font=宋体 size=10.5 bold=0 align=1 lineSpacing=12 rule=0 firstIndent=0pt text='/'
+p8: font= size=16 bold=0 align=3 lineSpacing=28 rule=4 firstIndent=32pt text='本次工作目标是全面排查重点部位和关键环节，摸清风...'
+p9: font= size=16 bold=-1 align=3 lineSpacing=20.65 rule=5 firstIndent=0pt text='1. 具体任务'
+p10: font= size=16 bold=0 align=3 lineSpacing=28 rule=4 firstIndent=32pt text='具体任务包括：开展现场巡查、核对台账资料、抽查值...'
+p11: font=宋体 size=10.5 bold=0 align=3 lineSpacing=12 rule=0 firstIndent=0pt text='任务'
+p12: font=宋体 size=10.5 bold=0 align=3 lineSpacing=12 rule=0 firstIndent=0pt text='负责人'
+p13: font=宋体 size=10 bold=0 align=0 lineSpacing=12 rule=0 firstIndent=0pt text=''
+p14: font=宋体 size=10.5 bold=0 align=3 lineSpacing=12 rule=0 firstIndent=0pt text='现场检查'
+p15: font=宋体 size=10.5 bold=0 align=3 lineSpacing=12 rule=0 firstIndent=0pt text='张三'
+p16: font=宋体 size=10 bold=0 align=0 lineSpacing=12 rule=0 firstIndent=0pt text=''
+p17: font=宋体 size=10.5 bold=0 align=3 lineSpacing=12 rule=0 firstIndent=0pt text=''
+p18: font=宋体 size=10.5 bold=0 align=1 lineSpacing=12 rule=0 firstIndent=0pt text='/'
+footer: text='1' fields=1 align=1 font= size=14
+  field 1: type=33 result=''
