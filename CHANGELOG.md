@@ -4,6 +4,10 @@ All notable changes to `wps-ai-agent-cli`. The versioning rule and release steps
 
 ## [Unreleased]
 
+## [0.14.0] - 2026-11-10
+
+Pictures, page setup and style presets for Writer (C-06), checked on WPS; and four commands that save an agent round trips (C-07 to C-09): batch, get by path, document-view and document-check. No existing command or argument changes; the MCP tool count goes from 98 to 105.
+
 ### Added
 
 - C-07 to C-09, four commands that save an agent round trips (101 to 105 tools), all without WPS except what a batch item itself needs:
