@@ -129,8 +129,7 @@ class ChartTests(unittest.TestCase):
                 simulated_wps(add=False),
             )
         ):
-            # A rollback restores the file under a new inode, so it is registered again (as after any rollback).
-            register_document("spreadsheets", str(self.path), self.workspace)
+            # No new registration between attempts: a rollback refreshes it (the restored file has a new inode).
             with self.subTest(index=index):
                 ok, result, errors, _ = self.create(com=com, request_id=f"rb{index}", title="趋势")
                 self.assertFalse(ok)

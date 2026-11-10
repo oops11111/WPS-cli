@@ -15,6 +15,7 @@ All notable changes to `wps-ai-agent-cli`. The versioning rule and release steps
 
 ### Fixed
 
+- After a failed write is rolled back, the next command on the document no longer fails with `DOCUMENT_IDENTITY_CHANGED`: restoring the backup replaces the file (a new inode), so the rollback now updates the registration when the restored content is the registered content (`rollback.registration_refreshed`). Before, the document had to be registered again, which the C-05 Windows check ran into.
 - `writer-merge` refusing a document held open in WPS no longer says WPS's `Open()` was not called (it never calls WPS); it says the command writes the file itself and to close the document first.
 - The Windows wheel check (`run_windows_check.py wheel`) falls back to the Release page and its `SHA256SUMS.txt` when the GitHub API refuses (the 0.12.0 check hit HTTP 403 rate limit exceeded), as `install.ps1` already does.
 - The user guide says how to pass JSON with quotes from Windows PowerShell 5.1, which strips them (`--%`, or a data file).
