@@ -66,7 +66,7 @@ python -m wps_ai_agent_cli performance-baseline
 | `environment` | `wps_agent_inspect_env`, `wps_agent_wps_process_audit` |
 | `project` | `wps_agent_plan`, `wps_agent_project_status`, `wps_agent_workspace_health`, `wps_agent_local_handoff_summary`, `wps_agent_validation_runbook`, `wps_agent_documentation_freshness`, `wps_agent_tasks` |
 | `smoke` | `wps_agent_com_smoke`, `wps_agent_calc_smoke`, `wps_agent_convert_smoke`, `wps_agent_writer_table_smoke` |
-| `documents` | `wps_agent_register_document`, `wps_agent_document_new`, `wps_agent_documents`, `wps_agent_open_documents`, `wps_agent_save_open_document` |
+| `documents` | `wps_agent_register_document`, `wps_agent_document_new`, `wps_agent_documents`, `wps_agent_open_documents`, `wps_agent_save_open_document`, `wps_agent_get`, `wps_agent_document_view`, `wps_agent_document_check` |
 | `safety` | `wps_agent_backup_document`, `wps_agent_list_backups`, `wps_agent_restore_backup` |
 | `writer` | `wps_agent_writer_replace`, `wps_agent_writer_merge`, `wps_agent_writer_table_write`, `wps_agent_writer_insert_image`, `wps_agent_writer_page_setup`, `wps_agent_writer_style_apply` |
 | `spreadsheet` | `wps_agent_spreadsheet_read`, `wps_agent_spreadsheet_write`, `wps_agent_spreadsheet_formula_write`, `wps_agent_spreadsheet_sheets`, `wps_agent_spreadsheet_rename_sheet`, `wps_agent_spreadsheet_create_sheet`, `wps_agent_spreadsheet_set_sheet_visibility`, `wps_agent_spreadsheet_delete_sheet`, `wps_agent_spreadsheet_copy_sheet`, `wps_agent_spreadsheet_set_sheet_tab_color`, `wps_agent_spreadsheet_chart_create`, `wps_agent_spreadsheet_sort`, `wps_agent_spreadsheet_conditional_format`, `wps_agent_spreadsheet_data_validation` |
@@ -78,7 +78,7 @@ python -m wps_ai_agent_cli performance-baseline
 | `recovery` | `wps_agent_task_recovery`, `wps_agent_task_recovery_playbooks` |
 | `security` | `wps_agent_security_audit` |
 | `performance` | `wps_agent_performance_baseline` |
-| `batch` | `wps_agent_scan_dir`, `wps_agent_batch_report` |
+| `batch` | `wps_agent_batch`, `wps_agent_scan_dir`, `wps_agent_batch_report` |
 | `maintenance` | `wps_agent_cleanup_plan`, `wps_agent_cleanup_approval_manifest`, `wps_agent_artifact_retention_summary` |
 | `mcp` | `wps_agent_mcp_tools`, `wps_agent_mcp_tool_schema`, `wps_agent_mcp_catalog_snapshot`, `wps_agent_mcp_catalog_drift`, `wps_agent_mcp_call`, `wps_agent_mcp_server`, `wps_agent_mcp_smoke`, `wps_agent_mcp_config_audit` |
 | `sync` | `wps_agent_cloud_sync_package`, `wps_agent_sync_package_inspect`, `wps_agent_sync_package_summary`, `wps_agent_sync_package_manifest`, `wps_agent_sync_package_coverage`, `wps_agent_sync_package_readiness` |

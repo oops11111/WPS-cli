@@ -412,6 +412,38 @@ def _add_document_commands(subparsers: argparse._SubParsersAction) -> None:
     )
     replace_parser.add_argument("--task-id", help="Optional long-running task status id to update.")
 
+    batch_parser = subparsers.add_parser(
+        "batch",
+        help="Run a JSON list of tool calls in order, each with its own checks, and report every one.",
+    )
+    batch_source = batch_parser.add_mutually_exclusive_group(required=True)
+    batch_source.add_argument(
+        "--commands-json", help='JSON array: [{"tool": "writer-replace", "arguments": {"document_id": "...", ...}}].'
+    )
+    batch_source.add_argument("--commands-file", help="Path of a UTF-8 JSON file holding that array.")
+    batch_parser.add_argument(
+        "--continue-on-error", action="store_true", help="Run the remaining commands after one fails."
+    )
+    batch_parser.add_argument("--task-id", help="Optional long-running task status id to update.")
+
+    get_parser = subparsers.add_parser(
+        "get",
+        help='Read one part of a registered document by path, such as /sheet["Sheet1"]/cell["C12"] or /paragraph[3].',
+    )
+    get_parser.add_argument("--document-id", required=True, help="Registered document_id.")
+    get_parser.add_argument("--path", required=True, help="Path such as /paragraph[3], /table[1]/cell[2,3], /slide[2].")
+
+    view_parser = subparsers.add_parser(
+        "document-view", help="Summarise a registered document: outline, tables, sheets or slides (read-only)."
+    )
+    view_parser.add_argument("--document-id", required=True, help="Registered document_id.")
+
+    check_parser = subparsers.add_parser(
+        "document-check",
+        help="List problems in a registered document: unfilled placeholders, heading jumps, formula errors (read-only).",
+    )
+    check_parser.add_argument("--document-id", required=True, help="Registered document_id.")
+
     merge_parser = subparsers.add_parser(
         "writer-merge",
         help="Fill {{name}} placeholders (body, tables, headers, footers) from JSON data, with backup and read-back.",

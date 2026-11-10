@@ -5,10 +5,15 @@ import sys
 from typing import TextIO
 from uuid import uuid4
 
-from .cli_common import BACKEND
-
 # cli_handlers reads every command handler from this module (cli.<name>_response), and tests patch
 # some of them here, so the handlers are re-exported from their modules.
+from .cli_agent import (  # noqa: F401
+    batch_response,
+    document_check_response,
+    document_view_response,
+    get_response,
+)
+from .cli_common import BACKEND
 from .cli_convert import convert_response, fidelity_check_response  # noqa: F401
 from .cli_documents import (  # noqa: F401
     backup_document_response,

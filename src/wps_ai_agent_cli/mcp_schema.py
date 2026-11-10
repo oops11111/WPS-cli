@@ -743,6 +743,77 @@ MCP_TOOL_SCHEMAS: tuple[dict[str, Any], ...] = (
         ],
     ),
     _tool(
+        "wps_agent_batch",
+        "batch",
+        "Run several tool calls at once",
+        'Run a JSON array of tool calls in order, such as [{"tool": "writer-replace", "arguments": '
+        '{...}}, {"tool": "spreadsheet-write", "arguments": {...}}]; tool is an MCP tool name or its CLI '
+        "command. Each call goes through the same checks as a single tools/call (arguments, confirm for destructive "
+        "tools, its own backup and read-back) and gets request_id <batch request_id>:<n> unless it names one. Stops "
+        "at the first failure unless continue_on_error; every call is reported with ok, summary, data and errors. "
+        "At most 50 calls; batch and the MCP call tools cannot be nested.",
+        "batch",
+        required=[],
+        properties={
+            "commands_json": _string(
+                'JSON array of {"tool": name, "arguments": {...}} objects. Give this or commands_file.'
+            ),
+            "commands_file": _string("Path of a UTF-8 JSON file holding that array, instead of commands_json."),
+            "continue_on_error": _boolean("Run the remaining calls after one fails."),
+            "task_id": _string("Optional task status id."),
+        },
+        mutates_document=True,
+        idempotency="Mutating command; request_id should be supplied: each call gets <request_id>:<n> and is replayed by the operation ledger.",
+        cli_example="python -m wps_ai_agent_cli batch --commands-file calls.json",
+        safety_notes=[
+            "Each write in the batch takes its own backup of the file and restores it if its read-back differs; "
+            "a batch is not one transaction: calls that succeeded before a failure stay done.",
+            "Destructive tools still need confirm=true in their own arguments; WPS is used only by calls whose tool needs it.",
+        ],
+    ),
+    _tool(
+        "wps_agent_get",
+        "get",
+        "Read part of a document by path",
+        "Read one target of a registered document named by a path, from the file (no WPS). Spreadsheets: /sheets, "
+        '/sheet["名称"], /sheet["名称"]/cell["C12"], /sheet["名称"]/range["A1:D10"]. Writer: /paragraphs, '
+        "/paragraph[N], /headings, /tables, /table[N], /table[N]/cell[row,column]. Presentations: /slides, /slide[N]. "
+        "Numbers are 1-based. Unknown paths fail with PATH_SYNTAX_INVALID, missing targets with PATH_TARGET_NOT_FOUND.",
+        "documents",
+        required=["document_id", "path"],
+        properties={
+            "document_id": _string("Registered document_id."),
+            "path": _string('Path such as /paragraph[3], /table[1]/cell[2,3] or /sheet["Sheet1"]/cell["C12"].'),
+        },
+        safety_notes=["Reads the saved file only; does not start WPS or change files."],
+    ),
+    _tool(
+        "wps_agent_document_view",
+        "document-view",
+        "Summarise a document",
+        "One read-only overview of a registered document: for writer the title, heading outline, paragraph and "
+        "character counts, tables and pictures; for spreadsheets each sheet's size, formulas, merged ranges and "
+        "charts; for presentations each slide's text. Use it before deciding what to read or change.",
+        "documents",
+        required=["document_id"],
+        properties={"document_id": _string("Registered document_id.")},
+        safety_notes=["Reads the saved file only; does not start WPS or change files."],
+    ),
+    _tool(
+        "wps_agent_document_check",
+        "document-check",
+        "Check a document for problems",
+        "List problems to look at before handing a document over, each with severity, code, where and message: "
+        "writer unfilled {{placeholders}}, skipped heading levels, runs of empty paragraphs, empty tables; "
+        "spreadsheet error values (#REF!, #DIV/0!, #N/A ...), formulas without a calculated value, links to other "
+        "workbooks, empty sheets; presentation slides without text, repeated slides, unfilled placeholders. "
+        "ok is true whenever the check ran, problems or not.",
+        "documents",
+        required=["document_id"],
+        properties={"document_id": _string("Registered document_id.")},
+        safety_notes=["Reads the saved file only; does not start WPS or change files."],
+    ),
+    _tool(
         "wps_agent_writer_merge",
         "writer-merge",
         "Fill a template's placeholders",

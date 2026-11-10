@@ -100,9 +100,12 @@ py -3 -m venv %LOCALAPPDATA%\wps-agent\venv
 - 文字：标题、样式、书签的结构和文字（`writer_structure`），选中的内容（`writer_selection_read`）；
 - 表格：工作表列表、单元格值和公式（`spreadsheet_sheets`、`spreadsheet_read`、`spreadsheet_inspect`）；
 - 演示：选中的文字（`presentation_selection_read`），以及导出的全文（`export_open_document_text`）；
-- 核对：文档里是否有某段文字、某个单元格是否等于某个值（`validate_document`）。
+- 核对：文档里是否有某段文字、某个单元格是否等于某个值（`validate_document`）；
+- 概览：一次看清文档的大纲、段落和表格数、各工作表的大小和公式数、每页幻灯片的文字（`document_view`）；
+- 体检：交付前列出要看的问题，每条带严重程度、位置和说明——未填的 `{{占位符}}`、跳级的标题、连续空段、空表格；表格里的 `#REF!`、`#DIV/0!` 等错误值、没有计算结果的公式、引用其他工作簿的公式、空工作表；没有文字或重复的幻灯片（`document_check`）；
+- 按路径取一处内容（`get`）：`/sheet["销售"]/cell["C12"]`、`/sheet["销售"]/range["A1:D10"]`、`/paragraph[3]`、`/headings`、`/table[1]/cell[2,3]`、`/slide[2]` 等，编号从 1 开始。
 
-按文件读取（`writer_structure`、`spreadsheet_read`、`validate_document`）不需要 WPS，在任何电脑上都能用；读取选中内容和已打开的文档需要 WPS。
+按文件读取（`writer_structure`、`spreadsheet_read`、`validate_document`、`document_view`、`document_check`、`get`）不需要 WPS，在任何电脑上都能用；读取选中内容和已打开的文档需要 WPS。
 
 ### 修改文件
 
@@ -115,6 +118,14 @@ py -3 -m venv %LOCALAPPDATA%\wps-agent\venv
 5. 核对失败时自动从备份恢复（`MUTATION_ROLLED_BACK`）。
 
 同一个 `request_id` 重复提交不会重复执行，所以 AI 在网络中断后重试是安全的。
+
+### 一次做多件事
+
+`batch` 按顺序执行一组工具调用（JSON 数组，每项是 `{"tool": 工具名或命令名, "arguments": {...}}`，最多 50 项），每一项和单独调用时一样做参数检查、备份、读回核对，破坏性工具仍要在自己的参数里写 `confirm: true`。默认遇到第一个失败就停下，后面的不执行；加 `continue_on_error` 则全部跑完。结果逐项列出成功与否、摘要、数据和错误。每项的 `request_id` 是“批次 request_id:序号”，所以整批重试时已完成的项会直接重放、不会重复改。注意它不是一个事务：失败之前已经成功的修改会保留。
+
+```
+wps-agent batch --commands-file 步骤.json
+```
 
 ### 从零新建
 
