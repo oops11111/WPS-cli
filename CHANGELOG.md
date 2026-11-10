@@ -6,6 +6,11 @@ All notable changes to `wps-ai-agent-cli`. The versioning rule and release steps
 
 ### Added
 
+- C-07 to C-09, four commands that save an agent round trips (101 to 105 tools), all without WPS except what a batch item itself needs:
+  - `batch`: a JSON array of tool calls (`{"tool": name, "arguments": {...}}`, an MCP name or CLI command, at most 50) run in order through the MCP adapter, so each keeps its own argument checks, destructive-tool confirm, backup, read-back and request_id replay (`<request_id>:<n>`). Stops at the first failure unless `--continue-on-error`; every call is reported. Not a transaction: calls that succeeded stay done.
+  - `get --path`: read one target by path: `/sheets`, `/sheet["名称"]`, `/sheet["名称"]/cell["C12"]`, `/sheet["名称"]/range["A1:D10"]`, `/paragraphs`, `/paragraph[N]`, `/headings`, `/tables`, `/table[N]`, `/table[N]/cell[r,c]`, `/slides`, `/slide[N]`; `PATH_SYNTAX_INVALID` and `PATH_TARGET_NOT_FOUND` otherwise.
+  - `document-view`: the writer title, heading outline, counts, tables and pictures; each sheet's size, formulas, merged ranges and charts; each slide's text.
+  - `document-check`: issues with severity, code and place: unfilled placeholders, skipped heading levels, runs of empty paragraphs, empty tables; error values, formulas without a cached value, links to other workbooks, empty sheets; slides without text or repeated.
 - C-06, three Writer commands from the list settled on 2026-11-10 (98 to 101 tools):
   - `writer-insert-image`: a png/jpg/gif/bmp inline in its own centred paragraph after body paragraph N, after the first paragraph containing a text, or at the end; `--width-mm` with the height in proportion (default: the picture's own size, at most the text width); optional caption below in 宋体 五号. Through WPS (`InlineShapes.AddPicture`), read back: one more picture, in that place, at that width, the other paragraphs unchanged.
   - `writer-page-setup`: paper (A4, A3, A5, Letter, Legal, 16K = 184 x 260 mm), orientation and margins for every section, through WPS; the result lists each section before and after, read back from the file.

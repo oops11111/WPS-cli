@@ -362,6 +362,32 @@ def build_command_handlers(
         )
         return response
 
+    def _handle_batch(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+        return cli._with_optional_task_status(
+            lambda: cli.batch_response(
+                request_id,
+                commands_json=args.commands_json,
+                commands_file=args.commands_file,
+                continue_on_error=args.continue_on_error,
+            ),
+            task_id=args.task_id,
+            tracked_command="batch",
+            operation_request_id=request_id,
+        )
+
+    def _handle_get(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:
+        return cli.get_response(request_id, document_id=args.document_id, path=args.path)
+
+    def _handle_document_view(
+        args: argparse.Namespace, request_id: str, output_stream: TextIO | None
+    ) -> CommandResponse:
+        return cli.document_view_response(request_id, document_id=args.document_id)
+
+    def _handle_document_check(
+        args: argparse.Namespace, request_id: str, output_stream: TextIO | None
+    ) -> CommandResponse:
+        return cli.document_check_response(request_id, document_id=args.document_id)
+
     def _handle_writer_merge(
         args: argparse.Namespace, request_id: str, output_stream: TextIO | None
     ) -> CommandResponse:
@@ -1187,6 +1213,10 @@ def build_command_handlers(
         "list-backups": _handle_list_backups,
         "restore-backup": _handle_restore_backup,
         "writer-replace": _handle_writer_replace,
+        "batch": _handle_batch,
+        "get": _handle_get,
+        "document-view": _handle_document_view,
+        "document-check": _handle_document_check,
         "writer-merge": _handle_writer_merge,
         "writer-insert-image": _handle_writer_insert_image,
         "writer-page-setup": _handle_writer_page_setup,

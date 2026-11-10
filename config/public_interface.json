@@ -21,6 +21,24 @@
         "required": false
       }
     ],
+    "batch": [
+      {
+        "name": "--commands-file",
+        "required": false
+      },
+      {
+        "name": "--commands-json",
+        "required": false
+      },
+      {
+        "name": "--continue-on-error",
+        "required": false
+      },
+      {
+        "name": "--task-id",
+        "required": false
+      }
+    ],
     "batch-report": [
       {
         "name": "--no-snapshots",
@@ -190,6 +208,12 @@
         "required": true
       }
     ],
+    "document-check": [
+      {
+        "name": "--document-id",
+        "required": true
+      }
+    ],
     "document-new": [
       {
         "name": "--component",
@@ -215,6 +239,12 @@
       {
         "name": "--title",
         "required": false
+      }
+    ],
+    "document-view": [
+      {
+        "name": "--document-id",
+        "required": true
       }
     ],
     "documents": [],
@@ -287,6 +317,16 @@
       },
       {
         "name": "--target",
+        "required": true
+      }
+    ],
+    "get": [
+      {
+        "name": "--document-id",
+        "required": true
+      },
+      {
+        "name": "--path",
         "required": true
       }
     ],
@@ -1944,6 +1984,18 @@
         "document_id"
       ]
     },
+    "wps_agent_batch": {
+      "cli_command": "batch",
+      "mutates_document": true,
+      "parameters": [
+        "commands_file",
+        "commands_json",
+        "continue_on_error",
+        "request_id",
+        "task_id"
+      ],
+      "required": []
+    },
     "wps_agent_batch_report": {
       "cli_command": "batch-report",
       "mutates_document": false,
@@ -2062,6 +2114,17 @@
         "output"
       ]
     },
+    "wps_agent_document_check": {
+      "cli_command": "document-check",
+      "mutates_document": false,
+      "parameters": [
+        "document_id",
+        "request_id"
+      ],
+      "required": [
+        "document_id"
+      ]
+    },
     "wps_agent_document_new": {
       "cli_command": "document-new",
       "mutates_document": true,
@@ -2076,6 +2139,17 @@
       "required": [
         "component",
         "path"
+      ]
+    },
+    "wps_agent_document_view": {
+      "cli_command": "document-view",
+      "mutates_document": false,
+      "parameters": [
+        "document_id",
+        "request_id"
+      ],
+      "required": [
+        "document_id"
       ]
     },
     "wps_agent_documents": {
@@ -2153,6 +2227,19 @@
       "required": [
         "source",
         "target"
+      ]
+    },
+    "wps_agent_get": {
+      "cli_command": "get",
+      "mutates_document": false,
+      "parameters": [
+        "document_id",
+        "path",
+        "request_id"
+      ],
+      "required": [
+        "document_id",
+        "path"
       ]
     },
     "wps_agent_html_batch_convert": {
@@ -3504,6 +3591,8 @@
     "PAGE_RANGE_INVALID",
     "PARAGRAPH_NOT_FOUND",
     "PATH_OUTSIDE_WORKSPACE",
+    "PATH_SYNTAX_INVALID",
+    "PATH_TARGET_NOT_FOUND",
     "PDF_ENCRYPTED",
     "PDF_NEEDS_OCR",
     "PERFORMANCE_BASELINE_COMMAND_FAILED",
