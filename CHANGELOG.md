@@ -4,6 +4,10 @@ All notable changes to `wps-ai-agent-cli`. The versioning rule and release steps
 
 ## [Unreleased]
 
+## [0.13.0] - 2026-11-10
+
+Sort, conditional formatting and data validation for spreadsheets (C-05), checked on WPS; after a rolled-back write the document no longer has to be registered again. No existing command or argument changes; the MCP tool count goes from 95 to 98.
+
 ### Added
 
 - C-05, three more spreadsheet operations through WPS with backup, read-back of the saved workbook and rollback (95 to 98 tools):
