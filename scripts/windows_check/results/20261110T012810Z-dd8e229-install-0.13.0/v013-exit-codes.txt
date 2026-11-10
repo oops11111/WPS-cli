@@ -1,0 +1,13 @@
+=== exit codes ===
+install.ps1 -McpClient claude-desktop => 0 (install.log)
+mcp_client_smoke.py => 0 (Passed, 98 tools)
+run_windows_check.py wheel --version 0.13.0 => 0 (passed)
+wps-agent document-new => 0
+wps-agent spreadsheet-write A1:B5 => 0
+wps-agent spreadsheet-read A1:B5 => 0
+wps-agent spreadsheet-sort --key 销量:desc => 0 (order_check strict)
+wps-agent spreadsheet-conditional-format --kind data-bar => 0 (stderr empty)
+wps-agent spreadsheet-data-validation --type list => 0
+wps-agent spreadsheet-sort --key 销量:asc --dry-run => 0
+wps-agent spreadsheet-sort --key 销量:asc with c.xlsx open in WPS => 1 (DOCUMENT_HELD_OPEN)
+wps-agent spreadsheet-sort --key 销量:asc after closing WPS, no re-registration => 0
