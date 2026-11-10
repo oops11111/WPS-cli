@@ -23,7 +23,7 @@ from .atomic_mutation import atomic_mutation
 from .backups import create_backup, record_after_com_identity
 from .capabilities import probe_wps_capabilities
 from .document_text import docx_body_paragraphs
-from .errors import COM_BACKEND_UNAVAILABLE, COM_OPERATION_FAILED, INPUT_FILE_NOT_FOUND
+from .errors import COM_BACKEND_UNAVAILABLE, COM_OPERATION_FAILED, DOCUMENT_HELD_OPEN, INPUT_FILE_NOT_FOUND
 from .file_hold import held_open_error, is_share_conflict, probe_file_not_held
 from .mutation_lock import coordinated_mutation
 from .ooxml import read_zip_part
@@ -78,6 +78,8 @@ PRESETS: dict[str, dict[str, Any]] = {
     },
 }
 FONT_NOT_INSTALLED = "FONT_NOT_INSTALLED"
+OFFLINE_COMMANDS = {"writer-style-apply"}
+_CAPTION_STYLES = {"caption", "题注"}
 Outcome = tuple[bool, dict[str, Any], list[dict[str, str]], bool]
 
 
@@ -95,7 +97,12 @@ def _writer(document_id: str, command: str, workspace: str | Path) -> Path:
         raise _Refusal("INVALID_INPUT", f"{command} works on .docx files; convert other formats first.")
     held = probe_file_not_held(path, read_only=True, what="document")
     if held is not None:
-        raise _Refusal(held["code"], held["message"], {"document_id": document_id, "path": str(path)})
+        message = held["message"]
+        if command in OFFLINE_COMMANDS and held["code"] == DOCUMENT_HELD_OPEN:
+            # The shared text is about WPS's Open(), which an offline command never calls.
+            reason = message.split(" Open() was not called", 1)[0]
+            message = f"{reason} {command} writes the file itself, without WPS, so it refused and nothing was written. Save and close the document in WPS, then retry."
+        raise _Refusal(held["code"], message, {"document_id": document_id, "path": str(path)})
     return path
 
 
@@ -541,12 +548,28 @@ def _outline_level(paragraph) -> int | None:
     return None
 
 
+def _holds_picture(paragraph) -> bool:
+    return any(True for _ in paragraph._p.iter(f"{{{W}}}drawing")) or any(
+        True for _ in paragraph._p.iter("{urn:schemas-microsoft-com:vml}imagedata")
+    )
+
+
 def classify_paragraphs(document) -> list[tuple[int, str]]:
-    """(index in document.paragraphs, role) for every non-empty body paragraph: title, heading1-3 or body."""
+    """(index in document.paragraphs, role) for every non-empty body paragraph: title, heading1-3, body or caption.
+
+    A caption (the paragraph right after a picture, or one in the Caption / 题注 style) keeps its own format: the
+    presets do not cover captions, and writer-insert-image gives them 宋体 五号 centred (the C-06 Windows check
+    saw the gongwen preset turn one into body text).
+    """
     roles = []
     title_seen = False
-    for index, paragraph in enumerate(document.paragraphs):
+    paragraphs = document.paragraphs
+    for index, paragraph in enumerate(paragraphs):
         if not paragraph.text.strip():
+            continue
+        style_name = (paragraph.style.name or "").strip().casefold() if paragraph.style is not None else ""
+        if style_name in _CAPTION_STYLES or (index > 0 and _holds_picture(paragraphs[index - 1])):
+            roles.append((index, "caption"))
             continue
         if not title_seen:
             roles.append((index, "title"))
@@ -676,6 +699,8 @@ def _check_styled(document, roles, preset: dict[str, Any], fonts: dict[str, str]
 
     problems = []
     for index, role in roles:
+        if role == "caption":
+            continue
         paragraph = document.paragraphs[index]
         want = _expected_role(preset[role], fonts)
         for run in paragraph.runs:
@@ -758,7 +783,8 @@ def apply_writer_style(
     from docx.enum.section import WD_ORIENT
 
     for index, role in roles:
-        _apply_role(document.paragraphs[index], spec[role], fonts)
+        if role != "caption":
+            _apply_role(document.paragraphs[index], spec[role], fonts)
     width, height = PAPERS[spec["paper"]]
     for section in document.sections:
         section.orientation = WD_ORIENT.PORTRAIT

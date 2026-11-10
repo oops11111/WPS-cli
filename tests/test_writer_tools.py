@@ -17,7 +17,7 @@ from unittest.mock import patch
 try:
     from docx import Document
     from docx.oxml.ns import qn
-    from docx.shared import Mm
+    from docx.shared import Mm, Pt
     from PIL import Image
 except ImportError as exc:  # optional test dependency: skip this module instead of erroring the suite
     raise unittest.SkipTest("python-docx and Pillow are needed") from exc
@@ -263,6 +263,29 @@ class WriterToolTests(unittest.TestCase):
             ok, _result, errors, _ = self.style("gongwen", dry_run=True)
         self.assertFalse(ok)
         self.assertEqual(errors[0]["code"], "DOCUMENT_HELD_OPEN")
+
+    def test_a_caption_under_a_picture_keeps_its_format(self):
+        # The C-06 Windows check: gongwen turned the 宋体 五号 caption into 仿宋 三号 body text.
+        ok, _result, errors, _ = self.insert(at_paragraph=3, width_mm=60, caption="图 1 示意")
+        self.assertTrue(ok, errors)
+        document = Document(str(self.path))
+        document.paragraphs[4].runs[0].font.size = before = Pt(10.5)  # 宋体 五号 as WPS sets it
+        document.save(str(self.path))
+        register_document("writer", str(self.path), self.workspace)
+        ok, result, errors, _ = self.style("gongwen")
+        self.assertTrue(ok, errors)
+        self.assertEqual(result["paragraph_roles"]["caption"], 1)
+        self.assertEqual(Document(str(self.path)).paragraphs[4].runs[0].font.size, before)
+
+    def test_a_held_document_says_the_command_writes_the_file_itself(self):
+        from wps_ai_agent_cli.file_hold import held_open_error
+
+        held = held_open_error("document", "being used by another process")
+        with patch.object(tools, "probe_file_not_held", return_value=held):
+            ok, _result, errors, _ = self.style("gongwen")
+        self.assertEqual(errors[0]["code"], "DOCUMENT_HELD_OPEN")
+        self.assertIn("without WPS", errors[0]["message"])
+        self.assertNotIn("Open()", errors[0]["message"])
 
     def test_an_existing_page_number_is_restyled_not_duplicated(self):
         ok, _result, errors, _ = self.style("report")
