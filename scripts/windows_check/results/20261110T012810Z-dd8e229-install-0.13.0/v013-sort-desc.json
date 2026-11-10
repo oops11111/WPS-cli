@@ -1,0 +1,89 @@
+{
+  "backend": "wps-com",
+  "command": "spreadsheet-sort",
+  "data": {
+    "backup": {
+      "backup_bytes": 8992,
+      "backup_path": ".wps-agent\\backups\\doc_4c372a4510f757a3\\c.20261110T013234735157Z.xlsx",
+      "component": "spreadsheets",
+      "created": true,
+      "document_id": "doc_4c372a4510f757a3",
+      "dry_run": false,
+      "source_identity": {
+        "file_device": 11882268654517892920,
+        "file_inode": 1407374885592705,
+        "source_sha256": "0633B862FE029C4C0EA380B864809E9E0D3055B186EB9A9469587A04BCBB707C"
+      },
+      "source_path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261110T012810Z-dd8e229-install-0.13.0\\work\\c.xlsx"
+    },
+    "backup_replayed": false,
+    "checks": {
+      "header_kept": true,
+      "ordered": true,
+      "same_rows": true
+    },
+    "data_rows": 4,
+    "document_id": "doc_4c372a4510f757a3",
+    "dry_run": false,
+    "has_header": true,
+    "keys": [
+      "销量:desc"
+    ],
+    "normalized_range": "A1:B5",
+    "path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261110T012810Z-dd8e229-install-0.13.0\\work\\c.xlsx",
+    "range": "A1:B5",
+    "read_back": {
+      "first_rows": [
+        [
+          "西北",
+          150
+        ],
+        [
+          "华东",
+          120
+        ],
+        [
+          "华南",
+          90
+        ]
+      ],
+      "order_check": "strict"
+    },
+    "sheet_name": "数据",
+    "sort_keys": [
+      {
+        "column": "B",
+        "order": "desc"
+      }
+    ],
+    "validation_passed": true,
+    "wps_report": {
+      "backend": "powershell-com",
+      "sheet_name": "数据",
+      "sorted_rows": 5,
+      "source_identity_after_com": {
+        "file_device": 11882268654517892920,
+        "file_inode": 37717646879568324,
+        "source_sha256": "628AB1F817CC806DD334577AA08904FF9615182010017490D15B3258AB584B66"
+      }
+    }
+  },
+  "errors": [],
+  "ok": true,
+  "request_id": "5990231f-b7b5-40c8-9650-b12950d85210",
+  "summary": "Sorted 4 rows of 数据!A1:B5 (strict).",
+  "validation": {
+    "checks": [
+      {
+        "details": {
+          "header_kept": true,
+          "ordered": true,
+          "same_rows": true
+        },
+        "name": "read_back",
+        "passed": true
+      }
+    ],
+    "status": "passed"
+  }
+}

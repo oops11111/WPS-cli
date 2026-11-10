@@ -1,0 +1,84 @@
+{
+  "backend": "wps-com",
+  "command": "spreadsheet-data-validation",
+  "data": {
+    "backup": {
+      "backup_bytes": 9403,
+      "backup_path": ".wps-agent\\backups\\doc_4c372a4510f757a3\\c.20261110T013316484595Z.xlsx",
+      "component": "spreadsheets",
+      "created": true,
+      "document_id": "doc_4c372a4510f757a3",
+      "dry_run": false,
+      "source_identity": {
+        "file_device": 11882268654517892920,
+        "file_inode": 5910974511558221,
+        "source_sha256": "9FC325E2CBCA5AFFD63D8B4C714B526EABF859F1F9C405538B56767D7E365088"
+      },
+      "source_path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261110T012810Z-dd8e229-install-0.13.0\\work\\c.xlsx"
+    },
+    "backup_replayed": false,
+    "checks": {
+      "one_rule_on_range": true,
+      "operator_matches": true,
+      "type_matches": true,
+      "values_match": true
+    },
+    "document_id": "doc_4c372a4510f757a3",
+    "dry_run": false,
+    "formula1": "是,否",
+    "formula2": null,
+    "normalized_range": "C2:C5",
+    "operator": null,
+    "path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261110T012810Z-dd8e229-install-0.13.0\\work\\c.xlsx",
+    "range": "C2:C5",
+    "read_back": {
+      "rule": {
+        "allow_blank": true,
+        "error": null,
+        "formula1": "\"是,否\"",
+        "formula2": null,
+        "operator": null,
+        "prompt": null,
+        "ranges": [
+          "C2:C5"
+        ],
+        "type": "list"
+      },
+      "validations_on_sheet_after": 1
+    },
+    "sheet_name": "数据",
+    "validation_passed": true,
+    "validation_type": "list",
+    "validations_on_sheet_before": 0,
+    "wps_report": {
+      "backend": "powershell-com",
+      "formula1": "是,否",
+      "sheet_name": "数据",
+      "source_identity_after_com": {
+        "file_device": 11882268654517892920,
+        "file_inode": 1970324839014116,
+        "source_sha256": "EECCAA12D3D929678977B90E60D9E123096577358BBA74DFD900C417DFD743A0"
+      },
+      "validation_type": 3
+    }
+  },
+  "errors": [],
+  "ok": true,
+  "request_id": "fe930353-247c-493f-a7ac-dcef7b559415",
+  "summary": "Set list validation on 数据!C2:C5.",
+  "validation": {
+    "checks": [
+      {
+        "details": {
+          "one_rule_on_range": true,
+          "operator_matches": true,
+          "type_matches": true,
+          "values_match": true
+        },
+        "name": "read_back",
+        "passed": true
+      }
+    ],
+    "status": "passed"
+  }
+}

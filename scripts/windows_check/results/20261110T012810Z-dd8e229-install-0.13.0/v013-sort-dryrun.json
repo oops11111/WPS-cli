@@ -1,0 +1,37 @@
+{
+  "backend": "local-python",
+  "command": "spreadsheet-sort",
+  "data": {
+    "data_rows": 4,
+    "document_id": "doc_4c372a4510f757a3",
+    "dry_run": true,
+    "has_header": true,
+    "keys": [
+      "销量:asc"
+    ],
+    "normalized_range": "A1:B5",
+    "path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261110T012810Z-dd8e229-install-0.13.0\\work\\c.xlsx",
+    "range": "A1:B5",
+    "sheet_name": "数据",
+    "sort_keys": [
+      {
+        "column": "B",
+        "order": "asc"
+      }
+    ]
+  },
+  "errors": [],
+  "ok": true,
+  "request_id": "719dd0bb-5e49-414a-be7c-5ed15a3dd7da",
+  "summary": "spreadsheet-sort preview completed.",
+  "validation": {
+    "checks": [
+      {
+        "details": null,
+        "name": "read_back",
+        "passed": true
+      }
+    ],
+    "status": "passed"
+  }
+}

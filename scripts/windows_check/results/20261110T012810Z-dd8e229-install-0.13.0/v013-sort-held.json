@@ -1,0 +1,27 @@
+{
+  "backend": "local-python",
+  "command": "spreadsheet-sort",
+  "data": {
+    "document_id": "doc_4c372a4510f757a3",
+    "path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261110T012810Z-dd8e229-install-0.13.0\\work\\c.xlsx"
+  },
+  "errors": [
+    {
+      "code": "DOCUMENT_HELD_OPEN",
+      "message": "The workbook is held open by another handle (另一个程序正在使用此文件，进程无法访问。), most likely because it is open in WPS. Open() was not called: on a document that is already open it reloads the file from disk without asking (alerts are turned off here) and discards unsaved edits made in WPS. The command was refused and nothing was written, saved or closed. Save or close the document in WPS (or the program that holds the file) and retry. If the document is open in WPS, this command cannot change it, and there is no open-document tool that does the same. Save it in WPS (wps_agent_save_open_document) and close it there, then retry."
+    }
+  ],
+  "ok": false,
+  "request_id": "89b1e0d9-9a8e-402a-808b-09dd8ef77783",
+  "summary": "spreadsheet-sort could not complete.",
+  "validation": {
+    "checks": [
+      {
+        "details": null,
+        "name": "read_back",
+        "passed": false
+      }
+    ],
+    "status": "failed"
+  }
+}

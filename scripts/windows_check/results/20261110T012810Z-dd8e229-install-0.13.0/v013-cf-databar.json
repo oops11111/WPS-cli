@@ -1,0 +1,76 @@
+{
+  "backend": "wps-com",
+  "command": "spreadsheet-conditional-format",
+  "data": {
+    "backup": {
+      "backup_bytes": 9019,
+      "backup_path": ".wps-agent\\backups\\doc_4c372a4510f757a3\\c.20261110T013300952039Z.xlsx",
+      "component": "spreadsheets",
+      "created": true,
+      "document_id": "doc_4c372a4510f757a3",
+      "dry_run": false,
+      "source_identity": {
+        "file_device": 11882268654517892920,
+        "file_inode": 37717646879568324,
+        "source_sha256": "628AB1F817CC806DD334577AA08904FF9615182010017490D15B3258AB584B66"
+      },
+      "source_path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261110T012810Z-dd8e229-install-0.13.0\\work\\c.xlsx"
+    },
+    "backup_replayed": false,
+    "checks": {
+      "one_rule_added": true,
+      "rule_matches": true
+    },
+    "document_id": "doc_4c372a4510f757a3",
+    "dry_run": false,
+    "kind": "data-bar",
+    "normalized_range": "B2:B5",
+    "operator": null,
+    "path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261110T012810Z-dd8e229-install-0.13.0\\work\\c.xlsx",
+    "range": "B2:B5",
+    "read_back": {
+      "new_rules": [
+        {
+          "formula": [],
+          "operator": null,
+          "range": "B2:B5",
+          "type": "dataBar"
+        }
+      ],
+      "rules_on_sheet_after": 1
+    },
+    "replace": false,
+    "rules_on_sheet_before": 0,
+    "sheet_name": "数据",
+    "validation_passed": true,
+    "values": [],
+    "wps_report": {
+      "backend": "powershell-com",
+      "rules_after": 1,
+      "rules_before": 0,
+      "sheet_name": "数据",
+      "source_identity_after_com": {
+        "file_device": 11882268654517892920,
+        "file_inode": 5910974511558221,
+        "source_sha256": "9FC325E2CBCA5AFFD63D8B4C714B526EABF859F1F9C405538B56767D7E365088"
+      }
+    }
+  },
+  "errors": [],
+  "ok": true,
+  "request_id": "0b325d80-f8cc-4168-8abd-32125e0721b1",
+  "summary": "Added a data-bar rule to 数据!B2:B5.",
+  "validation": {
+    "checks": [
+      {
+        "details": {
+          "one_rule_added": true,
+          "rule_matches": true
+        },
+        "name": "read_back",
+        "passed": true
+      }
+    ],
+    "status": "passed"
+  }
+}

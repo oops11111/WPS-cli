@@ -1,0 +1,52 @@
+=== install.json ===
+{
+    "status":  "installed",
+    "version":  "0.13.0",
+    "installed_at":  "2026-11-10T09:29:48",
+    "python":  "C:\\Users\\admin\\AppData\\Roaming\\uv\\python\\cpython-3.12-windows-x86_64-none\\python.exe",
+    "executable":  "C:\\Users\\admin\\AppData\\Local\\wps-agent\\venv\\Scripts\\wps-agent.exe",
+    "node_path":  "C:\\Users\\admin\\AppData\\Local\\wps-agent\\node\\node_modules",
+    "ocr":  false,
+    "data_dir":  "C:\\Users\\admin\\AppData\\Local\\wps-agent-data"
+}
+
+=== registry (HKCU\Environment) ===
+Path [String] = C:\Users\admin\AppData\Local\Programs\Python\Python313;C:\Users\admin\AppData\Local\Programs\Python\Python313\Scripts;C:\Users\admin\AppData\Local\Programs\Python\Launcher\;C:\Users\admin\.local\bin;C:\Users\admin\.cargo\bin;C:\Users\admin\AppData\Local\Programs\Python\Python312\Scripts\;C:\Users\admin\AppData\Local\Programs\Python\Python312\;C:\Users\admin\AppData\Local\Microsoft\WindowsApps;C:\Program Files (x86)\Tencent\QQGameTempest\Hall.58195\;C:\Users\admin\AppData\Local\Programs\Microsoft VS Code\bin;C:\Users\admin\AppData\Local\Microsoft\WinGet\Links;C:\Users\admin\.dotnet\tools;C:\Users\admin\AppData\Roaming\npm;C:\Program Files\Git\bin;C:\Users\admin\AppData\Local\Microsoft\WinGet\Packages\Google.PlatformTools_Microsoft.Winget.Source_8wekyb3d8bbwe\platform-tools;C:\Users\admin\AppData\Local\Docker\cli;C:\Users\admin\.bun\bin;C:\Users\admin\bin;C:\Program Files (x86)\Microsoft Visual Studio\Installer;C:\Users\admin\AppData\Local\Programs\cursor\resources\app\bin;C:\Users\admin\AppData\Local\Temp\dotnetcli_m2dv\.dotnet\tools;C:\Program Files\Git\cmd;C:\Users\admin\AppData\Local\wps-agent\bin
+NODE_PATH [String] = C:\Users\admin\AppData\Local\wps-agent\node\node_modules
+
+=== PATH check (new process) ===
+entries containing wps-agent\bin: 1
+  C:\Users\admin\AppData\Local\wps-agent\bin
+NODE_PATH first entry: C:\Program Files\nodejs\node_modules
+
+=== Get-Command wps-agent (new process) ===
+Source: C:\Users\admin\AppData\Local\wps-agent\bin\wps-agent.cmd
+
+=== inspect-env (new process) === exit=0
+ok: True; validation: passed
+writer selected_prog_id: kwps.Application
+spreadsheets selected_prog_id: ket.Application
+presentation selected_prog_id: kwpp.Application
+
+=== Claude Desktop config: wps-agent entry ===
+server name: wps-agent
+{
+  "command": "C:\\Users\\admin\\AppData\\Local\\wps-agent\\venv\\Scripts\\wps-agent.exe",
+  "args": [
+    "mcp-server"
+  ],
+  "env": {
+    "NODE_PATH": "C:\\Users\\admin\\AppData\\Local\\wps-agent\\node\\node_modules",
+    "WPS_AGENT_WORKSPACE": "C:\\Users\\admin\\AppData\\Local\\wps-agent-data"
+  }
+}
+
+=== Claude Desktop config backups ===
+new backup from this install: claude_desktop_config.bak-20261110T092957.json
+all backups present:
+  claude_desktop_config.bak-20261109T102651.json
+  claude_desktop_config.bak-20261109T102842.json
+  claude_desktop_config.bak-20261109T103717.json
+  claude_desktop_config.bak-20261110T002346.json
+  claude_desktop_config.bak-20261110T070035.json
+  claude_desktop_config.bak-20261110T092957.json

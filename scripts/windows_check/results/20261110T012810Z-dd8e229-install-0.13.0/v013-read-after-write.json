@@ -1,0 +1,131 @@
+{
+  "backend": "local-python",
+  "command": "spreadsheet-read",
+  "data": {
+    "cell_metadata": [
+      [
+        {
+          "address": "A1",
+          "format_category": "text",
+          "is_date": false,
+          "number_format": "General",
+          "value_type": "s"
+        },
+        {
+          "address": "B1",
+          "format_category": "text",
+          "is_date": false,
+          "number_format": "General",
+          "value_type": "s"
+        }
+      ],
+      [
+        {
+          "address": "A2",
+          "format_category": "text",
+          "is_date": false,
+          "number_format": "General",
+          "value_type": "s"
+        },
+        {
+          "address": "B2",
+          "format_category": "number",
+          "is_date": false,
+          "number_format": "General",
+          "value_type": "n"
+        }
+      ],
+      [
+        {
+          "address": "A3",
+          "format_category": "text",
+          "is_date": false,
+          "number_format": "General",
+          "value_type": "s"
+        },
+        {
+          "address": "B3",
+          "format_category": "number",
+          "is_date": false,
+          "number_format": "General",
+          "value_type": "n"
+        }
+      ],
+      [
+        {
+          "address": "A4",
+          "format_category": "text",
+          "is_date": false,
+          "number_format": "General",
+          "value_type": "s"
+        },
+        {
+          "address": "B4",
+          "format_category": "number",
+          "is_date": false,
+          "number_format": "General",
+          "value_type": "n"
+        }
+      ],
+      [
+        {
+          "address": "A5",
+          "format_category": "text",
+          "is_date": false,
+          "number_format": "General",
+          "value_type": "s"
+        },
+        {
+          "address": "B5",
+          "format_category": "number",
+          "is_date": false,
+          "number_format": "General",
+          "value_type": "n"
+        }
+      ]
+    ],
+    "column_count": 2,
+    "component": "spreadsheets",
+    "document_id": "doc_4c372a4510f757a3",
+    "path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261110T012810Z-dd8e229-install-0.13.0\\work\\c.xlsx",
+    "range": "A1:B5",
+    "row_count": 5,
+    "sheet": "数据",
+    "values": [
+      [
+        "地区",
+        "销量"
+      ],
+      [
+        "华东",
+        120
+      ],
+      [
+        "华南",
+        90
+      ],
+      [
+        "西北",
+        150
+      ],
+      [
+        "华北",
+        60
+      ]
+    ]
+  },
+  "errors": [],
+  "ok": true,
+  "request_id": "eedcfe5e-c529-4086-87c3-7b07713ded35",
+  "summary": "Spreadsheet range read completed.",
+  "validation": {
+    "checks": [
+      {
+        "details": "A1:B5",
+        "name": "range_values_read",
+        "passed": true
+      }
+    ],
+    "status": "passed"
+  }
+}
