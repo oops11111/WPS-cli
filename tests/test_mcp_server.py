@@ -424,13 +424,15 @@ class McpServerTests(unittest.TestCase):
             self.assertEqual(first["ttlMs"], 300000)
             self.assertEqual(first["cacheScope"], "public")
             self.assertEqual(len(first["tools"]), MCP_TOOLS_PAGE_SIZE)
-            cursor = first["nextCursor"]
-
-            second = exchange("page-2", "tools/list", {"cursor": cursor})["result"]
-            self.assertEqual(second["ttlMs"], 300000)
-            self.assertEqual(second["cacheScope"], "public")
-            self.assertNotIn("nextCursor", second)
-            names = [tool["name"] for tool in first["tools"] + second["tools"]]
+            pages = [first]
+            while "nextCursor" in pages[-1]:
+                page = exchange(f"page-{len(pages) + 1}", "tools/list", {"cursor": pages[-1]["nextCursor"]})["result"]
+                self.assertEqual(page["ttlMs"], 300000)
+                self.assertEqual(page["cacheScope"], "public")
+                pages.append(page)
+            self.assertGreaterEqual(len(pages), 2)
+            self.assertTrue(all(len(page["tools"]) == MCP_TOOLS_PAGE_SIZE for page in pages[:-1]))
+            names = [tool["name"] for page in pages for tool in page["tools"]]
             self.assertEqual(names, expected_names)
             self.assertEqual(len(names), len(set(names)))
 

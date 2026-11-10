@@ -1,0 +1,67 @@
+{
+  "backend": "wps-com",
+  "command": "writer-style-apply",
+  "data": {
+    "backup": {
+      "backup_bytes": 19557,
+      "backup_path": ".wps-agent\\backups\\doc_b70c534e66f2a720\\报告.20261110T050956937981Z.docx",
+      "component": "writer",
+      "created": true,
+      "document_id": "doc_b70c534e66f2a720",
+      "dry_run": false,
+      "source_identity": {
+        "file_device": 11882268654517892920,
+        "file_inode": 11258999069658697,
+        "source_sha256": "7F498ACAABD46B9540CA4D7A891AACF6C57E23E9D5280250FF1547F92A9BF58D"
+      },
+      "source_path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261110T045945Z-76e1237-c06\\work\\报告.docx"
+    },
+    "backup_replayed": false,
+    "checks": {
+      "page_numbers": true,
+      "page_setup": true,
+      "paragraphs_styled": true,
+      "text_unchanged": true
+    },
+    "document_id": "doc_b70c534e66f2a720",
+    "dry_run": false,
+    "font_map": {},
+    "fonts_checked": true,
+    "fonts_needed": [
+      "宋体",
+      "黑体"
+    ],
+    "missing_fonts": [],
+    "paragraph_roles": {
+      "body": 4,
+      "heading1": 1,
+      "heading2": 1,
+      "heading3": 1,
+      "title": 1
+    },
+    "path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261110T045945Z-76e1237-c06\\work\\报告.docx",
+    "preset": "report",
+    "sections": 1,
+    "unstyled_paragraphs": [],
+    "validation_passed": true
+  },
+  "errors": [],
+  "ok": true,
+  "request_id": "r1",
+  "summary": "Applied the report preset to 8 paragraphs.",
+  "validation": {
+    "checks": [
+      {
+        "details": {
+          "page_numbers": true,
+          "page_setup": true,
+          "paragraphs_styled": true,
+          "text_unchanged": true
+        },
+        "name": "read_back",
+        "passed": true
+      }
+    ],
+    "status": "passed"
+  }
+}

@@ -1,0 +1,24 @@
+﻿screenshot: C:\Users\admin\.lody\repos\github---oops11111---wps-cli\worktrees\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\scripts\windows_check\results\20261110T045945Z-76e1237-c06\images.png (pid 37896, title '通知.docx - WPS 文字')
+inline shapes: 3; tables: 1; paragraphs: 18
+pages: 2
+p1: shapes=0 align=3 font=宋体 size=10.5 firstIndent=0 lineSpacing=12 rule=0 text='关于开展安全检查的通知'
+p2: shapes=0 align=3 font=宋体 size=22 firstIndent=0 lineSpacing=28.8 rule=5 text='一、总体要求'
+p3: shapes=0 align=3 font=宋体 size=10.5 firstIndent=0 lineSpacing=12 rule=0 text='为切实加强安全生产管理，落实各级责任，现就本次安全检查的...'
+p4: shapes=1 align=1 font=宋体 size=10.5 firstIndent=0 lineSpacing=12 rule=0 text='/'
+p5: shapes=0 align=1 font=宋体 size=10.5 firstIndent=0 lineSpacing=12 rule=0 text='图 1 现场照片'
+p6: shapes=0 align=3 font=黑体 size=16 firstIndent=0 lineSpacing=20.65 rule=5 text='（一）工作目标'
+p7: shapes=1 align=1 font=宋体 size=10.5 firstIndent=0 lineSpacing=12 rule=0 text='/'
+p8: shapes=0 align=3 font=宋体 size=10.5 firstIndent=0 lineSpacing=12 rule=0 text='本次工作目标是全面排查重点部位和关键环节，摸清风险底数，...'
+p9: shapes=0 align=3 font=宋体 size=16 firstIndent=0 lineSpacing=20.65 rule=5 text='1. 具体任务'
+p10: shapes=0 align=3 font=宋体 size=10.5 firstIndent=0 lineSpacing=12 rule=0 text='具体任务包括：开展现场巡查、核对台账资料、抽查值班记录，...'
+p11: shapes=0 align=3 font=宋体 size=10.5 firstIndent=0 lineSpacing=12 rule=0 text='任务'
+p12: shapes=0 align=3 font=宋体 size=10.5 firstIndent=0 lineSpacing=12 rule=0 text='负责人'
+p13: shapes=0 align=0 font=宋体 size=10 firstIndent=0 lineSpacing=12 rule=0 text=''
+p14: shapes=0 align=3 font=宋体 size=10.5 firstIndent=0 lineSpacing=12 rule=0 text='现场检查'
+p15: shapes=0 align=3 font=宋体 size=10.5 firstIndent=0 lineSpacing=12 rule=0 text='张三'
+p16: shapes=0 align=0 font=宋体 size=10 firstIndent=0 lineSpacing=12 rule=0 text=''
+p17: shapes=0 align=3 font=宋体 size=10.5 firstIndent=0 lineSpacing=12 rule=0 text=''
+p18: shapes=1 align=1 font=宋体 size=10.5 firstIndent=0 lineSpacing=12 rule=0 text='/'
+shape 1: width=226.5pt height=141pt type=3
+shape 2: width=414.75pt height=259.5pt type=3
+shape 3: width=141.75pt height=88.5pt type=3

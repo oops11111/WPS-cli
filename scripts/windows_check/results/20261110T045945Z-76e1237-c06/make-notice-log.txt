@@ -1,0 +1,6 @@
+﻿paragraph 2 style constant -2 ok
+paragraph 4 style constant -3 ok
+paragraph 6 style constant -4 ok
+paragraphs: 14; tables: 1
+footer text: '
+saved: C:\Users\admin\.lody\repos\github---oops11111---wps-cli\worktrees\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\scripts\windows_check\results\20261110T045945Z-76e1237-c06\work\通知.docx

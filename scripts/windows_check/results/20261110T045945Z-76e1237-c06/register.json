@@ -1,0 +1,30 @@
+{
+  "backend": "local-python",
+  "command": "register-document",
+  "data": {
+    "document": {
+      "component": "writer",
+      "document_id": "doc_8f1c3005de934f0a",
+      "exists": true,
+      "file_device": 11882268654517892920,
+      "file_inode": 2814749768338818,
+      "path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261110T045945Z-76e1237-c06\\work\\通知.docx",
+      "registered_at": "2026-11-10T05:00:20.116463+00:00",
+      "source_sha256": "4B7DF9D17D596033A42EA9CD817CDBA9A2EA753E7137D7422FD42CF6370E75B9"
+    }
+  },
+  "errors": [],
+  "ok": true,
+  "request_id": "06f4b8cb-da84-4c41-a1a9-cad7519f43f8",
+  "summary": "Document registered.",
+  "validation": {
+    "checks": [
+      {
+        "details": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261110T045945Z-76e1237-c06\\work\\通知.docx",
+        "name": "document_path_exists",
+        "passed": true
+      }
+    ],
+    "status": "passed"
+  }
+}

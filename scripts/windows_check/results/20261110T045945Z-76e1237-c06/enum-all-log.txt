@@ -1,0 +1,4 @@
+﻿virtual screen: 1536x864 at 0,0
+all OpusApp windows:
+  pid=27860 h=8587704 class=OpusApp title=通知.docx - WPS 文字 rect=0,0,472,259
+ActiveWindow.Hwnd=4394336

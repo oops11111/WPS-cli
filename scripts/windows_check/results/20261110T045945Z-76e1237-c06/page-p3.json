@@ -1,0 +1,98 @@
+{
+  "backend": "wps-com",
+  "command": "writer-page-setup",
+  "data": {
+    "backup": {
+      "backup_bytes": 24020,
+      "backup_path": ".wps-agent\\backups\\doc_8f1c3005de934f0a\\通知.20261110T050229499206Z.docx",
+      "component": "writer",
+      "created": true,
+      "document_id": "doc_8f1c3005de934f0a",
+      "dry_run": false,
+      "source_identity": {
+        "file_device": 11882268654517892920,
+        "file_inode": 2814749768338906,
+        "source_sha256": "15FB596492962E694935B2278AE0FB659279B81D950AF391F0D6AB2891601AE8"
+      },
+      "source_path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261110T045945Z-76e1237-c06\\work\\通知.docx"
+    },
+    "backup_replayed": false,
+    "before": [
+      {
+        "height_mm": 297.0,
+        "margins_mm": {
+          "bottom": 20.0,
+          "left": 31.8,
+          "right": 31.8,
+          "top": 25.4
+        },
+        "orientation": "portrait",
+        "width_mm": 210.0
+      }
+    ],
+    "checks": {
+      "sections_match": true
+    },
+    "document_id": "doc_8f1c3005de934f0a",
+    "dry_run": false,
+    "expected": [
+      {
+        "height_mm": 260.0,
+        "margins_mm": {
+          "bottom": 20.0,
+          "left": 31.8,
+          "right": 31.8,
+          "top": 25.4
+        },
+        "orientation": "portrait",
+        "width_mm": 184.0
+      }
+    ],
+    "margins_mm": {},
+    "orientation": null,
+    "paper": "16K",
+    "path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261110T045945Z-76e1237-c06\\work\\通知.docx",
+    "read_back": {
+      "after": [
+        {
+          "height_mm": 260.0,
+          "margins_mm": {
+            "bottom": 20.0,
+            "left": 31.8,
+            "right": 31.8,
+            "top": 25.4
+          },
+          "orientation": "portrait",
+          "width_mm": 184.0
+        }
+      ]
+    },
+    "sections": 1,
+    "validation_passed": true,
+    "wps_report": {
+      "backend": "powershell-com",
+      "sections": 1,
+      "source_identity_after_com": {
+        "file_device": 11882268654517892920,
+        "file_inode": 2533274791628260,
+        "source_sha256": "F8FE63A66B8623DE3F758AF0A4618337A46CC4D1DA6DD6B9DE02509C7C1B3FE3"
+      }
+    }
+  },
+  "errors": [],
+  "ok": true,
+  "request_id": "p3",
+  "summary": "Page setup applied to 1 sections.",
+  "validation": {
+    "checks": [
+      {
+        "details": {
+          "sections_match": true
+        },
+        "name": "read_back",
+        "passed": true
+      }
+    ],
+    "status": "passed"
+  }
+}

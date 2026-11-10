@@ -68,7 +68,7 @@ python -m wps_ai_agent_cli performance-baseline
 | `smoke` | `wps_agent_com_smoke`, `wps_agent_calc_smoke`, `wps_agent_convert_smoke`, `wps_agent_writer_table_smoke` |
 | `documents` | `wps_agent_register_document`, `wps_agent_document_new`, `wps_agent_documents`, `wps_agent_open_documents`, `wps_agent_save_open_document` |
 | `safety` | `wps_agent_backup_document`, `wps_agent_list_backups`, `wps_agent_restore_backup` |
-| `writer` | `wps_agent_writer_replace`, `wps_agent_writer_merge`, `wps_agent_writer_table_write` |
+| `writer` | `wps_agent_writer_replace`, `wps_agent_writer_merge`, `wps_agent_writer_table_write`, `wps_agent_writer_insert_image`, `wps_agent_writer_page_setup`, `wps_agent_writer_style_apply` |
 | `spreadsheet` | `wps_agent_spreadsheet_read`, `wps_agent_spreadsheet_write`, `wps_agent_spreadsheet_formula_write`, `wps_agent_spreadsheet_sheets`, `wps_agent_spreadsheet_rename_sheet`, `wps_agent_spreadsheet_create_sheet`, `wps_agent_spreadsheet_set_sheet_visibility`, `wps_agent_spreadsheet_delete_sheet`, `wps_agent_spreadsheet_copy_sheet`, `wps_agent_spreadsheet_set_sheet_tab_color`, `wps_agent_spreadsheet_chart_create`, `wps_agent_spreadsheet_sort`, `wps_agent_spreadsheet_conditional_format`, `wps_agent_spreadsheet_data_validation` |
 | `pdf` | `wps_agent_pdf_info`, `wps_agent_pdf_merge`, `wps_agent_pdf_split`, `wps_agent_pdf_extract_pages`, `wps_agent_pdf_watermark` |
 | `presentation` | `wps_agent_presentation_replace` |

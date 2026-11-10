@@ -1,0 +1,34 @@
+{
+  "backend": "local-python",
+  "command": "writer-insert-image",
+  "data": {
+    "after_paragraph": 3,
+    "after_paragraph_text": "为切实加强安全生产管理，落实各级责任，现就本次安全检查的总体要求作出如下安排：各单位要高度重视，对照检查清单逐项自查，发现问题立即整改，确保不留死角、不走过场，",
+    "caption": "图 1 现场照片",
+    "document_id": "doc_8f1c3005de934f0a",
+    "dry_run": true,
+    "height_mm": 50.0,
+    "image_path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261110T045945Z-76e1237-c06\\work\\图.png",
+    "natural_size_mm": [
+      211.7,
+      132.3
+    ],
+    "path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261110T045945Z-76e1237-c06\\work\\通知.docx",
+    "text_width_mm": 146.5,
+    "width_mm": 80.0
+  },
+  "errors": [],
+  "ok": true,
+  "request_id": "b2c7c8ab-1433-4dec-ae4f-c32db8653f14",
+  "summary": "writer-insert-image preview completed.",
+  "validation": {
+    "checks": [
+      {
+        "details": null,
+        "name": "read_back",
+        "passed": true
+      }
+    ],
+    "status": "passed"
+  }
+}

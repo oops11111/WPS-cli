@@ -1,0 +1,13 @@
+=== exit codes ===
+writer-insert-image --at-paragraph 3 --dry-run => 0
+writer-insert-image --at-paragraph 3 (i1) => 0 (checks 4/4 true)
+writer-insert-image --after-text 工作目标 (i2) => 0 (checks 4/4 true)
+writer-insert-image --at-end --width-mm 50 (i3) => 0 (checks 4/4 true)
+writer-page-setup p1 (landscape) => 0 (sections_match true)
+writer-page-setup p2 (portrait, margins) => 0 (sections_match true)
+writer-page-setup p3 (16K) => 0 (sections_match true)
+writer-style-apply gongwen --dry-run => 1 (FONT_NOT_INSTALLED, expected: dry-run reports missing fonts)
+writer-style-apply gongwen without font-map => 1 (FONT_NOT_INSTALLED; file hash unchanged)
+writer-style-apply gongwen with font-map => 0 (checks 4/4 true)
+writer-style-apply report (r1) => 0 (checks 4/4 true)
+writer-style-apply report while open in WPS => 1 (DOCUMENT_HELD_OPEN)
