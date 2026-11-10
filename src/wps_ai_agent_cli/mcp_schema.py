@@ -776,6 +776,96 @@ MCP_TOOL_SCHEMAS: tuple[dict[str, Any], ...] = (
         ],
     ),
     _tool(
+        "wps_agent_writer_insert_image",
+        "writer-insert-image",
+        "Insert a picture",
+        "Insert a picture file (png, jpg, gif, bmp) into a registered .docx through WPS, inline in its own centred "
+        "paragraph after body paragraph N, after the first paragraph containing some text, or at the end. width_mm "
+        "sets the width with the height in proportion; by default the picture keeps its own size, at most the text "
+        "width. An optional caption goes below it (宋体 五号, centred; write the number into the text). The saved "
+        "file is read back: one more picture, in that place, at that width, the other paragraphs unchanged.",
+        "writer",
+        required=["document_id", "image"],
+        properties={
+            "document_id": _string("Registered writer document_id (.docx)."),
+            "image": _string("Picture file path."),
+            "at_paragraph": _integer("Insert after body paragraph N (1-based).", minimum=1),
+            "after_text": _string("Insert after the first body paragraph containing this text."),
+            "at_end": _boolean("Insert at the end of the document."),
+            "width_mm": {"type": "number", "description": "Width in millimetres; the height stays in proportion."},
+            "caption": _string("Caption below the picture, such as 图 1 销售趋势."),
+            "dry_run": _boolean("Report the position and size without writing."),
+            "task_id": _string("Optional long-running task status id."),
+        },
+        mutates_document=True,
+        requires_wps=True,
+        idempotency="Mutating command; request_id is bound to document, picture, caption and dry_run.",
+        safety_notes=[
+            "Only one running WPS instance can be attached. When more than one WPS process of the component has a main window (in this user session) and the document is not already open in the attached instance, the command refuses and lists the pids and window titles; close the extra WPS windows, or set WPS_AGENT_ALLOW_MULTI_INSTANCE=1 to skip this check. Extra background processes without a window do not block the command; they add a warning to the result.",
+            "Works in the running WPS instance when there is one. A document that is not open yet is opened there only for the duration of the command (its window may briefly appear) and closed again afterwards; a document that was already open is never closed.",
+            "Creates a backup before the WPS change and restores it when the picture does not read back in place.",
+            "Give exactly one of at_paragraph, after_text or at_end.",
+        ],
+    ),
+    _tool(
+        "wps_agent_writer_page_setup",
+        "writer-page-setup",
+        "Set up the page",
+        "Set the paper (A4, A3, A5, Letter, Legal, 16K), orientation and margins of every section of a registered "
+        ".docx through WPS. The result lists each section's values before and after, read back from the saved file.",
+        "writer",
+        required=["document_id"],
+        properties={
+            "document_id": _string("Registered writer document_id (.docx)."),
+            "paper": _string("Paper size.", ["A4", "A3", "A5", "Letter", "Legal", "16K"]),
+            "orientation": _string("Page orientation.", ["portrait", "landscape"]),
+            "margin_top_mm": {"type": "number", "description": "Top margin in millimetres."},
+            "margin_bottom_mm": {"type": "number", "description": "Bottom margin in millimetres."},
+            "margin_left_mm": {"type": "number", "description": "Left margin in millimetres."},
+            "margin_right_mm": {"type": "number", "description": "Right margin in millimetres."},
+            "dry_run": _boolean("Report the current and new values without writing."),
+            "task_id": _string("Optional long-running task status id."),
+        },
+        mutates_document=True,
+        requires_wps=True,
+        idempotency="Mutating command; request_id is bound to document, paper, orientation and dry_run.",
+        safety_notes=[
+            "Only one running WPS instance can be attached. When more than one WPS process of the component has a main window (in this user session) and the document is not already open in the attached instance, the command refuses and lists the pids and window titles; close the extra WPS windows, or set WPS_AGENT_ALLOW_MULTI_INSTANCE=1 to skip this check. Extra background processes without a window do not block the command; they add a warning to the result.",
+            "Works in the running WPS instance when there is one. A document that is not open yet is opened there only for the duration of the command (its window may briefly appear) and closed again afterwards; a document that was already open is never closed.",
+            "Creates a backup before the WPS change and restores it when a section does not read back as requested.",
+            "Applies to every section; headers, footers and their distances are left alone.",
+        ],
+    ),
+    _tool(
+        "wps_agent_writer_style_apply",
+        "writer-style-apply",
+        "Apply a style preset",
+        "Format a registered .docx with a preset, without changing its text: gongwen (GB/T 9704: A4, margins 37/35/"
+        "28/26 mm, title 方正小标宋简体 二号 centred, headings 黑体 / 楷体_GB2312 / 仿宋_GB2312 三号, body 仿宋_GB2312 三号 "
+        "at an exact 28 pt with a 2-character indent, page numbers 宋体 四号) or report (A4, margins 25/25/28/26 mm, "
+        "黑体 headings, body 宋体 小四 at 1.5 lines). The title is the first non-empty paragraph; headings 1-3 come from "
+        "outline levels or heading styles. Missing fonts are listed and refused unless mapped (font_map) or allowed. "
+        "Writes the file directly (not through WPS): close the document in WPS first.",
+        "writer",
+        required=["document_id", "preset"],
+        properties={
+            "document_id": _string("Registered writer document_id (.docx)."),
+            "preset": _string("Style preset.", ["gongwen", "report"]),
+            "font_map": _array("Use an installed font instead of a missing one, such as 方正小标宋简体=宋体."),
+            "allow_missing_fonts": _boolean("Keep the preset's font names even when they are not installed."),
+            "dry_run": _boolean("Report the paragraph roles found and the fonts needed."),
+            "task_id": _string("Optional long-running task status id."),
+        },
+        mutates_document=True,
+        idempotency="Mutating command; request_id is bound to document, preset and dry_run.",
+        safety_notes=[
+            "Takes a backup, replaces the file atomically, reads every styled paragraph, the page setup and the page "
+            "numbers back, and restores the backup if they differ or the text changed.",
+            "Refuses a document WPS holds open (DOCUMENT_HELD_OPEN), and missing fonts (FONT_NOT_INSTALLED) unless "
+            "mapped or allowed; fonts are never substituted silently.",
+        ],
+    ),
+    _tool(
         "wps_agent_writer_fill_bookmark",
         "writer-fill-bookmark",
         "Fill Writer bookmark",

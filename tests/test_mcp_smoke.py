@@ -89,15 +89,11 @@ class McpSmokeTests(unittest.TestCase):
             len(list_mcp_tool_schemas()),
         )
         self.assertGreater(result["checks"][1]["details"]["page_count"], 1)
-        self.assertEqual(result["responses"]["tools_list"]["page_count"], 2)
-        self.assertEqual(
-            result["responses"]["tools_list"]["pages"][0]["tool_count"],
-            50,
-        )
-        self.assertEqual(
-            result["responses"]["tools_list"]["pages"][1]["tool_count"],
-            len(list_mcp_tool_schemas()) - 50,
-        )
+        total = len(list_mcp_tool_schemas())
+        pages = result["responses"]["tools_list"]["pages"]
+        self.assertEqual(result["responses"]["tools_list"]["page_count"], -(-total // 50))
+        self.assertTrue(all(page["tool_count"] == 50 for page in pages[:-1]))
+        self.assertEqual(pages[-1]["tool_count"], total - 50 * (len(pages) - 1))
         self.assertEqual(
             result["responses"]["tools_call"]["result"]["structuredContent"]["mcp_call"]["response"]["command"],
             "tasks",

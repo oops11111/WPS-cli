@@ -113,10 +113,13 @@ from .cli_spreadsheet import (  # noqa: F401
 )
 from .cli_writer import (  # noqa: F401
     writer_fill_bookmark_response,
+    writer_insert_image_response,
     writer_merge_response,
+    writer_page_setup_response,
     writer_replace_response,
     writer_structure_parity_response,
     writer_structure_response,
+    writer_style_apply_response,
     writer_table_smoke_response,
     writer_table_write_response,
 )

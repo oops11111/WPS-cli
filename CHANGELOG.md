@@ -4,6 +4,13 @@ All notable changes to `wps-ai-agent-cli`. The versioning rule and release steps
 
 ## [Unreleased]
 
+### Added
+
+- C-06, three Writer commands from the list settled on 2026-11-10 (98 to 101 tools):
+  - `writer-insert-image`: a png/jpg/gif/bmp inline in its own centred paragraph after body paragraph N, after the first paragraph containing a text, or at the end; `--width-mm` with the height in proportion (default: the picture's own size, at most the text width); optional caption below in 宋体 五号. Through WPS (`InlineShapes.AddPicture`), read back: one more picture, in that place, at that width, the other paragraphs unchanged.
+  - `writer-page-setup`: paper (A4, A3, A5, Letter, Legal, 16K = 184 x 260 mm), orientation and margins for every section, through WPS; the result lists each section before and after, read back from the file.
+  - `writer-style-apply --preset gongwen|report`: the GB/T 9704 official-document preset and an internal-report preset (fonts, sizes, bold, line spacing, first-line indent, alignment, paper, margins, centred page numbers), without changing the text. Offline like writer-merge (the document must be closed in WPS), with backup, atomic replace, read-back of every styled paragraph and rollback. Fonts that are not installed are listed and refused (`FONT_NOT_INSTALLED`) unless mapped with `--font-map` or kept with `--allow-missing-fonts`.
+
 ## [0.13.0] - 2026-11-10
 
 Sort, conditional formatting and data validation for spreadsheets (C-05), checked on WPS; after a rolled-back write the document no longer has to be registered again. No existing command or argument changes; the MCP tool count goes from 95 to 98.

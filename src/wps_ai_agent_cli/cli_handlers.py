@@ -380,6 +380,59 @@ def build_command_handlers(
             document_id=args.document_id,
         )
 
+    def _handle_writer_insert_image(
+        args: argparse.Namespace, request_id: str, output_stream: TextIO | None
+    ) -> CommandResponse:
+        return cli._with_optional_task_status(
+            lambda: cli.writer_insert_image_response(
+                request_id,
+                args.document_id,
+                image_path=args.image,
+                at_paragraph=args.at_paragraph,
+                after_text=args.after_text,
+                at_end=args.at_end,
+                width_mm=args.width_mm,
+                caption=args.caption,
+                dry_run=args.dry_run,
+            ),
+            task_id=args.task_id,
+            tracked_command="writer-insert-image",
+            operation_request_id=request_id,
+            document_id=args.document_id,
+        )
+
+    def _handle_writer_page_setup(
+        args: argparse.Namespace, request_id: str, output_stream: TextIO | None
+    ) -> CommandResponse:
+        margins = {side: getattr(args, f"margin_{side}_mm") for side in ("top", "bottom", "left", "right")}
+        return cli._with_optional_task_status(
+            lambda: cli.writer_page_setup_response(
+                request_id,
+                args.document_id,
+                paper=args.paper,
+                orientation=args.orientation,
+                margins_mm=margins,
+                dry_run=args.dry_run,
+            ),
+            task_id=args.task_id,
+            tracked_command="writer-page-setup",
+            operation_request_id=request_id,
+            document_id=args.document_id,
+        )
+
+    def _handle_writer_style_apply(
+        args: argparse.Namespace, request_id: str, output_stream: TextIO | None
+    ) -> CommandResponse:
+        return cli._with_optional_task_status(
+            lambda: cli.writer_style_apply_response(
+                request_id, args.document_id, args.preset, args.font_map, args.allow_missing_fonts, args.dry_run
+            ),
+            task_id=args.task_id,
+            tracked_command="writer-style-apply",
+            operation_request_id=request_id,
+            document_id=args.document_id,
+        )
+
     def _handle_writer_fill_bookmark(
         args: argparse.Namespace, request_id: str, output_stream: TextIO | None
     ) -> CommandResponse:
@@ -1135,6 +1188,9 @@ def build_command_handlers(
         "restore-backup": _handle_restore_backup,
         "writer-replace": _handle_writer_replace,
         "writer-merge": _handle_writer_merge,
+        "writer-insert-image": _handle_writer_insert_image,
+        "writer-page-setup": _handle_writer_page_setup,
+        "writer-style-apply": _handle_writer_style_apply,
         "writer-fill-bookmark": _handle_writer_fill_bookmark,
         "writer-table-write": _handle_writer_table_write,
         "open-documents": _handle_open_documents,

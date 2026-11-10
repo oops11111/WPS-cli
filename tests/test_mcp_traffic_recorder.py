@@ -64,13 +64,16 @@ class RecorderRelayTests(unittest.TestCase):
             )
             self.assertEqual(initialize["result"]["protocolVersion"], PROTOCOL)
             recorder_process.stdin.write(_line({"jsonrpc": "2.0", "method": "notifications/initialized"}))
-            first = ask({"jsonrpc": "2.0", "id": 2, "method": "tools/list", "params": {}})
-            cursor = first["result"]["nextCursor"]
-            second = ask({"jsonrpc": "2.0", "id": 3, "method": "tools/list", "params": {"cursor": cursor}})
+            pages = [ask({"jsonrpc": "2.0", "id": 2, "method": "tools/list", "params": {}})]
+            while "nextCursor" in pages[-1]["result"]:
+                cursor = pages[-1]["result"]["nextCursor"]
+                pages.append(
+                    ask({"jsonrpc": "2.0", "id": 2 + len(pages), "method": "tools/list", "params": {"cursor": cursor}})
+                )
             call = ask(
                 {
                     "jsonrpc": "2.0",
-                    "id": 4,
+                    "id": 100,
                     "method": "tools/call",
                     "params": {"name": "wps_agent_tasks", "arguments": {"phase": "phase4"}},
                 }
@@ -86,8 +89,9 @@ class RecorderRelayTests(unittest.TestCase):
         self.assertEqual(summary["negotiated_protocol"], PROTOCOL)
         self.assertEqual(summary["server_info"]["name"], "wps-ai-agent-cli")
         self.assertTrue(summary["initialized_notification"])
-        self.assertEqual(len(summary["tools_list_pages"]), 2)
-        self.assertEqual(summary["tools_listed"], len(first["result"]["tools"]) + len(second["result"]["tools"]))
+        self.assertGreaterEqual(len(pages), 2)
+        self.assertEqual(len(summary["tools_list_pages"]), len(pages))
+        self.assertEqual(summary["tools_listed"], sum(len(page["result"]["tools"]) for page in pages))
         self.assertTrue(summary["all_pages_read"])
         self.assertEqual(
             summary["tool_calls"],

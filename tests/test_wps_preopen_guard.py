@@ -14,6 +14,7 @@ from wps_ai_agent_cli import (
     spreadsheet_ops,
     spreadsheet_tools,
     writer_ops,
+    writer_tools,
 )
 from wps_ai_agent_cli.wps_script_snippets import PRE_OPEN_GUARD
 
@@ -94,6 +95,41 @@ def mutating_cases(path):
                     "allow_blank": True,
                     "input_message": "",
                     "error_message": "",
+                },
+            ),
+        ),
+        (
+            "writer_insert_image",
+            writer_tools,
+            lambda: writer_tools._run_insert_image_com(
+                path,
+                {
+                    "image_path": path,
+                    "width_pt": 100.0,
+                    "caption": "图 1",
+                    "paragraph_index": 1,
+                    "body_paragraph_count": 1,
+                    "expected_text": "",
+                },
+            ),
+        ),
+        (
+            "writer_page_setup",
+            writer_tools,
+            lambda: writer_tools._run_page_setup_com(
+                path,
+                {
+                    "sections": [
+                        {
+                            "orientation": 0,
+                            "width_pt": 595.0,
+                            "height_pt": 842.0,
+                            "top_pt": 72.0,
+                            "bottom_pt": 72.0,
+                            "left_pt": 72.0,
+                            "right_pt": 72.0,
+                        }
+                    ]
                 },
             ),
         ),

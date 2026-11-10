@@ -1560,6 +1560,44 @@
         "required": true
       }
     ],
+    "writer-insert-image": [
+      {
+        "name": "--after-text",
+        "required": false
+      },
+      {
+        "name": "--at-end",
+        "required": false
+      },
+      {
+        "name": "--at-paragraph",
+        "required": false
+      },
+      {
+        "name": "--caption",
+        "required": false
+      },
+      {
+        "name": "--document-id",
+        "required": true
+      },
+      {
+        "name": "--dry-run",
+        "required": false
+      },
+      {
+        "name": "--image",
+        "required": true
+      },
+      {
+        "name": "--task-id",
+        "required": false
+      },
+      {
+        "name": "--width-mm",
+        "required": false
+      }
+    ],
     "writer-merge": [
       {
         "name": "--data-file",
@@ -1580,6 +1618,56 @@
       {
         "name": "--require-all",
         "required": false
+      },
+      {
+        "name": "--task-id",
+        "required": false
+      }
+    ],
+    "writer-page-setup": [
+      {
+        "name": "--document-id",
+        "required": true
+      },
+      {
+        "name": "--dry-run",
+        "required": false
+      },
+      {
+        "name": "--margin-bottom-mm",
+        "required": false
+      },
+      {
+        "name": "--margin-left-mm",
+        "required": false
+      },
+      {
+        "name": "--margin-right-mm",
+        "required": false
+      },
+      {
+        "name": "--margin-top-mm",
+        "required": false
+      },
+      {
+        "name": "--orientation",
+        "required": false,
+        "choices": [
+          "landscape",
+          "portrait"
+        ]
+      },
+      {
+        "name": "--paper",
+        "required": false,
+        "choices": [
+          "16K",
+          "A3",
+          "A4",
+          "A5",
+          "Legal",
+          "Letter"
+        ]
       },
       {
         "name": "--task-id",
@@ -1744,6 +1832,36 @@
       },
       {
         "name": "--timeout-seconds",
+        "required": false
+      }
+    ],
+    "writer-style-apply": [
+      {
+        "name": "--allow-missing-fonts",
+        "required": false
+      },
+      {
+        "name": "--document-id",
+        "required": true
+      },
+      {
+        "name": "--dry-run",
+        "required": false
+      },
+      {
+        "name": "--font-map",
+        "required": false
+      },
+      {
+        "name": "--preset",
+        "required": true,
+        "choices": [
+          "gongwen",
+          "report"
+        ]
+      },
+      {
+        "name": "--task-id",
         "required": false
       }
     ],
@@ -3031,6 +3149,26 @@
         "text"
       ]
     },
+    "wps_agent_writer_insert_image": {
+      "cli_command": "writer-insert-image",
+      "mutates_document": true,
+      "parameters": [
+        "after_text",
+        "at_end",
+        "at_paragraph",
+        "caption",
+        "document_id",
+        "dry_run",
+        "image",
+        "request_id",
+        "task_id",
+        "width_mm"
+      ],
+      "required": [
+        "document_id",
+        "image"
+      ]
+    },
     "wps_agent_writer_merge": {
       "cli_command": "writer-merge",
       "mutates_document": true,
@@ -3041,6 +3179,25 @@
         "dry_run",
         "request_id",
         "require_all",
+        "task_id"
+      ],
+      "required": [
+        "document_id"
+      ]
+    },
+    "wps_agent_writer_page_setup": {
+      "cli_command": "writer-page-setup",
+      "mutates_document": true,
+      "parameters": [
+        "document_id",
+        "dry_run",
+        "margin_bottom_mm",
+        "margin_left_mm",
+        "margin_right_mm",
+        "margin_top_mm",
+        "orientation",
+        "paper",
+        "request_id",
         "task_id"
       ],
       "required": [
@@ -3153,6 +3310,23 @@
       ],
       "required": []
     },
+    "wps_agent_writer_style_apply": {
+      "cli_command": "writer-style-apply",
+      "mutates_document": true,
+      "parameters": [
+        "allow_missing_fonts",
+        "document_id",
+        "dry_run",
+        "font_map",
+        "preset",
+        "request_id",
+        "task_id"
+      ],
+      "required": [
+        "document_id",
+        "preset"
+      ]
+    },
     "wps_agent_writer_table_smoke": {
       "cli_command": "writer-table-smoke",
       "mutates_document": true,
@@ -3249,6 +3423,7 @@
     "EXPORT_OUTPUT_NOT_TEXT",
     "FILE_CONVERSION_FAILED",
     "FIND_TEXT_TOO_LONG",
+    "FONT_NOT_INSTALLED",
     "FORMAT_NOT_SUPPORTED_BY_WPS",
     "FORMULA_FUNCTION_NOT_ALLOWED",
     "FORMULA_PREFIX_REJECTED",

@@ -7,12 +7,14 @@ from pathlib import Path
 
 from .artifacts import write_json_artifact
 from .cli_common import BACKEND
+from .cli_spreadsheet import _sheet_tool_response
 from .models import CommandResponse, ValidationResult
 from .writer_inspect import inspect_writer_structure
 from .writer_merge import writer_merge
 from .writer_ops import writer_fill_bookmark, writer_replace, writer_table_write
 from .writer_structure_parity import run_writer_structure_parity
 from .writer_table_smoke import run_writer_table_smoke
+from .writer_tools import apply_writer_style, insert_writer_image, set_writer_page_setup
 
 
 def writer_table_smoke_response(
@@ -67,6 +69,59 @@ def writer_table_smoke_response(
             ],
         ),
         errors=result["errors"],
+    )
+
+
+def _font_map(items: list[str] | None) -> dict[str, str]:
+    mapping = {}
+    for item in items or []:
+        name, _, replacement = str(item).partition("=")
+        if name.strip() and replacement.strip():
+            mapping[name.strip()] = replacement.strip()
+    return mapping
+
+
+def writer_insert_image_response(request_id: str, document_id: str, **options) -> CommandResponse:
+    outcome = insert_writer_image(document_id, request_id=request_id, **options)
+    data = outcome[1]
+    return _sheet_tool_response(
+        "writer-insert-image",
+        request_id,
+        outcome,
+        options.get("dry_run", False),
+        f"Inserted the picture after paragraph {data.get('after_paragraph')}, {data.get('width_mm')} mm wide.",
+    )
+
+
+def writer_page_setup_response(request_id: str, document_id: str, **options) -> CommandResponse:
+    outcome = set_writer_page_setup(document_id, request_id=request_id, **options)
+    return _sheet_tool_response(
+        "writer-page-setup",
+        request_id,
+        outcome,
+        options.get("dry_run", False),
+        f"Page setup applied to {outcome[1].get('sections')} sections.",
+    )
+
+
+def writer_style_apply_response(
+    request_id: str, document_id: str, preset: str, font_map: list[str] | None, allow_missing_fonts: bool, dry_run: bool
+) -> CommandResponse:
+    outcome = apply_writer_style(
+        document_id,
+        preset,
+        request_id,
+        font_map=_font_map(font_map),
+        allow_missing_fonts=allow_missing_fonts,
+        dry_run=dry_run,
+    )
+    roles = outcome[1].get("paragraph_roles", {})
+    return _sheet_tool_response(
+        "writer-style-apply",
+        request_id,
+        outcome,
+        dry_run,
+        f"Applied the {preset} preset to {sum(roles.values())} paragraphs.",
     )
 
 

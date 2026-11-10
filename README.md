@@ -1,6 +1,6 @@
 # WPS AI Agent CLI
 
-`wps-agent` 让 AI 助手读写和转换 WPS 文档。它通过 MCP 把九十多个工具交给 Claude Desktop、Claude Code 等客户端，也可以直接在命令行里用。
+`wps-agent` 让 AI 助手读写和转换 WPS 文档。它通过 MCP 把一百多个工具交给 Claude Desktop、Claude Code 等客户端，也可以直接在命令行里用。
 
 > 先分清三个同名项目：本项目是 `wps-agent`（PyPI 包名 `wps-ai-agent-cli`），不是金山官方的 `wpscli`（转换为主、带云端服务），也不是社区的 jjchen17/wps-cli（命令为 `wps`、`pip install wps-cli` 装到的是它）。本项目的特点是操作 WPS 里已打开的文档，并为每次写入提供备份、读回核对与失败恢复。
 

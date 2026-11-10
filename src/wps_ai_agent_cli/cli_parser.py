@@ -426,6 +426,59 @@ def _add_document_commands(subparsers: argparse._SubParsersAction) -> None:
     merge_parser.add_argument("--dry-run", action="store_true", help="List the placeholders without changing the file.")
     merge_parser.add_argument("--task-id", help="Optional long-running task status id to update.")
 
+    image_parser = subparsers.add_parser(
+        "writer-insert-image",
+        help="Insert a picture (inline, own paragraph) after a body paragraph, with an optional caption below.",
+    )
+    image_parser.add_argument("--document-id", required=True, help="Registered writer document_id (.docx).")
+    image_parser.add_argument("--image", required=True, help="Picture file: png, jpg, jpeg, gif or bmp.")
+    image_place = image_parser.add_mutually_exclusive_group(required=True)
+    image_place.add_argument("--at-paragraph", type=int, help="Insert after body paragraph N (1-based).")
+    image_place.add_argument("--after-text", help="Insert after the first body paragraph containing this text.")
+    image_place.add_argument("--at-end", action="store_true", help="Insert at the end of the document.")
+    image_parser.add_argument(
+        "--width-mm",
+        type=float,
+        help="Width in mm, height kept in proportion; default the picture's own, at most the text width.",
+    )
+    image_parser.add_argument(
+        "--caption", help="Caption paragraph below the picture (宋体 五号, centred); numbering is yours."
+    )
+    image_parser.add_argument("--dry-run", action="store_true", help="Report the position and size without writing.")
+    image_parser.add_argument("--task-id", help="Optional long-running task status id to update.")
+
+    page_parser = subparsers.add_parser(
+        "writer-page-setup", help="Set paper, orientation and margins of every section, with backup and read-back."
+    )
+    page_parser.add_argument("--document-id", required=True, help="Registered writer document_id (.docx).")
+    page_parser.add_argument("--paper", choices=["A4", "A3", "A5", "Letter", "Legal", "16K"], help="Paper size.")
+    page_parser.add_argument("--orientation", choices=["portrait", "landscape"], help="Page orientation.")
+    for side in ("top", "bottom", "left", "right"):
+        page_parser.add_argument(f"--margin-{side}-mm", type=float, help=f"{side.capitalize()} margin in mm.")
+    page_parser.add_argument(
+        "--dry-run", action="store_true", help="Report the current and new values without writing."
+    )
+    page_parser.add_argument("--task-id", help="Optional long-running task status id to update.")
+
+    style_parser = subparsers.add_parser(
+        "writer-style-apply",
+        help="Apply the gongwen (GB/T 9704) or report preset: fonts, sizes, spacing, indents, paper, margins, page numbers.",
+    )
+    style_parser.add_argument("--document-id", required=True, help="Registered writer document_id (.docx).")
+    style_parser.add_argument("--preset", required=True, choices=["gongwen", "report"], help="Style preset.")
+    style_parser.add_argument(
+        "--font-map",
+        action="append",
+        help="Use an installed font instead of a missing one: 方正小标宋简体=宋体 (repeat).",
+    )
+    style_parser.add_argument(
+        "--allow-missing-fonts",
+        action="store_true",
+        help="Keep the preset's font names even when they are not installed.",
+    )
+    style_parser.add_argument("--dry-run", action="store_true", help="Report the roles found and the fonts needed.")
+    style_parser.add_argument("--task-id", help="Optional long-running task status id to update.")
+
     bookmark_fill_parser = subparsers.add_parser(
         "writer-fill-bookmark",
         help="Fill a unique supported body or direct table-cell bookmark with backup and read-back validation.",
