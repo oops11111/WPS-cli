@@ -20,7 +20,7 @@ from typing import Any
 from .backups import _backup_dir, _verify_backup_integrity, last_after_com_identity, restore_file_atomically
 from .errors import COM_OPERATION_FAILED, ROLLBACK_BLOCKED, ROLLBACK_FAILED, ROLLED_BACK
 from .operations import get_operation
-from .sessions import file_identity, get_document
+from .sessions import file_identity, get_document, refresh_document_identity
 
 # Failures after which the file is not this command's to restore: it did not write (the source or its backup changed
 # before WPS was called, the registration no longer matches the file), the request is an earlier one replayed
@@ -89,6 +89,25 @@ def _rollback_error(document_id: str, backup_file: str, reason: str) -> dict[str
     }
 
 
+def _refresh_registration(document: dict[str, Any], workspace: str | Path) -> dict[str, Any]:
+    """Point the registration at the file as it is now, when it holds the content that was registered.
+
+    Restoring the backup replaces the file (a new inode), so its identity no longer matched the registration and the
+    next command refused with DOCUMENT_IDENTITY_CHANGED until the document was registered again. The content is the
+    registered content, so only the file's place on disk is updated; any other content is left for the user to judge.
+    """
+    try:
+        current = file_identity(Path(document["path"]))
+        if str(current["source_sha256"]).upper() != str(document.get("source_sha256", "")).upper():
+            return {"registration_refreshed": False, "registration_reason": "the content differs from the registration"}
+        if all(document.get(key) == value for key, value in current.items()):
+            return {}
+        refresh_document_identity(document["document_id"], workspace, current)
+    except OSError as exc:
+        return {"registration_refreshed": False, "registration_reason": f"the file could not be read ({exc})"}
+    return {"registration_refreshed": True}
+
+
 def _undo_write(
     document_id: str, backup_file: str, workspace: str | Path
 ) -> tuple[dict[str, Any], dict[str, str] | None]:
@@ -115,7 +134,11 @@ def _undo_write(
     except OSError as exc:
         return {"performed": False}, _rollback_error(document_id, backup_file, f"the file could not be read ({exc})")
     if current_sha == backup_sha:
-        return {"performed": False, "reason": "the file already matches the pre-write backup"}, None
+        return {
+            "performed": False,
+            "reason": "the file already matches the pre-write backup",
+            **_refresh_registration(document, workspace),
+        }, None
     # Whitelist, not blacklist: restore only over the exact bytes this command's own COM write left
     # behind. Anything else means someone else changed the file after the write (the user kept editing,
     # a sync client, another program), and copying the backup over it would discard that change.
@@ -141,7 +164,7 @@ def _undo_write(
         return {"performed": True}, _rollback_error(
             document_id, backup_file, "the restored file does not match the backup"
         )
-    return {"performed": True, "restored_from": str(backup)}, None
+    return {"performed": True, "restored_from": str(backup), **_refresh_registration(document, workspace)}, None
 
 
 def _open_in_wps(document_id: str, workspace: str | Path) -> tuple[bool | None, str | None]:

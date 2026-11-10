@@ -165,7 +165,6 @@ class SheetToolTests(unittest.TestCase):
     def test_a_wrong_order_or_a_lost_row_is_rolled_back(self):
         before = self.path.read_bytes()
         for index, com in enumerate((wps_sort(scramble=True), wps_sort(drop_row=True))):
-            self.register()
             with self.subTest(index=index):
                 ok, result, errors, _ = self.sort(["B:asc"], com=com, request_id=f"bad{index}")
                 self.assertFalse(ok)

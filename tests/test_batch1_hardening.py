@@ -117,6 +117,26 @@ class RollbackWhitelistTests(unittest.TestCase):
         self.assertEqual(self.document.read_bytes(), self.original_bytes)
         self.assertTrue(result["rollback"]["performed"])
 
+    def test_after_a_rollback_the_next_command_needs_no_new_registration(self):
+        record_after_com_identity(self.document, {"source_sha256": hashlib.sha256(b"WPS saved this").hexdigest()})
+        ok, result, _errors, _ = self._mutation(self.backup_path, after_change=None)
+        self.assertFalse(ok)
+        self.assertTrue(result["rollback"]["performed"])
+        self.assertTrue(result["rollback"]["registration_refreshed"])
+        # It used to fail with DOCUMENT_IDENTITY_CHANGED: the restored file is a new file with the same content.
+        ok, _backup, errors, _ = create_backup(self.document_id, "next:backup", workspace=self.workspace)
+        self.assertTrue(ok, errors)
+
+    def test_a_registration_is_not_moved_onto_other_content(self):
+        from wps_ai_agent_cli.atomic_mutation import _refresh_registration
+        from wps_ai_agent_cli.sessions import get_document
+
+        document = get_document(self.document_id, self.workspace)
+        self.document.write_bytes(b"something else")
+        outcome = _refresh_registration(document, self.workspace)
+        self.assertFalse(outcome["registration_refreshed"])
+        self.assertEqual(get_document(self.document_id, self.workspace)["source_sha256"], document["source_sha256"])
+
     def test_rollback_does_not_overwrite_a_later_change(self):
         record_after_com_identity(self.document, {"source_sha256": hashlib.sha256(b"WPS saved this").hexdigest()})
         ok, result, errors, _ = self._mutation(self.backup_path, after_change=b"someone else edited this")
