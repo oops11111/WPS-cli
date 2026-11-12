@@ -159,4 +159,4 @@ Large collections have explicit total counts and truncation flags.
 - `mcp-smoke --expected-min-tools 70 --tool-name wps_agent_tasks` 可重复验证 initialize、tools/list 和 tools/call。
 - `mcp-config-audit --config config/mcp_client_config.example.json --server-name wps-ai-agent-cli --expected-min-tools 70` 可验证 client 配置并通过配置启动 `tools/list` smoke。
 - `security-audit` 可审计 8 个修改类工具的 request_id、task_id、dry-run、备份和 WPS/文件系统边界。
-- `performance-baseline` 可采集 6 个不启动 WPS 的核心命令耗时和输出规模。
+- `performance-baseline` 可采集 6 个不启动 WPS 的核心命令耗时和输出规模。加 `--include-wps` 时另在临时工作簿上计时 N 次经 WPS 的 `spreadsheet-write` 和 N 次新进程启动，给出一次 CLI 调用的固定成本，并判断是否超过重开驻留模式（C-10）的 2 秒门槛；不加时行为不变、不启动 WPS。

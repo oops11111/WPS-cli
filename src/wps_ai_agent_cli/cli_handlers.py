@@ -911,7 +911,7 @@ def build_command_handlers(
     def _handle_performance_baseline(
         args: argparse.Namespace, request_id: str, output_stream: TextIO | None
     ) -> CommandResponse:
-        response = cli.performance_baseline_response(request_id)
+        response = cli.performance_baseline_response(request_id, include_wps=args.include_wps, repeat=args.repeat)
         return response
 
     def _handle_scan_dir(args: argparse.Namespace, request_id: str, output_stream: TextIO | None) -> CommandResponse:

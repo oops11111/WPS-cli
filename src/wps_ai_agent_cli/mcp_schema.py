@@ -2144,8 +2144,19 @@ MCP_TOOL_SCHEMAS: tuple[dict[str, Any], ...] = (
         "wps_agent_performance_baseline",
         "performance-baseline",
         "Capture performance baseline",
-        "Capture runtime and output-size baselines for safe read-only commands.",
+        "Capture runtime and output-size baselines for safe read-only commands. With include_wps, also time "
+        "real WPS writes on a new workbook in a temporary folder and new CLI processes, and report whether one "
+        "CLI call's fixed cost exceeds the 2 s threshold that would reopen resident mode (C-10).",
         "performance",
+        properties={
+            "include_wps": _boolean("Also time real WPS operations (starts WPS; Windows with WPS only)."),
+            "repeat": _integer("WPS calls and process starts to time with include_wps, 1 to 10 (default 3)."),
+        },
+        safety_notes=[
+            "Without include_wps it runs only read-only commands and never starts WPS.",
+            "With include_wps it writes only to a workbook it creates in a temporary folder, deleted afterwards; "
+            "no registered document is touched.",
+        ],
     ),
 )
 

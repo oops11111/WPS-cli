@@ -1157,9 +1157,17 @@ def _add_regression_and_release_commands(subparsers: argparse._SubParsersAction)
         help="Audit mutating CLI and MCP tool safety boundaries.",
     )
 
-    subparsers.add_parser(
+    performance_parser = subparsers.add_parser(
         "performance-baseline",
         help="Capture runtime and output-size baselines for safe read-only commands.",
+    )
+    performance_parser.add_argument(
+        "--include-wps",
+        action="store_true",
+        help="Also time real WPS writes on a temporary workbook and new CLI processes (T-09, the C-10 evidence).",
+    )
+    performance_parser.add_argument(
+        "--repeat", type=int, default=3, help="WPS calls and process starts to time with --include-wps (1-10)."
     )
 
 

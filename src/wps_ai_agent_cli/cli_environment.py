@@ -8,7 +8,7 @@ from .cleanup_plan import build_cleanup_plan
 from .cli_common import BACKEND
 from .com_backend import run_com_smoke, run_conversion_smoke, run_spreadsheet_calc_smoke
 from .models import CommandResponse, ValidationResult
-from .performance import capture_performance_baseline
+from .performance import capture_performance_baseline, capture_performance_baseline_with_wps
 from .phases import list_phases
 from .process_audit import audit_wps_processes
 from .security_audit import build_security_boundary_audit
@@ -348,14 +348,31 @@ def security_audit_response(request_id: str) -> CommandResponse:
     )
 
 
-def performance_baseline_response(request_id: str) -> CommandResponse:
-    ok, result, errors = capture_performance_baseline()
+def performance_baseline_response(request_id: str, include_wps: bool = False, repeat: int = 3) -> CommandResponse:
+    if include_wps:
+        if not 1 <= repeat <= 10:
+            ok, result, errors = False, {}, [{"code": "INVALID_ARGUMENT", "message": "repeat must be 1 to 10."}]
+        else:
+            ok, result, errors = capture_performance_baseline_with_wps(repeat)
+    else:
+        ok, result, errors = capture_performance_baseline()
+    wps_cost = result.get("wps_operation_cost")
     return CommandResponse(
         ok=ok,
         command="performance-baseline",
         request_id=request_id,
         backend=BACKEND,
-        summary="Performance baseline captured." if ok else "Performance baseline failed.",
+        summary=(
+            "Performance baseline captured."
+            + (
+                f" One CLI call through WPS costs {wps_cost['cli_call_fixed_cost_ms']:.0f} ms"
+                f" (threshold {wps_cost['c10_threshold_ms']} ms)."
+                if wps_cost and wps_cost.get("cli_call_fixed_cost_ms") is not None
+                else ""
+            )
+            if ok
+            else "Performance baseline failed."
+        ),
         data={"performance_baseline": result},
         validation=ValidationResult(
             status="passed" if ok else "failed",
@@ -369,12 +386,27 @@ def performance_baseline_response(request_id: str) -> CommandResponse:
                         "failed_count": result.get("failed_count"),
                     },
                 },
-                {
-                    "name": "wps_not_launched",
-                    "passed": not result.get("launches_wps", True),
-                    "details": {"launches_wps": result.get("launches_wps")},
-                },
-            ],
+            ]
+            + (
+                [
+                    {
+                        "name": "wps_operation_measured",
+                        "passed": bool(wps_cost and wps_cost.get("cli_call_fixed_cost_ms") is not None),
+                        "details": {
+                            "cli_call_fixed_cost_ms": (wps_cost or {}).get("cli_call_fixed_cost_ms"),
+                            "c10_threshold_exceeded": (wps_cost or {}).get("c10_threshold_exceeded"),
+                        },
+                    }
+                ]
+                if include_wps
+                else [
+                    {
+                        "name": "wps_not_launched",
+                        "passed": not result.get("launches_wps", True),
+                        "details": {"launches_wps": result.get("launches_wps")},
+                    }
+                ]
+            ),
         ),
         errors=errors,
     )
