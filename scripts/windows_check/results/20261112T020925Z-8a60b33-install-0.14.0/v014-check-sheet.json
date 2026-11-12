@@ -1,0 +1,31 @@
+{
+  "backend": "python",
+  "command": "document-check",
+  "data": {
+    "component": "spreadsheets",
+    "counts": {
+      "error": 0,
+      "info": 1,
+      "warning": 0
+    },
+    "document_id": "doc_481f73525649b67e",
+    "issues": [
+      {
+        "code": "SHEET_EMPTY",
+        "message": "The worksheet is empty.",
+        "severity": "info",
+        "where": "空表"
+      }
+    ],
+    "path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261112T020925Z-8a60b33-install-0.14.0\\work\\数据.xlsx",
+    "truncated": false
+  },
+  "errors": [],
+  "ok": true,
+  "request_id": "d902db7b-2cea-43cd-96c2-518940767c00",
+  "summary": "Found 0 errors, 0 warnings, 1 notes.",
+  "validation": {
+    "checks": [],
+    "status": "not_applicable"
+  }
+}

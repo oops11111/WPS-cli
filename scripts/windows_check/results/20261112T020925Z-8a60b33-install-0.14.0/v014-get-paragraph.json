@@ -1,0 +1,22 @@
+{
+  "backend": "python",
+  "command": "get",
+  "data": {
+    "component": "writer",
+    "document_id": "doc_54df6d83e1baabb8",
+    "file": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261112T020925Z-8a60b33-install-0.14.0\\work\\通知.docx",
+    "heading_level": null,
+    "index": 1,
+    "path": "/paragraph[1]",
+    "style": "Title",
+    "text": "关于开展安全检查的通知"
+  },
+  "errors": [],
+  "ok": true,
+  "request_id": "5297a37c-35a2-4f00-a8ac-8eb28679246c",
+  "summary": "Read /paragraph[1].",
+  "validation": {
+    "checks": [],
+    "status": "not_applicable"
+  }
+}

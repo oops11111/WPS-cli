@@ -1,0 +1,24 @@
+{
+  "backend": "python",
+  "command": "document-check",
+  "data": {
+    "component": "writer",
+    "counts": {
+      "error": 0,
+      "info": 0,
+      "warning": 0
+    },
+    "document_id": "doc_54df6d83e1baabb8",
+    "issues": [],
+    "path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261112T020925Z-8a60b33-install-0.14.0\\work\\通知.docx",
+    "truncated": false
+  },
+  "errors": [],
+  "ok": true,
+  "request_id": "ac57fe73-ba48-4006-8cec-b6b73ff8ae16",
+  "summary": "No problems found.",
+  "validation": {
+    "checks": [],
+    "status": "not_applicable"
+  }
+}

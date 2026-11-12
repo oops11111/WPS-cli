@@ -1,0 +1,18 @@
+=== exit codes ===
+install.ps1 -Version 0.14.0 -McpClient claude-desktop => 0 (install.log)
+mcp_client_smoke.py => 0 (passed, 105 tools)
+run_windows_check.py wheel --version 0.14.0 => 0 (passed)
+wps-agent document-new --component writer => 0
+wps-agent document-new --component spreadsheets => 0
+wps-agent spreadsheet-write A1:B3 => 0
+wps-agent batch --commands-file calls.json --request-id b1 => 0 (ran 3, all ok)
+wps-agent batch (same request-id b1, replay) => 0 (write replayed, file unchanged)
+wps-agent batch --commands-file calls-bad.json --request-id b2 => 1 (BATCH_COMMAND_FAILED, stopped_at 1, skipped 2)
+wps-agent get /paragraph[1] => 0
+wps-agent get /sheets => 0
+wps-agent get /paragraph[99] => 1 (PATH_TARGET_NOT_FOUND)
+wps-agent spreadsheet-create-sheet --name 空表 => 0
+wps-agent document-check --document-id <s> => 0 (SHEET_EMPTY note, ok true)
+wps-agent document-check --document-id <w> => 0 (no problems)
+wps-agent document-view --document-id <s> => 0 (销售 A1:C3, 空表 A1:A1)
+wps-agent document-view --document-id <s> while 数据.xlsx open in WPS => 0 (readable; no DOCUMENT_HELD_OPEN)
