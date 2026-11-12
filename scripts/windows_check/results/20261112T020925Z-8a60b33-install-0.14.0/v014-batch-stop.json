@@ -1,0 +1,44 @@
+{
+  "backend": "local-python",
+  "command": "batch",
+  "data": {
+    "commands": 3,
+    "continue_on_error": false,
+    "failed": [
+      1
+    ],
+    "ran": 1,
+    "results": [
+      {
+        "data": {},
+        "errors": [
+          {
+            "code": "DOCUMENT_NOT_FOUND",
+            "message": "Document not registered: doc_missing"
+          }
+        ],
+        "index": 1,
+        "ok": false,
+        "request_id": "b2:1",
+        "summary": "Could not read the document.",
+        "tool": "wps_agent_document_view"
+      }
+    ],
+    "skipped": 2,
+    "stopped_at": 1,
+    "succeeded": 0
+  },
+  "errors": [
+    {
+      "code": "BATCH_COMMAND_FAILED",
+      "message": "Command 1 (wps_agent_document_view) failed: Document not registered: doc_missing The 2 commands after it were not run."
+    }
+  ],
+  "ok": false,
+  "request_id": "b2",
+  "summary": "Ran 1 of 3 commands; 1 failed.",
+  "validation": {
+    "checks": [],
+    "status": "not_applicable"
+  }
+}

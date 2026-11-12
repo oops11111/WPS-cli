@@ -1,0 +1,57 @@
+{
+  "backend": "wps-com",
+  "command": "spreadsheet-create-sheet",
+  "data": {
+    "backup": {
+      "backup_bytes": 8977,
+      "backup_path": ".wps-agent\\backups\\doc_481f73525649b67e\\数据.20261112T021452682023Z.xlsx",
+      "component": "spreadsheets",
+      "created": true,
+      "document_id": "doc_481f73525649b67e",
+      "dry_run": false,
+      "source_identity": {
+        "file_device": 11882268654517892920,
+        "file_inode": 18858823440198544,
+        "source_sha256": "D56EE44B34B3C727322878D0F45559EF6267F22DE630E4D0710C3D671C2C1E46"
+      },
+      "source_path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261112T020925Z-8a60b33-install-0.14.0\\work\\数据.xlsx"
+    },
+    "backup_replayed": false,
+    "create_backend": "powershell-com",
+    "document_id": "doc_481f73525649b67e",
+    "dry_run": false,
+    "index": 2,
+    "name": "空表",
+    "path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261112T020925Z-8a60b33-install-0.14.0\\work\\数据.xlsx",
+    "requested_index": null,
+    "sheet_names_after": [
+      "销售",
+      "空表"
+    ],
+    "sheet_names_before": [
+      "销售"
+    ],
+    "sheet_names_read_back": [
+      "销售",
+      "空表"
+    ],
+    "validation_passed": true
+  },
+  "errors": [],
+  "ok": true,
+  "request_id": "c1",
+  "summary": "Worksheet created.",
+  "validation": {
+    "checks": [
+      {
+        "details": [
+          "销售",
+          "空表"
+        ],
+        "name": "ordered_sheet_names_read_back",
+        "passed": true
+      }
+    ],
+    "status": "passed"
+  }
+}

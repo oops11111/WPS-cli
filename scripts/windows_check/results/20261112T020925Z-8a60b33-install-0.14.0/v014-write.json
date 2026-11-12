@@ -1,0 +1,101 @@
+{
+  "backend": "wps-com",
+  "command": "spreadsheet-write",
+  "data": {
+    "backup": {
+      "backup_bytes": 4796,
+      "backup_path": ".wps-agent\\backups\\doc_481f73525649b67e\\数据.20261112T021327266855Z.xlsx",
+      "component": "spreadsheets",
+      "created": true,
+      "document_id": "doc_481f73525649b67e",
+      "dry_run": false,
+      "source_identity": {
+        "file_device": 11882268654517892920,
+        "file_inode": 8444249301901871,
+        "source_sha256": "E90E861DF565401123B8B216C18C36667C88332FC12FE854BD26AC13D5D9A612"
+      },
+      "source_path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261112T020925Z-8a60b33-install-0.14.0\\work\\数据.xlsx"
+    },
+    "backup_replayed": false,
+    "column_count": 2,
+    "component": "spreadsheets",
+    "document_id": "doc_481f73525649b67e",
+    "dry_run": false,
+    "path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261112T020925Z-8a60b33-install-0.14.0\\work\\数据.xlsx",
+    "range": "A1:B3",
+    "read_back_values": [
+      [
+        "地区",
+        "销量"
+      ],
+      [
+        "华东",
+        120
+      ],
+      [
+        "华南",
+        90
+      ]
+    ],
+    "requested_sheet": null,
+    "row_count": 3,
+    "sheet": "销售",
+    "validation_passed": true,
+    "values": [
+      [
+        "地区",
+        "销量"
+      ],
+      [
+        "华东",
+        120
+      ],
+      [
+        "华南",
+        90
+      ]
+    ],
+    "write_backend": "powershell-com"
+  },
+  "errors": [],
+  "ok": true,
+  "request_id": "4d7e7669-1c30-414a-9c12-1816e7594b82",
+  "summary": "Spreadsheet write completed.",
+  "validation": {
+    "checks": [
+      {
+        "details": {
+          "column_count": 2,
+          "range": "A1:B3",
+          "row_count": 3
+        },
+        "name": "range_shape_valid",
+        "passed": true
+      },
+      {
+        "details": ".wps-agent\\backups\\doc_481f73525649b67e\\数据.20261112T021327266855Z.xlsx",
+        "name": "backup_created",
+        "passed": true
+      },
+      {
+        "details": [
+          [
+            "地区",
+            "销量"
+          ],
+          [
+            "华东",
+            120
+          ],
+          [
+            "华南",
+            90
+          ]
+        ],
+        "name": "write_validated",
+        "passed": true
+      }
+    ],
+    "status": "passed"
+  }
+}

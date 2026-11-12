@@ -1,0 +1,51 @@
+{
+  "backend": "python",
+  "command": "document-new",
+  "data": {
+    "component": "writer",
+    "contents": {
+      "paragraphs": [
+        "关于开展安全检查的通知"
+      ]
+    },
+    "document": {
+      "component": "writer",
+      "document_id": "doc_54df6d83e1baabb8",
+      "exists": true,
+      "file_device": 11882268654517892920,
+      "file_inode": 9007199255325528,
+      "path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261112T020925Z-8a60b33-install-0.14.0\\work\\通知.docx",
+      "registered_at": "2026-11-12T02:13:16.121042+00:00",
+      "source_sha256": "28063B8940930C8AC3985DAB13A352B10A3F8EC025AEF067A54030F46B4E1196"
+    },
+    "document_id": "doc_54df6d83e1baabb8",
+    "path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261112T020925Z-8a60b33-install-0.14.0\\work\\通知.docx",
+    "registered": true,
+    "size": 36660,
+    "title": "关于开展安全检查的通知",
+    "validation_passed": true
+  },
+  "errors": [],
+  "ok": true,
+  "request_id": "5c3a4547-e7c9-4f69-b91f-b9b02a0ec080",
+  "summary": "Created C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261112T020925Z-8a60b33-install-0.14.0\\work\\通知.docx as doc_54df6d83e1baabb8.",
+  "validation": {
+    "checks": [
+      {
+        "details": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261112T020925Z-8a60b33-install-0.14.0\\work\\通知.docx",
+        "name": "document_created",
+        "passed": true
+      },
+      {
+        "details": {
+          "paragraphs": [
+            "关于开展安全检查的通知"
+          ]
+        },
+        "name": "contents_read_back",
+        "passed": true
+      }
+    ],
+    "status": "passed"
+  }
+}

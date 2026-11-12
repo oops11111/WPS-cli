@@ -1,0 +1,23 @@
+{
+  "backend": "python",
+  "command": "get",
+  "data": {
+    "component": "writer",
+    "document_id": "doc_54df6d83e1baabb8",
+    "file": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261112T020925Z-8a60b33-install-0.14.0\\work\\通知.docx",
+    "path": "/paragraph[99]"
+  },
+  "errors": [
+    {
+      "code": "PATH_TARGET_NOT_FOUND",
+      "message": "Paragraph 99 does not exist; the body has 1."
+    }
+  ],
+  "ok": false,
+  "request_id": "160fd419-d818-48ff-a8db-b4b73baf29f3",
+  "summary": "Could not read /paragraph[99].",
+  "validation": {
+    "checks": [],
+    "status": "not_applicable"
+  }
+}

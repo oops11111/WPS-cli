@@ -1,0 +1,40 @@
+{
+  "backend": "python",
+  "command": "document-view",
+  "data": {
+    "component": "spreadsheets",
+    "document_id": "doc_481f73525649b67e",
+    "path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261112T020925Z-8a60b33-install-0.14.0\\work\\数据.xlsx",
+    "sheet_count": 2,
+    "sheets": [
+      {
+        "charts": 0,
+        "dimensions": "A1:C3",
+        "formulas": 0,
+        "max_column": 3,
+        "max_row": 3,
+        "merged_ranges": 0,
+        "name": "销售",
+        "state": "visible"
+      },
+      {
+        "charts": 0,
+        "dimensions": "A1:A1",
+        "formulas": 0,
+        "max_column": 1,
+        "max_row": 1,
+        "merged_ranges": 0,
+        "name": "空表",
+        "state": "visible"
+      }
+    ]
+  },
+  "errors": [],
+  "ok": true,
+  "request_id": "de9627dd-3e3c-47fe-ba01-348c1ce09c53",
+  "summary": "Summarised the spreadsheets document.",
+  "validation": {
+    "checks": [],
+    "status": "not_applicable"
+  }
+}

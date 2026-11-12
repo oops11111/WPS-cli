@@ -1,0 +1,129 @@
+{
+  "backend": "local-python",
+  "command": "batch",
+  "data": {
+    "commands": 3,
+    "continue_on_error": false,
+    "failed": [],
+    "ran": 3,
+    "results": [
+      {
+        "data": {
+          "characters": 11,
+          "component": "writer",
+          "document_id": "doc_54df6d83e1baabb8",
+          "non_empty_paragraphs": 1,
+          "outline": [],
+          "paragraphs": 1,
+          "path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261112T020925Z-8a60b33-install-0.14.0\\work\\通知.docx",
+          "pictures": 0,
+          "tables": [],
+          "title": "关于开展安全检查的通知"
+        },
+        "errors": [],
+        "index": 1,
+        "ok": true,
+        "request_id": "b1:1",
+        "summary": "Summarised the writer document.",
+        "tool": "wps_agent_document_view"
+      },
+      {
+        "data": {
+          "backup": {
+            "backup_bytes": 8953,
+            "backup_path": ".wps-agent\\backups\\doc_481f73525649b67e\\数据.20261112T021348972159Z.xlsx",
+            "component": "spreadsheets",
+            "created": true,
+            "document_id": "doc_481f73525649b67e",
+            "dry_run": false,
+            "source_identity": {
+              "file_device": 11882268654517892920,
+              "file_inode": 6473924464929658,
+              "source_sha256": "8DB058ED0CFAA1D2AD0B2C8DA443BD8657481964E46D26056C54D37B8A954360"
+            },
+            "source_path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261112T020925Z-8a60b33-install-0.14.0\\work\\数据.xlsx"
+          },
+          "backup_replayed": false,
+          "column_count": 1,
+          "component": "spreadsheets",
+          "document_id": "doc_481f73525649b67e",
+          "dry_run": false,
+          "path": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261112T020925Z-8a60b33-install-0.14.0\\work\\数据.xlsx",
+          "range": "C1:C2",
+          "read_back_values": [
+            [
+              "备注"
+            ],
+            [
+              "已核"
+            ]
+          ],
+          "requested_sheet": "销售",
+          "row_count": 2,
+          "sheet": "销售",
+          "validation_passed": true,
+          "values": [
+            [
+              "备注"
+            ],
+            [
+              "已核"
+            ]
+          ],
+          "write_backend": "powershell-com"
+        },
+        "errors": [],
+        "index": 2,
+        "ok": true,
+        "request_id": "b1:2",
+        "summary": "Spreadsheet write completed.",
+        "tool": "wps_agent_spreadsheet_write"
+      },
+      {
+        "data": {
+          "cell_metadata": [
+            [
+              {
+                "address": "C2",
+                "format_category": "text",
+                "is_date": false,
+                "number_format": "General",
+                "value_type": "s"
+              }
+            ]
+          ],
+          "column_count": 1,
+          "component": "spreadsheets",
+          "document_id": "doc_481f73525649b67e",
+          "file": "C:\\Users\\admin\\.lody\\repos\\github---oops11111---wps-cli\\worktrees\\892d82f5-59c6-4cf8-bc52-46c8e7df5f60\\scripts\\windows_check\\results\\20261112T020925Z-8a60b33-install-0.14.0\\work\\数据.xlsx",
+          "path": "/sheet[\"销售\"]/cell[\"C2\"]",
+          "range": "C2",
+          "row_count": 1,
+          "sheet": "销售",
+          "values": [
+            [
+              "已核"
+            ]
+          ]
+        },
+        "errors": [],
+        "index": 3,
+        "ok": true,
+        "request_id": "b1:3",
+        "summary": "Read /sheet[\"销售\"]/cell[\"C2\"].",
+        "tool": "wps_agent_get"
+      }
+    ],
+    "skipped": 0,
+    "stopped_at": null,
+    "succeeded": 3
+  },
+  "errors": [],
+  "ok": true,
+  "request_id": "b1",
+  "summary": "Ran 3 commands; all succeeded.",
+  "validation": {
+    "checks": [],
+    "status": "not_applicable"
+  }
+}

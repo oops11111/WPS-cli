@@ -1,0 +1,5 @@
+OS: Microsoft Windows 10 企业版 10.0.19045 build 19045
+WPS InstallRoot: C:\Program Files (x86)\Kingsoft\WPS Office\12.8.2.18913
+WPS version: 12,8,2,18913
+Node: v24.16.0
+Edge: 157.0.4341.46

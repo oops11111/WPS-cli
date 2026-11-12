@@ -1,0 +1,5 @@
+[
+  {"tool": "document-view", "arguments": {"document_id": "doc_54df6d83e1baabb8"}},
+  {"tool": "spreadsheet-write", "arguments": {"document_id": "doc_481f73525649b67e", "sheet": "销售", "range": "C1:C2", "values_json": "[[\"备注\"], [\"已核\"]]"}},
+  {"tool": "get", "arguments": {"document_id": "doc_481f73525649b67e", "path": "/sheet[\"销售\"]/cell[\"C2\"]"}}
+]

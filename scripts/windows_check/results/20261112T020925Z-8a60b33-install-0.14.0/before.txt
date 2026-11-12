@@ -1,0 +1,23 @@
+python --version:  (exit=9009)
+python source: C:\Users\admin\AppData\Local\Microsoft\WindowsApps\python.exe
+py: C:\Users\admin\AppData\Local\Programs\Python\Launcher\py.exe
+uv: C:\Users\admin\.local\bin\uv.exe
+installed wps-agent: 0.13.0 (installed)
+install.json:
+{
+    "status":  "installed",
+    "version":  "0.13.0",
+    "installed_at":  "2026-11-10T09:29:48",
+    "python":  "C:\\Users\\admin\\AppData\\Roaming\\uv\\python\\cpython-3.12-windows-x86_64-none\\python.exe",
+    "executable":  "C:\\Users\\admin\\AppData\\Local\\wps-agent\\venv\\Scripts\\wps-agent.exe",
+    "node_path":  "C:\\Users\\admin\\AppData\\Local\\wps-agent\\node\\node_modules",
+    "ocr":  false,
+    "data_dir":  "C:\\Users\\admin\\AppData\\Local\\wps-agent-data"
+}
+
+=== registry (HKCU\Environment) ===
+Path [String] = C:\Users\admin\AppData\Local\Programs\Python\Python313;C:\Users\admin\AppData\Local\Programs\Python\Python313\Scripts;C:\Users\admin\AppData\Local\Programs\Python\Launcher\;C:\Users\admin\.local\bin;C:\Users\admin\.cargo\bin;C:\Users\admin\AppData\Local\Programs\Python\Python312\Scripts\;C:\Users\admin\AppData\Local\Programs\Python\Python312\;C:\Users\admin\AppData\Local\Microsoft\WindowsApps;C:\Program Files (x86)\Tencent\QQGameTempest\Hall.58195\;C:\Users\admin\AppData\Local\Programs\Microsoft VS Code\bin;C:\Users\admin\AppData\Local\Microsoft\WinGet\Links;C:\Users\admin\.dotnet\tools;C:\Users\admin\AppData\Roaming\npm;C:\Program Files\Git\bin;C:\Users\admin\AppData\Local\Microsoft\WinGet\Packages\Google.PlatformTools_Microsoft.Winget.Source_8wekyb3d8bbwe\platform-tools;C:\Users\admin\AppData\Local\Docker\cli;C:\Users\admin\.bun\bin;C:\Users\admin\bin;C:\Program Files (x86)\Microsoft Visual Studio\Installer;C:\Users\admin\AppData\Local\Programs\cursor\resources\app\bin;C:\Users\admin\AppData\Local\Temp\dotnetcli_m2dv\.dotnet\tools;C:\Program Files\Git\cmd;C:\Users\admin\AppData\Local\wps-agent\bin
+NODE_PATH [String] = C:\Users\admin\AppData\Local\wps-agent\node\node_modules
+
+WPS processes: 0
+venv processes: 0
