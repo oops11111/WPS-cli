@@ -698,7 +698,16 @@
         "required": true
       }
     ],
-    "performance-baseline": [],
+    "performance-baseline": [
+      {
+        "name": "--include-wps",
+        "required": false
+      },
+      {
+        "name": "--repeat",
+        "required": false
+      }
+    ],
     "plan": [],
     "presentation-replace": [
       {
@@ -2582,6 +2591,8 @@
       "cli_command": "performance-baseline",
       "mutates_document": false,
       "parameters": [
+        "include_wps",
+        "repeat",
         "request_id"
       ],
       "required": []
@@ -3597,6 +3608,8 @@
     "PDF_NEEDS_OCR",
     "PERFORMANCE_BASELINE_COMMAND_FAILED",
     "PERFORMANCE_BASELINE_WPS_SCENARIO_INCLUDED",
+    "PERFORMANCE_PROCESS_START_FAILED",
+    "PERFORMANCE_WPS_CALL_FAILED",
     "PLACEHOLDER_NOT_FOUND",
     "PLACEHOLDER_UNFILLED",
     "POST_COM_SOURCE_UNVERIFIED",

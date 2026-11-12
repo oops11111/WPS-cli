@@ -4,6 +4,14 @@ All notable changes to `wps-ai-agent-cli`. The versioning rule and release steps
 
 ## [Unreleased]
 
+### Added
+
+- T-09: `performance-baseline --include-wps [--repeat N]` also times N real `spreadsheet-write` calls through WPS on a workbook it creates in a temporary folder, and N new `python -m wps_ai_agent_cli` processes, and reports their medians, the fixed cost of one CLI call (`cli_call_fixed_cost_ms`) and whether it exceeds the 2 s threshold that would reopen resident mode (C-10). Without the flag the baseline is unchanged and never starts WPS.
+
+### Changed
+
+- ROADMAP after the 2026-11-12 review: resident mode (C-10) and the large internal restructuring moved to "不做" with the conditions that would reopen them; deeper presentation editing (C-11) deferred until a real task needs new slides.
+
 ## [0.14.0] - 2026-11-10
 
 Pictures, page setup and style presets for Writer (C-06), checked on WPS; and four commands that save an agent round trips (C-07 to C-09): batch, get by path, document-view and document-check. No existing command or argument changes; the MCP tool count goes from 98 to 105.

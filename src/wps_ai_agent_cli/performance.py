@@ -132,3 +132,129 @@ def capture_performance_baseline() -> tuple[bool, dict[str, Any], list[dict[str,
             }
         )
     return not errors, result, errors
+
+
+# T-09: the fixed cost of one real WPS operation, the evidence C-10 (resident mode) is decided on. Only with
+# performance-baseline --include-wps: the safe baseline above never starts WPS.
+C10_FIXED_COST_THRESHOLD_MS = 2000
+WPS_MEASURE_REPEAT = 3
+
+
+def _median(values: list[float]) -> float | None:
+    if not values:
+        return None
+    ordered = sorted(values)
+    middle = len(ordered) // 2
+    return round(ordered[middle] if len(ordered) % 2 else (ordered[middle - 1] + ordered[middle]) / 2, 3)
+
+
+def _wps_process_count() -> int | None:
+    from .process_audit import audit_wps_processes
+
+    ok, data, _errors = audit_wps_processes()
+    if not ok:
+        return None
+    return sum(1 for item in data.get("processes", []) if str(item.get("ProcessName", "")).lower() == "et")
+
+
+def _process_start_ms(workspace: str) -> tuple[bool, float]:
+    """One `python -m wps_ai_agent_cli documents` in a new process: what a CLI user pays before any work."""
+    import subprocess
+    import sys
+
+    started = time.perf_counter()
+    completed = subprocess.run(
+        [sys.executable, "-m", "wps_ai_agent_cli", "documents"],
+        cwd=workspace,
+        capture_output=True,
+        timeout=120,
+        check=False,
+    )
+    return completed.returncode == 0, round((time.perf_counter() - started) * 1000, 3)
+
+
+def measure_wps_operation_cost(repeat: int = WPS_MEASURE_REPEAT) -> tuple[bool, dict[str, Any], list[dict[str, Any]]]:
+    """Time `repeat` spreadsheet-write calls through WPS on a new workbook in a temporary folder, and `repeat`
+    new CLI processes; report the medians and whether one CLI call's fixed cost passes the C-10 threshold."""
+    import os
+    import tempfile
+    from pathlib import Path
+
+    from .document_new import create_document
+
+    errors: list[dict[str, Any]] = []
+    processes_before = _wps_process_count()
+    previous = os.getcwd()
+    with tempfile.TemporaryDirectory(prefix="wps-agent-perf-", ignore_cleanup_errors=True) as workspace:
+        os.chdir(workspace)
+        try:
+            ok, created, create_errors = create_document(
+                "spreadsheets", str(Path(workspace) / "perf.xlsx"), workspace=workspace
+            )
+            if not ok:
+                return False, {"stage": "document-new"}, create_errors
+            document_id = created["document_id"]
+            calls = []
+            for index in range(1, repeat + 1):
+                command = [
+                    "spreadsheet-write",
+                    "--document-id",
+                    document_id,
+                    "--range",
+                    "A1",
+                    "--values-json",
+                    json.dumps([[index]]),
+                    "--request-id",
+                    f"perf-{index}",
+                ]
+                exit_code, payload, _raw, duration_ms = _run_cli(command)
+                call_ok = exit_code == 0 and bool(payload and payload.get("ok"))
+                calls.append({"index": index, "ok": call_ok, "duration_ms": round(duration_ms, 3)})
+                if not call_ok:
+                    errors.append(
+                        {
+                            "code": "PERFORMANCE_WPS_CALL_FAILED",
+                            "message": f"spreadsheet-write {index} failed: "
+                            + (str((payload or {}).get("errors") or (payload or {}).get("summary"))[:300]),
+                        }
+                    )
+                    break
+            starts = [_process_start_ms(workspace) for _ in range(repeat)]
+        finally:
+            os.chdir(previous)
+    processes_after = _wps_process_count()
+    if not all(ok for ok, _ in starts):
+        errors.append({"code": "PERFORMANCE_PROCESS_START_FAILED", "message": "python -m wps_ai_agent_cli failed."})
+
+    call_durations = [call["duration_ms"] for call in calls if call["ok"]]
+    start_durations = [duration for ok, duration in starts if ok]
+    call_median = _median(call_durations)
+    start_median = _median(start_durations)
+    fixed_cost = round(call_median + start_median, 3) if call_median is not None and start_median is not None else None
+    result = {
+        "repeat": repeat,
+        "operation": "spreadsheet-write A1 on a new workbook, through WPS",
+        "wps_calls": calls,
+        "wps_call_median_ms": call_median,
+        "wps_first_call_ms": call_durations[0] if call_durations else None,
+        "process_starts_ms": start_durations,
+        "process_start_median_ms": start_median,
+        "cli_call_fixed_cost_ms": fixed_cost,
+        "c10_threshold_ms": C10_FIXED_COST_THRESHOLD_MS,
+        "c10_threshold_exceeded": None if fixed_cost is None else fixed_cost > C10_FIXED_COST_THRESHOLD_MS,
+        "spreadsheet_processes_before": processes_before,
+        "spreadsheet_processes_after": processes_after,
+        "note": "cli_call_fixed_cost_ms = median new-process start + median WPS call: what one CLI call costs. "
+        "An MCP client pays only the WPS call (the server is resident). C-10 reopens only if this exceeds "
+        "the threshold and real workloads call several times a minute.",
+    }
+    return not errors, result, errors
+
+
+def capture_performance_baseline_with_wps(
+    repeat: int = WPS_MEASURE_REPEAT,
+) -> tuple[bool, dict[str, Any], list[dict[str, Any]]]:
+    ok, result, errors = capture_performance_baseline()
+    wps_ok, wps_result, wps_errors = measure_wps_operation_cost(repeat)
+    result["wps_operation_cost"] = wps_result
+    return ok and wps_ok, result, errors + wps_errors
