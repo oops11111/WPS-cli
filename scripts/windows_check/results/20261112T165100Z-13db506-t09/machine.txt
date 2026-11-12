@@ -1,0 +1,11 @@
+OS: Microsoft Windows 10 企业版 10.0.19045 build 19045
+WPS InstallRoot: C:\Program Files (x86)\Kingsoft\WPS Office\12.8.2.18913
+WPS version: 12,8,2,18913
+CPU: Intel(R) Xeon(R) CPU E5-2666 v3 @ 2.90GHz cores=10 logical=20
+RAM: 31.86 GB
+Disk: SSD 1TB media=SSD bus=SATA size=953.9GB
+DiskDrive: SSD 1TB media=Fixed hard disk media size=953.9GB
+Battery: none reported (desktop / no battery)
+PowerSupply: PowerSupplyState=3
+Power plan: 电源方案 GUID: e9a42b02-d5df-448d-aa00-03f14749eb61  (卓越性能)
+Session: interactive; PowerShell 7.6.10

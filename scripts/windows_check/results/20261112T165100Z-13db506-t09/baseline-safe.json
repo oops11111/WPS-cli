@@ -1,0 +1,153 @@
+{
+  "backend": "local-python",
+  "command": "performance-baseline",
+  "data": {
+    "performance_baseline": {
+      "failed_count": 0,
+      "launches_wps": false,
+      "max_duration_ms": 6633.404,
+      "passed_count": 6,
+      "results": [
+        {
+          "category": "mcp",
+          "command": [
+            "mcp-tools"
+          ],
+          "duration_ms": 39.524,
+          "exit_code": 0,
+          "id": "mcp-tools",
+          "launches_wps": false,
+          "ok": true,
+          "output_bytes": 331900,
+          "output_chars": 331751,
+          "response_ok": true,
+          "summary": "Returned 105 draft MCP tool schemas.",
+          "validation_status": "not_applicable"
+        },
+        {
+          "category": "mcp",
+          "command": [
+            "mcp-smoke",
+            "--expected-min-tools",
+            "70",
+            "--tool-name",
+            "wps_agent_tasks"
+          ],
+          "duration_ms": 53.917,
+          "exit_code": 0,
+          "id": "mcp-smoke",
+          "launches_wps": false,
+          "ok": true,
+          "output_bytes": 8325,
+          "output_chars": 8325,
+          "response_ok": true,
+          "summary": "MCP server smoke checks passed.",
+          "validation_status": "passed"
+        },
+        {
+          "category": "mcp",
+          "command": [
+            "mcp-config-audit",
+            "--config",
+            "config/mcp_client_config.example.json",
+            "--server-name",
+            "wps-ai-agent-cli",
+            "--expected-min-tools",
+            "70"
+          ],
+          "duration_ms": 6633.404,
+          "exit_code": 0,
+          "id": "mcp-config-audit",
+          "launches_wps": false,
+          "ok": true,
+          "output_bytes": 9363,
+          "output_chars": 9363,
+          "response_ok": true,
+          "summary": "MCP client config audit passed.",
+          "validation_status": "passed"
+        },
+        {
+          "category": "security",
+          "command": [
+            "security-audit"
+          ],
+          "duration_ms": 70.49,
+          "exit_code": 0,
+          "id": "security-audit",
+          "launches_wps": false,
+          "ok": true,
+          "output_bytes": 302160,
+          "output_chars": 301950,
+          "response_ok": true,
+          "summary": "Schema text and parser consistency audit passed (not a behavioral security test).",
+          "validation_status": "passed"
+        },
+        {
+          "category": "batch",
+          "command": [
+            "batch-report",
+            "--path",
+            "fixtures/phase0",
+            "--no-snapshots"
+          ],
+          "duration_ms": 43.798,
+          "exit_code": 0,
+          "id": "batch-report-phase0-no-snapshots",
+          "launches_wps": false,
+          "ok": true,
+          "output_bytes": 4431,
+          "output_chars": 4431,
+          "response_ok": true,
+          "summary": "Batch report returned 7 supported files.",
+          "validation_status": "passed"
+        },
+        {
+          "category": "regression",
+          "command": [
+            "regression-run",
+            "--profile",
+            "safe"
+          ],
+          "duration_ms": 1650.557,
+          "exit_code": 0,
+          "id": "regression-run-safe",
+          "launches_wps": false,
+          "ok": true,
+          "output_bytes": 6992,
+          "output_chars": 6992,
+          "response_ok": true,
+          "summary": "Regression scenarios passed.",
+          "validation_status": "passed"
+        }
+      ],
+      "scenario_count": 6,
+      "total_duration_ms": 8491.69,
+      "total_output_bytes": 663171
+    }
+  },
+  "errors": [],
+  "ok": true,
+  "request_id": "0bd59a77-78a2-4f7f-892b-5cd94329e7de",
+  "summary": "Performance baseline captured.",
+  "validation": {
+    "checks": [
+      {
+        "details": {
+          "failed_count": 0,
+          "passed_count": 6,
+          "scenario_count": 6
+        },
+        "name": "baseline_commands_passed",
+        "passed": true
+      },
+      {
+        "details": {
+          "launches_wps": false
+        },
+        "name": "wps_not_launched",
+        "passed": true
+      }
+    ],
+    "status": "passed"
+  }
+}

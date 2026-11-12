@@ -1,0 +1,201 @@
+{
+  "backend": "local-python",
+  "command": "performance-baseline",
+  "data": {
+    "performance_baseline": {
+      "failed_count": 0,
+      "launches_wps": false,
+      "max_duration_ms": 1494.248,
+      "passed_count": 6,
+      "results": [
+        {
+          "category": "mcp",
+          "command": [
+            "mcp-tools"
+          ],
+          "duration_ms": 39.81,
+          "exit_code": 0,
+          "id": "mcp-tools",
+          "launches_wps": false,
+          "ok": true,
+          "output_bytes": 331900,
+          "output_chars": 331751,
+          "response_ok": true,
+          "summary": "Returned 105 draft MCP tool schemas.",
+          "validation_status": "not_applicable"
+        },
+        {
+          "category": "mcp",
+          "command": [
+            "mcp-smoke",
+            "--expected-min-tools",
+            "70",
+            "--tool-name",
+            "wps_agent_tasks"
+          ],
+          "duration_ms": 49.519,
+          "exit_code": 0,
+          "id": "mcp-smoke",
+          "launches_wps": false,
+          "ok": true,
+          "output_bytes": 8325,
+          "output_chars": 8325,
+          "response_ok": true,
+          "summary": "MCP server smoke checks passed.",
+          "validation_status": "passed"
+        },
+        {
+          "category": "mcp",
+          "command": [
+            "mcp-config-audit",
+            "--config",
+            "config/mcp_client_config.example.json",
+            "--server-name",
+            "wps-ai-agent-cli",
+            "--expected-min-tools",
+            "70"
+          ],
+          "duration_ms": 1118.993,
+          "exit_code": 0,
+          "id": "mcp-config-audit",
+          "launches_wps": false,
+          "ok": true,
+          "output_bytes": 9363,
+          "output_chars": 9363,
+          "response_ok": true,
+          "summary": "MCP client config audit passed.",
+          "validation_status": "passed"
+        },
+        {
+          "category": "security",
+          "command": [
+            "security-audit"
+          ],
+          "duration_ms": 66.355,
+          "exit_code": 0,
+          "id": "security-audit",
+          "launches_wps": false,
+          "ok": true,
+          "output_bytes": 302160,
+          "output_chars": 301950,
+          "response_ok": true,
+          "summary": "Schema text and parser consistency audit passed (not a behavioral security test).",
+          "validation_status": "passed"
+        },
+        {
+          "category": "batch",
+          "command": [
+            "batch-report",
+            "--path",
+            "fixtures/phase0",
+            "--no-snapshots"
+          ],
+          "duration_ms": 42.146,
+          "exit_code": 0,
+          "id": "batch-report-phase0-no-snapshots",
+          "launches_wps": false,
+          "ok": true,
+          "output_bytes": 4431,
+          "output_chars": 4431,
+          "response_ok": true,
+          "summary": "Batch report returned 7 supported files.",
+          "validation_status": "passed"
+        },
+        {
+          "category": "regression",
+          "command": [
+            "regression-run",
+            "--profile",
+            "safe"
+          ],
+          "duration_ms": 1494.248,
+          "exit_code": 0,
+          "id": "regression-run-safe",
+          "launches_wps": false,
+          "ok": true,
+          "output_bytes": 6992,
+          "output_chars": 6992,
+          "response_ok": true,
+          "summary": "Regression scenarios passed.",
+          "validation_status": "passed"
+        }
+      ],
+      "scenario_count": 6,
+      "total_duration_ms": 2811.071,
+      "total_output_bytes": 663171,
+      "wps_operation_cost": {
+        "c10_threshold_exceeded": true,
+        "c10_threshold_ms": 2000,
+        "cli_call_fixed_cost_ms": 6710.637,
+        "note": "cli_call_fixed_cost_ms = median new-process start + median WPS call: what one CLI call costs. An MCP client pays only the WPS call (the server is resident). C-10 reopens only if this exceeds the threshold and real workloads call several times a minute.",
+        "operation": "spreadsheet-write A1 on a new workbook, through WPS",
+        "process_start_median_ms": 1252.71,
+        "process_starts_ms": [
+          1265.074,
+          1216.011,
+          1232.725,
+          1278.092,
+          1252.71
+        ],
+        "repeat": 5,
+        "spreadsheet_processes_after": 0,
+        "spreadsheet_processes_before": 0,
+        "wps_call_median_ms": 5457.927,
+        "wps_calls": [
+          {
+            "duration_ms": 11524.937,
+            "index": 1,
+            "ok": true
+          },
+          {
+            "duration_ms": 5349.065,
+            "index": 2,
+            "ok": true
+          },
+          {
+            "duration_ms": 5457.927,
+            "index": 3,
+            "ok": true
+          },
+          {
+            "duration_ms": 6274.245,
+            "index": 4,
+            "ok": true
+          },
+          {
+            "duration_ms": 5397.36,
+            "index": 5,
+            "ok": true
+          }
+        ],
+        "wps_first_call_ms": 11524.937
+      }
+    }
+  },
+  "errors": [],
+  "ok": true,
+  "request_id": "8dc6b693-193d-4e7a-8b59-dc6f42cfe3bc",
+  "summary": "Performance baseline captured. One CLI call through WPS costs 6711 ms (threshold 2000 ms).",
+  "validation": {
+    "checks": [
+      {
+        "details": {
+          "failed_count": 0,
+          "passed_count": 6,
+          "scenario_count": 6
+        },
+        "name": "baseline_commands_passed",
+        "passed": true
+      },
+      {
+        "details": {
+          "c10_threshold_exceeded": true,
+          "cli_call_fixed_cost_ms": 6710.637
+        },
+        "name": "wps_operation_measured",
+        "passed": true
+      }
+    ],
+    "status": "passed"
+  }
+}
