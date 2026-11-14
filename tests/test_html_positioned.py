@@ -77,6 +77,51 @@ class PositionedTests(unittest.TestCase):
         report = fidelity_check(self.work / "newsletter.html", self.work / "news.docx", layout=False)[1]
         self.assertTrue(report["passed"], report["aspects"])
 
+    def test_appearance_mode_falls_back_for_a_slide_without_a_section(self):
+        # A deck's nav bar lives outside any <section>: it used to refuse the whole file with
+        # BROWSER_BACKEND_UNAVAILABLE even though the browser was fine. Now the two section slides stay
+        # positioned and only the nav slide falls back to the editable layout.
+        html = (
+            "<!doctype html><html><head><style>"
+            "body{background:#111111}"
+            ".slide{background:#1A1A2E;color:#FFFFFF;min-height:300px}"
+            "</style></head><body>"
+            '<section class="slide"><h1>First</h1><p>Alpha</p></section>'
+            '<section class="slide"><h1>Second</h1><p>Beta</p></section>'
+            "<nav><button>\u2190</button><button>\u2192</button>"
+            "<button>Replay</button><button>Full screen</button></nav>"
+            "</body></html>"
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            source = Path(tmp) / "deck.html"
+            source.write_text(html, encoding="utf-8")
+            ok, data, errors = convert_html_to_office(source, Path(tmp) / "deck.pptx", "pptx", fidelity="appearance")
+            self.assertTrue(ok, errors)
+            self.assertEqual(data["slides"], 3)
+            self.assertTrue(
+                any("Slide 3 has no <section> container" in warning for warning in data["warnings"]),
+                data["warnings"],
+            )
+            presentation = Presentation(Path(tmp) / "deck.pptx")
+            self.assertEqual((presentation.slide_width, presentation.slide_height), (12192000, 6858000))
+            first, _second, nav = presentation.slides
+            self.assertEqual(str(first.background.fill.fore_color.rgb), "1A1A2E")
+            self.assertEqual(first.shapes.title.text_frame.text, "First")
+            # The nav slide has no section: it inherits the body's background, not white.
+            self.assertEqual(str(nav.background.fill.fore_color.rgb), "111111")
+            nav_text = "".join(shape.text_frame.text for shape in nav.shapes if shape.has_text_frame)
+            self.assertIn("Replay", nav_text)
+
+    def test_appearance_mode_without_any_section_converts_with_a_warning(self):
+        html = "<!doctype html><html><body><h1>Alpha</h1><p>First page</p><h2>Beta</h2><p>Second page</p></body></html>"
+        with tempfile.TemporaryDirectory() as tmp:
+            source = Path(tmp) / "notes.html"
+            source.write_text(html, encoding="utf-8")
+            ok, data, errors = convert_html_to_office(source, Path(tmp) / "notes.pptx", "pptx", fidelity="appearance")
+            self.assertTrue(ok, errors)
+            self.assertEqual(data["slides"], 2)
+            self.assertTrue(any("every slide" in warning for warning in data["warnings"]), data["warnings"])
+
 
 class WithoutBrowserTests(unittest.TestCase):
     def test_appearance_mode_needs_the_browser(self):
@@ -122,3 +167,25 @@ class NormalLineTests(unittest.TestCase):
             convert_html_to_office(source, Path(tmp) / "sup.docx", "docx")
             raised, plain = Document(Path(tmp) / "sup.docx").paragraphs[:2]
         self.assertGreater(raised.paragraph_format.line_spacing.pt, plain.paragraph_format.line_spacing.pt)
+
+
+class CascadeBackgroundTests(unittest.TestCase):
+    """The editable layout paints the slide background even without the browser."""
+
+    def test_editable_mode_keeps_the_dark_section_background_without_a_browser(self):
+        html = (
+            "<!doctype html><html><head><style>"
+            ".slide{background:#1A1A2E;color:#FFFFFF;min-height:300px}"
+            "</style></head><body>"
+            '<section class="slide"><h1>Night</h1><p>White on dark.</p></section>'
+            "</body></html>"
+        )
+        with tempfile.TemporaryDirectory() as tmp, mock.patch.dict(os.environ, {"WPS_AGENT_NO_BROWSER": "1"}):
+            source = Path(tmp) / "night.html"
+            source.write_text(html, encoding="utf-8")
+            ok, _data, errors = convert_html_to_office(source, Path(tmp) / "night.pptx", "pptx", fidelity="editable")
+            self.assertTrue(ok, errors)
+            slide = Presentation(Path(tmp) / "night.pptx").slides[0]
+            self.assertEqual(str(slide.background.fill.fore_color.rgb), "1A1A2E")
+            title = slide.shapes.title.text_frame.paragraphs[0]
+            self.assertEqual(str(title.runs[0].font.color.rgb), "FFFFFF")

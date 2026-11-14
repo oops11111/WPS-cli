@@ -200,7 +200,8 @@ def _add_conversion_commands(subparsers: argparse._SubParsersAction) -> None:
         default="editable",
         help=(
             "editable (default): native paragraphs, lists and tables styled from the computed CSS. appearance: for "
-            "pptx, every element is placed where the browser lays it out, with decorative boxes; needs the browser."
+            "pptx, every element is placed where the browser lays it out, with decorative boxes; needs the browser. "
+            "A slide outside a <section> container uses the editable layout instead of failing the conversion."
         ),
     )
     html_editable_parser.add_argument("--task-id", help="Optional long-running task status id.")

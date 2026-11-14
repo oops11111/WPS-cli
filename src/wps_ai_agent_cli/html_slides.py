@@ -677,6 +677,33 @@ def _style_runs(paragraph, styled, node, factor: float, left: bool = False) -> N
         paragraph.alignment = {2: PP_ALIGN.CENTER, 3: PP_ALIGN.RIGHT, 4: PP_ALIGN.JUSTIFY}.get(align, PP_ALIGN.LEFT)
 
 
+def _set_slide_background(slide, styled, node: _Node | None) -> None:
+    """Paint the slide with the node's background, or the nearest ancestor's that has one (often the body's)."""
+    from . import slide_appearance as look
+
+    if node is None:
+        return
+    parents = {id(c): n for n in _walk(styled.root) for c in n.children if isinstance(c, _Node)}
+    holder: _Node | None = node
+    while holder is not None:
+        background_fill = look.fill_of(styled.style(holder))
+        if background_fill is not None:
+            look.set_background(slide, background_fill)
+            return
+        holder = parents.get(id(holder))
+
+
+def _background_start(data: _Slide) -> _Node | None:
+    """The node whose background chain paints a slide: its section, else its first content."""
+    if data.section is not None:
+        return data.section
+    if data.title is not None:
+        return data.title
+    if data.lines:
+        return data.lines[0].node
+    return None
+
+
 def _positioned_slide(slide, data: _Slide, styled, css: _Css, source: Path, appearance: bool, counts, warnings):
     """Place the slide's elements where the browser put them (P13-006); returns the animation effects."""
     from pptx.util import Emu, Pt
@@ -701,18 +728,8 @@ def _positioned_slide(slide, data: _Slide, styled, css: _Css, source: Path, appe
             Emu(max(1, int(box["height"] * 9525 * factor))),
         )
 
-    from . import slide_appearance as look
-
     section_style = styled.style(data.section)
-    # The slide's background: the section's, or the nearest ancestor's that has one (often the body's).
-    parents = {id(c): n for n in _walk(styled.root) for c in n.children if isinstance(c, _Node)}
-    holder: _Node | None = data.section
-    while holder is not None:
-        background_fill = look.fill_of(styled.style(holder))
-        if background_fill is not None:
-            look.set_background(slide, background_fill)
-            break
-        holder = parents.get(id(holder))
+    _set_slide_background(slide, styled, data.section)
     image = re.search(r"url\([\"']?([^\"')]+)", section_style.get("background-image", "") or "")
     if image:
         path, warning = local_image(
@@ -1149,8 +1166,8 @@ def convert_html_to_pptx(
     parser = styled.parser
     css = parse_css(html)
     slides = collect_slides(styled.root)
-    positioned = styled.mode == "browser" and all(s.section is not None and styled.box(s.section) for s in slides)
-    if fidelity == "appearance" and not positioned:
+    browser_ok = styled.mode == "browser"
+    if fidelity == "appearance" and not browser_ok:
         return (
             False,
             {},
@@ -1158,11 +1175,13 @@ def convert_html_to_pptx(
                 {
                     "code": "BROWSER_BACKEND_UNAVAILABLE",
                     "message": "Appearance mode places elements where the browser puts them: it needs Node.js, "
-                    "Playwright and Edge (or Chromium via WPS_AGENT_EDGE), and every slide in a <section> or an element with "
-                    'class="slide".',
+                    "Playwright and Edge (or Chromium via WPS_AGENT_EDGE).",
                 }
             ],
         )
+    # Per slide, not per deck: a slide without a <section> container (deck chrome such as a nav bar) falls back
+    # to the editable layout instead of refusing the whole file.
+    positioned_any = browser_ok and any(s.section is not None and styled.box(s.section) for s in slides)
     if not slides:
         return (
             False,
@@ -1184,25 +1203,38 @@ def convert_html_to_pptx(
         warnings.append(f"<{tag}> elements cannot be converted and were omitted.")
     if css.hover:
         warnings.append("Hover effects (:hover, :focus) cannot be represented in a presentation and were omitted.")
+    if fidelity == "appearance" and browser_ok and not positioned_any:
+        warnings.append(
+            "No slide had a <section> container with a browser layout; the editable layout was used for every slide."
+        )
 
     presentation = Presentation()
-    if positioned:
+    if positioned_any:
         # 16:9, like the 1280 x 720 viewport the browser laid the sections out in.
         presentation.slide_width, presentation.slide_height = Emu(12192000), Emu(6858000)
-    layout = presentation.slide_layouts[5 if positioned else 1]  # title only, or title and content
+    layouts = presentation.slide_layouts
     width, height = presentation.slide_width, presentation.slide_height
     margin = Inches(0.5)
     counts = {"tables": 0, "images": 0, "media": 0, "notes": 0, "animations": 0, "transitions": 0}
     partial_animations = 0
     unknown_transitions: set[str] = set()
     by_index = {n.attrs.get("data-wps-i"): n for n in _walk(styled.root) if n.attrs.get("data-wps-i")}
-    for data in slides:
-        slide = presentation.slides.add_slide(layout)
+    for index, data in enumerate(slides):
+        is_positioned = browser_ok and data.section is not None and styled.box(data.section)
+        slide = presentation.slides.add_slide(layouts[5] if is_positioned else layouts[1])
         effects: list[tuple[int, int | None, Animation, str]] = []
-        if positioned:
+        if is_positioned:
             effects = _positioned_slide(slide, data, styled, css, source, fidelity == "appearance", counts, warnings)
             _finish_slide(slide, data, effects, css, counts, unknown_transitions)
             continue
+        if fidelity == "appearance" and positioned_any:
+            warnings.append(
+                f"Slide {index + 1} has no <section> container with a browser layout; "
+                "the editable layout was used for that slide."
+            )
+        # The editable layout never painted the slide's background, so light text on a dark section came out
+        # white on white; paint the section's background (or the nearest ancestor's) here.
+        _set_slide_background(slide, styled, _background_start(data))
         title_shape = slide.shapes.title
         if data.title is not None:
             _fill_paragraph(title_shape.text_frame.paragraphs[0], _runs(data.title))
