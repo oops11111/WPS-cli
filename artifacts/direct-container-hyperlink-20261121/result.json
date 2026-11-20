@@ -1,0 +1,99 @@
+{
+  "utc": "2026-11-20T22:57:32.831393+00:00",
+  "python": "3.13.17",
+  "platform": "Windows-10-10.0.19045-SP0",
+  "fixture": "fixtures\\fidelity\\direct_container.html",
+  "thresholds": {
+    "layout": 0.9,
+    "text": 1.0,
+    "structure": 1.0,
+    "formatting": 1.0
+  },
+  "scope": "Fixed stage-1 regression input; no fixture tuning or conversion-direction changes.",
+  "conversion_ok": true,
+  "browser_ok": true,
+  "semantic": {
+    "source": "fixtures/fidelity/direct_container.html",
+    "target": "artifacts/direct-container-hyperlink-20261121/converted.docx",
+    "group": "A",
+    "thresholds": {
+      "text": 1.0,
+      "structure": 1.0,
+      "formatting": 1.0,
+      "animations": 1.0,
+      "data": 1.0,
+      "layout": 0.9
+    },
+    "aspects": {
+      "text": {
+        "score": 1.0,
+        "missing": []
+      },
+      "structure": {
+        "score": 1.0,
+        "differences": {}
+      },
+      "formatting": {
+        "score": 1.0,
+        "problems": []
+      },
+      "animations": {
+        "status": "not applicable"
+      },
+      "data": {
+        "status": "not applicable"
+      },
+      "layout": {
+        "status": "skipped"
+      }
+    },
+    "verdict": {
+      "text": true,
+      "structure": true,
+      "formatting": true
+    },
+    "passed": true
+  },
+  "wps_version": [
+    {
+      "path": "C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\wps.exe",
+      "version": "12,8,2,18913"
+    }
+  ],
+  "wps_export_ok": true,
+  "layout": {
+    "images": [
+      "artifacts/direct-container-hyperlink-20261121/pages/page-001-0.983.png"
+    ],
+    "status": "measured",
+    "renderer": "wps",
+    "score": 0.9834,
+    "pages": {
+      "source": 1,
+      "target": 1
+    },
+    "page_scores": [
+      0.9834
+    ],
+    "missing_fonts": [
+      "Noto Sans CJK SC"
+    ]
+  },
+  "visual_diagnostic": {
+    "region": [
+      0,
+      0,
+      800,
+      300
+    ],
+    "score": 0.9365,
+    "purpose": "Fixed content-area diagnostic only; full-page F2 threshold is unchanged."
+  },
+  "hashes": {
+    "direct_container.html": "e8283229fa183ab4b1c029c5506e8f1cac6748439c35be694ffe275d3d5081f8",
+    "converted.docx": "e483ad9207a4de6da59073e22389252c0e8d0b1e8a675a921ff56ed0de2a88f5",
+    "browser.pdf": "2c3599f6c5b0c41a5ee93a85b12e73a36d0c3a78c4c7202f108a66bd90349350",
+    "wps.pdf": "a09f88a88b68baeaec7af8ec9a0a76234454d93b8905e6f6b9cc603dc82a19de"
+  },
+  "accepted": true
+}

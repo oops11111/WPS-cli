@@ -677,24 +677,14 @@ def convert_html_editable(
                     relation = paragraph.part.relate_to(href, RT.HYPERLINK, is_external=True)
                     hyperlink = OxmlElement("w:hyperlink")
                     hyperlink.set(qn("r:id"), relation)
-                    run = OxmlElement("w:r")
-                    props = OxmlElement("w:rPr")
-                    for name in ("bold", "italic"):
-                        if formats.get(name):
-                            props.append(OxmlElement("w:b" if name == "bold" else "w:i"))
-                    color = OxmlElement("w:color")
-                    color.set(qn("w:val"), "0563C1")
-                    underline = OxmlElement("w:u")
-                    underline.set(qn("w:val"), "single")
-                    props.append(color)
-                    props.append(underline)
-                    run.append(props)
-                    text = OxmlElement("w:t")
-                    text.text = label
-                    text.set(qn("xml:space"), "preserve")
-                    run.append(text)
-                    hyperlink.append(run)
                     paragraph._p.append(hyperlink)
+                    # Build normal styled runs, then place them inside the relationship.
+                    # The anchor and its inline descendants have their own computed CSS:
+                    # a hard-coded hyperlink run loses font/size and flattens nested styles.
+                    start = len(paragraph._p)
+                    add_text_with_links(paragraph, child, preserve=preserve, skip=skip)
+                    for element in list(paragraph._p)[start:]:
+                        hyperlink.append(element)
                     if owned_schema and child.attrs.get("data-wps-object-id"):
                         add_bookmark(paragraph._p, child.attrs["data-wps-object-id"])
                 else:

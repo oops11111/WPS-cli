@@ -47,3 +47,30 @@ stage. It reports branch, SHA, changed files, tests, limitations and PR URL.
 The primary agent reviews diffs, follows live CI handles, requests fixes on the
 same branch, and merges only after all CI passes. Each handoff records stage,
 authoritative status, commit/PR/run evidence, blockers and exact next action.
+
+## Stage 3: hyperlink formatting and honest scoring
+
+- Dependency: stages 1/2 merged, latest main `ed872808625cf620d2c77772f303e8021584922d`.
+  Stage 2's fixed WPS fixture reveals an undersized hyperlink while the semantic
+  formatting score incorrectly reports 1.0.
+- Scope: `html_editable.py` hyperlink run creation, `fidelity.py` DOCX run reading
+  and missing-run formatting checks, focused tests, changelog and same-fixture
+  evidence. No new directions, unsafe-link exceptions, or environment repairs.
+- Deliverables: computed hyperlink font/size/color/decoration and nested inline
+  styles, retaining external relationships and existing target filtering; read
+  normal and hyperlink runs in document order in body/cells/headers/footers;
+  report absent styled source runs as failed checks instead of skipping them.
+- Verification: `python -m unittest discover -s tests -p test_html_hyperlink_fidelity.py`,
+  existing container/editable/conversion tests, `ruff check .`,
+  `ruff format --check .`. Negative tests deliberately shrink/change/remove a
+  hyperlink run: formatting must fail; matching runs must pass.
+- WPS acceptance: reuse `direct_container.html` unchanged, new output directory,
+  record hashes/versions/raw JSON and color page comparison; F2 full-page SSIM
+  >= 0.90, text/structure/formatting 1.0, fixed 300px content diagnostic, and
+  visual confirmation that the hyperlink size matches surrounding text.
+- CI/merge: all six PR jobs green plus primary-agent diff/evidence review before
+  merge to `main`. One dedicated branch/PR, English Conventional Commit.
+- Stop: browser/WPS/credentials unavailable, original fixture misses a gate,
+  or scoring exposes losses requiring unrelated conversion-direction changes.
+  Historical baseline regressions exposed by honest scoring must be reported,
+  never hidden by lowered thresholds or rewritten passing baselines.

@@ -1,0 +1,5 @@
+{
+  "returncode": 0,
+  "stdout": "{\n    \"processes\":  [\n\n                  ],\n    \"executables\":  [\n                        {\n                            \"path\":  \"C:\\\\Program Files (x86)\\\\Kingsoft\\\\WPS Office\\\\12.8.2.18913\\\\office6\\\\wps.exe\",\n                            \"version\":  \"12,8,2,18913\"\n                        }\n                    ]\n}\n",
+  "stderr": ""
+}
