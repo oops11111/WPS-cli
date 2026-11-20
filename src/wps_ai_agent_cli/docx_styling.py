@@ -286,7 +286,16 @@ def _list_tab(paragraph, left) -> None:
     stops.add_tab_stop(left, WD_TAB_ALIGNMENT.LEFT)
 
 
-def apply_paragraph(paragraph, node, ancestors, context: Context, *, list_item: bool = False) -> None:
+def apply_paragraph(
+    paragraph,
+    node,
+    ancestors,
+    context: Context,
+    *,
+    list_item: bool = False,
+    container_start: bool = True,
+    container_end: bool = True,
+) -> None:
     from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_LINE_SPACING
     from docx.shared import Pt
 
@@ -321,8 +330,10 @@ def apply_paragraph(paragraph, node, ancestors, context: Context, *, list_item: 
         # CSS "normal" is about 1.2 times the font size.
         form.line_spacing_rule = WD_LINE_SPACING.MULTIPLE
         form.line_spacing = 1.0
-    top = (px(style.get("margin-top"), size) or 0) * 0.75
-    bottom = (px(style.get("margin-bottom"), size) or 0) * 0.75
+    # Anonymous text groups separated by child blocks share the outer container's
+    # style, but its margins and page break belong only to its outer edges.
+    top = (px(style.get("margin-top"), size) or 0) * 0.75 if container_start else 0.0
+    bottom = (px(style.get("margin-bottom"), size) or 0) * 0.75 if container_end else 0.0
     # Adjacent vertical margins collapse in CSS: the larger one wins.
     form.space_before = Pt(max(0.0, max(top, context.carry_before) - context.last_space_after))
     form.space_after = Pt(bottom)
@@ -354,7 +365,9 @@ def apply_paragraph(paragraph, node, ancestors, context: Context, *, list_item: 
     indent = px(style.get("text-indent"), size)
     if indent:
         form.first_line_indent = Pt(indent * 0.75)
-    if style.get("break-before") in {"page", "always", "left", "right"} or style.get("page-break-before") == "always":
+    if container_start and (
+        style.get("break-before") in {"page", "always", "left", "right"} or style.get("page-break-before") == "always"
+    ):
         form.page_break_before = True
     props = paragraph._p.get_or_add_pPr()
     _no_grid(props)

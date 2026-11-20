@@ -4,6 +4,12 @@ All notable changes to `wps-ai-agent-cli`. The versioning rule and release steps
 
 ## [Unreleased]
 
+### Fixed
+
+- HTML to DOCX preserves paragraph and character styles on direct text inside
+  containers, including alignment, spacing, indents, shading and borders. Text
+  groups separated by child blocks do not repeat container margins or page breaks.
+
 ### Added
 
 - T-09: `performance-baseline --include-wps [--repeat N]` also times N real `spreadsheet-write` calls through WPS on a workbook it creates in a temporary folder, and N new `python -m wps_ai_agent_cli` processes, and reports their medians, the fixed cost of one CLI call (`cli_call_fixed_cost_ms`) and whether it exceeds the 2 s threshold that would reopen resident mode (C-10). Without the flag the baseline is unchanged and never starts WPS.

@@ -641,14 +641,20 @@ def convert_html_editable(
             font.color.rgb = RGBColor.from_string(formats["color"])
 
     def add_text_with_links(
-        paragraph, node: _Node, formats: dict[str, Any] | None = None, preserve: bool = False, skip=()
+        paragraph,
+        node: _Node,
+        formats: dict[str, Any] | None = None,
+        preserve: bool = False,
+        skip=(),
+        *,
+        style_node=None,
     ) -> None:
         from docx.opc.constants import RELATIONSHIP_TYPE as RT
         from docx.oxml import OxmlElement
         from docx.oxml.ns import qn
 
         formats = formats or {}
-        node_props = docx_styling.run_props(context, node)
+        node_props = docx_styling.run_props(context, style_node if style_node is not None else node)
         for child in node.children:
             if isinstance(child, str):
                 # HTML reads CRLF and CR as one line break; python-docx would make each of \r and \n a break (a
@@ -808,24 +814,30 @@ def convert_html_editable(
         docx_styling.apply_table_spacing(table, node, context)
         counts["tables"] += 1
 
-    def add_inline_run(container: _Node, pending: list[_Node | str]) -> None:
+    def add_inline_run(container: _Node, pending: list[_Node | str], *, first: bool, last: bool) -> None:
         """Text and inline elements (a, span, b, code...) that sit directly in a block container, as one paragraph."""
         holder = _Node(container.tag, dict(container.attrs), pending)
         if not _text(holder):
             return
         paragraph = document.add_paragraph()
-        add_text_with_links(paragraph, holder)
+        # The anonymous text group has no computed style or browser box of its own.
+        # Use the original container for styling, retaining only this group's content.
+        docx_styling.apply_paragraph(
+            paragraph, container, ancestors(container), context, container_start=first, container_end=last
+        )
+        add_text_with_links(paragraph, holder, style_node=container)
         trim(paragraph)
         counts["paragraphs"] += 1
 
     def add_blocks(container: _Node, list_style: str | None = None) -> None:
         pending: list[_Node | str] = []
+        start = len(document._element.body)
         for node in container.children:
             if isinstance(node, str) or node.tag in _INLINE:
                 pending.append(node)
                 continue
             if pending:
-                add_inline_run(container, pending)
+                add_inline_run(container, pending, first=len(document._element.body) == start, last=False)
                 pending = []
             tag = node.tag
             role = docx_styling.page_role(node)
@@ -898,7 +910,7 @@ def convert_html_editable(
             }:
                 add_blocks(node)
         if pending:
-            add_inline_run(container, pending)
+            add_inline_run(container, pending, first=len(document._element.body) == start, last=True)
 
     try:
         add_blocks(parser.root)
