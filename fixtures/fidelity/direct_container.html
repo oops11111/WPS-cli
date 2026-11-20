@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Direct container text fidelity regression</title>
+  <style>
+    @page { size: A4; margin: 10mm; }
+    body { margin: 0; font-family: Arial; font-size: 20px; line-height: 24px; }
+  </style>
+</head>
+<body>
+  <div style="text-align:center;margin-left:40px;margin-top:16px;margin-bottom:12px;text-indent:8px;line-height:24px;background-color:#ffeeaa;border:2px solid #123456;font-family:Arial;font-size:20px;color:#345678">Direct <b>bold</b> text</div>
+  <div style="text-align:right;margin-top:20px;margin-bottom:28px;font-size:20px;color:#345678">before <span>span</span><p style="margin:0">block</p>after <em>em</em></div>
+  <div style="margin-left:24px;color:#112233"><section style="margin-left:16px;text-align:right">Contact <a href="https://example.com">us</a><br>today</section></div>
+</body>
+</html>
