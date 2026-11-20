@@ -53,7 +53,7 @@ def main():
         "python": platform.python_version(),
         "platform": platform.platform(),
         "fixture": str(source.relative_to(ROOT)),
-        "thresholds": {"layout": 0.90, "text": 1.0, "structure": 1.0},
+        "thresholds": {"layout": 0.90, "text": 1.0, "structure": 1.0, "formatting": 1.0},
         "scope": "Fixed stage-1 regression input; no fixture tuning or conversion-direction changes.",
     }
     styled = load(source)
@@ -133,7 +133,7 @@ def main():
         export[0]
         and report.get("layout", {}).get("status") == "measured"
         and report["layout"].get("score", 0) >= 0.90
-        and all(aspects.get(key, {}).get("score") == 1.0 for key in ("text", "structure"))
+        and all(aspects.get(key, {}).get("score") == 1.0 for key in ("text", "structure", "formatting"))
     )
     write(out / "result.json", report)
     print(json.dumps(report, indent=2, ensure_ascii=False))

@@ -1,0 +1,617 @@
+{
+  "scope": "Existing CASES without layout; original config baselines retained; no WPS group-B operations.",
+  "cases": [
+    {
+      "case": "A-report-docx",
+      "conversion_ok": true,
+      "check_ok": true,
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "formatting": 1.0,
+        "data": 1.0
+      },
+      "verdict": {
+        "text": true,
+        "structure": true,
+        "formatting": true,
+        "data": true
+      },
+      "errors": [],
+      "formatting_problems": [],
+      "previous_scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "formatting": 1.0,
+        "data": 1.0,
+        "layout": 0.9109
+      }
+    },
+    {
+      "case": "A-contract-docx",
+      "conversion_ok": true,
+      "check_ok": true,
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "formatting": 1.0,
+        "data": 1.0
+      },
+      "verdict": {
+        "text": true,
+        "structure": true,
+        "formatting": true,
+        "data": true
+      },
+      "errors": [],
+      "formatting_problems": [],
+      "previous_scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "formatting": 1.0,
+        "data": 1.0,
+        "layout": 0.806
+      }
+    },
+    {
+      "case": "A-newsletter-docx",
+      "conversion_ok": true,
+      "check_ok": true,
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "formatting": 1.0
+      },
+      "verdict": {
+        "text": true,
+        "structure": true,
+        "formatting": true
+      },
+      "errors": [],
+      "formatting_problems": [],
+      "previous_scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "formatting": 1.0,
+        "layout": 0.8972
+      }
+    },
+    {
+      "case": "A-manual-docx",
+      "conversion_ok": true,
+      "check_ok": true,
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "formatting": 1.0,
+        "data": 1.0
+      },
+      "verdict": {
+        "text": true,
+        "structure": true,
+        "formatting": true,
+        "data": true
+      },
+      "errors": [],
+      "formatting_problems": [],
+      "previous_scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "formatting": 1.0,
+        "data": 1.0,
+        "layout": 0.8618
+      }
+    },
+    {
+      "case": "A-pdfsource-docx",
+      "conversion_ok": true,
+      "check_ok": true,
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "formatting": 1.0,
+        "data": 1.0
+      },
+      "verdict": {
+        "text": true,
+        "structure": true,
+        "formatting": true,
+        "data": true
+      },
+      "errors": [],
+      "formatting_problems": [],
+      "previous_scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "formatting": 1.0,
+        "data": 1.0,
+        "layout": 0.8998
+      }
+    },
+    {
+      "case": "A-budget-xlsx",
+      "conversion_ok": true,
+      "check_ok": true,
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "data": 1.0
+      },
+      "verdict": {
+        "text": true,
+        "structure": true,
+        "data": true
+      },
+      "errors": [],
+      "formatting_problems": [],
+      "previous_scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "data": 1.0
+      }
+    },
+    {
+      "case": "A-launch-pptx",
+      "conversion_ok": true,
+      "check_ok": true,
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "formatting": 1.0,
+        "animations": 1.0,
+        "data": 1.0
+      },
+      "verdict": {
+        "text": true,
+        "structure": true,
+        "formatting": true,
+        "animations": true,
+        "data": true
+      },
+      "errors": [],
+      "formatting_problems": [],
+      "previous_scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "formatting": 1.0,
+        "animations": 1.0,
+        "data": 1.0,
+        "layout": 0.9165
+      }
+    },
+    {
+      "case": "A-training-pptx",
+      "conversion_ok": true,
+      "check_ok": true,
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "formatting": 1.0,
+        "animations": 1.0
+      },
+      "verdict": {
+        "text": true,
+        "structure": true,
+        "formatting": true,
+        "animations": true
+      },
+      "errors": [],
+      "formatting_problems": [],
+      "previous_scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "formatting": 1.0,
+        "animations": 1.0,
+        "layout": 0.9508
+      }
+    },
+    {
+      "case": "A-quarterly-pptx",
+      "conversion_ok": true,
+      "check_ok": true,
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "formatting": 1.0,
+        "animations": 1.0,
+        "data": 1.0
+      },
+      "verdict": {
+        "text": true,
+        "structure": true,
+        "formatting": true,
+        "animations": true,
+        "data": true
+      },
+      "errors": [],
+      "formatting_problems": [],
+      "previous_scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "formatting": 1.0,
+        "animations": 1.0,
+        "data": 1.0,
+        "layout": 0.9498
+      }
+    },
+    {
+      "case": "A-brief-html",
+      "conversion_ok": true,
+      "check_ok": true,
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "formatting": 1.0,
+        "data": 1.0
+      },
+      "verdict": {
+        "text": true,
+        "structure": true,
+        "formatting": true,
+        "data": true
+      },
+      "errors": [],
+      "formatting_problems": [],
+      "previous_scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "formatting": 1.0,
+        "data": 1.0
+      }
+    },
+    {
+      "case": "A-deck-html",
+      "conversion_ok": true,
+      "check_ok": true,
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "formatting": 1.0,
+        "animations": 1.0,
+        "data": 1.0
+      },
+      "verdict": {
+        "text": true,
+        "structure": true,
+        "formatting": true,
+        "animations": true,
+        "data": true
+      },
+      "errors": [],
+      "formatting_problems": [],
+      "previous_scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "formatting": 1.0,
+        "animations": 1.0,
+        "data": 1.0
+      }
+    },
+    {
+      "case": "A-book-html",
+      "conversion_ok": true,
+      "check_ok": true,
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "formatting": 1.0,
+        "data": 1.0
+      },
+      "verdict": {
+        "text": true,
+        "structure": true,
+        "formatting": true,
+        "data": true
+      },
+      "errors": [],
+      "formatting_problems": [],
+      "previous_scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "formatting": 1.0,
+        "data": 1.0
+      }
+    },
+    {
+      "case": "C-gbk-csv-xlsx",
+      "conversion_ok": true,
+      "check_ok": true,
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "data": 1.0
+      },
+      "verdict": {
+        "text": true,
+        "structure": true,
+        "data": true
+      },
+      "errors": [],
+      "formatting_problems": [],
+      "previous_scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "data": 1.0
+      }
+    },
+    {
+      "case": "C-utf8-tsv-xlsx",
+      "conversion_ok": true,
+      "check_ok": true,
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "data": 1.0
+      },
+      "verdict": {
+        "text": true,
+        "structure": true,
+        "data": true
+      },
+      "errors": [],
+      "formatting_problems": [],
+      "previous_scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "data": 1.0
+      }
+    },
+    {
+      "case": "C-book-csv",
+      "conversion_ok": true,
+      "check_ok": true,
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "data": 1.0
+      },
+      "verdict": {
+        "text": true,
+        "structure": true,
+        "data": true
+      },
+      "errors": [],
+      "formatting_problems": [],
+      "previous_scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "data": 1.0
+      }
+    },
+    {
+      "case": "C-guide-docx",
+      "conversion_ok": true,
+      "check_ok": true,
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "data": 1.0
+      },
+      "verdict": {
+        "text": true,
+        "structure": true,
+        "data": true
+      },
+      "errors": [],
+      "formatting_problems": [],
+      "previous_scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "data": 1.0
+      }
+    },
+    {
+      "case": "C-api-html",
+      "conversion_ok": true,
+      "check_ok": true,
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "data": 1.0
+      },
+      "verdict": {
+        "text": true,
+        "structure": true,
+        "data": true
+      },
+      "errors": [],
+      "formatting_problems": [],
+      "previous_scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "data": 1.0
+      }
+    },
+    {
+      "case": "C-notes-docx",
+      "conversion_ok": true,
+      "check_ok": true,
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0
+      },
+      "verdict": {
+        "text": true,
+        "structure": true
+      },
+      "errors": [],
+      "formatting_problems": [],
+      "previous_scores": {
+        "text": 1.0,
+        "structure": 1.0
+      }
+    },
+    {
+      "case": "C-brief-md",
+      "conversion_ok": true,
+      "check_ok": true,
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "data": 1.0
+      },
+      "verdict": {
+        "text": true,
+        "structure": true,
+        "data": true
+      },
+      "errors": [],
+      "formatting_problems": [],
+      "previous_scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "data": 1.0
+      }
+    },
+    {
+      "case": "D-brief-pptx",
+      "conversion_ok": true,
+      "check_ok": true,
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "data": 1.0
+      },
+      "verdict": {
+        "text": true,
+        "data": true
+      },
+      "errors": [],
+      "formatting_problems": [],
+      "previous_scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "data": 1.0
+      }
+    },
+    {
+      "case": "D-deck-docx",
+      "conversion_ok": true,
+      "check_ok": true,
+      "scores": {
+        "text": 1.0,
+        "structure": 0.7,
+        "animations": 0.0,
+        "data": 1.0
+      },
+      "verdict": {
+        "text": true,
+        "data": true
+      },
+      "errors": [],
+      "formatting_problems": [],
+      "previous_scores": {
+        "text": 1.0,
+        "structure": 0.7,
+        "animations": 0.0,
+        "data": 1.0
+      }
+    },
+    {
+      "case": "D-book-docx",
+      "conversion_ok": true,
+      "check_ok": true,
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "data": 1.0
+      },
+      "verdict": {
+        "text": true,
+        "data": true
+      },
+      "errors": [],
+      "formatting_problems": [],
+      "previous_scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "data": 1.0
+      }
+    },
+    {
+      "case": "D-book-pptx",
+      "conversion_ok": true,
+      "check_ok": true,
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "data": 1.0
+      },
+      "verdict": {
+        "text": true,
+        "data": true
+      },
+      "errors": [],
+      "formatting_problems": [],
+      "previous_scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "data": 1.0
+      }
+    },
+    {
+      "case": "E-supplier-docx",
+      "conversion_ok": true,
+      "check_ok": true,
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "data": 1.0
+      },
+      "verdict": {
+        "text": true,
+        "data": true
+      },
+      "errors": [],
+      "formatting_problems": [],
+      "previous_scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "data": 1.0,
+        "layout": 0.9289
+      }
+    },
+    {
+      "case": "E-supplier-xlsx",
+      "conversion_ok": true,
+      "check_ok": true,
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "data": 1.0
+      },
+      "verdict": {
+        "text": true,
+        "data": true
+      },
+      "errors": [],
+      "formatting_problems": [],
+      "previous_scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "data": 1.0
+      }
+    },
+    {
+      "case": "E-supplier-pptx",
+      "conversion_ok": true,
+      "check_ok": true,
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "data": 1.0
+      },
+      "verdict": {
+        "text": true,
+        "data": true
+      },
+      "errors": [],
+      "formatting_problems": [],
+      "previous_scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "data": 1.0
+      }
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+[
+  true,
+  {
+    "input_path": "artifacts/direct-container-hyperlink-20261121/converted.docx",
+    "output_path": "artifacts/direct-container-hyperlink-20261121/wps.pdf",
+    "format": "pdf",
+    "backend": "powershell-com",
+    "component": "writer",
+    "prog_id": "kwps.Application",
+    "format_code": null,
+    "conversion_method": "ExportAsFixedFormat",
+    "warnings": []
+  },
+  []
+]

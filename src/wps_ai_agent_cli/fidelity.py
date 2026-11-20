@@ -272,6 +272,19 @@ def _docx_run(run) -> Run:
     )
 
 
+def _paragraph_runs(paragraph):
+    """Ordinary and hyperlink runs in XML order (Paragraph.runs omits hyperlinks)."""
+    from docx.oxml.ns import qn
+    from docx.text.run import Run as DocxRun
+
+    for child in paragraph._p:
+        if child.tag == qn("w:r"):
+            yield DocxRun(child, paragraph)
+        elif child.tag == qn("w:hyperlink"):
+            for run in child.findall(qn("w:r")):
+                yield DocxRun(run, paragraph)
+
+
 def _read_docx(path: Path) -> Model:
     from docx import Document
     from docx.oxml.ns import qn
@@ -287,7 +300,7 @@ def _read_docx(path: Path) -> Model:
             text = _norm(paragraph.text)
             style = paragraph.style.name if paragraph.style is not None else ""
             images = len(child.findall(".//" + qn("w:drawing")))
-            runs = [_docx_run(r) for r in paragraph.runs if r.text]
+            runs = [_docx_run(r) for r in _paragraph_runs(paragraph) if r.text]
             if text:
                 match = re.match(r"Heading (\d)", style)
                 if match:
@@ -318,7 +331,7 @@ def _read_docx(path: Path) -> Model:
                 rows.append(cells)
             model.blocks.append(Block("table", rows=rows))
             for cell in unique:
-                runs = [_docx_run(r) for p in cell.paragraphs for r in p.runs if r.text.strip()]
+                runs = [_docx_run(r) for p in cell.paragraphs for r in _paragraph_runs(p) if r.text.strip()]
                 if runs:
                     model.blocks.append(Block("cell-run", _norm(cell.text), runs=runs))
     # Page header and footer text is content too (html-editable puts data-page="header"/"footer" there).
@@ -329,7 +342,12 @@ def _read_docx(path: Path) -> Model:
             for paragraph in part.paragraphs:
                 if _norm(paragraph.text):
                     model.blocks.append(
-                        Block("paragraph", _norm(paragraph.text), 0, [_docx_run(r) for r in paragraph.runs if r.text])
+                        Block(
+                            "paragraph",
+                            _norm(paragraph.text),
+                            0,
+                            [_docx_run(r) for r in _paragraph_runs(paragraph) if r.text],
+                        )
                     )
     model.pages = None
     return model
@@ -641,6 +659,9 @@ def score_formatting(source: Model, target: Model) -> tuple[float, list[str]]:
             if index < 0:
                 index = target_text.find(plain)
             if index < 0:
+                checks += len(wanted)
+                if len(problems) < 10:
+                    problems.append(f"{plain[:20]}: styled run missing from target")
                 continue
             positions[cells] = index + len(plain)
             got = target_props[index]

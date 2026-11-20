@@ -1,0 +1,33 @@
+[
+  true,
+  {
+    "input_path": "fixtures/fidelity/direct_container.html",
+    "output_path": "artifacts/direct-container-hyperlink-20261121/converted.docx",
+    "bytes": 37037,
+    "sha256": "e483ad9207a4de6da59073e22389252c0e8d0b1e8a675a921ff56ed0de2a88f5",
+    "backend": "python-docx-semantic-mapping",
+    "editable": true,
+    "mapped_objects": {
+      "paragraphs": 5,
+      "headings": 0,
+      "lists": 0,
+      "tables": 0,
+      "images": 0
+    },
+    "unsupported_css": [],
+    "warnings": [],
+    "fidelity": "editable",
+    "style_source": "browser",
+    "applied_styles": [
+      "border",
+      "character",
+      "paragraph",
+      "shading"
+    ],
+    "source_encoding": "utf-8",
+    "javascript_executed": false,
+    "remote_resources_fetched": false,
+    "roundtrip_bookmarks": 0
+  },
+  []
+]
