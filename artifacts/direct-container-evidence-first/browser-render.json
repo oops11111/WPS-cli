@@ -1,0 +1,24 @@
+[
+  true,
+  {
+    "input_path": "fixtures/fidelity/direct_container.html",
+    "output_path": "artifacts/direct-container-evidence-first/browser.pdf",
+    "format": "pdf",
+    "bytes": 37156,
+    "sha256": "6f9e843848798ac6aa46ea3fb071291c2c77f07aa84a7868299d05ce8b012c6a",
+    "backend": "playwright-edge",
+    "page_size": "A4",
+    "viewport": {
+      "width": 1280,
+      "height": 900
+    },
+    "javascript_enabled": false,
+    "network_access": false,
+    "websocket_blocked": true,
+    "resource_root": "fixtures/fidelity",
+    "browser": "157.0.4341.60",
+    "page_title": "Direct container text fidelity regression",
+    "document_height": 900
+  },
+  []
+]

@@ -1,0 +1,98 @@
+{
+  "utc": "2026-11-20T22:40:00.463392+00:00",
+  "python": "3.13.17",
+  "platform": "Windows-10-10.0.19045-SP0",
+  "fixture": "fixtures\\fidelity\\direct_container.html",
+  "thresholds": {
+    "layout": 0.9,
+    "text": 1.0,
+    "structure": 1.0
+  },
+  "scope": "Fixed stage-1 regression input; no fixture tuning or conversion-direction changes.",
+  "conversion_ok": true,
+  "browser_ok": true,
+  "semantic": {
+    "source": "fixtures/fidelity/direct_container.html",
+    "target": "artifacts/direct-container-evidence-first/converted.docx",
+    "group": "A",
+    "thresholds": {
+      "text": 1.0,
+      "structure": 1.0,
+      "formatting": 1.0,
+      "animations": 1.0,
+      "data": 1.0,
+      "layout": 0.9
+    },
+    "aspects": {
+      "text": {
+        "score": 1.0,
+        "missing": []
+      },
+      "structure": {
+        "score": 1.0,
+        "differences": {}
+      },
+      "formatting": {
+        "score": 1.0,
+        "problems": []
+      },
+      "animations": {
+        "status": "not applicable"
+      },
+      "data": {
+        "status": "not applicable"
+      },
+      "layout": {
+        "status": "skipped"
+      }
+    },
+    "verdict": {
+      "text": true,
+      "structure": true,
+      "formatting": true
+    },
+    "passed": true
+  },
+  "wps_export_ok": true,
+  "layout": {
+    "images": [
+      "artifacts/direct-container-evidence-first/pages/page-001-0.984.png"
+    ],
+    "status": "measured",
+    "renderer": "wps",
+    "score": 0.9835,
+    "pages": {
+      "source": 1,
+      "target": 1
+    },
+    "page_scores": [
+      0.9835
+    ],
+    "missing_fonts": [
+      "Noto Sans CJK SC"
+    ]
+  },
+  "hashes": {
+    "direct_container.html": "e8283229fa183ab4b1c029c5506e8f1cac6748439c35be694ffe275d3d5081f8",
+    "converted.docx": "c1d68bfbf8a8897dc653d3e117b26b7a7752d09c9d162fd346641e0ce49d18c8",
+    "browser.pdf": "6f9e843848798ac6aa46ea3fb071291c2c77f07aa84a7868299d05ce8b012c6a",
+    "wps.pdf": "1097932606aecfdb5fc59ff0cd979ca41202453fe460d6ecfe86a67448b486be"
+  },
+  "accepted": true,
+  "visual_diagnostic": {
+    "region": [
+      0,
+      0,
+      800,
+      300
+    ],
+    "score": 0.9368,
+    "purpose": "Fixed content-area diagnostic only; full-page F2 threshold is unchanged."
+  },
+  "wps_version": {
+    "path": "C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\wps.exe",
+    "file_version": "12,8,2,18913",
+    "product_version": "12,8,2,18913",
+    "sha256": "4B33912AA0DB87F3880F1CE2D86717B4778ADACF8B781143F457BB634367E35A"
+  }
+}
