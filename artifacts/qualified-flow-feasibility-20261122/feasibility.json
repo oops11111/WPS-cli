@@ -1,0 +1,212 @@
+{
+  "tables": {
+    "report": [
+      {
+        "attrs": {
+          "data-wps-i": "44",
+          "class": "kpi"
+        },
+        "minima": null
+      }
+    ],
+    "contract": [
+      {
+        "attrs": {
+          "data-wps-i": "8",
+          "class": "parties"
+        },
+        "minima": null
+      },
+      {
+        "attrs": {
+          "data-wps-i": "24",
+          "class": "fee"
+        },
+        "minima": [
+          30,
+          30,
+          30,
+          30,
+          30
+        ]
+      },
+      {
+        "attrs": {
+          "data-wps-i": "58",
+          "class": "sign"
+        },
+        "minima": null
+      }
+    ],
+    "newsletter": [],
+    "manual": [
+      {
+        "attrs": {
+          "data-wps-i": "8",
+          "class": "opts"
+        },
+        "minima": null
+      }
+    ],
+    "pdfsource": [
+      {
+        "attrs": {
+          "data-wps-i": "16",
+          "class": "grid"
+        },
+        "minima": null
+      },
+      {
+        "attrs": {
+          "data-wps-i": "58",
+          "class": "plain"
+        },
+        "minima": null
+      }
+    ]
+  },
+  "boundaries": [
+    {
+      "p": "49",
+      "h2": "51",
+      "p_box": {
+        "x": 8,
+        "y": 598.03125,
+        "width": 1264,
+        "height": 22
+      },
+      "h2_box": {
+        "x": 8,
+        "y": 638.28125,
+        "width": 1264,
+        "height": 33
+      },
+      "p_line": "22px",
+      "h2_line": "33px",
+      "gap": 18.25,
+      "max_margin": 18.26,
+      "gap_error": 0.010000000000001563,
+      "current_p_after_twips": 220,
+      "current_h2_before_twips": 54,
+      "full_h2_before_twips": 274,
+      "styles": {
+        "p": {
+          "position": "static",
+          "display": "block",
+          "transform": "none",
+          "zoom": "1",
+          "float": "none",
+          "writing-mode": "horizontal-tb",
+          "direction": "ltr",
+          "overflow-x": "visible",
+          "overflow-y": "visible",
+          "clip-path": "none",
+          "opacity": "1",
+          "visibility": "visible",
+          "text-lines": "1",
+          "break-before": "auto",
+          "page-break-before": "auto",
+          "break-after": "MISSING",
+          "page-break-after": "MISSING",
+          "break-inside": "MISSING",
+          "page-break-inside": "MISSING"
+        },
+        "h2": {
+          "position": "static",
+          "display": "block",
+          "transform": "none",
+          "zoom": "1",
+          "float": "none",
+          "writing-mode": "horizontal-tb",
+          "direction": "ltr",
+          "overflow-x": "visible",
+          "overflow-y": "visible",
+          "clip-path": "none",
+          "opacity": "1",
+          "visibility": "visible",
+          "text-lines": "1",
+          "break-before": "auto",
+          "page-break-before": "auto",
+          "break-after": "MISSING",
+          "page-break-after": "MISSING",
+          "break-inside": "MISSING",
+          "page-break-inside": "MISSING"
+        }
+      }
+    },
+    {
+      "p": "52",
+      "h2": "55",
+      "p_box": {
+        "x": 8,
+        "y": 689.53125,
+        "width": 1264,
+        "height": 22
+      },
+      "h2_box": {
+        "x": 8,
+        "y": 729.78125,
+        "width": 1264,
+        "height": 33
+      },
+      "p_line": "22px",
+      "h2_line": "33px",
+      "gap": 18.25,
+      "max_margin": 18.26,
+      "gap_error": 0.010000000000001563,
+      "current_p_after_twips": 220,
+      "current_h2_before_twips": 54,
+      "full_h2_before_twips": 274,
+      "styles": {
+        "p": {
+          "position": "static",
+          "display": "block",
+          "transform": "none",
+          "zoom": "1",
+          "float": "none",
+          "writing-mode": "horizontal-tb",
+          "direction": "ltr",
+          "overflow-x": "visible",
+          "overflow-y": "visible",
+          "clip-path": "none",
+          "opacity": "1",
+          "visibility": "visible",
+          "text-lines": "1",
+          "break-before": "auto",
+          "page-break-before": "auto",
+          "break-after": "MISSING",
+          "page-break-after": "MISSING",
+          "break-inside": "MISSING",
+          "page-break-inside": "MISSING"
+        },
+        "h2": {
+          "position": "static",
+          "display": "block",
+          "transform": "none",
+          "zoom": "1",
+          "float": "none",
+          "writing-mode": "horizontal-tb",
+          "direction": "ltr",
+          "overflow-x": "visible",
+          "overflow-y": "visible",
+          "clip-path": "none",
+          "opacity": "1",
+          "visibility": "visible",
+          "text-lines": "1",
+          "break-before": "auto",
+          "page-break-before": "auto",
+          "break-after": "MISSING",
+          "page-break-after": "MISSING",
+          "break-inside": "MISSING",
+          "page-break-inside": "MISSING"
+        }
+      }
+    }
+  ],
+  "missing_guard_fields": [
+    "break-after",
+    "page-break-after",
+    "break-inside",
+    "page-break-inside"
+  ]
+}
