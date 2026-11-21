@@ -728,3 +728,27 @@ authoritative status, commit/PR/run evidence, blockers and exact next action.
   raw evidence without tuning. Do not recommend deleting allowance without a later
   original-five product safety plan. Evidence-only PR requires tests/Ruff/diff,
   independent image review and six green CI; implementation agent never merges.
+
+## Stage21: isolated native image-paragraph indentation mechanism
+
+- Dependency/base: exact merged main139dbd1ad0180bf2cecc5a9bd5b10f963501155d;
+  branch experiment/image-paragraph-indent in new fidelity-image-indent worktree.
+  Stopped Stage20 and frozen6/10/12 stay untouched; no product edits.
+- Scope: six synthetic DOCX controls C0/N0,C40/N40,C80/N80 representing figure
+  horizontal offsets0/40/80CSSpx, old no-indent vs native left0/600/1200twips.
+  Reuse accepted report chart paragraph/image/package; add identical BEFORE and
+  FOLLOWING text paragraphs for coordinate controls. Only w:ind/left may differ.
+- Deliverables: deterministic builder, focused package/XML tests, source/input/
+  output hashes, six PDFs/PNGs/probes/version/coordinates, mechanism report.
+- Required tests before WPS: deterministic ZIP bytes, image/media and all package
+  parts invariant except document XML; after removing ind every variant XML equal;
+  image extent/content and control texts same. No converter/browser/scorer changes.
+- One sequential six-export WPS set, empty process probe before every case,
+  own-instance release only; no taskkill/preferences/user documents or retries.
+- Acceptance: C cases image relative x0; N0/N40/N80 relative x0/30/60pt, error≤.10pt;
+  all image y/width/height and BEFORE/FOLLOWING y within.05pt of C0, same one page,
+  all control text and one image present. No SSIM/product-safety claim.
+- Stop: extra XML/package change, text/image/page loss, failed geometry, unsafe
+  process/export; preserve raw, no tuning. Evidence-only commit/push/PR after
+  focused/Ruff/format/diff and primary image review; six CI green before primary
+  merge; implementation agent never merges. Product integration is a separate plan.

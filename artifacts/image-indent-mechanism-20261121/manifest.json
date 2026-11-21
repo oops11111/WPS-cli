@@ -1,0 +1,216 @@
+{
+  "source": "artifacts/closed-summary-marker-20261121/A-report-docx/converted.docx",
+  "source_sha256": "15aa355fbd786e66bade91b7b3fd0e1bb1d5a67ef52a8678cdbb828455efd987",
+  "cases": {
+    "C0": {
+      "docx_sha256": "2368dd7a99ae51d3468b7f1795d0634373e2aecf209b44c5f6bee65006a91d1d",
+      "wps_versions": [
+        {
+          "path": "C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\wps.exe",
+          "file_version": "12,8,2,18913",
+          "product_version": "12,8,2,18913"
+        }
+      ],
+      "pdf_sha256": "da93b8fd12d1c1cae480bde5e181c102d5904696fd110bfe23e53605886841d4",
+      "geometry": {
+        "pages": 1,
+        "image": {
+          "x0": 34.32,
+          "top": 58.32000000000005,
+          "width": 240.0,
+          "height": 120.0
+        },
+        "before": {
+          "x0": 34.32,
+          "top": 60.32600000000002
+        },
+        "following": {
+          "x0": 34.32,
+          "top": 222.32600000000002
+        },
+        "relative_x": 0.0
+      },
+      "gates": {
+        "x": true,
+        "pages": true,
+        "image_y_size": true,
+        "text_y": true
+      }
+    },
+    "N0": {
+      "docx_sha256": "326c506a6ebe72d1b52f2abcdde50e6234667df239a8fb8e9ea4db6b7bde879c",
+      "wps_versions": [
+        {
+          "path": "C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\wps.exe",
+          "file_version": "12,8,2,18913",
+          "product_version": "12,8,2,18913"
+        }
+      ],
+      "pdf_sha256": "fc65e2c70bd46e2dc928f209c1a2ef67bc5bdfb0e8d15f580099eeaffb7a663b",
+      "geometry": {
+        "pages": 1,
+        "image": {
+          "x0": 34.32,
+          "top": 58.32000000000005,
+          "width": 240.0,
+          "height": 120.0
+        },
+        "before": {
+          "x0": 34.32,
+          "top": 60.32600000000002
+        },
+        "following": {
+          "x0": 34.32,
+          "top": 222.32600000000002
+        },
+        "relative_x": 0.0
+      },
+      "gates": {
+        "x": true,
+        "pages": true,
+        "image_y_size": true,
+        "text_y": true
+      }
+    },
+    "C40": {
+      "docx_sha256": "2368dd7a99ae51d3468b7f1795d0634373e2aecf209b44c5f6bee65006a91d1d",
+      "wps_versions": [
+        {
+          "path": "C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\wps.exe",
+          "file_version": "12,8,2,18913",
+          "product_version": "12,8,2,18913"
+        }
+      ],
+      "pdf_sha256": "eee7130d741835c87a2bbb81f7f60e9a3374c1d220f0b484d2b1dd4576ed713a",
+      "geometry": {
+        "pages": 1,
+        "image": {
+          "x0": 34.32,
+          "top": 58.32000000000005,
+          "width": 240.0,
+          "height": 120.0
+        },
+        "before": {
+          "x0": 34.32,
+          "top": 60.32600000000002
+        },
+        "following": {
+          "x0": 34.32,
+          "top": 222.32600000000002
+        },
+        "relative_x": 0.0
+      },
+      "gates": {
+        "x": true,
+        "pages": true,
+        "image_y_size": true,
+        "text_y": true
+      }
+    },
+    "N40": {
+      "docx_sha256": "c7fc0bc766d862f21108fc674ad62c2d10b9dfbe3452e155ac86e4b55b260bb3",
+      "wps_versions": [
+        {
+          "path": "C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\wps.exe",
+          "file_version": "12,8,2,18913",
+          "product_version": "12,8,2,18913"
+        }
+      ],
+      "pdf_sha256": "6b4ee3572826a809cab15072522b3c82e99965afbfe7b529701463c2964aef3a",
+      "geometry": {
+        "pages": 1,
+        "image": {
+          "x0": 64.32,
+          "top": 58.32000000000005,
+          "width": 240.0,
+          "height": 120.0
+        },
+        "before": {
+          "x0": 34.32,
+          "top": 60.32600000000002
+        },
+        "following": {
+          "x0": 34.32,
+          "top": 222.32600000000002
+        },
+        "relative_x": 29.999999999999993
+      },
+      "gates": {
+        "x": true,
+        "pages": true,
+        "image_y_size": true,
+        "text_y": true
+      }
+    },
+    "C80": {
+      "docx_sha256": "2368dd7a99ae51d3468b7f1795d0634373e2aecf209b44c5f6bee65006a91d1d",
+      "wps_versions": [
+        {
+          "path": "C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\wps.exe",
+          "file_version": "12,8,2,18913",
+          "product_version": "12,8,2,18913"
+        }
+      ],
+      "pdf_sha256": "b52a45c4fb75989c0ca5b788b0710807b901d6f7a1dfd178ee8ae8020dfa78ca",
+      "geometry": {
+        "pages": 1,
+        "image": {
+          "x0": 34.32,
+          "top": 58.32000000000005,
+          "width": 240.0,
+          "height": 120.0
+        },
+        "before": {
+          "x0": 34.32,
+          "top": 60.32600000000002
+        },
+        "following": {
+          "x0": 34.32,
+          "top": 222.32600000000002
+        },
+        "relative_x": 0.0
+      },
+      "gates": {
+        "x": true,
+        "pages": true,
+        "image_y_size": true,
+        "text_y": true
+      }
+    },
+    "N80": {
+      "docx_sha256": "16a38322dfa0ebc03d0dc1db62d0ed3bb975c50bde6abc6e90b0b1e441300e80",
+      "wps_versions": [
+        {
+          "path": "C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\wps.exe",
+          "file_version": "12,8,2,18913",
+          "product_version": "12,8,2,18913"
+        }
+      ],
+      "pdf_sha256": "d1ae2e77b5d89358eb7a86fc54da85c76ea36997200abd9ce5c423dd07e1dc1a",
+      "geometry": {
+        "pages": 1,
+        "image": {
+          "x0": 94.32,
+          "top": 58.32000000000005,
+          "width": 240.0,
+          "height": 120.0
+        },
+        "before": {
+          "x0": 34.32,
+          "top": 60.32600000000002
+        },
+        "following": {
+          "x0": 34.32,
+          "top": 222.32600000000002
+        },
+        "relative_x": 59.99999999999999
+      },
+      "gates": {
+        "x": true,
+        "pages": true,
+        "image_y_size": true,
+        "text_y": true
+      }
+    }
+  }
+}
