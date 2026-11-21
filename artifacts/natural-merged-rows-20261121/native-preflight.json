@@ -1,0 +1,872 @@
+{
+  "environment": {
+    "node": "C:\\Program Files\\nodejs\\node.EXE",
+    "browser": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
+    "playwright": {
+      "module": "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\fidelity-delivery\\node_modules\\playwright\\index.js",
+      "chromium": true,
+      "node": "C:\\Program Files\\nodejs\\node.EXE",
+      "node_path": "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\fidelity-delivery\\node_modules"
+    },
+    "utf8": true,
+    "workspace_temp": "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\fidelity-merged-row-product\\.codex-test-temp"
+  },
+  "schemas": {
+    "A-report-docx": {
+      "source_sha256": "9249192254e3d9d772decdfeed013253f0f1be81a8347ebd6b8d0309b1e2e3b9",
+      "raw": [
+        true,
+        {
+          "source": "artifacts/alignment-aware-print-margins-20261121/A-report-docx/input/report.html",
+          "target": "artifacts/alignment-aware-print-margins-20261121/A-report-docx/converted.docx",
+          "group": "A",
+          "thresholds": {
+            "text": 1.0,
+            "structure": 1.0,
+            "formatting": 1.0,
+            "animations": 1.0,
+            "data": 1.0,
+            "layout": 0.9
+          },
+          "aspects": {
+            "text": {
+              "score": 1.0,
+              "missing": []
+            },
+            "structure": {
+              "score": 1.0,
+              "differences": {}
+            },
+            "formatting": {
+              "score": 1.0,
+              "problems": []
+            },
+            "animations": {
+              "status": "not applicable"
+            },
+            "data": {
+              "score": 1.0,
+              "missing": []
+            },
+            "layout": {
+              "status": "skipped"
+            }
+          },
+          "verdict": {
+            "text": true,
+            "structure": true,
+            "formatting": true,
+            "data": true
+          },
+          "passed": true
+        },
+        []
+      ],
+      "evaluation": {
+        "accepted": true,
+        "effective_verdict": {
+          "text": true,
+          "structure": true,
+          "formatting": true,
+          "data": true,
+          "animations": true
+        },
+        "reasons": {
+          "text": "applicable score must equal1 and raw verdict true",
+          "structure": "applicable score must equal1 and raw verdict true",
+          "formatting": "applicable score must equal1 and raw verdict true",
+          "data": "applicable score must equal1 and raw verdict true",
+          "animations": "explicit N/A; raw verdict preserved"
+        },
+        "raw_verdict": {
+          "text": true,
+          "structure": true,
+          "formatting": true,
+          "data": true
+        }
+      }
+    },
+    "A-contract-docx": {
+      "source_sha256": "7b30f5a08a08d50d76d4a33bd3ec89bf028c754191ad0271596f600f8019deee",
+      "raw": [
+        true,
+        {
+          "source": "artifacts/alignment-aware-print-margins-20261121/A-contract-docx/input/contract.html",
+          "target": "artifacts/alignment-aware-print-margins-20261121/A-contract-docx/converted.docx",
+          "group": "A",
+          "thresholds": {
+            "text": 1.0,
+            "structure": 1.0,
+            "formatting": 1.0,
+            "animations": 1.0,
+            "data": 1.0,
+            "layout": 0.9
+          },
+          "aspects": {
+            "text": {
+              "score": 1.0,
+              "missing": []
+            },
+            "structure": {
+              "score": 1.0,
+              "differences": {}
+            },
+            "formatting": {
+              "score": 1.0,
+              "problems": []
+            },
+            "animations": {
+              "status": "not applicable"
+            },
+            "data": {
+              "score": 1.0,
+              "missing": []
+            },
+            "layout": {
+              "status": "skipped"
+            }
+          },
+          "verdict": {
+            "text": true,
+            "structure": true,
+            "formatting": true,
+            "data": true
+          },
+          "passed": true
+        },
+        []
+      ],
+      "evaluation": {
+        "accepted": true,
+        "effective_verdict": {
+          "text": true,
+          "structure": true,
+          "formatting": true,
+          "data": true,
+          "animations": true
+        },
+        "reasons": {
+          "text": "applicable score must equal1 and raw verdict true",
+          "structure": "applicable score must equal1 and raw verdict true",
+          "formatting": "applicable score must equal1 and raw verdict true",
+          "data": "applicable score must equal1 and raw verdict true",
+          "animations": "explicit N/A; raw verdict preserved"
+        },
+        "raw_verdict": {
+          "text": true,
+          "structure": true,
+          "formatting": true,
+          "data": true
+        }
+      }
+    },
+    "A-newsletter-docx": {
+      "source_sha256": "642d5d6da4b32c4befe6e6bc4c06441727ef5114e6116de2daf2096f3ce498c4",
+      "raw": [
+        true,
+        {
+          "source": "artifacts/alignment-aware-print-margins-20261121/A-newsletter-docx/input/newsletter.html",
+          "target": "artifacts/alignment-aware-print-margins-20261121/A-newsletter-docx/converted.docx",
+          "group": "A",
+          "thresholds": {
+            "text": 1.0,
+            "structure": 1.0,
+            "formatting": 1.0,
+            "animations": 1.0,
+            "data": 1.0,
+            "layout": 0.9
+          },
+          "aspects": {
+            "text": {
+              "score": 1.0,
+              "missing": []
+            },
+            "structure": {
+              "score": 1.0,
+              "differences": {}
+            },
+            "formatting": {
+              "score": 1.0,
+              "problems": []
+            },
+            "animations": {
+              "status": "not applicable"
+            },
+            "data": {
+              "status": "not applicable"
+            },
+            "layout": {
+              "status": "skipped"
+            }
+          },
+          "verdict": {
+            "text": true,
+            "structure": true,
+            "formatting": true
+          },
+          "passed": true
+        },
+        []
+      ],
+      "evaluation": {
+        "accepted": true,
+        "effective_verdict": {
+          "text": true,
+          "structure": true,
+          "formatting": true,
+          "data": true,
+          "animations": true
+        },
+        "reasons": {
+          "text": "applicable score must equal1 and raw verdict true",
+          "structure": "applicable score must equal1 and raw verdict true",
+          "formatting": "applicable score must equal1 and raw verdict true",
+          "data": "explicit N/A; raw verdict preserved",
+          "animations": "explicit N/A; raw verdict preserved"
+        },
+        "raw_verdict": {
+          "text": true,
+          "structure": true,
+          "formatting": true
+        }
+      }
+    },
+    "A-manual-docx": {
+      "source_sha256": "ccb58614f83756ed0d0abed0affa1171c36e0e36df5085eae44ad20df8ed7bf5",
+      "raw": [
+        true,
+        {
+          "source": "artifacts/alignment-aware-print-margins-20261121/A-manual-docx/input/manual.html",
+          "target": "artifacts/alignment-aware-print-margins-20261121/A-manual-docx/converted.docx",
+          "group": "A",
+          "thresholds": {
+            "text": 1.0,
+            "structure": 1.0,
+            "formatting": 1.0,
+            "animations": 1.0,
+            "data": 1.0,
+            "layout": 0.9
+          },
+          "aspects": {
+            "text": {
+              "score": 1.0,
+              "missing": []
+            },
+            "structure": {
+              "score": 1.0,
+              "differences": {}
+            },
+            "formatting": {
+              "score": 1.0,
+              "problems": []
+            },
+            "animations": {
+              "status": "not applicable"
+            },
+            "data": {
+              "score": 1.0,
+              "missing": []
+            },
+            "layout": {
+              "status": "skipped"
+            }
+          },
+          "verdict": {
+            "text": true,
+            "structure": true,
+            "formatting": true,
+            "data": true
+          },
+          "passed": true
+        },
+        []
+      ],
+      "evaluation": {
+        "accepted": true,
+        "effective_verdict": {
+          "text": true,
+          "structure": true,
+          "formatting": true,
+          "data": true,
+          "animations": true
+        },
+        "reasons": {
+          "text": "applicable score must equal1 and raw verdict true",
+          "structure": "applicable score must equal1 and raw verdict true",
+          "formatting": "applicable score must equal1 and raw verdict true",
+          "data": "applicable score must equal1 and raw verdict true",
+          "animations": "explicit N/A; raw verdict preserved"
+        },
+        "raw_verdict": {
+          "text": true,
+          "structure": true,
+          "formatting": true,
+          "data": true
+        }
+      }
+    },
+    "A-pdfsource-docx": {
+      "source_sha256": "1b0f7c505dc2d0eac74a7138066a8259e8e0c282811383d091a74e9b911e3c0a",
+      "raw": [
+        true,
+        {
+          "source": "artifacts/alignment-aware-print-margins-20261121/A-pdfsource-docx/input/pdf_source.html",
+          "target": "artifacts/alignment-aware-print-margins-20261121/A-pdfsource-docx/converted.docx",
+          "group": "A",
+          "thresholds": {
+            "text": 1.0,
+            "structure": 1.0,
+            "formatting": 1.0,
+            "animations": 1.0,
+            "data": 1.0,
+            "layout": 0.9
+          },
+          "aspects": {
+            "text": {
+              "score": 1.0,
+              "missing": []
+            },
+            "structure": {
+              "score": 1.0,
+              "differences": {}
+            },
+            "formatting": {
+              "score": 1.0,
+              "problems": []
+            },
+            "animations": {
+              "status": "not applicable"
+            },
+            "data": {
+              "score": 1.0,
+              "missing": []
+            },
+            "layout": {
+              "status": "skipped"
+            }
+          },
+          "verdict": {
+            "text": true,
+            "structure": true,
+            "formatting": true,
+            "data": true
+          },
+          "passed": true
+        },
+        []
+      ],
+      "evaluation": {
+        "accepted": true,
+        "effective_verdict": {
+          "text": true,
+          "structure": true,
+          "formatting": true,
+          "data": true,
+          "animations": true
+        },
+        "reasons": {
+          "text": "applicable score must equal1 and raw verdict true",
+          "structure": "applicable score must equal1 and raw verdict true",
+          "formatting": "applicable score must equal1 and raw verdict true",
+          "data": "applicable score must equal1 and raw verdict true",
+          "animations": "explicit N/A; raw verdict preserved"
+        },
+        "raw_verdict": {
+          "text": true,
+          "structure": true,
+          "formatting": true,
+          "data": true
+        }
+      }
+    }
+  },
+  "semantics": {
+    "A-report-docx": {
+      "baseline.docx": [
+        true,
+        {
+          "source": "artifacts\\natural-merged-rows-20261121\\A-report-docx\\input\\report.html",
+          "target": "artifacts\\natural-merged-rows-20261121\\A-report-docx\\baseline.docx",
+          "group": "A",
+          "thresholds": {
+            "text": 1.0,
+            "structure": 1.0,
+            "formatting": 1.0,
+            "animations": 1.0,
+            "data": 1.0,
+            "layout": 0.9
+          },
+          "aspects": {
+            "text": {
+              "score": 1.0,
+              "missing": []
+            },
+            "structure": {
+              "score": 1.0,
+              "differences": {}
+            },
+            "formatting": {
+              "score": 1.0,
+              "problems": []
+            },
+            "animations": {
+              "status": "not applicable"
+            },
+            "data": {
+              "score": 1.0,
+              "missing": []
+            },
+            "layout": {
+              "status": "skipped"
+            }
+          },
+          "verdict": {
+            "text": true,
+            "structure": true,
+            "formatting": true,
+            "data": true
+          },
+          "passed": true
+        },
+        []
+      ],
+      "candidate.docx": [
+        true,
+        {
+          "source": "artifacts\\natural-merged-rows-20261121\\A-report-docx\\input\\report.html",
+          "target": "artifacts\\natural-merged-rows-20261121\\A-report-docx\\candidate.docx",
+          "group": "A",
+          "thresholds": {
+            "text": 1.0,
+            "structure": 1.0,
+            "formatting": 1.0,
+            "animations": 1.0,
+            "data": 1.0,
+            "layout": 0.9
+          },
+          "aspects": {
+            "text": {
+              "score": 1.0,
+              "missing": []
+            },
+            "structure": {
+              "score": 1.0,
+              "differences": {}
+            },
+            "formatting": {
+              "score": 1.0,
+              "problems": []
+            },
+            "animations": {
+              "status": "not applicable"
+            },
+            "data": {
+              "score": 1.0,
+              "missing": []
+            },
+            "layout": {
+              "status": "skipped"
+            }
+          },
+          "verdict": {
+            "text": true,
+            "structure": true,
+            "formatting": true,
+            "data": true
+          },
+          "passed": true
+        },
+        []
+      ]
+    },
+    "A-contract-docx": {
+      "baseline.docx": [
+        true,
+        {
+          "source": "artifacts\\natural-merged-rows-20261121\\A-contract-docx\\input\\contract.html",
+          "target": "artifacts\\natural-merged-rows-20261121\\A-contract-docx\\baseline.docx",
+          "group": "A",
+          "thresholds": {
+            "text": 1.0,
+            "structure": 1.0,
+            "formatting": 1.0,
+            "animations": 1.0,
+            "data": 1.0,
+            "layout": 0.9
+          },
+          "aspects": {
+            "text": {
+              "score": 1.0,
+              "missing": []
+            },
+            "structure": {
+              "score": 1.0,
+              "differences": {}
+            },
+            "formatting": {
+              "score": 1.0,
+              "problems": []
+            },
+            "animations": {
+              "status": "not applicable"
+            },
+            "data": {
+              "score": 1.0,
+              "missing": []
+            },
+            "layout": {
+              "status": "skipped"
+            }
+          },
+          "verdict": {
+            "text": true,
+            "structure": true,
+            "formatting": true,
+            "data": true
+          },
+          "passed": true
+        },
+        []
+      ],
+      "candidate.docx": [
+        true,
+        {
+          "source": "artifacts\\natural-merged-rows-20261121\\A-contract-docx\\input\\contract.html",
+          "target": "artifacts\\natural-merged-rows-20261121\\A-contract-docx\\candidate.docx",
+          "group": "A",
+          "thresholds": {
+            "text": 1.0,
+            "structure": 1.0,
+            "formatting": 1.0,
+            "animations": 1.0,
+            "data": 1.0,
+            "layout": 0.9
+          },
+          "aspects": {
+            "text": {
+              "score": 1.0,
+              "missing": []
+            },
+            "structure": {
+              "score": 1.0,
+              "differences": {}
+            },
+            "formatting": {
+              "score": 1.0,
+              "problems": []
+            },
+            "animations": {
+              "status": "not applicable"
+            },
+            "data": {
+              "score": 1.0,
+              "missing": []
+            },
+            "layout": {
+              "status": "skipped"
+            }
+          },
+          "verdict": {
+            "text": true,
+            "structure": true,
+            "formatting": true,
+            "data": true
+          },
+          "passed": true
+        },
+        []
+      ]
+    },
+    "A-newsletter-docx": {
+      "baseline.docx": [
+        true,
+        {
+          "source": "artifacts\\natural-merged-rows-20261121\\A-newsletter-docx\\input\\newsletter.html",
+          "target": "artifacts\\natural-merged-rows-20261121\\A-newsletter-docx\\baseline.docx",
+          "group": "A",
+          "thresholds": {
+            "text": 1.0,
+            "structure": 1.0,
+            "formatting": 1.0,
+            "animations": 1.0,
+            "data": 1.0,
+            "layout": 0.9
+          },
+          "aspects": {
+            "text": {
+              "score": 1.0,
+              "missing": []
+            },
+            "structure": {
+              "score": 1.0,
+              "differences": {}
+            },
+            "formatting": {
+              "score": 1.0,
+              "problems": []
+            },
+            "animations": {
+              "status": "not applicable"
+            },
+            "data": {
+              "status": "not applicable"
+            },
+            "layout": {
+              "status": "skipped"
+            }
+          },
+          "verdict": {
+            "text": true,
+            "structure": true,
+            "formatting": true
+          },
+          "passed": true
+        },
+        []
+      ],
+      "candidate.docx": [
+        true,
+        {
+          "source": "artifacts\\natural-merged-rows-20261121\\A-newsletter-docx\\input\\newsletter.html",
+          "target": "artifacts\\natural-merged-rows-20261121\\A-newsletter-docx\\candidate.docx",
+          "group": "A",
+          "thresholds": {
+            "text": 1.0,
+            "structure": 1.0,
+            "formatting": 1.0,
+            "animations": 1.0,
+            "data": 1.0,
+            "layout": 0.9
+          },
+          "aspects": {
+            "text": {
+              "score": 1.0,
+              "missing": []
+            },
+            "structure": {
+              "score": 1.0,
+              "differences": {}
+            },
+            "formatting": {
+              "score": 1.0,
+              "problems": []
+            },
+            "animations": {
+              "status": "not applicable"
+            },
+            "data": {
+              "status": "not applicable"
+            },
+            "layout": {
+              "status": "skipped"
+            }
+          },
+          "verdict": {
+            "text": true,
+            "structure": true,
+            "formatting": true
+          },
+          "passed": true
+        },
+        []
+      ]
+    },
+    "A-manual-docx": {
+      "baseline.docx": [
+        true,
+        {
+          "source": "artifacts\\natural-merged-rows-20261121\\A-manual-docx\\input\\manual.html",
+          "target": "artifacts\\natural-merged-rows-20261121\\A-manual-docx\\baseline.docx",
+          "group": "A",
+          "thresholds": {
+            "text": 1.0,
+            "structure": 1.0,
+            "formatting": 1.0,
+            "animations": 1.0,
+            "data": 1.0,
+            "layout": 0.9
+          },
+          "aspects": {
+            "text": {
+              "score": 1.0,
+              "missing": []
+            },
+            "structure": {
+              "score": 1.0,
+              "differences": {}
+            },
+            "formatting": {
+              "score": 1.0,
+              "problems": []
+            },
+            "animations": {
+              "status": "not applicable"
+            },
+            "data": {
+              "score": 1.0,
+              "missing": []
+            },
+            "layout": {
+              "status": "skipped"
+            }
+          },
+          "verdict": {
+            "text": true,
+            "structure": true,
+            "formatting": true,
+            "data": true
+          },
+          "passed": true
+        },
+        []
+      ],
+      "candidate.docx": [
+        true,
+        {
+          "source": "artifacts\\natural-merged-rows-20261121\\A-manual-docx\\input\\manual.html",
+          "target": "artifacts\\natural-merged-rows-20261121\\A-manual-docx\\candidate.docx",
+          "group": "A",
+          "thresholds": {
+            "text": 1.0,
+            "structure": 1.0,
+            "formatting": 1.0,
+            "animations": 1.0,
+            "data": 1.0,
+            "layout": 0.9
+          },
+          "aspects": {
+            "text": {
+              "score": 1.0,
+              "missing": []
+            },
+            "structure": {
+              "score": 1.0,
+              "differences": {}
+            },
+            "formatting": {
+              "score": 1.0,
+              "problems": []
+            },
+            "animations": {
+              "status": "not applicable"
+            },
+            "data": {
+              "score": 1.0,
+              "missing": []
+            },
+            "layout": {
+              "status": "skipped"
+            }
+          },
+          "verdict": {
+            "text": true,
+            "structure": true,
+            "formatting": true,
+            "data": true
+          },
+          "passed": true
+        },
+        []
+      ]
+    },
+    "A-pdfsource-docx": {
+      "baseline.docx": [
+        true,
+        {
+          "source": "artifacts\\natural-merged-rows-20261121\\A-pdfsource-docx\\input\\pdf_source.html",
+          "target": "artifacts\\natural-merged-rows-20261121\\A-pdfsource-docx\\baseline.docx",
+          "group": "A",
+          "thresholds": {
+            "text": 1.0,
+            "structure": 1.0,
+            "formatting": 1.0,
+            "animations": 1.0,
+            "data": 1.0,
+            "layout": 0.9
+          },
+          "aspects": {
+            "text": {
+              "score": 1.0,
+              "missing": []
+            },
+            "structure": {
+              "score": 1.0,
+              "differences": {}
+            },
+            "formatting": {
+              "score": 1.0,
+              "problems": []
+            },
+            "animations": {
+              "status": "not applicable"
+            },
+            "data": {
+              "score": 1.0,
+              "missing": []
+            },
+            "layout": {
+              "status": "skipped"
+            }
+          },
+          "verdict": {
+            "text": true,
+            "structure": true,
+            "formatting": true,
+            "data": true
+          },
+          "passed": true
+        },
+        []
+      ],
+      "candidate.docx": [
+        true,
+        {
+          "source": "artifacts\\natural-merged-rows-20261121\\A-pdfsource-docx\\input\\pdf_source.html",
+          "target": "artifacts\\natural-merged-rows-20261121\\A-pdfsource-docx\\candidate.docx",
+          "group": "A",
+          "thresholds": {
+            "text": 1.0,
+            "structure": 1.0,
+            "formatting": 1.0,
+            "animations": 1.0,
+            "data": 1.0,
+            "layout": 0.9
+          },
+          "aspects": {
+            "text": {
+              "score": 1.0,
+              "missing": []
+            },
+            "structure": {
+              "score": 1.0,
+              "differences": {}
+            },
+            "formatting": {
+              "score": 1.0,
+              "problems": []
+            },
+            "animations": {
+              "status": "not applicable"
+            },
+            "data": {
+              "score": 1.0,
+              "missing": []
+            },
+            "layout": {
+              "status": "skipped"
+            }
+          },
+          "verdict": {
+            "text": true,
+            "structure": true,
+            "formatting": true,
+            "data": true
+          },
+          "passed": true
+        },
+        []
+      ]
+    }
+  },
+  "browser_recaptures": 0
+}

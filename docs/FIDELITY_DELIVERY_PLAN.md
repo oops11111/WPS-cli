@@ -1467,3 +1467,106 @@ authoritative status, commit/PR/run evidence, blockers and exact next action.
   reusable evidence may be committed/pushed as evidence PR; six green CI before
   primary merge, implementation agent never merges. Product/full-five separately
   reviewed only if new evidence supports it, never inferred from a local gain.
+
+## Stage44 PLAN ONLY: bounded natural merged-row minimum compensation
+
+- Await primary review. Exact main1d48d868f440a930001d4517dcb7cc57d0e44a8e,
+  clean fidelity-merged-row-product / docs/merged-row-compensation-plan. Stage43
+  mechanism evidence merged, all frozen failed stages stay unchanged. No product
+  edits/tests/new browser/WPS yet. Strict F2 .90 is still not achieved for contract.
+- Generic product scope: only eligible collapsed merged tables request natural
+  measured row height minus ONE1CSSpx nominal border, preserving AT_LEAST. No
+  fixture/class/text/hash/font whitelist. Existing Stage42 width mapping, all other
+  tables, row properties, paragraphs/fonts/padding/borders/merges/margins unchanged.
+- Eligibility intersection: existing measured_collapsed_widths must pass with full
+  seven-field/no-clipping/source audit; actual rowspan>1 must exist, all cells
+  still plain single-line and valid rectangular merge grid. Rowspan is a bounded
+  evidence-domain guard, NOT a claim it causes border accounting. It excludes the
+  unmerged manual/PDF tables which remain unvalidated for this product change;
+  Stage10 manual local-pitch/whole-regression is not relabeled or silently reused.
+- Require computed display table/table-row/table-cell and standard row-group types;
+  uniform visible1px solid cell borders and all participating cells vertical-align middle; finite equal row boxes agreeing within
+ 1/64CSSpx, consecutive row y boxes, first/last half-border outer table geometry.
+  Every row must have at least one rowspan1 natural-height witness: measured cell/
+  row height = CSS line-height(normal uses measured line-height-normal)+padding-
+  top+padding-bottom+ONE collapsed border within1/64CSSpx. No declared fallback,
+  row holes, scaled widths or inconsistent colspan/rowspan boxes; each spanning
+  cell box height must equal sum of covered measured row heights within1/64px.
+- Compute existing paragraph line request with unchanged _measured_pitch, before/
+  after padding and collapsed-bottom subtraction; require its nominal content+
+  border bound fits allocated source row/span height. Do not normalize the two
+  existing390twip rowspan lines or force fit if minimum unknown. Any missing,
+  nonfinite/nonpositive or inconsistent evidence keeps old row request.
+- NEW prerequisite metadata must be implemented/tested BEFORE the sole browser
+  set: independent cssom.row_height_audit, not changes to old cssom.complete/errors
+  or width/page qualification. Browser CSSStyleDeclaration scans ALL author rule
+  and inline declaration blocks globally (no selector matcher/regex/UA guesses),
+  canonical property names; any height/min-height/max-height/block-size/min-block-
+  size/max-block-size/all/aspect-ratio/contain/content-visibility/animation/animation-
+  name/transition/transition-property is a blocker. Global veto is conservative,
+  including unrelated declarations. Any author HTML height attribute is a blocker.
+  Missing audit/unsupported or conditional/nested/unknown rule type is a blocker;
+  only flat author STYLE_RULEs and inline styles are supported for this proof.
+  Existing style-source imports/adopted/shadow/inaccessible veto remains mandatory.
+  Failure affects NEW row eligibility only, never silently changes old widths or
+  margins. CSSOM API source: https://drafts.csswg.org/cssom/
+- Read-only original-five prediction: report KPI has2rowspan origins but is separate/
+  borderless/missingCSS ->old375twip rows; contract parties/sign separate ->old480/
+ 390; contractfee collapse has2rowspan2 origins, all5rows31px/no author-height rules
+  ->465->450 only. Manualopts collapse/all4rows26px but NOrowspan ->390 unchanged.
+  Pdfsource grid collapse/all6rows30px but NOrowspan ->450 unchanged; second plain
+  separate table25px ->405 unchanged. Newsletter has no table. These are audit
+  expectations only, not identity strings in product qualification.
+- Offline full-five HARD allowlist: EXACT5contract fee trHeight@val465->450;
+  hRule=atLeast and every width/grid/continuation/pPr/other attribute unchanged.
+  Inverse restores original complete document.xml bytes; other package payloads
+  identical, other4DOCX fullZIP byte-identical using original ZIP metadata. Contract
+  candidate must byte/subtree-match Stage43 SHA2b5e206fb74d5a73b036ab8a8e4b01b6dc98d5818599cfbabdb28579bdd0aefa.
+  Any unexpected eligibility/property/part difference STOP before WPS.
+- Before captures: positive generic rowspan/natural rows with different columns/
+  text/font/height (no case identity), plus no-rowspan, colspan-only, separate,
+  mixed/non1/transparent border, top/bottom vertical alignment, multiline/complex/hidden/scaling/missing metadata,
+  inconsistent/gapped rows, bad span box/content bound, explicitheight/min/max/
+  logical/inline/variable/escaped declaration/conditional/unknown styles and missing
+  author audit negatives. JS scanner tests prove blockers separately from old
+  CSSOM/width/page fields; failed/unknown evidence never authorizes compensation.
+  If reliable author/natural proof needs wider CSS interpreter work STOP, no PR.
+- Environment/schema gates precede ANY browser/WPS: explicit workspaceTEMP/UTF8/
+  NODE_PATH and real Node/Playwright/Edge resolution; audit five semantic schemas,
+  applicable scores1/rawtrue and explicitN/A normalized true/raw retained, unknown
+  or fallback rejected. Keep Stage42 exact fresh-snapshot semantic reader/replay.
+- ONE NEW original-five browser reference set on Edge157.0.4341.60, immutable source/
+  assets; capture new row-height audit with existing7fields. Existing core CSS/box/
+  marker and all source page pixels/sizes/counts must match accepted Stage42.
+  New proof must permit exactly the predicted table, not be manufactured onto old
+  caches. Baseline/candidate semantic gate for all10results and5attr/inverse/parts/
+  polygon guards, relevant row/table/HTML/env/schema/packaging tests, Ruff/format/
+  JS/diff all pass BEFORE WPS. Any missing new field/difference stops, no recapture.
+- Then ONE safe sequential new-five WPS set, per-case empty process/version probes
+ 12.8.2.18913, own instances only. No baseline/browser retry, user-document closure,
+  taskkill/global settings/fonts/alternate height or threshold/source adjustment.
+- Other4cases: FULL native page pixels/char/line/page/font/flow identical; each page
+  and aggregate no regression vs report.9398[.9007,.9789],newsletter.9293,manual.9060,
+  pdfsource.9247[.9237,.9258]. No Stage10-style manual shift is permitted.
+- Contract repeats ALL Stage43 geometry/text/semantic gates: top347.81 unchanged,
+  six centers347.81/371.06/394.31/417.56/440.81/464.06±.10pt, five23.25±.05pt pitches,
+  height116.25±.10pt, unchangedx/fonts/advances/ink heights,17single-line origin
+  streams/no clipping. Pre-table y unchanged≤.05; downstream uniform-3.75±.10pt and
+  relative intervals stable≤.05. Same1page, applicable semantics perfect. Actual
+  Stage43 glyph baseline movements within declared.10pt model are retained.
+- Scores: contract roundedwhole>=.8950 and >current.8719; fixed body/header/table/
+  laterROIs>=Stage43.808045712/.934692855/.857345359/.764176805(numerical1e-9).
+  SourceROI x30..770px/y395..470,348..395,348..470,470..640 at800px, no alignment.
+  Explicit adverse source-anchor disclosure REQUIRED: heading3 error about-2.23,
+  confidentiality-3.43,heading4-5.23,liability-5.68pt are worse than Stage42. This
+  product is bounded aggregate/table improvement, not every-line improvement;
+  strict.90 contract FAIL remains if measured<.90, exceptions never imply success.
+- STOP on environment/author-audit/natural-evidence/browser/source/eligibility/
+  package/text/wrap/flow/page/per-page/ROI/whole regression. Preserve raw/not-run,
+  no fixture-specific narrowing, field/row-height/offset/font/threshold tuning or
+  rerun/product PR on failure. Do not fix surrounding paragraph margins here.
+- Deliverables after approval: narrow collector/helper/tests and gated reproducible
+  preflight/native runner, complete new-five raw/versions/probes/hashes/inverse/
+  semantic/row/origin/page/anchor report. English commit/push/product PR only after
+  independent primary diff/image review; six green CI before primary merge,
+  implementation agent never merges. Limit host/content guarantees explicitly.

@@ -39,6 +39,35 @@ function unsupportedStyleSources() {
   } catch (error) { return { checked: false, error: String(error) }; }
 }
 
+// Independent proof for natural row minima; blockers do not alter legacy CSSOM flags.
+function rowHeightAuthorAudit() {
+  const result = { checked: true, declarations: [], unsupported_rules: [], html_height_attrs: [], errors: [] };
+  const blocked = new Set(['height', 'min-height', 'max-height', 'block-size', 'min-block-size', 'max-block-size',
+    'all', 'aspect-ratio', 'contain', 'content-visibility', 'animation', 'animation-name', 'transition', 'transition-property']);
+  let count = 0;
+  function inspect(style, origin) {
+    if (!style) throw new Error('AUTHOR_DECLARATION_UNAVAILABLE');
+    for (const name of Array.from(style)) {
+      if (blocked.has(name.toLowerCase())) result.declarations.push({ origin, property: name, value: style.getPropertyValue(name) });
+    }
+  }
+  function visit(rules, depth = 0) {
+    if (depth > 32) throw new Error('AUTHOR_RULE_DEPTH');
+    for (const rule of rules) {
+      if (++count > 10000) throw new Error('AUTHOR_RULE_COUNT');
+      if (rule.type !== CSSRule.STYLE_RULE || depth) result.unsupported_rules.push({ type: rule.type, depth });
+      if (rule.style) inspect(rule.style, 'stylesheet');
+      if (rule.cssRules) visit(rule.cssRules, depth + 1);
+    }
+  }
+  try {
+    for (const sheet of document.styleSheets) visit(sheet.cssRules);
+    for (const node of document.querySelectorAll('[style]')) inspect(node.style, 'inline');
+    for (const node of document.querySelectorAll('[height]')) result.html_height_attrs.push(node.tagName);
+  } catch (error) { result.checked = false; result.errors.push(String(error)); }
+  return result;
+}
+
 async function main() {
   const request = JSON.parse(fs.readFileSync(0, 'utf8'));
   const { chromium } = require('playwright');
@@ -164,6 +193,7 @@ async function main() {
       });
       const sources = await page.evaluate(unsupportedStyleSources);
       cssom.style_sources = sources;
+      cssom.row_height_audit = await page.evaluate(rowHeightAuthorAudit);
       if (!sources.checked || sources.document_adopted_count || sources.open_shadow_root_count) {
         cssom.complete = false;
         cssom.errors.push('UNSUPPORTED_ADOPTED_OR_SHADOW_STYLE_SOURCE');
@@ -195,7 +225,7 @@ async function main() {
   }
 }
 
-module.exports = { unsupportedStyleSources };
+module.exports = { unsupportedStyleSources, rowHeightAuthorAudit };
 
 if (require.main === module) main().catch(error => {
   process.stdout.write(JSON.stringify({ ok: false, code: error.code || 'LAYOUT_FAILED', message: String(error.message || error).slice(0, 1000) }));

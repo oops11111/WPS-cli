@@ -1,0 +1,24 @@
+[
+  true,
+  {
+    "input_path": "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\fidelity-merged-row-product\\artifacts\\natural-merged-rows-20261121\\A-manual-docx\\input\\manual.html",
+    "output_path": "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\fidelity-merged-row-product\\artifacts\\natural-merged-rows-20261121\\A-manual-docx\\browser.pdf",
+    "format": "pdf",
+    "bytes": 78422,
+    "sha256": "67804ca396514afed0d464dc720bc8be4a449f3b93162253430d942e63ba7350",
+    "backend": "playwright-edge",
+    "page_size": "A4",
+    "viewport": {
+      "width": 1280,
+      "height": 900
+    },
+    "javascript_enabled": false,
+    "network_access": false,
+    "websocket_blocked": true,
+    "resource_root": "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\fidelity-merged-row-product\\artifacts\\natural-merged-rows-20261121\\A-manual-docx\\input",
+    "browser": "157.0.4341.60",
+    "page_title": "部署手册",
+    "document_height": 900
+  },
+  []
+]

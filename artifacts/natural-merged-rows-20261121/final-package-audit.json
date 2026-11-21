@@ -1,0 +1,22 @@
+{
+  "A-report-docx": {
+    "replay_bytes_identical": true,
+    "sha256": "e5c0e13f12fc8d0d81ab4007e6141bbff30f3618215e58855f549d7dd933ab10"
+  },
+  "A-contract-docx": {
+    "replay_bytes_identical": true,
+    "sha256": "2b5e206fb74d5a73b036ab8a8e4b01b6dc98d5818599cfbabdb28579bdd0aefa"
+  },
+  "A-newsletter-docx": {
+    "replay_bytes_identical": true,
+    "sha256": "a21c7472007e5ab720cadcb89164a299d7a05204022e49a2dbce571b01b22f75"
+  },
+  "A-manual-docx": {
+    "replay_bytes_identical": true,
+    "sha256": "def0e1a2ddab203b8ee6639f1c6092741ba83b516a77b9bbf0d7e7198e21822e"
+  },
+  "A-pdfsource-docx": {
+    "replay_bytes_identical": true,
+    "sha256": "5f872d1fa3338ed6d82db1169138c839af78eb652ed4143fdeb1eb5e29fe6c71"
+  }
+}
