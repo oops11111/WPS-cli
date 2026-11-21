@@ -1,5 +1,6 @@
 import importlib.util
 import json
+import math
 import unittest
 from pathlib import Path
 
@@ -17,6 +18,20 @@ def portable_hash_keys(record):
     return result
 
 
+def measurement_equal(actual, expected):
+    if type(actual) is not type(expected):
+        return False
+    if isinstance(actual, float):
+        return math.isclose(actual, expected, rel_tol=0, abs_tol=1e-9)
+    if isinstance(actual, dict):
+        return actual.keys() == expected.keys() and all(measurement_equal(actual[k], expected[k]) for k in actual)
+    if isinstance(actual, list):
+        return len(actual) == len(expected) and all(
+            measurement_equal(a, b) for a, b in zip(actual, expected, strict=True)
+        )
+    return actual == expected
+
+
 class VisibleResidualAuditTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -31,7 +46,13 @@ class VisibleResidualAuditTests(unittest.TestCase):
         actual.pop("versions")
         expected = dict(self.recorded)
         expected.pop("versions")
-        self.assertEqual(portable_hash_keys(actual), portable_hash_keys(expected))
+        self.assertTrue(measurement_equal(portable_hash_keys(actual), portable_hash_keys(expected)))
+
+    def test_only_float_measurements_use_absolute_tolerance(self):
+        self.assertTrue(measurement_equal({"value": [0.8950000618741908]}, {"value": [0.8950000618741911]}))
+        self.assertFalse(measurement_equal(0.895, 0.895000002))
+        for a, b in ((1, True), (1, 1.0), ("hash", "other"), ([1], [1, 2]), ({"x": 1}, {"y": 1})):
+            self.assertFalse(measurement_equal(a, b))
 
     def test_only_provenance_path_separators_are_normalized(self):
         a = {"hashes": {"artifacts\\case\\input.pdf": "exact-digest"}, "whole": 0.895}
