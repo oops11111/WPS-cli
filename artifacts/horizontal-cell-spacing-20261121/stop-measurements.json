@@ -1,0 +1,65 @@
+{
+  "status": "STOP_GEOMETRY_OR_VERTICAL_COUPLING",
+  "stop_at": "H2-N",
+  "completed_exports": 4,
+  "not_run": [
+    "H4-C",
+    "H4-N"
+  ],
+  "measurement_rows": [
+    {
+      "case": "H0-C",
+      "left_relative_pt": 9.0,
+      "right_relative_pt": 159.72,
+      "left_top_pt": 44.35400000000004,
+      "left_baseline_pt": 52.73000000000002,
+      "following_top_pt": 57.79399999999998,
+      "following_baseline_pt": 66.16999999999996,
+      "occupied_table_height_pt": 13.5,
+      "pages": 1,
+      "all_four_tokens_present_once": true
+    },
+    {
+      "case": "H0-N",
+      "left_relative_pt": 9.0,
+      "right_relative_pt": 159.72,
+      "left_top_pt": 44.35400000000004,
+      "left_baseline_pt": 52.73000000000002,
+      "following_top_pt": 57.79399999999998,
+      "following_baseline_pt": 66.16999999999996,
+      "occupied_table_height_pt": 13.5,
+      "pages": 1,
+      "all_four_tokens_present_once": true
+    },
+    {
+      "case": "H2-C",
+      "left_relative_pt": 9.0,
+      "right_relative_pt": 159.72,
+      "left_top_pt": 44.35400000000004,
+      "left_baseline_pt": 52.73000000000002,
+      "following_top_pt": 57.79399999999998,
+      "following_baseline_pt": 66.16999999999996,
+      "occupied_table_height_pt": 13.5,
+      "pages": 1,
+      "all_four_tokens_present_once": true
+    },
+    {
+      "case": "H2-N",
+      "left_relative_pt": 9.0,
+      "right_relative_pt": 158.28,
+      "left_top_pt": 47.35400000000004,
+      "left_baseline_pt": 55.73000000000002,
+      "following_top_pt": 63.79399999999998,
+      "following_baseline_pt": 72.16999999999996,
+      "occupied_table_height_pt": 19.5,
+      "pages": 1,
+      "all_four_tokens_present_once": true
+    }
+  ],
+  "source_and_all_six_input_hashes_verified": true,
+  "four_export_pdf_hashes_verified": true,
+  "all_three_xml_pairs_only_tblCellSpacing": true,
+  "product_code_changed": false,
+  "commit_pr_created": false,
+  "height_method": "FOLLOWING baseline minus BEFORE baseline minus fixed before-paragraph pitch13.5pt; occupied single-row flow interval, not an independently visible border box"
+}

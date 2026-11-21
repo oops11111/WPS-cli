@@ -1,0 +1,602 @@
+{
+  "base": "810f9e3ccb7ffd8dc0b37f3d3651ba6c0d07f05a",
+  "references": {
+    "H0": {
+      "h_px": 0,
+      "dom": {
+        "cells": [
+          {
+            "x": 8,
+            "y": 26,
+            "width": 200,
+            "height": 18
+          },
+          {
+            "x": 208,
+            "y": 26,
+            "width": 200,
+            "height": 18
+          }
+        ],
+        "table": {
+          "x": 8,
+          "y": 26,
+          "width": 400,
+          "height": 18
+        }
+      },
+      "geometry": {
+        "pages": 1,
+        "paper": [
+          595.91998,
+          842.88
+        ],
+        "tokens": {
+          "BEFORE": {
+            "x0": 33.74999859375,
+            "x1": 73.33593462433595,
+            "top": 35.33788916758783,
+            "bottom": 47.33788866758789,
+            "baseline": 44.249998156249944
+          },
+          "LEFT": {
+            "x0": 42.74999821875,
+            "x1": 69.14062223914063,
+            "top": 48.83788860508787,
+            "bottom": 60.83788810508793,
+            "baseline": 57.74999759374998
+          },
+          "RIGHT": {
+            "x0": 192.74999196875,
+            "x1": 225.7382719942383,
+            "top": 48.83788860508787,
+            "bottom": 60.83788810508793,
+            "baseline": 57.74999759374998
+          },
+          "FOLLOWING": {
+            "x0": 33.74999859375,
+            "x1": 93.1289026396289,
+            "top": 62.33788804258779,
+            "bottom": 74.33788754258785,
+            "baseline": 71.2499970312499
+          }
+        },
+        "lines": [
+          "BEFORE",
+          "LEFT RIGHT",
+          "FOLLOWING"
+        ],
+        "relative_x": {
+          "LEFT": 8.999999625000001,
+          "RIGHT": 158.999993375
+        }
+      },
+      "gates": {
+        "cells": true,
+        "table": true,
+        "left": true,
+        "right": true
+      },
+      "source_sha256": "78a31ae7d2d2c31a8b82556f7e5d81aa0ea40dd0188b43618497be0e599c3787",
+      "browser_pdf_sha256": "029c9db5255b7859f78765671d9a0d50d7c082d980adecca90cf2fcb7cb2fdc5",
+      "print_context": {
+        "platform": "win32",
+        "executable": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
+        "runtime": {
+          "protocolVersion": "1.3",
+          "product": "Edg/157.0.4341.60",
+          "revision": "@fbcb2989a6c61b72a4919fe1028e58e70131cd46",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.0.0 Safari/537.36 Edg/157.0.0.0",
+          "jsVersion": "15.7.11.7"
+        },
+        "cssom": {
+          "complete": true,
+          "links": [],
+          "page_rules": [],
+          "imports": [],
+          "errors": [],
+          "style_sources": {
+            "checked": true,
+            "document_adopted_count": 0,
+            "open_shadow_root_count": 0
+          }
+        }
+      },
+      "control_sha256": "3c68bbe15748bd31196c87a90d2a0d826b51029930885a63474999b76c3154fd",
+      "native_sha256": "1e2096dbc305faebe925a24f9342d27ec182b93c82a1ebfb9185aed3a14d49db",
+      "xml_pair_only_spacing": true
+    },
+    "H2": {
+      "h_px": 2,
+      "dom": {
+        "cells": [
+          {
+            "x": 10,
+            "y": 26,
+            "width": 200,
+            "height": 18
+          },
+          {
+            "x": 212,
+            "y": 26,
+            "width": 200,
+            "height": 18
+          }
+        ],
+        "table": {
+          "x": 8,
+          "y": 26,
+          "width": 406,
+          "height": 18
+        }
+      },
+      "geometry": {
+        "pages": 1,
+        "paper": [
+          595.91998,
+          842.88
+        ],
+        "tokens": {
+          "BEFORE": {
+            "x0": 33.74999859375,
+            "x1": 73.33593462433595,
+            "top": 35.33788916758783,
+            "bottom": 47.33788866758789,
+            "baseline": 44.249998156249944
+          },
+          "LEFT": {
+            "x0": 44.24999815625,
+            "x1": 70.64062217664063,
+            "top": 48.83788860508787,
+            "bottom": 60.83788810508793,
+            "baseline": 57.74999759374998
+          },
+          "RIGHT": {
+            "x0": 195.74999184375,
+            "x1": 228.73827186923828,
+            "top": 48.83788860508787,
+            "bottom": 60.83788810508793,
+            "baseline": 57.74999759374998
+          },
+          "FOLLOWING": {
+            "x0": 33.74999859375,
+            "x1": 93.1289026396289,
+            "top": 62.33788804258779,
+            "bottom": 74.33788754258785,
+            "baseline": 71.2499970312499
+          }
+        },
+        "lines": [
+          "BEFORE",
+          "LEFT RIGHT",
+          "FOLLOWING"
+        ],
+        "relative_x": {
+          "LEFT": 10.499999562500001,
+          "RIGHT": 161.99999325
+        }
+      },
+      "gates": {
+        "cells": true,
+        "table": true,
+        "left": true,
+        "right": true
+      },
+      "source_sha256": "ba995f8eef8cb607b85b0d5a4391d093b20e1d88641336ac1c379a11c076b401",
+      "browser_pdf_sha256": "d98fc6ead705599f0d61d7c4202df557f1102e1f8895da3ba5e43d626e2d481f",
+      "print_context": {
+        "platform": "win32",
+        "executable": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
+        "runtime": {
+          "protocolVersion": "1.3",
+          "product": "Edg/157.0.4341.60",
+          "revision": "@fbcb2989a6c61b72a4919fe1028e58e70131cd46",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.0.0 Safari/537.36 Edg/157.0.0.0",
+          "jsVersion": "15.7.11.7"
+        },
+        "cssom": {
+          "complete": true,
+          "links": [],
+          "page_rules": [],
+          "imports": [],
+          "errors": [],
+          "style_sources": {
+            "checked": true,
+            "document_adopted_count": 0,
+            "open_shadow_root_count": 0
+          }
+        }
+      },
+      "control_sha256": "9cda8914a29179fbcfb0c21e2fcf6562b38905a0418ff31aaf19ebac2a0ce464",
+      "native_sha256": "8dfe04d96a5e9ecdd6695099fefd613298bb2937c88b91757079eed534ff2054",
+      "xml_pair_only_spacing": true
+    },
+    "H4": {
+      "h_px": 4,
+      "dom": {
+        "cells": [
+          {
+            "x": 12,
+            "y": 26,
+            "width": 200,
+            "height": 18
+          },
+          {
+            "x": 216,
+            "y": 26,
+            "width": 200,
+            "height": 18
+          }
+        ],
+        "table": {
+          "x": 8,
+          "y": 26,
+          "width": 412,
+          "height": 18
+        }
+      },
+      "geometry": {
+        "pages": 1,
+        "paper": [
+          595.91998,
+          842.88
+        ],
+        "tokens": {
+          "BEFORE": {
+            "x0": 33.74999859375,
+            "x1": 73.33593462433595,
+            "top": 35.33788916758783,
+            "bottom": 47.33788866758789,
+            "baseline": 44.249998156249944
+          },
+          "LEFT": {
+            "x0": 45.749998093749994,
+            "x1": 72.14062211414063,
+            "top": 48.83788860508787,
+            "bottom": 60.83788810508793,
+            "baseline": 57.74999759374998
+          },
+          "RIGHT": {
+            "x0": 198.74999171875,
+            "x1": 231.7382717442383,
+            "top": 48.83788860508787,
+            "bottom": 60.83788810508793,
+            "baseline": 57.74999759374998
+          },
+          "FOLLOWING": {
+            "x0": 33.74999859375,
+            "x1": 93.1289026396289,
+            "top": 62.33788804258779,
+            "bottom": 74.33788754258785,
+            "baseline": 71.2499970312499
+          }
+        },
+        "lines": [
+          "BEFORE",
+          "LEFT RIGHT",
+          "FOLLOWING"
+        ],
+        "relative_x": {
+          "LEFT": 11.999999499999994,
+          "RIGHT": 164.999993125
+        }
+      },
+      "gates": {
+        "cells": true,
+        "table": true,
+        "left": true,
+        "right": true
+      },
+      "source_sha256": "06c123aa2969353ac7c695a8909cbdd6ce36d5d0b6f5c2de24a1805e5f67b723",
+      "browser_pdf_sha256": "fb7c01e7d6931e288166f4caff64595af554bb3c832c8d29830e5f8841913b3e",
+      "print_context": {
+        "platform": "win32",
+        "executable": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
+        "runtime": {
+          "protocolVersion": "1.3",
+          "product": "Edg/157.0.4341.60",
+          "revision": "@fbcb2989a6c61b72a4919fe1028e58e70131cd46",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.0.0 Safari/537.36 Edg/157.0.0.0",
+          "jsVersion": "15.7.11.7"
+        },
+        "cssom": {
+          "complete": true,
+          "links": [],
+          "page_rules": [],
+          "imports": [],
+          "errors": [],
+          "style_sources": {
+            "checked": true,
+            "document_adopted_count": 0,
+            "open_shadow_root_count": 0
+          }
+        }
+      },
+      "control_sha256": "0c5bc0fe65d3b03eb3fd73141e3daa04e92742e22ae86ac1380e3f353e063afa",
+      "native_sha256": "695132e868d9f6229fbe35b1371a9fc1da7cb7975733b113a943f527997ed169",
+      "xml_pair_only_spacing": true
+    }
+  },
+  "wps_exports": 4,
+  "not_run": [
+    "H4-C",
+    "H4-N"
+  ],
+  "source_xml_preflight_passed": true,
+  "actual_git_head": "810f9e3ccb7ffd8dc0b37f3d3651ba6c0d07f05a",
+  "source_vertical_invariance_passed": true,
+  "exports": {
+    "H0-C": {
+      "input_sha256": "3c68bbe15748bd31196c87a90d2a0d826b51029930885a63474999b76c3154fd",
+      "versions": [
+        {
+          "path": "C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\wps.exe",
+          "file_version": "12,8,2,18913",
+          "product_version": "12,8,2,18913"
+        }
+      ],
+      "pdf_sha256": "e9cc8208a7ea7688faa802a4cb4578c2094b56fbd0442fbd54dbd0a3bc9d3dd3",
+      "geometry": {
+        "pages": 1,
+        "paper": [
+          595.3,
+          841.9
+        ],
+        "tokens": {
+          "BEFORE": {
+            "x0": 33.72,
+            "x1": 73.30799999999999,
+            "top": 30.793999999999983,
+            "bottom": 42.79399999999998,
+            "baseline": 39.16999999999996
+          },
+          "LEFT": {
+            "x0": 42.72,
+            "x1": 69.108,
+            "top": 44.35400000000004,
+            "bottom": 56.35400000000004,
+            "baseline": 52.73000000000002
+          },
+          "RIGHT": {
+            "x0": 193.44,
+            "x1": 226.42799999999997,
+            "top": 44.35400000000004,
+            "bottom": 56.35400000000004,
+            "baseline": 52.73000000000002
+          },
+          "FOLLOWING": {
+            "x0": 33.72,
+            "x1": 93.10799999999998,
+            "top": 57.79399999999998,
+            "bottom": 69.79399999999998,
+            "baseline": 66.16999999999996
+          }
+        },
+        "lines": [
+          "BEFORE",
+          "LEFT RIGHT",
+          "FOLLOWING"
+        ],
+        "relative_x": {
+          "LEFT": 9.0,
+          "RIGHT": 159.72
+        }
+      },
+      "absolute_source_x_error": {
+        "LEFT": 3.74999999053216e-07,
+        "RIGHT": 0.7200066249999963
+      }
+    },
+    "H0-N": {
+      "input_sha256": "1e2096dbc305faebe925a24f9342d27ec182b93c82a1ebfb9185aed3a14d49db",
+      "versions": [
+        {
+          "path": "C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\wps.exe",
+          "file_version": "12,8,2,18913",
+          "product_version": "12,8,2,18913"
+        }
+      ],
+      "pdf_sha256": "5a966fdb19df2fe00b08546bd0271daf26838f4bf0a127904cac5b7f70989be0",
+      "geometry": {
+        "pages": 1,
+        "paper": [
+          595.3,
+          841.9
+        ],
+        "tokens": {
+          "BEFORE": {
+            "x0": 33.72,
+            "x1": 73.30799999999999,
+            "top": 30.793999999999983,
+            "bottom": 42.79399999999998,
+            "baseline": 39.16999999999996
+          },
+          "LEFT": {
+            "x0": 42.72,
+            "x1": 69.108,
+            "top": 44.35400000000004,
+            "bottom": 56.35400000000004,
+            "baseline": 52.73000000000002
+          },
+          "RIGHT": {
+            "x0": 193.44,
+            "x1": 226.42799999999997,
+            "top": 44.35400000000004,
+            "bottom": 56.35400000000004,
+            "baseline": 52.73000000000002
+          },
+          "FOLLOWING": {
+            "x0": 33.72,
+            "x1": 93.10799999999998,
+            "top": 57.79399999999998,
+            "bottom": 69.79399999999998,
+            "baseline": 66.16999999999996
+          }
+        },
+        "lines": [
+          "BEFORE",
+          "LEFT RIGHT",
+          "FOLLOWING"
+        ],
+        "relative_x": {
+          "LEFT": 9.0,
+          "RIGHT": 159.72
+        }
+      },
+      "absolute_source_x_error": {
+        "LEFT": 3.74999999053216e-07,
+        "RIGHT": 0.7200066249999963
+      },
+      "pixels_identical": true,
+      "gates": {
+        "left_increment": true,
+        "right_increment": true,
+        "cell_y": true,
+        "following_y": true,
+        "occupied_row_height": true,
+        "page": true,
+        "h0_pixels": true
+      },
+      "occupied_table_height": 13.5
+    },
+    "H2-C": {
+      "input_sha256": "9cda8914a29179fbcfb0c21e2fcf6562b38905a0418ff31aaf19ebac2a0ce464",
+      "versions": [
+        {
+          "path": "C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\wps.exe",
+          "file_version": "12,8,2,18913",
+          "product_version": "12,8,2,18913"
+        }
+      ],
+      "pdf_sha256": "cd1104f01be612fed4e5f7abb6cf0ce15233004507a927b84dfac310c191f623",
+      "geometry": {
+        "pages": 1,
+        "paper": [
+          595.3,
+          841.9
+        ],
+        "tokens": {
+          "BEFORE": {
+            "x0": 33.72,
+            "x1": 73.30799999999999,
+            "top": 30.793999999999983,
+            "bottom": 42.79399999999998,
+            "baseline": 39.16999999999996
+          },
+          "LEFT": {
+            "x0": 42.72,
+            "x1": 69.108,
+            "top": 44.35400000000004,
+            "bottom": 56.35400000000004,
+            "baseline": 52.73000000000002
+          },
+          "RIGHT": {
+            "x0": 193.44,
+            "x1": 226.42799999999997,
+            "top": 44.35400000000004,
+            "bottom": 56.35400000000004,
+            "baseline": 52.73000000000002
+          },
+          "FOLLOWING": {
+            "x0": 33.72,
+            "x1": 93.10799999999998,
+            "top": 57.79399999999998,
+            "bottom": 69.79399999999998,
+            "baseline": 66.16999999999996
+          }
+        },
+        "lines": [
+          "BEFORE",
+          "LEFT RIGHT",
+          "FOLLOWING"
+        ],
+        "relative_x": {
+          "LEFT": 9.0,
+          "RIGHT": 159.72
+        }
+      },
+      "absolute_source_x_error": {
+        "LEFT": -1.499999562500001,
+        "RIGHT": -2.2799932499999898
+      }
+    },
+    "H2-N": {
+      "input_sha256": "8dfe04d96a5e9ecdd6695099fefd613298bb2937c88b91757079eed534ff2054",
+      "versions": [
+        {
+          "path": "C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\wps.exe",
+          "file_version": "12,8,2,18913",
+          "product_version": "12,8,2,18913"
+        }
+      ],
+      "pdf_sha256": "b2b170b4b9760abd02adc697d134430e9b1a1517bdda7d5644eeafed0f95c344",
+      "geometry": {
+        "pages": 1,
+        "paper": [
+          595.3,
+          841.9
+        ],
+        "tokens": {
+          "BEFORE": {
+            "x0": 33.72,
+            "x1": 73.30799999999999,
+            "top": 30.793999999999983,
+            "bottom": 42.79399999999998,
+            "baseline": 39.16999999999996
+          },
+          "LEFT": {
+            "x0": 42.72,
+            "x1": 69.108,
+            "top": 47.35400000000004,
+            "bottom": 59.35400000000004,
+            "baseline": 55.73000000000002
+          },
+          "RIGHT": {
+            "x0": 192.0,
+            "x1": 224.98799999999997,
+            "top": 47.35400000000004,
+            "bottom": 59.35400000000004,
+            "baseline": 55.73000000000002
+          },
+          "FOLLOWING": {
+            "x0": 33.72,
+            "x1": 93.10799999999998,
+            "top": 63.79399999999998,
+            "bottom": 75.79399999999998,
+            "baseline": 72.16999999999996
+          }
+        },
+        "lines": [
+          "BEFORE",
+          "LEFT RIGHT",
+          "FOLLOWING"
+        ],
+        "relative_x": {
+          "LEFT": 9.0,
+          "RIGHT": 158.28
+        }
+      },
+      "absolute_source_x_error": {
+        "LEFT": -1.499999562500001,
+        "RIGHT": -3.7199932499999875
+      },
+      "pixels_identical": false,
+      "gates": {
+        "left_increment": false,
+        "right_increment": false,
+        "cell_y": false,
+        "following_y": false,
+        "occupied_row_height": false,
+        "page": true,
+        "h0_pixels": true
+      },
+      "occupied_table_height": 19.5
+    }
+  },
+  "stop": "GEOMETRY_OR_VERTICAL_COUPLING",
+  "stopped_at": "H2-N",
+  "outcome": "bounded_negative_mechanism_STOP",
+  "accepted": false,
+  "product_change": false,
+  "primary_image_review": "H2-C/H2-N independently reviewed; STOP confirmed"
+}

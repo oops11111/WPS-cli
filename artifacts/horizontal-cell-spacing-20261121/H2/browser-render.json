@@ -1,0 +1,24 @@
+[
+  true,
+  {
+    "input_path": "artifacts/horizontal-cell-spacing-20261121/H2/input.html",
+    "output_path": "artifacts/horizontal-cell-spacing-20261121/H2/browser.pdf",
+    "format": "pdf",
+    "bytes": 10255,
+    "sha256": "d98fc6ead705599f0d61d7c4202df557f1102e1f8895da3ba5e43d626e2d481f",
+    "backend": "playwright-edge",
+    "page_size": "A4",
+    "viewport": {
+      "width": 1280,
+      "height": 900
+    },
+    "javascript_enabled": false,
+    "network_access": false,
+    "websocket_blocked": true,
+    "resource_root": "artifacts/horizontal-cell-spacing-20261121/H2",
+    "browser": "157.0.4341.60",
+    "page_title": "",
+    "document_height": 900
+  },
+  []
+]
