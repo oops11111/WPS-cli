@@ -1,0 +1,17 @@
+{
+  "original_raw_hashes_unchanged": true,
+  "exact_export_input_rebuild": true,
+  "files": {
+    "acceptance.json": "40e0d5553485d2a63e7bae8ea432db7a184f95b12de82babcae7ba5b9367aae3",
+    "candidate.docx": "2b5e206fb74d5a73b036ab8a8e4b01b6dc98d5818599cfbabdb28579bdd0aefa",
+    "environment.json": "b7adbd1a0a67171613dfe400eb9c5a76ac289b707325aad5dcf7d7a7cd8cfd54",
+    "export.json": "9ca61e0ac1bfc46d554faf83cc8f6ef2de7b1b5e6afc199bab4ac0479f023614",
+    "manifest.json": "c8e306361a0139ec37b8052f977fafc675c3e75a1d602c08acc6212b0cfe3a3b",
+    "pages/page-001-0.895.png": "41dd849587c6d56b3fd84de98c789c2439bb6ed81773b47c814255b185d5bf55",
+    "probe.json": "1e092279d232833754dd9f34f6c3d863b9f11dc29f914ae707908064419db435",
+    "semantic-preflight.json": "a41e314d99ebcd46cea53c10e071bfae21c56f448cd3a08fa8b1e335cecbb1dd",
+    "source-constraints.json": "c04866e8b7e6b37b5353b98a4e6fecbb333e218b87a21b2ceee513e68bf0a945",
+    "wps-page-001.png": "a1a6f518ef057000affc49993e28f82eff4c79fa0a6ae4b73f1579ea8fb3861f",
+    "wps.pdf": "c373c4b78508577813d337bf1def6dfdda43956eb6aae0b1ac6426fca94deb58"
+  }
+}

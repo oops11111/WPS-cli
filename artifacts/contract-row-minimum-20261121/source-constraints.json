@@ -1,0 +1,23 @@
+{
+  "row_boxes_px": [
+    31,
+    31,
+    31,
+    31,
+    31
+  ],
+  "derived_min_twips": [
+    450,
+    450,
+    450,
+    450,
+    450
+  ],
+  "body_line_before_after_twips": [
+    330,
+    60,
+    45
+  ],
+  "rowspan_line_twips": 390,
+  "content_minimum_uncertain": true
+}
