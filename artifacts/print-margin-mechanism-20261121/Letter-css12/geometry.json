@@ -1,0 +1,98 @@
+{
+  "page_points": [
+    612,
+    792
+  ],
+  "pages": 2,
+  "origin": {
+    "matrices": [
+      [
+        0.23999999,
+        0.0,
+        0.0,
+        -0.23999999,
+        0.0,
+        792.0
+      ],
+      [
+        3.125,
+        0.0,
+        0.0,
+        3.125,
+        140.625,
+        140.625
+      ]
+    ],
+    "content_left": 33.74999859375
+  },
+  "expected_left": 39.75,
+  "bar": {
+    "x0": 39.74999834375,
+    "x1": 572.24997615625,
+    "top": 39.74999834375001,
+    "bottom": 42.749998218749965
+  },
+  "anchor": {
+    "x0": 39.74999834375,
+    "top": 46.5878886988379
+  },
+  "text_by_page": [],
+  "lines_by_page": [
+    [
+      "ANCHOR",
+      "A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A",
+      "LINE-01",
+      "LINE-02",
+      "LINE-03",
+      "LINE-04",
+      "LINE-05",
+      "LINE-06",
+      "LINE-07",
+      "LINE-08",
+      "LINE-09",
+      "LINE-10",
+      "LINE-11",
+      "LINE-12",
+      "LINE-13",
+      "LINE-14",
+      "LINE-15",
+      "LINE-16",
+      "LINE-17",
+      "LINE-18",
+      "LINE-19",
+      "LINE-20",
+      "LINE-21",
+      "LINE-22",
+      "LINE-23",
+      "LINE-24",
+      "LINE-25",
+      "LINE-26",
+      "LINE-27",
+      "LINE-28",
+      "LINE-29",
+      "LINE-30",
+      "LINE-31",
+      "LINE-32",
+      "LINE-33",
+      "LINE-34",
+      "LINE-35",
+      "LINE-36",
+      "LINE-37",
+      "LINE-38",
+      "LINE-39"
+    ],
+    [
+      "LINE-40",
+      "LINE-41",
+      "LINE-42",
+      "LINE-43",
+      "LINE-44",
+      "LINE-45"
+    ]
+  ],
+  "gates": {
+    "origin_formula": true,
+    "bar_left_formula": true,
+    "anchor_formula": true
+  }
+}

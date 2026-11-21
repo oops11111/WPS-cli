@@ -1,0 +1,24 @@
+[
+  true,
+  {
+    "input_path": "artifacts/print-margin-mechanism-20261121/Letter-default/input.html",
+    "output_path": "artifacts/print-margin-mechanism-20261121/Letter-default/browser.pdf",
+    "format": "pdf",
+    "bytes": 12585,
+    "sha256": "21a463863ea126630cf7af29db06267070773e277b65a210320329eb072a820d",
+    "backend": "playwright-edge",
+    "page_size": "Letter",
+    "viewport": {
+      "width": 1280,
+      "height": 900
+    },
+    "javascript_enabled": false,
+    "network_access": false,
+    "websocket_blocked": true,
+    "resource_root": "artifacts/print-margin-mechanism-20261121/Letter-default",
+    "browser": "157.0.4341.60",
+    "page_title": "",
+    "document_height": 1101
+  },
+  []
+]

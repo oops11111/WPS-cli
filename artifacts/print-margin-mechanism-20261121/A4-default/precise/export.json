@@ -1,0 +1,15 @@
+[
+  true,
+  {
+    "input_path": "artifacts/print-margin-mechanism-20261121/A4-default/precise/input.docx",
+    "output_path": "artifacts/print-margin-mechanism-20261121/A4-default/precise/wps.pdf",
+    "format": "pdf",
+    "backend": "powershell-com",
+    "component": "writer",
+    "prog_id": "kwps.Application",
+    "format_code": null,
+    "conversion_method": "ExportAsFixedFormat",
+    "warnings": []
+  },
+  []
+]

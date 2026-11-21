@@ -6,3 +6,4 @@ artifacts/closed-details-mapping-20261121/**/input/** -text whitespace=cr-at-eol
 artifacts/plain-pre-whitespace-20261121/**/input/** -text whitespace=cr-at-eol
 artifacts/closed-summary-marker-20261121/**/input/** -text whitespace=cr-at-eol
 artifacts/figure-image-indent-20261121/**/input/** -text whitespace=cr-at-eol
+artifacts/print-margin-mechanism-20261121/**/input.html -text
