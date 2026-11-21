@@ -1190,3 +1190,75 @@ authoritative status, commit/PR/run evidence, blockers and exact next action.
   Evidence-only commit/PR only after primary independent image/diff review; six
   green CI before primary merge, implementation agent never merges. Product or
   original-contract validation requires another reviewed stage.
+
+## Stage38 PLAN ONLY: full-contract fixed zero-allowance validation
+
+- Await primary review. Exact dependency: Stage37#179 six green/merged main
+  3ddbc9197753f53d8e1101ef93bdfefc42bcb4ce, clean fidelity-full-contract-width /
+  docs/full-contract-width-plan. Frozen Stage34 and other stopped worktrees stay
+  untouched; Stage34 preflight STOP is not reversed or reclassified.
+- New risk basis: Stage37 copied the ENTIRE fee-table subtree without changing
+  typography, merges, padding/borders or row properties. Its native C1/C0 WPS set
+  confirmed all17origins single-line, exact widths and invariant24pt pitches at
+  the two registered points. This independent native evidence justifies TESTING
+  the same candidate in original flow; it does not certify full-contract safety,
+  pagination, surrounding tables or any other input. Full-flow gates below are
+  new empirical requirements, not inferred from synthetic success.
+- Immutable control: accepted Stage28 full contract converted.docx SHA256
+  ee563430a86295acb8ac59ad31e5c72b1b2052e64e545fb7360a1b4feec6139f and cached
+  WPS12.8.2.18913/browserPDFs. Exactly ONE candidate, original complete document,
+  only table[1] four gridCol +17non-continuation tcW @w:w each minus15twips.
+  Grid710/724/1370/2729->695/709/1355/2714; first-row middle colspan origin1370->1355
+  (not normalized to a new summed width); two continuation2639 unchanged. No other
+  cell/parties/sign table, margin, font, pPr/spacing, height, border/fill or flow edit.
+- Offline hard gate: verify immutable hash, full5row/4logicalcol/19physicalcell/
+  17origin/2continuation topology and exact original target values; exactly21
+  attributes; inverse reproduces complete original document.xml bytes, all other
+  package payloads and metadata retained; deterministic candidate ZIP. Same width
+  arithmetic as Stage37 ceil(CSSbox*15), no fitted constants/width scan. Assert
+  copied candidate fee subtree identical to Stage37 C0 table subtree so native
+  wrap evidence applies to precisely the same table, including every run property.
+  Any mismatch/extra difference STOP before WPS.
+- Focused tests after approval: inverse/determinism/all-parts, exact Stage37 subtree
+  equality, wrong-topology/font/extra-difference rejection, geometry/score/STOP
+  classification; packaging metadata, Ruff/format/diff. No product converter/scorer
+  edit, browser render, fixture/baseline/threshold change or other-case export.
+- Exactly ONE full-contract candidate WPS export compared to cached accepted
+  baseline, no old-contract re-export. Empty process/version probe before own
+  instance; same12.8.2.18913 required. No taskkill/user-document closure/global
+  prefs/fonts/retry/alternate .5px width. Export/safety anomaly STOP immediately.
+- Pre-registered full-document five vertical fee-rule predictions:
+  33.75/68.50/103.95/171.70/307.40pt; each error<=.10pt. Differential relative to
+  baseline33.75/69.25/105.45/173.95/310.40 is0/-.75/-1.50/-2.25/-3pt. Source rule
+  centers34.125/68.625/104.625/172.125/307.875: each absolute source error must not
+  worsen by>.05pt and summed absolute error must decrease. No source-x fitting.
+- Recover complete rule SEGMENTS and merge topology before glyph assignment;
+  source/native stroke caps and rule centers remain distinct. All17origin streams
+  match cached original by geometric polygon assignment (text only verifies),
+  exactly ONE baseline cluster per origin (tolerance.05pt), no clipped/lost glyph
+  or rule crossing. Normalize PDF whitespace explicitly, never discard content.
+  Merged-header text, continuation topology and rule segment cardinality unchanged.
+- Independent no-coupling: fee horizontal centers347.81/371.81/395.81/419.81/443.81/
+  467.81pt within.05pt, all pitches24pt within.05pt, glyph y/baseline and PDF normalized
+  font/size unchanged within.05/.005pt; paragraph line assignment unchanged. Every
+  character OUTSIDE fee table x/y within.05pt, including total-price/later headings/
+  liability/signature rows; same page count1, all original body text/structure/
+  formatting/data semantics1. This directly tests original-flow safety.
+- Fixed scoring convention: repository _pdf_pages800px, target.resize(source.size),
+  original unaligned grayscale SSIM; x30..770px and y int(pt*800/595.92). Body395..470
+  baseline.541706667 and total-table348..470 baseline.635591558 must BOTH improve;
+  header348..395 baseline.814993303 must not regress (numerical1e-9 only). Whole
+  baseline raw.8643611411371483/rounded.8644 must improve to rounded>.8644; no .90
+  claim unless measured. Outside-table/later-text residuals must not be hidden by
+  whole average. No image registration, shifted crops or threshold tuning.
+- STOP on any offline/geometry/content/wrap/height/flow/page/font/semantic/safety/
+  export/score gate failure. Preserve raw and state unrun outcomes, no repair to
+  font/grid/height/spacing/offset/threshold/input or second export. Pixel-identical
+  is zero influence, not success. No product PR follows from a failed experiment.
+- Deliverables after approval: narrow full-document builder/assessor/tests, source/
+  candidate/inverse/subtree/hash audit, one rawPDF/PNG/process/version/export,
+  source/baseline/candidate per-origin/rule/outside-flow measurements and score
+  report with residuals. Evidence-only commit/PR only after primary independent
+  diff/image review, six green CI before primary merge. Even pass is only this
+  full-contract candidate on this host; product eligibility and original-five
+  regression require a separately reviewed stage, never blanket allowance removal.

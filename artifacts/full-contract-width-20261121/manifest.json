@@ -1,0 +1,28 @@
+{
+  "base": "3ddbc9197753f53d8e1101ef93bdfefc42bcb4ce",
+  "sources": {
+    "converted.docx": "ee563430a86295acb8ac59ad31e5c72b1b2052e64e545fb7360a1b4feec6139f",
+    "wps.pdf": "be4cb909cfedaab1ed02869602d26d3af8e0e81c59100dd491e4fe0c09f1aa3d",
+    "browser.pdf": "e920d30c61f5b8823b47eac0bb55479d37c5fa6ad26dec003639e53e08b2402c"
+  },
+  "candidate_sha256": "760bb182bf74f3b491ed103f8d56fc5089d99f1c22bf4ff6f8226fcd1d1dbab1",
+  "offline_gate": "21 attrs, full inverse/parts, Stage37 C0 subtree identical",
+  "wps_exports": 1,
+  "versions": [
+    {
+      "path": "C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\wps.exe",
+      "file_version": "12,8,2,18913",
+      "product_version": "12,8,2,18913"
+    }
+  ],
+  "outcome": "PASS_FULL_CONTRACT_ONLY",
+  "hashes": {
+    "acceptance.json": "d3c0f4ec7b17ca5af8d95da15823602c36bd3f216b5d34abdf2a89860bb1f4c4",
+    "candidate.docx": "760bb182bf74f3b491ed103f8d56fc5089d99f1c22bf4ff6f8226fcd1d1dbab1",
+    "export.json": "49a18c52b6f794274a1b9b9c8a25dcfcbbd877b27d236f8bc646b571c6203417",
+    "pages/page-001-0.872.png": "4d3f2ed71e9c0a3597ace893e75fece9f1a6906a0dc8fe49bb5b6dedca210905",
+    "probe.json": "1e092279d232833754dd9f34f6c3d863b9f11dc29f914ae707908064419db435",
+    "wps-page-001.png": "080d0294558b641c0c2473c86e5c1fe58907e0349119a0a028691a43069f92d1",
+    "wps.pdf": "2ad70bf6700b7caee7d588e069ea6b8d8ae2717aedc3116f7f011262818dc075"
+  }
+}
