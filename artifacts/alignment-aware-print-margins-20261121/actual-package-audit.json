@@ -1,0 +1,86 @@
+{
+  "A-contract-docx": {
+    "allowed_changes": [
+      {
+        "attribute": "pgMar/left",
+        "old": 687,
+        "new": 675
+      },
+      {
+        "attribute": "pgMar/right",
+        "old": 687,
+        "new": 675
+      },
+      {
+        "attribute": "body/tbl[1]/tr[1]/tc[0]/tcW",
+        "old": 2633,
+        "new": 2639
+      },
+      {
+        "attribute": "body/tbl[1]/tr[1]/tc[3]/tcW",
+        "old": 2633,
+        "new": 2639
+      }
+    ],
+    "exact_inverse_document_bytes": true,
+    "other_parts_identical": true,
+    "hashes_verified": true
+  },
+  "A-manual-docx": {
+    "allowed_changes": [
+      {
+        "attribute": "pgMar/left",
+        "old": 687,
+        "new": 675
+      },
+      {
+        "attribute": "pgMar/right",
+        "old": 687,
+        "new": 675
+      }
+    ],
+    "exact_inverse_document_bytes": true,
+    "other_parts_identical": true,
+    "hashes_verified": true
+  },
+  "A-newsletter-docx": {
+    "allowed_changes": [
+      {
+        "attribute": "pgMar/left",
+        "old": 687,
+        "new": 675
+      },
+      {
+        "attribute": "pgMar/right",
+        "old": 687,
+        "new": 675
+      }
+    ],
+    "exact_inverse_document_bytes": true,
+    "other_parts_identical": true,
+    "hashes_verified": true
+  },
+  "A-pdfsource-docx": {
+    "allowed_changes": [
+      {
+        "attribute": "pgMar/left",
+        "old": 687,
+        "new": 675
+      },
+      {
+        "attribute": "pgMar/right",
+        "old": 687,
+        "new": 675
+      }
+    ],
+    "exact_inverse_document_bytes": true,
+    "other_parts_identical": true,
+    "hashes_verified": true
+  },
+  "A-report-docx": {
+    "allowed_changes": [],
+    "exact_inverse_document_bytes": true,
+    "other_parts_identical": true,
+    "hashes_verified": true
+  }
+}

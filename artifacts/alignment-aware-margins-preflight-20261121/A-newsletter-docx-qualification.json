@@ -1,0 +1,31 @@
+{
+  "mode": "browser",
+  "browser": "157.0.4341.60",
+  "print_context": {
+    "platform": "win32",
+    "executable": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
+    "runtime": {
+      "protocolVersion": "1.3",
+      "product": "Edg/157.0.4341.60",
+      "revision": "@fbcb2989a6c61b72a4919fe1028e58e70131cd46",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.0.0 Safari/537.36 Edg/157.0.0.0",
+      "jsVersion": "15.7.11.7"
+    },
+    "cssom": {
+      "complete": true,
+      "links": [],
+      "page_rules": [],
+      "imports": [],
+      "errors": []
+    }
+  },
+  "eligible": true,
+  "source_images": [
+    {
+      "alt": "延迟趋势",
+      "source_align": "center",
+      "holder_align": "center",
+      "holder": "figure"
+    }
+  ]
+}

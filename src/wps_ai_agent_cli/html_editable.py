@@ -621,7 +621,7 @@ def convert_html_editable(
                 f"Unsupported closed details at element {index} rendered expanded; collapsed state was not preserved."
             )
     document = Document()
-    page_width_px = docx_styling.apply_page(document, styled)
+    page_width_px = docx_styling.apply_page(document, styled, fidelity=fidelity)
     bookmark_counter = 0
     bookmark_count = 0
 

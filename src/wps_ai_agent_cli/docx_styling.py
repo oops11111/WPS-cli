@@ -757,7 +757,33 @@ def apply_table_spacing(table, node, context: Context) -> None:
     context.carry_before = bottom
 
 
-def apply_page(document, styled: StyledDocument | None) -> float:
+def qualified_horizontal_print_margins(styled, fidelity: str) -> bool:
+    """Bounded Stage23 evidence; missing current engine/CSSOM proof preserves legacy margins."""
+    import platform
+    from pathlib import PureWindowsPath
+
+    if platform.system() != "Windows" or fidelity != "editable" or PRINT_MARGIN_MM != 10:
+        return False
+    if styled is None or styled.mode != "browser" or styled.page or styled.browser != "157.0.4341.60":
+        return False
+    info = getattr(styled, "print_context", {})
+    if not isinstance(info, dict) or info.get("error"):
+        return False
+    cssom = info.get("cssom", {})
+    if not isinstance(cssom, dict) or not isinstance(info.get("runtime"), dict):
+        return False
+    return (
+        info.get("platform") == "win32"
+        and PureWindowsPath(info.get("executable", "")).name.lower() == "msedge.exe"
+        and info.get("runtime", {}).get("product") == "Edg/157.0.4341.60"
+        and cssom.get("complete") is True
+        and all(cssom.get(k) == [] for k in ("page_rules", "imports", "errors"))
+        and isinstance(cssom.get("links"), list)
+        and all(isinstance(link, dict) and link.get("has_sheet") is True for link in cssom["links"])
+    )
+
+
+def apply_page(document, styled: StyledDocument | None, *, fidelity: str = "editable") -> float:
     """@page size and margins on the first section; returns the text width in CSS px."""
     from docx.shared import Mm
 
@@ -797,6 +823,8 @@ def apply_page(document, styled: StyledDocument | None) -> float:
     for side in ("top", "right", "bottom", "left"):
         value = px(sides.get(side)) if sides.get(side) else None
         page_margins[side] = value if value is not None else PRINT_MARGIN_MM * 96 / 25.4
+        if side in {"left", "right"} and qualified_horizontal_print_margins(styled, fidelity):
+            page_margins[side] = 37.0
         setattr(section, f"{side}_margin", Mm((page_margins[side] + inset.get(side, 0.0)) * 25.4 / 96))
     # A page header (data-page="header") starts where the body's first line does in the browser, inside the body's
     # top margin, and a running footer sits on the bottom margin; Word's default half inch put the header and the

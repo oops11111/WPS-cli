@@ -1,0 +1,36 @@
+[
+  true,
+  {
+    "input_path": "artifacts/alignment-aware-print-margins-20261121/A-report-docx/input/report.html",
+    "output_path": "artifacts/alignment-aware-print-margins-20261121/A-report-docx/converted.docx",
+    "bytes": 39990,
+    "sha256": "e5c0e13f12fc8d0d81ab4007e6141bbff30f3618215e58855f549d7dd933ab10",
+    "backend": "python-docx-semantic-mapping",
+    "editable": true,
+    "mapped_objects": {
+      "paragraphs": 9,
+      "headings": 6,
+      "lists": 8,
+      "tables": 1,
+      "images": 1
+    },
+    "unsupported_css": [],
+    "warnings": [
+      "Scripts and executable content were omitted.",
+      "Unsafe hyperlink target omitted."
+    ],
+    "fidelity": "editable",
+    "style_source": "browser",
+    "applied_styles": [
+      "border",
+      "character",
+      "column widths",
+      "paragraph"
+    ],
+    "source_encoding": "utf-8",
+    "javascript_executed": false,
+    "remote_resources_fetched": false,
+    "roundtrip_bookmarks": 0
+  },
+  []
+]
