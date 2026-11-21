@@ -28,6 +28,15 @@ const PSEUDO_PROPERTIES = [
 // A slide is a <section> or an element with the class "slide", not inside another one (html_slides.collect_slides).
 const SLIDE_SELECTOR = 'section, .slide';
 
+// Passed to page.evaluate; any additional style source rejects this bounded mapping.
+function unsupportedStyleSources() {
+  try {
+    if (!('adoptedStyleSheets' in document)) return { checked: false };
+    return { checked: true, document_adopted_count: document.adoptedStyleSheets.length,
+      open_shadow_root_count: [...document.querySelectorAll('*')].filter(element => element.shadowRoot).length };
+  } catch (error) { return { checked: false, error: String(error) }; }
+}
+
 async function main() {
   const request = JSON.parse(fs.readFileSync(0, 'utf8'));
   const { chromium } = require('playwright');
@@ -151,6 +160,12 @@ async function main() {
         }
         return { complete, links, page_rules: pageRules, imports, errors };
       });
+      const sources = await page.evaluate(unsupportedStyleSources);
+      cssom.style_sources = sources;
+      if (!sources.checked || sources.document_adopted_count || sources.open_shadow_root_count) {
+        cssom.complete = false;
+        cssom.errors.push('UNSUPPORTED_ADOPTED_OR_SHADOW_STYLE_SOURCE');
+      }
       const cdp = await context.newCDPSession(page);
       printContext = { platform: process.platform, executable: fs.realpathSync(request.browser_executable),
         runtime: await cdp.send('Browser.getVersion'), cssom };
@@ -178,7 +193,9 @@ async function main() {
   }
 }
 
-main().catch(error => {
+module.exports = { unsupportedStyleSources };
+
+if (require.main === module) main().catch(error => {
   process.stdout.write(JSON.stringify({ ok: false, code: error.code || 'LAYOUT_FAILED', message: String(error.message || error).slice(0, 1000) }));
   process.exitCode = 1;
 });

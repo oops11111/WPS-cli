@@ -1,0 +1,40 @@
+{
+  "browser": "157.0.4341.60",
+  "kind": "in-memory CSSOM/cascade probe; no print test",
+  "observation": {
+    "documentSheets": 0,
+    "documentAdoptedRules": [
+      {
+        "type": 6,
+        "text": "@page { margin: 12mm; }"
+      },
+      {
+        "type": 1,
+        "text": "body { color: red; }"
+      }
+    ],
+    "shadowRules": [
+      {
+        "type": 6,
+        "text": "@page { margin: 14mm; }"
+      },
+      {
+        "type": 1,
+        "text": "span { color: blue; }"
+      }
+    ],
+    "shadowAdoptedRules": [
+      {
+        "type": 6,
+        "text": "@page { margin: 16mm; }"
+      }
+    ],
+    "bodyColor": "rgb(255, 0, 0)",
+    "shadowColor": "rgb(0, 0, 255)"
+  },
+  "detector": {
+    "checked": true,
+    "document_adopted_count": 1,
+    "open_shadow_root_count": 1
+  }
+}

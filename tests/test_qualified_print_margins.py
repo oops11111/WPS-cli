@@ -15,7 +15,14 @@ INFO = {
     "platform": "win32",
     "executable": r"C:\Edge\msedge.exe",
     "runtime": {"product": "Edg/157.0.4341.60"},
-    "cssom": {"complete": True, "links": [], "page_rules": [], "imports": [], "errors": []},
+    "cssom": {
+        "complete": True,
+        "style_sources": {"checked": True, "document_adopted_count": 0, "open_shadow_root_count": 0},
+        "links": [],
+        "page_rules": [],
+        "imports": [],
+        "errors": [],
+    },
 }
 
 
@@ -118,6 +125,52 @@ class QualifiedMarginTests(unittest.TestCase):
             gate.verify_document_xml(old, new.replace(b'w:w="2639"', b'w:w="2640"', 1), "A-contract-docx")
         with self.assertRaises(ValueError):
             gate.verify_document_xml(old, new.replace(b'w:top="567"', b'w:top="568"', 1), "A-contract-docx")
+
+    def test_additional_sources_fail_closed(self):
+        with tempfile.TemporaryDirectory() as d, patch("platform.system", return_value="Windows"):
+            s = self.styled(d)
+            for sources in (
+                {},
+                {"checked": False},
+                {"checked": True, "document_adopted_count": 1, "open_shadow_root_count": 0},
+                {"checked": True, "document_adopted_count": 0, "open_shadow_root_count": 1},
+            ):
+                s.print_context = copy.deepcopy(INFO)
+                s.print_context["cssom"]["style_sources"] = sources
+                self.assertFalse(qualified_horizontal_print_margins(s, "editable"))
+            source = Path(d) / "input.html"
+            source.write_text(
+                '<body><div><template shadowrootmode="closed"><style>span {color:blue}</style><span>SHADOW</span></template></div></body>',
+                encoding="utf-8",
+            )
+            s = html_styles.load(source, use_browser=False)
+            s.mode = "browser"
+            s.browser = "157.0.4341.60"
+            s.print_context = copy.deepcopy(INFO)
+            self.assertFalse(qualified_horizontal_print_margins(s, "editable"))
+
+    def test_production_style_source_detector(self):
+        import json
+        import shutil
+        import subprocess
+
+        node = shutil.which("node")
+        if not node:
+            self.skipTest("Node unavailable")
+        module = Path(__file__).resolve().parents[1] / "src/wps_ai_agent_cli/html_layout_playwright.cjs"
+        code = """const {unsupportedStyleSources:f}=require(process.argv[1]);
+        const results=[];
+        for(const [adopted,roots] of [[0,0],[1,0],[0,1]]){
+          global.document={adoptedStyleSheets:Array(adopted).fill({}),querySelectorAll:()=>Array(roots).fill({shadowRoot:{}})};results.push(f());
+        }
+        global.document={querySelectorAll:()=>[]};results.push(f());
+        console.log(JSON.stringify(results));"""
+        result = subprocess.run([node, "-e", code, str(module)], check=True, capture_output=True, text=True)
+        records = json.loads(result.stdout)
+        self.assertEqual(records[0], {"checked": True, "document_adopted_count": 0, "open_shadow_root_count": 0})
+        self.assertEqual(records[1]["document_adopted_count"], 1)
+        self.assertEqual(records[2]["open_shadow_root_count"], 1)
+        self.assertFalse(records[3]["checked"])
 
 
 if __name__ == "__main__":

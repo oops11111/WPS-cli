@@ -157,9 +157,12 @@ class _TreeParser(HTMLParser):
         self.unsupported: set[str] = set()
         self.warnings: set[str] = set()
         self.unsupported_elements: set[str] = set()
+        self.has_declarative_shadow_root = False
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         tag = tag.lower()
+        if tag == "template" and any(key.lower() == "shadowrootmode" for key, _value in attrs):
+            self.has_declarative_shadow_root = True
         if tag == "style":
             self.unsupported.add("embedded CSS")
         elif tag == "script":

@@ -89,3 +89,31 @@ Source/assets/output hashes and seven staged source/asset blob hashes verified.
 Final related/focused, full Ruff/format, JS syntax and diff checks accompany PR.
 Primary independent diff/image review plus all six green CI required before main
 merge; implementation agent never merges.
+
+## Post-review style-source veto (no WPS rerun)
+
+A read-only current-Edge probe accepted CSSPageRule in document adopted sheets,
+open-shadow style sheets and shadow adopted sheets, while document.styleSheets
+alone omitted those sources. Adopted ordinary rules also affected computed color.
+This confirms incomplete coverage; it does not claim a measured shadow-print
+outcome. The CSSOM final style-sheet model includes adopted sheets
+([CSSOM draft](https://drafts.csswg.org/cssom/#dom-documentorshadowroot-adoptedstylesheets)).
+
+Qualification now conservatively rejects any document adopted sheet or open shadow
+root; missing/failed source audit also rejects. Parsed declarative shadow-root
+markup is rejected as well, covering closed roots not observable through the
+open-root DOM accessor. No attempt to support these shapes or broaden eligibility.
+Production detector, unknown-source and declared-closed-root tests accompany this
+change.
+
+The original five WPS inputs/results/hashes were preserved. Offline replay uses
+ORIGINAL browser style/box/marker snapshots, fresh read-only source-audit metadata
+and original ZIP metadata/timestamps, without substituting payloads. All five
+package payloads AND full DOCX bytes match the measured WPS inputs exactly;
+eligibility remains four true/report false. All original print-context fields are
+identical except the added audit; all five new source counts are zero. Original
+WPS-input hashes match their committed result manifests. Raw proof and replays are
+in artifacts/alignment-aware-margins-postreview-20261121/final-veto/verification.json.
+No margins, fixtures, thresholds or WPS evidence were regenerated or altered.
+
+Final post-review44 related tests passed19.707s; full Ruff/format/JS/diff passed. The reproducible source-probe.cjs/JSON records actual Edge acceptance and the production detector veto; it performs no printing.

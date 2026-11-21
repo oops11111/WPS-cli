@@ -766,14 +766,22 @@ def qualified_horizontal_print_margins(styled, fidelity: str) -> bool:
         return False
     if styled is None or styled.mode != "browser" or styled.page or styled.browser != "157.0.4341.60":
         return False
+    # Declarative shadow roots can be closed and invisible to document CSSOM.
+    if getattr(getattr(styled, "parser", None), "has_declarative_shadow_root", None) is not False:
+        return False
     info = getattr(styled, "print_context", {})
     if not isinstance(info, dict) or info.get("error"):
         return False
     cssom = info.get("cssom", {})
     if not isinstance(cssom, dict) or not isinstance(info.get("runtime"), dict):
         return False
+    sources = cssom.get("style_sources", {})
+    if not isinstance(sources, dict) or sources.get("checked") is not True:
+        return False
     return (
-        info.get("platform") == "win32"
+        sources.get("document_adopted_count") == 0
+        and sources.get("open_shadow_root_count") == 0
+        and info.get("platform") == "win32"
         and PureWindowsPath(info.get("executable", "")).name.lower() == "msedge.exe"
         and info.get("runtime", {}).get("product") == "Edg/157.0.4341.60"
         and cssom.get("complete") is True
