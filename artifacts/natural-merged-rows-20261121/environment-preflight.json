@@ -1,0 +1,12 @@
+{
+  "node": "C:\\Program Files\\nodejs\\node.EXE",
+  "browser": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
+  "playwright": {
+    "module": "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\fidelity-delivery\\node_modules\\playwright\\index.js",
+    "chromium": true,
+    "node": "C:\\Program Files\\nodejs\\node.EXE",
+    "node_path": "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\fidelity-delivery\\node_modules"
+  },
+  "utf8": true,
+  "workspace_temp": "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\fidelity-merged-row-product\\.codex-test-temp"
+}

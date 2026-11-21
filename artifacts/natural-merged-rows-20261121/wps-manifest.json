@@ -1,0 +1,253 @@
+{
+  "base": "1d48d868f440a930001d4517dcb7cc57d0e44a8e",
+  "exports": [
+    "A-report-docx",
+    "A-contract-docx",
+    "A-newsletter-docx",
+    "A-manual-docx",
+    "A-pdfsource-docx"
+  ],
+  "not_run": [],
+  "results": {
+    "A-report-docx": {
+      "accepted": true,
+      "gates": {
+        "semantics": true,
+        "each_page": true,
+        "aggregate": true,
+        "all_rgb_page_pixels_identical": true
+      },
+      "layout": {
+        "images": [
+          "artifacts\\natural-merged-rows-20261121\\A-report-docx\\pages\\page-001-0.901.png",
+          "artifacts\\natural-merged-rows-20261121\\A-report-docx\\pages\\page-002-0.979.png"
+        ],
+        "status": "measured",
+        "renderer": "wps",
+        "score": 0.9398,
+        "pages": {
+          "source": 2,
+          "target": 2
+        },
+        "page_scores": [
+          0.9007,
+          0.9789
+        ],
+        "missing_fonts": [
+          "Noto Sans CJK SC"
+        ]
+      }
+    },
+    "A-contract-docx": {
+      "accepted": true,
+      "gates": {
+        "semantics": true,
+        "each_page": true,
+        "aggregate": true,
+        "stage43_all_geometry_flow": true,
+        "stage43_roi_floors": true
+      },
+      "layout": {
+        "images": [
+          "artifacts\\natural-merged-rows-20261121\\A-contract-docx\\pages\\page-001-0.895.png"
+        ],
+        "status": "measured",
+        "renderer": "wps",
+        "score": 0.895,
+        "pages": {
+          "source": 1,
+          "target": 1
+        },
+        "page_scores": [
+          0.895
+        ],
+        "missing_fonts": [
+          "Noto Sans CJK SC"
+        ]
+      }
+    },
+    "A-newsletter-docx": {
+      "accepted": true,
+      "gates": {
+        "semantics": true,
+        "each_page": true,
+        "aggregate": true,
+        "all_rgb_page_pixels_identical": true
+      },
+      "layout": {
+        "images": [
+          "artifacts\\natural-merged-rows-20261121\\A-newsletter-docx\\pages\\page-001-0.929.png"
+        ],
+        "status": "measured",
+        "renderer": "wps",
+        "score": 0.9293,
+        "pages": {
+          "source": 1,
+          "target": 1
+        },
+        "page_scores": [
+          0.9293
+        ],
+        "missing_fonts": [
+          "Noto Sans CJK SC"
+        ]
+      }
+    },
+    "A-manual-docx": {
+      "accepted": true,
+      "gates": {
+        "semantics": true,
+        "each_page": true,
+        "aggregate": true,
+        "all_rgb_page_pixels_identical": true
+      },
+      "layout": {
+        "images": [
+          "artifacts\\natural-merged-rows-20261121\\A-manual-docx\\pages\\page-001-0.906.png"
+        ],
+        "status": "measured",
+        "renderer": "wps",
+        "score": 0.906,
+        "pages": {
+          "source": 1,
+          "target": 1
+        },
+        "page_scores": [
+          0.906
+        ],
+        "missing_fonts": [
+          "Noto Sans CJK SC"
+        ]
+      }
+    },
+    "A-pdfsource-docx": {
+      "accepted": true,
+      "gates": {
+        "semantics": true,
+        "each_page": true,
+        "aggregate": true,
+        "all_rgb_page_pixels_identical": true
+      },
+      "layout": {
+        "images": [
+          "artifacts\\natural-merged-rows-20261121\\A-pdfsource-docx\\pages\\page-001-0.924.png",
+          "artifacts\\natural-merged-rows-20261121\\A-pdfsource-docx\\pages\\page-002-0.926.png"
+        ],
+        "status": "measured",
+        "renderer": "wps",
+        "score": 0.9247,
+        "pages": {
+          "source": 2,
+          "target": 2
+        },
+        "page_scores": [
+          0.9237,
+          0.9258
+        ],
+        "missing_fonts": [
+          "Noto Sans CJK SC"
+        ]
+      }
+    }
+  },
+  "versions": [
+    {
+      "path": "C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\wps.exe",
+      "file_version": "12,8,2,18913",
+      "product_version": "12,8,2,18913"
+    }
+  ],
+  "outcome": "PASS_FIVE_CASE_GATE",
+  "hashes": {
+    "A-contract-docx/acceptance.json": "d3caef7a9a05eadd071a55e2da282c0ec4d9737b6e125ddbba12d330578ed99b",
+    "A-contract-docx/baseline.docx": "760bb182bf74f3b491ed103f8d56fc5089d99f1c22bf4ff6f8226fcd1d1dbab1",
+    "A-contract-docx/browser-render.json": "8013078df2490796da510b69f5b9ddd23de11811e1b0f34b2e7a9c8a4a3c133a",
+    "A-contract-docx/browser-styles.json": "26f0a827e41e3d05f358c5fafea1ee15bd326597f5b923d8344426ae074c1ab2",
+    "A-contract-docx/browser.pdf": "9953a811538346c2974adce086ec257fb633481944198bb42a2b7a03d54e8efb",
+    "A-contract-docx/candidate.docx": "2b5e206fb74d5a73b036ab8a8e4b01b6dc98d5818599cfbabdb28579bdd0aefa",
+    "A-contract-docx/input/contract.html": "cceac9bfb6a531b10cf8f4fc3ccd01e7bd97d159c099ae558f87046c639215ed",
+    "A-contract-docx/input-manifest.json": "d1d3692e9b0802e81c76b86b74582d3b86e558619af58557ceb5fe5e4c98fa14",
+    "A-contract-docx/metadata-changes.json": "a5338d955b09046ec0b16f3a9625b7955c763aae07dc722e474e6078745f932f",
+    "A-contract-docx/pages/page-001-0.895.png": "41dd849587c6d56b3fd84de98c789c2439bb6ed81773b47c814255b185d5bf55",
+    "A-contract-docx/semantic-assessments.json": "17756c3ef898b3f3ea5fab89ea8f4530b11b1d2db73afecc6a07d619df4d4362",
+    "A-contract-docx/semantic-preflight.json": "fd1cbce2638db2a6d4c57c4b85f1987e4f4051f4a9a709b62001c9e39931f199",
+    "A-contract-docx/wps-export.json": "50c6e0fe03bac46c1cf84f4b8a905624625caf190caa87101c33a824f339fff7",
+    "A-contract-docx/wps-page-001.png": "a1a6f518ef057000affc49993e28f82eff4c79fa0a6ae4b73f1579ea8fb3861f",
+    "A-contract-docx/wps-probe.json": "1e092279d232833754dd9f34f6c3d863b9f11dc29f914ae707908064419db435",
+    "A-contract-docx/wps.pdf": "79e97679322fc7860cbfd2c1e94cfb26b623731cd220b1488cbfff29dd50080a",
+    "A-manual-docx/acceptance.json": "85ff92760d9e457b898fc89b6bd29aa47a7e4f204fc8d6f27bc5812e9936964b",
+    "A-manual-docx/baseline.docx": "def0e1a2ddab203b8ee6639f1c6092741ba83b516a77b9bbf0d7e7198e21822e",
+    "A-manual-docx/browser-render.json": "f7fd4434ade852f2bcc9277878f924e2831eb636edadc5a01b0ea8e8884994e8",
+    "A-manual-docx/browser-styles.json": "53de88df497e2c12e6cc26737bdc16f4fcb929277033e0c4df638d6c6642301f",
+    "A-manual-docx/browser.pdf": "67804ca396514afed0d464dc720bc8be4a449f3b93162253430d942e63ba7350",
+    "A-manual-docx/candidate.docx": "def0e1a2ddab203b8ee6639f1c6092741ba83b516a77b9bbf0d7e7198e21822e",
+    "A-manual-docx/input/manual.html": "8d8c5d540e4cd3325efdd081ee5941807850722daacb5de7caafc02c5643bf33",
+    "A-manual-docx/input-manifest.json": "7f4edc04b506be88a7e4bc6b93a99ca895ce1bafcac35d8e3c97c205872089ce",
+    "A-manual-docx/metadata-changes.json": "a5338d955b09046ec0b16f3a9625b7955c763aae07dc722e474e6078745f932f",
+    "A-manual-docx/pages/page-001-0.906.png": "be992eea6d553813b3068dfbed546cfb30db7d01af1c0531d8d1eab989e7c4e1",
+    "A-manual-docx/semantic-assessments.json": "17756c3ef898b3f3ea5fab89ea8f4530b11b1d2db73afecc6a07d619df4d4362",
+    "A-manual-docx/semantic-preflight.json": "367a66e133f0cda8a0343a76e71306d5a20dd9bc2a81352e201206bbfdedd20b",
+    "A-manual-docx/wps-export.json": "3e9c4324e13ae829449f0c9c5d86da6aed32a676387d34344c3c0e14946657d3",
+    "A-manual-docx/wps-page-001.png": "265e94857181de1a2518b5bd8a04f61441ff6f8e78500f269b0b724368cfaa69",
+    "A-manual-docx/wps-probe.json": "1e092279d232833754dd9f34f6c3d863b9f11dc29f914ae707908064419db435",
+    "A-manual-docx/wps.pdf": "d8e1593aac85e5175023526962028d818bfd1312b0b7a6be23fe89732b736c5a",
+    "A-newsletter-docx/acceptance.json": "d039d286d79d52eda8ab247352f201fe633b5cc87494239a90ea4e5938ad55cf",
+    "A-newsletter-docx/baseline.docx": "a21c7472007e5ab720cadcb89164a299d7a05204022e49a2dbce571b01b22f75",
+    "A-newsletter-docx/browser-render.json": "105dc08cf38cd09658e59958f23b30150331f0f5502d5a69c211ac45b95d8164",
+    "A-newsletter-docx/browser-styles.json": "6fbb77dfaf215c7bec6e404aa434b907d485d55f566b01c972a870127c87267a",
+    "A-newsletter-docx/browser.pdf": "0025851ee99f4c0bc6398796e475fc1a506daf5e9d90f7eeae94bbf6199e0e9c",
+    "A-newsletter-docx/candidate.docx": "a21c7472007e5ab720cadcb89164a299d7a05204022e49a2dbce571b01b22f75",
+    "A-newsletter-docx/input/chart.png": "ed89838a4de750fe6336580240367518c4507448844463c4357d62481d482fe5",
+    "A-newsletter-docx/input/newsletter.html": "d801e9ef62dff5516f261792638e251b12476b74ba7afbed0bd0f75411308484",
+    "A-newsletter-docx/input-manifest.json": "e30579a40b9ba3280948298c838ab46a59150efcbe42cd28e741476158cf1dc1",
+    "A-newsletter-docx/metadata-changes.json": "a5338d955b09046ec0b16f3a9625b7955c763aae07dc722e474e6078745f932f",
+    "A-newsletter-docx/pages/page-001-0.929.png": "53b7fdfb82953008441f2b9a84b6870bcbafba02fcaa9c6ab56840bf13c6c0f8",
+    "A-newsletter-docx/semantic-assessments.json": "faa418ec520cc5137ee0b6c794d5fbf8027b4a90055092073043461df1fe7f3b",
+    "A-newsletter-docx/semantic-preflight.json": "e7fd1c2d68c178458d043bf0f91f6b334260631f70f5628617d45e1773915067",
+    "A-newsletter-docx/wps-export.json": "b53522ea04a74bef4b32c318c8625a195ee3f8668fa75ce31fec89b8576eeae9",
+    "A-newsletter-docx/wps-page-001.png": "01801528409ef13a6697a63685236b72cb3597880ec4d4d793df6dbd99b0080a",
+    "A-newsletter-docx/wps-probe.json": "1e092279d232833754dd9f34f6c3d863b9f11dc29f914ae707908064419db435",
+    "A-newsletter-docx/wps.pdf": "b27ddbdf1b29455977753db8190b9fc1d28605372c74ca645326fd6ff5302078",
+    "A-pdfsource-docx/acceptance.json": "8bc875d03764b0d116f47c721ef3e568b1a4fac7c6c5a84ec67f3d20fad11075",
+    "A-pdfsource-docx/baseline.docx": "5f872d1fa3338ed6d82db1169138c839af78eb652ed4143fdeb1eb5e29fe6c71",
+    "A-pdfsource-docx/browser-render.json": "06d091b85370dcbc5ed5187e7bc3981dad2e82a0706f029e89c94581d149974e",
+    "A-pdfsource-docx/browser-styles.json": "62862e2c64bb37161101f0939087b16ac70a8f942a5825f1d8a962be586faeb0",
+    "A-pdfsource-docx/browser.pdf": "951c036697a3e3b61e71fbee733aeffb335cab6a1cdaea8fdcbf81bf9996a788",
+    "A-pdfsource-docx/candidate.docx": "5f872d1fa3338ed6d82db1169138c839af78eb652ed4143fdeb1eb5e29fe6c71",
+    "A-pdfsource-docx/input/pdf_source.html": "f33d7d7c204abd1340d92c7108ba699d2f6b43fdf516fb5d840037a7264dcdaa",
+    "A-pdfsource-docx/input-manifest.json": "6ac58ce0a09242e12fc500bc0b04c8ee3791dab07156e2252356c569c56cf99d",
+    "A-pdfsource-docx/metadata-changes.json": "a5338d955b09046ec0b16f3a9625b7955c763aae07dc722e474e6078745f932f",
+    "A-pdfsource-docx/pages/page-001-0.924.png": "804542ff1a11a00db9bf24a556d781f1de4ba3874d1ca33da30f92169ea4712a",
+    "A-pdfsource-docx/pages/page-002-0.926.png": "e49a0eb22d4ea1858b03bc1744d5d91391d17fd733ecce3092684af970352713",
+    "A-pdfsource-docx/semantic-assessments.json": "17756c3ef898b3f3ea5fab89ea8f4530b11b1d2db73afecc6a07d619df4d4362",
+    "A-pdfsource-docx/semantic-preflight.json": "fed27744767d83984d51231c89ee0da0b07533760c7575bd770cdb7e91d17dd0",
+    "A-pdfsource-docx/wps-export.json": "916bfaf97ae088874633c59173c5e0a776f167ecde26d07473407992142c895d",
+    "A-pdfsource-docx/wps-page-001.png": "85cd065b0ccf3daa69b837f51bc095828667b9921ab641daf0d21b835d7f37c9",
+    "A-pdfsource-docx/wps-page-002.png": "cc4497a9bb529aed90196c53cd12e83e0bcc93d481a6eac8fef527f92ae61cb4",
+    "A-pdfsource-docx/wps-probe.json": "1e092279d232833754dd9f34f6c3d863b9f11dc29f914ae707908064419db435",
+    "A-pdfsource-docx/wps.pdf": "c781a7693bf9d0b8e1a265948130042c36a9057e3bd70ea2aebe0e7ab901b975",
+    "A-report-docx/acceptance.json": "3e5142e57a777517a0d8d1b274909f5d60de9a704ac3f9f194097a692d54b68d",
+    "A-report-docx/baseline.docx": "e5c0e13f12fc8d0d81ab4007e6141bbff30f3618215e58855f549d7dd933ab10",
+    "A-report-docx/browser-render.json": "ffff5e5f18128558a3fc40d8b9b9ededb47cacaf751e052ce9d197618b43d9b6",
+    "A-report-docx/browser-styles.json": "b8c0530d18b5256799bdbb3a3328cfc7cf601810b6efc85f2b1e673ab8a08f20",
+    "A-report-docx/browser.pdf": "a0001dfa3717fdf8eb2a6c30e550c8900beb570fe2125b477f2594045ac61acc",
+    "A-report-docx/candidate.docx": "e5c0e13f12fc8d0d81ab4007e6141bbff30f3618215e58855f549d7dd933ab10",
+    "A-report-docx/input/chart.png": "ed89838a4de750fe6336580240367518c4507448844463c4357d62481d482fe5",
+    "A-report-docx/input/report.html": "40f9b6732ca6f13a1f56eda36f3b8318bec35d30d2be26fcee19134c2bb832e1",
+    "A-report-docx/input-manifest.json": "330d39b67cab282e0b467fd8cf26253ea91b1efebf9fa12a9bb74541940fc4ba",
+    "A-report-docx/metadata-changes.json": "a5338d955b09046ec0b16f3a9625b7955c763aae07dc722e474e6078745f932f",
+    "A-report-docx/pages/page-001-0.901.png": "9d137b79fcf7f9f0570493819b9a2bf681000dd1f62cfbcb6a742ecfe7f7b291",
+    "A-report-docx/pages/page-002-0.979.png": "87deae914fd6a10359d274f2833175dd7d4b948f127f67060a1929372956f21a",
+    "A-report-docx/semantic-assessments.json": "17756c3ef898b3f3ea5fab89ea8f4530b11b1d2db73afecc6a07d619df4d4362",
+    "A-report-docx/semantic-preflight.json": "bac57031d3e1dfee9ec71b38cc237c0f83641379dda7b6005f95959de773beae",
+    "A-report-docx/wps-export.json": "f7aa6457afec4a3c273d41132a0ac5bd8b39b9241a2132b37245e83e8d6239ed",
+    "A-report-docx/wps-page-001.png": "a5d250f5af7373973460d7265ff41fad4f0df145cc09c67119414592ca934e97",
+    "A-report-docx/wps-page-002.png": "9eeb134ffe6cd5416a67a7744b1583a56aec6f312e355ace3eb79c802fee3762",
+    "A-report-docx/wps-probe.json": "1e092279d232833754dd9f34f6c3d863b9f11dc29f914ae707908064419db435",
+    "A-report-docx/wps.pdf": "7db560593411e2c197c1212f64e5276e7869c43cf4fce76b96a42ba21f5476da",
+    "environment-preflight.json": "73a9abdd9740901ad7019d5e5cb245c674483ca67ff33a862b70144af8d2a6df",
+    "native-preflight.json": "6a899e0ac5f26e40b6a48a157fdf6abc4e55f238b82cf4bb15d809a9b126c03b",
+    "preflight.json": "3fc36b7911c02e1cb7199240cf32285e001e6770e30ee68ea540871363074c26",
+    "semantic-schema-audit.json": "82d68b2ef27a89a437feaafd02092f26f20700435ea26120654d8ca5b4fdfd4c"
+  }
+}

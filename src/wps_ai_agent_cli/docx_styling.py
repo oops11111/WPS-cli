@@ -502,9 +502,12 @@ def apply_table(table, node, grid, rows, context: Context, page_width_px: float,
     if not collapsed:
         values = table_style.get("border-spacing", "2px").split()
         spacing = (px(values[-1]) or 0.0) if values else 0.0
-    for row, row_node in zip(table.rows, rows, strict=False):
+    natural_minima = measured_merged_row_minima(styled, node, grid, rows, page_width_px)
+    for row_index, (row, row_node) in enumerate(zip(table.rows, rows, strict=False)):
         row_height = px(styled.style(row_node).get("height"))
         if row_height:
+            if natural_minima is not None:
+                row_height = natural_minima[row_index]
             row.height, row.height_rule = Pt((row_height + spacing) * 0.75), WD_ROW_HEIGHT_RULE.AT_LEAST
     has_borders = node.attrs.get("border") not in {None, "", "0"}
     for row_index, row in enumerate(grid):
@@ -714,6 +717,94 @@ def measured_collapsed_widths(styled: StyledDocument, node, grid, page_width_px:
     if any(abs(width - sum(widths[c : c + span])) > 1 / 64 for c, span, width in cells):
         return False
     return math.isfinite(page_width_px) and sum(widths) + columns <= page_width_px
+
+
+def measured_merged_row_minima(styled: StyledDocument, node, grid, rows, page_width_px: float) -> list[float] | None:
+    """Border accounting only in the observed natural, centered rowspan domain."""
+    if not measured_collapsed_widths(styled, node, grid, page_width_px) or len(rows) != len(grid):
+        return None
+    audit = styled.print_context.get("cssom", {}).get("row_height_audit")
+    if (
+        not isinstance(audit, dict)
+        or audit.get("checked") is not True
+        or any(audit.get(k) != [] for k in ("declarations", "unsupported_rules", "html_height_attrs", "errors"))
+    ):
+        return None
+    displays = {
+        "table": "table",
+        "thead": "table-header-group",
+        "tbody": "table-row-group",
+        "tfoot": "table-footer-group",
+        "tr": "table-row",
+        "td": "table-cell",
+        "th": "table-cell",
+    }
+    if any(n.tag not in displays or styled.style(n).get("display") != displays[n.tag] for n in _walk(node)):
+        return None
+
+    def box(n):
+        value = styled.box(n)
+        return (
+            value
+            if isinstance(value, dict)
+            and all(
+                isinstance(value.get(k), (int, float)) and math.isfinite(value[k])
+                for k in ("x", "y", "width", "height")
+            )
+            and value["width"] > 0
+            and value["height"] > 0
+            else None
+        )
+
+    table_box, row_boxes = box(node), [box(r) for r in rows]
+    if table_box is None or any(b is None for b in row_boxes):
+        return None
+    heights = [b["height"] for b in row_boxes]
+    tolerance = 1 / 64
+    if any(
+        h <= 1 or abs(h - heights[0]) > tolerance or abs((px(styled.style(r).get("height")) or 0) - h) > tolerance
+        for h, r in zip(heights, rows, strict=True)
+    ):
+        return None
+    if any(abs(b["y"] - a["y"] - a["height"]) > tolerance for a, b in zip(row_boxes, row_boxes[1:], strict=False)):
+        return None
+    if (
+        abs(row_boxes[0]["y"] - table_box["y"] - 0.5) > tolerance
+        or abs(table_box["height"] - sum(heights) - 1) > tolerance
+    ):
+        return None
+    witnesses = set()
+    has_rowspan = False
+    context = Context(styled)
+    for r, row in enumerate(grid):
+        for cell in row:
+            if cell is None:
+                continue
+            style, cell_box = styled.style(cell), box(cell)
+            span = int(cell.attrs.get("rowspan", "1"))
+            if cell_box is None or style.get("vertical-align") != "middle":
+                return None
+            has_rowspan |= span > 1
+            for side in ("top", "right", "bottom", "left"):
+                hue = style.get(f"border-{side}-color", "")
+                if px(style.get(f"border-{side}-width")) != 1 or not hue.startswith("rgb(") or color(hue) is None:
+                    return None
+            if (
+                abs(cell_box["y"] - row_boxes[r]["y"]) > tolerance
+                or abs(cell_box["height"] - sum(heights[r : r + span])) > tolerance
+            ):
+                return None
+            size = px(style.get("font-size")) or 16.0
+            line = px(style.get("line-height"), size, size) or px(style.get("line-height-normal"), size, size)
+            top, bottom = px(style.get("padding-top")), px(style.get("padding-bottom"))
+            if not line or top is None or bottom is None or min(top, bottom) < 0 or not _fits_line(cell, line, context):
+                return None
+            if span == 1 and abs(line + top + bottom + 1 - heights[r]) <= tolerance:
+                witnesses.add(r)
+            required = _measured_pitch(cell, line, context) + top + max(0, bottom - 1) + 2
+            if required > sum(heights[r : r + span]) + tolerance:
+                return None
+    return [h - 1 for h in heights] if has_rowspan and len(witnesses) == len(rows) else None
 
 
 def _column_widths(styled: StyledDocument, node, grid, page_width_px: float) -> list[float]:

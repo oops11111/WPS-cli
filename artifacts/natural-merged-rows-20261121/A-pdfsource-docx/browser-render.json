@@ -1,0 +1,24 @@
+[
+  true,
+  {
+    "input_path": "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\fidelity-merged-row-product\\artifacts\\natural-merged-rows-20261121\\A-pdfsource-docx\\input\\pdf_source.html",
+    "output_path": "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\fidelity-merged-row-product\\artifacts\\natural-merged-rows-20261121\\A-pdfsource-docx\\browser.pdf",
+    "format": "pdf",
+    "bytes": 91083,
+    "sha256": "951c036697a3e3b61e71fbee733aeffb335cab6a1cdaea8fdcbf81bf9996a788",
+    "backend": "playwright-edge",
+    "page_size": "A4",
+    "viewport": {
+      "width": 1280,
+      "height": 900
+    },
+    "javascript_enabled": false,
+    "network_access": false,
+    "websocket_blocked": true,
+    "resource_root": "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\fidelity-merged-row-product\\artifacts\\natural-merged-rows-20261121\\A-pdfsource-docx\\input",
+    "browser": "157.0.4341.60",
+    "page_title": "供应商评估报告",
+    "document_height": 900
+  },
+  []
+]

@@ -1,0 +1,48 @@
+{
+  "baseline.docx": {
+    "accepted": true,
+    "effective_verdict": {
+      "text": true,
+      "structure": true,
+      "formatting": true,
+      "data": true,
+      "animations": true
+    },
+    "reasons": {
+      "text": "applicable score must equal1 and raw verdict true",
+      "structure": "applicable score must equal1 and raw verdict true",
+      "formatting": "applicable score must equal1 and raw verdict true",
+      "data": "applicable score must equal1 and raw verdict true",
+      "animations": "explicit N/A; raw verdict preserved"
+    },
+    "raw_verdict": {
+      "text": true,
+      "structure": true,
+      "formatting": true,
+      "data": true
+    }
+  },
+  "candidate.docx": {
+    "accepted": true,
+    "effective_verdict": {
+      "text": true,
+      "structure": true,
+      "formatting": true,
+      "data": true,
+      "animations": true
+    },
+    "reasons": {
+      "text": "applicable score must equal1 and raw verdict true",
+      "structure": "applicable score must equal1 and raw verdict true",
+      "formatting": "applicable score must equal1 and raw verdict true",
+      "data": "applicable score must equal1 and raw verdict true",
+      "animations": "explicit N/A; raw verdict preserved"
+    },
+    "raw_verdict": {
+      "text": true,
+      "structure": true,
+      "formatting": true,
+      "data": true
+    }
+  }
+}

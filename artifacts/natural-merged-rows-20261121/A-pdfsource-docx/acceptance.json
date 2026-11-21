@@ -1,0 +1,79 @@
+{
+  "gates": {
+    "semantics": true,
+    "each_page": true,
+    "aggregate": true,
+    "all_rgb_page_pixels_identical": true
+  },
+  "accepted": true,
+  "semantic": [
+    true,
+    {
+      "source": "artifacts\\natural-merged-rows-20261121\\A-pdfsource-docx\\input\\pdf_source.html",
+      "target": "artifacts\\natural-merged-rows-20261121\\A-pdfsource-docx\\candidate.docx",
+      "group": "A",
+      "thresholds": {
+        "text": 1.0,
+        "structure": 1.0,
+        "formatting": 1.0,
+        "animations": 1.0,
+        "data": 1.0,
+        "layout": 0.9
+      },
+      "aspects": {
+        "text": {
+          "score": 1.0,
+          "missing": []
+        },
+        "structure": {
+          "score": 1.0,
+          "differences": {}
+        },
+        "formatting": {
+          "score": 1.0,
+          "problems": []
+        },
+        "animations": {
+          "status": "not applicable"
+        },
+        "data": {
+          "score": 1.0,
+          "missing": []
+        },
+        "layout": {
+          "status": "skipped"
+        }
+      },
+      "verdict": {
+        "text": true,
+        "structure": true,
+        "formatting": true,
+        "data": true
+      },
+      "passed": true
+    },
+    []
+  ],
+  "layout": {
+    "images": [
+      "artifacts\\natural-merged-rows-20261121\\A-pdfsource-docx\\pages\\page-001-0.924.png",
+      "artifacts\\natural-merged-rows-20261121\\A-pdfsource-docx\\pages\\page-002-0.926.png"
+    ],
+    "status": "measured",
+    "renderer": "wps",
+    "score": 0.9247,
+    "pages": {
+      "source": 2,
+      "target": 2
+    },
+    "page_scores": [
+      0.9237,
+      0.9258
+    ],
+    "missing_fonts": [
+      "Noto Sans CJK SC"
+    ]
+  },
+  "stage43": null,
+  "strict_f2_layout": true
+}
