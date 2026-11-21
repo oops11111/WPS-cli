@@ -800,7 +800,7 @@ def convert_html_editable(
             for extra in merged.paragraphs[len(text_paragraphs) :]:
                 if not extra.text:
                     extra._p.getparent().remove(extra._p)
-        docx_styling.apply_table(table, node, grid, rows, context, page_width_px)
+        docx_styling.apply_table(table, node, grid, rows, context, page_width_px, merges=merges)
         docx_styling.apply_table_spacing(table, node, context)
         counts["tables"] += 1
 

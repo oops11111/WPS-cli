@@ -1,0 +1,270 @@
+[
+  {
+    "row": 0,
+    "physical_cell": 0,
+    "vMerge": "restart",
+    "borders": [
+      {
+        "top": {
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}val": "single",
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}sz": "6",
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}space": "1",
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}color": "555555"
+        },
+        "left": {
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}val": "single",
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}sz": "6",
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}space": "1",
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}color": "555555"
+        },
+        "bottom": {
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}val": "nil"
+        },
+        "right": {
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}val": "single",
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}sz": "6",
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}space": "1",
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}color": "555555"
+        }
+      }
+    ],
+    "shading": [
+      {
+        "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}val": "clear",
+        "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}color": "auto",
+        "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}fill": "DDE6F0"
+      }
+    ]
+  },
+  {
+    "row": 0,
+    "physical_cell": 1,
+    "vMerge": null,
+    "borders": [
+      {
+        "top": {
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}val": "single",
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}sz": "6",
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}space": "1",
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}color": "555555"
+        },
+        "left": {
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}val": "single",
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}sz": "6",
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}space": "1",
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}color": "555555"
+        },
+        "bottom": {
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}val": "single",
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}sz": "6",
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}space": "1",
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}color": "555555"
+        },
+        "right": {
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}val": "single",
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}sz": "6",
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}space": "1",
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}color": "555555"
+        }
+      }
+    ],
+    "shading": [
+      {
+        "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}val": "clear",
+        "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}color": "auto",
+        "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}fill": "DDE6F0"
+      }
+    ]
+  },
+  {
+    "row": 0,
+    "physical_cell": 2,
+    "vMerge": "restart",
+    "borders": [
+      {
+        "top": {
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}val": "single",
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}sz": "6",
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}space": "1",
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}color": "555555"
+        },
+        "left": {
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}val": "single",
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}sz": "6",
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}space": "1",
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}color": "555555"
+        },
+        "bottom": {
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}val": "nil"
+        },
+        "right": {
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}val": "single",
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}sz": "6",
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}space": "1",
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}color": "555555"
+        }
+      }
+    ],
+    "shading": [
+      {
+        "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}val": "clear",
+        "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}color": "auto",
+        "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}fill": "DDE6F0"
+      }
+    ]
+  },
+  {
+    "row": 1,
+    "physical_cell": 0,
+    "vMerge": "continue",
+    "borders": [
+      {
+        "top": {
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}val": "nil"
+        },
+        "left": {
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}val": "single",
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}sz": "6",
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}space": "1",
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}color": "555555"
+        },
+        "bottom": {
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}val": "single",
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}sz": "6",
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}space": "1",
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}color": "555555"
+        },
+        "right": {
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}val": "single",
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}sz": "6",
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}space": "1",
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}color": "555555"
+        }
+      }
+    ],
+    "shading": [
+      {
+        "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}val": "clear",
+        "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}color": "auto",
+        "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}fill": "DDE6F0"
+      }
+    ]
+  },
+  {
+    "row": 1,
+    "physical_cell": 1,
+    "vMerge": null,
+    "borders": [
+      {
+        "top": {
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}val": "single",
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}sz": "6",
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}space": "1",
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}color": "555555"
+        },
+        "left": {
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}val": "single",
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}sz": "6",
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}space": "1",
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}color": "555555"
+        },
+        "bottom": {
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}val": "single",
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}sz": "6",
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}space": "1",
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}color": "555555"
+        },
+        "right": {
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}val": "single",
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}sz": "6",
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}space": "1",
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}color": "555555"
+        }
+      }
+    ],
+    "shading": [
+      {
+        "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}val": "clear",
+        "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}color": "auto",
+        "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}fill": "DDE6F0"
+      }
+    ]
+  },
+  {
+    "row": 1,
+    "physical_cell": 2,
+    "vMerge": null,
+    "borders": [
+      {
+        "top": {
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}val": "single",
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}sz": "6",
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}space": "1",
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}color": "555555"
+        },
+        "left": {
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}val": "single",
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}sz": "6",
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}space": "1",
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}color": "555555"
+        },
+        "bottom": {
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}val": "single",
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}sz": "6",
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}space": "1",
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}color": "555555"
+        },
+        "right": {
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}val": "single",
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}sz": "6",
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}space": "1",
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}color": "555555"
+        }
+      }
+    ],
+    "shading": [
+      {
+        "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}val": "clear",
+        "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}color": "auto",
+        "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}fill": "DDE6F0"
+      }
+    ]
+  },
+  {
+    "row": 1,
+    "physical_cell": 3,
+    "vMerge": "continue",
+    "borders": [
+      {
+        "top": {
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}val": "nil"
+        },
+        "left": {
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}val": "single",
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}sz": "6",
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}space": "1",
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}color": "555555"
+        },
+        "bottom": {
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}val": "single",
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}sz": "6",
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}space": "1",
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}color": "555555"
+        },
+        "right": {
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}val": "single",
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}sz": "6",
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}space": "1",
+          "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}color": "555555"
+        }
+      }
+    ],
+    "shading": [
+      {
+        "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}val": "clear",
+        "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}color": "auto",
+        "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}fill": "DDE6F0"
+      }
+    ]
+  }
+]

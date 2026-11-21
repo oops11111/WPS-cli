@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import math
 import re
+from copy import deepcopy
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -414,7 +415,7 @@ def apply_paragraph(
     context.applied.add("paragraph")
 
 
-def apply_table(table, node, grid, rows, context: Context, page_width_px: float) -> None:
+def apply_table(table, node, grid, rows, context: Context, page_width_px: float, *, merges=()) -> None:
     """Column widths, table width, cell shading, borders, padding and vertical alignment."""
     from docx.enum.table import WD_CELL_VERTICAL_ALIGNMENT, WD_TABLE_ALIGNMENT
     from docx.oxml import OxmlElement
@@ -550,6 +551,53 @@ def apply_table(table, node, grid, rows, context: Context, page_width_px: float)
     # Borders come from the CSS on each cell (or the border attribute): without them the browser draws no
     # grid lines, so the table has no table style either.
     table.style = None
+    _vertical_merge_perimeters(table, merges)
+
+
+def _vertical_merge_perimeters(table, merges) -> None:
+    """A vMerge has one physical tc per row: table.cell() aliases all to the origin.
+
+    Covered HTML grid slots have no node, so the normal style pass skips them.
+    Continue the origin's exterior borders/fill on those physical cells, leaving
+    internal horizontal edges explicitly nil so WPS does not draw a seam.
+    """
+    physical = {}
+    for row_index, row in enumerate(table._tbl.tr_lst):
+        column = 0
+        for cell in row.tc_lst:
+            physical[row_index, column] = cell
+            column += cell.grid_span
+    for first_row, first_column, last_row, _last_column in merges:
+        if first_row == last_row:
+            continue
+        origin = physical[first_row, first_column].tcPr
+        border = origin.find(_qn("w:tcBorders"))
+        shade = origin.find(_qn("w:shd"))
+        # Clone before changing the origin: every row uses the original CSS.
+        border, shade = deepcopy(border), deepcopy(shade)
+        for row_index in range(first_row, last_row + 1):
+            props = physical[row_index, first_column].get_or_add_tcPr()
+            if border is not None:
+                for old in props.findall(_qn("w:tcBorders")):
+                    props.remove(old)
+                edges = deepcopy(border)
+                for side, internal in (("top", row_index != first_row), ("bottom", row_index != last_row)):
+                    if internal:
+                        edge = edges.find(_qn(f"w:{side}"))
+                        if edge is not None:
+                            edges.remove(edge)
+                        # Keep the existing schema order: top, left, bottom, right.
+                        position = 0 if side == "top" else len(edges) - (edges.find(_qn("w:right")) is not None)
+                        edges.insert(position, _element(f"w:{side}", **{"w:val": "nil"}))
+                props.insert_element_before(
+                    edges, "w:shd", "w:noWrap", "w:tcMar", "w:textDirection", "w:tcFitText", "w:vAlign"
+                )
+            if shade is not None:
+                for old in props.findall(_qn("w:shd")):
+                    props.remove(old)
+                props.insert_element_before(
+                    deepcopy(shade), "w:noWrap", "w:tcMar", "w:textDirection", "w:tcFitText", "w:vAlign"
+                )
 
 
 def _column_widths(styled: StyledDocument, node, grid, page_width_px: float) -> list[float]:
