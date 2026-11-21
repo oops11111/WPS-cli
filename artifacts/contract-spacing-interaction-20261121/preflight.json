@@ -1,0 +1,15 @@
+{
+  "base": "dfebac646eb75ab4219c281032dd6ce6641c6f1c",
+  "outcome": "OFFLINE_PASS_AWAITING_PRIMARY_REVIEW",
+  "baseline_sha256": "2b5e206fb74d5a73b036ab8a8e4b01b6dc98d5818599cfbabdb28579bdd0aefa",
+  "candidate_sha256": "63a6dde9780ebc15dcc2b1c73c6cd25627ad550ad8f37384d8a0788192772738",
+  "source_sha256": "cceac9bfb6a531b10cf8f4fc3ccd01e7bd97d159c099ae558f87046c639215ed",
+  "snapshot_sha256": "26f0a827e41e3d05f358c5fafea1ee15bd326597f5b923d8344426ae074c1ab2",
+  "baseline_pdf_sha256": "79e97679322fc7860cbfd2c1e94cfb26b623731cd220b1488cbfff29dd50080a",
+  "source_pdf_sha256": "d8974a83aa79fe70abf44b7177f3e5d7d71ead4b2fa6b6eda09b01fee374c138",
+  "allowlist": "two Heading2 before54->274; exact2 attributes inverse",
+  "deterministic": true,
+  "other_parts_and_metadata_identical": true,
+  "baseline_candidate_semantics": true,
+  "wps_exports": 0
+}
