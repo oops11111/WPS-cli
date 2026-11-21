@@ -1,0 +1,55 @@
+{
+  "base": "9bdc71078dabc7178040740483277154b4ab5ff5",
+  "baseline": "artifacts/alignment-aware-print-margins-20261121/A-contract-docx",
+  "sources": {
+    "converted.docx": "ee563430a86295acb8ac59ad31e5c72b1b2052e64e545fb7360a1b4feec6139f",
+    "browser.pdf": "e920d30c61f5b8823b47eac0bb55479d37c5fa6ad26dec003639e53e08b2402c",
+    "wps.pdf": "be4cb909cfedaab1ed02869602d26d3af8e0e81c59100dd491e4fe0c09f1aa3d"
+  },
+  "candidate_sha256": "fd3bcb298f7b333e1f99df26e728a4834c41eae0d643bdd1e8d542923c9bcccb",
+  "preflight": "24 attributes, exact inverse, other parts identical",
+  "wps_exports": 1,
+  "versions": [
+    {
+      "path": "C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\wps.exe",
+      "file_version": "12,8,2,18913",
+      "product_version": "12,8,2,18913"
+    }
+  ],
+  "outcome": "STOP",
+  "pdf_sha256": "d5996a169da50fc079ad7b07c8c46d44e4a17cb07e90e77e3f75df0e13a988c8",
+  "outputs": {
+    "acceptance.json": {
+      "sha256": "a3e4abf71e7f724558e2df3b0f56d3e893847d3f944c57586e4b3899207a0869",
+      "bytes": 285623
+    },
+    "candidate.docx": {
+      "sha256": "fd3bcb298f7b333e1f99df26e728a4834c41eae0d643bdd1e8d542923c9bcccb",
+      "bytes": 38654
+    },
+    "export.json": {
+      "sha256": "b0e7539fcbb63ea917626ba72389d26fa910bfcae8ea6a3a4af8aea2fb5f6f25",
+      "bytes": 543
+    },
+    "pages/page-001-0.865.png": {
+      "sha256": "239ff1a6c542ce906639c10e3ba11416faf907c157870a491993c41c6db309d2",
+      "bytes": 128228
+    },
+    "probe.json": {
+      "sha256": "1e092279d232833754dd9f34f6c3d863b9f11dc29f914ae707908064419db435",
+      "bytes": 483
+    },
+    "wps-page-001.png": {
+      "sha256": "822b7b03895287d2e80ec68bcfd16cc8aad832ca595ee8348591fe0eb3512b7f",
+      "bytes": 150853
+    },
+    "wps.pdf": {
+      "sha256": "d5996a169da50fc079ad7b07c8c46d44e4a17cb07e90e77e3f75df0e13a988c8",
+      "bytes": 167241
+    }
+  },
+  "stop_report": {
+    "path": "STOP.md",
+    "sha256": "422c93bc1ef9f72ae16196a38e3716e4562f7339274ac5a67460e9241ffacc9a"
+  }
+}

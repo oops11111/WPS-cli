@@ -1009,3 +1009,110 @@ authoritative status, commit/PR/run evidence, blockers and exact next action.
   references and candidate/rawPDF/PNG/probe/version/hashes/region/row-center audit,
   uncertainty/zero-or-effect report. English commit/push/evidence PR only reviewed;
   six green CI required before primary merge, implementation agent never merges.
+
+## Stage31 READ-ONLY audit: no new isolated fee-body mechanism
+
+- Base/dependency: merged #177, exact main
+  9bdc71078dabc7178040740483277154b4ab5ff5; isolated fidelity-fee-rules /
+  docs/contract-fee-rules-audit. Frozen experiments and all original inputs,
+  thresholds, product code and evidence remain unchanged. No WPS/browser export.
+- Scope: existing Stage28 contract browser/WPS PDFs, source CSS and DOCX XML;
+  distinguish rule position/color/width, fill, text and raster representation in
+  the predeclared x30..770px, y395..465pt ROI at800px page width. This is causal
+  triage, not a claim that a new dominant mapping defect has been found.
+- Source CSS body cells: border1px solid #555, white background, padding4px8px.
+  Native body cells already contain tcBorders sz6/color555555 and no shading.
+  Source PDF paints .75pt #555 filled rectangles; WPS paints .72pt stroked rules,
+  RGB .333 versus source .3333. Correct native eighth-point width/color mapping
+  is present. Different PDF primitive/renderer quantization is not independently
+  evidence of a CSS mapping omission; no width/color adjustment is proposed.
+- Source body vertical-rule centers34.125/68.625/104.625/172.125/307.875pt;
+  WPS33.75/69.25/105.45/173.95/310.40pt. Increasing x residual is consistent with
+  already-investigated global column allowance and collapsed-edge conventions,
+  not a new mechanism. Row boundaries remain source394.875/418.125/441.375/
+  464.625 versus WPS395.81/419.81/443.81/467.81pt: known pitch/vertical residual.
+  Stage10/12/19/20/29/30 are not reopened. Theme mark-font hypothesis was directly
+  falsified by Stage30 pixel-identical output; continuation widths by Stage26.
+- Fixed-ROI diagnostic decomposition (absolute grayscale pixel error, NOT additive
+  SSIM attribution): union source/native rule bounding boxes dilated3x3; union
+  character bboxes; disjoint categories rule-only/text-only/overlap/other.
+  Shares of summed absolute pixel error are39.31%/59.39%/.01%/1.29%; changed pixels
+  >20 are5584/8838/2/251 respectively. These masks overlap geometry effects and
+  antialiasing; they cannot establish causal improvement from border changes.
+  Original unaligned ROI SSIM is.551646; full contract remains.8644 strict fail.
+- Visible font family is MicrosoftYaHei in both PDFs; source size10.995 versus
+  native11.05pt is documented renderer/size quantization, not an authorized font
+  rounding score experiment. White fill matches. Rule/glyph displacement remains
+  the measurable loss, but current evidence does not isolate a NEW single cause.
+- Deliverable: this negative read-only audit with reproducible mask conventions
+  and source trace; no synthetic variants, product patches or experimental PR.
+  No focused tests or CI are needed for an uncommitted planning-only note.
+  Acceptance is transparent separation of measurement from causal conjecture.
+- STOP: insufficient independent mechanism; no new WPS run is authorized or
+  warranted. No fixed candidate/safe-export gate can honestly be specified beyond
+  already rejected directions. A future stage requires new independent source-to-
+  XML evidence and a reviewed Plan with predeclared controls, XML-only allowlist,
+  geometry/text/page/semantic conservation and one safe export set. Do not tune
+  border width/color, fonts, row pitch, spacing, columns, offsets or thresholds.
+
+## Stage32 PLAN ONLY: conserve padding total, isolate compensation distribution
+
+- Status: awaiting primary review; no implementation/tests/WPS. Exact base
+  9bdc71078dabc7178040740483277154b4ab5ff5, read-only fidelity-fee-rules worktree.
+  Stage31 remains a negative audit; no prior STOP is reclassified or edited.
+- Rechecked frozen STOPs: Stage10 reduced eligible row minimum390->375twips;
+  manual pitch20.25->19.5pt but downstream content moved up and whole SSIM
+  .8959->.8949, so must-improve/no-regression failed; contract unchanged because
+  merged table excluded. Stage12 retained full p->heading margin: contract interval
+  improved66->68.64pt (source69) but heading3 moved514.333->517.093 (source512.818),
+  whole .8492->.8422/ROI .7798->.7523; newsletter/pdfsource also regressed.
+  Stage19 is NOT a failed experiment: isolated widths varied with no wraps/pitch
+  change, but omitted merged headers/flow. Stage20 removed global allowance and
+  passed package gate, then STOPPED BEFORE WPS because merged/borderless/duplicate
+  cell attribution was unproven. None varies padding distribution at fixed total.
+- New source trace: contract CSS fee td padding4px top/bottom, border1px collapse,
+  vertical-align middle. apply_table converts padding to paragraph before/after,
+  then subtracts the entire collapsed bottom-border width from bottom only.
+  Accepted fee body12 paragraphs have before60/after45twips, exact line330,
+  vAlign center. Source symmetric padding becomes3pt/2.25pt. Distribution alone
+  predicts a downward .375pt center bias; existing +.7800006pt baseline-relative-
+  row-center residual could partly reflect this. This is a hypothesis, not proof
+  or a claim it explains all ROI loss. Row height and font metrics remain separate.
+- Dependency/control: immutable accepted Stage28 contract converted.docx SHA256
+  ee563430a86295acb8ac59ad31e5c72b1b2052e64e545fb7360a1b4feec6139f, cached same-version
+  WPS PDF/browser PDF. Sole candidate changes only second table tr[2..4],tc[0..3],
+  sole paragraph spacing before60->53 and after45->52twips, exactly24 attributes.
+  Sum105twips remains EXACT per paragraph. This deterministically rounds symmetric
+ 52.5/52.5 to before53/after52 while preserving total; no alternative rounding run.
+  Predicted baseline displacement=(53-60)/20=-.35pt, not an empirical pixel offset.
+- Scope excludes row minimum/hRule, line spacing, cell margins/vAlign, visible or
+  paragraph-mark fonts, borders/fill, columns/continuations, page margins, headings,
+  surrounding flow, HTML/converter/scorer and original-five files. No product fix.
+- Offline hard gate after approval: verify exact baseline hash/topology12, current
+  before60/after45/line330 exact and center alignment; only24 approved attributes
+  differ; inverse restores original document.xml bytes and every other ZIP part
+  identical. Deterministic build and rejected-target/extra-difference tests; Ruff,
+  format/diff and packaging-metadata test. No WPS if any mismatch.
+- ONE candidate WPS export, no control re-export, current12.8.2.18913 and empty
+  process/version probe; own instance release only. No taskkill/user documents,
+  preference/font changes, retries or new variants. Failed safety/export stops.
+- Independent conservation: one page, all text/semantic components1, same line/page
+  assignment, rules/row boundaries/pitches within.05pt, all glyph x/font/size and
+  chars outside fee-body y within.05pt. No row-height/downstream-flow benefit may
+  substitute for these gates. Fee-body row-center uses adjacent rule centers;
+  baseline uses character matrix translation as in Stage30, not bbox fitting.
+- Required positive mechanism: all three first-column baselines shift-.35pt with
+  absolute prediction error<=.05pt, and shifts agree within.05pt. Row-center error
+  improves by>=.25pt from+.7800006. Fixed original ROI x30..770px,y395..465pt at800px
+  width SSIM must exceed.5516460049 and whole contract must exceed.8644, unaligned
+  and uncropped beyond the preregistered window. No strict F2 pass is promised.
+- Pixel-identical output and identical geometry classify zero influence, not a
+  repair. Any conservation failure, unexpected/nonpositive/nonuniform shift, or
+  non-improved scores STOP with raw evidence. No row-height compensation, p-heading,
+  width/spacing, font, threshold or padding-total tuning; no WPS rerun.
+- Deliverables only after approval: narrow builder/assessor, focused XML/package/
+  prediction tests, one candidate/rawPDF/PNG/probe/version/hashes/char-rule audit,
+  report of positive/zero/STOP and counterevidence. Other four originals not tested:
+  even positive result requires a separately reviewed product eligibility and full
+  original-five regression plan. Evidence-only commit/PR only after primary review;
+  six green CI before primary merge; implementation agent never merges.
