@@ -876,3 +876,60 @@ authoritative status, commit/PR/run evidence, blockers and exact next action.
   preserve raw uncommitted, no product PR/tuning/rerun. Only success English commit/
   push/PR; primary independent diff/image review and all six green CI before primary
   merge. Implementation agent never merges; frozen worktrees untouched.
+
+## Stage29: horizontal separate-cell spacing mechanism
+
+- Status: primary approved before implementation; source/XML preflight passed;
+  the single set STOPPED at H2-N. Exact dependency/base: merged main
+  810f9e3ccb7ffd8dc0b37f3d3651ba6c0d07f05a (#175 six green); clean isolated
+  fidelity-cell-spacing / experiment/horizontal-cell-spacing. All frozen failed
+  stages remain untouched. Same continuing implementation agent; primary reviews
+  diff/images/CI and merges only after six green jobs.
+- Scope: evidence-only borderless two-column, one-row synthetic HTML, no converter,
+  original-five fixtures/baselines/thresholds or product behavior changes. Fixed
+  H=0/2/4CSSpx, vertical border-spacing=0, two200px border-box cells, padding12px
+  left/right and0 top/bottom, no border, body8px, Consolas12pt, line-height18px,
+  no author row-height. Table fixed widths400/406/412px (=400+3H) preserve exact
+ 200px cell boxes. Text BEFORE, LEFT, RIGHT, FOLLOWING; no other content.
+- Three browser references, SAME current-main converter baseline for each H;
+  preserve its existing grid/column allowance rather than adjusting it. Six fixed
+  DOCX inputs H0-C/H0-N/H2-C/H2-N/H4-C/H4-N: C is unmodified main output; N ONLY
+  inserts table-level tblCellSpacing w:type=dxa,w:w=0/30/60twips. No indent/padding/
+  grid/row-height/border/font/paragraph/margin changes to make spacing fit.
+- Before WPS: current Edge157.0.4341.60/browser identity and WPS12.8.2.18913 required;
+  collect source DOM/CSS and browserPDF geometry. Fixed CSS targets relative to
+  BEFORE body anchor: LEFT9/10.5/12pt, RIGHT159/162/165pt for H0/2/4, tolerance.10pt;
+  cell width200px and table width400+3H within.02px, one row/one line per cell.
+  If references do not corroborate these declared inputs, stop, do not resize them.
+- XML/package hard gate: pairwise ONLY that one tblPr/tblCellSpacing child differs;
+  removing it reproduces baseline document.xml full bytes and every other ZIP
+  payload identical. Deterministic package tests, exact0/30/60 values, no existing
+  row/table spacing exception, unchanged grid/row properties/text/media. Capture
+  source/browser/baseline/candidate SHA and actual git HEAD. No original-five run.
+- ONE sequential safe WPS export set, fixed order H0-C,H0-N,H2-C,H2-N,H4-C,H4-N;
+  empty process/version probe before EACH case, own-instance release only; no
+  taskkill/preferences/user document closure/retry. Stop prevents remaining cases
+  from exporting; record them as not-run, never resume/tune the set.
+- Pre-register horizontal diagnostic: N−its C LEFT increment expected0/1.5/3pt,
+  RIGHT increment0/3/6pt, each error≤.10pt. Also report absolute source-target errors
+  (including the unchanged legacy column allowance); do not remove an inherited
+  residual or claim exact full CSS mapping from differential success.
+- HARD no-coupling/retention gates: same one page, literal BEFORE/LEFT/RIGHT/
+  FOLLOWING all retained once, cell line counts1, pairwise cell text top/baseline,
+  row height and FOLLOWING top change≤.05pt; bar/borderless cell geometry when
+  observable and all x/y bboxes saved. H0 explicit-zero must be pixel-identical
+  to its C. Source H cases must have invariant row height/y (vertical spacing0).
+- STOP immediately on unexpected XML, source-preflight mismatch, unsafe/version/
+  export or text/wrap/page anomaly, any y/row/FOLLOWING coupling>.05pt or failed
+  horizontal increment gate. Preserve raw, no offset/indent/half-spacing variant,
+  productization or threshold/input changes and no WPS rerun. Negative geometry
+  is a mechanism failure, not repaired by changing row-height or global column
+  allowance. A verified bounded negative report can be evidence-only PR after
+  primary review; incomplete/not-run cases explicitly listed.
+- Deliverables after approval: narrow runner, deterministic XML/package and gate
+  tests, three original synthetic HTML/browser references and six fixed DOCX,
+  actually exported PDF/PNGs, process/version/probe/rawgeometry/line counts/hashes,
+  observed outcome/counterevidence/report. Focused tests, full Ruff/format/diff;
+  English Conventional Commit/push/evidence PR only when reviewed/verified.
+  No claim that original contract reaches strict F2 or that tblCellSpacing is a
+  safe product mapping; any integration requires a separately reviewed stage.
