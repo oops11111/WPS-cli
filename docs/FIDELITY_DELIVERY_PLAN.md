@@ -384,3 +384,76 @@ authoritative status, commit/PR/run evidence, blockers and exact next action.
   an evidence-only English Conventional Commit/push/PR to main by this same agent;
   primary-agent XML/image review plus all six CI jobs green before merge. No
   product fix or subsequent experiment is authorized by this evidence stage.
+
+## Stage 14: bounded closed-details static mapping
+
+- Dependency/base: stage13 PR #164 merged after six green CI jobs; exact main
+  `1471f521ac4c3b4c037f7dabffbf0f22ba747066`, clean fidelity-details worktree
+  on `fix/docx-closed-details`. Stage13 H demonstrated retained body XML with no
+  visible PDF text or extra flow on WPS12.8.2.18913. Preserve all original inputs,
+  baselines and stopped stage6/10/12 worktrees. Plan-only pending primary review.
+- Supported shape: details without any open attribute, exactly one explicit
+  first summary containing nonempty direct plain text, exactly one subsequent p
+  containing nonempty direct plain text, and only whitespace between them. Reject
+  nested/extra nodes, pseudo-content, nonstandard visibility/positioning or other
+  uncertainty rather than silently flatten it. A shared pure shape helper may
+  identify this exact form for conversion and source scoring.
+- Product scope: html_editable details dispatch renders summary with its current
+  computed paragraph/run styles, then appends body text using its own original
+  node's computed run styles and explicit w:vanish in that same paragraph. Do not
+  create a body paragraph or carry its margins into following flow. Retain each
+  original text exactly once in XML. No summary marker/indent or global spacing
+  repair; existing triangle and approximately11pt summary-y mismatch are disclosed
+  residuals. Static preservation is not disclosure interaction or accessibility.
+- Open/unsupported behavior: presence of open, including open="false" or empty
+  value, retains existing expanded conversion/XML behavior. Unsupported closed
+  shapes (missing/multiple/complex summary, multiple/empty/complex body, nested
+  details, links/images/tables/forms/inline elements or ambiguous styles) keep
+  legacy expanded content and emit explicit collapsed-state-not-preserved warning.
+  Never remove body text or claim the warning path preserved closed appearance.
+- Scorer scope: add optional hidden expectation to run model, default unspecified
+  for unrelated content. Source reader reuses supported-details identification:
+  closed body expects hidden, summary expects visible; corresponding supported
+  open content expects visible. DOCX reader reads effective hidden state for these
+  checks, including explicitly styled runs. Formatting scorer checks hidden only
+  when source has an expectation, without new thresholds or a general visibility
+  policy. The original committed expanded report must fail this new check; repaired
+  output must pass. Expose the mismatch in diagnostics, not just an opaque score.
+  If effective style inheritance cannot be safely determined locally, stop/report
+  rather than silently treating unknown as visible or widening the reader overhaul.
+- Deliverables after approval: negative old-report conversion/scoring reproduction,
+  narrow mapping/shared helper/scorer change, focused tests, changelog and fresh
+  original five-case raw evidence, input/output SHA/version/probe records, summary/
+  body/following-text PDF coordinates, before/after visibility and score report.
+  Record original paragraph-body structure now represented as retained run text;
+  current structure score does not validate full hidden paragraph semantics.
+- Tests: supported closed shape retains exact summary/body text once, hides only
+  body, creates no flow paragraph and preserves computed run formatting; old
+  expanded DOCX fails hidden-state scoring, fixed output passes, missing/deleted
+  body still fails text retention. Open attribute values retain expanded XML and
+  visible expectations. Unsupported-shape matrix preserves all original content
+  with warning. Controls cover unrelated p, links and existing hr/p-spacing paths,
+  inherited hidden formatting and duplicated text ambiguity. Run focused and
+  related HTML/conversion/fidelity/roundtrip tests, historical baseline checks
+  for new hidden-state revelations, full Ruff/format and whitespace checks.
+- Real acceptance: exactly one original five-case safe WPS/browser set after
+  tests; per-case no-existing-process probe and own-instance lifecycle, no global
+  hidden/print setting changes. Compare latest committed accepted evidence:
+  report/newsletter/pdfsource Stage4, contract Stage5, manual Stage7. All source
+  bytes unchanged; applicable semantic scores1.0, page counts unchanged, every
+  page and aggregate SSIM nondecreasing. Original report must remain2/2pages,
+  page1 WPS pixels identical, body phrase absent from all WPS PDF pages while
+  retained in DOCX. Summary stays visible with unchanged WPS top/x within0.05pt;
+  contacts/unsafe-link label remain visible, and each following-text position error
+  against browser must not increase. Record page2 and aggregate improvement or
+  remaining limitations honestly; unchanged strict0.90 and historical exceptions
+  must not be conflated. No alignment, fixture edits or threshold tuning.
+- Stop: shape/state ambiguous, retained text missing/duplicated, old output passes
+  hidden check incorrectly, unsupported path drops content, hidden body prints,
+  summary/following-state gates or any five-case semantic/page/per-page/aggregate
+  gate fails, or safe renderer unavailable. Preserve raw outputs and uncommitted
+  work; report without tuning reruns/commit/PR or broader policy/layout changes.
+  No cross-settings/cross-host promise or screen-reader/interactive claim.
+- Integration: same continuing agent; English Conventional Commit/push/PR to main
+  only after gates and primary-agent evidence review. All six CI jobs must pass
+  before merge; implementation agent does not merge.

@@ -1,0 +1,98 @@
+{
+  "browser": {
+    "summary": {
+      "page": 2,
+      "text": "计算口径",
+      "top": 166.6406180566405,
+      "x": 46.45312306445312
+    },
+    "mail": {
+      "page": 2,
+      "text": "联系人：finance@example.com",
+      "top": 194.39061690039046,
+      "x": 33.74999859375
+    },
+    "phone": {
+      "page": 2,
+      "text": "021-0000-0000",
+      "top": 194.39061690039046,
+      "x": 249.49217710449219
+    },
+    "unsafe_label": {
+      "page": 2,
+      "text": "不安全链接",
+      "top": 222.14061574414052,
+      "x": 33.74999859375
+    }
+  },
+  "before": {
+    "summary": {
+      "page": 2,
+      "text": "计算口径",
+      "top": 155.63,
+      "x": 34.32
+    },
+    "hidden_body": {
+      "page": 2,
+      "text": "收入按权责发生制确认。",
+      "top": 183.3499999999999,
+      "x": 34.32
+    },
+    "mail": {
+      "page": 2,
+      "text": "联系人：finance@example.com",
+      "top": 211.18999999999994,
+      "x": 34.32
+    },
+    "phone": {
+      "page": 2,
+      "text": "021-0000-0000",
+      "top": 211.18999999999994,
+      "x": 250.08
+    },
+    "unsafe_label": {
+      "page": 2,
+      "text": "不安全链接",
+      "top": 238.90999999999997,
+      "x": 34.32
+    }
+  },
+  "after": {
+    "summary": {
+      "page": 2,
+      "text": "计算口径",
+      "top": 155.63,
+      "x": 34.32
+    },
+    "mail": {
+      "page": 2,
+      "text": "联系人：finance@example.com",
+      "top": 183.3499999999999,
+      "x": 34.32
+    },
+    "phone": {
+      "page": 2,
+      "text": "021-0000-0000",
+      "top": 183.3499999999999,
+      "x": 250.08
+    },
+    "unsafe_label": {
+      "page": 2,
+      "text": "不安全链接",
+      "top": 211.18999999999994,
+      "x": 34.32
+    }
+  },
+  "page1_pixel_identical": true,
+  "body_xml_count": 1,
+  "summary_body_runs": [
+    {
+      "text": "计算口径",
+      "hidden": null
+    },
+    {
+      "text": "收入按权责发生制确认。",
+      "hidden": true
+    }
+  ]
+}

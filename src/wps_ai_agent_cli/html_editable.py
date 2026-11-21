@@ -55,6 +55,39 @@ class _Node:
     children: list[_Node | str] = field(default_factory=list)
 
 
+def simple_details(node, styled):
+    """The deliberately bounded retained-text shape, shared with fidelity checks."""
+    if styled is None:
+        return None
+    parents = {id(c): n for n in _walk(styled.root) for c in n.children if isinstance(c, _Node)}
+    ancestor = parents.get(id(node))
+    while ancestor is not None:
+        if ancestor.tag in {"details", "table", "td", "th"}:
+            return None
+        if re.search(r"(?:transform|zoom|writing-mode|content-visibility)\s*:", ancestor.attrs.get("style", ""), re.I):
+            return None
+        ancestor = parents.get(id(ancestor))
+    elements = [c for c in node.children if isinstance(c, _Node)]
+    if len(elements) != 2 or [c.tag for c in elements] != ["summary", "p"]:
+        return None
+    if any(isinstance(c, str) and c.strip() for c in node.children):
+        return None
+    source_style = styled.css_text + "\n" + "\n".join(e.attrs.get("style", "") for e in (node, *elements))
+    if re.search(r"(?:transform|zoom|writing-mode|content-visibility)\s*:", source_style, re.I):
+        return None
+    for element in (node, *elements):
+        style = styled.style(element)
+        if styled.pseudo_elements(element) or style.get("visibility", "visible") != "visible":
+            return None
+        if style.get("position", "static") != "static" or style.get("display") == "none":
+            return None
+        if style.get("opacity", "1") != "1":
+            return None
+    if any(any(not isinstance(c, str) for c in e.children) or not _text(e).strip() for e in elements):
+        return None
+    return tuple(elements)
+
+
 class _TreeParser(HTMLParser):
     def __init__(self) -> None:
         super().__init__(convert_charrefs=True)
@@ -518,6 +551,11 @@ def convert_html_editable(
     )
     if decode_warning:
         warnings.append(decode_warning)
+    for index, node in enumerate(nodes):
+        if node.tag == "details" and "open" not in node.attrs and simple_details(node, styled) is None:
+            warnings.append(
+                f"Unsupported closed details at element {index} rendered expanded; collapsed state was not preserved."
+            )
     document = Document()
     page_width_px = docx_styling.apply_page(document, styled)
     bookmark_counter = 0
@@ -883,6 +921,21 @@ def convert_html_editable(
                 rule._p.get_or_add_pPr().append(borders)
                 docx_styling.apply_rule(rule, node, context)
                 counts["rules"] = counts.get("rules", 0) + 1
+            elif tag == "details":
+                shape = simple_details(node, context.styled)
+                if "open" not in node.attrs and shape:
+                    summary, body = shape
+                    paragraph = document.add_paragraph()
+                    docx_styling.apply_paragraph(paragraph, summary, ancestors(summary), context)
+                    add_text_with_links(paragraph, summary)
+                    trim(paragraph)
+                    first_hidden = len(paragraph.runs)
+                    add_text_with_links(paragraph, body)
+                    for run in paragraph.runs[first_hidden:]:
+                        run.font.hidden = True
+                    counts["paragraphs"] += 1
+                else:
+                    add_blocks(node)
             elif tag == "figcaption":
                 if _text(node):
                     add_paragraph(node, "Caption")

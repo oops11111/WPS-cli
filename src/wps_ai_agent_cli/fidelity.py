@@ -47,6 +47,8 @@ class Run:
     strike: bool = False
     color: str | None = None
     size: float | None = None
+    hidden: bool | None = None
+    expected_hidden: bool | None = None
 
 
 @dataclass
@@ -129,13 +131,18 @@ def _html_run(styled, node, text: str) -> Run:
 
 
 def _read_html(path: Path, use_browser: bool) -> Model:
-    from .html_editable import _HEADINGS, _Node, _text, table_grid
+    from .html_editable import _HEADINGS, _Node, _text, simple_details, table_grid
     from .html_editable import cell_text as html_cell_text
     from .html_styles import load
 
     styled = load(path, use_browser=use_browser)
     model = Model("html")
     skip = {"script", "style", "head", "title", "svg"}
+    details_hidden = {}
+    for element in _walk_nodes(styled.root):
+        if element.tag == "details" and (shape := simple_details(element, styled)):
+            details_hidden[id(shape[0])] = False
+            details_hidden[id(shape[1])] = "open" not in element.attrs
 
     def runs_of(node, original=None) -> list[Run]:
         """The node's text runs; ``original`` is the parsed element a synthetic copy stands for."""
@@ -146,7 +153,9 @@ def _read_html(path: Path, use_browser: bool) -> Model:
                 if isinstance(child, str):
                     if _norm(child):
                         owner = original if element is node and original is not None else element
-                        runs.append(_html_run(styled, owner, _norm(child)))
+                        run = _html_run(styled, owner, _norm(child))
+                        run.expected_hidden = details_hidden.get(id(owner))
+                        runs.append(run)
                 elif child.tag not in {"ul", "ol", "table"} | skip:
                     collect(child)
 
@@ -249,6 +258,31 @@ def _text_without_alt(node) -> str:
     return "".join(parts)
 
 
+def _docx_hidden(run):
+    """Resolve direct flags and style toggles; unsupported ancestry stays unknown."""
+    from docx.oxml.ns import qn
+
+    if run.font.hidden is not None:
+        return run.font.hidden
+    if run._parent._parent.__class__.__name__ == "_Cell":
+        return None  # Conditional table style inheritance is outside this check.
+    defaults = run.part.package.main_document_part.styles.element.find(qn("w:docDefaults"))
+    default = defaults.find(".//" + qn("w:vanish")) if defaults is not None else None
+    state = default is not None and default.get(qn("w:val"), "true") not in {"0", "false", "off"}
+    for style in (run._parent.style, run.style):
+        chain, seen = [], set()
+        while style is not None:
+            if style.style_id in seen:
+                return None
+            seen.add(style.style_id)
+            chain.append(style)
+            style = style.base_style
+        for entry in reversed(chain):
+            if entry.font.hidden:
+                state = not state
+    return state
+
+
 def _docx_run(run) -> Run:
     """A run's effective formatting: its own, else its character style's, else its paragraph style's."""
     from .office_html import _inherited
@@ -269,6 +303,7 @@ def _docx_run(run) -> Run:
         bool(_inherited(run, paragraph, "strike")),
         hue,
         size.pt if size else None,
+        _docx_hidden(run),
     )
 
 
@@ -649,11 +684,13 @@ def score_formatting(source: Model, target: Model) -> tuple[float, list[str]]:
                 wanted["color"] = run.color
             if run.size:
                 wanted["size"] = run.size
+            if run.expected_hidden is not None and source.kind == "html" and target.kind == "docx":
+                wanted["hidden"] = run.expected_hidden
             if (
                 not any(v for k, v in wanted.items() if k in {"bold", "italic", "underline", "strike"})
                 and "color" not in wanted
             ):
-                if "size" not in wanted:
+                if "size" not in wanted and "hidden" not in wanted:
                     continue
             index = target_text.find(plain, positions[cells])
             if index < 0:
@@ -672,6 +709,9 @@ def score_formatting(source: Model, target: Model) -> tuple[float, list[str]]:
                     ok = actual is not None and abs(actual - value) <= 1.0
                 elif name == "color":
                     ok = (actual or "000000").upper() == value.upper()
+                elif name == "hidden":
+                    states = [p.hidden if p is not None else None for p in target_props[index : index + len(plain)]]
+                    ok = len(states) == len(plain) and all(state is not None and state == value for state in states)
                 else:
                     ok = bool(actual) == bool(value)
                 passed += ok
