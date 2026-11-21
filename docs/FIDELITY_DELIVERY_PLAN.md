@@ -933,3 +933,79 @@ authoritative status, commit/PR/run evidence, blockers and exact next action.
   English Conventional Commit/push/evidence PR only when reviewed/verified.
   No claim that original contract reaches strict F2 or that tblCellSpacing is a
   safe product mapping; any integration requires a separately reviewed stage.
+
+## Stage30 PLAN ONLY: fee-body paragraph-mark font hypothesis
+
+- Status: read-only diagnosis/plan, awaiting primary review; NO implementation,
+  tests, new browser rendering or WPS export. Exact main dependency/base
+  5a1137b3a830011cb765197f5fbb450fb8a616d0 (#176 six green), clean isolated
+  fidelity-contract-audit / docs/contract-body-causal-audit. Frozen stages untouched.
+- Diagnosis is a hypothesis, NOT an established major cause. Fee-body fixed raster
+  region x30..770px, y395..465pt at800px width has SSIM.5516. Browser baselines for
+  first-column 签约/验收/质保 are411/434.25/457.5pt; accepted Stage28 WPS baselines
+ 413.09/437.09/461.09pt. Filled-border/stroked-border center conventions give source
+  body boundaries394.874984/418.124983/441.374982/464.624981pt; WPS395.81/419.81/
+ 443.81/467.81pt. Row center=(adjacent horizontal border centers)/2. PDF baseline=
+  page.height minus first matching character matrix[5], not glyph bbox top.
+  Source baseline-minus-row-center is4.50pt in each row, WPS5.28pt: constant+.78pt
+  remains after separating known23.25vs24pt pitch. This does not prove mark-font
+  causality; asymmetric paragraph padding and renderer metrics are countercauses.
+- NEW trace: all12 ordinary body cells have one paragraph, visible run rFonts
+  ascii/hAnsi/eastAsia/cs=Microsoft YaHei and size22(11pt), but no pPr/rPr.
+  docDefaults retains theme minorHAnsi/minorEastAsia fonts; theme minor Latin is
+  Cambria, eastAsia empty. Missing explicit mark font does not prove the effective
+  rendered mark font; only a native experiment can falsify its layout influence.
+  browser_defaults changes pPr defaults, not rPr fonts; apply_run styles visible
+  runs, apply_paragraph does not synchronize mark rFonts. No font-size rounding
+  adjustment, glyph replacement, line shift or empirical offset is proposed.
+- Fixed control: current-main committed Stage28 contract converted.docx,
+  SHA256 ee563430a86295acb8ac59ad31e5c72b1b2052e64e545fb7360a1b4feec6139f,
+  with its accepted WPS12.8.2.18913 PDF and source browserPDF. No baseline re-export.
+  Sole candidate P adds pPr/rPr/rFonts to EXACTLY table[1](second body table),
+  tr[2..4], physical tc[0..3], sole p[0]:12 mark-font nodes. Each new rFonts has
+  ONLY ascii/hAnsi/eastAsia/cs=Microsoft YaHei copied from that paragraph's common
+  visible run font. No sz/szCs/color/bold/lang/position/spacing or run property.
+- XML/package hard gate before WPS: assert exact target topology/count12, no body
+  merge/span, no preexisting paragraph-mark rPr, common visible family/size22 and
+  expected baseline SHA. Inverse remove precisely the12 new pPr/rPr containers
+  and reproduce ORIGINAL document.xml full bytes; all other package payloads
+  identical, deterministic candidate bytes. No styles.xml/theme/font package,
+  visible run, row height/AT_LEAST, vAlign, padding, border, grid/column allowance,
+  continuation width, margin, flow boundary or original HTML edits. Any deviation
+  stops; no broad matcher or fallback patch.
+- After approval: focused positive/inverse/invalid-target/extra-property tests,
+  same-file schema/package checks, full Ruff/format/diff. Record immutable source/
+  candidate/PDF hashes, code/base/version and raw char/rule geometry. This is
+  evidence-only; no product conversion code or original-five re-export.
+- ONE safe candidate WPS export only, compared to cached accepted baseline with
+  same12.8.2.18913 version; empty process probe before launch, own-instance release
+  only, no taskkill/preferences/user-document closure/font install/retry. Unsafe,
+  version mismatch, export failure or text/page anomaly stops immediately.
+- Independent conservation gates: all visible text and line/page assignment same,
+  same one page, semantic components1. Row boundaries/pitches and all table rules
+  within.05pt; visible glyph x within.05pt, normalized PDF font family unchanged
+  and PDF font size within.005pt; header and every character outside fee body x/y
+  within.05pt (thus downstream unaffected). This explicitly refuses row-height or
+  paragraph-spacing relief as evidence for mark-font causality.
+- Pre-registered positive mechanism effect: each first-column body-row baseline
+  offset error relative to source row-center target4.50pt reduces by≥.20pt from
+  baseline+.78pt; three candidate-minus-control baseline shifts agree within.05pt.
+  Full contract SSIM≥.8644 and fixed unaligned fee-body raster SSIM>.5516 using
+  repository grayscale scorer/source raster window; no source/target image shifts,
+  crop optimization, threshold changes or alignment. A detected effect is not a
+  guarantee of reaching strict F2.90 or a safe five-case product implementation.
+- Zero influence classification: pixel-identical output plus all char/rule geometry
+  within.05pt means bounded negative evidence; do not claim this is the main cause
+  or a product repair. Any conservation regression, measurable but non-positive/
+  nonuniform shift or extra package difference is STOP/unsupported, preserve raw;
+  do not try another font/size, add offsets, modify padding or reopen Stage10/12/
+ 19/20/26/29. No second export. Positive or verified zero evidence may get an
+  evidence-only PR only after primary independent image/diff review.
+- Original-five risk boundary: only this immutable contract candidate is tested;
+  other four artifacts and all product code stay unchanged. Even positive mark
+  influence requires a NEW reviewed product plan and complete-five semantic/flow/
+  per-page/aggregate gates, not inference from this single document.
+- Deliverables after approval: narrow builder/assessor/tests, immutable baseline
+  references and candidate/rawPDF/PNG/probe/version/hashes/region/row-center audit,
+  uncertainty/zero-or-effect report. English commit/push/evidence PR only reviewed;
+  six green CI required before primary merge, implementation agent never merges.
