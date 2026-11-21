@@ -12,3 +12,4 @@ artifacts/alignment-aware-print-margins-20261121/**/input/** -text whitespace=cr
 artifacts/schema-table-width-20261121/** -text whitespace=cr-at-eol
 artifacts/contract-row-minimum-20261121/** -text whitespace=cr-at-eol
 artifacts/natural-merged-rows-20261121/** -text whitespace=cr-at-eol
+artifacts/row-baseline-padding-20261121/** -text whitespace=cr-at-eol

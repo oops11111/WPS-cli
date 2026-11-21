@@ -1570,3 +1570,67 @@ authoritative status, commit/PR/run evidence, blockers and exact next action.
   semantic/row/origin/page/anchor report. English commit/push/product PR only after
   independent primary diff/image review; six green CI before primary merge,
   implementation agent never merges. Limit host/content guarantees explicitly.
+# Stage45 PLAN ONLY: fixed-total padding distribution on the accepted row baseline
+
+- Status: awaiting primary review, no candidate/test/browser/WPS execution or
+  commit. Exact dependency/main1ac049f87a286342e1162af59e69c0a00d9c5d2f;
+  isolated fidelity-padding-recheck / docs/padding-recheck-plan. All frozen
+  stages remain unchanged. This is evidence-only, not a product repair.
+- Read-only source/code/XML trace remains symmetric CSS4px vertical padding,
+  center cell alignment and exact330twip paragraph line. Collapsed bottom-border
+  compensation produces before60/after45, total105twips. New accepted contract
+  has five450twip AT_LEAST rows and the Stage42 measured column widths.
+  Stage44 immutable candidate SHA256 is
+  2b5e206fb74d5a73b036ab8a8e4b01b6dc98d5818599cfbabdb28579bdd0aefa.
+  Use its stored WPS PDF and Stage42 browser PDF as controls; no control export.
+- Existing-PDF audit: body first-column baseline minus adjacent horizontal-rule
+  center midpoint is source4.499999375/4.499999406/4.499999437pt, accepted
+  native5.355/5.265/5.295pt; errors+.855000625/+.765000594/+.795000563.
+  These are raw character matrix baselines, not fitted ink boxes. Stage32 old
+  baseline shifted-.24pt rather than its registered-.35±.05pt, so its STOP is
+  retained. Its slight ROI gain does not count as current-baseline evidence.
+- Sole candidate: second fee table rows2..4, each physical cell0..3, sole p
+  spacing before60→53 and after45→52twips. Exactly24 attributes, preserving
+  total105twips, line330/exact, vAlign center. This is the fixed nearest-integer
+  split of52.5/52.5, not new fitting or parameter search. Predicted native
+  displacement=(53−60)/20=−.35pt; renderer quantization may falsify it again.
+  No header paragraph, row height, width, continuation, visible/mark font,
+  border/fill, page/flow, source, converter/scorer or other package part changes.
+- Offline stage after approval: immutable hash/topology/24 exact attributes,
+  inverse restores complete original document.xml bytes; all other ZIP payloads
+  and metadata identical. Two deterministic builds; negative target/extra-change,
+  fixed-total and prediction/classification tests, packaging metadata tests,
+  full Ruff/format/diff. Environment/NODE_PATH and baseline/candidate semantic
+  validation must consume the same saved Stage44 browser snapshot. Applicable
+  score1 and true verdict, explicit N/A effective true without raw mutation.
+  Any ambiguity/fallback/hash/constraint failure STOP before WPS.
+- One new candidate WPS export ONLY after offline gates and primary approval:
+  empty process probe and exact WPS12.8.2.18913, own instance only; no user
+  closure/global setting/fonts/taskkill, no baseline/browser re-export or retry.
+  Safety/version/export anomaly stops; remaining work stays not-run.
+- Conservation gates: one page and identical text/line assignment; every glyph
+  x/font/size/advance within.05pt(.005pt size), all rules/row centers/pitches and
+  every outside-body glyph baseline within.05pt. Body row glyphs must shift
+  uniformly: each first-column baseline−.35±.05pt and spread≤.05pt; absolute
+  row-relative source errors each improve≥.25pt. No row/flow shift substitutes
+  for that effect. Full12-cell text lines/ink-rule clearance must not regress.
+- Fixed unaligned repository SSIM at800px, no alignment/crop search: body
+  x30..770 raster px, PDF y395..470pt mapped by int(y*800/595.92) to
+  approximately raster y530..630px must exceed.808045712; header PDF348..395pt,
+  total-table348..470pt and later470..640pt use the same original mapping and must not decrease from Stage44 at full precision.
+  Whole must exceed.895000062. Preserve every downstream anchor and disclose
+  current Stage43 adverse source offsets; they cannot be hidden by mean SSIM.
+  Strict F2≥.90 is separately reported, never inferred from mechanism success.
+- Categories: all geometric/conservation/score gates pass→PASS_MECHANISM_ONLY;
+  exact pixel/geometry equality with conservation→ZERO_INFLUENCE; all other
+  outcomes→STOP. In particular repeated−.24pt fails the fixed prediction gate
+  even if some scores improve. No switch to other rounding, total, row height,
+  column width, heading margin, threshold or second export.
+- Deliverables: narrow builder/assessor, focused tests, saved-source hashes and
+  environment/semantic preflight, unique candidate/PDF/PNG/probe/version, full
+  baseline/candidate char/rule/cell audit, fixed ROI/whole scores and honest
+  positive/zero/STOP report. Original five fixtures/baselines remain immutable;
+  other four are not experimentally validated by this contract-only mechanism.
+  Raw outcome first goes to primary for independent image/diff review. Only
+  reusable reviewed evidence may be committed in an evidence-only PR→main;
+  six CI jobs must pass and only primary may merge. No product integration.
