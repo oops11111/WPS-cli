@@ -1,0 +1,113 @@
+{
+  "base": "b93e2c24d3921f5b3845f14fd8856ddf05f5e88c",
+  "python": "3.13.17",
+  "pdfplumber": "0.11.10",
+  "runner_sha256": "ab288b2df98d56c05c13a28e5d27315dcd7cd746eafb33aad673502e3b806db1",
+  "cases": {
+    "B": {
+      "first_cell_text_tops": [
+        35.76745,
+        55.98475,
+        76.26475,
+        96.54475
+      ],
+      "text_top_differences": [
+        20.2173,
+        20.28,
+        20.28
+      ],
+      "all_hashes_verified": true,
+      "character_count": 72
+    },
+    "E": {
+      "first_cell_text_tops": [
+        35.40745,
+        54.90475,
+        74.34475,
+        93.90475
+      ],
+      "text_top_differences": [
+        19.4973,
+        19.44,
+        19.56
+      ],
+      "all_hashes_verified": true,
+      "character_count": 72
+    },
+    "R": {
+      "first_cell_text_tops": [
+        35.40745,
+        54.90475,
+        74.34475,
+        93.90475
+      ],
+      "text_top_differences": [
+        19.4973,
+        19.44,
+        19.56
+      ],
+      "all_hashes_verified": true,
+      "character_count": 72
+    },
+    "L": {
+      "first_cell_text_tops": [
+        40.55985,
+        60.83985,
+        80.99885,
+        101.27985
+      ],
+      "text_top_differences": [
+        20.28,
+        20.159,
+        20.281
+      ],
+      "all_hashes_verified": true,
+      "character_count": 12
+    },
+    "LR": {
+      "first_cell_text_tops": [
+        40.07985,
+        59.63985,
+        79.07985,
+        98.63985
+      ],
+      "text_top_differences": [
+        19.56,
+        19.44,
+        19.56
+      ],
+      "all_hashes_verified": true,
+      "character_count": 12
+    },
+    "N": {
+      "first_cell_text_tops": [
+        35.04745,
+        54.54475,
+        73.98475,
+        93.54475
+      ],
+      "text_top_differences": [
+        19.4973,
+        19.44,
+        19.56
+      ],
+      "all_hashes_verified": true,
+      "character_count": 72
+    },
+    "NR": {
+      "first_cell_text_tops": [
+        34.68645,
+        53.34475,
+        72.06475,
+        90.90475
+      ],
+      "text_top_differences": [
+        18.6583,
+        18.72,
+        18.84
+      ],
+      "all_hashes_verified": true,
+      "character_count": 72
+    }
+  }
+}
