@@ -192,3 +192,55 @@ authoritative status, commit/PR/run evidence, blockers and exact next action.
   local/whole scores fail to improve, or repair needs global/non-hr margin or
   unrelated product/environment changes. Preserve raw evidence and report before
   changing scope; never adjust inputs, alignment or thresholds to obtain a pass.
+
+## Stage 8: read-only attribution of remaining manual geometry
+
+- Dependency/base: stage 7 PR #161 merged with six green CI jobs; exact main
+  `ebd94400baa8ca0881e102c08b5917388dd5ee30`. Use the clean stage-7 worktree
+  on `docs/manual-geometry-attribution`, preserving its untracked local logs.
+  The separate stopped stage-6 worktree and all raw candidates remain frozen.
+  This section is plan-only pending primary-agent approval; no scripts, tests
+  or measurement runs precede that approval.
+- Scope: original manual only, using committed stage-7 browser/WPS PDFs,
+  converted DOCX, browser computed styles and original stage-4 reference.
+  Read existing PDF vector line rectangles/widths, text bounding boxes and
+  DOCX table grid/row/cell/paragraph dimensions. Map measurements in PDF points
+  and CSS pixels using page dimensions, retaining original page origins.
+  Focus on the four-row options table and its immediately following heading;
+  separate horizontal width, row pitch, border stroke and text baseline deltas.
+  Contract is excluded initially: consult its existing evidence only if needed
+  to distinguish a shared implementation rule, and explain that dependency first.
+- Deliverables after approval: a narrow offline extraction script, focused
+  extraction/unit-conversion tests, machine-readable measurements with source
+  SHA-256/page/tool versions and a report linking every attribution to existing
+  source code and OOXML properties. Include a coordinate overlay or compact
+  measurement table where useful, keeping original images/PDFs immutable.
+  Quantify uncertainty from stroke bounds, rounding and font metrics. Distinguish
+  observed mismatch, supported causal hypothesis and unresolved explanation.
+- Verification after approval: run the focused extraction tests, rerun the
+  offline extractor twice and require identical normalized geometry JSON;
+  cross-check representative PDF vectors/text positions against existing page
+  images and DOCX twip-to-point values. Run full Ruff check/format and diff
+  whitespace checks. No conversion or new browser/WPS process is required.
+- Acceptance: reproducible attribution rather than an F2 pass. Identify at most
+  one remaining implementation cause with a measurable predicted geometric
+  effect, a source/XML trace and explicit counterevidence/regression risks;
+  otherwise report that no single cause is established. A prediction must
+  explain the observed region without arbitrary offsets, image alignment or
+  threshold tuning. Existing manual whole-page 0.8959 remains strict F2 failure
+  at the unchanged 0.90 threshold; the 0.88 historical exception stays separate.
+  No promise that attribution alone closes the score gap is permitted.
+- Boundaries: no product edits, fixture/input/asset/baseline/threshold changes,
+  font or software installation, global margin/width tuning, new renderer run,
+  or expansion to other formats. A subsequent product repair needs a separately
+  reviewed plan with negative reproduction and real WPS acceptance.
+- Integration: an evidence-only PR to main is appropriate if the extraction and
+  report provide reusable, verified measurements, including a grounded negative
+  conclusion. Avoid duplicating existing large binaries. Same continuing agent
+  implements only after approval, then English Conventional Commit, push and PR;
+  primary-agent diff/evidence review and all six required CI jobs green before
+  merge. A local exploratory dead end need not become a PR.
+- Stop: missing/corrupt evidence, incompatible PDF coordinate interpretation,
+  irreproducible extraction, inability to isolate a cause, or need for new WPS,
+  font/environment changes or broader product work. Preserve the measurements,
+  state what is unresolved and report; do not silently broaden or tune.
