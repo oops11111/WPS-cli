@@ -1,0 +1,56 @@
+{
+  "base": "5a1137b3a830011cb765197f5fbb450fb8a616d0",
+  "baseline": "artifacts/alignment-aware-print-margins-20261121/A-contract-docx",
+  "sources": {
+    "converted.docx": "ee563430a86295acb8ac59ad31e5c72b1b2052e64e545fb7360a1b4feec6139f",
+    "browser.pdf": "e920d30c61f5b8823b47eac0bb55479d37c5fa6ad26dec003639e53e08b2402c",
+    "wps.pdf": "be4cb909cfedaab1ed02869602d26d3af8e0e81c59100dd491e4fe0c09f1aa3d"
+  },
+  "candidate_sha256": "67c2586b3fa8edb2f6a848b6ad1c09706e57d2b2fdab6ac7312d4b2053524670",
+  "preflight": true,
+  "wps_exports": 1,
+  "versions": [
+    {
+      "path": "C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\wps.exe",
+      "file_version": "12,8,2,18913",
+      "product_version": "12,8,2,18913"
+    }
+  ],
+  "outcome": "ZERO_INFLUENCE",
+  "pdf_sha256": "e92a622e758f8f1d724a7ff16e547af410e6734c497b70f70062ae8321e6f95e",
+  "offline_assessment_notes": [
+    "Initial missing-skimage import corrected to repository ssim; same PDF remeasured",
+    "Sandbox ctypes failure; elevated offline assessment",
+    "First-column anchors disambiguated by word x and top; no candidate or export change"
+  ],
+  "outputs": {
+    "acceptance.json": {
+      "sha256": "5ef4529f6e9e71df3b7876595e6298d976c220a27d8eef892433220b4fb4791c",
+      "bytes": 286124
+    },
+    "candidate.docx": {
+      "sha256": "67c2586b3fa8edb2f6a848b6ad1c09706e57d2b2fdab6ac7312d4b2053524670",
+      "bytes": 38672
+    },
+    "export.json": {
+      "sha256": "0e7f9483a79e09db875a2ef58c271f85ddf2537bd3e7bdbc451a623cff57ae66",
+      "bytes": 551
+    },
+    "pages/page-001-0.864.png": {
+      "sha256": "6b4bf59652b45ff622f7eb29bc166ff67732e136046914ad16d4e8f8d9dd6e1d",
+      "bytes": 128231
+    },
+    "probe.json": {
+      "sha256": "1e092279d232833754dd9f34f6c3d863b9f11dc29f914ae707908064419db435",
+      "bytes": 483
+    },
+    "wps-page-001.png": {
+      "sha256": "9bee71cc2afce0143a467bb3e124b6b2d9d922d234d3fe99791e20405df98a13",
+      "bytes": 150852
+    },
+    "wps.pdf": {
+      "sha256": "e92a622e758f8f1d724a7ff16e547af410e6734c497b70f70062ae8321e6f95e",
+      "bytes": 167238
+    }
+  }
+}
