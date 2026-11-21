@@ -1,13 +1,15 @@
-import sys
+import importlib.util
 import tempfile
 import unittest
 from pathlib import Path
 from zipfile import ZipFile
 
-from lxml import etree as ET
-
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
-from paragraph_mark_font_mechanism import BASE, W, build, patch_xml
+SPEC = importlib.util.spec_from_file_location(
+    "markfont", Path(__file__).resolve().parents[1] / "scripts/paragraph_mark_font_mechanism.py"
+)
+m = importlib.util.module_from_spec(SPEC)
+SPEC.loader.exec_module(m)
+BASE, W, build, patch_xml = m.BASE, m.W, m.build, m.patch_xml
 
 
 class ParagraphMarkFontTests(unittest.TestCase):
@@ -16,6 +18,8 @@ class ParagraphMarkFontTests(unittest.TestCase):
             self.original = archive.read("word/document.xml")
 
     def test_exact_twelve_and_inverse(self):
+        from lxml import etree as ET
+
         patched = patch_xml(self.original)
         old, new = ET.fromstring(self.original), ET.fromstring(patched)
         before = old.findall(".//" + W + "pPr/" + W + "rPr")
@@ -46,6 +50,8 @@ class ParagraphMarkFontTests(unittest.TestCase):
                         self.assertEqual(candidate.read(name), baseline.read(name))
 
     def test_reject_visible_font_or_topology_change(self):
+        from lxml import etree as ET
+
         for tag in ("font", "merge"):
             root = ET.fromstring(self.original)
             cell = root.find(W + "body").findall(W + "tbl")[1].findall(W + "tr")[2].find(W + "tc")
