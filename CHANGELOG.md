@@ -6,6 +6,9 @@ All notable changes to `wps-ai-agent-cli`. The versioning rule and release steps
 
 ### Fixed
 
+- HTML to DOCX matches default horizontal print margins in the verified Edge
+  configuration; custom or incomplete page-style evidence preserves existing margins.
+
 - HTML to DOCX preserves measured horizontal indentation for supported standalone
   figure images without changing image dimensions or vertical flow.
 

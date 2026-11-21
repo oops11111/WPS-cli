@@ -28,6 +28,15 @@ const PSEUDO_PROPERTIES = [
 // A slide is a <section> or an element with the class "slide", not inside another one (html_slides.collect_slides).
 const SLIDE_SELECTOR = 'section, .slide';
 
+// Passed to page.evaluate; any additional style source rejects this bounded mapping.
+function unsupportedStyleSources() {
+  try {
+    if (!('adoptedStyleSheets' in document)) return { checked: false };
+    return { checked: true, document_adopted_count: document.adoptedStyleSheets.length,
+      open_shadow_root_count: [...document.querySelectorAll('*')].filter(element => element.shadowRoot).length };
+  } catch (error) { return { checked: false, error: String(error) }; }
+}
+
 async function main() {
   const request = JSON.parse(fs.readFileSync(0, 'utf8'));
   const { chromium } = require('playwright');
@@ -127,6 +136,41 @@ async function main() {
       }
       return result;
     }, [PROPERTIES, PSEUDO_PROPERTIES]);
+    // Qualification metadata is observational; uncertain CSSOM/identity never grants a mapping.
+    let printContext = {};
+    try {
+      const cssom = await page.evaluate(() => {
+        let complete = true, count = 0;
+        const errors = [], pageRules = [], imports = [];
+        function visit(rules, depth = 0) {
+          if (depth > 32) throw new Error('CSSOM nesting limit');
+          for (const rule of rules) {
+            if (++count > 10000) throw new Error('CSSOM rule limit');
+            if (rule.type === CSSRule.PAGE_RULE) pageRules.push(rule.cssText);
+            if (rule.type === CSSRule.IMPORT_RULE) imports.push(rule.cssText);
+            if (rule.cssRules) visit(rule.cssRules, depth + 1);
+          }
+        }
+        const links = [...document.querySelectorAll('link[rel~="stylesheet"]')].map(link => {
+          if (!link.sheet) { complete = false; errors.push('STYLESHEET_UNAVAILABLE: ' + link.href); }
+          return { href: link.href, has_sheet: !!link.sheet };
+        });
+        for (const sheet of document.styleSheets) {
+          try { visit(sheet.cssRules); } catch (error) { complete = false; errors.push(String(error)); }
+        }
+        return { complete, links, page_rules: pageRules, imports, errors };
+      });
+      const sources = await page.evaluate(unsupportedStyleSources);
+      cssom.style_sources = sources;
+      if (!sources.checked || sources.document_adopted_count || sources.open_shadow_root_count) {
+        cssom.complete = false;
+        cssom.errors.push('UNSUPPORTED_ADOPTED_OR_SHADOW_STYLE_SOURCE');
+      }
+      const cdp = await context.newCDPSession(page);
+      printContext = { platform: process.platform, executable: fs.realpathSync(request.browser_executable),
+        runtime: await cdp.send('Browser.getVersion'), cssom };
+      await cdp.detach();
+    } catch (error) { printContext = { error: String(error) }; }
     const shots = [];
     if (request.section_screenshots_dir) {
       const sections = [];
@@ -143,13 +187,15 @@ async function main() {
         shots.push(file);
       }
     }
-    process.stdout.write(JSON.stringify({ ok: true, browser: await browser.version(), elements, section_screenshots: shots }));
+    process.stdout.write(JSON.stringify({ ok: true, browser: await browser.version(), elements, section_screenshots: shots, print_context: printContext }));
   } finally {
     await browser.close();
   }
 }
 
-main().catch(error => {
+module.exports = { unsupportedStyleSources };
+
+if (require.main === module) main().catch(error => {
   process.stdout.write(JSON.stringify({ ok: false, code: error.code || 'LAYOUT_FAILED', message: String(error.message || error).slice(0, 1000) }));
   process.exitCode = 1;
 });

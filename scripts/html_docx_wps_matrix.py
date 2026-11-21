@@ -160,6 +160,7 @@ def run_case(case, relative, folder, baselines):
         {
             "mode": styled.mode,
             "browser": styled.browser,
+            "print_context": styled.print_context,
             "warnings": styled.warnings,
             "elements": [
                 {

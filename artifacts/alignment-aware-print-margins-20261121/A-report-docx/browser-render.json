@@ -1,0 +1,24 @@
+[
+  true,
+  {
+    "input_path": "artifacts/alignment-aware-print-margins-20261121/A-report-docx/input/report.html",
+    "output_path": "artifacts/alignment-aware-print-margins-20261121/A-report-docx/browser.pdf",
+    "format": "pdf",
+    "bytes": 121773,
+    "sha256": "3a9293bd9b6ebbc458ef2e5cae5f332611d68e90476536fa64fbced1af46254c",
+    "backend": "playwright-edge",
+    "page_size": "A4",
+    "viewport": {
+      "width": 1280,
+      "height": 900
+    },
+    "javascript_enabled": false,
+    "network_access": false,
+    "websocket_blocked": true,
+    "resource_root": "artifacts/alignment-aware-print-margins-20261121/A-report-docx/input",
+    "browser": "157.0.4341.60",
+    "page_title": "2026 年第三季度经营报告",
+    "document_height": 1319
+  },
+  []
+]

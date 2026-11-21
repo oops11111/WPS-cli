@@ -518,6 +518,7 @@ class StyledDocument:
     # Decorative ::before/::after boxes the browser reported for an element: {id(node): [computed values]}.
     pseudo: dict[int, list[dict[str, str]]] = field(default_factory=dict)
     summary_markers: dict[int, dict[str, Any]] = field(default_factory=dict)
+    print_context: dict[str, Any] = field(default_factory=dict)
 
     def style(self, node: _Node) -> dict[str, str]:
         return self.styles.get(id(node), DEFAULT_STYLE)
@@ -691,6 +692,7 @@ def load(
                 parser,
                 pseudo,
                 summary_markers,
+                reply.get("print_context") or {},
             )
         warnings.append(
             f"The browser could not lay the page out ({reply.get('message', 'no reply')}); used the cascade."

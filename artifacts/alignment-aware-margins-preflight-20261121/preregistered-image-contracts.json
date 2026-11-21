@@ -1,0 +1,41 @@
+{
+  "A-contract-docx": [],
+  "A-manual-docx": [],
+  "A-newsletter-docx": [
+    {
+      "mode": "center",
+      "source": {
+        "alt": "延迟趋势",
+        "source_align": "center",
+        "holder_align": "center",
+        "holder": "figure"
+      },
+      "jc": "center",
+      "indents": {},
+      "left_margin": 33.75,
+      "right_margin": 33.75,
+      "paper_width": 595.3,
+      "content_midline": 297.65
+    }
+  ],
+  "A-pdfsource-docx": [],
+  "A-report-docx": [
+    {
+      "mode": "left",
+      "source": {
+        "alt": "季度收入柱状图",
+        "source_align": "start",
+        "holder_align": "start",
+        "holder": "figure"
+      },
+      "jc": "left",
+      "indents": {
+        "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}left": "600"
+      },
+      "left_margin": 34.35,
+      "right_margin": 34.35,
+      "paper_width": 595.3,
+      "content_midline": 297.65
+    }
+  ]
+}

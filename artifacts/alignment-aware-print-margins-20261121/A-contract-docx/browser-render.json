@@ -1,0 +1,24 @@
+[
+  true,
+  {
+    "input_path": "artifacts/alignment-aware-print-margins-20261121/A-contract-docx/input/contract.html",
+    "output_path": "artifacts/alignment-aware-print-margins-20261121/A-contract-docx/browser.pdf",
+    "format": "pdf",
+    "bytes": 104224,
+    "sha256": "e920d30c61f5b8823b47eac0bb55479d37c5fa6ad26dec003639e53e08b2402c",
+    "backend": "playwright-edge",
+    "page_size": "A4",
+    "viewport": {
+      "width": 1280,
+      "height": 900
+    },
+    "javascript_enabled": false,
+    "network_access": false,
+    "websocket_blocked": true,
+    "resource_root": "artifacts/alignment-aware-print-margins-20261121/A-contract-docx/input",
+    "browser": "157.0.4341.60",
+    "page_title": "技术服务合同",
+    "document_height": 900
+  },
+  []
+]

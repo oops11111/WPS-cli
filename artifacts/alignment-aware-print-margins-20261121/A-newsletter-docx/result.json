@@ -1,0 +1,142 @@
+{
+  "case": "A-newsletter-docx",
+  "original_source": "fixtures/fidelity/newsletter.html",
+  "input_manifest": [
+    {
+      "reference": "newsletter.html",
+      "exists": true,
+      "repository_path": "fixtures/fidelity/newsletter.html",
+      "sha256": "d801e9ef62dff5516f261792638e251b12476b74ba7afbed0bd0f75411308484"
+    },
+    {
+      "reference": "chart.png",
+      "exists": true,
+      "repository_path": "fixtures/fidelity/chart.png",
+      "sha256": "ed89838a4de750fe6336580240367518c4507448844463c4357d62481d482fe5"
+    }
+  ],
+  "browser_version": "157.0.4341.60",
+  "semantic": {
+    "source": "artifacts/alignment-aware-print-margins-20261121/A-newsletter-docx/input/newsletter.html",
+    "target": "artifacts/alignment-aware-print-margins-20261121/A-newsletter-docx/converted.docx",
+    "group": "A",
+    "thresholds": {
+      "text": 1.0,
+      "structure": 1.0,
+      "formatting": 1.0,
+      "animations": 1.0,
+      "data": 1.0,
+      "layout": 0.9
+    },
+    "aspects": {
+      "text": {
+        "score": 1.0,
+        "missing": []
+      },
+      "structure": {
+        "score": 1.0,
+        "differences": {}
+      },
+      "formatting": {
+        "score": 1.0,
+        "problems": []
+      },
+      "animations": {
+        "status": "not applicable"
+      },
+      "data": {
+        "status": "not applicable"
+      },
+      "layout": {
+        "status": "skipped"
+      }
+    },
+    "verdict": {
+      "text": true,
+      "structure": true,
+      "formatting": true
+    },
+    "passed": true
+  },
+  "wps_executables": [
+    {
+      "path": "C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\wps.exe",
+      "file_version": "12,8,2,18913",
+      "product_version": "12,8,2,18913"
+    }
+  ],
+  "execution_ok": true,
+  "layout": {
+    "images": [
+      "artifacts/alignment-aware-print-margins-20261121/A-newsletter-docx/pages/page-001-0.929.png"
+    ],
+    "status": "measured",
+    "renderer": "wps",
+    "score": 0.9293,
+    "pages": {
+      "source": 1,
+      "target": 1
+    },
+    "page_scores": [
+      0.9293
+    ],
+    "missing_fonts": [
+      "Noto Sans CJK SC"
+    ]
+  },
+  "color_pages": {
+    "browser": [
+      "artifacts/alignment-aware-print-margins-20261121/A-newsletter-docx/browser-page-001.png"
+    ],
+    "wps": [
+      "artifacts/alignment-aware-print-margins-20261121/A-newsletter-docx/wps-page-001.png"
+    ]
+  },
+  "strict_f2": {
+    "passed": true,
+    "verdict": {
+      "text": true,
+      "structure": true,
+      "formatting": true,
+      "layout": true
+    },
+    "layout_minimum": 0.9
+  },
+  "decision10": {
+    "status": "strict_pass",
+    "floor": null,
+    "historical_reason": null
+  },
+  "environment": {
+    "missing_fonts": [
+      "Noto Sans CJK SC"
+    ],
+    "missing_input_assets": [],
+    "limit": "Missing fallback does not establish missing effective font. Glyph-vs-layout attribution requires page review."
+  },
+  "historical": {
+    "libreoffice": {
+      "group": "A",
+      "route": [
+        "html-editable"
+      ],
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "formatting": 1.0,
+        "layout": 0.8972
+      },
+      "passed": true
+    },
+    "libreoffice_comparable_to_wps": false,
+    "prior_wps_layout": 0.917,
+    "source": "docs/PHASE13_PLAN.md, tenth Windows check",
+    "limit": "Historical host/version conditions are not revalidated; no cross-renderer baseline-minus-0.02 rule applied."
+  },
+  "hashes": {
+    "newsletter.html": "d801e9ef62dff5516f261792638e251b12476b74ba7afbed0bd0f75411308484",
+    "converted.docx": "a21c7472007e5ab720cadcb89164a299d7a05204022e49a2dbce571b01b22f75",
+    "browser.pdf": "0dacb4a56b55ea07dd466f6fce99a52d19490e945c9e665781f7db131dee56cd",
+    "wps.pdf": "951b417158f45ed1130a18a01870f4b50322b9066336a220dca6d5dd46ca837b"
+  }
+}

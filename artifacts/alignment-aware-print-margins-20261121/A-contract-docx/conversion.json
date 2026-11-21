@@ -1,0 +1,34 @@
+[
+  true,
+  {
+    "input_path": "artifacts/alignment-aware-print-margins-20261121/A-contract-docx/input/contract.html",
+    "output_path": "artifacts/alignment-aware-print-margins-20261121/A-contract-docx/converted.docx",
+    "bytes": 38643,
+    "sha256": "ee563430a86295acb8ac59ad31e5c72b1b2052e64e545fb7360a1b4feec6139f",
+    "backend": "python-docx-semantic-mapping",
+    "editable": true,
+    "mapped_objects": {
+      "paragraphs": 4,
+      "headings": 5,
+      "lists": 5,
+      "tables": 3,
+      "images": 0
+    },
+    "unsupported_css": [],
+    "warnings": [],
+    "fidelity": "editable",
+    "style_source": "browser",
+    "applied_styles": [
+      "cell borders",
+      "cell shading",
+      "character",
+      "column widths",
+      "paragraph"
+    ],
+    "source_encoding": "utf-8",
+    "javascript_executed": false,
+    "remote_resources_fetched": false,
+    "roundtrip_bookmarks": 0
+  },
+  []
+]

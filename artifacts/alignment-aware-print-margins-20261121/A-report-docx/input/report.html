@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>2026 年第三季度经营报告</title>
+<style>
+  body { font-family: "Microsoft YaHei", sans-serif; }
+  .note { color: #a33; border-left: 4px solid #a33; }
+  table.kpi td.up { color: green; }
+</style>
+<link rel="stylesheet" href="print.css">
+</head>
+<body>
+<header>
+  <h1 id="top">2026 年第三季度经营报告</h1>
+  <p class="meta">编制：财务部 · 版本 <b>v3</b> · 机密等级 <em>内部</em></p>
+</header>
+<main>
+  <section>
+    <h2>一、摘要</h2>
+    <p>本季度营业收入 <strong>4,820 万元</strong>，同比增长 <span style="color:green">12.5%</span>；
+       毛利率 <u>38.2%</u>，较上季度下降 <s>1.1</s> 0.9 个百分点。H<sub>2</sub>O 项目进入试产，
+       x<sup>2</sup> 模型已上线。详见 <a href="https://example.com/q3">在线版本</a>。</p>
+    <blockquote>“质量第一，客户至上。”——年度经营方针</blockquote>
+    <div class="note"><p>注：所有金额均为未经审计数据。</p></div>
+  </section>
+  <section>
+    <h2>二、重点事项</h2>
+    <ol>
+      <li>华东区新开门店 <b>14</b> 家
+        <ul>
+          <li>上海 6 家</li>
+          <li>杭州 5 家</li>
+          <li>南京 3 家</li>
+        </ul>
+      </li>
+      <li>完成 ERP 系统升级</li>
+      <li>启动海外市场调研（越南、泰国）</li>
+    </ol>
+    <h3>2.1 风险提示</h3>
+    <ul>
+      <li>原材料价格波动</li>
+      <li>汇率风险：美元兑人民币 <code>7.12 → 7.30</code></li>
+    </ul>
+  </section>
+  <section>
+    <h2>三、分区域业绩</h2>
+    <table class="kpi">
+      <caption>表 1 分区域收入（万元）</caption>
+      <thead>
+        <tr><th rowspan="2">区域</th><th colspan="2">收入</th><th rowspan="2">同比</th></tr>
+        <tr><th>Q2</th><th>Q3</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>华东</td><td>1,820</td><td>2,050</td><td class="up">+12.6%</td></tr>
+        <tr><td>华南</td><td>1,210</td><td>1,330</td><td class="up">+9.9%</td></tr>
+        <tr><td>华北</td><td>980</td><td>1,040</td><td>+6.1%</td></tr>
+        <tr><td>海外</td><td>—</td><td>400</td><td>新增</td></tr>
+      </tbody>
+      <tfoot>
+        <tr><td>合计</td><td>4,010</td><td>4,820</td><td>+20.2%</td></tr>
+      </tfoot>
+    </table>
+    <figure>
+      <img src="chart.png" alt="季度收入柱状图" width="320">
+      <figcaption>图 1 季度收入趋势</figcaption>
+    </figure>
+  </section>
+  <section>
+    <h2>四、附录</h2>
+    <pre>
+SELECT region, SUM(amount)
+  FROM sales
+ WHERE quarter = 'Q3'
+ GROUP BY region;
+    </pre>
+    <details><summary>计算口径</summary><p>收入按权责发生制确认。</p></details>
+    <p>联系人：<a href="mailto:finance@example.com">finance@example.com</a> · 电话 <a href="tel:+862100000000">021-0000-0000</a></p>
+    <p><a href="javascript:alert(1)">不安全链接</a></p>
+  </section>
+</main>
+<script>document.title = "changed";</script>
+</body>
+</html>

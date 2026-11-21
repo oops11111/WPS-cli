@@ -842,3 +842,37 @@ authoritative status, commit/PR/run evidence, blockers and exact next action.
   combination. Deliver deterministic runner/tests/raw DOCX/PDF/PNG/JSON/report.
   English evidence-only commit/push/PR only verified reusable evidence, primary
   XML/image review and six green CI before primary merge; agent never merges.
+
+## Stage28: alignment-aware independent horizontal-margin acceptance
+
+- Dependency/base d0dbb48efa689190d52443551d57213b20d53eab, new worktree
+  fidelity-aligned-margins/branch fix/docx-alignment-aware-print-margins. Stage27
+  passed=false and all raw/stopped worktrees frozen unchanged; not retroactively
+  reclassifying that failed result. Persist this independent plan first.
+- Reuse SAME Stage27 product code/default37CSSpx and exact runtime/CSSOM qualification,
+  not new margin values/inputs/SSIM thresholds. Report remains missing-CSS failclosed.
+- Offline all-five exact inverse: four pgMar left/right687→675; only additional
+  two contract table[1]/row[1]/gridcol0,3 vMerge continue tcW2633→2639, exact grid/
+  identity/formula; all other document bytes/parts same; report full DOCX byte same.
+- PREDECLARE image semantics from source computed CSS + DOCX jc before WPS. Left
+  requires consistent left/start source and jc=left, stable image/body-relative x;
+  center requires consistent CSS center +jc=center, symmetric pgMar and no added
+  left/right/first-line/hanging indent: absolute center and content-midline residual
+  change≤.05pt, size/y stable, browser center error no worse. Unknown/contradictory/
+  asymmetric/indented center rejected, never inferred from observed pixel success.
+- Tests: center/left positives and asymmetric/indent/unknown/contradictory negatives,
+  identity/CSSOM recursive/import/error/mode, package allowlist negatives; related
+  HTML/fidelity/Ruff/JS/format/diff. Product values identical to frozen Stage27.
+- After offline gates/tests, NEW ONE complete-five safe WPS set, empty process/
+  version probes, own-instance release/no user docs/preferences/taskkill/retry.
+  All prior semantic1/text/exact line+page assignment/pages/paper/y/left≤.10/right
+  no-worse/per-page+aggregate nonregression and manual+contract improvement remain.
+  Report all pixels same; contract relative boundaries/header/pitch/downstream y
+  invariant; images use only above predeclared alignment-aware gates.
+- Deliver source/output hashes/current qualifications/XML audit/rawPDF/DOCX/PNG/
+  geometry/report explicitly distinguishing Stage27 stop from Stage28 independent
+  acceptance. Strict F2/exceptions separate, no universal-browser claim.
+- Stop on qualification/XML/semantic/geometry/score/flow failure or no double benefit;
+  preserve raw uncommitted, no product PR/tuning/rerun. Only success English commit/
+  push/PR; primary independent diff/image review and all six green CI before primary
+  merge. Implementation agent never merges; frozen worktrees untouched.

@@ -1,0 +1,174 @@
+{
+  "A-contract-docx": {
+    "original_wps_manifest_hash_verified": true,
+    "old_wps_input_sha256": "ee563430a86295acb8ac59ad31e5c72b1b2052e64e545fb7360a1b4feec6139f",
+    "new_replay_sha256": "ee563430a86295acb8ac59ad31e5c72b1b2052e64e545fb7360a1b4feec6139f",
+    "all_package_payloads_identical": true,
+    "full_docx_bytes_identical": true,
+    "old_eligibility": true,
+    "new_eligibility": true,
+    "original_metadata_identical_except_added_source_audit": true,
+    "new_print_context": {
+      "platform": "win32",
+      "executable": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
+      "runtime": {
+        "protocolVersion": "1.3",
+        "product": "Edg/157.0.4341.60",
+        "revision": "@fbcb2989a6c61b72a4919fe1028e58e70131cd46",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.0.0 Safari/537.36 Edg/157.0.0.0",
+        "jsVersion": "15.7.11.7"
+      },
+      "cssom": {
+        "complete": true,
+        "links": [],
+        "page_rules": [],
+        "imports": [],
+        "errors": [],
+        "style_sources": {
+          "checked": true,
+          "document_adopted_count": 0,
+          "open_shadow_root_count": 0
+        }
+      }
+    }
+  },
+  "A-manual-docx": {
+    "original_wps_manifest_hash_verified": true,
+    "old_wps_input_sha256": "d11264e332502bffaa3077207fb3f775b753e3c234eb521d3a4e754f81af39a6",
+    "new_replay_sha256": "d11264e332502bffaa3077207fb3f775b753e3c234eb521d3a4e754f81af39a6",
+    "all_package_payloads_identical": true,
+    "full_docx_bytes_identical": true,
+    "old_eligibility": true,
+    "new_eligibility": true,
+    "original_metadata_identical_except_added_source_audit": true,
+    "new_print_context": {
+      "platform": "win32",
+      "executable": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
+      "runtime": {
+        "protocolVersion": "1.3",
+        "product": "Edg/157.0.4341.60",
+        "revision": "@fbcb2989a6c61b72a4919fe1028e58e70131cd46",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.0.0 Safari/537.36 Edg/157.0.0.0",
+        "jsVersion": "15.7.11.7"
+      },
+      "cssom": {
+        "complete": true,
+        "links": [],
+        "page_rules": [],
+        "imports": [],
+        "errors": [],
+        "style_sources": {
+          "checked": true,
+          "document_adopted_count": 0,
+          "open_shadow_root_count": 0
+        }
+      }
+    }
+  },
+  "A-newsletter-docx": {
+    "original_wps_manifest_hash_verified": true,
+    "old_wps_input_sha256": "a21c7472007e5ab720cadcb89164a299d7a05204022e49a2dbce571b01b22f75",
+    "new_replay_sha256": "a21c7472007e5ab720cadcb89164a299d7a05204022e49a2dbce571b01b22f75",
+    "all_package_payloads_identical": true,
+    "full_docx_bytes_identical": true,
+    "old_eligibility": true,
+    "new_eligibility": true,
+    "original_metadata_identical_except_added_source_audit": true,
+    "new_print_context": {
+      "platform": "win32",
+      "executable": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
+      "runtime": {
+        "protocolVersion": "1.3",
+        "product": "Edg/157.0.4341.60",
+        "revision": "@fbcb2989a6c61b72a4919fe1028e58e70131cd46",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.0.0 Safari/537.36 Edg/157.0.0.0",
+        "jsVersion": "15.7.11.7"
+      },
+      "cssom": {
+        "complete": true,
+        "links": [],
+        "page_rules": [],
+        "imports": [],
+        "errors": [],
+        "style_sources": {
+          "checked": true,
+          "document_adopted_count": 0,
+          "open_shadow_root_count": 0
+        }
+      }
+    }
+  },
+  "A-pdfsource-docx": {
+    "original_wps_manifest_hash_verified": true,
+    "old_wps_input_sha256": "a85b94f8b7e87bbf8ab65f534689ab846a4b1c5b20962e12829ef06e057f7961",
+    "new_replay_sha256": "a85b94f8b7e87bbf8ab65f534689ab846a4b1c5b20962e12829ef06e057f7961",
+    "all_package_payloads_identical": true,
+    "full_docx_bytes_identical": true,
+    "old_eligibility": true,
+    "new_eligibility": true,
+    "original_metadata_identical_except_added_source_audit": true,
+    "new_print_context": {
+      "platform": "win32",
+      "executable": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
+      "runtime": {
+        "protocolVersion": "1.3",
+        "product": "Edg/157.0.4341.60",
+        "revision": "@fbcb2989a6c61b72a4919fe1028e58e70131cd46",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.0.0 Safari/537.36 Edg/157.0.0.0",
+        "jsVersion": "15.7.11.7"
+      },
+      "cssom": {
+        "complete": true,
+        "links": [],
+        "page_rules": [],
+        "imports": [],
+        "errors": [],
+        "style_sources": {
+          "checked": true,
+          "document_adopted_count": 0,
+          "open_shadow_root_count": 0
+        }
+      }
+    }
+  },
+  "A-report-docx": {
+    "original_wps_manifest_hash_verified": true,
+    "old_wps_input_sha256": "e5c0e13f12fc8d0d81ab4007e6141bbff30f3618215e58855f549d7dd933ab10",
+    "new_replay_sha256": "e5c0e13f12fc8d0d81ab4007e6141bbff30f3618215e58855f549d7dd933ab10",
+    "all_package_payloads_identical": true,
+    "full_docx_bytes_identical": true,
+    "old_eligibility": false,
+    "new_eligibility": false,
+    "original_metadata_identical_except_added_source_audit": true,
+    "new_print_context": {
+      "platform": "win32",
+      "executable": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
+      "runtime": {
+        "protocolVersion": "1.3",
+        "product": "Edg/157.0.4341.60",
+        "revision": "@fbcb2989a6c61b72a4919fe1028e58e70131cd46",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.0.0 Safari/537.36 Edg/157.0.0.0",
+        "jsVersion": "15.7.11.7"
+      },
+      "cssom": {
+        "complete": false,
+        "links": [
+          {
+            "href": "file:///C:/Users/admin/Documents/wps%20cli/.codex-build/fidelity-aligned-margins/artifacts/alignment-aware-print-margins-20261121/A-report-docx/input/print.css",
+            "has_sheet": true
+          }
+        ],
+        "page_rules": [],
+        "imports": [],
+        "errors": [
+          "SecurityError: Failed to read the 'cssRules' property from 'CSSStyleSheet': Cannot access rules"
+        ],
+        "style_sources": {
+          "checked": true,
+          "document_adopted_count": 0,
+          "open_shadow_root_count": 0
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,91 @@
+{
+  "A-contract-docx": {
+    "allowed_changes": [
+      {
+        "attribute": "pgMar/left",
+        "old": 687,
+        "new": 675
+      },
+      {
+        "attribute": "pgMar/right",
+        "old": 687,
+        "new": 675
+      },
+      {
+        "attribute": "body/tbl[1]/tr[1]/tc[0]/tcW",
+        "old": 2633,
+        "new": 2639
+      },
+      {
+        "attribute": "body/tbl[1]/tr[1]/tc[3]/tcW",
+        "old": 2633,
+        "new": 2639
+      }
+    ],
+    "exact_inverse_document_bytes": true,
+    "other_parts_identical": true,
+    "full_bytes_identical": false,
+    "candidate_sha256": "0304d74aaa72d1dd093a385cffddcdb80b0f2d1a4a4795f3ee9c7218e0388de1"
+  },
+  "A-manual-docx": {
+    "allowed_changes": [
+      {
+        "attribute": "pgMar/left",
+        "old": 687,
+        "new": 675
+      },
+      {
+        "attribute": "pgMar/right",
+        "old": 687,
+        "new": 675
+      }
+    ],
+    "exact_inverse_document_bytes": true,
+    "other_parts_identical": true,
+    "full_bytes_identical": false,
+    "candidate_sha256": "89eb2fdcad3b470e7e1fe5a974ba78a56eddfee796752eda448187137f2a9fb6"
+  },
+  "A-newsletter-docx": {
+    "allowed_changes": [
+      {
+        "attribute": "pgMar/left",
+        "old": 687,
+        "new": 675
+      },
+      {
+        "attribute": "pgMar/right",
+        "old": 687,
+        "new": 675
+      }
+    ],
+    "exact_inverse_document_bytes": true,
+    "other_parts_identical": true,
+    "full_bytes_identical": false,
+    "candidate_sha256": "78ed466be218f3657237df210677e70db687c6b1b7a7547739f8b4f6424df644"
+  },
+  "A-pdfsource-docx": {
+    "allowed_changes": [
+      {
+        "attribute": "pgMar/left",
+        "old": 687,
+        "new": 675
+      },
+      {
+        "attribute": "pgMar/right",
+        "old": 687,
+        "new": 675
+      }
+    ],
+    "exact_inverse_document_bytes": true,
+    "other_parts_identical": true,
+    "full_bytes_identical": false,
+    "candidate_sha256": "2dbd71b84c8396cfb0f2771f8a0cc644ec615d9340e0ab955d4b6c5ac32c4aa1"
+  },
+  "A-report-docx": {
+    "allowed_changes": [],
+    "exact_inverse_document_bytes": true,
+    "other_parts_identical": true,
+    "full_bytes_identical": true,
+    "candidate_sha256": "39fcc45a74fdd825602a2646b7016c68d9dd353084376a9a4ba3986e513afc03"
+  }
+}
