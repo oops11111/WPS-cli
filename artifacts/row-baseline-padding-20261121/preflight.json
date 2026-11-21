@@ -1,0 +1,13 @@
+{
+  "base": "1ac049f87a286342e1162af59e69c0a00d9c5d2f",
+  "outcome": "OFFLINE_PASS_AWAITING_PRIMARY_REVIEW",
+  "baseline_sha256": "2b5e206fb74d5a73b036ab8a8e4b01b6dc98d5818599cfbabdb28579bdd0aefa",
+  "candidate_sha256": "66c21da0a93dd65679219abba9736b35067367f6865ad3d98f98775aeb538bc1",
+  "source_sha256": "cceac9bfb6a531b10cf8f4fc3ccd01e7bd97d159c099ae558f87046c639215ed",
+  "snapshot_sha256": "26f0a827e41e3d05f358c5fafea1ee15bd326597f5b923d8344426ae074c1ab2",
+  "allowlist": "12 body paragraphs: before60->53 and after45->52, sum105; exact24 attributes inverse",
+  "deterministic": true,
+  "other_parts_and_metadata_identical": true,
+  "baseline_candidate_semantics": true,
+  "wps_exports": 0
+}

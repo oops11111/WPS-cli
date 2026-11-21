@@ -1,0 +1,25 @@
+{
+  "wps_exports": 1,
+  "candidate_sha256": "66c21da0a93dd65679219abba9736b35067367f6865ad3d98f98775aeb538bc1",
+  "outcome": "STOP",
+  "versions": [
+    {
+      "path": "C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\wps.exe",
+      "file_version": "12,8,2,18913",
+      "product_version": "12,8,2,18913"
+    }
+  ],
+  "hashes": {
+    "acceptance.json": "6e655a3df623e1968237f8344bc6997a4d4ac15289320a926d5c1196be12df0c",
+    "candidate.docx": "66c21da0a93dd65679219abba9736b35067367f6865ad3d98f98775aeb538bc1",
+    "environment.json": "929d2813070a0a2452207dfd14bd50f0caeaf5095d1d6c9fa9cc79ab9264b953",
+    "export-environment.json": "929d2813070a0a2452207dfd14bd50f0caeaf5095d1d6c9fa9cc79ab9264b953",
+    "export-semantics.json": "a0bfe52bcc6294ae9ddf191e4a043a8f0d6621e67d9c777216546997aa960d82",
+    "export.json": "2af5fcc2c4e99c540986ecc879d9e80f43c87c7fdf971f9af3c4b193372643d5",
+    "preflight.json": "97debd8a5bba4517e5a01a76cbd3ae178db0f7e9556dc4571f93fe2e32775bd3",
+    "probe.json": "1e092279d232833754dd9f34f6c3d863b9f11dc29f914ae707908064419db435",
+    "semantics.json": "a0bfe52bcc6294ae9ddf191e4a043a8f0d6621e67d9c777216546997aa960d82",
+    "wps-page-001.png": "a1a6f518ef057000affc49993e28f82eff4c79fa0a6ae4b73f1579ea8fb3861f",
+    "wps.pdf": "5e2e6a554c511fa73241e56ecb2fba7d7098aced806855b1156df9517e55fef7"
+  }
+}
