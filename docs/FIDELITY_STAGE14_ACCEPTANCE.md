@@ -79,6 +79,23 @@ Archive-only -text attributes preserve source snapshot bytes on Windows checkout
 - Full Ruff lint/format and whitespace checks pass. All six CI jobs and primary
   diff/XML/image review are required before merge.
 
+## Review follow-up: ancestor layout effects
+
+The shape check also rejects ancestor inline transform/zoom/writing-mode/
+content-visibility declarations. These non-inherited effects must not enter the
+bounded mapping through an otherwise simple child shape. Focused controls retain
+expanded Summary/Body content and emit exactly one warning for each unsupported
+element. This only tightens eligibility; it does not adjust geometry.
+
+No original five-case input contains an affected ancestor. Offline reconstruction
+using the exact archived browser styles reproduces **byte-identical document.xml
+for all five generated DOCX files**, recorded in `ancestor-veto-verification.json`.
+The original single WPS set remains representative; no WPS/browser rerun or global
+setting change was made. The original acceptance source hashes remain a record
+of that actual run rather than being rewritten to imply new rendering.
+The follow-up 111 related tests pass118.975s (four existing skips), including the
+new ancestor controls; full Ruff check/format582 files and whitespace checks pass.
+
 ```powershell
 python scripts/html_docx_wps_matrix.py --out artifacts/closed-details-rerun
 # Offline assessment only, after a completed matrix:

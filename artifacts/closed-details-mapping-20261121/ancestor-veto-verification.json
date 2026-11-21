@@ -1,0 +1,30 @@
+{
+  "scope": "post-review ancestor veto; offline archived-style conversion only, no WPS rerun",
+  "cases": {
+    "A-contract-docx": {
+      "document_xml_byte_identical": true,
+      "document_xml_sha256": "08c8b25c3d1a6d289a0fbea685796ac2ff73db7e6b69f9e8697017aa2cb22259",
+      "supported_details_count": 0
+    },
+    "A-manual-docx": {
+      "document_xml_byte_identical": true,
+      "document_xml_sha256": "7d8eb1a2c21fb588e7d313bbd9a11d6c06476bb2d4ed5477cddc22953f389cef",
+      "supported_details_count": 0
+    },
+    "A-newsletter-docx": {
+      "document_xml_byte_identical": true,
+      "document_xml_sha256": "0e58ca3120a4c49dfabdbf4540993265727867179ce9252d7dd87442836bccea",
+      "supported_details_count": 0
+    },
+    "A-pdfsource-docx": {
+      "document_xml_byte_identical": true,
+      "document_xml_sha256": "2905051a98755ef4819befba13e2a640197d26d2a5fb6c2a543109f45491c168",
+      "supported_details_count": 0
+    },
+    "A-report-docx": {
+      "document_xml_byte_identical": true,
+      "document_xml_sha256": "e6e04fc98d8bf2d761e05fb181d25445e02489b6822469a6fee4e4b1d7916158",
+      "supported_details_count": 1
+    }
+  }
+}

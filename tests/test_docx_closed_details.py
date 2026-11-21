@@ -13,6 +13,18 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class ClosedDetailsTests(unittest.TestCase):
+    def test_ancestor_inline_layout_effects_preserve_expanded_content_with_one_warning(self):
+        for style in ("transform:translateY(2px)", "zoom:1.2", "writing-mode:vertical-rl"):
+            with self.subTest(style=style):
+                source, target, result = self.convert(
+                    f'<section style="{style}"><details><summary>Summary</summary><p>Body</p></details></section>'
+                )
+                document = Document(target)
+                self.assertEqual([p.text for p in document.paragraphs], ["Summary", "Body"])
+                self.assertFalse(any(r.font.hidden for p in document.paragraphs for r in p.runs))
+                warnings = [w for w in result[1]["warnings"] if "collapsed state was not preserved" in w]
+                self.assertEqual(len(warnings), 1)
+
     def convert(self, html):
         temporary = tempfile.TemporaryDirectory()
         self.addCleanup(temporary.cleanup)

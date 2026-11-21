@@ -64,6 +64,8 @@ def simple_details(node, styled):
     while ancestor is not None:
         if ancestor.tag in {"details", "table", "td", "th"}:
             return None
+        if re.search(r"(?:transform|zoom|writing-mode|content-visibility)\s*:", ancestor.attrs.get("style", ""), re.I):
+            return None
         ancestor = parents.get(id(ancestor))
     elements = [c for c in node.children if isinstance(c, _Node)]
     if len(elements) != 2 or [c.tag for c in elements] != ["summary", "p"]:
