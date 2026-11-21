@@ -9,6 +9,14 @@ m = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(m)
 
 
+def portable_hash_keys(record):
+    result = dict(record)
+    result["hashes"] = {key.replace("\\", "/"): value for key, value in record["hashes"].items()}
+    if len(result["hashes"]) != len(record["hashes"]):
+        raise ValueError("Ambiguous normalized provenance paths")
+    return result
+
+
 class VisibleResidualAuditTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -23,7 +31,17 @@ class VisibleResidualAuditTests(unittest.TestCase):
         actual.pop("versions")
         expected = dict(self.recorded)
         expected.pop("versions")
-        self.assertEqual(actual, expected)
+        self.assertEqual(portable_hash_keys(actual), portable_hash_keys(expected))
+
+    def test_only_provenance_path_separators_are_normalized(self):
+        a = {"hashes": {"artifacts\\case\\input.pdf": "exact-digest"}, "whole": 0.895}
+        b = {"hashes": {"artifacts/case/input.pdf": "exact-digest"}, "whole": 0.895}
+        self.assertEqual(portable_hash_keys(a), b)
+        self.assertNotEqual(portable_hash_keys(a), {**b, "whole": 0.896})
+        self.assertNotEqual(portable_hash_keys(a), {**b, "hashes": {"artifacts/case/input.pdf": "other-digest"}})
+        self.assertEqual(a["hashes"], {"artifacts\\case\\input.pdf": "exact-digest"})
+        with self.assertRaises(ValueError):
+            portable_hash_keys({"hashes": {"a\\b": "one", "a/b": "two"}})
 
     def test_fixed_score_and_negative_control(self):
         self.assertAlmostEqual(self.actual["whole"], 0.8950000618741911, places=12)
