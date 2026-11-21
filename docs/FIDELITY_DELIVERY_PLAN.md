@@ -74,3 +74,33 @@ authoritative status, commit/PR/run evidence, blockers and exact next action.
   or scoring exposes losses requiring unrelated conversion-direction changes.
   Historical baseline regressions exposed by honest scoring must be reported,
   never hidden by lowered thresholds or rewritten passing baselines.
+
+## Stage 4: formal five-case HTML-to-DOCX WPS evidence
+
+- Dependency: stage 3 merged at main `95f2947c2e10780067ab30749b8a4c1bf474f30b`;
+  existing HTML/test/fidelity dependencies, Playwright/Edge, WPS and writable TEMP.
+- Scope: only existing A-report/contract/newsletter/manual/pdfsource HTML-to-DOCX
+  cases, with original local CSS/images. No product changes, fixture tuning,
+  additional directions, group B or full 26-case execution.
+- Deliverables: narrow runner, focused case/gate tests, original input asset
+  hashes, generated DOCX/browser and WPS PDFs, raw JSON, per-page scores/color
+  images/pairs, versions/process probes and `FIDELITY_STAGE4_ACCEPTANCE.md`.
+- Acceptance is three separate columns: strict F2 layout >= 0.90 plus applicable
+  text/structure/formatting/data 1.0; existing decision-10 exceptions only for
+  contract >= 0.84/manual >= 0.88 with WPS and layout the only failed aspect;
+  and missing-font/renderer/version comparability limits. Known deviations are
+  not strict F2 passes. Reinspect page evidence before attributing gaps to glyphs.
+- Historical comparison: configured LibreOffice scores are reference-only; do
+  not apply their baseline-minus-0.02 rule to WPS. Show prior WPS evidence with
+  version/source caveats, without updating thresholds or configured baselines.
+- Verification: `python scripts/html_docx_wps_matrix.py --out <new-directory>`
+  (exactly five cases); `python -m unittest discover -s tests -p
+  test_html_docx_wps_matrix.py`; existing hyperlink/container/conversion tests;
+  full Ruff lint/format. All six PR CI jobs and primary-agent diff/image review
+  are required before merging the dedicated evidence PR to `main`.
+- Stop: refuse export if any WPS process is already running; never use the old
+  `_release_wps`/taskkill cleanup or close user documents. Preserve raw errors
+  for browser/WPS/credential failures. Report each strict threshold failure as
+  measured, retain decision-10 status separately, and do not change inputs,
+  installation, product behavior or tolerance to obtain acceptance. Any needed
+  product repair requires a new reviewed stage plan.
