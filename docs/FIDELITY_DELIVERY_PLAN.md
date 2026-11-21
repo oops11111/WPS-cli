@@ -817,3 +817,28 @@ authoritative status, commit/PR/run evidence, blockers and exact next action.
 - Stop on unsupported browser formula, unapproved XML difference, unsafe/export
   failure or missing text. Preserve raw evidence without tuning/retry. Failed
   verified preflight may be evidence-only PR; no WPS or product recommendation.
+
+## Stage26: isolated vertical-merge continuation width mechanism
+
+- Dependency/base3086f60def5fe46c4c353f0c6d5f766c23e8eeb2; new clean branch
+  experiment/merged-continuation-width/worktree fidelity-merged-width. Stage25
+  and every frozen worktree untouched. Plan first; no converter/source edits.
+- Sole candidate: accepted original contract payment table(second body table),
+  second row's two vMerge continuation tcW2633→710/2729twips, matching grid columns.
+  No synthetic alternatives, margin/grid/other property/content changes.
+- FIRST ZIP/XML hard gate: only those two attributes differ, physical cell/merge
+  identities asserted; all other package payloads identical and deterministic ZIP
+  bytes. Preserve source/candidate SHA and focused tests before WPS.
+- Then ONE safe candidate export vs accepted same-WPS baseline12.8.2.18913:
+  empty-process probe, own-instance release/no taskkill/preferences/user-doc closure.
+  Record native table rules/row pitches/merged header image/each cell text and
+  wrap/full contract semantics/layout/downstream coordinates/pages/hashes/version.
+- Acceptance: every semantic component1, text complete, same page count, no new
+  wrap/clipping, row pitches unchanged, downstream y within.05pt, table boundary
+  errors no worse, SSIM≥.8492. If all pixels/geometry identical, report only no
+  visible effect on this WPS version, not product fix or margin safety.
+- Stop on extra XML, version/unsafe/export failure or any text/geometry/page/
+  semantic/score regression; preserve negative evidence, no tuning/retry or margin
+  combination. Deliver deterministic runner/tests/raw DOCX/PDF/PNG/JSON/report.
+  English evidence-only commit/push/PR only verified reusable evidence, primary
+  XML/image review and six green CI before primary merge; agent never merges.

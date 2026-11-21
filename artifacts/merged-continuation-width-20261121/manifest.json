@@ -1,0 +1,31 @@
+{
+  "base": "3086f60def5fe46c4c353f0c6d5f766c23e8eeb2",
+  "baseline": "artifacts/figure-image-indent-20261121/A-contract-docx",
+  "source_sha256": "c120ceebae12e7cb6e36fdc116f3a52c4bec7cb14ec5b426c93d002d813ca44a",
+  "changes": [
+    {
+      "column": 0,
+      "before": 2633,
+      "after": 710
+    },
+    {
+      "column": 3,
+      "before": 2633,
+      "after": 2729
+    }
+  ],
+  "candidate_sha256": "211dc5f86eeba0cca5d6b047dd05ef8e7f7603192b16a37eb640a044bf022eed",
+  "wps_exports": 1,
+  "versions": [
+    {
+      "path": "C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\wps.exe",
+      "file_version": "12,8,2,18913",
+      "product_version": "12,8,2,18913"
+    }
+  ],
+  "pdf_sha256": "9cd8a7a1440b7ca3a73b0170cdd0589cff5315783cdd101389e331fc681c8c90",
+  "accepted": true,
+  "pixels_identical": true,
+  "baseline_pdf_sha256": "7137cb1611d42940fac230ff15881c1a0c7b9750b3d1c7fc6c1ad7ad6ba39cd1",
+  "candidate_png_sha256": "c6dd4b11ac4da7153dbcc78af5b51c5292959f501b6fe41524078c9027196d0b"
+}
