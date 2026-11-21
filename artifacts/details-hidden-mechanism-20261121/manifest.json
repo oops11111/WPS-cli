@@ -1,0 +1,182 @@
+{
+  "base": "5779f84c258aa1dc9690e8a88240b5f53b7b9e59",
+  "runner_sha256": "e81db784c215642414d1843b9f1cd8b8ec1a5bbfd18b72135730c6bc0dfd4e15",
+  "python": "3.13.17",
+  "pdfplumber": "0.11.10",
+  "settings": "Not queried or changed; WPS hidden display/printing preferences unknown.",
+  "cases": {
+    "V": {
+      "docx_sha256": "17cb8106b79fba58b1fd1f6e9c323627d7a8852ec062afc5a2251410b9562243",
+      "retained": [
+        "SUMMARY",
+        "RETAINED-BODY",
+        "FOLLOWING"
+      ],
+      "wps_versions": [
+        {
+          "path": "C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\wps.exe",
+          "file_version": "12,8,2,18913",
+          "product_version": "12,8,2,18913"
+        }
+      ],
+      "pdf_sha256": "0478b7ab08e5122ecf4b9f4678e4ccba3173bd2c85caee994e5068ee363960eb",
+      "pdf": {
+        "pages": 1,
+        "words": [
+          {
+            "page": 1,
+            "text": "SUMMARY",
+            "x0": 72.0,
+            "top": 78.33800000000008,
+            "x1": 133.2702,
+            "bottom": 90.33800000000008
+          },
+          {
+            "page": 1,
+            "text": "RETAINED-BODY",
+            "x0": 72.0,
+            "top": 96.33800000000008,
+            "x1": 170.70854999999995,
+            "bottom": 108.33800000000008
+          },
+          {
+            "page": 1,
+            "text": "FOLLOWING",
+            "x0": 72.0,
+            "top": 114.33800000000008,
+            "x1": 144.08115,
+            "bottom": 126.33800000000008
+          }
+        ]
+      }
+    },
+    "H": {
+      "docx_sha256": "99f49d669720a17e27cf13f770216e714966551a54a01ba2b8881a026ec91213",
+      "retained": [
+        "SUMMARY",
+        "RETAINED-BODY",
+        "FOLLOWING"
+      ],
+      "wps_versions": [
+        {
+          "path": "C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\wps.exe",
+          "file_version": "12,8,2,18913",
+          "product_version": "12,8,2,18913"
+        }
+      ],
+      "pdf_sha256": "0ac87a0ecb6e4531652564de4ca8f44b35c1e3c790cb1bcb0270bae1d1cd328f",
+      "pdf": {
+        "pages": 1,
+        "words": [
+          {
+            "page": 1,
+            "text": "SUMMARY",
+            "x0": 72.0,
+            "top": 78.33800000000008,
+            "x1": 133.2702,
+            "bottom": 90.33800000000008
+          },
+          {
+            "page": 1,
+            "text": "FOLLOWING",
+            "x0": 72.0,
+            "top": 96.33800000000008,
+            "x1": 144.08115,
+            "bottom": 108.33800000000008
+          }
+        ]
+      }
+    },
+    "P": {
+      "docx_sha256": "20fa76d64f357403da92ccc4a03f666971aaa04d97f3c9c441f433d05f2e528d",
+      "retained": [
+        "SUMMARY",
+        "RETAINED-BODY",
+        "FOLLOWING"
+      ],
+      "wps_versions": [
+        {
+          "path": "C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\wps.exe",
+          "file_version": "12,8,2,18913",
+          "product_version": "12,8,2,18913"
+        }
+      ],
+      "pdf_sha256": "7f30e877ab6a408ddbaf6bf6b2fdcd9aeca933d146ab267fbeeb259fc33cdba9",
+      "pdf": {
+        "pages": 1,
+        "words": [
+          {
+            "page": 1,
+            "text": "SUMMARY",
+            "x0": 72.0,
+            "top": 78.33800000000008,
+            "x1": 133.2702,
+            "bottom": 90.33800000000008
+          },
+          {
+            "page": 1,
+            "text": "FOLLOWING",
+            "x0": 72.0,
+            "top": 96.33800000000008,
+            "x1": 144.08115,
+            "bottom": 108.33800000000008
+          }
+        ]
+      }
+    },
+    "C": {
+      "docx_sha256": "d85209e6bef52aca2ad1792c0cbe9e4a76bfad0a789b10d1223c4109569d247c",
+      "retained": [
+        "SUMMARY",
+        "FOLLOWING"
+      ],
+      "wps_versions": [
+        {
+          "path": "C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\wps.exe",
+          "file_version": "12,8,2,18913",
+          "product_version": "12,8,2,18913"
+        }
+      ],
+      "pdf_sha256": "06425df68ad735e23afcf569d174786ff21abc945704f0ce182409c28365a8d1",
+      "pdf": {
+        "pages": 1,
+        "words": [
+          {
+            "page": 1,
+            "text": "SUMMARY",
+            "x0": 72.0,
+            "top": 78.33800000000008,
+            "x1": 133.2702,
+            "bottom": 90.33800000000008
+          },
+          {
+            "page": 1,
+            "text": "FOLLOWING",
+            "x0": 72.0,
+            "top": 96.33800000000008,
+            "x1": 144.08115,
+            "bottom": 108.33800000000008
+          }
+        ]
+      }
+    }
+  },
+  "gates": {
+    "required": {
+      "one_page_each": true,
+      "visible_control": true,
+      "closed_reference": true,
+      "H_retains": true,
+      "H_visible": true,
+      "H_following": true
+    },
+    "passed": true,
+    "P_diagnostic": {
+      "visible": [
+        "SUMMARY",
+        "FOLLOWING"
+      ],
+      "following_delta_pt": 0.0
+    }
+  }
+}

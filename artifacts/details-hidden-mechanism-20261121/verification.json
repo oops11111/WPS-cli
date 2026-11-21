@@ -1,0 +1,41 @@
+{
+  "python_docx": "1.2.0",
+  "source_report_sha256": "40f9b6732ca6f13a1f56eda36f3b8318bec35d30d2be26fcee19134c2bb832e1",
+  "cases": {
+    "V": {
+      "verified_input_output_sha256": true,
+      "underlying_text_nodes": [
+        "SUMMARY",
+        "RETAINED-BODY",
+        "FOLLOWING"
+      ],
+      "document_xml_sha256": "72cc91bd7e3f72f358c532ec902e17166064b2ebcfba68790586e3b32fba3f23"
+    },
+    "H": {
+      "verified_input_output_sha256": true,
+      "underlying_text_nodes": [
+        "SUMMARY",
+        "RETAINED-BODY",
+        "FOLLOWING"
+      ],
+      "document_xml_sha256": "09be001953016c894802769d2395b38044adbc9ed7988c2d1ab773b35deb0256"
+    },
+    "P": {
+      "verified_input_output_sha256": true,
+      "underlying_text_nodes": [
+        "SUMMARY",
+        "RETAINED-BODY",
+        "FOLLOWING"
+      ],
+      "document_xml_sha256": "f9b5d8a131811f769a5e6a3f959f3b94a6ac3780b94fb7243149579c1ce01556"
+    },
+    "C": {
+      "verified_input_output_sha256": true,
+      "underlying_text_nodes": [
+        "SUMMARY",
+        "FOLLOWING"
+      ],
+      "document_xml_sha256": "a2a0162dde1ef31fec55275f88bc3f59141223055e057acba6f73a0729d822fe"
+    }
+  }
+}

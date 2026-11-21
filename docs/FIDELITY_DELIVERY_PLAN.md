@@ -313,3 +313,74 @@ authoritative status, commit/PR/run evidence, blockers and exact next action.
   an evidence-only English Conventional Commit/PR to main by this same continuing
   agent. Primary-agent code/XML/image review plus all six CI jobs green before
   merge. Any product repair needs a subsequent separately reviewed plan.
+
+## Stage 13: closed-details retained-text mechanism experiment
+
+- Dependency/base: exact merged main
+  `5779f84c258aa1dc9690e8a88240b5f53b7b9e59`, clean separate worktree
+  `.codex-build/fidelity-details`, branch `docs/report-details-triage`. Preserve
+  frozen stage6/10/12 worktrees and all original report/evidence bytes. Source
+  report details has no open attribute; existing browser PDF shows summary only,
+  but DOCX/WPS shows summary plus body. Existing semantic scoring retains text
+  without testing visibility. This stage is plan-only pending review.
+- Scope: synthetic DOCX only, no HTML conversion or product/scorer change.
+  Build deterministic packages with A4 page, fixed1inch margins, explicit12pt
+  font, exact18pt paragraph pitch and zero paragraph before/after. Use unique
+  ASCII sentinels SUMMARY, RETAINED-BODY and FOLLOWING to avoid ambiguity in PDF
+  extraction; this isolates hiding/paragraph behavior rather than CJK/font/layout
+  reproduction. No triangle marker, interactive controls or original report edit.
+- Exact four predeclared controls:
+  V: visible SUMMARY paragraph, visible RETAINED-BODY paragraph, FOLLOWING paragraph;
+  H: SUMMARY and RETAINED-BODY in separate runs of one paragraph, with w:vanish
+  on body run only; then FOLLOWING paragraph;
+  P: V with w:vanish on body run and on body paragraph-mark rPr;
+  C: SUMMARY paragraph then FOLLOWING paragraph, no body, as closed-layout-only
+  reference (intentionally does not retain content and cannot be product output).
+  V is the visible/open-state reference; no fifth duplicate open control is needed.
+  Preserve sections/styles/fonts/relationships and other package parts across
+  controls; record exact document.xml changes. Use stable ZIP order/metadata and
+  fixed package properties so regeneration yields identical bytes/SHA-256.
+- Safe execution after approval: exactly one sequential four-export WPS set,
+  record process/version probe before each case; existing process or failed probe
+  stops before COM. Use existing converter with120s timeout and release only its
+  own document/instance. No taskkill, user-instance attachment or document closure,
+  installation/font changes, HTML/browser render, retries or tuning reruns.
+  Do not modify application global hidden-text/printing preferences. Record any
+  safely queryable setting only through the owned export instance; if unavailable,
+  report unknown rather than attach elsewhere or expand the converter.
+- Deliverables: narrow deterministic builder/offline XML/package tests and opt-in
+  WPS runner; four DOCX/PDF/page images, source/script/package/output SHA/version/
+  raw probe/export records and vector/text coordinates. Report retained underlying
+  text separately from visible PDF text and spacing; include limitations and any
+  failed controls. Original report stays untouched and is not newly rendered.
+- Tests: V/H/P retain each sentinel exactly once in underlying document XML;
+  C deliberately lacks body. H hides only body run and creates no body paragraph;
+  P additionally hides its paragraph mark, preserving its physical paragraph;
+  V has no hidden text. Assert exact declared XML differences, identical unrelated
+  package parts, deterministic regeneration, correct page/font/spacing settings.
+  Run focused tests, full Ruff/format and whitespace checks; no renderer in tests.
+- Mechanism acceptance: all cases export to one page; V PDF contains all three
+  sentinels in order, C contains SUMMARY/FOLLOWING only. H/P must preserve body
+  in DOCX yet omit it from PDF. Measure SUMMARY/FOLLOWING text tops/baselines:
+  H FOLLOWING must match C within0.05pt to establish no hidden-body flow footprint.
+  P is a diagnostic: record its FOLLOWING offset from C and any blank line as its
+  own result; P need not pass and its spacing must not be altered. H must satisfy
+  retained-text plus visible/layout gates for a
+  grounded simple closed-details candidate. This is not report F2 acceptance,
+  not an accessibility result and not HTML interaction support.
+- Uncertainty/counterevidence: OOXML vanish normally hides runs, but applications
+  can force display and printing of hidden text; WPS support/settings are not
+  assumed. A successful default-host result does not prove other hosts/settings,
+  screen-reader behavior, nested/complex details, editable recovery UI or roundtrip
+  semantics. No metadata/comments workaround or scorer threshold change may be
+  introduced to mask failure. A later product plan needs explicit visibility and
+  retained-content checks in addition to existing semantic scores.
+- Stop: unsafe/unavailable WPS, source/package scope drift, failed export, absent
+  sentinels, unreliable PDF extraction, H fails hidden-text/layout gates, need for
+  global preference changes or extra variants. Preserve complete raw evidence,
+  state negative/unknown conclusions and report before expansion. Expected P
+  paragraph-flow failure alone is informative, not permission to tune it.
+- Integration: verified reusable positive/negative mechanism evidence may form
+  an evidence-only English Conventional Commit/push/PR to main by this same agent;
+  primary-agent XML/image review plus all six CI jobs green before merge. No
+  product fix or subsequent experiment is authorized by this evidence stage.
