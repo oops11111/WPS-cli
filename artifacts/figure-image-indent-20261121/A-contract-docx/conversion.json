@@ -1,0 +1,34 @@
+[
+  true,
+  {
+    "input_path": "artifacts/figure-image-indent-20261121/A-contract-docx/input/contract.html",
+    "output_path": "artifacts/figure-image-indent-20261121/A-contract-docx/converted.docx",
+    "bytes": 38641,
+    "sha256": "c120ceebae12e7cb6e36fdc116f3a52c4bec7cb14ec5b426c93d002d813ca44a",
+    "backend": "python-docx-semantic-mapping",
+    "editable": true,
+    "mapped_objects": {
+      "paragraphs": 4,
+      "headings": 5,
+      "lists": 5,
+      "tables": 3,
+      "images": 0
+    },
+    "unsupported_css": [],
+    "warnings": [],
+    "fidelity": "editable",
+    "style_source": "browser",
+    "applied_styles": [
+      "cell borders",
+      "cell shading",
+      "character",
+      "column widths",
+      "paragraph"
+    ],
+    "source_encoding": "utf-8",
+    "javascript_executed": false,
+    "remote_resources_fetched": false,
+    "roundtrip_bookmarks": 0
+  },
+  []
+]

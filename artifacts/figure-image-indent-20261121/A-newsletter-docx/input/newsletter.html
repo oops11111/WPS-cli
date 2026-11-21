@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>研发月刊 第 10 期</title>
+<style>
+  body { font-family: "Microsoft YaHei", "Noto Sans CJK SC", sans-serif; font-size: 11pt; }
+  h1 { color: #1f4e79; font-size: 24pt; border-bottom: 2px solid #1f4e79; }
+  h2 { color: #2e75b6; }
+  .lead { font-size: 13pt; color: #404040; }
+  .tag { background: #fff2cc; padding: 0 4px; }
+  blockquote { border-left: 4px solid #2e75b6; color: #555; margin-left: 0; padding-left: 12px; }
+  figure { text-align: center; }
+  figcaption { font-size: 9pt; color: #777; }
+</style>
+</head>
+<body>
+<h1>研发月刊 第 10 期</h1>
+<p class="lead">本期聚焦<span class="tag">性能优化</span>与<span class="tag">新人培养</span>两大主题。</p>
+<h2>头条：查询延迟下降 63%</h2>
+<p>经过两个迭代的优化，核心查询的 P99 延迟从 <strong>820 ms</strong> 降至 <strong>300 ms</strong>，主要手段包括：</p>
+<ul>
+  <li>引入列式缓存，命中率达到 <em>92%</em>；</li>
+  <li>重写热点 SQL，减少 N+1 查询；</li>
+  <li>连接池参数按负载自动调整。</li>
+</ul>
+<figure>
+  <img src="chart.png" alt="延迟趋势" width="320">
+  <figcaption>图 1 近六个月 P99 延迟（ms）</figcaption>
+</figure>
+<blockquote>“性能不是一次性的工作，而是持续的习惯。”——架构组</blockquote>
+<h2>新人园地</h2>
+<p>十月共有 <span style="color:#00b050;font-weight:bold">7 位</span>新同事加入，导师制覆盖率 100%。H<sub>2</sub>O 小组完成了首个 E = mc<sup>2</sup> 主题分享。</p>
+<p>欢迎投稿：<a href="mailto:news@example.com">news@example.com</a></p>
+</body>
+</html>

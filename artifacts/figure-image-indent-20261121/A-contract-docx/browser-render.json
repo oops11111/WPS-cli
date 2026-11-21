@@ -1,0 +1,24 @@
+[
+  true,
+  {
+    "input_path": "artifacts/figure-image-indent-20261121/A-contract-docx/input/contract.html",
+    "output_path": "artifacts/figure-image-indent-20261121/A-contract-docx/browser.pdf",
+    "format": "pdf",
+    "bytes": 104224,
+    "sha256": "786e4a68cb356c6f61dc3a501a5df9fcfd330ab2f24d2b4d09fbdca8aecfc9a5",
+    "backend": "playwright-edge",
+    "page_size": "A4",
+    "viewport": {
+      "width": 1280,
+      "height": 900
+    },
+    "javascript_enabled": false,
+    "network_access": false,
+    "websocket_blocked": true,
+    "resource_root": "artifacts/figure-image-indent-20261121/A-contract-docx/input",
+    "browser": "157.0.4341.60",
+    "page_title": "技术服务合同",
+    "document_height": 900
+  },
+  []
+]

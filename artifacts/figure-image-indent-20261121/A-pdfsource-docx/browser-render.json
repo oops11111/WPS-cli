@@ -1,0 +1,24 @@
+[
+  true,
+  {
+    "input_path": "artifacts/figure-image-indent-20261121/A-pdfsource-docx/input/pdf_source.html",
+    "output_path": "artifacts/figure-image-indent-20261121/A-pdfsource-docx/browser.pdf",
+    "format": "pdf",
+    "bytes": 91083,
+    "sha256": "62fa7e2c0d32b5363f7c8c99fd2b14e7eae4a25dd94dcf00318295adcae430c8",
+    "backend": "playwright-edge",
+    "page_size": "A4",
+    "viewport": {
+      "width": 1280,
+      "height": 900
+    },
+    "javascript_enabled": false,
+    "network_access": false,
+    "websocket_blocked": true,
+    "resource_root": "artifacts/figure-image-indent-20261121/A-pdfsource-docx/input",
+    "browser": "157.0.4341.60",
+    "page_title": "供应商评估报告",
+    "document_height": 900
+  },
+  []
+]

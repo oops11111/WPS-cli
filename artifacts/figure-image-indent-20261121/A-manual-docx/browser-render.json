@@ -1,0 +1,24 @@
+[
+  true,
+  {
+    "input_path": "artifacts/figure-image-indent-20261121/A-manual-docx/input/manual.html",
+    "output_path": "artifacts/figure-image-indent-20261121/A-manual-docx/browser.pdf",
+    "format": "pdf",
+    "bytes": 78422,
+    "sha256": "b59f70be4ac79de80d022cd9c84c2c169369bf1b573927128143c2a010219bd1",
+    "backend": "playwright-edge",
+    "page_size": "A4",
+    "viewport": {
+      "width": 1280,
+      "height": 900
+    },
+    "javascript_enabled": false,
+    "network_access": false,
+    "websocket_blocked": true,
+    "resource_root": "artifacts/figure-image-indent-20261121/A-manual-docx/input",
+    "browser": "157.0.4341.60",
+    "page_title": "部署手册",
+    "document_height": 900
+  },
+  []
+]
