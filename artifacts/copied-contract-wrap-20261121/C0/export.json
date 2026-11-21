@@ -1,0 +1,15 @@
+[
+  true,
+  {
+    "input_path": "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\fidelity-contract-wrap\\artifacts\\copied-contract-wrap-20261121\\C0\\input.docx",
+    "output_path": "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\fidelity-contract-wrap\\artifacts\\copied-contract-wrap-20261121\\C0\\wps.pdf",
+    "format": "pdf",
+    "backend": "powershell-com",
+    "component": "writer",
+    "prog_id": "kwps.Application",
+    "format_code": null,
+    "conversion_method": "ExportAsFixedFormat",
+    "warnings": []
+  },
+  []
+]
