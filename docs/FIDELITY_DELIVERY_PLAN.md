@@ -104,3 +104,44 @@ authoritative status, commit/PR/run evidence, blockers and exact next action.
   measured, retain decision-10 status separately, and do not change inputs,
   installation, product behavior or tolerance to obtain acceptance. Any needed
   product repair requires a new reviewed stage plan.
+
+## Stage 5: vertical-merged contract cell borders and shading
+
+- Dependency/base: stage 4 PR #159 merged with all six CI jobs green; exact main
+  `edefb7a885dd32af92eeb84bf499f29a9b75e612`. Work in the existing isolated
+  worktree on a dedicated branch. This section is submitted for review before
+  any product edit, test or WPS run; implementation needs primary-agent go-ahead.
+- Acceptance source: stage-4 contract WPS comparison and existing DOCX XML.
+  The two vertically merged fee-table headers have styled restart cells but
+  continuation cells without explicit borders/shading. `apply_table` skips the
+  covered HTML grid slots after merges. This is a testable defect hypothesis,
+  not a claim that it explains the whole 0.8491 layout score.
+- Scope: merged-cell physical `w:tc` border/shading mapping in `docx_styling.py`;
+  `html_editable.py` only if passing the existing merge rectangles is necessary;
+  focused regression tests, changelog and same-input evidence. Do not change
+  column widths, row heights, pagination, glyphs, signing-block spacing, other
+  conversion directions, original fixtures/assets, thresholds or baselines.
+- Deliverables: correct perimeter borders on vertical merge restart/continuation
+  cells (continuous exterior edges, no interior horizontal seams), consistent
+  shading, no duplicate `tcBorders`/`shd`, unchanged text and merge structure.
+  Tests inspect physical `tr/tc` XML rather than `table.cell` origin aliases.
+- Verification after approval: first reproduce missing continuation formatting;
+  `python -m unittest discover -s tests -p test_docx_merged_cell_borders.py`,
+  with simple rowspan, combined rowspan/colspan and unmerged controls; existing
+  HTML/editable/conversion/hyperlink/container regressions; full Ruff lint/format
+  and diff whitespace checks. No test or WPS execution during plan review.
+- WPS acceptance after approval: reuse original `contract.html` bytes in a new
+  evidence directory, retaining input/output SHA-256, versions/probes, DOCX,
+  Edge/WPS PDFs, full-page and fixed fee-table-region color comparisons and
+  per-page SSIM. Verify continuous merged-header perimeter, complete shading,
+  no extra internal line, semantic text/structure/formatting/data 1.0 and 1/1
+  pages. Record the whole-case score against stage-4 0.8491 without changing the
+  strict 0.90 or existing decision-10 floor 0.84. A remaining strict failure is
+  still a failure; local border repair is not whole-case high-fidelity acceptance.
+- Integration: one English Conventional Commit and dedicated PR to `main`;
+  all six CI jobs green plus primary-agent diff/XML/image review before merge.
+- Stop: hypothesis cannot be reproduced, WPS/browser/credentials unavailable,
+  border/shading remains wrong, semantic loss or new visual/score regression,
+  or repair requires unrelated layout changes. Preserve raw evidence and report
+  before revising scope. Never tune inputs/tolerances, change the installation,
+  terminate user processes or close user documents to obtain a pass.

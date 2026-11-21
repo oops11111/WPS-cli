@@ -6,6 +6,9 @@ All notable changes to `wps-ai-agent-cli`. The versioning rule and release steps
 
 ### Fixed
 
+- HTML to DOCX keeps perimeter borders and explicit shading on physical
+  continuation cells in vertical table merges, without drawing internal seams.
+
 - HTML to DOCX applies computed font, size, color and inline styles to hyperlink
   runs. Fidelity scoring now reads hyperlink runs in body, tables and page
   headers/footers and reports missing styled runs instead of silently passing them.
