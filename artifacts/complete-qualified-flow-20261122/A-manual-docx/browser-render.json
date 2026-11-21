@@ -1,0 +1,24 @@
+[
+  true,
+  {
+    "input_path": "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\fidelity-complete-flow\\artifacts\\complete-qualified-flow-20261122\\A-manual-docx\\input\\manual.html",
+    "output_path": "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\fidelity-complete-flow\\artifacts\\complete-qualified-flow-20261122\\A-manual-docx\\browser.pdf",
+    "format": "pdf",
+    "bytes": 78422,
+    "sha256": "0fa5d7d7295e8d7b65a50ae56f6b326b9ede8b9365a744508186201211345b99",
+    "backend": "playwright-edge",
+    "page_size": "A4",
+    "viewport": {
+      "width": 1280,
+      "height": 900
+    },
+    "javascript_enabled": false,
+    "network_access": false,
+    "websocket_blocked": true,
+    "resource_root": "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\fidelity-complete-flow\\artifacts\\complete-qualified-flow-20261122\\A-manual-docx\\input",
+    "browser": "157.0.4341.60",
+    "page_title": "部署手册",
+    "document_height": 900
+  },
+  []
+]

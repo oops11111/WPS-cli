@@ -1,0 +1,15 @@
+[
+  true,
+  {
+    "input_path": "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\fidelity-complete-flow\\artifacts\\complete-qualified-flow-20261122\\A-contract-docx\\candidate.docx",
+    "output_path": "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\fidelity-complete-flow\\artifacts\\complete-qualified-flow-20261122\\A-contract-docx\\wps.pdf",
+    "format": "pdf",
+    "backend": "powershell-com",
+    "component": "writer",
+    "prog_id": "kwps.Application",
+    "format_code": null,
+    "conversion_method": "ExportAsFixedFormat",
+    "warnings": []
+  },
+  []
+]

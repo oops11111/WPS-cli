@@ -1,0 +1,26 @@
+{
+  "attempts": [
+    {
+      "previous": "49",
+      "node": "51",
+      "accepted": true
+    },
+    {
+      "previous": "52",
+      "node": "55",
+      "accepted": true
+    }
+  ],
+  "hits": [
+    {
+      "previous": "49",
+      "node": "51",
+      "accepted": true
+    },
+    {
+      "previous": "52",
+      "node": "55",
+      "accepted": true
+    }
+  ]
+}

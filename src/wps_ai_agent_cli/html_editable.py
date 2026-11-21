@@ -877,11 +877,11 @@ def convert_html_editable(
             for child in nested:
                 add_list(child, level + 1)
 
-    def add_table(node: _Node) -> None:
+    def add_table(node: _Node) -> bool:
         grid, merges = table_grid(node)
         columns = len(grid[0]) if grid else 0
         if not grid or not columns:
-            return
+            return False
         for caption in (c for c in node.children if isinstance(c, _Node) and c.tag == "caption"):
             if _text(caption):
                 add_paragraph(caption, "Caption")
@@ -920,9 +920,10 @@ def convert_html_editable(
             for extra in merged.paragraphs[len(text_paragraphs) :]:
                 if not extra.text:
                     extra._p.getparent().remove(extra._p)
-        docx_styling.apply_table(table, node, grid, rows, context, page_width_px, merges=merges)
+        compensated = docx_styling.apply_table(table, node, grid, rows, context, page_width_px, merges=merges)
         docx_styling.apply_table_spacing(table, node, context)
         counts["tables"] += 1
+        return compensated
 
     def add_inline_run(container: _Node, pending: list[_Node | str], *, first: bool, last: bool) -> None:
         """Text and inline elements (a, span, b, code...) that sit directly in a block container, as one paragraph."""
@@ -942,8 +943,12 @@ def convert_html_editable(
     def add_blocks(container: _Node, list_style: str | None = None) -> None:
         pending: list[_Node | str] = []
         start = len(document._element.body)
+        compensated_flow = False
+        previous_p = None
         for node in container.children:
             if isinstance(node, str) or node.tag in _INLINE:
+                if not isinstance(node, str) or node.strip():
+                    compensated_flow, previous_p = False, None
                 pending.append(node)
                 continue
             if pending:
@@ -951,6 +956,24 @@ def convert_html_editable(
                 pending = []
             tag = node.tag
             role = docx_styling.page_role(node)
+            boundary = False
+            ordinary = (
+                container.tag == "body"
+                and not role
+                and bool(_text(node))
+                and docx_styling.qualified_flow_block(context, node, ancestors(node))
+            )
+            if not ordinary:
+                compensated_flow, previous_p = False, None
+            elif compensated_flow and previous_p is not None:
+                prior_node, prior_paragraph = previous_p
+                after = prior_paragraph.paragraph_format.space_after
+                boundary = docx_styling.qualified_margin_boundary(
+                    context, prior_node, node, ancestors(node), after.pt if after is not None else None
+                )
+                if node.tag == "h2" and not boundary:
+                    compensated_flow = False
+            previous_p = None
             if role:
                 part = document.sections[0].header if role == "header" else document.sections[0].footer
                 blocks = [c for c in node.children if isinstance(c, _Node) and _text(c)] or [node]
@@ -964,7 +987,9 @@ def convert_html_editable(
             if tag in _HEADINGS:
                 if _text(node):
                     paragraph = document.add_heading(level=_HEADINGS[tag])
-                    docx_styling.apply_paragraph(paragraph, node, ancestors(node), context)
+                    docx_styling.apply_paragraph(
+                        paragraph, node, ancestors(node), context, native_margin_boundary=boundary
+                    )
                     add_bookmark(paragraph._p, node.attrs.get("data-wps-object-id", ""))
                     add_text_with_links(paragraph, node)
                     trim(paragraph)
@@ -981,12 +1006,15 @@ def convert_html_editable(
                     holder = parents.get(id(node))
                     if style is None and holder is not None and holder.tag == "blockquote":
                         style = "Quote"
-                    add_paragraph(node, style)
+                    paragraph = add_paragraph(node, style)
+                    if compensated_flow and ordinary and tag == "p":
+                        previous_p = (node, paragraph)
                     counts["paragraphs"] += 1
             elif tag in {"ul", "ol"}:
                 add_list(node)
             elif tag == "table":
-                add_table(node)
+                applied_compensation = add_table(node)
+                compensated_flow = container.tag == "body" and applied_compensation is True
             elif tag == "img":
                 add_image(node)
             elif tag == "hr":
