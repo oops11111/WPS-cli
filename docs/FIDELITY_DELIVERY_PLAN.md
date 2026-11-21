@@ -601,3 +601,53 @@ authoritative status, commit/PR/run evidence, blockers and exact next action.
   evidence-only English Conventional Commit/push/PR to main by the same agent;
   primary XML/image review and all six CI jobs green before merge. A product
   mapping or broader experiment needs a separately reviewed plan afterward.
+
+## Stage 17: inline DrawingML marker mechanism
+
+- Dependency/base: stage16 PR #167 merged with six green CI jobs; exact main
+  `9a33efd851b4e00bca3d21d8ec600518828cf637`, isolated branch
+  `docs/inline-summary-marker-mechanism`. Frozen stage6/10/12 remain untouched.
+  Primary agent reviewed and authorized this plan before implementation.
+- Scope: synthetic DOCX only, no product/browser/scorer/report/fixture/baseline
+  changes. Native wp:inline/a:graphicData(wps namespace)/wps:wsp/a:custGeom,
+  black fill/no stroke, MCE Choice requiring wps and no picture/text fallback.
+  No VML/numbering/font glyph/anchor offsets/run raise-lower/literal gap text.
+- Six fixed controls C12/I12/G12/C18/I18/G18: A4/1inch margins/Arial S,
+  exact1.5S paragraph pitch and zero margins. SUMMARY plus vanished RETAINED-BODY
+  in first paragraph, FOLLOWING in second. C has no drawing. I inline extent
+  .66S square, path6600x6600; G extent1.06S by.66S, path10600x6600. Both use
+  path points(0,0),(5676,3300),(0,6600), yielding identical physical triangle
+  width.5676S/height.66S. G's extra.4S canvas is the source UA gap, not a pixel
+  offset. Shape transform origin0, extent equals wp extent, effectExtent0;
+  quantize once to EMU. Marker run font S matches SUMMARY. No additional variants.
+- Grounding: reuse stage15 PDF geometry and the documented Chromium .66em symbol/
+  .4em gap; no new browser run required. Native inline flow and custom geometry:
+  https://learn.microsoft.com/en-us/openspecs/office_standards/ms-odrawxml/1ba79d37-c640-41dc-ba4e-9180ed31651e
+  and https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.drawing.customgeometry?view=openxml-3.0.1.
+  These establish a representation, not WPS support or inside-wrap fidelity.
+- Deliverables: deterministic builder/opt-in runner and focused tests; six
+  DOCX/PDF/page images, source/script/package/output SHA, tool and actual WPS
+  executable versions, per-case probes/exports, vector vertices/bounds and text
+  x/top/baselines, retained/visible text and explicit required-gate report.
+- Tests: stable ZIP/properties, only document.xml changes, unrelated parts equal;
+  C zero/I/G one drawing, valid MCE/IDs/namespaces/path/fill/extents, no fallback,
+  numPr/VML/glyph/tab/extra text. Exact retained sentinels/hidden body and scaling;
+  negative gate controls for absent/wrong vector, advance, y and body leaks.
+  Focused tests plus full Ruff/format and whitespace checks precede WPS.
+- Real execution: exactly one sequential six-export set, pre-case empty-process
+  and executable/version probes, normal120s timeout, converter-owned instance
+  release only. Never change global hidden/print preferences, taskkill or attach
+  to/close user documents. No tuning retry or browser/HTML conversion.
+- Required acceptance at BOTH sizes: all six1page, SUMMARY/FOLLOWING visible and
+  body retained once/hidden in DOCX but absent in PDF. I/G each produce measurable
+  filled right triangle, width/height and marker left relative C text-left within
+  .10pt of predictions, marker bottom relative SUMMARY baseline within.10pt;
+  native text advances I=.66S/G=1.06S within.10pt and G-I=.4S within.10pt.
+  SUMMARY/FOLLOWING y changes from C at most.05pt. No original-report F2,
+  inside-wrap, RTL, interaction/accessibility or cross-settings claim.
+- Stop: any required gate failure, missing/ignored/raster-unmeasurable shape,
+  unsafe process/export failure or need for offset/glyph/variant/environment
+  changes. Preserve raw evidence and stop without retry/product recommendation.
+  Verified negative evidence may be an evidence-only PR, never a product fix.
+- Integration: same continuing agent, English Conventional Commit/push/PR to main,
+  primary XML/image review and six green CI jobs before merge; agent never merges.

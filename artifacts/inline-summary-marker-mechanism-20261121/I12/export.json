@@ -1,0 +1,15 @@
+[
+  true,
+  {
+    "input_path": "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\fidelity-details\\artifacts\\inline-summary-marker-mechanism-20261121\\I12\\input.docx",
+    "output_path": "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\fidelity-details\\artifacts\\inline-summary-marker-mechanism-20261121\\I12\\wps.pdf",
+    "format": "pdf",
+    "backend": "powershell-com",
+    "component": "writer",
+    "prog_id": "kwps.Application",
+    "format_code": null,
+    "conversion_method": "ExportAsFixedFormat",
+    "warnings": []
+  },
+  []
+]

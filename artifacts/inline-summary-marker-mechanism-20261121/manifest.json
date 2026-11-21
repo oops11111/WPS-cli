@@ -1,0 +1,573 @@
+{
+  "base": "9a33efd851b4e00bca3d21d8ec600518828cf637",
+  "runner_sha256": "dd6cb1dfad53362f988b4d18324dd8421dae35ef94ec44fbe44642ab49d74715",
+  "python": "3.13.17",
+  "pdfplumber": "0.11.10",
+  "python_docx": "1.2.0",
+  "settings": "Unqueried and unchanged",
+  "cases": {
+    "C12": {
+      "docx_sha256": "10a151153582831c7af2f55b7c2e81a902b267a7638f25c81b6b62f061d906e7",
+      "retained": [
+        "SUMMARY",
+        "RETAINED-BODY",
+        "FOLLOWING"
+      ],
+      "hidden_xml": true,
+      "wps_versions": [
+        {
+          "path": "C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\wps.exe",
+          "file_version": "12,8,2,18913",
+          "product_version": "12,8,2,18913"
+        }
+      ],
+      "pdf_sha256": "7c8031a96e7a3bd43aa5f72fdb9a3963a55e0be0f8c538bd6435283d34e13c95",
+      "pdf": {
+        "pages": 1,
+        "words": [
+          {
+            "text": "SUMMARY",
+            "x0": 72.0,
+            "x1": 133.2702,
+            "top": 78.33800000000008,
+            "bottom": 90.33800000000008
+          },
+          {
+            "text": "FOLLOWING",
+            "x0": 72.0,
+            "x1": 144.08115,
+            "top": 96.33800000000008,
+            "bottom": 108.33800000000008
+          }
+        ],
+        "vectors": [],
+        "summary_baseline": 86.45000000000005,
+        "images": 0
+      }
+    },
+    "I12": {
+      "docx_sha256": "de91b72956101038ec92175f85bae0fd35af89fd2692ff7f62b9dab8b9c8f001",
+      "retained": [
+        "SUMMARY",
+        "RETAINED-BODY",
+        "FOLLOWING"
+      ],
+      "hidden_xml": true,
+      "wps_versions": [
+        {
+          "path": "C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\wps.exe",
+          "file_version": "12,8,2,18913",
+          "product_version": "12,8,2,18913"
+        }
+      ],
+      "pdf_sha256": "da77d823b47aa5a1df4a052cca90e86da7bed2f083e09788551ed804ff892d8a",
+      "pdf": {
+        "pages": 1,
+        "words": [
+          {
+            "text": "SUMMARY",
+            "x0": 79.92,
+            "x1": 141.1902,
+            "top": 78.33800000000008,
+            "bottom": 90.33800000000008
+          },
+          {
+            "text": "FOLLOWING",
+            "x0": 72.0,
+            "x1": 144.08115,
+            "top": 96.33800000000008,
+            "bottom": 108.33800000000008
+          }
+        ],
+        "vectors": [
+          {
+            "x0": 72.0,
+            "x1": 78.794,
+            "top": 78.5,
+            "bottom": 86.39999999999998,
+            "pts": [
+              [
+                72.0,
+                78.5
+              ],
+              [
+                78.794,
+                82.45000000000005
+              ],
+              [
+                72.0,
+                86.39999999999998
+              ],
+              [
+                72.0,
+                78.5
+              ]
+            ],
+            "path": [
+              [
+                "m",
+                [
+                  72.0,
+                  78.5
+                ]
+              ],
+              [
+                "l",
+                [
+                  78.794,
+                  82.45000000000005
+                ]
+              ],
+              [
+                "l",
+                [
+                  72.0,
+                  86.39999999999998
+                ]
+              ],
+              [
+                "l",
+                [
+                  72.0,
+                  78.5
+                ]
+              ]
+            ],
+            "fill": true,
+            "stroke": false,
+            "non_stroking_color": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        ],
+        "summary_baseline": 86.45000000000005,
+        "images": 0
+      }
+    },
+    "G12": {
+      "docx_sha256": "5bc11af59f357eebd77d20df88daa46690c24687a414b75dd5a7f6e746e240d3",
+      "retained": [
+        "SUMMARY",
+        "RETAINED-BODY",
+        "FOLLOWING"
+      ],
+      "hidden_xml": true,
+      "wps_versions": [
+        {
+          "path": "C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\wps.exe",
+          "file_version": "12,8,2,18913",
+          "product_version": "12,8,2,18913"
+        }
+      ],
+      "pdf_sha256": "e58c1bd03b007d2336c0c696d46ecccdff6361b427e1c473bbffa8178c00e819",
+      "pdf": {
+        "pages": 1,
+        "words": [
+          {
+            "text": "SUMMARY",
+            "x0": 84.72,
+            "x1": 145.9902,
+            "top": 78.33800000000008,
+            "bottom": 90.33800000000008
+          },
+          {
+            "text": "FOLLOWING",
+            "x0": 72.0,
+            "x1": 144.08115,
+            "top": 96.33800000000008,
+            "bottom": 108.33800000000008
+          }
+        ],
+        "vectors": [
+          {
+            "x0": 72.0,
+            "x1": 78.8,
+            "top": 78.5,
+            "bottom": 86.39999999999998,
+            "pts": [
+              [
+                72.0,
+                78.5
+              ],
+              [
+                78.8,
+                82.45000000000005
+              ],
+              [
+                72.0,
+                86.39999999999998
+              ],
+              [
+                72.0,
+                78.5
+              ]
+            ],
+            "path": [
+              [
+                "m",
+                [
+                  72.0,
+                  78.5
+                ]
+              ],
+              [
+                "l",
+                [
+                  78.8,
+                  82.45000000000005
+                ]
+              ],
+              [
+                "l",
+                [
+                  72.0,
+                  86.39999999999998
+                ]
+              ],
+              [
+                "l",
+                [
+                  72.0,
+                  78.5
+                ]
+              ]
+            ],
+            "fill": true,
+            "stroke": false,
+            "non_stroking_color": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        ],
+        "summary_baseline": 86.45000000000005,
+        "images": 0
+      }
+    },
+    "C18": {
+      "docx_sha256": "26c5c28b1a6690d62c380ee65438ee59da52bc6dff4977f14486452cea538777",
+      "retained": [
+        "SUMMARY",
+        "RETAINED-BODY",
+        "FOLLOWING"
+      ],
+      "hidden_xml": true,
+      "wps_versions": [
+        {
+          "path": "C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\wps.exe",
+          "file_version": "12,8,2,18913",
+          "product_version": "12,8,2,18913"
+        }
+      ],
+      "pdf_sha256": "e9d6c33549b74ad4836cf11ea0eb4c2212a39891c227fef93321265f33953f34",
+      "pdf": {
+        "pages": 1,
+        "words": [
+          {
+            "text": "SUMMARY",
+            "x0": 72.0,
+            "x1": 163.9068,
+            "top": 81.48199999999997,
+            "bottom": 99.48199999999997
+          },
+          {
+            "text": "FOLLOWING",
+            "x0": 72.0,
+            "x1": 180.06345,
+            "top": 108.48199999999997,
+            "bottom": 126.48199999999997
+          }
+        ],
+        "vectors": [],
+        "summary_baseline": 93.64999999999998,
+        "images": 0
+      }
+    },
+    "I18": {
+      "docx_sha256": "20c59058cca851751b2d932c8904d7c79da49c2188cac7eaeed7c8ff3c757488",
+      "retained": [
+        "SUMMARY",
+        "RETAINED-BODY",
+        "FOLLOWING"
+      ],
+      "hidden_xml": true,
+      "wps_versions": [
+        {
+          "path": "C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\wps.exe",
+          "file_version": "12,8,2,18913",
+          "product_version": "12,8,2,18913"
+        }
+      ],
+      "pdf_sha256": "cbb670379fa84a93fb98927a1776a73a06789db7350c2700fdcabfb9824dc4c3",
+      "pdf": {
+        "pages": 1,
+        "words": [
+          {
+            "text": "SUMMARY",
+            "x0": 83.88,
+            "x1": 175.7868,
+            "top": 81.48199999999997,
+            "bottom": 99.48199999999997
+          },
+          {
+            "text": "FOLLOWING",
+            "x0": 72.0,
+            "x1": 180.06345,
+            "top": 108.48199999999997,
+            "bottom": 126.48199999999997
+          }
+        ],
+        "vectors": [
+          {
+            "x0": 72.0,
+            "x1": 82.191,
+            "top": 81.75,
+            "bottom": 93.60000000000002,
+            "pts": [
+              [
+                72.0,
+                81.75
+              ],
+              [
+                82.191,
+                87.67499999999995
+              ],
+              [
+                72.0,
+                93.60000000000002
+              ],
+              [
+                72.0,
+                81.75
+              ]
+            ],
+            "path": [
+              [
+                "m",
+                [
+                  72.0,
+                  81.75
+                ]
+              ],
+              [
+                "l",
+                [
+                  82.191,
+                  87.67499999999995
+                ]
+              ],
+              [
+                "l",
+                [
+                  72.0,
+                  93.60000000000002
+                ]
+              ],
+              [
+                "l",
+                [
+                  72.0,
+                  81.75
+                ]
+              ]
+            ],
+            "fill": true,
+            "stroke": false,
+            "non_stroking_color": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        ],
+        "summary_baseline": 93.64999999999998,
+        "images": 0
+      }
+    },
+    "G18": {
+      "docx_sha256": "e9ff88dd176e119ceabe53b914661d3ae8f1b847f8a22346ca7579b9421f271d",
+      "retained": [
+        "SUMMARY",
+        "RETAINED-BODY",
+        "FOLLOWING"
+      ],
+      "hidden_xml": true,
+      "wps_versions": [
+        {
+          "path": "C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\wps.exe",
+          "file_version": "12,8,2,18913",
+          "product_version": "12,8,2,18913"
+        }
+      ],
+      "pdf_sha256": "e7301a272970ff69444519b44cfd3b617cf444d7d5b45a9c01c6d1b9180efc88",
+      "pdf": {
+        "pages": 1,
+        "words": [
+          {
+            "text": "SUMMARY",
+            "x0": 91.08,
+            "x1": 182.9868,
+            "top": 81.48199999999997,
+            "bottom": 99.48199999999997
+          },
+          {
+            "text": "FOLLOWING",
+            "x0": 72.0,
+            "x1": 180.06345,
+            "top": 108.48199999999997,
+            "bottom": 126.48199999999997
+          }
+        ],
+        "vectors": [
+          {
+            "x0": 72.0,
+            "x1": 82.201,
+            "top": 81.75,
+            "bottom": 93.60000000000002,
+            "pts": [
+              [
+                72.0,
+                81.75
+              ],
+              [
+                82.201,
+                87.67499999999995
+              ],
+              [
+                72.0,
+                93.60000000000002
+              ],
+              [
+                72.0,
+                81.75
+              ]
+            ],
+            "path": [
+              [
+                "m",
+                [
+                  72.0,
+                  81.75
+                ]
+              ],
+              [
+                "l",
+                [
+                  82.201,
+                  87.67499999999995
+                ]
+              ],
+              [
+                "l",
+                [
+                  72.0,
+                  93.60000000000002
+                ]
+              ],
+              [
+                "l",
+                [
+                  72.0,
+                  81.75
+                ]
+              ]
+            ],
+            "fill": true,
+            "stroke": false,
+            "non_stroking_color": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        ],
+        "summary_baseline": 93.64999999999998,
+        "images": 0
+      }
+    }
+  },
+  "gates": {
+    "required": {
+      "I12": {
+        "triangle": true,
+        "size": true,
+        "left": true,
+        "baseline": true,
+        "advance": true,
+        "y": true
+      },
+      "G12": {
+        "triangle": true,
+        "size": true,
+        "left": true,
+        "baseline": true,
+        "advance": true,
+        "y": true
+      },
+      "gap12": {
+        "gap": true
+      },
+      "I18": {
+        "triangle": true,
+        "size": true,
+        "left": true,
+        "baseline": true,
+        "advance": true,
+        "y": true
+      },
+      "G18": {
+        "triangle": true,
+        "size": true,
+        "left": true,
+        "baseline": true,
+        "advance": true,
+        "y": true
+      },
+      "gap18": {
+        "gap": true
+      }
+    },
+    "common": {
+      "C12": {
+        "page": true,
+        "visible": true,
+        "retained": true,
+        "hidden": true
+      },
+      "I12": {
+        "page": true,
+        "visible": true,
+        "retained": true,
+        "hidden": true
+      },
+      "G12": {
+        "page": true,
+        "visible": true,
+        "retained": true,
+        "hidden": true
+      },
+      "C18": {
+        "page": true,
+        "visible": true,
+        "retained": true,
+        "hidden": true
+      },
+      "I18": {
+        "page": true,
+        "visible": true,
+        "retained": true,
+        "hidden": true
+      },
+      "G18": {
+        "page": true,
+        "visible": true,
+        "retained": true,
+        "hidden": true
+      }
+    },
+    "passed": true
+  }
+}
