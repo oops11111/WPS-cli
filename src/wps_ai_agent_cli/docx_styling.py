@@ -606,8 +606,119 @@ def _vertical_merge_perimeters(table, merges) -> None:
                 )
 
 
+def measured_collapsed_widths(styled: StyledDocument, node, grid, page_width_px: float) -> bool:
+    """Use CSS box widths only for fully observed, simple collapsed bordered tables."""
+    if styled.mode != "browser" or not grid or not grid[0]:
+        return False
+    if getattr(getattr(styled, "parser", None), "has_declarative_shadow_root", None) is not False:
+        return False
+    info = getattr(styled, "print_context", {})
+    audit = info.get("cssom", {}) if isinstance(info, dict) else {}
+    if not isinstance(audit, dict):
+        return False
+    sources = audit.get("style_sources", {})
+    if not isinstance(sources, dict):
+        return False
+    if (
+        audit.get("complete") is not True
+        or any(audit.get(k) != [] for k in ("imports", "errors"))
+        or sources.get("checked") is not True
+        or sources.get("document_adopted_count") != 0
+        or sources.get("open_shadow_root_count") != 0
+        or not isinstance(audit.get("links"), list)
+        or any(not isinstance(link, dict) or link.get("has_sheet") is not True for link in audit["links"])
+        or styled.style(node).get("border-collapse") != "collapse"
+    ):
+        return False
+    parents = {id(child): parent for parent in _walk(styled.root) for child in parent.children if hasattr(child, "tag")}
+    chain = [node]
+    while id(chain[-1]) in parents:
+        chain.append(parents[id(chain[-1])])
+    # Include rows/groups as well as cells: transforms are non-inherited.
+    nodes = list(_walk(node)) + chain[1:]
+    for item in nodes:
+        if item.tag == "document":  # parser sentinel has no rendered CSS box
+            continue
+        style = styled.style(item)
+        if (
+            style.get("transform") != "none"
+            or style.get("zoom") != "1"
+            or style.get("writing-mode") != "horizontal-tb"
+            or style.get("direction") != "ltr"
+            or style.get("overflow-x") != "visible"
+            or style.get("overflow-y") != "visible"
+            or style.get("clip-path") != "none"
+            or style.get("position") != "static"
+            or style.get("float") != "none"
+            or style.get("visibility") != "visible"
+            or style.get("opacity") != "1"
+            or styled.pseudo_elements(item)
+            or (item is not node and item.tag == "table")
+            or any(
+                style.get(f"border-{corner}-radius") != "0px"
+                for corner in ("top-left", "top-right", "bottom-left", "bottom-right")
+            )
+        ):
+            return False
+    columns = len(grid[0])
+    widths: list[float | None] = [None] * columns
+    covered = set()
+    cells = []
+    common_border = None
+    for r, row in enumerate(grid):
+        if len(row) != columns:
+            return False
+        for c, cell in enumerate(row):
+            if cell is None:
+                continue
+            if any(not isinstance(child, str) for child in cell.children):
+                return False
+            style, box = styled.style(cell), styled.box(cell)
+            if style.get("text-lines") != "1" or style.get("white-space") != "normal" or box is None:
+                return False
+            if (
+                any(
+                    not isinstance(box.get(k), (int, float)) or not math.isfinite(box[k])
+                    for k in ("x", "y", "width", "height")
+                )
+                or box["width"] <= 0
+                or box["height"] <= 0
+            ):
+                return False
+            width = box["width"]
+            for side in ("top", "right", "bottom", "left"):
+                border = _border(style, side)
+                if style.get(f"border-{side}-style") != "solid" or border is None or border[0] <= 0:
+                    return False
+                if common_border is not None and border != common_border:
+                    return False
+                common_border = border
+            try:
+                rs, cs = int(cell.attrs.get("rowspan", "1")), int(cell.attrs.get("colspan", "1"))
+            except (ValueError, TypeError):
+                return False
+            if rs < 1 or cs < 1 or r + rs > len(grid) or c + cs > columns:
+                return False
+            for rr in range(r, r + rs):
+                for cc in range(c, c + cs):
+                    if (rr, cc) in covered:
+                        return False
+                    covered.add((rr, cc))
+            cells.append((c, cs, width))
+            if cs == 1:
+                if widths[c] is not None and abs(widths[c] - width) > 1 / 64:
+                    return False
+                widths[c] = width
+    if len(covered) != len(grid) * columns or any(w is None for w in widths):
+        return False
+    if any(abs(width - sum(widths[c : c + span])) > 1 / 64 for c, span, width in cells):
+        return False
+    return math.isfinite(page_width_px) and sum(widths) + columns <= page_width_px
+
+
 def _column_widths(styled: StyledDocument, node, grid, page_width_px: float) -> list[float]:
     columns = len(grid[0]) if grid else 0
+    allowance = 0 if measured_collapsed_widths(styled, node, grid, page_width_px) else 1
     widths: list[float | None] = [None] * columns
     for row in grid:
         for index, cell in enumerate(row):
@@ -620,7 +731,7 @@ def _column_widths(styled: StyledDocument, node, grid, page_width_px: float) -> 
                 # The browser's cell box includes its padding and borders, as a Word cell width does; 1 px more
                 # keeps a cell that only just fits from wrapping on a rounding (2 px a column made the contract
                 # table 8 px wider in WPS, Windows check on c205851; half a pixel let "Windows 10 / 11" wrap).
-                widths[index] = box["width"] + 1
+                widths[index] = box["width"] + allowance
                 continue
             declared = cell.attrs.get("width") or styled.style(cell).get("width")
             if declared:

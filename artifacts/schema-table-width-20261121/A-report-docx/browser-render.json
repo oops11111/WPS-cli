@@ -1,0 +1,24 @@
+[
+  true,
+  {
+    "input_path": "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\fidelity-table-width-schema\\artifacts\\schema-table-width-20261121\\A-report-docx\\input\\report.html",
+    "output_path": "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\fidelity-table-width-schema\\artifacts\\schema-table-width-20261121\\A-report-docx\\browser.pdf",
+    "format": "pdf",
+    "bytes": 121773,
+    "sha256": "c62fdee2045332754b15ee75e9eb484d17b45851d0ccbc7a501954a0820e809b",
+    "backend": "playwright-edge",
+    "page_size": "A4",
+    "viewport": {
+      "width": 1280,
+      "height": 900
+    },
+    "javascript_enabled": false,
+    "network_access": false,
+    "websocket_blocked": true,
+    "resource_root": "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\fidelity-table-width-schema\\artifacts\\schema-table-width-20261121\\A-report-docx\\input",
+    "browser": "157.0.4341.60",
+    "page_title": "2026 年第三季度经营报告",
+    "document_height": 1319
+  },
+  []
+]

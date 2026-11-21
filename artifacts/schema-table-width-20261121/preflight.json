@@ -1,0 +1,58 @@
+{
+  "base": "b083ae7cb4a95648e9c01c972dd797fc4844689c",
+  "wps_exports": 0,
+  "cases": {
+    "A-report-docx": {
+      "eligible_tables": [],
+      "allowed_width_attributes": 0,
+      "candidate_sha256": "e5c0e13f12fc8d0d81ab4007e6141bbff30f3618215e58855f549d7dd933ab10",
+      "browser_pixels_identical": true,
+      "metadata_unchanged": true,
+      "baseline_bytes_identical": true,
+      "semantics_baseline_candidate_all1": true
+    },
+    "A-contract-docx": {
+      "eligible_tables": [
+        1
+      ],
+      "allowed_width_attributes": 21,
+      "candidate_sha256": "760bb182bf74f3b491ed103f8d56fc5089d99f1c22bf4ff6f8226fcd1d1dbab1",
+      "browser_pixels_identical": true,
+      "metadata_unchanged": true,
+      "baseline_bytes_identical": true,
+      "semantics_baseline_candidate_all1": true
+    },
+    "A-newsletter-docx": {
+      "eligible_tables": [],
+      "allowed_width_attributes": 0,
+      "candidate_sha256": "a21c7472007e5ab720cadcb89164a299d7a05204022e49a2dbce571b01b22f75",
+      "browser_pixels_identical": true,
+      "metadata_unchanged": true,
+      "baseline_bytes_identical": true,
+      "semantics_baseline_candidate_all1": true
+    },
+    "A-manual-docx": {
+      "eligible_tables": [
+        0
+      ],
+      "allowed_width_attributes": 15,
+      "candidate_sha256": "def0e1a2ddab203b8ee6639f1c6092741ba83b516a77b9bbf0d7e7198e21822e",
+      "browser_pixels_identical": true,
+      "metadata_unchanged": true,
+      "baseline_bytes_identical": true,
+      "semantics_baseline_candidate_all1": true
+    },
+    "A-pdfsource-docx": {
+      "eligible_tables": [
+        0
+      ],
+      "allowed_width_attributes": 35,
+      "candidate_sha256": "5f872d1fa3338ed6d82db1169138c839af78eb652ed4143fdeb1eb5e29fe6c71",
+      "browser_pixels_identical": true,
+      "metadata_unchanged": true,
+      "baseline_bytes_identical": true,
+      "semantics_baseline_candidate_all1": true
+    }
+  },
+  "outcome": "BROWSER_PACKAGE_PASS_GEOMETRY_PENDING"
+}

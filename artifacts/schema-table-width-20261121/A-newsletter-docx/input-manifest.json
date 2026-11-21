@@ -1,0 +1,14 @@
+[
+  {
+    "reference": "newsletter.html",
+    "exists": true,
+    "repository_path": "fixtures/fidelity/newsletter.html",
+    "sha256": "d801e9ef62dff5516f261792638e251b12476b74ba7afbed0bd0f75411308484"
+  },
+  {
+    "reference": "chart.png",
+    "exists": true,
+    "repository_path": "fixtures/fidelity/chart.png",
+    "sha256": "ed89838a4de750fe6336580240367518c4507448844463c4357d62481d482fe5"
+  }
+]

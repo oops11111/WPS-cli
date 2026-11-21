@@ -8,3 +8,5 @@ artifacts/closed-summary-marker-20261121/**/input/** -text whitespace=cr-at-eol
 artifacts/figure-image-indent-20261121/**/input/** -text whitespace=cr-at-eol
 artifacts/print-margin-mechanism-20261121/**/input.html -text
 artifacts/alignment-aware-print-margins-20261121/**/input/** -text whitespace=cr-at-eol
+# Raw Stage42 hashes cover JSON as well as input/output packages; keep exact bytes.
+artifacts/schema-table-width-20261121/** -text whitespace=cr-at-eol

@@ -1,0 +1,37 @@
+{
+  "all_original_raw_hashes_unchanged": true,
+  "cases": {
+    "A-report-docx": {
+      "candidate_sha256": "e5c0e13f12fc8d0d81ab4007e6141bbff30f3618215e58855f549d7dd933ab10",
+      "exact_export_input_replay": true,
+      "source_sha256": "40f9b6732ca6f13a1f56eda36f3b8318bec35d30d2be26fcee19134c2bb832e1",
+      "semantic_effective_gate": true
+    },
+    "A-contract-docx": {
+      "candidate_sha256": "760bb182bf74f3b491ed103f8d56fc5089d99f1c22bf4ff6f8226fcd1d1dbab1",
+      "exact_export_input_replay": true,
+      "source_sha256": "cceac9bfb6a531b10cf8f4fc3ccd01e7bd97d159c099ae558f87046c639215ed",
+      "semantic_effective_gate": true
+    },
+    "A-newsletter-docx": {
+      "candidate_sha256": "a21c7472007e5ab720cadcb89164a299d7a05204022e49a2dbce571b01b22f75",
+      "exact_export_input_replay": true,
+      "source_sha256": "d801e9ef62dff5516f261792638e251b12476b74ba7afbed0bd0f75411308484",
+      "semantic_effective_gate": true
+    },
+    "A-manual-docx": {
+      "candidate_sha256": "def0e1a2ddab203b8ee6639f1c6092741ba83b516a77b9bbf0d7e7198e21822e",
+      "exact_export_input_replay": true,
+      "source_sha256": "8d8c5d540e4cd3325efdd081ee5941807850722daacb5de7caafc02c5643bf33",
+      "semantic_effective_gate": true
+    },
+    "A-pdfsource-docx": {
+      "candidate_sha256": "5f872d1fa3338ed6d82db1169138c839af78eb652ed4143fdeb1eb5e29fe6c71",
+      "exact_export_input_replay": true,
+      "source_sha256": "f33d7d7c204abd1340d92c7108ba699d2f6b43fdf516fb5d840037a7264dcdaa",
+      "semantic_effective_gate": true
+    }
+  },
+  "additional_browser_exports": 0,
+  "additional_wps_exports": 0
+}

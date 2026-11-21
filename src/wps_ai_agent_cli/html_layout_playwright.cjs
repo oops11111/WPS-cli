@@ -15,6 +15,8 @@ const PROPERTIES = [
   'border-bottom-style', 'border-bottom-color', 'border-left-width', 'border-left-style', 'border-left-color',
   'border-right-width', 'border-right-style', 'border-right-color', 'break-before', 'page-break-before', 'width',
   'height', 'float', 'visibility', 'opacity', 'white-space', 'border-collapse', 'border-spacing',
+  'transform', 'zoom', 'writing-mode', 'direction',
+  'overflow-x', 'overflow-y', 'clip-path',
   // Appearance of slide boxes (P13-006): corners, flex alignment, shadows and gradient text.
   'border-top-left-radius', 'border-top-right-radius', 'border-bottom-left-radius', 'border-bottom-right-radius',
   'justify-content', 'align-items', 'flex-direction', 'box-shadow', '-webkit-text-fill-color', 'background-clip',

@@ -1,0 +1,24 @@
+[
+  true,
+  {
+    "input_path": "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\fidelity-table-width-schema\\artifacts\\schema-table-width-20261121\\A-manual-docx\\input\\manual.html",
+    "output_path": "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\fidelity-table-width-schema\\artifacts\\schema-table-width-20261121\\A-manual-docx\\browser.pdf",
+    "format": "pdf",
+    "bytes": 78422,
+    "sha256": "3886c11334f37e9feebdc56febf6a73df5691a5248f22265d416f7ba1fbd070a",
+    "backend": "playwright-edge",
+    "page_size": "A4",
+    "viewport": {
+      "width": 1280,
+      "height": 900
+    },
+    "javascript_enabled": false,
+    "network_access": false,
+    "websocket_blocked": true,
+    "resource_root": "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\fidelity-table-width-schema\\artifacts\\schema-table-width-20261121\\A-manual-docx\\input",
+    "browser": "157.0.4341.60",
+    "page_title": "部署手册",
+    "document_height": 900
+  },
+  []
+]

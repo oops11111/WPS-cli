@@ -1,0 +1,15 @@
+[
+  true,
+  {
+    "input_path": "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\fidelity-table-width-schema\\artifacts\\schema-table-width-20261121\\A-newsletter-docx\\candidate.docx",
+    "output_path": "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\fidelity-table-width-schema\\artifacts\\schema-table-width-20261121\\A-newsletter-docx\\wps.pdf",
+    "format": "pdf",
+    "backend": "powershell-com",
+    "component": "writer",
+    "prog_id": "kwps.Application",
+    "format_code": null,
+    "conversion_method": "ExportAsFixedFormat",
+    "warnings": []
+  },
+  []
+]
