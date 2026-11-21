@@ -6,6 +6,9 @@ All notable changes to `wps-ai-agent-cli`. The versioning rule and release steps
 
 ### Fixed
 
+- HTML to DOCX preserves measured horizontal indentation for supported standalone
+  figure images without changing image dimensions or vertical flow.
+
 - HTML to DOCX preserves measured default disclosure triangles for supported
   one-line closed details, with hidden body retention and narrow decorative-shape scoring.
 

@@ -1,0 +1,34 @@
+{
+  "A-contract-docx": {
+    "changed_parts": [],
+    "unexpected": [],
+    "full_bytes_identical": true,
+    "candidate_sha256": "81e50c163c66514fb6e5aea9213bc68e0c87c45f42e90daa9052b348507e16ac"
+  },
+  "A-manual-docx": {
+    "changed_parts": [],
+    "unexpected": [],
+    "full_bytes_identical": true,
+    "candidate_sha256": "985b075608bbd01c28ab910dab5d2afb8c1e805e3e9d13299e8bdb6e90966359"
+  },
+  "A-newsletter-docx": {
+    "changed_parts": [],
+    "unexpected": [],
+    "full_bytes_identical": true,
+    "candidate_sha256": "6cdd18da1ffa8529fd45c750f9114f06ae926e4d229de9c13c98b3548ab0771c"
+  },
+  "A-pdfsource-docx": {
+    "changed_parts": [],
+    "unexpected": [],
+    "full_bytes_identical": true,
+    "candidate_sha256": "ae0f4228b929aef87af6ad1f7c6555c0ce7bd18a415deb867753648211c1e895"
+  },
+  "A-report-docx": {
+    "changed_parts": [
+      "word/document.xml"
+    ],
+    "unexpected": [],
+    "full_bytes_identical": false,
+    "candidate_sha256": "54bb10352a5347f918559a069374adc6515ed29f58a08b1604e9f91514e99ba2"
+  }
+}

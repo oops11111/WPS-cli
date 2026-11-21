@@ -89,6 +89,65 @@ def simple_details(node, styled):
     return tuple(elements)
 
 
+def figure_image_offset(node, holder, chain, context, page_width_px):
+    """Measured left offset only for a simple standalone normal-flow figure image."""
+    import math
+
+    from . import html_styles
+
+    styled = context.styled
+    if styled is None or styled.mode != "browser" or holder.tag != "figure":
+        return None
+    if any(a.tag in {"figure", "ul", "ol", "li", "table", "td", "th"} for a in chain):
+        return None
+    elements = [c for c in holder.children if isinstance(c, _Node)]
+    if elements not in ([node],) and not (
+        len(elements) == 2
+        and elements[0] is node
+        and elements[1].tag == "figcaption"
+        and all(isinstance(c, str) for c in elements[1].children)
+    ):
+        return None
+    if any(isinstance(c, str) and c.strip() for c in holder.children):
+        return None
+    source_style = styled.css_text + "\n" + "\n".join(e.attrs.get("style", "") for e in [*chain, holder, node])
+    if re.search(
+        r"(?:transform|zoom|writing-mode|content-visibility|float)\s*:|margin(?:-left|-right)?\s*:[^;}]*(?:auto|-\d)",
+        source_style,
+        re.I,
+    ):
+        return None
+    body = next((a for a in chain if a.tag == "body"), None)
+    if body is None or any(styled.box(e) is None for e in (body, holder, node)):
+        return None
+    for e in [*chain, holder, node]:
+        style = styled.style(e)
+        if style.get("position", "static") != "static" or style.get("direction", "ltr") != "ltr":
+            return None
+        if style.get("text-align", "start") not in {"start", "left"} or styled.pseudo_elements(e):
+            return None
+        if style.get("display") in {"none", "flex", "grid", "inline-flex", "inline-grid"}:
+            return None
+    for e in (holder, node):
+        style = styled.style(e)
+        if any(
+            (html_styles.px(style.get("padding-" + side)) or 0) != 0
+            or (html_styles.px(style.get("border-" + side + "-width")) or 0) != 0
+            for side in ("left", "right")
+        ):
+            return None
+    body_box, figure_box, image_box = (styled.box(e) for e in (body, holder, node))
+    values = [body_box["x"], figure_box["x"], image_box["x"], image_box["width"]]
+    if not all(math.isfinite(v) for v in values) or image_box["width"] <= 0:
+        return None
+    offset = figure_box["x"] - body_box["x"]
+    if offset < 0 or abs(image_box["x"] - figure_box["x"]) > 0.01 or offset + image_box["width"] > page_width_px:
+        return None
+    from . import docx_styling
+
+    return docx_styling._left_offset(context, holder, chain)
+
+
 class _TreeParser(HTMLParser):
     def __init__(self) -> None:
         super().__init__(convert_charrefs=True)
@@ -649,6 +708,11 @@ def convert_html_editable(
                 holder = parents.get(id(node))
                 if holder is not None and holder.tag in {"figure", "p", "div", "section", "body"}:
                     docx_styling.apply_paragraph(paragraph, holder, ancestors(holder), context, list_item=True)
+                    offset = figure_image_offset(node, holder, ancestors(holder), context, page_width_px)
+                    if offset is not None and offset > 0:
+                        from docx.shared import Pt
+
+                        paragraph.paragraph_format.left_indent = Pt(offset * 0.75)
             picture_run = paragraph.add_run()
             picture_run.add_picture(picture_source, **size)
             described = picture_run._r.find(

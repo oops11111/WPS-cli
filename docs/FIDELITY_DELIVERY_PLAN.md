@@ -752,3 +752,37 @@ authoritative status, commit/PR/run evidence, blockers and exact next action.
   process/export; preserve raw, no tuning. Evidence-only commit/push/PR after
   focused/Ruff/format/diff and primary image review; six CI green before primary
   merge; implementation agent never merges. Product integration is a separate plan.
+
+## Stage22: bounded standalone figure image indentation
+
+- Dependency/base: Stage21#171 six green and merged exact main
+  6e1b237695525889f4019a69b28b4887ae316375; branch fix/docx-figure-image-indent.
+  Stopped20 and frozen6/10/12 untouched. Plan first, then negative XML test.
+- Scope: only newly created image paragraph with direct eligible figure holder:
+  after existing apply_paragraph(list_item=True), set measured _left_offset native
+  left_indent. All other paragraph styling, picture size/content and p/div/section/
+  body/list/table paths unchanged. No general container/image-layout rewrite.
+- Eligibility: browser measured body/figure boxes, finite nonnegative offset,
+  static normal-flow LTR left alignment, one direct image plus optional plain
+  figcaption/whitespace, no author auto/negative margins/effects, no ancestor list/
+  table/nested figure. Measured author margins allowed; no hardcoded40px.
+  Image must fit remaining page width. Missing browser/boxes, complex/wide/nested
+  cases preserve old behavior (fail closed), no speculative fallback.
+- Tests: original chart XML negative then left600; default/author0/40/80px,
+  absent browser/boxes, wide/complex/nested/list/table negatives, other holders
+  unchanged. Related HTML/fidelity/Ruff/format/diff.
+- FIRST hard gate offline original-five with archived browser snapshots and original
+  ZIP metadata fixed (no payload substitution): report only real chart paragraph
+  adds w:ind left600, all other XML/parts identical; four other full DOCX bytes
+  identical. Any deviation stops before WPS.
+- If passed, ONE original-five safe WPS set with per-case empty process/version
+  gates, own-instance release, no taskkill/preferences/user-doc closure/retry.
+  chart relative body x30±.10pt, dimensions240×120 unchanged, chart/caption/following
+  y within.05pt; same pages/semantics1, every page and aggregate SSIM nondecreasing,
+  report page1 strictly improves, other four pixels identical. Preserve hashes,
+  raw PDFs/DOCX/PNGs/probes/versions/JSON and explicit remaining strict failures.
+- Stop on unproven eligibility, extra XML/package changes, unsafe/export failure,
+  text/geometry/page/semantic/per-page/aggregate regression or no benefit; preserve
+  raw without tuning. Successful English Conventional Commit/push/PR requires
+  primary independent XML/image review and six green CI before primary merge;
+  implementation agent never merges.

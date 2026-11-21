@@ -1,0 +1,365 @@
+{
+  "cases": {
+    "report": {
+      "before": {
+        "images": [
+          "artifacts/closed-summary-marker-20261121/A-report-docx/pages/page-001-0.883.png",
+          "artifacts/closed-summary-marker-20261121/A-report-docx/pages/page-002-0.979.png"
+        ],
+        "status": "measured",
+        "renderer": "wps",
+        "score": 0.9307,
+        "pages": {
+          "source": 2,
+          "target": 2
+        },
+        "page_scores": [
+          0.8826,
+          0.9789
+        ],
+        "missing_fonts": [
+          "Noto Sans CJK SC"
+        ]
+      },
+      "after": {
+        "images": [
+          "artifacts/figure-image-indent-20261121/A-report-docx/pages/page-001-0.901.png",
+          "artifacts/figure-image-indent-20261121/A-report-docx/pages/page-002-0.979.png"
+        ],
+        "status": "measured",
+        "renderer": "wps",
+        "score": 0.9398,
+        "pages": {
+          "source": 2,
+          "target": 2
+        },
+        "page_scores": [
+          0.9007,
+          0.9789
+        ],
+        "missing_fonts": [
+          "Noto Sans CJK SC"
+        ]
+      },
+      "gates": {
+        "execution": true,
+        "pages": true,
+        "aggregate": true,
+        "per_page": true,
+        "semantics": true
+      }
+    },
+    "contract": {
+      "before": {
+        "images": [
+          "artifacts/closed-summary-marker-20261121/A-contract-docx/pages/page-001-0.849.png"
+        ],
+        "status": "measured",
+        "renderer": "wps",
+        "score": 0.8492,
+        "pages": {
+          "source": 1,
+          "target": 1
+        },
+        "page_scores": [
+          0.8492
+        ],
+        "missing_fonts": [
+          "Noto Sans CJK SC"
+        ]
+      },
+      "after": {
+        "images": [
+          "artifacts/figure-image-indent-20261121/A-contract-docx/pages/page-001-0.849.png"
+        ],
+        "status": "measured",
+        "renderer": "wps",
+        "score": 0.8492,
+        "pages": {
+          "source": 1,
+          "target": 1
+        },
+        "page_scores": [
+          0.8492
+        ],
+        "missing_fonts": [
+          "Noto Sans CJK SC"
+        ]
+      },
+      "gates": {
+        "execution": true,
+        "pages": true,
+        "aggregate": true,
+        "per_page": true,
+        "semantics": true,
+        "pixels_identical": true
+      }
+    },
+    "newsletter": {
+      "before": {
+        "images": [
+          "artifacts/closed-summary-marker-20261121/A-newsletter-docx/pages/page-001-0.917.png"
+        ],
+        "status": "measured",
+        "renderer": "wps",
+        "score": 0.9168,
+        "pages": {
+          "source": 1,
+          "target": 1
+        },
+        "page_scores": [
+          0.9168
+        ],
+        "missing_fonts": [
+          "Noto Sans CJK SC"
+        ]
+      },
+      "after": {
+        "images": [
+          "artifacts/figure-image-indent-20261121/A-newsletter-docx/pages/page-001-0.917.png"
+        ],
+        "status": "measured",
+        "renderer": "wps",
+        "score": 0.9168,
+        "pages": {
+          "source": 1,
+          "target": 1
+        },
+        "page_scores": [
+          0.9168
+        ],
+        "missing_fonts": [
+          "Noto Sans CJK SC"
+        ]
+      },
+      "gates": {
+        "execution": true,
+        "pages": true,
+        "aggregate": true,
+        "per_page": true,
+        "semantics": true,
+        "pixels_identical": true
+      }
+    },
+    "manual": {
+      "before": {
+        "images": [
+          "artifacts/closed-summary-marker-20261121/A-manual-docx/pages/page-001-0.896.png"
+        ],
+        "status": "measured",
+        "renderer": "wps",
+        "score": 0.8959,
+        "pages": {
+          "source": 1,
+          "target": 1
+        },
+        "page_scores": [
+          0.8959
+        ],
+        "missing_fonts": [
+          "Noto Sans CJK SC"
+        ]
+      },
+      "after": {
+        "images": [
+          "artifacts/figure-image-indent-20261121/A-manual-docx/pages/page-001-0.896.png"
+        ],
+        "status": "measured",
+        "renderer": "wps",
+        "score": 0.8959,
+        "pages": {
+          "source": 1,
+          "target": 1
+        },
+        "page_scores": [
+          0.8959
+        ],
+        "missing_fonts": [
+          "Noto Sans CJK SC"
+        ]
+      },
+      "gates": {
+        "execution": true,
+        "pages": true,
+        "aggregate": true,
+        "per_page": true,
+        "semantics": true,
+        "pixels_identical": true
+      }
+    },
+    "pdfsource": {
+      "before": {
+        "images": [
+          "artifacts/closed-summary-marker-20261121/A-pdfsource-docx/pages/page-001-0.900.png",
+          "artifacts/closed-summary-marker-20261121/A-pdfsource-docx/pages/page-002-0.925.png"
+        ],
+        "status": "measured",
+        "renderer": "wps",
+        "score": 0.9123,
+        "pages": {
+          "source": 2,
+          "target": 2
+        },
+        "page_scores": [
+          0.9,
+          0.9246
+        ],
+        "missing_fonts": [
+          "Noto Sans CJK SC"
+        ]
+      },
+      "after": {
+        "images": [
+          "artifacts/figure-image-indent-20261121/A-pdfsource-docx/pages/page-001-0.900.png",
+          "artifacts/figure-image-indent-20261121/A-pdfsource-docx/pages/page-002-0.925.png"
+        ],
+        "status": "measured",
+        "renderer": "wps",
+        "score": 0.9123,
+        "pages": {
+          "source": 2,
+          "target": 2
+        },
+        "page_scores": [
+          0.9,
+          0.9246
+        ],
+        "missing_fonts": [
+          "Noto Sans CJK SC"
+        ]
+      },
+      "gates": {
+        "execution": true,
+        "pages": true,
+        "aggregate": true,
+        "per_page": true,
+        "semantics": true,
+        "pixels_identical": true
+      }
+    }
+  },
+  "report_geometry": {
+    "before": {
+      "image": {
+        "x0": 34.32,
+        "top": 690.0,
+        "width": 240.0,
+        "height": 120.0
+      },
+      "body_x": 34.32,
+      "relative_x": 0.0,
+      "captions": [
+        {
+          "page": 2,
+          "text": "图 1 季度收入趋势",
+          "x": 64.32,
+          "top": 32.02999999999997
+        }
+      ],
+      "following": {
+        "summary": {
+          "page": 2,
+          "text": "计算口径",
+          "top": 166.90999999999997,
+          "x": 47.04,
+          "page_width": 595.3,
+          "top_at_800px": 224.30371241390893,
+          "x_at_800px": 63.21518562069545
+        },
+        "mail": {
+          "page": 2,
+          "text": "联系人：finance@example.com",
+          "top": 194.63,
+          "x": 34.32,
+          "page_width": 595.3,
+          "top_at_800px": 261.5555182261045,
+          "x_at_800px": 46.12128338652781
+        },
+        "phone": {
+          "page": 2,
+          "text": "021-0000-0000",
+          "top": 194.63,
+          "x": 250.08,
+          "page_width": 595.3,
+          "top_at_800px": 261.5555182261045,
+          "x_at_800px": 336.07256845288094
+        },
+        "unsafe_label": {
+          "page": 2,
+          "text": "不安全链接",
+          "top": 222.3499999999999,
+          "x": 34.32,
+          "page_width": 595.3,
+          "top_at_800px": 298.80732403829995,
+          "x_at_800px": 46.12128338652781
+        }
+      }
+    },
+    "after": {
+      "image": {
+        "x0": 64.32,
+        "top": 690.0,
+        "width": 240.0,
+        "height": 120.0
+      },
+      "body_x": 34.32,
+      "relative_x": 29.999999999999993,
+      "captions": [
+        {
+          "page": 2,
+          "text": "图 1 季度收入趋势",
+          "x": 64.32,
+          "top": 32.02999999999997
+        }
+      ],
+      "following": {
+        "summary": {
+          "page": 2,
+          "text": "计算口径",
+          "top": 166.90999999999997,
+          "x": 47.04,
+          "page_width": 595.3,
+          "top_at_800px": 224.30371241390893,
+          "x_at_800px": 63.21518562069545
+        },
+        "mail": {
+          "page": 2,
+          "text": "联系人：finance@example.com",
+          "top": 194.63,
+          "x": 34.32,
+          "page_width": 595.3,
+          "top_at_800px": 261.5555182261045,
+          "x_at_800px": 46.12128338652781
+        },
+        "phone": {
+          "page": 2,
+          "text": "021-0000-0000",
+          "top": 194.63,
+          "x": 250.08,
+          "page_width": 595.3,
+          "top_at_800px": 261.5555182261045,
+          "x_at_800px": 336.07256845288094
+        },
+        "unsafe_label": {
+          "page": 2,
+          "text": "不安全链接",
+          "top": 222.3499999999999,
+          "x": 34.32,
+          "page_width": 595.3,
+          "top_at_800px": 298.80732403829995,
+          "x_at_800px": 46.12128338652781
+        }
+      }
+    },
+    "gates": {
+      "relative_x": true,
+      "image_y_size": true,
+      "caption_unchanged": true,
+      "following_unchanged": true,
+      "page1_improves": true,
+      "aggregate_improves": true,
+      "page2_pixels_identical": true
+    }
+  },
+  "passed": true
+}

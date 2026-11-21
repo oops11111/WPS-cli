@@ -1,0 +1,15 @@
+[
+  true,
+  {
+    "input_path": "artifacts/figure-image-indent-20261121/A-report-docx/converted.docx",
+    "output_path": "artifacts/figure-image-indent-20261121/A-report-docx/wps.pdf",
+    "format": "pdf",
+    "backend": "powershell-com",
+    "component": "writer",
+    "prog_id": "kwps.Application",
+    "format_code": null,
+    "conversion_method": "ExportAsFixedFormat",
+    "warnings": []
+  },
+  []
+]
