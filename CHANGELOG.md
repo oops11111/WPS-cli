@@ -6,6 +6,10 @@ All notable changes to `wps-ai-agent-cli`. The versioning rule and release steps
 
 ### Fixed
 
+- HTML to DOCX preserves terminal newline/indentation in direct-text pre blocks
+  and ignores only one initial HTML newline. Nested code, comments and authored
+  whitespace overrides retain their existing behavior.
+
 - HTML to DOCX retains a simple closed details body as hidden editable text in
   its summary paragraph. Open details retain expanded behavior; unsupported
   closed shapes stay expanded with an explicit warning. Fidelity scoring now

@@ -1,0 +1,140 @@
+{
+  "case": "A-manual-docx",
+  "original_source": "fixtures/fidelity/manual.html",
+  "input_manifest": [
+    {
+      "reference": "manual.html",
+      "exists": true,
+      "repository_path": "fixtures/fidelity/manual.html",
+      "sha256": "8d8c5d540e4cd3325efdd081ee5941807850722daacb5de7caafc02c5643bf33"
+    }
+  ],
+  "browser_version": "157.0.4341.60",
+  "semantic": {
+    "source": "artifacts/plain-pre-whitespace-20261121/A-manual-docx/input/manual.html",
+    "target": "artifacts/plain-pre-whitespace-20261121/A-manual-docx/converted.docx",
+    "group": "A",
+    "thresholds": {
+      "text": 1.0,
+      "structure": 1.0,
+      "formatting": 1.0,
+      "animations": 1.0,
+      "data": 1.0,
+      "layout": 0.9
+    },
+    "aspects": {
+      "text": {
+        "score": 1.0,
+        "missing": []
+      },
+      "structure": {
+        "score": 1.0,
+        "differences": {}
+      },
+      "formatting": {
+        "score": 1.0,
+        "problems": []
+      },
+      "animations": {
+        "status": "not applicable"
+      },
+      "data": {
+        "score": 1.0,
+        "missing": []
+      },
+      "layout": {
+        "status": "skipped"
+      }
+    },
+    "verdict": {
+      "text": true,
+      "structure": true,
+      "formatting": true,
+      "data": true
+    },
+    "passed": true
+  },
+  "wps_executables": [
+    {
+      "path": "C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\wps.exe",
+      "file_version": "12,8,2,18913",
+      "product_version": "12,8,2,18913"
+    }
+  ],
+  "execution_ok": true,
+  "layout": {
+    "images": [
+      "artifacts/plain-pre-whitespace-20261121/A-manual-docx/pages/page-001-0.896.png"
+    ],
+    "status": "measured",
+    "renderer": "wps",
+    "score": 0.8959,
+    "pages": {
+      "source": 1,
+      "target": 1
+    },
+    "page_scores": [
+      0.8959
+    ],
+    "missing_fonts": [
+      "Noto Sans CJK SC"
+    ]
+  },
+  "color_pages": {
+    "browser": [
+      "artifacts/plain-pre-whitespace-20261121/A-manual-docx/browser-page-001.png"
+    ],
+    "wps": [
+      "artifacts/plain-pre-whitespace-20261121/A-manual-docx/wps-page-001.png"
+    ]
+  },
+  "strict_f2": {
+    "passed": false,
+    "verdict": {
+      "text": true,
+      "structure": true,
+      "formatting": true,
+      "data": true,
+      "layout": false
+    },
+    "layout_minimum": 0.9
+  },
+  "decision10": {
+    "status": "known_deviation",
+    "floor": 0.88,
+    "historical_reason": "glyph rendering differs from the browser; layout aligned (decision 10)"
+  },
+  "environment": {
+    "missing_fonts": [
+      "Noto Sans CJK SC"
+    ],
+    "missing_input_assets": [],
+    "limit": "Missing fallback does not establish missing effective font. Glyph-vs-layout attribution requires page review."
+  },
+  "historical": {
+    "libreoffice": {
+      "group": "A",
+      "route": [
+        "html-editable"
+      ],
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "formatting": 1.0,
+        "data": 1.0,
+        "layout": 0.8618
+      },
+      "passed": true
+    },
+    "libreoffice_comparable_to_wps": false,
+    "prior_wps_layout": 0.8873,
+    "source": "docs/PHASE13_PLAN.md, tenth Windows check",
+    "limit": "Historical host/version conditions are not revalidated; no cross-renderer baseline-minus-0.02 rule applied."
+  },
+  "hashes": {
+    "manual.html": "8d8c5d540e4cd3325efdd081ee5941807850722daacb5de7caafc02c5643bf33",
+    "converted.docx": "d6c6c868a291077d131d92b04e5b821e39cc34bbb82471c35bfb20e9c6ff7896",
+    "browser.pdf": "047da028edafa650147d3ac1bdf6833ddbd8ba79176353b4996799b82b6e9952",
+    "wps.pdf": "057ccb9faf6f784f8aa222c669c38b9c772375ccd34ad7a1517ad4bd051c6bfd"
+  }
+}
