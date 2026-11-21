@@ -1692,3 +1692,133 @@ authoritative status, commit/PR/run evidence, blockers and exact next action.
   Any eventual mechanism needs its own reviewed Plan, preregistered safety/
   pixel/semantic/flow gates and at most one approved native export set; only
   primary may merge after all six CI jobs pass.
+
+## Stage47 PLAN ONLY: reassess the failed spacing experiment on the new baseline
+
+- Dependency/base: exact merged main dfebac646eb75ab4219c281032dd6ce6641c6f1c,
+  new isolated fidelity-spacing-reassessment / docs/spacing-reassessment-plan.
+  Stage12 remains frozen and failed. Stage44 changes the contract row minimum
+  and Stage42 its measured widths; Stage46 supplies actual visible-ink residuals.
+  No candidate, conversion, browser/WPS, product change, commit or PR is allowed
+  before primary review of this plan and the ensuing read-only evidence.
+- Question: does changed baseline placement alter the predicted effect of the
+  same CSS-derived p→h2 spacing request, or do the old counterexamples still
+  preclude a useful independent experiment? This is not a claim of a new CSS
+  defect or permission to call Stage12 successful. Native response may depend
+  on rounding/context, so old measurements are a prior, never new acceptance.
+- Immutable read-only inputs: frozen fidelity-stage11 original Stage12 Plan,
+  product diff, candidate DOCX/PDF/PNG, contract-stop-geometry.json,
+  stop-evidence.json and artifacts/fidelity-delivery/stage12-stop.md; current
+  Stage44 contract candidate/PDF/PNG; Stage42 original source/CSS/snapshot/PDF;
+  Stage46 raw ink/ROI records. Record hashes without editing frozen inputs.
+- Prior facts to reproduce: Stage12 full-margin p→h2 writes before274 rather
+  than54twips while preserving preceding p after220. It moved contract h3
+  top+2.76pt and h4+5.40pt, improving interval66→68.64pt (source69) but worsening
+  region.7798→.7523 and whole.8492→.8422. Newsletter.9168→.9026 and pdfsource
+  .9123→.9045 also failed; unchanged semantics/page counts do not excuse these.
+- Scope: offline pairwise source CSS/DOM adjacency, target XML and native PDF
+  glyph/rule/actual-ink audit. Compare old baseline/candidate and current baseline
+  for exact p/h2 spacing, line, fonts, preceding boundaries and source text/order;
+  identify every current ordinary-p→heading boundary in all five source cases.
+  Distinguish row/column/page changes from changes to that local XML mechanism.
+  Use extracted character baselines and actual ink windows separately; establish
+  all reported top-versus-baseline definitions before subtracting coordinates.
+- Conditional prediction, not acceptance: if the exact local response survives,
+  current baseline errors h3−2.230978 and h4−5.230975pt plus old+2.76/+5.40 would
+  become approximately+.529022/+.169025pt. Confidentiality−3.430977 plus2.76
+  predicts−.670977; liability−5.680974 plus5.40 predicts−.280974. This reverses
+  the old absolute-error tradeoff but does not predict SSIM or product safety.
+  Check old top shifts against baseline shifts and widths/line wrapping before
+  treating those numbers as transferable. Do not tune offsets from new errors.
+- Deliverables after plan approval: local read-only hash/measurement table,
+  old/current topology and XML request comparison, visible-ink and anchor map,
+  original-five affected-boundary inventory, uncertainty/counterevidence and
+  either an explicit STOP or a separately reviewed contract-only mechanism Plan.
+  Such a later Plan would require a deterministic exact XML allowlist/inverse,
+  independent source-derived candidate, new real evidence and conservation/
+  fixed-ROI/whole gates; no global product integration follows from one host.
+- Audit controls/tests: reproduce all Stage12 reported layout scores and source/
+  native coordinates from stored records; verify source bytes and candidate XML
+  request identities; cross-check Stage44/46 anchor definitions; hash original
+  raw inputs and ensure no frozen/tracked product changes. Any extractor tests
+  or evidence packaging require review before commit; no new export is an audit
+  test. Existing SSIM thresholds/baselines and negative stages remain immutable.
+- Acceptance: a reproducible causal comparison that explains both old failure
+  and a changed-context prediction, with explicit counterexamples. STOP if
+  source/local XML differs incompatibly, transfer depends on unknown wrap/font/
+  flow state, current visible placement does not support the prediction, or
+  only empirical offset fitting remains. Newsletter/pdfsource failures remain
+  a hard barrier to resurrecting the general product candidate, even if a
+  contract-only evidence experiment becomes justified. No new WPS is authorized
+  by this audit; any future PR needs primary review and six green CI jobs.
+
+## Stage48 PLAN ONLY: contract-only spacing response on the new upstream baseline
+
+- Dependency/base: Stage47 read-only audit accepted; exact main remains
+  dfebac646eb75ab4219c281032dd6ce6641c6f1c in fidelity-spacing-reassessment.
+  Stage12 failed general implementation and its newsletter/pdfsource regressions
+  remain frozen; this is a new evidence-only interaction experiment, not product.
+  No candidate/test/browser/WPS/commit/PR before primary review of this plan.
+- Immutable control: Stage44 contract candidate.docx SHA256
+  2b5e206fb74d5a73b036ab8a8e4b01b6dc98d5818599cfbabdb28579bdd0aefa,
+  its same-version cached WPS PDF/PNG, Stage42 source HTML/browser PDF and Stage44
+  saved browser snapshot. No source/control/browser re-export or fixture edit.
+- Sole candidate/allowlist: two direct body Heading2 paragraphs beginning with
+  third/fourth clause, each existing spacing before54→274twips; exact TWO attrs.
+  Identify by topology+complete expected XML/text only inside the experiment,
+  not product qualification. Preserve line495/exact, after274, rPr, runs, previous
+  paragraph after220, all other paragraph/page/table/row/column/font properties.
+  Inverse restores complete document.xml bytes; all other ZIP payloads/member
+  order/metadata/comment unchanged. Two builds must be byte-identical.
+- Source-derived request: h2 computed margin18.26px×.75×20 rounds274twips;
+  current54 is the residual after subtracting p-after220. This changes the
+  native max request, not an empirical shift fitted to current source errors.
+  Stage47 local rPr and intervals match the old response context; different
+  upstream table height is the new interaction condition, not proof of success.
+- Offline gates after approval: exact source/baseline/snapshot hashes and local
+  expected paragraph/topology validation, two-attribute inverse/no-extra-parts,
+  deterministic build, rejected-target/extra-attribute tests; fixed prediction/
+  score/STOP classifier tests; packaging and full Ruff/format/diff. Explicit
+  environment/NODE_PATH/workspace TEMP and both baseline/candidate applicable
+  semantic score1/rawtrue or explicit N/A effective true using the SAME saved
+  snapshot; no fallback capture. Any mismatch STOP before WPS.
+- One safe NEW candidate WPS12.8.2.18913 export only, empty process probe, own
+  instance, immutable candidate SHA verified immediately before call; persisted
+  attempt marker prevents rerun. No taskkill/user closure/global preferences/
+  font installs, alternate candidate, retry or baseline export. Any unsafe state,
+  error, unexpected topology/wrap/text/layout anomaly STOP and preserve raw.
+- Preregistered old-response transfer (PDF character baselines AND text tops):
+  h3/confidentiality +2.76±.15pt; h4/liability +5.40±.15pt; price and all content
+  before h3 unchanged within.05pt. Affected downstream signing/date streams
+  shift by+5.40±.15pt with their internal intervals unchanged within.05pt.
+  h3→h4 interval becomes68.64±.15pt versus source69; all paragraph line counts,
+  text, font/size/advance/x, table rules/pitches and page count1 remain unchanged
+  (position tolerance.05pt, font size.005pt). No missing/extra/overlapping lines.
+- Independent visible-ink observations: use the Stage47 fixed first-character
+  x..x+font-size, PDF-line bbox±2pt y window, threshold160 at800px, no alignment.
+  Record complete source/current/candidate rows, with old-response forecasts
+  h3 roughly689..709 (source686..707), confidentiality737..750 (738..750),
+  h4 781..801 (779..800), liability830..843 (829..842). Predicted h3 ink adverse
+  is explicitly allowed as counterevidence, not hidden by smaller matrix error.
+  Require actual raster change plus confidentiality/h4/liability midpoint source
+  error each strictly improve; no success from PDF geometry alone. Preserve price
+  ink rows645..658, and report h3 start/end/midpoint error even if worse.
+- Fixed unaligned repository800px SSIM: Stage12 region[40,640,765,825] must
+  improve from the ACTUAL current control (measure offline before export).
+  Stage43 later region x30..770px/PDF y470..640pt via int(y*800/595.92) must
+  exceed.7641768045298025; whole must exceed.8950000618741911. Table/header/body
+  registered regions must be pixel-identical; pre-h3 raster crop full width
+  y0..floor(510*800/595.92) must be identical. No region search, registration or
+  threshold adjustment. Strict F2 whole≥.90 remains a separate reported gate;
+  mechanism improvement below.90 is not full fidelity success.
+- PASS_MECHANISM_ONLY requires every offline/safety/semantic/text/page/transfer/
+  conservation/visible-effect/ROI/whole gate. ZERO_INFLUENCE only if RGB AND
+  geometry both identical with conservation; every other outcome STOP. No
+  adjustment after result, no product integration or original-five safety claim.
+  Newsletter/pdfsource are NOT rerun and old regressions still bar generalization.
+- Deliverables: Stage47 accepted read-only table/report, narrow builder/assessor,
+  focused tests, one candidate/PDF/PNG, full source/baseline/candidate glyph/rule/
+  actual-ink/anchor/ROI records, probe/version/environment/semantic/hash manifests
+  and explicit positive/zero/STOP report. Outcome and original images first go
+  to primary for independent review; only reviewed reusable evidence may become
+  an evidence-only PR→main with six green CI jobs, merged by primary only.

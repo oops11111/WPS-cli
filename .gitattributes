@@ -14,3 +14,5 @@ artifacts/contract-row-minimum-20261121/** -text whitespace=cr-at-eol
 artifacts/natural-merged-rows-20261121/** -text whitespace=cr-at-eol
 artifacts/row-baseline-padding-20261121/** -text whitespace=cr-at-eol
 artifacts/visible-residual-audit-20261121/** -text whitespace=cr-at-eol
+artifacts/contract-spacing-interaction-20261121/** -text whitespace=cr-at-eol
+artifacts/spacing-reassessment-20261121/** -text whitespace=cr-at-eol
