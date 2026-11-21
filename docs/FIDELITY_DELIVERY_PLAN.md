@@ -1822,3 +1822,100 @@ authoritative status, commit/PR/run evidence, blockers and exact next action.
   and explicit positive/zero/STOP report. Outcome and original images first go
   to primary for independent review; only reviewed reusable evidence may become
   an evidence-only PR→main with six green CI jobs, merged by primary only.
+
+## Stage49 PLAN ONLY: bounded native margin requests in compensated-table flow
+
+- Dependency/base: merged Stage47/48 evidence, exact main
+  af7197e732f1cf828c94ed5739503dc268fa651a; new fidelity-qualified-flow /
+  docs/qualified-flow-plan. Stage44 supplies actual natural-row compensation,
+  Stage48 proves a contract-only changed-baseline response. Frozen failures,
+  source fixtures, renderer preferences and thresholds remain unchanged.
+- Causal scope/limit: ordinary CSS margin collapse is not caused by merged
+  tables. The p→heading request defect exists outside this domain too. The
+  qualification below restricts integration to a locally measured flow whose
+  upstream height was actually shortened by Stage44; Stage48 validated exactly
+  that interaction. This is an honest conservative evidence-domain restriction,
+  not proof that all merged-table documents or all CSS margins are safe. The
+  old newsletter/pdfsource counterexamples still forbid a global toggle.
+- Scope files: docx_styling.py and html_editable.py only as needed for a generic
+  qualification helper, applied-compensation status and top-level flow state;
+  focused tests, narrow five-case offline/native runner, Plan/report/raw. No
+  fixture/text/class/hash/row-count/column-count qualification, no new format,
+  scorer threshold, font, row-height, width, margin numeric value or CSS collector
+  expansion. Missing existing metadata means legacy output, never guessed defaults.
+- Enter evidence-domain state only after a direct top-level table has actually
+  applied measured_merged_row_minima to its native rows; return explicit applied
+  status from apply_table rather than inferring from source presence/merges.
+  Failed/partial/skipped compensation is false. State is local to the body flow,
+  not shared with cells/header/footer or recursive add_blocks calls. A fresh
+  table always terminates prior state before it can establish its own.
+- Continue only through ordinary direct-body p and h2 blocks and whitespace.
+  Clear state and previous-p adjacency at lists, hr, containers, images/figure,
+  details/pre, page-role blocks, page/column breaks, nonblank raw/inline flow,
+  unsupported/empty blocks or unsupported style/geometry. No state may leak
+  through recursive containers, cell blocks, documents or skipped content.
+- Boundary qualification: immediately preceding ordinary p and current h2,
+  same direct body parent, current browser/editable metadata; static untransformed
+  horizontal LTR visible block boxes, finite measured geometry, no floats,
+  positioning/zoom/clip/overflow effects or generated pseudo-content, no borders/
+  padding/explicit breaks. Their boxes must be single-line, with finite positive
+  computed line-height matching measured height within1/64CSSpx; inline content
+  must not introduce block/image/ruby/super/subscript or different-size/shifted
+  line metrics. Same measured left edge, no overlapping boxes. Negative, auto,
+  unresolved or nonfinite margins fail closed. Require measured gap
+  h2.y−(p.y+p.height)≈max(p.margin-bottom,h2.margin-top) within1/64CSSpx, and
+  h2.margin-top>p.margin-bottom>0. This independently proves the source collapse
+  boundary instead of authorizing from a table flag alone.
+- Native request check: preceding ordinary p must actually carry its unmodified
+  source after spacing; current residual-before formula would cause native
+  max(after,residual) to fall below source max margin (account for normal twip
+  rounding only). Then write full computed heading-before and preserve previous
+  after and every other paragraph property. Missing evidence/no mismatch returns
+  legacy. No empirical offsets or response fitting; generic magnitudes vary in tests.
+- Focused tests: varied rowspans/row counts/text and p/h2 margins prove generic
+  positive qualification; absence/failed/partial applied compensation, unmerged
+  or author-height tables, plain document p→h2 and old newsletter/pdfsource
+  boundaries remain legacy. Test every flow interruption, nested/cell/header
+  paths, missing metadata, invalid/negative/equal/reversed margins, gap mismatch,
+  line wrapping/normal unknown line-height, positioned/overflow/generated content,
+  author breaks and inline metric changes. Preserve hr and non-p→h2 regressions.
+  No product strings/hashes may occur in the helper; fixture-specific expectations
+  belong only to the validation runner.
+- NEW single original-five browser set after tests/environment gate: compare
+  immutable source hashes, source PDF pixels and all existing core/style/box/
+  marker metadata to Stage44. No new collector fields are planned; if required
+  qualification evidence is absent, STOP rather than recapture/expand mid-stage.
+  Both legacy-control and candidate semantics use that exact new snapshot;
+  applicable score1/rawtrue, N/A explicitly effective true, no fallback capture.
+- Offline hard gate before WPS: normalize ZIP metadata to accepted controls;
+  report, newsletter, manual and pdfsource complete DOCX bytes must be identical
+  to Stage44/Stage42 immutable packages. Contract must differ ONLY in TWO h2
+  before54→274 attributes, exact inverse and other ZIP parts/metadata unchanged;
+  candidate complete bytes must equal Stage48 experimental candidate SHA256
+  63a6dde9780ebc15dcc2b1c73c6cd25627ad550ad8f37384d8a0788192772738.
+  Explicitly inventory all source boundaries and actual qualification hits.
+  Any extra/missing hit, snapshot/source/pixel/package/semantic anomaly STOP
+  BEFORE WPS. Do not add a fixture-specific exception or weaken eligibility.
+- Only all offline gates permit ONE NEW sequential five-case safe WPS set:
+  per-case empty process/version probe, WPS12.8.2.18913, owned instances only,
+  input hashes and persisted attempt marker, no user closure/taskkill/preferences,
+  alternate candidates, tuning or retries. Any failure stops remaining not-run.
+- Native acceptance: other four cases all native page RGB pixels identical to
+  accepted Stage44/42 controls, with equal text/line/page/semantic results.
+  Contract repeats all Stage48 transfer/actual-ink/flow/table/pre-heading-pixel/
+  fixed-ROI/whole gates against Stage44; preserve every per-page/aggregate score
+  floor and one-page count. New candidate must reach strict≥.90 independently;
+  do not inherit Stage48's score as new measurement. Report h3 midpoint adverse
+  −1.5→approximately+2.5px explicitly even if whole improves. All five applicable
+  semantics, original text, line/page assignments and table geometry stay intact;
+  table/header/body pixels unchanged and downstream displacement matches the
+  registered+2.76/+5.40±.15pt model, not a generalized all-anchor improvement claim.
+- Deliverables: source-qualified helper/status/state implementation, tests and
+  old-case negative controls, environment/snapshot/qualification-hit manifests,
+  exact inverse/ZIP/semantic evidence, sole five native results with hashes/
+  versions/raw PDF/necessary images and an honest host/domain limitation report.
+  Full Ruff/format/JS/diff and related/packaging tests before native work; after
+  result, primary independently reviews source diff/images and staged collection.
+  Only all gates accepted permit English Conventional Commit, push, product
+  PR→main; all six CI jobs must pass and primary alone merges. Any failure
+  preserves STOP evidence without product PR or reclassification of old failures.
