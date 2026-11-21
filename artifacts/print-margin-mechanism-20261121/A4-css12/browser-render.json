@@ -1,0 +1,24 @@
+[
+  true,
+  {
+    "input_path": "artifacts/print-margin-mechanism-20261121/A4-css12/input.html",
+    "output_path": "artifacts/print-margin-mechanism-20261121/A4-css12/browser.pdf",
+    "format": "pdf",
+    "bytes": 12626,
+    "sha256": "c8a360e708e5be9d465706f736ffdde9347ad2dd5d192ccfbac159c0294a1770",
+    "backend": "playwright-edge",
+    "page_size": "A4",
+    "viewport": {
+      "width": 1280,
+      "height": 900
+    },
+    "javascript_enabled": false,
+    "network_access": false,
+    "websocket_blocked": true,
+    "resource_root": "artifacts/print-margin-mechanism-20261121/A4-css12",
+    "browser": "157.0.4341.60",
+    "page_title": "",
+    "document_height": 1101
+  },
+  []
+]

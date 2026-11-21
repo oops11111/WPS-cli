@@ -786,3 +786,34 @@ authoritative status, commit/PR/run evidence, blockers and exact next action.
   raw without tuning. Successful English Conventional Commit/push/PR requires
   primary independent XML/image review and six green CI before primary merge;
   implementation agent never merges.
+
+## Stage23: isolated print-margin quantization mechanism
+
+- Dependency/base: exact merged mainab96820f1423131c68f516aa6c1d342b0d683c7d;
+  new worktree fidelity-page-margins, branch experiment/print-margin-quantization.
+  Preserve Stage20 and frozen6/10/12; no converter/scorer/fixture/baseline edits.
+- Four fixed references: A4/Letter × default(no CSS margin, render API10mm) or
+  explicit @page margin12mm with API10mm. Body8px, one full-width color bar,
+  ANCHOR text, fixed near-width text (40 A-space tokens) and45 fixed lines at
+  17.25pt line-height for wrapping/pagination diagnostics. No input tuning.
+- FIRST browser-only gate: raw PDF stream transforms and geometry must corroborate
+  predeclared content-left floor(mm*96/25.4)*.75 +6pt for each reference, ≤.10pt;
+  preserve page sizes/bar/char positions/hashes/version/raw exports. If formula
+  fails any reference, stop with negative evidence, NO WPS and no fitted constants.
+- Conditional eight DOCX controls: each reference precise-mm vs floor-CSSpx margins,
+  same page size/body inset/text/font/line-spacing; pair differs only pgMar.
+  Deterministic package/XML tests, source/input hashes, literal text retained.
+- One safe sequential eight-export WPS set only after browser gate/tests; per-case
+  empty-process/version probes; own instance only, no taskkill/user documents/
+  preference changes or retries. Measure left/right bar/text bounds, paper size,
+  all line breaks/page assignment/text completeness. Quantized left error≤.10pt;
+  any wrap/page/text regression forbids product-safety conclusion. Right/paper
+  differences explicitly separated, not silently corrected by margin changes.
+- Deliverables: bounded runner/tests, four HTML/browserPDFs and conditional eight
+  DOCX/WPSPDFs, images, versions/probes/hashes/rawgeometry, mechanism report with
+  counterevidence. No original-five product/F2 claim. English Conventional Commit,
+  push evidence PR only when verified/reusable; primary diff/image review plus six
+  green CI before primary merge; implementation agent never merges.
+- Stop on unsupported browser formula, unapproved XML difference, unsafe/export
+  failure or missing text. Preserve raw evidence without tuning/retry. Failed
+  verified preflight may be evidence-only PR; no WPS or product recommendation.

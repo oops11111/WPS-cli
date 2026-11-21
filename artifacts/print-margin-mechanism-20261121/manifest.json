@@ -1,0 +1,1219 @@
+{
+  "references": {
+    "A4-default": {
+      "size": "A4",
+      "css_margin_mm": null,
+      "api_margin_mm": 10,
+      "source_sha256": "b45c7a312264d977608a79953fe97078d03378f171cf270a5c998bf1bc0c1461",
+      "pdf_sha256": "94edb089605d1fc04cd014ac1032d112badf3127eace98c45254278eaa9ef314",
+      "geometry": {
+        "page_points": [
+          595.91998,
+          842.88
+        ],
+        "pages": 2,
+        "origin": {
+          "matrices": [
+            [
+              0.23999999,
+              0.0,
+              0.0,
+              -0.23999999,
+              0.0,
+              842.88
+            ],
+            [
+              3.125,
+              0.0,
+              0.0,
+              3.125,
+              115.625,
+              115.625
+            ]
+          ],
+          "content_left": 27.74999884375
+        },
+        "expected_left": 33.75,
+        "bar": {
+          "x0": 33.74999859375,
+          "x1": 562.4999765624999,
+          "top": 33.74999859374998,
+          "bottom": 36.749998468749936
+        },
+        "anchor": {
+          "x0": 33.74999859375,
+          "top": 40.58788894883787
+        },
+        "text_by_page": [],
+        "lines_by_page": [
+          [
+            "ANCHOR",
+            "A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A",
+            "LINE-01",
+            "LINE-02",
+            "LINE-03",
+            "LINE-04",
+            "LINE-05",
+            "LINE-06",
+            "LINE-07",
+            "LINE-08",
+            "LINE-09",
+            "LINE-10",
+            "LINE-11",
+            "LINE-12",
+            "LINE-13",
+            "LINE-14",
+            "LINE-15",
+            "LINE-16",
+            "LINE-17",
+            "LINE-18",
+            "LINE-19",
+            "LINE-20",
+            "LINE-21",
+            "LINE-22",
+            "LINE-23",
+            "LINE-24",
+            "LINE-25",
+            "LINE-26",
+            "LINE-27",
+            "LINE-28",
+            "LINE-29",
+            "LINE-30",
+            "LINE-31",
+            "LINE-32",
+            "LINE-33",
+            "LINE-34",
+            "LINE-35",
+            "LINE-36",
+            "LINE-37",
+            "LINE-38",
+            "LINE-39",
+            "LINE-40",
+            "LINE-41",
+            "LINE-42",
+            "LINE-43"
+          ],
+          [
+            "LINE-44",
+            "LINE-45"
+          ]
+        ],
+        "gates": {
+          "origin_formula": true,
+          "bar_left_formula": true,
+          "anchor_formula": true
+        }
+      },
+      "render": {
+        "input_path": "artifacts/print-margin-mechanism-20261121/A4-default/input.html",
+        "output_path": "artifacts/print-margin-mechanism-20261121/A4-default/browser.pdf",
+        "format": "pdf",
+        "bytes": 12612,
+        "sha256": "94edb089605d1fc04cd014ac1032d112badf3127eace98c45254278eaa9ef314",
+        "backend": "playwright-edge",
+        "page_size": "A4",
+        "viewport": {
+          "width": 1280,
+          "height": 900
+        },
+        "javascript_enabled": false,
+        "network_access": false,
+        "websocket_blocked": true,
+        "resource_root": "artifacts/print-margin-mechanism-20261121/A4-default",
+        "browser": "157.0.4341.60",
+        "page_title": "",
+        "document_height": 1101
+      }
+    },
+    "A4-css12": {
+      "size": "A4",
+      "css_margin_mm": 12,
+      "api_margin_mm": 10,
+      "source_sha256": "a024d947f34829338fa0cc06c414f2feb87f5b9f011696151dec785896d99657",
+      "pdf_sha256": "c8a360e708e5be9d465706f736ffdde9347ad2dd5d192ccfbac159c0294a1770",
+      "geometry": {
+        "page_points": [
+          594.95996,
+          841.91998
+        ],
+        "pages": 2,
+        "origin": {
+          "matrices": [
+            [
+              0.23999999,
+              0.0,
+              0.0,
+              -0.23999999,
+              0.0,
+              841.91998
+            ],
+            [
+              3.125,
+              0.0,
+              0.0,
+              3.125,
+              140.625,
+              140.625
+            ]
+          ],
+          "content_left": 33.74999859375
+        },
+        "expected_left": 39.75,
+        "bar": {
+          "x0": 39.74999834375,
+          "x1": 555.74997684375,
+          "top": 39.74999834375001,
+          "bottom": 42.749998218749965
+        },
+        "anchor": {
+          "x0": 39.74999834375,
+          "top": 46.5878886988379
+        },
+        "text_by_page": [],
+        "lines_by_page": [
+          [
+            "ANCHOR",
+            "A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A",
+            "A",
+            "LINE-01",
+            "LINE-02",
+            "LINE-03",
+            "LINE-04",
+            "LINE-05",
+            "LINE-06",
+            "LINE-07",
+            "LINE-08",
+            "LINE-09",
+            "LINE-10",
+            "LINE-11",
+            "LINE-12",
+            "LINE-13",
+            "LINE-14",
+            "LINE-15",
+            "LINE-16",
+            "LINE-17",
+            "LINE-18",
+            "LINE-19",
+            "LINE-20",
+            "LINE-21",
+            "LINE-22",
+            "LINE-23",
+            "LINE-24",
+            "LINE-25",
+            "LINE-26",
+            "LINE-27",
+            "LINE-28",
+            "LINE-29",
+            "LINE-30",
+            "LINE-31",
+            "LINE-32",
+            "LINE-33",
+            "LINE-34",
+            "LINE-35",
+            "LINE-36",
+            "LINE-37",
+            "LINE-38",
+            "LINE-39",
+            "LINE-40",
+            "LINE-41"
+          ],
+          [
+            "LINE-42",
+            "LINE-43",
+            "LINE-44",
+            "LINE-45"
+          ]
+        ],
+        "gates": {
+          "origin_formula": true,
+          "bar_left_formula": true,
+          "anchor_formula": true
+        }
+      },
+      "render": {
+        "input_path": "artifacts/print-margin-mechanism-20261121/A4-css12/input.html",
+        "output_path": "artifacts/print-margin-mechanism-20261121/A4-css12/browser.pdf",
+        "format": "pdf",
+        "bytes": 12626,
+        "sha256": "c8a360e708e5be9d465706f736ffdde9347ad2dd5d192ccfbac159c0294a1770",
+        "backend": "playwright-edge",
+        "page_size": "A4",
+        "viewport": {
+          "width": 1280,
+          "height": 900
+        },
+        "javascript_enabled": false,
+        "network_access": false,
+        "websocket_blocked": true,
+        "resource_root": "artifacts/print-margin-mechanism-20261121/A4-css12",
+        "browser": "157.0.4341.60",
+        "page_title": "",
+        "document_height": 1101
+      }
+    },
+    "Letter-default": {
+      "size": "Letter",
+      "css_margin_mm": null,
+      "api_margin_mm": 10,
+      "source_sha256": "b45c7a312264d977608a79953fe97078d03378f171cf270a5c998bf1bc0c1461",
+      "pdf_sha256": "21a463863ea126630cf7af29db06267070773e277b65a210320329eb072a820d",
+      "geometry": {
+        "page_points": [
+          612,
+          792
+        ],
+        "pages": 2,
+        "origin": {
+          "matrices": [
+            [
+              0.23999999,
+              0.0,
+              0.0,
+              -0.23999999,
+              0.0,
+              792.0
+            ],
+            [
+              3.125,
+              0.0,
+              0.0,
+              3.125,
+              115.625,
+              115.625
+            ]
+          ],
+          "content_left": 27.74999884375
+        },
+        "expected_left": 33.75,
+        "bar": {
+          "x0": 33.74999859375,
+          "x1": 578.2499759062499,
+          "top": 33.74999859374998,
+          "bottom": 36.749998468749936
+        },
+        "anchor": {
+          "x0": 33.74999859375,
+          "top": 40.58788894883787
+        },
+        "text_by_page": [],
+        "lines_by_page": [
+          [
+            "ANCHOR",
+            "A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A",
+            "LINE-01",
+            "LINE-02",
+            "LINE-03",
+            "LINE-04",
+            "LINE-05",
+            "LINE-06",
+            "LINE-07",
+            "LINE-08",
+            "LINE-09",
+            "LINE-10",
+            "LINE-11",
+            "LINE-12",
+            "LINE-13",
+            "LINE-14",
+            "LINE-15",
+            "LINE-16",
+            "LINE-17",
+            "LINE-18",
+            "LINE-19",
+            "LINE-20",
+            "LINE-21",
+            "LINE-22",
+            "LINE-23",
+            "LINE-24",
+            "LINE-25",
+            "LINE-26",
+            "LINE-27",
+            "LINE-28",
+            "LINE-29",
+            "LINE-30",
+            "LINE-31",
+            "LINE-32",
+            "LINE-33",
+            "LINE-34",
+            "LINE-35",
+            "LINE-36",
+            "LINE-37",
+            "LINE-38",
+            "LINE-39",
+            "LINE-40"
+          ],
+          [
+            "LINE-41",
+            "LINE-42",
+            "LINE-43",
+            "LINE-44",
+            "LINE-45"
+          ]
+        ],
+        "gates": {
+          "origin_formula": true,
+          "bar_left_formula": true,
+          "anchor_formula": true
+        }
+      },
+      "render": {
+        "input_path": "artifacts/print-margin-mechanism-20261121/Letter-default/input.html",
+        "output_path": "artifacts/print-margin-mechanism-20261121/Letter-default/browser.pdf",
+        "format": "pdf",
+        "bytes": 12585,
+        "sha256": "21a463863ea126630cf7af29db06267070773e277b65a210320329eb072a820d",
+        "backend": "playwright-edge",
+        "page_size": "Letter",
+        "viewport": {
+          "width": 1280,
+          "height": 900
+        },
+        "javascript_enabled": false,
+        "network_access": false,
+        "websocket_blocked": true,
+        "resource_root": "artifacts/print-margin-mechanism-20261121/Letter-default",
+        "browser": "157.0.4341.60",
+        "page_title": "",
+        "document_height": 1101
+      }
+    },
+    "Letter-css12": {
+      "size": "Letter",
+      "css_margin_mm": 12,
+      "api_margin_mm": 10,
+      "source_sha256": "296fdee848aba4352bd5fe40f9c7bfde3f464a5e851fd3380cd7f2573078649b",
+      "pdf_sha256": "d4f22c6ad05af44ee1fad66c1c6043ffd758cb43d828055d08c5f006a3312a8d",
+      "geometry": {
+        "page_points": [
+          612,
+          792
+        ],
+        "pages": 2,
+        "origin": {
+          "matrices": [
+            [
+              0.23999999,
+              0.0,
+              0.0,
+              -0.23999999,
+              0.0,
+              792.0
+            ],
+            [
+              3.125,
+              0.0,
+              0.0,
+              3.125,
+              140.625,
+              140.625
+            ]
+          ],
+          "content_left": 33.74999859375
+        },
+        "expected_left": 39.75,
+        "bar": {
+          "x0": 39.74999834375,
+          "x1": 572.24997615625,
+          "top": 39.74999834375001,
+          "bottom": 42.749998218749965
+        },
+        "anchor": {
+          "x0": 39.74999834375,
+          "top": 46.5878886988379
+        },
+        "text_by_page": [],
+        "lines_by_page": [
+          [
+            "ANCHOR",
+            "A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A",
+            "LINE-01",
+            "LINE-02",
+            "LINE-03",
+            "LINE-04",
+            "LINE-05",
+            "LINE-06",
+            "LINE-07",
+            "LINE-08",
+            "LINE-09",
+            "LINE-10",
+            "LINE-11",
+            "LINE-12",
+            "LINE-13",
+            "LINE-14",
+            "LINE-15",
+            "LINE-16",
+            "LINE-17",
+            "LINE-18",
+            "LINE-19",
+            "LINE-20",
+            "LINE-21",
+            "LINE-22",
+            "LINE-23",
+            "LINE-24",
+            "LINE-25",
+            "LINE-26",
+            "LINE-27",
+            "LINE-28",
+            "LINE-29",
+            "LINE-30",
+            "LINE-31",
+            "LINE-32",
+            "LINE-33",
+            "LINE-34",
+            "LINE-35",
+            "LINE-36",
+            "LINE-37",
+            "LINE-38",
+            "LINE-39"
+          ],
+          [
+            "LINE-40",
+            "LINE-41",
+            "LINE-42",
+            "LINE-43",
+            "LINE-44",
+            "LINE-45"
+          ]
+        ],
+        "gates": {
+          "origin_formula": true,
+          "bar_left_formula": true,
+          "anchor_formula": true
+        }
+      },
+      "render": {
+        "input_path": "artifacts/print-margin-mechanism-20261121/Letter-css12/input.html",
+        "output_path": "artifacts/print-margin-mechanism-20261121/Letter-css12/browser.pdf",
+        "format": "pdf",
+        "bytes": 12583,
+        "sha256": "d4f22c6ad05af44ee1fad66c1c6043ffd758cb43d828055d08c5f006a3312a8d",
+        "backend": "playwright-edge",
+        "page_size": "Letter",
+        "viewport": {
+          "width": 1280,
+          "height": 900
+        },
+        "javascript_enabled": false,
+        "network_access": false,
+        "websocket_blocked": true,
+        "resource_root": "artifacts/print-margin-mechanism-20261121/Letter-css12",
+        "browser": "157.0.4341.60",
+        "page_title": "",
+        "document_height": 1101
+      }
+    }
+  },
+  "wps_exports": 8,
+  "formula": "floor(mm*96/25.4)*.75+6pt",
+  "base": "ab96820f1423131c68f516aa6c1d342b0d683c7d",
+  "browser_gate_passed": true,
+  "native": {
+    "A4-default-precise": {
+      "input_sha256": "c47aae4670c0e45d969684f72a89b6bd4681dbdf45871043f6ebfd8841546990",
+      "versions": [
+        {
+          "path": "C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\wps.exe",
+          "file_version": "12,8,2,18913",
+          "product_version": "12,8,2,18913"
+        }
+      ],
+      "pdf_sha256": "afc08348defd971c31a240d5e9a90a54f921a2f33e1b1c321d176f22b57e6816",
+      "geometry": {
+        "page_points": [
+          595.3,
+          841.9
+        ],
+        "pages": 2,
+        "bar": {
+          "x0": 34.35,
+          "x1": 560.95,
+          "top": 34.35000000000002,
+          "bottom": 37.35000000000002
+        },
+        "anchor": {
+          "x0": 34.32,
+          "top": 42.79399999999998
+        },
+        "lines_by_page": [
+          [
+            "ANCHOR",
+            "A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A",
+            "LINE-01",
+            "LINE-02",
+            "LINE-03",
+            "LINE-04",
+            "LINE-05",
+            "LINE-06",
+            "LINE-07",
+            "LINE-08",
+            "LINE-09",
+            "LINE-10",
+            "LINE-11",
+            "LINE-12",
+            "LINE-13",
+            "LINE-14",
+            "LINE-15",
+            "LINE-16",
+            "LINE-17",
+            "LINE-18",
+            "LINE-19",
+            "LINE-20",
+            "LINE-21",
+            "LINE-22",
+            "LINE-23",
+            "LINE-24",
+            "LINE-25",
+            "LINE-26",
+            "LINE-27",
+            "LINE-28",
+            "LINE-29",
+            "LINE-30",
+            "LINE-31",
+            "LINE-32",
+            "LINE-33",
+            "LINE-34",
+            "LINE-35",
+            "LINE-36",
+            "LINE-37",
+            "LINE-38",
+            "LINE-39",
+            "LINE-40",
+            "LINE-41",
+            "LINE-42"
+          ],
+          [
+            "LINE-43",
+            "LINE-44",
+            "LINE-45"
+          ]
+        ]
+      },
+      "text_retained": true,
+      "line_page_match": false,
+      "left_error": 0.5700014062500003,
+      "right_error": -1.5499765624998645
+    },
+    "A4-default-floor": {
+      "input_sha256": "a42e8cfd1a9548cd4d07c4dcd43608d2b837cb899c8a41ff61c1c27068c23bdf",
+      "versions": [
+        {
+          "path": "C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\wps.exe",
+          "file_version": "12,8,2,18913",
+          "product_version": "12,8,2,18913"
+        }
+      ],
+      "pdf_sha256": "e9a48004bc5d4d3571364fa24f3400ed0d383324bcbd240f4508047e95449c7b",
+      "geometry": {
+        "page_points": [
+          595.3,
+          841.9
+        ],
+        "pages": 2,
+        "bar": {
+          "x0": 33.75,
+          "x1": 561.55,
+          "top": 33.75,
+          "bottom": 36.75
+        },
+        "anchor": {
+          "x0": 33.72,
+          "top": 42.194000000000074
+        },
+        "lines_by_page": [
+          [
+            "ANCHOR",
+            "A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A",
+            "LINE-01",
+            "LINE-02",
+            "LINE-03",
+            "LINE-04",
+            "LINE-05",
+            "LINE-06",
+            "LINE-07",
+            "LINE-08",
+            "LINE-09",
+            "LINE-10",
+            "LINE-11",
+            "LINE-12",
+            "LINE-13",
+            "LINE-14",
+            "LINE-15",
+            "LINE-16",
+            "LINE-17",
+            "LINE-18",
+            "LINE-19",
+            "LINE-20",
+            "LINE-21",
+            "LINE-22",
+            "LINE-23",
+            "LINE-24",
+            "LINE-25",
+            "LINE-26",
+            "LINE-27",
+            "LINE-28",
+            "LINE-29",
+            "LINE-30",
+            "LINE-31",
+            "LINE-32",
+            "LINE-33",
+            "LINE-34",
+            "LINE-35",
+            "LINE-36",
+            "LINE-37",
+            "LINE-38",
+            "LINE-39",
+            "LINE-40",
+            "LINE-41",
+            "LINE-42",
+            "LINE-43"
+          ],
+          [
+            "LINE-44",
+            "LINE-45"
+          ]
+        ]
+      },
+      "text_retained": true,
+      "line_page_match": true,
+      "left_error": -0.029998593750001135,
+      "right_error": -0.9499765624999554,
+      "gates": {
+        "left": true,
+        "no_more_pages": true,
+        "no_more_lines": true,
+        "bar_height": true
+      }
+    },
+    "A4-css12-precise": {
+      "input_sha256": "63263c80537ae81e5ff10f8f5e4bff5ed3c5fe24cc2b2cebf8bbeaa857b031df",
+      "versions": [
+        {
+          "path": "C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\wps.exe",
+          "file_version": "12,8,2,18913",
+          "product_version": "12,8,2,18913"
+        }
+      ],
+      "pdf_sha256": "66b2ec8225f88034fe8d90bd771b40b444249777ad55ef9ec4b9c81791464efd",
+      "geometry": {
+        "page_points": [
+          595.3,
+          841.9
+        ],
+        "pages": 2,
+        "bar": {
+          "x0": 40.0,
+          "x1": 555.3,
+          "top": 40.0,
+          "bottom": 43.0
+        },
+        "anchor": {
+          "x0": 39.959,
+          "top": 48.43299999999999
+        },
+        "lines_by_page": [
+          [
+            "ANCHOR",
+            "A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A",
+            "A",
+            "LINE-01",
+            "LINE-02",
+            "LINE-03",
+            "LINE-04",
+            "LINE-05",
+            "LINE-06",
+            "LINE-07",
+            "LINE-08",
+            "LINE-09",
+            "LINE-10",
+            "LINE-11",
+            "LINE-12",
+            "LINE-13",
+            "LINE-14",
+            "LINE-15",
+            "LINE-16",
+            "LINE-17",
+            "LINE-18",
+            "LINE-19",
+            "LINE-20",
+            "LINE-21",
+            "LINE-22",
+            "LINE-23",
+            "LINE-24",
+            "LINE-25",
+            "LINE-26",
+            "LINE-27",
+            "LINE-28",
+            "LINE-29",
+            "LINE-30",
+            "LINE-31",
+            "LINE-32",
+            "LINE-33",
+            "LINE-34",
+            "LINE-35",
+            "LINE-36",
+            "LINE-37",
+            "LINE-38",
+            "LINE-39",
+            "LINE-40",
+            "LINE-41"
+          ],
+          [
+            "LINE-42",
+            "LINE-43",
+            "LINE-44",
+            "LINE-45"
+          ]
+        ]
+      },
+      "text_retained": true,
+      "line_page_match": true,
+      "left_error": 0.20900165625000255,
+      "right_error": -0.44997684375005065
+    },
+    "A4-css12-floor": {
+      "input_sha256": "60e32132468dc3df38bb0da1c8fdadbf1a4cfcc49a5b25a4257006aa0c7c2946",
+      "versions": [
+        {
+          "path": "C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\wps.exe",
+          "file_version": "12,8,2,18913",
+          "product_version": "12,8,2,18913"
+        }
+      ],
+      "pdf_sha256": "e3111227df57a7498749a6e37141cefe01ac84a36d3d80f4efa800ebe8d3e80d",
+      "geometry": {
+        "page_points": [
+          595.3,
+          841.9
+        ],
+        "pages": 2,
+        "bar": {
+          "x0": 39.75,
+          "x1": 555.55,
+          "top": 39.75,
+          "bottom": 42.75
+        },
+        "anchor": {
+          "x0": 39.72,
+          "top": 48.194000000000074
+        },
+        "lines_by_page": [
+          [
+            "ANCHOR",
+            "A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A",
+            "A",
+            "LINE-01",
+            "LINE-02",
+            "LINE-03",
+            "LINE-04",
+            "LINE-05",
+            "LINE-06",
+            "LINE-07",
+            "LINE-08",
+            "LINE-09",
+            "LINE-10",
+            "LINE-11",
+            "LINE-12",
+            "LINE-13",
+            "LINE-14",
+            "LINE-15",
+            "LINE-16",
+            "LINE-17",
+            "LINE-18",
+            "LINE-19",
+            "LINE-20",
+            "LINE-21",
+            "LINE-22",
+            "LINE-23",
+            "LINE-24",
+            "LINE-25",
+            "LINE-26",
+            "LINE-27",
+            "LINE-28",
+            "LINE-29",
+            "LINE-30",
+            "LINE-31",
+            "LINE-32",
+            "LINE-33",
+            "LINE-34",
+            "LINE-35",
+            "LINE-36",
+            "LINE-37",
+            "LINE-38",
+            "LINE-39",
+            "LINE-40",
+            "LINE-41"
+          ],
+          [
+            "LINE-42",
+            "LINE-43",
+            "LINE-44",
+            "LINE-45"
+          ]
+        ]
+      },
+      "text_retained": true,
+      "line_page_match": true,
+      "left_error": -0.029998343750001766,
+      "right_error": -0.19997684375005065,
+      "gates": {
+        "left": true,
+        "no_more_pages": true,
+        "no_more_lines": true,
+        "bar_height": true
+      }
+    },
+    "Letter-default-precise": {
+      "input_sha256": "cdef9a261a8e5bd38e567f421f27a39c31be425d2d2614631109c5decd4674bb",
+      "versions": [
+        {
+          "path": "C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\wps.exe",
+          "file_version": "12,8,2,18913",
+          "product_version": "12,8,2,18913"
+        }
+      ],
+      "pdf_sha256": "6f3c7b5ee10a3cfea1e63fa7c96acd85ea31d05e90dd23b6ffbbd81cd158dd86",
+      "geometry": {
+        "page_points": [
+          612,
+          792
+        ],
+        "pages": 2,
+        "bar": {
+          "x0": 34.35,
+          "x1": 577.65,
+          "top": 34.35000000000002,
+          "bottom": 37.35000000000002
+        },
+        "anchor": {
+          "x0": 34.32,
+          "top": 42.79399999999998
+        },
+        "lines_by_page": [
+          [
+            "ANCHOR",
+            "A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A",
+            "LINE-01",
+            "LINE-02",
+            "LINE-03",
+            "LINE-04",
+            "LINE-05",
+            "LINE-06",
+            "LINE-07",
+            "LINE-08",
+            "LINE-09",
+            "LINE-10",
+            "LINE-11",
+            "LINE-12",
+            "LINE-13",
+            "LINE-14",
+            "LINE-15",
+            "LINE-16",
+            "LINE-17",
+            "LINE-18",
+            "LINE-19",
+            "LINE-20",
+            "LINE-21",
+            "LINE-22",
+            "LINE-23",
+            "LINE-24",
+            "LINE-25",
+            "LINE-26",
+            "LINE-27",
+            "LINE-28",
+            "LINE-29",
+            "LINE-30",
+            "LINE-31",
+            "LINE-32",
+            "LINE-33",
+            "LINE-34",
+            "LINE-35",
+            "LINE-36",
+            "LINE-37",
+            "LINE-38",
+            "LINE-39",
+            "LINE-40"
+          ],
+          [
+            "LINE-41",
+            "LINE-42",
+            "LINE-43",
+            "LINE-44",
+            "LINE-45"
+          ]
+        ]
+      },
+      "text_retained": true,
+      "line_page_match": true,
+      "left_error": 0.5700014062500003,
+      "right_error": -0.5999759062499379
+    },
+    "Letter-default-floor": {
+      "input_sha256": "149646246b208458342597aa373d1a56d15a6a30aaec25406f7025b5b5d2b4b6",
+      "versions": [
+        {
+          "path": "C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\wps.exe",
+          "file_version": "12,8,2,18913",
+          "product_version": "12,8,2,18913"
+        }
+      ],
+      "pdf_sha256": "fce3317f2998e30fd22fbacc3509dda6b6ccb3f5ee2f7757e0bd049201c264dc",
+      "geometry": {
+        "page_points": [
+          612,
+          792
+        ],
+        "pages": 2,
+        "bar": {
+          "x0": 33.75,
+          "x1": 578.25,
+          "top": 33.75,
+          "bottom": 36.75
+        },
+        "anchor": {
+          "x0": 33.72,
+          "top": 42.194000000000074
+        },
+        "lines_by_page": [
+          [
+            "ANCHOR",
+            "A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A",
+            "LINE-01",
+            "LINE-02",
+            "LINE-03",
+            "LINE-04",
+            "LINE-05",
+            "LINE-06",
+            "LINE-07",
+            "LINE-08",
+            "LINE-09",
+            "LINE-10",
+            "LINE-11",
+            "LINE-12",
+            "LINE-13",
+            "LINE-14",
+            "LINE-15",
+            "LINE-16",
+            "LINE-17",
+            "LINE-18",
+            "LINE-19",
+            "LINE-20",
+            "LINE-21",
+            "LINE-22",
+            "LINE-23",
+            "LINE-24",
+            "LINE-25",
+            "LINE-26",
+            "LINE-27",
+            "LINE-28",
+            "LINE-29",
+            "LINE-30",
+            "LINE-31",
+            "LINE-32",
+            "LINE-33",
+            "LINE-34",
+            "LINE-35",
+            "LINE-36",
+            "LINE-37",
+            "LINE-38",
+            "LINE-39",
+            "LINE-40"
+          ],
+          [
+            "LINE-41",
+            "LINE-42",
+            "LINE-43",
+            "LINE-44",
+            "LINE-45"
+          ]
+        ]
+      },
+      "text_retained": true,
+      "line_page_match": true,
+      "left_error": -0.029998593750001135,
+      "right_error": 2.409375008483039e-05,
+      "gates": {
+        "left": true,
+        "no_more_pages": true,
+        "no_more_lines": true,
+        "bar_height": true
+      }
+    },
+    "Letter-css12-precise": {
+      "input_sha256": "972632a7dc88d86fb3de925e6c560240e124e5efc4ca1d7b81ec4532e8ab4a7a",
+      "versions": [
+        {
+          "path": "C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\wps.exe",
+          "file_version": "12,8,2,18913",
+          "product_version": "12,8,2,18913"
+        }
+      ],
+      "pdf_sha256": "cf2115e83b1963f804aae4a0d16df8949fb2a2cc6a17a9aedd65997bcfbd1e1e",
+      "geometry": {
+        "page_points": [
+          612,
+          792
+        ],
+        "pages": 2,
+        "bar": {
+          "x0": 40.0,
+          "x1": 572.0,
+          "top": 40.0,
+          "bottom": 43.0
+        },
+        "anchor": {
+          "x0": 39.959,
+          "top": 48.43299999999999
+        },
+        "lines_by_page": [
+          [
+            "ANCHOR",
+            "A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A",
+            "LINE-01",
+            "LINE-02",
+            "LINE-03",
+            "LINE-04",
+            "LINE-05",
+            "LINE-06",
+            "LINE-07",
+            "LINE-08",
+            "LINE-09",
+            "LINE-10",
+            "LINE-11",
+            "LINE-12",
+            "LINE-13",
+            "LINE-14",
+            "LINE-15",
+            "LINE-16",
+            "LINE-17",
+            "LINE-18",
+            "LINE-19",
+            "LINE-20",
+            "LINE-21",
+            "LINE-22",
+            "LINE-23",
+            "LINE-24",
+            "LINE-25",
+            "LINE-26",
+            "LINE-27",
+            "LINE-28",
+            "LINE-29",
+            "LINE-30",
+            "LINE-31",
+            "LINE-32",
+            "LINE-33",
+            "LINE-34",
+            "LINE-35",
+            "LINE-36",
+            "LINE-37",
+            "LINE-38",
+            "LINE-39"
+          ],
+          [
+            "LINE-40",
+            "LINE-41",
+            "LINE-42",
+            "LINE-43",
+            "LINE-44",
+            "LINE-45"
+          ]
+        ]
+      },
+      "text_retained": true,
+      "line_page_match": true,
+      "left_error": 0.20900165625000255,
+      "right_error": -0.2499761562499998
+    },
+    "Letter-css12-floor": {
+      "input_sha256": "4ffc71aa59ca97fa0551d0519d26f49d179c935903619a2b7a9cea26b1e663a1",
+      "versions": [
+        {
+          "path": "C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\wps.exe",
+          "file_version": "12,8,2,18913",
+          "product_version": "12,8,2,18913"
+        }
+      ],
+      "pdf_sha256": "e6e3b275197bf7fa87eecd17f25dbfaaecfce0d6844ed7c935e92147469805c5",
+      "geometry": {
+        "page_points": [
+          612,
+          792
+        ],
+        "pages": 2,
+        "bar": {
+          "x0": 39.75,
+          "x1": 572.25,
+          "top": 39.75,
+          "bottom": 42.75
+        },
+        "anchor": {
+          "x0": 39.72,
+          "top": 48.194000000000074
+        },
+        "lines_by_page": [
+          [
+            "ANCHOR",
+            "A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A A",
+            "LINE-01",
+            "LINE-02",
+            "LINE-03",
+            "LINE-04",
+            "LINE-05",
+            "LINE-06",
+            "LINE-07",
+            "LINE-08",
+            "LINE-09",
+            "LINE-10",
+            "LINE-11",
+            "LINE-12",
+            "LINE-13",
+            "LINE-14",
+            "LINE-15",
+            "LINE-16",
+            "LINE-17",
+            "LINE-18",
+            "LINE-19",
+            "LINE-20",
+            "LINE-21",
+            "LINE-22",
+            "LINE-23",
+            "LINE-24",
+            "LINE-25",
+            "LINE-26",
+            "LINE-27",
+            "LINE-28",
+            "LINE-29",
+            "LINE-30",
+            "LINE-31",
+            "LINE-32",
+            "LINE-33",
+            "LINE-34",
+            "LINE-35",
+            "LINE-36",
+            "LINE-37",
+            "LINE-38",
+            "LINE-39"
+          ],
+          [
+            "LINE-40",
+            "LINE-41",
+            "LINE-42",
+            "LINE-43",
+            "LINE-44",
+            "LINE-45"
+          ]
+        ]
+      },
+      "text_retained": true,
+      "line_page_match": true,
+      "left_error": -0.029998343750001766,
+      "right_error": 2.384375000019645e-05,
+      "gates": {
+        "left": true,
+        "no_more_pages": true,
+        "no_more_lines": true,
+        "bar_height": true
+      }
+    }
+  },
+  "mechanism_observed": true,
+  "product_safety_proven": false
+}
