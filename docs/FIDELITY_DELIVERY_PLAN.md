@@ -244,3 +244,72 @@ authoritative status, commit/PR/run evidence, blockers and exact next action.
   irreproducible extraction, inability to isolate a cause, or need for new WPS,
   font/environment changes or broader product work. Preserve the measurements,
   state what is unresolved and report; do not silently broaden or tune.
+
+## Stage 9: isolated WPS row-minimum mechanism experiment
+
+- Dependency/base: stage 8 PR #162 merged with six green CI jobs, exact main
+  `b93e2c24d3921f5b3845f14fd8856ddf05f5e88c`. Stage-8 evidence establishes
+  manual browser row pitch19.5pt versus WPS20.25pt for DOCX AT_LEAST19.5pt.
+  Use a clean branch `docs/manual-row-mechanism` in the stage-7 worktree;
+  preserve prior evidence/logs and the separate frozen stage-6 worktree.
+  This is plan-only until review: no generation, tests or WPS execution yet.
+- Scope/input: create synthetic experiment DOCX files by copying the committed
+  stage-7 manual DOCX package, retaining only its first four-row/three-column
+  table plus section properties in the body. Preserve table widths, text,
+  styles, borders, cell alignment and paragraph formatting unless explicitly
+  varied below. Do not call or edit the product HTML converter; original HTML,
+  DOCX/PDF evidence and baselines remain byte-identical. Retain a package manifest
+  and original SHA plus per-variant DOCX SHA and exact XML differences. Generate
+  stable ZIP metadata/order so identical inputs produce identical package bytes.
+- Fixed seven variants (all rows changed uniformly, no arbitrary offsets):
+  B = original table, AT_LEAST390twips (19.5pt), nominal6/8pt borders;
+  E = B with hRule EXACT only;
+  R = B with AT_LEAST375twips (18.75pt), one nominal border less;
+  L = B with cell content minimum lowered: replace each cell's text by one
+  ASCII X run at1pt and exact1pt line, paragraph before/after0, vertical cell
+  margins0; retain row request/borders/widths;
+  LR = L with AT_LEAST375twips;
+  N = B with physical table/cell borders explicitly nil, all content unchanged;
+  NR = N with AT_LEAST375twips. E is a diagnostic only: clipping or compression
+  cannot be interpreted as an acceptable repair. L/LR are synthetic probes, not
+  alternate manual fixtures, and never enter fidelity baselines.
+- Discriminating expectations: additive native border accounting predicts
+  B/L20.25pt, R/LR19.5pt, N19.5pt and NR18.75pt. Content-limited behavior predicts
+  a plateau in B/R that drops when content is lowered in L/LR. A rule-dependent
+  difference in E localizes the AT_LEAST path; borderless comparisons distinguish
+  border involvement from a content-only constraint. Mixed or different outcomes
+  must be reported as unresolved, not forced into either model. Measure all four
+  row pitches, not only total table height. Treat agreement within0.05pt as PDF
+  measurement precision, separate from unchanged product F2 thresholds.
+- Safety/process gate: record read-only WPS process/version probe before every
+  export; any existing WPS process, failed probe or unexpected process state stops
+  without COM. Export each generated DOCX via the existing isolated converter,
+  sequentially with its normal120s timeout, releasing only its own instance.
+  Never use taskkill/_release_wps, attach to a user instance or close user docs.
+  Preserve raw timeout/COM/credential errors; no installation or font changes,
+  broad retry, browser run or HTML conversion.
+- Deliverables after approval: narrow deterministic variant builder/runner,
+  focused XML-difference/package-determinism tests, source/variant/output SHA,
+  WPS/version/probe/export JSON, seven generated DOCX/PDF files, PDF vector/text
+  measurements and selected page images, plus root-cause report with predictions,
+  observed table, uncertainty/counterevidence and any diagnostic clipping.
+  Avoid copying unchanged large source binaries into the new evidence directory.
+- Verification: focused tests prove each variant changes only its declared XML,
+  four physical rows remain, unrelated package parts are identical, original
+  hashes unchanged and generation is deterministic. Reuse the reviewed offline
+  centerline extractor with fixed coordinates or explicitly recorded section-
+  derived synthetic table window. Run focused tests, full Ruff lint/format and
+  whitespace checks; one sequential WPS experiment set, no tuning reruns.
+- Acceptance: reproducible mechanism evidence, not manual high-fidelity success.
+  Raw results must distinguish additive-border from content-minimum behavior
+  or explicitly establish that these controls do not identify one cause. Inspect
+  diagnostic text/vector preservation and explain page count/geometry changes.
+  Manual strict F2 remains0.8959<0.90; no conversion repair is authorized here.
+- Stop: unexpected fixture/source mutation, unisolated WPS, missing/corrupt
+  source, unsafe lifecycle, failed export, ambiguous/noisy vector extraction,
+  uncontrolled XML differences, need for more variants or environment/product
+  changes. Preserve completed evidence and report before expanding/retrying.
+- Integration: verified reusable evidence, including a negative result, may be
+  an evidence-only English Conventional Commit/PR to main by this same continuing
+  agent. Primary-agent code/XML/image review plus all six CI jobs green before
+  merge. Any product repair needs a subsequent separately reviewed plan.
