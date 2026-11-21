@@ -702,3 +702,29 @@ authoritative status, commit/PR/run evidence, blockers and exact next action.
 - Success: English Conventional Commit/push/PR, primary diff/XML/image review
   and six green CI jobs before main merge; implementation agent never merges.
   A stopped verified preflight may be evidence-only, never a product claim.
+
+## Stage 19: isolated table-column allowance mechanism
+
+- Dependency/base: merged Stage18 #169, exact main
+  a694763fdcce823876b4cc9b2cc7de7615ab3f13; branch
+  experiment/table-column-width-allowance. Frozen6/10/12 untouched.
+- Scope: synthetic package copies of accepted manual three-column table and
+  contract fee table ordinary body rows (remove merged header for all controls).
+  Six fixed variants M0/M05/M1 and C0/C05/C1 differ only in gridCol/tcW width:
+  subtract original per-column15twips then add0/7.5/15twips, rounded deterministically
+  to integer twips. No converter/source/threshold/baseline edits.
+- Deliverables: deterministic builder, package/XML tests, original package hashes,
+  six inputs/exports/probes/PDF images, vectors and per-cell text lines/row pitches,
+  mechanism report with counterevidence. Existing fonts/styles/content preserved.
+- Tests: deterministic bytes; non-width XML and all other package payloads identical
+  across each family; correct widths; unmerged topology; all expected text retained.
+- One sequential six-export real WPS set, empty process probe before every case;
+  own-instance release only. No taskkill/preferences/user document closure/retry.
+- Acceptance is causal evidence: measure outer/column boundaries, per-cell line
+  counts and row pitches, establish whether narrower grids wrap. Text retention100%,
+  one page, all non-width conditions equal. No F2/product-safety claim from controls.
+- Stop immediately on non-width XML/package differences, missing text, unexpected
+  page count, unsafe process, export failure or ambiguous cell attribution; preserve
+  raw evidence without tuning. Do not recommend deleting allowance without a later
+  original-five product safety plan. Evidence-only PR requires tests/Ruff/diff,
+  independent image review and six green CI; implementation agent never merges.
