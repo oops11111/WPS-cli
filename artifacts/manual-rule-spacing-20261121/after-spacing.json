@@ -1,0 +1,134 @@
+[
+  {
+    "text": "部署手册",
+    "style": "Heading 1",
+    "is_rule": false,
+    "spacing": {
+      "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}lineRule": "exact",
+      "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}line": "465",
+      "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}before": "241",
+      "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}after": "241"
+    }
+  },
+  {
+    "text": "1 环境要求",
+    "style": "Heading 2",
+    "is_rule": false,
+    "spacing": {
+      "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}lineRule": "exact",
+      "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}line": "405",
+      "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}before": "20",
+      "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}after": "261"
+    }
+  },
+  {
+    "text": "2 安装步骤",
+    "style": "Heading 2",
+    "is_rule": false,
+    "spacing": {
+      "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}lineRule": "exact",
+      "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}line": "405",
+      "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}before": "261",
+      "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}after": "261"
+    }
+  },
+  {
+    "text": "创建虚拟环境：python -m venv .venv",
+    "style": "List Number",
+    "is_rule": false,
+    "spacing": {
+      "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}lineRule": "exact",
+      "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}line": "285",
+      "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}before": "0",
+      "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}after": "0"
+    }
+  },
+  {
+    "text": "安装软件包：pip install wps-ai-agent-cli[html]",
+    "style": "List Number",
+    "is_rule": false,
+    "spacing": {
+      "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}lineRule": "exact",
+      "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}line": "285",
+      "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}before": "0",
+      "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}after": "0"
+    }
+  },
+  {
+    "text": "检查环境：",
+    "style": "List Number",
+    "is_rule": false,
+    "spacing": {
+      "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}lineRule": "exact",
+      "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}line": "285",
+      "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}before": "0",
+      "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}after": "0"
+    }
+  },
+  {
+    "text": "wps-agent doctor\nwps-agent capabilities --json",
+    "style": "No Spacing",
+    "is_rule": false,
+    "spacing": {
+      "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}lineRule": "exact",
+      "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}line": "210",
+      "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}before": "180",
+      "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}after": "180"
+    }
+  },
+  {
+    "text": "注意：安装过程中不要打开 WPS 文档，否则 COM 检查可能失败。",
+    "style": "Normal",
+    "is_rule": false,
+    "spacing": {
+      "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}lineRule": "exact",
+      "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}line": "285",
+      "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}before": "30",
+      "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}after": "210"
+    }
+  },
+  {
+    "text": "",
+    "style": "Normal",
+    "is_rule": true,
+    "spacing": {
+      "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}lineRule": "exact",
+      "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}line": "20",
+      "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}before": "0",
+      "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}after": "105"
+    }
+  },
+  {
+    "text": "3 常见问题",
+    "style": "Heading 2",
+    "is_rule": false,
+    "spacing": {
+      "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}lineRule": "exact",
+      "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}line": "405",
+      "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}before": "261",
+      "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}after": "261"
+    }
+  },
+  {
+    "text": "问：提示 COM_BACKEND_UNAVAILABLE 怎么办？",
+    "style": "Normal",
+    "is_rule": false,
+    "spacing": {
+      "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}lineRule": "exact",
+      "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}line": "285",
+      "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}before": "0",
+      "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}after": "210"
+    }
+  },
+  {
+    "text": "答：以管理员身份运行一次 WPS 的“配置工具”，勾选“兼容第三方系统和软件”。",
+    "style": "Normal",
+    "is_rule": false,
+    "spacing": {
+      "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}lineRule": "exact",
+      "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}line": "285",
+      "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}before": "0",
+      "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}after": "210"
+    }
+  }
+]

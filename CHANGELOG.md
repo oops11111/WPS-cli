@@ -6,6 +6,9 @@ All notable changes to `wps-ai-agent-cli`. The versioning rule and release steps
 
 ### Fixed
 
+- HTML to DOCX preserves the following paragraph's top spacing after a horizontal
+  rule, avoiding a second subtraction of the rule's native paragraph spacing.
+
 - HTML to DOCX keeps perimeter borders and explicit shading on physical
   continuation cells in vertical table merges, without drawing internal seams.
 

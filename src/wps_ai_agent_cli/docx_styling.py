@@ -30,6 +30,7 @@ class Context:
     appearance: bool = False
     last_space_after: float = 0.0
     carry_before: float = 0.0  # a table's margin-bottom, in points, for the paragraph after it
+    after_rule: bool = False
     applied: set[str] = field(default_factory=set)
 
 
@@ -300,6 +301,8 @@ def apply_paragraph(
     from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_LINE_SPACING
     from docx.shared import Pt
 
+    after_rule = context.after_rule
+    context.after_rule = False
     if context.styled is None or node is None:
         return
     style = context.styled.style(node)
@@ -336,7 +339,10 @@ def apply_paragraph(
     top = (px(style.get("margin-top"), size) or 0) * 0.75 if container_start else 0.0
     bottom = (px(style.get("margin-bottom"), size) or 0) * 0.75 if container_end else 0.0
     # Adjacent vertical margins collapse in CSS: the larger one wins.
-    form.space_before = Pt(max(0.0, max(top, context.carry_before) - context.last_space_after))
+    # The rule's own after-spacing is already a native paragraph margin. Word
+    # takes max(after, before): subtracting it here collapses this boundary twice.
+    preceding_after = 0.0 if after_rule else context.last_space_after
+    form.space_before = Pt(max(0.0, max(top, context.carry_before) - preceding_after))
     form.space_after = Pt(bottom)
     context.last_space_after = bottom
     context.carry_before = 0.0
@@ -726,6 +732,7 @@ def apply_rule(paragraph, node, context: Context) -> None:
     form.space_after = Pt(bottom * 0.75)
     context.last_space_after = bottom * 0.75
     context.carry_before = 0.0
+    context.after_rule = True
     _no_grid(paragraph._p.get_or_add_pPr())
 
 
@@ -733,6 +740,7 @@ def apply_table_spacing(table, node, context: Context) -> None:
     """A table's vertical margins: Word has no space around a table, so its margin-top goes after the paragraph
     before it and its margin-bottom before the paragraph after it, collapsing with theirs as in CSS (Windows check
     on c205851: the contract's signature table lost its 24 pt margin-top)."""
+    context.after_rule = False
     if context.styled is None:
         return
     style = context.styled.style(node)

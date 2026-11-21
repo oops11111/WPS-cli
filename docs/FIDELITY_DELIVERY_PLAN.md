@@ -145,3 +145,50 @@ authoritative status, commit/PR/run evidence, blockers and exact next action.
   or repair requires unrelated layout changes. Preserve raw evidence and report
   before revising scope. Never tune inputs/tolerances, change the installation,
   terminate user processes or close user documents to obtain a pass.
+
+## Stage 7: hr-to-following-block spacing in the manual
+
+- Dependency/base: clean separate worktree on exact main
+  `f1ca25fe0da8af4dfe5701f3d5d50b86c921714d`, after stage 5 PR #160 merged
+  with six green CI jobs. Stage 6 remains stopped/uncommitted in its original
+  worktree with all three raw candidates preserved; none of its edits are used.
+  This is plan-only until primary-agent review and implementation go-ahead.
+- Acceptance source: original stage-4 manual CSS/DOM, DOCX and WPS PDF. The hr
+  bottom margin is 7px; the following h2 top margin is 17.43px and DOM gap 17.42px.
+  DOCX hr after is 105twips/5.25pt, but h2 before is reduced to 156twips/7.8pt
+  instead of retaining its full approximately 261twips/13.07pt margin. The
+  current mapper subtracts the prior after-spacing although native paragraph
+  spacing already takes the maximum of adjacent requests. Original WPS third-
+  section title is about 7pt above the browser reference. This supports a local
+  spacing hypothesis, not a claim that all remaining differences are explained.
+- Scope: only `docx_styling.Context`, `apply_rule` and the immediate following
+  `apply_paragraph` boundary, if needed with narrowly scoped flow reset wiring.
+  Preserve the computed full top margin after a rule, without subtracting that
+  rule's after-spacing again. No global margin algorithm change, non-hr paragraph
+  rewrite, table sizing, font/size, signing block, list, details or other format
+  changes; no original fixture/asset, baseline, environment or tolerance changes.
+- Deliverables after approval: first reproduce the reduced before-spacing in
+  XML, then a boundary-local repair; focused `test_docx_rule_spacing.py`,
+  changelog and fresh same-manual raw JSON/PDF/DOCX/hash/version evidence.
+  Tests cover rule-to-heading/paragraph, different relative margins, non-rule
+  controls and intervening-table reset so the boundary state cannot leak.
+- Verification after approval: new focused tests plus existing rule, paragraph,
+  table-spacing, HTML/conversion/roundtrip regressions; full Ruff lint/format
+  and diff whitespace checks. Tests check CSS-derived spacing, not a manual-only
+  pixel correction. Original contract has no hr and must retain its behavior.
+- WPS acceptance after approval: only the original manual in a new directory,
+  same source bytes, 1/1 pages and semantic text/structure/formatting/data 1.0.
+  Record title/QA y coordinates, full-page SSIM and fixed source-defined lower
+  region `[40,495,760,625]`, without alignment/resampling. Third-section and QA
+  positions and local SSIM must improve toward the browser; earlier page content
+  must not move. Whole-page SSIM must improve over 0.8872; the strict target stays
+  >= 0.90, with any remaining failure reported as such. Existing decision-10
+  floor 0.88 is unchanged and cannot be relabeled strict success.
+- Integration: same continuing agent, dedicated English Conventional Commit/PR
+  to main only after acceptance; all six CI jobs green and primary-agent
+  diff/XML/image review before merge.
+- Stop: hypothesis not reproducible, WPS spacing response contradicts it,
+  browser/WPS/credential failure, semantic/page-count/other-layout regression,
+  local/whole scores fail to improve, or repair needs global/non-hr margin or
+  unrelated product/environment changes. Preserve raw evidence and report before
+  changing scope; never adjust inputs, alignment or thresholds to obtain a pass.

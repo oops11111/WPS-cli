@@ -1,0 +1,24 @@
+[
+  true,
+  {
+    "input_path": "artifacts/manual-rule-spacing-20261121/manual/input/manual.html",
+    "output_path": "artifacts/manual-rule-spacing-20261121/manual/browser.pdf",
+    "format": "pdf",
+    "bytes": 78422,
+    "sha256": "15c2c1f719f8f63c9c879f27caa754bdf0fff5f45f536288c0238824c7f0a08a",
+    "backend": "playwright-edge",
+    "page_size": "A4",
+    "viewport": {
+      "width": 1280,
+      "height": 900
+    },
+    "javascript_enabled": false,
+    "network_access": false,
+    "websocket_blocked": true,
+    "resource_root": "artifacts/manual-rule-spacing-20261121/manual/input",
+    "browser": "157.0.4341.60",
+    "page_title": "部署手册",
+    "document_height": 900
+  },
+  []
+]
