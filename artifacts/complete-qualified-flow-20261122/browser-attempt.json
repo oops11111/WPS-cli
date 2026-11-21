@@ -1,0 +1,49 @@
+{
+  "base": "c1d605ec0482b7d846ca9549c29114e43c29cad2",
+  "outcome": "OFFLINE_PASS_AWAITING_NATIVE_REVIEW",
+  "started": [
+    "A-report-docx",
+    "A-contract-docx",
+    "A-newsletter-docx",
+    "A-manual-docx",
+    "A-pdfsource-docx"
+  ],
+  "cases": {
+    "A-report-docx": {
+      "hits": 0,
+      "candidate_sha256": "e5c0e13f12fc8d0d81ab4007e6141bbff30f3618215e58855f549d7dd933ab10",
+      "core_and_source_pixels_identical": true,
+      "package_inverse": true,
+      "semantics": true
+    },
+    "A-contract-docx": {
+      "hits": 2,
+      "candidate_sha256": "63a6dde9780ebc15dcc2b1c73c6cd25627ad550ad8f37384d8a0788192772738",
+      "core_and_source_pixels_identical": true,
+      "package_inverse": true,
+      "semantics": true
+    },
+    "A-newsletter-docx": {
+      "hits": 0,
+      "candidate_sha256": "a21c7472007e5ab720cadcb89164a299d7a05204022e49a2dbce571b01b22f75",
+      "core_and_source_pixels_identical": true,
+      "package_inverse": true,
+      "semantics": true
+    },
+    "A-manual-docx": {
+      "hits": 0,
+      "candidate_sha256": "def0e1a2ddab203b8ee6639f1c6092741ba83b516a77b9bbf0d7e7198e21822e",
+      "core_and_source_pixels_identical": true,
+      "package_inverse": true,
+      "semantics": true
+    },
+    "A-pdfsource-docx": {
+      "hits": 0,
+      "candidate_sha256": "5f872d1fa3338ed6d82db1169138c839af78eb652ed4143fdeb1eb5e29fe6c71",
+      "core_and_source_pixels_identical": true,
+      "package_inverse": true,
+      "semantics": true
+    }
+  },
+  "wps_exports": 0
+}

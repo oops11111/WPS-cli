@@ -1,0 +1,24 @@
+[
+  true,
+  {
+    "input_path": "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\fidelity-complete-flow\\artifacts\\complete-qualified-flow-20261122\\A-report-docx\\input\\report.html",
+    "output_path": "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\fidelity-complete-flow\\artifacts\\complete-qualified-flow-20261122\\A-report-docx\\browser.pdf",
+    "format": "pdf",
+    "bytes": 121773,
+    "sha256": "51690152b3e8e7eda1590389e65add14a6dc8270794923fdff7b4e0680110823",
+    "backend": "playwright-edge",
+    "page_size": "A4",
+    "viewport": {
+      "width": 1280,
+      "height": 900
+    },
+    "javascript_enabled": false,
+    "network_access": false,
+    "websocket_blocked": true,
+    "resource_root": "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\fidelity-complete-flow\\artifacts\\complete-qualified-flow-20261122\\A-report-docx\\input",
+    "browser": "157.0.4341.60",
+    "page_title": "2026 年第三季度经营报告",
+    "document_height": 1319
+  },
+  []
+]

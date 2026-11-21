@@ -297,6 +297,7 @@ def apply_paragraph(
     list_item: bool = False,
     container_start: bool = True,
     container_end: bool = True,
+    native_margin_boundary: bool = False,
 ) -> None:
     from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_LINE_SPACING
     from docx.shared import Pt
@@ -341,7 +342,7 @@ def apply_paragraph(
     # Adjacent vertical margins collapse in CSS: the larger one wins.
     # The rule's own after-spacing is already a native paragraph margin. Word
     # takes max(after, before): subtracting it here collapses this boundary twice.
-    preceding_after = 0.0 if after_rule else context.last_space_after
+    preceding_after = 0.0 if after_rule or native_margin_boundary else context.last_space_after
     form.space_before = Pt(max(0.0, max(top, context.carry_before) - preceding_after))
     form.space_after = Pt(bottom)
     context.last_space_after = bottom
@@ -421,7 +422,7 @@ def apply_paragraph(
     context.applied.add("paragraph")
 
 
-def apply_table(table, node, grid, rows, context: Context, page_width_px: float, *, merges=()) -> None:
+def apply_table(table, node, grid, rows, context: Context, page_width_px: float, *, merges=()) -> bool:
     """Column widths, table width, cell shading, borders, padding and vertical alignment."""
     from docx.enum.table import WD_CELL_VERTICAL_ALIGNMENT, WD_TABLE_ALIGNMENT
     from docx.oxml import OxmlElement
@@ -439,7 +440,7 @@ def apply_table(table, node, grid, rows, context: Context, page_width_px: float,
         row._tr.get_or_add_trPr().append(OxmlElement("w:tblHeader"))
     if context.styled is None:
         table.style = "Table Grid"
-        return
+        return False
     styled = context.styled
     table_style = styled.style(node)
     widths = _column_widths(styled, node, grid, page_width_px)
@@ -503,11 +504,15 @@ def apply_table(table, node, grid, rows, context: Context, page_width_px: float,
         values = table_style.get("border-spacing", "2px").split()
         spacing = (px(values[-1]) or 0.0) if values else 0.0
     natural_minima = measured_merged_row_minima(styled, node, grid, rows, page_width_px)
+    if natural_minima is not None and len(natural_minima) != len(table.rows):
+        natural_minima = None
+    compensated_rows = 0
     for row_index, (row, row_node) in enumerate(zip(table.rows, rows, strict=False)):
         row_height = px(styled.style(row_node).get("height"))
         if row_height:
             if natural_minima is not None:
                 row_height = natural_minima[row_index]
+                compensated_rows += 1
             row.height, row.height_rule = Pt((row_height + spacing) * 0.75), WD_ROW_HEIGHT_RULE.AT_LEAST
     has_borders = node.attrs.get("border") not in {None, "", "0"}
     for row_index, row in enumerate(grid):
@@ -561,6 +566,107 @@ def apply_table(table, node, grid, rows, context: Context, page_width_px: float,
     # grid lines, so the table has no table style either.
     table.style = None
     _vertical_merge_perimeters(table, merges)
+    return natural_minima is not None and compensated_rows == len(natural_minima) > 0
+
+
+def qualified_flow_block(context: Context, node, ancestors) -> bool:
+    """Restrict flow evidence to measured, unbroken single-line p/h2 blocks.
+
+    This does not authorize a margin change by itself. The caller must have
+    observed actual natural-row compensation in this same top-level flow.
+    """
+    styled = context.styled
+    if styled is None or styled.mode != "browser" or context.appearance or node.tag not in {"p", "h2"}:
+        return False
+    breaks = (
+        "break-before",
+        "page-break-before",
+        "break-after",
+        "page-break-after",
+        "break-inside",
+        "page-break-inside",
+    )
+    effects = {
+        "position": "static",
+        "transform": "none",
+        "zoom": "1",
+        "float": "none",
+        "writing-mode": "horizontal-tb",
+        "direction": "ltr",
+        "overflow-x": "visible",
+        "overflow-y": "visible",
+        "clip-path": "none",
+        "visibility": "visible",
+        "opacity": "1",
+    }
+    for element in [*ancestors, *_walk(node)]:
+        if element.tag == "document":
+            continue  # Parser wrapper, not a source element.
+        style = styled.style(element)
+        if any(style.get(key) != value for key, value in effects.items()):
+            return False
+        if any(style.get(key) != "auto" for key in breaks) or styled.pseudo_elements(element):
+            return False
+    style = styled.style(node)
+    box = styled.box(node)
+    line = px(style.get("line-height"))
+    size = px(style.get("font-size"))
+    if not box or not line or not size or not all(math.isfinite(v) and v > 0 for v in (line, size)):
+        return False
+    if style.get("display") != "block" or style.get("text-lines") != "1" or not style.get("font-family"):
+        return False
+    if any(
+        not isinstance(box.get(k), (int, float)) or not math.isfinite(box[k]) for k in ("x", "y", "width", "height")
+    ):
+        return False
+    if box["width"] <= 0 or abs(box["height"] - line) > 1 / 64:
+        return False
+    for side in ("top", "right", "bottom", "left"):
+        margin = px(style.get(f"margin-{side}"))
+        if margin is None or not math.isfinite(margin) or margin < 0:
+            return False
+        if px(style.get(f"padding-{side}")) != 0 or px(style.get(f"border-{side}-width")) != 0:
+            return False
+    for child in list(_walk(node))[1:]:
+        child_style = styled.style(child)
+        if child.tag not in {"span", "b", "strong", "i", "em", "u", "a"} or child_style.get("display") != "inline":
+            return False
+        if child_style.get("vertical-align") != "baseline" or px(child_style.get("font-size")) != size:
+            return False
+        if px(child_style.get("line-height")) != line or child_style.get("font-family") != style.get("font-family"):
+            return False
+        if any(
+            px(child_style.get(f"{kind}-{side}")) != 0
+            for kind in ("padding", "margin")
+            for side in ("top", "right", "bottom", "left")
+        ):
+            return False
+        if any(px(child_style.get(f"border-{side}-width")) != 0 for side in ("top", "right", "bottom", "left")):
+            return False
+    return True
+
+
+def qualified_margin_boundary(context: Context, previous, node, ancestors, previous_after: float | None) -> bool:
+    """Prove the source gap and actual prior native request before restoring max()."""
+    if previous is None or previous.tag != "p" or node.tag != "h2" or previous_after is None:
+        return False
+    if not math.isfinite(previous_after):
+        return False
+    if not qualified_flow_block(context, previous, ancestors) or not qualified_flow_block(context, node, ancestors):
+        return False
+    styled = context.styled
+    after = px(styled.style(previous).get("margin-bottom"))
+    before = px(styled.style(node).get("margin-top"))
+    if after is None or before is None or not before > after > 0 or context.carry_before != 0:
+        return False
+    pbox, hbox = styled.box(previous), styled.box(node)
+    if abs(pbox["x"] - hbox["x"]) > 1 / 64 or abs(hbox["y"] - pbox["y"] - pbox["height"] - before) > 1 / 64:
+        return False
+    after_pt, before_pt = after * 0.75, before * 0.75
+    if abs(previous_after - after_pt) > 0.0251 or abs(context.last_space_after - after_pt) > 0.0251:
+        return False
+    residual_twips = round(max(0.0, before_pt - context.last_space_after) * 20)
+    return max(round(previous_after * 20), residual_twips) < round(before_pt * 20)
 
 
 def _vertical_merge_perimeters(table, merges) -> None:

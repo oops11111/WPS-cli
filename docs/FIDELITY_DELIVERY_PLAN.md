@@ -1919,3 +1919,93 @@ authoritative status, commit/PR/run evidence, blockers and exact next action.
   Only all gates accepted permit English Conventional Commit, push, product
   PR→main; all six CI jobs must pass and primary alone merges. Any failure
   preserves STOP evidence without product PR or reclassification of old failures.
+
+## Stage50 PLAN ONLY: complete break proof before bounded flow integration
+
+- Dependency/base: Stage49 missing-metadata STOP merged and unchanged; exact
+  main c1d605ec0482b7d846ca9549c29114e43c29cad2, new fidelity-complete-flow /
+  docs/complete-flow-plan. Stage48 remains contract-only mechanism evidence;
+  Stage12 remains a failed general candidate. No implementation/capture/commit
+  or PR before primary approval of this plan.
+- Scope: collector adds ONLY four computed style values: break-after,
+  page-break-after, break-inside, page-break-inside. Read actual getComputedStyle
+  values per node, with no guessed auto defaults or inferred alias support.
+  Existing fields/CSSOM/page/marker/source parsing and collection behavior remain
+  unchanged. Unknown/empty/missing/contradictory values retain legacy behavior.
+  No other collector expansion after the unique capture begins.
+- Compatibility tests: canonical and legacy aliases are separately retained;
+  supported-auto pairs qualify, explicit page/column/avoid/left/right/always,
+  unsupported/empty/missing values fail closed. Assert four properties collected
+  without altering existing keys; tests cover absence in archived snapshots and
+  deliberately conflicting aliases. Ancestor, prior-p, heading and inline child
+  break constraints must be proven, not only current heading break-before:auto.
+- Product qualification/state is the Stage49 generic evidence domain unchanged:
+  enter only after ACTUALLY applied Stage44 measured merged-row compensation
+  in the same direct-body flow; continue only through supported ordinary p/h2
+  plus whitespace; reset at every table/list/hr/container/figure/image/details/
+  pre/page-role/raw-inline flow/unsupported block or explicit/unknown break.
+  State never leaks into nested/cell/header/footer/document contexts. Failed or
+  partial compensation does not authorize later changes. No fixture/text/class/
+  hash or fixed row/column-count white list in product code.
+- Stage49 independent boundary guards remain: static visible untransformed
+  horizontal LTR single-line boxes, finite explicit measured line metrics,
+  compatible unshifted inline metrics, no border/padding/float/overflow/clip/
+  generated-content effects, same left edge, nonnegative resolved margins.
+  Source gap must equal max positive p-after/h2-before within1/64CSSpx and
+  heading-before>p-after>0. Actual native residual/max requests must understate
+  that source boundary after normal twip rounding. Full source-derived heading
+  before replaces only its residual; all previous after/other properties remain.
+  All new break/legacy alias values must explicitly be auto throughout the
+  relevant flow/ancestor chain. Missing proof means legacy and clears state.
+  The table does not cause the margin bug; it limits the experimentally supported
+  upstream-flow interaction. This remains bounded, not a universal CSS repair.
+- Implementation tests first: generic varied structures/text/margin magnitudes,
+  actual versus absent/partial/failed compensation, every interruption/recursive
+  path, missing fields/aliases, explicit breaks on ancestors/inline nodes,
+  wrapped/normal-unknown lines, geometry-gap/margin mismatch, unsupported effects
+  and no-mismatch boundaries. Old newsletter/pdfsource p→heading examples MUST
+  remain legacy; hr and non-p→h2 controls unchanged. No new browser/native run
+  until primary reviews the helper/status/state and focused test results.
+- NEW ONE original-five browser set after environment/module/schema gates:
+  fixed sources/assets unchanged; actual current Edge157.0.4341.60 identity and
+  CSSOM evidence recorded. Compare each new snapshot to Stage44 after removing
+  exactly the four new fields: all old core/style/box/page/marker data equal.
+  Source PDF pixels must be identical. Record complete four-field availability
+  and qualification/state hits, without defaults. Any old-data/source/pixel
+  drift or required field absent→STOP, no second capture or mid-stage field fix.
+- Both legacy-control and candidate conversion/semantics use each SAME new
+  snapshot; no source recapture/fallback. Applicable score1/rawtrue, N/A effective
+  true without raw mutation. Normalize ZIP metadata to accepted immutable inputs:
+  contract ONLY TWO h2 before54→274 attributes, exact inverse/other parts and
+  metadata identical; full candidate DOCX must equal Stage48 package SHA256
+  63a6dde9780ebc15dcc2b1c73c6cd25627ad550ad8f37384d8a0788192772738.
+  Report/newsletter/manual/pdfsource whole DOCX bytes equal Stage44/42 accepted
+  controls. Contract hits exactly2, other cases0; any other change/hit/semantic
+  or package anomaly→STOP BEFORE WPS, no exception or qualification relaxation.
+- Only complete offline acceptance permits ONE NEW sequential original-five
+  WPS set. Every case probes empty processes/exact WPS12.8.2.18913, verifies input
+  hashes, and uses only owned instances; persisted attempt manifest prevents
+  retry. No taskkill/user document closure/settings/font installs/control export.
+  Anomaly stops remaining cases not-run; never reuse Stage48 or old partial sets
+  as current native evidence.
+- Native gates: other four cases all-page RGB pixels identical to accepted
+  Stage44/42, per-page/aggregate/semantic/text/line/page results unchanged.
+  Contract independently repeats Stage48's11 gates, +2.76/+5.40±.15pt registered
+  transfer, fixed actual-ink windows and ROI/whole gain against Stage44, one-page
+  count, unchanged table/pre-heading pixels and source text/font/flow. New whole
+  must reach strict≥.90; all five per-page/aggregate floors remain, no threshold
+  tuning. Explicitly disclose h3 ink midpoint may worsen−1.5→approximately+2.5px;
+  mean gain is not every-anchor improvement. Newsletter/pdfsource old Stage12
+  regressions stay failed and are not reclassified by this restricted domain.
+- Deliverables: four-field collector, generic helper/applied-status/local-state
+  product changes, focused/negative/old-case tests, reproducible narrow runner,
+  source/snapshot/field/hit/inverse/semantic/environment/hash manifests and unique
+  five native outputs/necessary images, report of scores/adverse anchors/domain
+  and host limitations. Related/packaging tests, full Ruff/format/JS/diff before
+  capture/native; final hashes/byte replay prove last code matches actual inputs.
+  Primary independently reviews result images/diff and staged set before commit.
+- STOP on any missing qualification proof, source/core/pixel drift, extra/missing
+  hit or ZIP difference, semantic/environment/safety/export/flow/pixel/score failure.
+  Preserve raw and do not issue product PR, adjust values/thresholds, recapture,
+  rerun or claim Stage49 was successful. Only all accepted gates permit English
+  Conventional Commit/push/product PR→main; primary merges after six green CI.
