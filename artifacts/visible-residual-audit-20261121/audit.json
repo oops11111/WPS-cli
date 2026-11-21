@@ -1,0 +1,626 @@
+{
+  "whole": 0.8950000618741911,
+  "size": [
+    800,
+    1132
+  ],
+  "versions": {
+    "pypdfium2": "5.15.2",
+    "Pillow": "13.0.0",
+    "numpy": "2.5.5",
+    "pdfplumber": "0.11.10"
+  },
+  "hashes": {
+    "artifacts\\schema-table-width-20261121\\A-contract-docx\\browser.pdf": "d8974a83aa79fe70abf44b7177f3e5d7d71ead4b2fa6b6eda09b01fee374c138",
+    "artifacts\\schema-table-width-20261121\\A-contract-docx\\browser-styles.json": "fb246a80494e71721dfc523389829e22c5e59b01834e52288cba2b1c04c0d34f",
+    "artifacts\\natural-merged-rows-20261121\\A-contract-docx\\wps.pdf": "79e97679322fc7860cbfd2c1e94cfb26b623731cd220b1488cbfff29dd50080a",
+    "artifacts\\natural-merged-rows-20261121\\A-contract-docx\\wps-page-001.png": "a1a6f518ef057000affc49993e28f82eff4c79fa0a6ae4b73f1579ea8fb3861f",
+    "artifacts\\natural-merged-rows-20261121\\A-contract-docx\\candidate.docx": "2b5e206fb74d5a73b036ab8a8e4b01b6dc98d5818599cfbabdb28579bdd0aefa",
+    "artifacts\\row-baseline-padding-20261121\\wps-page-001.png": "a1a6f518ef057000affc49993e28f82eff4c79fa0a6ae4b73f1579ea8fb3861f"
+  },
+  "negative_same_gray": true,
+  "partitions": [
+    {
+      "region": "before",
+      "raster_y": [
+        0,
+        467
+      ],
+      "ssim": 0.9355338127846206,
+      "gray_abs_mass": 1882530.0,
+      "fraction_mass": 0.2742635612610532,
+      "rgb_abs_mass": 5647590.0,
+      "rgb_fraction_mass": 0.2742053960140129
+    },
+    {
+      "region": "header",
+      "raster_y": [
+        467,
+        530
+      ],
+      "ssim": 0.9396279033468743,
+      "gray_abs_mass": 286985.0,
+      "fraction_mass": 0.041810504017733244,
+      "rgb_abs_mass": 869700.0,
+      "rgb_fraction_mass": 0.0422262297570091
+    },
+    {
+      "region": "body",
+      "raster_y": [
+        530,
+        630
+      ],
+      "ssim": 0.822551073454146,
+      "gray_abs_mass": 1002781.0,
+      "fraction_mass": 0.14609397365509194,
+      "rgb_abs_mass": 3008343.0,
+      "rgb_fraction_mass": 0.14606299034826953
+    },
+    {
+      "region": "later",
+      "raster_y": [
+        630,
+        859
+      ],
+      "ssim": 0.7819971971346034,
+      "gray_abs_mass": 2860364.0,
+      "fraction_mass": 0.4167230360965888,
+      "rgb_abs_mass": 8576715.0,
+      "rgb_fraction_mass": 0.4164221434407109
+    },
+    {
+      "region": "after",
+      "raster_y": [
+        859,
+        1132
+      ],
+      "ssim": 0.9324157137523705,
+      "gray_abs_mass": 831285.0,
+      "fraction_mass": 0.12110892496953282,
+      "rgb_abs_mass": 2493855.0,
+      "rgb_fraction_mass": 0.1210832404399976
+    }
+  ],
+  "mass_sum_exact": true,
+  "negative_same_rgb": true,
+  "anchors": {
+    "合同总价": {
+      "source": {
+        "baseline": 488.9999796249999,
+        "bbox_pt": [
+          33.74999859375,
+          480.8825777302172,
+          341.2452220814484,
+          491.8775771220922
+        ],
+        "first_glyph_ink_raster_rows": [
+          645,
+          658
+        ],
+        "text": "合同总价为人民币 叁拾万元整（¥300,000），含 6% 增值税。"
+      },
+      "native": {
+        "baseline": 488.69,
+        "bbox_pt": [
+          33.72,
+          480.45775,
+          341.40825,
+          491.57405
+        ],
+        "first_glyph_ink_raster_rows": [
+          645,
+          658
+        ],
+        "text": "合同总价为人民币 叁拾万元整（¥300,000），含 6% 增值税。"
+      }
+    },
+    "第三条": {
+      "source": {
+        "baseline": 524.9999781249999,
+        "bbox_pt": [
+          33.74999859375,
+          512.8183380075683,
+          121.16454569147703,
+          529.3183373200683
+        ],
+        "first_glyph_ink_raster_rows": [
+          686,
+          707
+        ],
+        "text": "第三条 保密"
+      },
+      "native": {
+        "baseline": 522.769,
+        "bbox_pt": [
+          33.72,
+          510.61245,
+          121.08985000000001,
+          527.06245
+        ],
+        "first_glyph_ink_raster_rows": [
+          685,
+          705
+        ],
+        "text": "第三条 保密"
+      }
+    },
+    "双方对": {
+      "source": {
+        "baseline": 557.99997675,
+        "bbox_pt": [
+          33.74999859375,
+          549.8825748552172,
+          487.81920202419906,
+          560.8775742470923
+        ],
+        "first_glyph_ink_raster_rows": [
+          738,
+          750
+        ],
+        "text": "双方对在履行本合同过程中知悉的对方商业秘密负有保密义务，保密期限为合同终止后 三年。"
+      },
+      "native": {
+        "baseline": 554.569,
+        "bbox_pt": [
+          33.72,
+          546.3367499999999,
+          488.05,
+          557.45305
+        ],
+        "first_glyph_ink_raster_rows": [
+          734,
+          747
+        ],
+        "text": "双方对在履行本合同过程中知悉的对方商业秘密负有保密义务，保密期限为合同终止后 三年。"
+      }
+    },
+    "第四条": {
+      "source": {
+        "baseline": 593.9999752499999,
+        "bbox_pt": [
+          33.74999859375,
+          581.8183351325683,
+          154.16454431647705,
+          598.3183344450683
+        ],
+        "first_glyph_ink_raster_rows": [
+          779,
+          800
+        ],
+        "text": "第四条 违约责任"
+      },
+      "native": {
+        "baseline": 588.769,
+        "bbox_pt": [
+          33.72,
+          576.6124500000001,
+          154.0891,
+          593.06245
+        ],
+        "first_glyph_ink_raster_rows": [
+          774,
+          794
+        ],
+        "text": "第四条 违约责任"
+      }
+    },
+    "任何一方": {
+      "source": {
+        "baseline": 626.2499739062499,
+        "bbox_pt": [
+          33.74999859375,
+          618.1325720114672,
+          557.7263226864019,
+          629.1275714033422
+        ],
+        "first_glyph_ink_raster_rows": [
+          829,
+          842
+        ],
+        "text": "任何一方违反本合同约定的，应向守约方支付合同总价 20% 的违约金；违约金不足以弥补损失的，还应赔偿"
+      },
+      "native": {
+        "baseline": 620.569,
+        "bbox_pt": [
+          33.72,
+          612.3367499999999,
+          557.8849,
+          623.3867499999999
+        ],
+        "first_glyph_ink_raster_rows": [
+          822,
+          835
+        ],
+        "text": "任何一方违反本合同约定的，应向守约方支付合同总价20%的违约金；违约金不足以弥补损失的，还应赔偿"
+      }
+    },
+    "甲方（盖章）": {
+      "source": {
+        "baseline": 685.4999714374999,
+        "bbox_pt": [
+          35.9999985,
+          677.3825695427172,
+          249.79306224195528,
+          688.3775689345922
+        ],
+        "first_glyph_ink_raster_rows": [
+          909,
+          922
+        ],
+        "text": "甲方（盖章）： 乙方（盖章）："
+      },
+      "native": {
+        "baseline": 679.009,
+        "bbox_pt": [
+          34.44,
+          670.77675,
+          247.68850000000003,
+          681.82675
+        ],
+        "first_glyph_ink_raster_rows": [
+          901,
+          914
+        ],
+        "text": "甲方（盖章）： 乙方（盖章）："
+      }
+    }
+  },
+  "source_boxes": [
+    {
+      "tag": "p",
+      "attrs": {
+        "data-wps-i": "7",
+        "style": "text-align:right"
+      },
+      "box": {
+        "x": 8,
+        "y": 75.71875,
+        "width": 1264,
+        "height": 22
+      },
+      "css": {
+        "font-size": "14.6667px",
+        "line-height": "22px",
+        "margin-top": "14.6667px",
+        "margin-bottom": "14.6667px",
+        "padding-top": "0px",
+        "padding-bottom": "0px",
+        "border-collapse": "separate",
+        "border-spacing": "0px"
+      }
+    },
+    {
+      "tag": "table",
+      "attrs": {
+        "data-wps-i": "8",
+        "class": "parties"
+      },
+      "box": {
+        "x": 8,
+        "y": 112.375,
+        "width": 288.5625,
+        "height": 66
+      },
+      "css": {
+        "font-size": "14.6667px",
+        "line-height": "22px",
+        "margin-top": "0px",
+        "margin-bottom": "0px",
+        "padding-top": "0px",
+        "padding-bottom": "0px",
+        "border-collapse": "separate",
+        "border-spacing": "2px"
+      }
+    },
+    {
+      "tag": "h2",
+      "attrs": {
+        "data-wps-i": "15"
+      },
+      "box": {
+        "x": 8,
+        "y": 196.625,
+        "width": 1264,
+        "height": 33
+      },
+      "css": {
+        "font-size": "22px",
+        "line-height": "33px",
+        "margin-top": "18.26px",
+        "margin-bottom": "18.26px",
+        "padding-top": "0px",
+        "padding-bottom": "0px",
+        "border-collapse": "separate",
+        "border-spacing": "0px"
+      }
+    },
+    {
+      "tag": "h2",
+      "attrs": {
+        "data-wps-i": "23"
+      },
+      "box": {
+        "x": 8,
+        "y": 376.125,
+        "width": 1264,
+        "height": 33
+      },
+      "css": {
+        "font-size": "22px",
+        "line-height": "33px",
+        "margin-top": "18.26px",
+        "margin-bottom": "18.26px",
+        "padding-top": "0px",
+        "padding-bottom": "0px",
+        "border-collapse": "separate",
+        "border-spacing": "0px"
+      }
+    },
+    {
+      "tag": "table",
+      "attrs": {
+        "data-wps-i": "24",
+        "class": "fee"
+      },
+      "box": {
+        "x": 8,
+        "y": 427.375,
+        "width": 365.765625,
+        "height": 156
+      },
+      "css": {
+        "font-size": "14.6667px",
+        "line-height": "22px",
+        "margin-top": "0px",
+        "margin-bottom": "0px",
+        "padding-top": "0px",
+        "padding-bottom": "0px",
+        "border-collapse": "collapse",
+        "border-spacing": "2px"
+      }
+    },
+    {
+      "tag": "p",
+      "attrs": {
+        "data-wps-i": "49"
+      },
+      "box": {
+        "x": 8,
+        "y": 598.03125,
+        "width": 1264,
+        "height": 22
+      },
+      "css": {
+        "font-size": "14.6667px",
+        "line-height": "22px",
+        "margin-top": "14.6667px",
+        "margin-bottom": "14.6667px",
+        "padding-top": "0px",
+        "padding-bottom": "0px",
+        "border-collapse": "separate",
+        "border-spacing": "0px"
+      }
+    },
+    {
+      "tag": "h2",
+      "attrs": {
+        "data-wps-i": "51"
+      },
+      "box": {
+        "x": 8,
+        "y": 638.28125,
+        "width": 1264,
+        "height": 33
+      },
+      "css": {
+        "font-size": "22px",
+        "line-height": "33px",
+        "margin-top": "18.26px",
+        "margin-bottom": "18.26px",
+        "padding-top": "0px",
+        "padding-bottom": "0px",
+        "border-collapse": "separate",
+        "border-spacing": "0px"
+      }
+    },
+    {
+      "tag": "p",
+      "attrs": {
+        "data-wps-i": "52"
+      },
+      "box": {
+        "x": 8,
+        "y": 689.53125,
+        "width": 1264,
+        "height": 22
+      },
+      "css": {
+        "font-size": "14.6667px",
+        "line-height": "22px",
+        "margin-top": "14.6667px",
+        "margin-bottom": "14.6667px",
+        "padding-top": "0px",
+        "padding-bottom": "0px",
+        "border-collapse": "separate",
+        "border-spacing": "0px"
+      }
+    },
+    {
+      "tag": "h2",
+      "attrs": {
+        "data-wps-i": "55"
+      },
+      "box": {
+        "x": 8,
+        "y": 729.78125,
+        "width": 1264,
+        "height": 33
+      },
+      "css": {
+        "font-size": "22px",
+        "line-height": "33px",
+        "margin-top": "18.26px",
+        "margin-bottom": "18.26px",
+        "padding-top": "0px",
+        "padding-bottom": "0px",
+        "border-collapse": "separate",
+        "border-spacing": "0px"
+      }
+    },
+    {
+      "tag": "p",
+      "attrs": {
+        "data-wps-i": "56"
+      },
+      "box": {
+        "x": 8,
+        "y": 781.03125,
+        "width": 1264,
+        "height": 22
+      },
+      "css": {
+        "font-size": "14.6667px",
+        "line-height": "22px",
+        "margin-top": "14.6667px",
+        "margin-bottom": "14.6667px",
+        "padding-top": "0px",
+        "padding-bottom": "0px",
+        "border-collapse": "separate",
+        "border-spacing": "0px"
+      }
+    },
+    {
+      "tag": "table",
+      "attrs": {
+        "data-wps-i": "58",
+        "class": "sign"
+      },
+      "box": {
+        "x": 8,
+        "y": 835.03125,
+        "width": 366.875,
+        "height": 54
+      },
+      "css": {
+        "font-size": "14.6667px",
+        "line-height": "22px",
+        "margin-top": "32px",
+        "margin-bottom": "0px",
+        "padding-top": "0px",
+        "padding-bottom": "0px",
+        "border-collapse": "separate",
+        "border-spacing": "2px"
+      }
+    }
+  ],
+  "paragraph_xml": [
+    {
+      "text": "合同总价为人民币 叁拾万元整（¥300,000），含 6% 增值税。",
+      "pPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" xmlns:wpc=\"http://schemas.microsoft.com/office/word/2010/wordprocessingCanvas\" xmlns:mo=\"http://schemas.microsoft.com/office/mac/office/2008/main\" xmlns:mc=\"http://schemas.openxmlformats.org/markup-compatibility/2006\" xmlns:mv=\"urn:schemas-microsoft-com:mac:vml\" xmlns:o=\"urn:schemas-microsoft-com:office:office\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\" xmlns:m=\"http://schemas.openxmlformats.org/officeDocument/2006/math\" xmlns:v=\"urn:schemas-microsoft-com:vml\" xmlns:wp14=\"http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing\" xmlns:wp=\"http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing\" xmlns:w10=\"urn:schemas-microsoft-com:office:word\" xmlns:w14=\"http://schemas.microsoft.com/office/word/2010/wordml\" xmlns:wpg=\"http://schemas.microsoft.com/office/word/2010/wordprocessingGroup\" xmlns:wpi=\"http://schemas.microsoft.com/office/word/2010/wordprocessingInk\" xmlns:wne=\"http://schemas.microsoft.com/office/word/2006/wordml\" xmlns:wps=\"http://schemas.microsoft.com/office/word/2010/wordprocessingShape\"><w:snapToGrid w:val=\"0\"/><w:spacing w:lineRule=\"exact\" w:line=\"330\" w:before=\"220\" w:after=\"220\"/><w:jc w:val=\"left\"/></w:pPr>"
+    },
+    {
+      "text": "第三条 保密",
+      "pPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" xmlns:wpc=\"http://schemas.microsoft.com/office/word/2010/wordprocessingCanvas\" xmlns:mo=\"http://schemas.microsoft.com/office/mac/office/2008/main\" xmlns:mc=\"http://schemas.openxmlformats.org/markup-compatibility/2006\" xmlns:mv=\"urn:schemas-microsoft-com:mac:vml\" xmlns:o=\"urn:schemas-microsoft-com:office:office\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\" xmlns:m=\"http://schemas.openxmlformats.org/officeDocument/2006/math\" xmlns:v=\"urn:schemas-microsoft-com:vml\" xmlns:wp14=\"http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing\" xmlns:wp=\"http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing\" xmlns:w10=\"urn:schemas-microsoft-com:office:word\" xmlns:w14=\"http://schemas.microsoft.com/office/word/2010/wordml\" xmlns:wpg=\"http://schemas.microsoft.com/office/word/2010/wordprocessingGroup\" xmlns:wpi=\"http://schemas.microsoft.com/office/word/2010/wordprocessingInk\" xmlns:wne=\"http://schemas.microsoft.com/office/word/2006/wordml\" xmlns:wps=\"http://schemas.microsoft.com/office/word/2010/wordprocessingShape\"><w:pStyle w:val=\"Heading2\"/><w:snapToGrid w:val=\"0\"/><w:spacing w:lineRule=\"exact\" w:line=\"495\" w:before=\"54\" w:after=\"274\"/><w:jc w:val=\"left\"/></w:pPr>"
+    },
+    {
+      "text": "双方对在履行本合同过程中知悉的对方商业秘密负有保密义务，保密期限为合同终止后 三年。",
+      "pPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" xmlns:wpc=\"http://schemas.microsoft.com/office/word/2010/wordprocessingCanvas\" xmlns:mo=\"http://schemas.microsoft.com/office/mac/office/2008/main\" xmlns:mc=\"http://schemas.openxmlformats.org/markup-compatibility/2006\" xmlns:mv=\"urn:schemas-microsoft-com:mac:vml\" xmlns:o=\"urn:schemas-microsoft-com:office:office\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\" xmlns:m=\"http://schemas.openxmlformats.org/officeDocument/2006/math\" xmlns:v=\"urn:schemas-microsoft-com:vml\" xmlns:wp14=\"http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing\" xmlns:wp=\"http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing\" xmlns:w10=\"urn:schemas-microsoft-com:office:word\" xmlns:w14=\"http://schemas.microsoft.com/office/word/2010/wordml\" xmlns:wpg=\"http://schemas.microsoft.com/office/word/2010/wordprocessingGroup\" xmlns:wpi=\"http://schemas.microsoft.com/office/word/2010/wordprocessingInk\" xmlns:wne=\"http://schemas.microsoft.com/office/word/2006/wordml\" xmlns:wps=\"http://schemas.microsoft.com/office/word/2010/wordprocessingShape\"><w:snapToGrid w:val=\"0\"/><w:spacing w:lineRule=\"exact\" w:line=\"330\" w:before=\"0\" w:after=\"220\"/><w:jc w:val=\"left\"/></w:pPr>"
+    },
+    {
+      "text": "第四条 违约责任",
+      "pPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" xmlns:wpc=\"http://schemas.microsoft.com/office/word/2010/wordprocessingCanvas\" xmlns:mo=\"http://schemas.microsoft.com/office/mac/office/2008/main\" xmlns:mc=\"http://schemas.openxmlformats.org/markup-compatibility/2006\" xmlns:mv=\"urn:schemas-microsoft-com:mac:vml\" xmlns:o=\"urn:schemas-microsoft-com:office:office\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\" xmlns:m=\"http://schemas.openxmlformats.org/officeDocument/2006/math\" xmlns:v=\"urn:schemas-microsoft-com:vml\" xmlns:wp14=\"http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing\" xmlns:wp=\"http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing\" xmlns:w10=\"urn:schemas-microsoft-com:office:word\" xmlns:w14=\"http://schemas.microsoft.com/office/word/2010/wordml\" xmlns:wpg=\"http://schemas.microsoft.com/office/word/2010/wordprocessingGroup\" xmlns:wpi=\"http://schemas.microsoft.com/office/word/2010/wordprocessingInk\" xmlns:wne=\"http://schemas.microsoft.com/office/word/2006/wordml\" xmlns:wps=\"http://schemas.microsoft.com/office/word/2010/wordprocessingShape\"><w:pStyle w:val=\"Heading2\"/><w:snapToGrid w:val=\"0\"/><w:spacing w:lineRule=\"exact\" w:line=\"495\" w:before=\"54\" w:after=\"274\"/><w:jc w:val=\"left\"/></w:pPr>"
+    },
+    {
+      "text": "任何一方违反本合同约定的，应向守约方支付合同总价 20% 的违约金；违约金不足以弥补损失的，还应赔偿差额部分。",
+      "pPr": "<w:pPr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" xmlns:wpc=\"http://schemas.microsoft.com/office/word/2010/wordprocessingCanvas\" xmlns:mo=\"http://schemas.microsoft.com/office/mac/office/2008/main\" xmlns:mc=\"http://schemas.openxmlformats.org/markup-compatibility/2006\" xmlns:mv=\"urn:schemas-microsoft-com:mac:vml\" xmlns:o=\"urn:schemas-microsoft-com:office:office\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\" xmlns:m=\"http://schemas.openxmlformats.org/officeDocument/2006/math\" xmlns:v=\"urn:schemas-microsoft-com:vml\" xmlns:wp14=\"http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing\" xmlns:wp=\"http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing\" xmlns:w10=\"urn:schemas-microsoft-com:office:word\" xmlns:w14=\"http://schemas.microsoft.com/office/word/2010/wordml\" xmlns:wpg=\"http://schemas.microsoft.com/office/word/2010/wordprocessingGroup\" xmlns:wpi=\"http://schemas.microsoft.com/office/word/2010/wordprocessingInk\" xmlns:wne=\"http://schemas.microsoft.com/office/word/2006/wordml\" xmlns:wps=\"http://schemas.microsoft.com/office/word/2010/wordprocessingShape\"><w:snapToGrid w:val=\"0\"/><w:spacing w:lineRule=\"exact\" w:line=\"330\" w:before=\"0\" w:after=\"480\"/><w:jc w:val=\"left\"/></w:pPr>"
+    }
+  ],
+  "repeat_same_scores": true,
+  "vectors": {
+    "source": {
+      "table_object_styles": [
+        [
+          [
+            "rect",
+            0,
+            "(0.8667, 0.902, 0.9412)",
+            "(0.8667, 0.902, 0.9412)"
+          ],
+          5
+        ],
+        [
+          [
+            "rect",
+            0,
+            "(0.3333, 0.3333, 0.3333)",
+            "(0.3333, 0.3333, 0.3333)"
+          ],
+          46
+        ]
+      ]
+    },
+    "native": {
+      "table_object_styles": [
+        [
+          [
+            "line",
+            0.72,
+            "(0.333, 0.333, 0.333)",
+            "0"
+          ],
+          10
+        ],
+        [
+          [
+            "rect",
+            0,
+            "0",
+            "(0.867, 0.902, 0.941)"
+          ],
+          5
+        ]
+      ]
+    }
+  },
+  "rgb_total_abs_mass": 20596203.0,
+  "fixed_roi": {
+    "header": {
+      "raster": [
+        30,
+        467,
+        770,
+        530
+      ],
+      "ssim": 0.9346928545741392
+    },
+    "body": {
+      "raster": [
+        30,
+        530,
+        770,
+        630
+      ],
+      "ssim": 0.8080457116111607
+    },
+    "table": {
+      "raster": [
+        30,
+        467,
+        770,
+        630
+      ],
+      "ssim": 0.8573453587284451
+    },
+    "later": {
+      "raster": [
+        30,
+        630,
+        770,
+        859
+      ],
+      "ssim": 0.7641768045298025
+    }
+  },
+  "repeat_rgb_gray_whole": 0.8950000618741911,
+  "rgb_partition_sum_exact": true
+}

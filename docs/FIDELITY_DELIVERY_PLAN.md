@@ -1634,3 +1634,61 @@ authoritative status, commit/PR/run evidence, blockers and exact next action.
   Raw outcome first goes to primary for independent image/diff review. Only
   reusable reviewed evidence may be committed in an evidence-only PR→main;
   six CI jobs must pass and only primary may merge. No product integration.
+
+## Stage46 PLAN ONLY: visible residual audit before any new mechanism
+
+- Dependency/base: merged Stage44 product and Stage45 negative evidence,
+  exact main f3cb1a8a989b40ee0676dbf97481fd6d270f9193; new isolated
+  fidelity-visible-residual / docs/visible-residual-audit. No frozen worktree
+  or previous STOP changes. This plan authorizes no candidate or native run.
+- Question: what visible, source-grounded mapping defect remains behind
+  contract whole.895000062? Stage45 proved that PDF character-matrix movement
+  alone is insufficient: its RGB PNG and all fixed SSIM were unchanged.
+  Therefore all causal proposals must connect source CSS/XML to actual ink/rule
+  pixels, not just extracted baseline coordinates or a small score opportunity.
+- Immutable controls: Stage44 contract candidate.docx and native PDF/PNG under
+  artifacts/natural-merged-rows-20261121/A-contract-docx; source browser PDF,
+  HTML and computed snapshot under artifacts/schema-table-width-20261121/
+  A-contract-docx. Record source/package/PDF/PNG hashes and PDFium/Pillow/NumPy
+  versions before offline analysis. Stage45 supplies a negative geometry/raster
+  control; never replace current native input with its modified package.
+- Scope: offline read-only PDF raster/vector/text and source DOM/CSS/XML audit.
+  Reproduce whole score with the unchanged repository800px grayscale algorithm;
+  independently compare RGB. Retain Stage43's fixed PDF y regions header348..395,
+  body395..470, table348..470 and later470..640pt using int(y*800/595.92),
+  x30..770 raster px. Add a predeclared disjoint page partition by PDF y:
+  0..348,348..395,395..470,470..640,640..page-bottom, full raster width. No region
+  search, registration, pixel editing or oracle substitution counts as a repair.
+- Measurements: report each fixed region's SSIM, absolute gray/RGB difference
+  mass and fraction of page difference mass (not additive SSIM contributions).
+  Separate rule positions/colors/widths/fill from text ink and blank space using
+  existing PDF vector objects and text boxes. For later-flow anchors price/h3/
+  confidentiality/h4/liability, show source/native PDF baseline, actual raster
+  ink-row bounds and nearest source CSS box/margin/line/paragraph XML values.
+  The visible ink measurement is independent of text-matrix prediction; font
+  rasterization uncertainty and mixed causes remain explicit.
+- Controls: baseline score within1e-9 of.8950000618741911; native PNG hash matches
+  a1a6f518ef057000affc49993e28f82eff4c79fa0a6ae4b73f1579ea8fb3861f;
+  Stage45 versus current native RGB difference exactly zero despite differing
+  geometry. Verify disjoint partition covers every raster row exactly once and
+  difference masses sum to the whole image; repeated offline calculations must
+  agree. These are audit checks, not new conversion/WPS acceptance tests.
+- Deliverables after audit approval: concise local read-only measurement report
+  with immutable hashes, fixed region table, vector/ink/DOM/XML source trace,
+  uncertainty and counterevidence, then either one new falsifiable mechanism
+  proposal or explicit STOP. A reusable extractor/test/evidence PR is not
+  automatically authorized; primary reviews the evidence first.
+- Acceptance is a reproducible attribution, not strict F2 success. A candidate
+  proposal requires a single CSS-derived rule absent/misrepresented in DOCX,
+  an independent prediction for visible pixels and conservation gates, and an
+  explanation why Stage10/12/19/20/29/30/32/34/45 do not already falsify it.
+  No empirical per-paragraph offsets, font/threshold rounding chase, raster
+  tuning, generalized flow rewrite or revived frozen candidate.
+- STOP if controls do not reproduce, ink attribution is ambiguous, only mixed
+  renderer differences/known failed mechanisms remain, or no independent
+  single-variable mapping prediction is supported. Report the exact uncertainty
+  rather than invent a next export. No source/product/baseline/threshold edits,
+  browser/WPS invocation, candidate package, commit or PR under this plan.
+  Any eventual mechanism needs its own reviewed Plan, preregistered safety/
+  pixel/semantic/flow gates and at most one approved native export set; only
+  primary may merge after all six CI jobs pass.
