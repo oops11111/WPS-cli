@@ -1,0 +1,36 @@
+[
+  true,
+  {
+    "input_path": "artifacts/plain-pre-whitespace-20261121/A-report-docx/input/report.html",
+    "output_path": "artifacts/plain-pre-whitespace-20261121/A-report-docx/converted.docx",
+    "bytes": 39638,
+    "sha256": "6371b7141be47a19aa88b6bac429bd708ecca7ee55da8d1b5a62ebeb0fa85d04",
+    "backend": "python-docx-semantic-mapping",
+    "editable": true,
+    "mapped_objects": {
+      "paragraphs": 9,
+      "headings": 6,
+      "lists": 8,
+      "tables": 1,
+      "images": 1
+    },
+    "unsupported_css": [],
+    "warnings": [
+      "Scripts and executable content were omitted.",
+      "Unsafe hyperlink target omitted."
+    ],
+    "fidelity": "editable",
+    "style_source": "browser",
+    "applied_styles": [
+      "border",
+      "character",
+      "column widths",
+      "paragraph"
+    ],
+    "source_encoding": "utf-8",
+    "javascript_executed": false,
+    "remote_resources_fetched": false,
+    "roundtrip_bookmarks": 0
+  },
+  []
+]

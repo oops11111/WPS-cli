@@ -1,0 +1,34 @@
+[
+  true,
+  {
+    "input_path": "artifacts/plain-pre-whitespace-20261121/A-contract-docx/input/contract.html",
+    "output_path": "artifacts/plain-pre-whitespace-20261121/A-contract-docx/converted.docx",
+    "bytes": 38641,
+    "sha256": "155245de615f1fab6ea389d2a9a8c91eb8a7b50997974f48ef09496c4b7726ce",
+    "backend": "python-docx-semantic-mapping",
+    "editable": true,
+    "mapped_objects": {
+      "paragraphs": 4,
+      "headings": 5,
+      "lists": 5,
+      "tables": 3,
+      "images": 0
+    },
+    "unsupported_css": [],
+    "warnings": [],
+    "fidelity": "editable",
+    "style_source": "browser",
+    "applied_styles": [
+      "cell borders",
+      "cell shading",
+      "character",
+      "column widths",
+      "paragraph"
+    ],
+    "source_encoding": "utf-8",
+    "javascript_executed": false,
+    "remote_resources_fetched": false,
+    "roundtrip_bookmarks": 0
+  },
+  []
+]

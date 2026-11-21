@@ -457,3 +457,72 @@ authoritative status, commit/PR/run evidence, blockers and exact next action.
 - Integration: same continuing agent; English Conventional Commit/push/PR to main
   only after gates and primary-agent evidence review. All six CI jobs must pass
   before merge; implementation agent does not merge.
+
+## Stage 15: plain-pre boundary whitespace semantics
+
+- Dependency/base: stage14 PR #165 merged after updated-head six green CI jobs,
+  exact main `0947a424349aaac8c5edae0503636c76a69ff486`. Clean branch
+  `fix/docx-plain-pre-whitespace` in fidelity-details worktree; preserve local
+  logs and all frozen stage6/10/12 worktrees. Plan-only until primary review.
+- Grounded source/XML: original report pre begins CRLF and ends
+  `GROUP BY region;` plus CRLF plus four spaces. HTML normalizes CRLF/lone CR to
+  LF and ignores only one LF immediately after the pre start tag. Current
+  add_paragraph preserve branch lstrips all leading newlines and rstrips terminal
+  HTML whitespace; generated SQL has four text lines/three br and no terminal
+  blank/indented line. Browser PDF SQL line pitch11.25pt matches WPS approximately
+  11.25pt, but following summary is about11pt early. Pre CSS after13px=9.75pt
+  already matches XML195twips. Do not add a compensating paragraph margin.
+- Scope: only pre with direct string children, default/preformatted whitespace
+  behavior and no nested nodes. Preserve existing raw-CRLF/lone-CR normalization;
+  remove exactly one source-initial LF, preserving any additional leading LF and
+  all terminal LF/indentation/tab-space text. Preserve internal indent and blank
+  lines. No nested code behavior, rich pre/inline runs, global whitespace policy,
+  paragraph/list/table/summary margin, font/line pitch, triangle or scorer changes.
+  Ambiguous author white-space overrides retain existing behavior rather than
+  entering this narrow mapping. No fixture/baseline/threshold edits.
+- Evidence limits: archived browser measurement preheight150px/text-lines10
+  conflicts with actual PDF/source line evidence and may reflect Windows
+  temporary-file newline translation. Do not use it to derive a total-height
+  adjustment or change the browser annotation pipeline in this stage. Use original
+  source bytes, native br/text XML and actual PDF coordinates for attribution.
+- Deliverables after approval: first failing original-report XML/text test,
+  minimal plain-pre normalization repair, focused tests, changelog and fresh
+  original-five-case raw source/output SHA/version/probe/PDF/DOCX/image evidence.
+  Record exact preserved pre text, br count, SQL line coordinates and summary/
+  contacts/unsafe-label coordinates, existing hidden-body retention/visibility
+  gates, unchanged marker residual and any remaining font/position uncertainty.
+- Tests: original report must retain terminal LF plus four spaces after its
+  initial HTML-ignored LF. Cover LF/CRLF/lone CR equivalence, exactly one versus
+  multiple leading LF, empty/whitespace-only pre, terminal LF plus space/tab,
+  no-terminal-LF control and internal indent/blank lines. Negative controls keep
+  nested pre/code XML/text unchanged and ordinary paragraph whitespace collapse;
+  retain existing Windows CRLF-no-extra-blank-line and complex report indentation
+  tests. Verify python-docx w:br/text/xml:space serialization rather than inserting
+  empty paragraphs. Run focused/related HTML/conversion/roundtrip/fidelity tests,
+  full Ruff/format and whitespace checks before WPS.
+- Original-report acceptance: latest accepted stage14 WPS summarytop155.63pt
+  versus browser166.6406pt; contacts/phone183.35 versus194.3906pt, unsafe label
+ 211.19 versus222.1406pt. New absolute vertical errors for all must decrease;
+  x positions, SQL visible-line positions and prior content must not drift beyond
+  native0.05pt quantization without an explanation reviewed before acceptance.
+  Report page1 WPS pixels identical; page2 SSIM must improve above0.9684 and
+  aggregate above0.9255, with2/2pages and semantic scores1.0. Hidden details body
+  remains exactly once in XML and absent from PDF, summary/following text visible.
+  Missing disclosure triangle stays outside scope; no interaction/accessibility
+  claim. Any needed general layout compensation triggers stop.
+- Five-case regression: exactly one safe original five-case WPS/browser set,
+  no-existing-process probes and converter-owned instances only. Latest accepted
+  stage14 evidence is the reference for all five. Each page and aggregate SSIM
+  nondecreasing, page counts unchanged, applicable semantic scores1.0. Manual's
+  only pre contains nested code/no terminal LF and must retain old behavior;
+  contract/newsletter/pdfsource have no pre. Strict0.90 and existing exceptions
+  remain separate; no source edits, alignment or tuning reruns.
+- Stop: source/XML hypothesis not reproducible, ambiguity in initial-LF handling,
+  nested-code/global behavior changes, real output does not improve declared
+  report gates, any five-case regression, hidden body leak/content loss, unsafe/
+  unavailable renderer, or repair needs browser-pipeline/font/marker/global spacing
+  changes. Preserve raw evidence and uncommitted work; report before expansion,
+  commit or PR. Never terminate user processes or alter global preferences.
+- Integration: same continuing agent; English Conventional Commit/push/PR to main
+  only after acceptance, primary-agent diff/XML/image review and all six CI jobs
+  green before merge. Implementation agent does not merge.

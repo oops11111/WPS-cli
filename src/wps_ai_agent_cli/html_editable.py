@@ -53,6 +53,7 @@ class _Node:
     tag: str
     attrs: dict[str, str] = field(default_factory=dict)
     children: list[_Node | str] = field(default_factory=list)
+    pre_has_comment: bool = False
 
 
 def simple_details(node, styled):
@@ -125,6 +126,10 @@ class _TreeParser(HTMLParser):
         self.handle_starttag(tag, attrs)
         if tag.lower() not in _VOID:
             self.handle_endtag(tag)
+
+    def handle_comment(self, data: str) -> None:
+        if self.stack[-1].tag == "pre":
+            self.stack[-1].pre_has_comment = True
 
     def handle_endtag(self, tag: str) -> None:
         tag = tag.lower()
@@ -774,8 +779,18 @@ def convert_html_editable(
         if preserve:
             runs = [run for run in paragraph.runs if run.text]
             if runs:
-                runs[0].text = runs[0].text.lstrip("\r\n")
-                runs[-1].text = runs[-1].text.rstrip(HTML_SPACE)
+                plain_pre = (
+                    not node.pre_has_comment
+                    and all(isinstance(child, str) for child in node.children)
+                    and (context.styled.style(node).get("white-space") == "pre")
+                )
+                if plain_pre:
+                    # HTML ignores one immediately initial LF, not authored blank
+                    # lines or terminal whitespace. CRLF/CR were normalized above.
+                    runs[0].text = runs[0].text.removeprefix("\n")
+                else:
+                    runs[0].text = runs[0].text.lstrip("\r\n")
+                    runs[-1].text = runs[-1].text.rstrip(HTML_SPACE)
         else:
             trim(paragraph)
         return paragraph

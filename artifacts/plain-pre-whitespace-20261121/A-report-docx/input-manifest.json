@@ -1,0 +1,19 @@
+[
+  {
+    "reference": "report.html",
+    "exists": true,
+    "repository_path": "fixtures/html_complex/report.html",
+    "sha256": "40f9b6732ca6f13a1f56eda36f3b8318bec35d30d2be26fcee19134c2bb832e1"
+  },
+  {
+    "reference": "print.css",
+    "exists": false,
+    "repository_path": "fixtures/html_complex/print.css"
+  },
+  {
+    "reference": "chart.png",
+    "exists": true,
+    "repository_path": "fixtures/html_complex/chart.png",
+    "sha256": "ed89838a4de750fe6336580240367518c4507448844463c4357d62481d482fe5"
+  }
+]

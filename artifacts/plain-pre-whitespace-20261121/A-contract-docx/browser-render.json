@@ -1,0 +1,24 @@
+[
+  true,
+  {
+    "input_path": "artifacts/plain-pre-whitespace-20261121/A-contract-docx/input/contract.html",
+    "output_path": "artifacts/plain-pre-whitespace-20261121/A-contract-docx/browser.pdf",
+    "format": "pdf",
+    "bytes": 104224,
+    "sha256": "1647c098eb6cc806dd2140cbe67a69b733cd2ba12cce1beb5b0d0ae383095312",
+    "backend": "playwright-edge",
+    "page_size": "A4",
+    "viewport": {
+      "width": 1280,
+      "height": 900
+    },
+    "javascript_enabled": false,
+    "network_access": false,
+    "websocket_blocked": true,
+    "resource_root": "artifacts/plain-pre-whitespace-20261121/A-contract-docx/input",
+    "browser": "157.0.4341.60",
+    "page_title": "技术服务合同",
+    "document_height": 900
+  },
+  []
+]

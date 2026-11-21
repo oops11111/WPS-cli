@@ -1,0 +1,36 @@
+[
+  true,
+  {
+    "input_path": "artifacts/plain-pre-whitespace-20261121/A-manual-docx/input/manual.html",
+    "output_path": "artifacts/plain-pre-whitespace-20261121/A-manual-docx/converted.docx",
+    "bytes": 38130,
+    "sha256": "d6c6c868a291077d131d92b04e5b821e39cc34bbb82471c35bfb20e9c6ff7896",
+    "backend": "python-docx-semantic-mapping",
+    "editable": true,
+    "mapped_objects": {
+      "paragraphs": 4,
+      "headings": 4,
+      "lists": 3,
+      "tables": 1,
+      "images": 0,
+      "rules": 1
+    },
+    "unsupported_css": [],
+    "warnings": [],
+    "fidelity": "editable",
+    "style_source": "browser",
+    "applied_styles": [
+      "border",
+      "cell borders",
+      "character",
+      "column widths",
+      "paragraph",
+      "shading"
+    ],
+    "source_encoding": "utf-8",
+    "javascript_executed": false,
+    "remote_resources_fetched": false,
+    "roundtrip_bookmarks": 0
+  },
+  []
+]

@@ -1,0 +1,26 @@
+{
+  "scope": "comment veto after single WPS set; archived-style offline XML equivalence only",
+  "updated_product_sha256": "d6040b117431d74c91bb463b7529f968681fdaa6597cf516c4ae9fa9480d0ae5",
+  "cases": {
+    "A-contract-docx": {
+      "document_xml_byte_identical": true,
+      "document_xml_sha256": "08c8b25c3d1a6d289a0fbea685796ac2ff73db7e6b69f9e8697017aa2cb22259"
+    },
+    "A-manual-docx": {
+      "document_xml_byte_identical": true,
+      "document_xml_sha256": "7d8eb1a2c21fb588e7d313bbd9a11d6c06476bb2d4ed5477cddc22953f389cef"
+    },
+    "A-newsletter-docx": {
+      "document_xml_byte_identical": true,
+      "document_xml_sha256": "0e58ca3120a4c49dfabdbf4540993265727867179ce9252d7dd87442836bccea"
+    },
+    "A-pdfsource-docx": {
+      "document_xml_byte_identical": true,
+      "document_xml_sha256": "2905051a98755ef4819befba13e2a640197d26d2a5fb6c2a543109f45491c168"
+    },
+    "A-report-docx": {
+      "document_xml_byte_identical": true,
+      "document_xml_sha256": "22adc3a4e363f9db2b3c215b36b6d31b858cbb2e044d4ada2d33597741af958e"
+    }
+  }
+}

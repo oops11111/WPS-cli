@@ -1,0 +1,24 @@
+[
+  true,
+  {
+    "input_path": "artifacts/plain-pre-whitespace-20261121/A-report-docx/input/report.html",
+    "output_path": "artifacts/plain-pre-whitespace-20261121/A-report-docx/browser.pdf",
+    "format": "pdf",
+    "bytes": 121773,
+    "sha256": "58a1ec0b21631108a13ab75dfc3dc30823bebbc620e1f7b5c8dd356b08dca708",
+    "backend": "playwright-edge",
+    "page_size": "A4",
+    "viewport": {
+      "width": 1280,
+      "height": 900
+    },
+    "javascript_enabled": false,
+    "network_access": false,
+    "websocket_blocked": true,
+    "resource_root": "artifacts/plain-pre-whitespace-20261121/A-report-docx/input",
+    "browser": "157.0.4341.60",
+    "page_title": "2026 年第三季度经营报告",
+    "document_height": 1319
+  },
+  []
+]
