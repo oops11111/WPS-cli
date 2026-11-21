@@ -115,7 +115,12 @@ class ReportToDocxTests(_Converted):
         paragraph = self.paragraph("计算口径收入按权责发生制确认。")
         self.assertTrue(paragraph.runs)
         self.assertEqual([r.text for r in paragraph.runs if r.font.hidden], ["收入按权责发生制确认。"])
-        self.assertFalse(any("caption" in warning or "details" in warning for warning in self.data["warnings"]))
+        self.assertFalse(
+            any(
+                "caption" in warning or "collapsed state was not preserved" in warning
+                for warning in self.data["warnings"]
+            )
+        )
 
     def test_rowspan_and_colspan_become_merged_cells(self):
         table = self.document.tables[0]

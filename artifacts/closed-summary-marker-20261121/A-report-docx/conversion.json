@@ -1,0 +1,36 @@
+[
+  true,
+  {
+    "input_path": "artifacts/closed-summary-marker-20261121/A-report-docx/input/report.html",
+    "output_path": "artifacts/closed-summary-marker-20261121/A-report-docx/converted.docx",
+    "bytes": 39988,
+    "sha256": "15aa355fbd786e66bade91b7b3fd0e1bb1d5a67ef52a8678cdbb828455efd987",
+    "backend": "python-docx-semantic-mapping",
+    "editable": true,
+    "mapped_objects": {
+      "paragraphs": 9,
+      "headings": 6,
+      "lists": 8,
+      "tables": 1,
+      "images": 1
+    },
+    "unsupported_css": [],
+    "warnings": [
+      "Scripts and executable content were omitted.",
+      "Unsafe hyperlink target omitted."
+    ],
+    "fidelity": "editable",
+    "style_source": "browser",
+    "applied_styles": [
+      "border",
+      "character",
+      "column widths",
+      "paragraph"
+    ],
+    "source_encoding": "utf-8",
+    "javascript_executed": false,
+    "remote_resources_fetched": false,
+    "roundtrip_bookmarks": 0
+  },
+  []
+]

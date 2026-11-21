@@ -1,0 +1,184 @@
+{
+  "browser": "157.0.4341.60",
+  "input": "fixtures/html_complex/report.html",
+  "screen1": [
+    {
+      "open": false,
+      "text": "计算口径",
+      "style": {
+        "display": "list-item",
+        "list-style-type": "disclosure-closed",
+        "list-style-position": "inside",
+        "list-style-image": "none",
+        "direction": "ltr",
+        "writing-mode": "horizontal-tb",
+        "text-indent": "0px",
+        "font-size": "16px",
+        "font-family": "\"Microsoft YaHei\", sans-serif",
+        "font-style": "normal",
+        "font-weight": "400",
+        "color": "rgb(0, 0, 0)",
+        "position": "static",
+        "visibility": "visible",
+        "opacity": "1"
+      },
+      "marker": {
+        "content": "normal",
+        "font-size": "16px",
+        "font-family": "\"Microsoft YaHei\", sans-serif",
+        "font-style": "normal",
+        "font-weight": "400",
+        "color": "rgb(0, 0, 0)"
+      },
+      "box": {
+        "x": 8,
+        "y": 1208.078125,
+        "width": 1264,
+        "height": 21
+      },
+      "textRects": [
+        {
+          "x": 24.9375,
+          "y": 1208.078125,
+          "width": 64,
+          "height": 21
+        }
+      ]
+    }
+  ],
+  "screen2": [
+    {
+      "open": false,
+      "text": "计算口径",
+      "style": {
+        "display": "list-item",
+        "list-style-type": "disclosure-closed",
+        "list-style-position": "inside",
+        "list-style-image": "none",
+        "direction": "ltr",
+        "writing-mode": "horizontal-tb",
+        "text-indent": "0px",
+        "font-size": "16px",
+        "font-family": "\"Microsoft YaHei\", sans-serif",
+        "font-style": "normal",
+        "font-weight": "400",
+        "color": "rgb(0, 0, 0)",
+        "position": "static",
+        "visibility": "visible",
+        "opacity": "1"
+      },
+      "marker": {
+        "content": "normal",
+        "font-size": "16px",
+        "font-family": "\"Microsoft YaHei\", sans-serif",
+        "font-style": "normal",
+        "font-weight": "400",
+        "color": "rgb(0, 0, 0)"
+      },
+      "box": {
+        "x": 8,
+        "y": 1208.078125,
+        "width": 1264,
+        "height": 21
+      },
+      "textRects": [
+        {
+          "x": 24.9375,
+          "y": 1208.078125,
+          "width": 64,
+          "height": 21
+        }
+      ]
+    }
+  ],
+  "print1": [
+    {
+      "open": false,
+      "text": "计算口径",
+      "style": {
+        "display": "list-item",
+        "list-style-type": "disclosure-closed",
+        "list-style-position": "inside",
+        "list-style-image": "none",
+        "direction": "ltr",
+        "writing-mode": "horizontal-tb",
+        "text-indent": "0px",
+        "font-size": "16px",
+        "font-family": "\"Microsoft YaHei\", sans-serif",
+        "font-style": "normal",
+        "font-weight": "400",
+        "color": "rgb(0, 0, 0)",
+        "position": "static",
+        "visibility": "visible",
+        "opacity": "1"
+      },
+      "marker": {
+        "content": "normal",
+        "font-size": "16px",
+        "font-family": "\"Microsoft YaHei\", sans-serif",
+        "font-style": "normal",
+        "font-weight": "400",
+        "color": "rgb(0, 0, 0)"
+      },
+      "box": {
+        "x": 8,
+        "y": 1208.078125,
+        "width": 1264,
+        "height": 21
+      },
+      "textRects": [
+        {
+          "x": 24.9375,
+          "y": 1208.078125,
+          "width": 64,
+          "height": 21
+        }
+      ]
+    }
+  ],
+  "print2": [
+    {
+      "open": false,
+      "text": "计算口径",
+      "style": {
+        "display": "list-item",
+        "list-style-type": "disclosure-closed",
+        "list-style-position": "inside",
+        "list-style-image": "none",
+        "direction": "ltr",
+        "writing-mode": "horizontal-tb",
+        "text-indent": "0px",
+        "font-size": "16px",
+        "font-family": "\"Microsoft YaHei\", sans-serif",
+        "font-style": "normal",
+        "font-weight": "400",
+        "color": "rgb(0, 0, 0)",
+        "position": "static",
+        "visibility": "visible",
+        "opacity": "1"
+      },
+      "marker": {
+        "content": "normal",
+        "font-size": "16px",
+        "font-family": "\"Microsoft YaHei\", sans-serif",
+        "font-style": "normal",
+        "font-weight": "400",
+        "color": "rgb(0, 0, 0)"
+      },
+      "box": {
+        "x": 8,
+        "y": 1208.078125,
+        "width": 1264,
+        "height": 21
+      },
+      "textRects": [
+        {
+          "x": 24.9375,
+          "y": 1208.078125,
+          "width": 64,
+          "height": 21
+        }
+      ]
+    }
+  ]
+}

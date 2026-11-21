@@ -1,0 +1,157 @@
+{
+  "case": "A-report-docx",
+  "original_source": "fixtures/html_complex/report.html",
+  "input_manifest": [
+    {
+      "reference": "report.html",
+      "exists": true,
+      "repository_path": "fixtures/html_complex/report.html",
+      "sha256": "40f9b6732ca6f13a1f56eda36f3b8318bec35d30d2be26fcee19134c2bb832e1"
+    },
+    {
+      "reference": "print.css",
+      "exists": false,
+      "repository_path": "fixtures/html_complex/print.css"
+    },
+    {
+      "reference": "chart.png",
+      "exists": true,
+      "repository_path": "fixtures/html_complex/chart.png",
+      "sha256": "ed89838a4de750fe6336580240367518c4507448844463c4357d62481d482fe5"
+    }
+  ],
+  "browser_version": "157.0.4341.60",
+  "semantic": {
+    "source": "artifacts/closed-summary-marker-20261121/A-report-docx/input/report.html",
+    "target": "artifacts/closed-summary-marker-20261121/A-report-docx/converted.docx",
+    "group": "A",
+    "thresholds": {
+      "text": 1.0,
+      "structure": 1.0,
+      "formatting": 1.0,
+      "animations": 1.0,
+      "data": 1.0,
+      "layout": 0.9
+    },
+    "aspects": {
+      "text": {
+        "score": 1.0,
+        "missing": []
+      },
+      "structure": {
+        "score": 1.0,
+        "differences": {}
+      },
+      "formatting": {
+        "score": 1.0,
+        "problems": []
+      },
+      "animations": {
+        "status": "not applicable"
+      },
+      "data": {
+        "score": 1.0,
+        "missing": []
+      },
+      "layout": {
+        "status": "skipped"
+      }
+    },
+    "verdict": {
+      "text": true,
+      "structure": true,
+      "formatting": true,
+      "data": true
+    },
+    "passed": true
+  },
+  "wps_executables": [
+    {
+      "path": "C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\wps.exe",
+      "file_version": "12,8,2,18913",
+      "product_version": "12,8,2,18913"
+    }
+  ],
+  "execution_ok": true,
+  "layout": {
+    "images": [
+      "artifacts/closed-summary-marker-20261121/A-report-docx/pages/page-001-0.883.png",
+      "artifacts/closed-summary-marker-20261121/A-report-docx/pages/page-002-0.979.png"
+    ],
+    "status": "measured",
+    "renderer": "wps",
+    "score": 0.9307,
+    "pages": {
+      "source": 2,
+      "target": 2
+    },
+    "page_scores": [
+      0.8826,
+      0.9789
+    ],
+    "missing_fonts": [
+      "Noto Sans CJK SC"
+    ]
+  },
+  "color_pages": {
+    "browser": [
+      "artifacts/closed-summary-marker-20261121/A-report-docx/browser-page-001.png",
+      "artifacts/closed-summary-marker-20261121/A-report-docx/browser-page-002.png"
+    ],
+    "wps": [
+      "artifacts/closed-summary-marker-20261121/A-report-docx/wps-page-001.png",
+      "artifacts/closed-summary-marker-20261121/A-report-docx/wps-page-002.png"
+    ]
+  },
+  "strict_f2": {
+    "passed": true,
+    "verdict": {
+      "text": true,
+      "structure": true,
+      "formatting": true,
+      "data": true,
+      "layout": true
+    },
+    "layout_minimum": 0.9
+  },
+  "decision10": {
+    "status": "strict_pass",
+    "floor": null,
+    "historical_reason": null
+  },
+  "environment": {
+    "missing_fonts": [
+      "Noto Sans CJK SC"
+    ],
+    "missing_input_assets": [
+      "print.css"
+    ],
+    "limit": "Missing fallback does not establish missing effective font. Glyph-vs-layout attribution requires page review."
+  },
+  "historical": {
+    "libreoffice": {
+      "group": "A",
+      "route": [
+        "html-editable"
+      ],
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "formatting": 1.0,
+        "data": 1.0,
+        "layout": 0.9109
+      },
+      "passed": true
+    },
+    "libreoffice_comparable_to_wps": false,
+    "prior_wps_layout": 0.9236,
+    "source": "docs/PHASE13_PLAN.md, tenth Windows check",
+    "limit": "Historical host/version conditions are not revalidated; no cross-renderer baseline-minus-0.02 rule applied."
+  },
+  "hashes": {
+    "report.html": "40f9b6732ca6f13a1f56eda36f3b8318bec35d30d2be26fcee19134c2bb832e1",
+    "converted.docx": "15aa355fbd786e66bade91b7b3fd0e1bb1d5a67ef52a8678cdbb828455efd987",
+    "browser.pdf": "4b2e24745bf77ab0dc39aa54eaf91c293ced6ef1ee9bc555b93389c1db577dc7",
+    "wps.pdf": "1b03ab9a394fe9e0988c141133f94ff6c93f270ff6ded7e1f6aef5f5644cd7bb"
+  }
+}

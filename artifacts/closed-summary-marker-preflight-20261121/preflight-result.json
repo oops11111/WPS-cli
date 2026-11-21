@@ -1,0 +1,42 @@
+{
+  "passed": true,
+  "gates": {
+    "stable_screen_print": true,
+    "closed": true,
+    "default_type": true,
+    "normal_content": true,
+    "font_match": true,
+    "advance": true,
+    "triangle_size": true,
+    "baseline": true
+  },
+  "font_pt": 12.0,
+  "advance_pt": 12.703125,
+  "triangle": {
+    "x0": 33.74999859375,
+    "x1": 40.552733060302714,
+    "top": 167.58984051708967,
+    "bottom": 175.4999926874999,
+    "pts": [
+      [
+        33.74999859375,
+        167.58984051708967
+      ],
+      [
+        40.552733060302714,
+        171.54491285229494
+      ],
+      [
+        33.74999859375,
+        175.4999926874999
+      ],
+      [
+        33.74999859375,
+        167.58984051708967
+      ]
+    ]
+  },
+  "baseline": 175.4999926874999,
+  "source_sha256": "40f9b6732ca6f13a1f56eda36f3b8318bec35d30d2be26fcee19134c2bb832e1",
+  "pdf_sha256": "9ac698185c35a1469a04465893918eaa80ed58c43121a8d5ed6f88ec54b1dd5f"
+}

@@ -1,0 +1,90 @@
+{
+  "method": "Original export files untouched; offline reconstruction with original browser snapshots and ZIP metadata/timestamps fixed, no payload substitution",
+  "cases": {
+    "A-contract-docx": {
+      "original_input_output_manifest_hashes_unchanged": true,
+      "all_package_payloads_identical": true,
+      "replayed_docx_full_bytes_identical": true,
+      "docx_sha256": "81e50c163c66514fb6e5aea9213bc68e0c87c45f42e90daa9052b348507e16ac",
+      "marker_metadata": {},
+      "styles_snapshot_sha256": "1423f8ce468f21f9b6f27979b297891ac495caab2f86d340a5960d17b79f0b00"
+    },
+    "A-manual-docx": {
+      "original_input_output_manifest_hashes_unchanged": true,
+      "all_package_payloads_identical": true,
+      "replayed_docx_full_bytes_identical": true,
+      "docx_sha256": "985b075608bbd01c28ab910dab5d2afb8c1e805e3e9d13299e8bdb6e90966359",
+      "marker_metadata": {},
+      "styles_snapshot_sha256": "cec8f3c95ea215e90565363f142f71f79c3cef2402da7efd882d742d8c58ad44"
+    },
+    "A-newsletter-docx": {
+      "original_input_output_manifest_hashes_unchanged": true,
+      "all_package_payloads_identical": true,
+      "replayed_docx_full_bytes_identical": true,
+      "docx_sha256": "6cdd18da1ffa8529fd45c750f9114f06ae926e4d229de9c13c98b3548ab0771c",
+      "marker_metadata": {},
+      "styles_snapshot_sha256": "cb269570b517fe8f2ac0c63f12a7c1e0aec0f68a541ce25607701f762b073957"
+    },
+    "A-pdfsource-docx": {
+      "original_input_output_manifest_hashes_unchanged": true,
+      "all_package_payloads_identical": true,
+      "replayed_docx_full_bytes_identical": true,
+      "docx_sha256": "ae0f4228b929aef87af6ad1f7c6555c0ce7bd18a415deb867753648211c1e895",
+      "marker_metadata": {},
+      "styles_snapshot_sha256": "0cacce903cd9beac17eb69ddbbfd9abee8cb46f0e3d41209fa51677e898cb988"
+    },
+    "A-report-docx": {
+      "original_input_output_manifest_hashes_unchanged": true,
+      "all_package_payloads_identical": true,
+      "replayed_docx_full_bytes_identical": true,
+      "docx_sha256": "15aa355fbd786e66bade91b7b3fd0e1bb1d5a67ef52a8678cdbb828455efd987",
+      "marker_metadata": {
+        "88": {
+          "raw": {
+            "style": {
+              "display": "list-item",
+              "list-style-type": "disclosure-closed",
+              "list-style-position": "inside",
+              "list-style-image": "none",
+              "direction": "ltr",
+              "writing-mode": "horizontal-tb",
+              "text-indent": "0px",
+              "font-size": "16px",
+              "font-family": "\"Microsoft YaHei\", sans-serif",
+              "font-style": "normal",
+              "font-weight": "400",
+              "color": "rgb(0, 0, 0)"
+            },
+            "marker": {
+              "content": "normal",
+              "font-size": "16px",
+              "font-family": "\"Microsoft YaHei\", sans-serif",
+              "font-style": "normal",
+              "font-weight": "400",
+              "color": "rgb(0, 0, 0)"
+            },
+            "box": {
+              "x": 8,
+              "y": 1283.078125,
+              "width": 1264,
+              "height": 21
+            },
+            "textRects": [
+              {
+                "x": 24.9375,
+                "y": 1283.078125,
+                "width": 64,
+                "height": 21
+              }
+            ]
+          },
+          "new_eligibility": [
+            12.0,
+            null
+          ]
+        }
+      },
+      "styles_snapshot_sha256": "c130fc22fc2c70fbf09ed7d19ec9dd69ffc725f24958bbc28aaa6123d36e3a90"
+    }
+  }
+}

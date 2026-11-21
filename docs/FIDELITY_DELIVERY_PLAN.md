@@ -651,3 +651,54 @@ authoritative status, commit/PR/run evidence, blockers and exact next action.
   Verified negative evidence may be an evidence-only PR, never a product fix.
 - Integration: same continuing agent, English Conventional Commit/push/PR to main,
   primary XML/image review and six green CI jobs before merge; agent never merges.
+
+## Stage 18: bounded closed-summary inline marker integration
+
+- Dependency/base: stage17 PR #168 merged after six green jobs; exact main
+  `c7e492dfe5259e7dfec040da00d03fe4bc43f22c`, isolated branch
+  `fix/docx-closed-summary-marker`. Primary reviewed/authorized this plan.
+  Frozen stage6/10/12 and original source/baselines/thresholds stay untouched.
+- FIRST, current-browser preflight BEFORE product edits: collect ::marker
+  content/font/color, display/list-style-type/position/image, direction/writing-mode/
+  text-indent and one-line text Range advance; actual PDF triangle must corroborate
+  default shape/recipe. Record versions/source SHA/raw JSON/PDF. If default shape
+  cannot be stably established, preserve evidence and stop, never guess UA defaults.
+- Conditional product scope: existing simple closed details only, browser marker
+  eligibility/metadata, Stage17 G DrawingML helper and narrow managed-decoration
+  scorer exclusion. Require complete metadata, disclosure-closed inside/no image,
+  normal marker content, matching summary/marker font, black, one-line LTR,
+  horizontal, no effects/custom positioning, advance compatible within one twip.
+  Author list-style:none means no marker and NO warning. Unknown/custom/wrapped/
+  RTL/cascade keeps current closed-body mapping plus marker-loss warning; base
+  unsupported shapes retain expanded-warning path. Open presence, even false,
+  stays unchanged. No global layout/scorer policy or other format changes.
+- Insert one managed drawing AFTER summary generation/trim, BEFORE first text
+  run; only then take hidden-body index. Exact text/vanish preserved, unique IDs,
+  no glyph/tab/numbering/offset/raise-lower. Exclude only explicitly identified,
+  structurally matching managed shape from semantic image count; real/other
+  drawings unchanged. Existing image/visibility scores alone cannot prove marker.
+- Deliverables: negative reproduction, bounded code/helper/browser metadata,
+  focused tests/changelog/report, raw preflight and five-case SHA/version/probe/
+  JSON/PDF/DOCX/images with marker/retention/semantic-count/position gates.
+- Tests: original report absent-marker/image-count negative;12/18/multiple summary/
+  leading spaces/trim/hidden/unique ID/no prefix positives; none/custom/open false/
+  wrap/RTL/cascade/missing fields/advance/ancestor negatives; retained unsupported
+  content and warnings; forged names not exempted and real chart count remains1.
+  Related HTML/fidelity/roundtrip/historical baseline checks, JS syntax/metadata
+  tests, full Ruff/format/diff before WPS.
+- Real gates: ONE original five-case safe WPS/browser set, pre-case empty-process
+  probes/runtime versions, own-instance release, no preferences/user-doc closure/
+  taskkill. Stage15 baseline: report aggregate>.9302/page2>.9778/page1 pixels
+  identical. All five every-page/aggregate nondecreasing, semantics1/same pages.
+  One real triangle, body once/hidden and PDF absent, unchanged summary text;
+  native advance improves x error, triangle size/relative-left/baseline within
+  .10pt, summary/following y within.05pt of baseline. Disclose shared margin-x
+  residual, never add offset. No inside-wrap/interaction/accessibility/cross-host
+  promise; remaining strict failures distinct from historical exceptions.
+- Stop: preflight uncertainty, eligibility unproven, duplication, trim/hidden
+  regression, broad image exclusion, any score/semantic/page/position failure,
+  unsafe renderer or need for glyph/offset/threshold/environment change. Preserve
+  raw/uncommitted work and report, no tuning retry/commit/PR without amendment.
+- Success: English Conventional Commit/push/PR, primary diff/XML/image review
+  and six green CI jobs before main merge; implementation agent never merges.
+  A stopped verified preflight may be evidence-only, never a product claim.

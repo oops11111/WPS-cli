@@ -1,0 +1,36 @@
+[
+  true,
+  {
+    "input_path": "artifacts/closed-summary-marker-20261121/A-manual-docx/input/manual.html",
+    "output_path": "artifacts/closed-summary-marker-20261121/A-manual-docx/converted.docx",
+    "bytes": 38130,
+    "sha256": "985b075608bbd01c28ab910dab5d2afb8c1e805e3e9d13299e8bdb6e90966359",
+    "backend": "python-docx-semantic-mapping",
+    "editable": true,
+    "mapped_objects": {
+      "paragraphs": 4,
+      "headings": 4,
+      "lists": 3,
+      "tables": 1,
+      "images": 0,
+      "rules": 1
+    },
+    "unsupported_css": [],
+    "warnings": [],
+    "fidelity": "editable",
+    "style_source": "browser",
+    "applied_styles": [
+      "border",
+      "cell borders",
+      "character",
+      "column widths",
+      "paragraph",
+      "shading"
+    ],
+    "source_encoding": "utf-8",
+    "javascript_executed": false,
+    "remote_resources_fetched": false,
+    "roundtrip_bookmarks": 0
+  },
+  []
+]
