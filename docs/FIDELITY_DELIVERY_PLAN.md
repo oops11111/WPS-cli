@@ -1116,3 +1116,77 @@ authoritative status, commit/PR/run evidence, blockers and exact next action.
   even positive result requires a separately reviewed product eligibility and full
   original-five regression plan. Evidence-only commit/PR only after primary review;
   six green CI before primary merge; implementation agent never merges.
+
+## Stage37 PLAN ONLY: copied-contract native wrap mechanism, two fixed widths
+
+- Await primary review; exact main ab3b548667cabbe8b09b59cc181ffd88b523b2db, isolated
+  fidelity-contract-wrap / docs/contract-wrap-mechanism-plan. Frozen Stage34/36/20
+  and all prior STOP records stay unchanged; no implementation/tests/WPS yet.
+- Dependency: immutable Stage28 contract DOCX SHA256
+  ee563430a86295acb8ac59ad31e5c72b1b2052e64e545fb7360a1b4feec6139f, archived browser
+  box widths46.328125/47.25/90.3125/180.875px. Stage19 omitted merged headers and did
+  not test this tight header; Stage34 ink-bound clearance could not prove no-wrap.
+  Stage36 preferred-width-only Plan was stopped as low-value, not rendered.
+- Scope is evidence-only native mechanism. Exactly TWO synthetic packages C1/C0,
+  retaining the FULL original fee table, rather than transplanting text into a new
+  two-column layout. Preserve5rows,4logicalcols,19physicalcells,17origins,2vMerge
+  continuations, original colspan/rowspan, ALL original text/runs/paragraphs/styles,
+  row min heights, line spacing, padding/borders/fill, fonts and table properties.
+  Same original page section/style/theme/compatibility and all non-document parts.
+  Body is fixed BEFORE paragraph + copied fee table + fixed FOLLOWING paragraph;
+  these two control paragraphs identical between variants. No discretionary text,
+  widths, font sizes, indentation or spacing chosen after measurement.
+- C1 table subtree matches immutable original after identical serializer/canonical
+  namespace treatment. C0 differs ONLY in21 width attributes:4gridCol and17
+  non-continuation tcW each minus15twips. Grid710/724/1370/2729->695/709/1355/2714,
+  colspan-origin1370->1355 per existing setter, both continuation2639 unchanged.
+  Zero allowance uses ceil(CSSbox*15), not a fitted width. No third width, scan,
+  .5px candidate, origin-width normalization, row/padding/font adjustment or product.
+- Pre-WPS HARD gate after approval: exact source hash/topology/text/font/rPr/pPr/
+  row/tcPr matches; complete C1 fee subtree equivalent to original; C0 inverse
+  reproduces C1 full document.xml bytes and all non-document parts identical;
+  deterministic fullZIP bytes. Fixed controls include no section break/extra style.
+  If topology or effective font/size references cannot be retained exactly, STOP
+  before WPS. Focused positive/inverse/wrong-topology/font/extra-part tests,
+  packaging-metadata, Ruff/format/diff pass before exports.
+- This experiment does NOT require pre-certifying wrap from ink clearance: wrap
+  is the experimental native-WPS observable. The source-to-synthetic fidelity gate
+  above replaces no old rule; Stage34 still failed its distinct preflight and is
+  not reopened. Native metrics in C1 must corroborate the copied original before
+  accepting C0 inference: all17origins one line, row pitches24pt each within.05pt,
+  actual PDF YaHei normalized families/sizes equal cached original within.005pt.
+- ONE sequential safe export set C1 then C0, each preceded by empty process/version
+  probe for WPS12.8.2.18913. Own instance release only; no taskkill/user documents,
+  prefs/font install/retry or cached-original re-export. C1 topology/font/line/pitch
+  mismatch stops before C0 export. Export/safety/text/page anomaly stops immediately.
+- Measure independently recoverable horizontal/vertical rule SEGMENTS; corroborate
+  missing header boundaries with XML merge topology, then assign glyph centers to
+  unique cell polygons. Verify character streams only AFTER geometric assignment,
+  never text matching to select cells; continuation geometry belongs to its origin.
+  Record per-cell matrix baselines, PDF advances and ink bboxes separately. PDF adv
+  is reported as observed native data, not assumed CSS line-break algorithm proof.
+  Ambiguous polygon/line cluster or unassigned/duplicated char is STOP.
+- Required no-wrap result: every original17origin character stream retained exactly
+  (explicitly documented PDF whitespace normalization only), every origin still ONE
+  baseline cluster (tolerance.05pt); amount header and stage rowspans explicit rows
+  in the report. Same one page, row pitch/total table height within.05pt between
+  C1/C0, glyph baseline minus table-top within.05pt, BEFORE/FOLLOWING x/y within.05pt.
+  Normalized glyph font/size unchanged within.005pt, no clipped/missing glyph.
+  No rule/glyph overlap; negative CSS ink-clearance is recorded separately and is
+  NOT automatically treated as wrap or discarded to pass a content predicate.
+- Predicted rule differential C0-C1=[0,-.75,-1.50,-2.25,-3.00]pt for5vertical rules,
+  error<=.10pt, outer span change-3.00±.10pt. All horizontal y/row pitches invariant
+  within.05pt; merged header spans correct, unchanged rule segment topology. No
+  sourceSSIM or strictF2 acceptance is claimed for synthetic documents.
+- STOP on offline mismatch, unsupported C1 metrics, ambiguity, any wrap/pitch/y/
+  text/font/page/unsafe/export anomaly or prediction failure. Preserve raw negative
+  evidence; no input/threshold/offset/font/width tuning or rerun. Successful two-
+  point result would ONLY show this copied table under this WPS version did not
+  wrap; original full-contract surrounding flow/pagination and other cases remain
+  unvalidated, and no product removal of allowance follows automatically.
+- Deliverables after approval: deterministic builder/assessor/tests, complete input/
+  output hashes/version/process probes, two actual PDFs/PNGs (or not-run status),
+  XML inverse audit, per-origin native metrics/geometry and uncertainty report.
+  Evidence-only commit/PR only after primary independent image/diff review; six
+  green CI before primary merge, implementation agent never merges. Product or
+  original-contract validation requires another reviewed stage.

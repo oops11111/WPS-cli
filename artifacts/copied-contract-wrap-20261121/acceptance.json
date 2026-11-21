@@ -1,0 +1,10 @@
+{
+  "gates": {
+    "rule_delta": true,
+    "row_height": true,
+    "controls": true,
+    "cell_text_font_line_baseline": true
+  },
+  "accepted": true,
+  "product_safety": false
+}

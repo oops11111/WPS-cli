@@ -1,0 +1,32 @@
+{
+  "base": "ab3b548667cabbe8b09b59cc181ffd88b523b2db",
+  "source_sha256": "ee563430a86295acb8ac59ad31e5c72b1b2052e64e545fb7360a1b4feec6139f",
+  "exports": [
+    "C1",
+    "C0"
+  ],
+  "not_run": [],
+  "versions": [
+    {
+      "path": "C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\wps.exe",
+      "file_version": "12,8,2,18913",
+      "product_version": "12,8,2,18913"
+    }
+  ],
+  "outcome": "PASS_MECHANISM_ONLY",
+  "hashes": {
+    "acceptance.json": "175eaed7f1c32a22469328d2b8764f2b16336df1064a1eedce99fd7b21752187",
+    "C0/export.json": "e2c4303cf5f28eede3b7d39f9d4d034bd9078834ac9285f034d44ede8529baf0",
+    "C0/input.docx": "edb5f499025a7882d1d2e939e685e79e7bf6bd4dcefd1e38d522dba14adfb50b",
+    "C0/measurement.json": "2c3e5af7542cf1b087a96cf911c4e3d30e8c7bbd8e620730001d417859b48e5d",
+    "C0/probe.json": "1e092279d232833754dd9f34f6c3d863b9f11dc29f914ae707908064419db435",
+    "C0/wps-page-001.png": "9b2a96cacec328bbd180aabc43389ca0dd6f5adfa7c5693421baada588a49634",
+    "C0/wps.pdf": "ffcea0cd6f56100582715f07d1287917d1c380600c94d9fdc8a69852a2c901e6",
+    "C1/export.json": "71f73e168ac8099702e85472e3d32bb1d33bc67958d57d28560453f0d4f6c2ba",
+    "C1/input.docx": "2ed0fc4304e9f86924dce24a8d1b342bec9762dd045ffd26fe6b13abb1b6cde8",
+    "C1/measurement.json": "48c1ccbdcdd5cd2ce71c592bbf3cdfc894acbcb1e3dd5e0fd70134f12fbadbf9",
+    "C1/probe.json": "1e092279d232833754dd9f34f6c3d863b9f11dc29f914ae707908064419db435",
+    "C1/wps-page-001.png": "111ccfbb8ffe6bb9effd0069adc664e26c1e6a173083a4c99a24241ce9f5e5c8",
+    "C1/wps.pdf": "6032128b2f6c82210cf23fde32a5fe7793be36058f682794095e991283839d02"
+  }
+}
