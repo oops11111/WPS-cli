@@ -1262,3 +1262,129 @@ authoritative status, commit/PR/run evidence, blockers and exact next action.
   diff/image review, six green CI before primary merge. Even pass is only this
   full-contract candidate on this host; product eligibility and original-five
   regression require a separately reviewed stage, never blanket allowance removal.
+
+## Stage42 PLAN ONLY: audited applicable-aspect semantic gate
+
+- Await primary review. Exact main b083ae7cb4a95648e9c01c972dd797fc4844689c; new
+  fidelity-table-width-schema / docs/table-width-aspect-schema-plan.
+  Stage39/40/41 STOP/code/raw stay frozen, unpublished and unchanged. Stage40 report's
+  one export is NOT part of this newly registered set; all five require NEW exports.
+- Dependency/rationale: Stage37/38 support contract measured widths, not five-case
+  product safety. Stage39 lacked clipping metadata; Stage40 collected complete
+  metadata and71attr/browser gates but validation source reader fell back to
+  cascade because NODE_PATH was omitted. Its first report semantic gate failed
+  although DOCX/PDF pixels were identical. Offline diagnosis did not reverse STOP.
+- Before ANY browser/WPS work: runner explicitly requires writable workspace
+  TEMP/TMP, UTF8, NODE_PATH resolving installed Playwright; record resolved Node,
+  Playwright module and Edge executable/version, not ambient environment guesses.
+  Node require.resolve('playwright') must succeed in the actual child environment.
+  Python browser_runtime must resolve both executables; missing/unknown/fallback
+  errors STOP before exports. Do not install/change dependencies or global settings.
+- One product variable only: browser measured column width without historical+1px
+  for GENERIC qualifying tables. Others retain legacy+1/fallback. No fixture/class/
+  filename/text/hash/font-family branch in product. No row height, border, margin,
+  font, padding, merge normalization, scorer policy or threshold change.
+- Qualification BEFORE capture: seven computed properties transform/zoom/writing-
+  mode/direction/overflow-x/overflow-y/clip-path explicitly prove none/1/horizontal-
+  tb/ltr/visible/visible/none on table/groups/rows/cells/DOM ancestors. Missing or
+  unknown rejects. Static/no float/visible opacity1, no pseudo/nonzero radius;
+  direct plaintext/normal whitespace/browser text-lines1, no descendants/images/
+  br/nested tables/hidden or clipped shape. Parser document sentinel is not DOM.
+- Complete accessible CSSOM/no imports/errors/adopted/shadow/declarative roots;
+  collapse and uniform four-sided solid positive same border/color. All real
+  boxes finite positive; every logical column measured unspanned witnesses agree
+  within1/64CSSpx; colspan box sum within1/64CSSpx, rectangular nonoverlapping merge
+  grid/no uncovered holes. Old/new widths fit available page without scale. Unknown
+  geometry/metadata ->legacy+1. If reliable helper needs broader layout work STOP.
+- Pre-browser tests: each missing seven field/ancestor transform/clip/overflow/
+  radius/pseudo/RTL/vertical, malformed boxes/NaN/scale, cascade, separate/borderless/
+  mixed/zero border, missing/inconsistent/spanned/ragged/overlap witnesses, complex/
+  multiline/nested cases. Positive generic plain and merge cases. Environment gate
+  rejects absent NODE_PATH/unresolved Playwright/loader fallback BEFORE WPS. Tests
+  assert source-snapshot identity/semantic gate and forbid implicit recapture.
+- NEW ONE original-five browser reference set, actual Edge157.0.4341.60, immutable
+  source/assets. Reject styled.mode!=browser; capture full seven fields, CSSOM,
+  source version/hashes, existing style/box/marker plus pseudo metadata for faithful
+  replay. Core values/page pixels/sizes/counts match accepted Stage28 exactly;
+  extra fields independently proven, never manufactured onto old caches. Failure
+  STOP, no capture retry or metadata extension after set start.
+- NEW semantic environment gate BEFORE ANY WPS: baseline AND candidate applicable text/
+  structure/formatting/data scores1.0; explicitly N/A aspects use the audited normalized true verdict described below. Use the SAME freshly
+  captured browser StyledDocument (runner-scoped injection only, not product
+  scorer edits). Persist/replay styles/boxes/page/summary-marker/pseudo properties
+  with exact annotation/source hash checks. Reader must consume this browser-mode
+  snapshot; if loading a different source or fallback/capture is attempted STOP.
+  Native assessor reuses verified snapshot; no hidden second source-browser set.
+- Exact offline package allowlist71attrs: contract4grid+17noncontinue tcW -15,
+ 710/724/1370/2729->695/709/1355/2714, merged origin1370->1355, continuation2639
+  unchanged; manual3grid+12tcW -15,1333/1909/1899->1318/1894/1884; pdfsource FIRST
+  table5grid+30tcW -15,1290/810/810/810/810->1275/795/795/795/795. Other tables same.
+  Report/newsletter fullZIP bytes identical. Full XML inverse and other parts
+  identical, old path replay reproduces accepted ZIP. Contract matches Stage38.
+- All five eligibility expectations verified, not encoded as product identities:
+  contractfee/manualopts/pdfsourcegrid qualify; report separate/borderless+missing
+  CSS and other borderless/separate tables remain conservative. Reliable cached
+  rule segments/merge polygons assign17/12/30origins, including repeated numbers;
+  character streams verify after geometric assignment, never select a cell.
+  Per-cell one-line counts and manual Windows10/11 retained as explicit wrap risk.
+- Run HTML/table/roundtrip/packaging/geometry/env tests, Ruff/format/JS syntax/diff;
+  require source/browser/semantic/71attr/all-parts/polygon gates before WPS.
+  The native command repeats environment/module/snapshot preflight before first
+  probe, so a shell missing NODE_PATH cannot begin a partial native set.
+- Then ONE NEW sequential safe five-case WPS set (report,contract,newsletter,
+  manual,pdfsource), per-case empty processes/version12.8.2.18913, own instances
+  only. No taskkill/user documents/global preferences/fonts/old-baseline export,
+  retry/alternate allowance/input. Any anomaly stops, remaining explicitly not-run.
+- Gates: report/newsletter all-page pixels identical; every case same text/semantic
+  components1/page count/line-page assignments; all affected origins same text/
+  one-line/font/size, row/pitch/glyphy/outside-table glyphx within.05pt. Images and
+  summary marker unchanged. Rule differential-k*.75pt±.10, complete merge topology,
+  no clipping. Contract repeats ALL Stage38 gates and exact candidate subtree.
+- EACH page/aggregate no-regression vs report.9398[.9007,.9789],contract.8644,
+  manual.9027,newsletter.9293,pdfsource.9190[.9123,.9258]. Contractwhole rounded>=.8719
+  and >.8644; fixed body/header/tableROIs>=.595552511/.882552033/.693273755
+  (numerical1e-9). Manual/pdfsource retain strict.90 aggregate; contract remains
+  explicit strictfail if <.90. No overall mean or exception waives other gates.
+- STOP on environment/source-reader fallback, metadata/eligibility/source/browser/
+  semantic/package/polygon/wrap/flow/page/pixel/per-page/ROI/whole regression.
+  Preserve raw, no field/qualification/threshold/font/row/offset/allowance tuning or
+  second set; no product PR on failure, no fixture-specific narrowing.
+- Deliverables after approval: narrow helper/collector/tests, environment-gated
+  reproducible preflight/native assessor, full new-five raw/browser/DOCX/WPS/version/
+  probe/hash/semantic/per-origin/per-page report. English commit/push/product PR
+  only after primary independent diff/image review; six green CI before primary
+  merge, implementation agent never merges. Evidence limits remain explicit.
+
+- Stage42 PRIOR offline audit of all five immutable Stage28 semantic-fidelity.json
+  schemas: report/contract/manual/pdfsource have text/structure/formatting/data
+  score1 with corresponding raw verdict true; newsletter has three scored aspects
+  and data EXACTLY {status:"not applicable"}, no raw data verdict key. All five
+  animations are N/A and have no raw animation verdict key. This source audit is
+  read-only and was completed before this Plan; no capture/export was needed.
+- The Stage41 literal four-score predicate falsely rejected newsletter despite
+  raw passed=true; Stage41 is frozen STOP_BEFORE_WPS, not recovered by this Plan.
+  Its three partial browser captures are NOT reused or counted in Stage42.
+- Exact Stage42 semantic predicate, runner-only: require result success, groupA,
+  raw passed=true and every PRESENT raw verdict true. Text/structure/formatting
+  MUST be applicable with numeric score1.0 AND explicit matching raw verdict true.
+  Data with numeric score MUST equal1.0 and raw verdict.data=true. Data may instead
+  be EXACTLY {status:"not applicable"} with no score and raw verdict.data absent
+  or true; runner records effective_verdict.data=true with reason "explicit N/A"
+  while preserving raw absence. Explicit false, mixed score+N/A, unknown status,
+  missing aspect, unknown/false verdict or non1 score always rejects. Animations
+  in this HTML group must match the audited explicit N/A shape; record normalized
+  true separately, never invent score1 or modify scorer/historical JSON.
+- BEFORE any new browser/export, deterministic offline schema audit must pass all
+  five accepted raw semantic files under that predicate. Tests cover applicable
+  perfect, newsletter dataN/A/raw-absent, N/A/rawtrue, N/A/rawfalse, missing/unknown
+  status, contradictory score, non1/missing scores/verdict, wrong group, rawpassed
+  false and environment/reader fallback. Persist raw schema/hash and effective
+  verdict/reasons, preserving the distinction between actual score and N/A.
+- Only after that audit and tests may the NEW single original-five browser set
+  start. Require all baseline/candidate applicable aspects perfect and every
+  explicitly N/A effective verdict true on the same fresh source snapshot before
+  ANY native export; native process repeats those gates. All seven metadata,
+ 71attr/inverse/polygon/source-pixel/per-page/flow/contractROI/native-single-set
+  requirements above stay unchanged. No Stage40report or Stage41capture reuse,
+  threshold/eligibility/input adjustment, semantic reader recapture or product PR
+  on failure. This registered N/A schema handling is not post-hoc continuation.

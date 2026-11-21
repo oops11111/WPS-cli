@@ -1,0 +1,79 @@
+{
+  "gates": {
+    "page_count": true,
+    "all_page_pixels_identical": true,
+    "all_text_line_page_font_y": true,
+    "semantics": true,
+    "each_page_score": true,
+    "aggregate_score": true
+  },
+  "accepted": true,
+  "layout": {
+    "images": [
+      "artifacts\\schema-table-width-20261121\\A-newsletter-docx\\pages\\page-001-0.929.png"
+    ],
+    "status": "measured",
+    "renderer": "wps",
+    "score": 0.9293,
+    "pages": {
+      "source": 1,
+      "target": 1
+    },
+    "page_scores": [
+      0.9293
+    ],
+    "missing_fonts": [
+      "Noto Sans CJK SC"
+    ]
+  },
+  "semantic": [
+    true,
+    {
+      "source": "artifacts\\schema-table-width-20261121\\A-newsletter-docx\\input\\newsletter.html",
+      "target": "artifacts\\schema-table-width-20261121\\A-newsletter-docx\\candidate.docx",
+      "group": "A",
+      "thresholds": {
+        "text": 1.0,
+        "structure": 1.0,
+        "formatting": 1.0,
+        "animations": 1.0,
+        "data": 1.0,
+        "layout": 0.9
+      },
+      "aspects": {
+        "text": {
+          "score": 1.0,
+          "missing": []
+        },
+        "structure": {
+          "score": 1.0,
+          "differences": {}
+        },
+        "formatting": {
+          "score": 1.0,
+          "problems": []
+        },
+        "animations": {
+          "status": "not applicable"
+        },
+        "data": {
+          "status": "not applicable"
+        },
+        "layout": {
+          "status": "skipped"
+        }
+      },
+      "verdict": {
+        "text": true,
+        "structure": true,
+        "formatting": true
+      },
+      "passed": true
+    },
+    []
+  ],
+  "baseline_geometry": null,
+  "candidate_geometry": null,
+  "stage38": null,
+  "strict_f2_layout": true
+}

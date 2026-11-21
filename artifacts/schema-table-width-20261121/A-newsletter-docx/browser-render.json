@@ -1,0 +1,24 @@
+[
+  true,
+  {
+    "input_path": "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\fidelity-table-width-schema\\artifacts\\schema-table-width-20261121\\A-newsletter-docx\\input\\newsletter.html",
+    "output_path": "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\fidelity-table-width-schema\\artifacts\\schema-table-width-20261121\\A-newsletter-docx\\browser.pdf",
+    "format": "pdf",
+    "bytes": 90152,
+    "sha256": "fed252777f65c89e588ed161835cfdc56ab56ae52e7d3264d6179a527f5ea4ef",
+    "backend": "playwright-edge",
+    "page_size": "A4",
+    "viewport": {
+      "width": 1280,
+      "height": 900
+    },
+    "javascript_enabled": false,
+    "network_access": false,
+    "websocket_blocked": true,
+    "resource_root": "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\fidelity-table-width-schema\\artifacts\\schema-table-width-20261121\\A-newsletter-docx\\input",
+    "browser": "157.0.4341.60",
+    "page_title": "研发月刊 第 10 期",
+    "document_height": 900
+  },
+  []
+]

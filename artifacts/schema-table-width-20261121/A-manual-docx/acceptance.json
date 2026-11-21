@@ -1,0 +1,454 @@
+{
+  "gates": {
+    "page_count": true,
+    "all_text_line_page_font_y": true,
+    "rule_differential": true,
+    "rows_y": true,
+    "origins_lines_fonts": true,
+    "outside_table_x": true,
+    "semantics": true,
+    "each_page_score": true,
+    "aggregate_score": true
+  },
+  "accepted": true,
+  "layout": {
+    "images": [
+      "artifacts\\schema-table-width-20261121\\A-manual-docx\\pages\\page-001-0.906.png"
+    ],
+    "status": "measured",
+    "renderer": "wps",
+    "score": 0.906,
+    "pages": {
+      "source": 1,
+      "target": 1
+    },
+    "page_scores": [
+      0.906
+    ],
+    "missing_fonts": [
+      "Noto Sans CJK SC"
+    ]
+  },
+  "semantic": [
+    true,
+    {
+      "source": "artifacts\\schema-table-width-20261121\\A-manual-docx\\input\\manual.html",
+      "target": "artifacts\\schema-table-width-20261121\\A-manual-docx\\candidate.docx",
+      "group": "A",
+      "thresholds": {
+        "text": 1.0,
+        "structure": 1.0,
+        "formatting": 1.0,
+        "animations": 1.0,
+        "data": 1.0,
+        "layout": 0.9
+      },
+      "aspects": {
+        "text": {
+          "score": 1.0,
+          "missing": []
+        },
+        "structure": {
+          "score": 1.0,
+          "differences": {}
+        },
+        "formatting": {
+          "score": 1.0,
+          "problems": []
+        },
+        "animations": {
+          "status": "not applicable"
+        },
+        "data": {
+          "score": 1.0,
+          "missing": []
+        },
+        "layout": {
+          "status": "skipped"
+        }
+      },
+      "verdict": {
+        "text": true,
+        "structure": true,
+        "formatting": true,
+        "data": true
+      },
+      "passed": true
+    },
+    []
+  ],
+  "baseline_geometry": {
+    "x": [
+      33.75,
+      100.4,
+      195.85,
+      290.8
+    ],
+    "y": [
+      109.36,
+      129.61,
+      149.86,
+      170.11,
+      190.36
+    ],
+    "cells": [
+      {
+        "row": 0,
+        "column": 0,
+        "text": "组件",
+        "baselines": [
+          124.25
+        ],
+        "fonts": [
+          [
+            "MicrosoftYaHei-Bold",
+            10.45
+          ]
+        ]
+      },
+      {
+        "row": 0,
+        "column": 1,
+        "text": "版本",
+        "baselines": [
+          124.25
+        ],
+        "fonts": [
+          [
+            "MicrosoftYaHei-Bold",
+            10.45
+          ]
+        ]
+      },
+      {
+        "row": 0,
+        "column": 2,
+        "text": "说明",
+        "baselines": [
+          124.25
+        ],
+        "fonts": [
+          [
+            "MicrosoftYaHei-Bold",
+            10.45
+          ]
+        ]
+      },
+      {
+        "row": 1,
+        "column": 0,
+        "text": "操作系统",
+        "baselines": [
+          144.409
+        ],
+        "fonts": [
+          [
+            "MicrosoftYaHei",
+            10.45
+          ]
+        ]
+      },
+      {
+        "row": 1,
+        "column": 1,
+        "text": "Windows10/11",
+        "baselines": [
+          144.409
+        ],
+        "fonts": [
+          [
+            "MicrosoftYaHei",
+            10.45
+          ]
+        ]
+      },
+      {
+        "row": 1,
+        "column": 2,
+        "text": "64位",
+        "baselines": [
+          144.409
+        ],
+        "fonts": [
+          [
+            "MicrosoftYaHei",
+            10.45
+          ]
+        ]
+      },
+      {
+        "row": 2,
+        "column": 0,
+        "text": "WPSOffice",
+        "baselines": [
+          164.69
+        ],
+        "fonts": [
+          [
+            "MicrosoftYaHei",
+            10.45
+          ]
+        ]
+      },
+      {
+        "row": 2,
+        "column": 1,
+        "text": "12.1及以上",
+        "baselines": [
+          164.69
+        ],
+        "fonts": [
+          [
+            "MicrosoftYaHei",
+            10.45
+          ]
+        ]
+      },
+      {
+        "row": 2,
+        "column": 2,
+        "text": "需启用COM组件",
+        "baselines": [
+          164.69
+        ],
+        "fonts": [
+          [
+            "MicrosoftYaHei",
+            10.45
+          ]
+        ]
+      },
+      {
+        "row": 3,
+        "column": 0,
+        "text": "Python",
+        "baselines": [
+          184.97
+        ],
+        "fonts": [
+          [
+            "MicrosoftYaHei",
+            10.45
+          ]
+        ]
+      },
+      {
+        "row": 3,
+        "column": 1,
+        "text": "3.10–3.13",
+        "baselines": [
+          184.97
+        ],
+        "fonts": [
+          [
+            "MicrosoftYaHei",
+            10.45
+          ]
+        ]
+      },
+      {
+        "row": 3,
+        "column": 2,
+        "text": "建议使用虚拟环境",
+        "baselines": [
+          184.97
+        ],
+        "fonts": [
+          [
+            "MicrosoftYaHei",
+            10.45
+          ]
+        ]
+      }
+    ],
+    "pages": 1
+  },
+  "candidate_geometry": {
+    "x": [
+      33.75,
+      99.65,
+      194.35,
+      288.55
+    ],
+    "y": [
+      109.36,
+      129.61,
+      149.86,
+      170.11,
+      190.36
+    ],
+    "cells": [
+      {
+        "row": 0,
+        "column": 0,
+        "text": "组件",
+        "baselines": [
+          124.25
+        ],
+        "fonts": [
+          [
+            "MicrosoftYaHei-Bold",
+            10.45
+          ]
+        ]
+      },
+      {
+        "row": 0,
+        "column": 1,
+        "text": "版本",
+        "baselines": [
+          124.25
+        ],
+        "fonts": [
+          [
+            "MicrosoftYaHei-Bold",
+            10.45
+          ]
+        ]
+      },
+      {
+        "row": 0,
+        "column": 2,
+        "text": "说明",
+        "baselines": [
+          124.25
+        ],
+        "fonts": [
+          [
+            "MicrosoftYaHei-Bold",
+            10.45
+          ]
+        ]
+      },
+      {
+        "row": 1,
+        "column": 0,
+        "text": "操作系统",
+        "baselines": [
+          144.409
+        ],
+        "fonts": [
+          [
+            "MicrosoftYaHei",
+            10.45
+          ]
+        ]
+      },
+      {
+        "row": 1,
+        "column": 1,
+        "text": "Windows10/11",
+        "baselines": [
+          144.409
+        ],
+        "fonts": [
+          [
+            "MicrosoftYaHei",
+            10.45
+          ]
+        ]
+      },
+      {
+        "row": 1,
+        "column": 2,
+        "text": "64位",
+        "baselines": [
+          144.409
+        ],
+        "fonts": [
+          [
+            "MicrosoftYaHei",
+            10.45
+          ]
+        ]
+      },
+      {
+        "row": 2,
+        "column": 0,
+        "text": "WPSOffice",
+        "baselines": [
+          164.69
+        ],
+        "fonts": [
+          [
+            "MicrosoftYaHei",
+            10.45
+          ]
+        ]
+      },
+      {
+        "row": 2,
+        "column": 1,
+        "text": "12.1及以上",
+        "baselines": [
+          164.69
+        ],
+        "fonts": [
+          [
+            "MicrosoftYaHei",
+            10.45
+          ]
+        ]
+      },
+      {
+        "row": 2,
+        "column": 2,
+        "text": "需启用COM组件",
+        "baselines": [
+          164.69
+        ],
+        "fonts": [
+          [
+            "MicrosoftYaHei",
+            10.45
+          ]
+        ]
+      },
+      {
+        "row": 3,
+        "column": 0,
+        "text": "Python",
+        "baselines": [
+          184.97
+        ],
+        "fonts": [
+          [
+            "MicrosoftYaHei",
+            10.45
+          ]
+        ]
+      },
+      {
+        "row": 3,
+        "column": 1,
+        "text": "3.10–3.13",
+        "baselines": [
+          184.97
+        ],
+        "fonts": [
+          [
+            "MicrosoftYaHei",
+            10.45
+          ]
+        ]
+      },
+      {
+        "row": 3,
+        "column": 2,
+        "text": "建议使用虚拟环境",
+        "baselines": [
+          184.97
+        ],
+        "fonts": [
+          [
+            "MicrosoftYaHei",
+            10.45
+          ]
+        ]
+      }
+    ],
+    "pages": 1
+  },
+  "stage38": null,
+  "strict_f2_layout": true
+}
