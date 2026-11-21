@@ -112,8 +112,9 @@ class ReportToDocxTests(_Converted):
         self.assertEqual(len(self.document.inline_shapes), 1)
         captions = [p.text for p in self.paragraphs if p.style.name == "Caption"]
         self.assertEqual(captions, ["表 1 分区域收入（万元）", "图 1 季度收入趋势"])
-        self.assertTrue(self.paragraph("计算口径").runs)
-        self.assertTrue(any(p.text == "收入按权责发生制确认。" for p in self.paragraphs))
+        paragraph = self.paragraph("计算口径收入按权责发生制确认。")
+        self.assertTrue(paragraph.runs)
+        self.assertEqual([r.text for r in paragraph.runs if r.font.hidden], ["收入按权责发生制确认。"])
         self.assertFalse(any("caption" in warning or "details" in warning for warning in self.data["warnings"]))
 
     def test_rowspan_and_colspan_become_merged_cells(self):

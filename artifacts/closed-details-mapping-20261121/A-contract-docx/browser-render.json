@@ -1,0 +1,24 @@
+[
+  true,
+  {
+    "input_path": "artifacts/closed-details-mapping-20261121/A-contract-docx/input/contract.html",
+    "output_path": "artifacts/closed-details-mapping-20261121/A-contract-docx/browser.pdf",
+    "format": "pdf",
+    "bytes": 104224,
+    "sha256": "c7c528e4b207e7f7d0ecdaebdda6a7ee6d92e8988ae44b8e929d167f4654a780",
+    "backend": "playwright-edge",
+    "page_size": "A4",
+    "viewport": {
+      "width": 1280,
+      "height": 900
+    },
+    "javascript_enabled": false,
+    "network_access": false,
+    "websocket_blocked": true,
+    "resource_root": "artifacts/closed-details-mapping-20261121/A-contract-docx/input",
+    "browser": "157.0.4341.60",
+    "page_title": "技术服务合同",
+    "document_height": 900
+  },
+  []
+]

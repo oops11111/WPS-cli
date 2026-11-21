@@ -1,0 +1,24 @@
+[
+  true,
+  {
+    "input_path": "artifacts/closed-details-mapping-20261121/A-newsletter-docx/input/newsletter.html",
+    "output_path": "artifacts/closed-details-mapping-20261121/A-newsletter-docx/browser.pdf",
+    "format": "pdf",
+    "bytes": 90152,
+    "sha256": "a3ccb57e1f75ca1dbff535271152a48c8f63756d1647dd089d40367246957af6",
+    "backend": "playwright-edge",
+    "page_size": "A4",
+    "viewport": {
+      "width": 1280,
+      "height": 900
+    },
+    "javascript_enabled": false,
+    "network_access": false,
+    "websocket_blocked": true,
+    "resource_root": "artifacts/closed-details-mapping-20261121/A-newsletter-docx/input",
+    "browser": "157.0.4341.60",
+    "page_title": "研发月刊 第 10 期",
+    "document_height": 900
+  },
+  []
+]

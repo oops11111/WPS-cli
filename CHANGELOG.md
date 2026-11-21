@@ -6,6 +6,11 @@ All notable changes to `wps-ai-agent-cli`. The versioning rule and release steps
 
 ### Fixed
 
+- HTML to DOCX retains a simple closed details body as hidden editable text in
+  its summary paragraph. Open details retain expanded behavior; unsupported
+  closed shapes stay expanded with an explicit warning. Fidelity scoring now
+  checks expected hidden state for this bounded HTML-to-DOCX mapping.
+
 - HTML to DOCX preserves the following paragraph's top spacing after a horizontal
   rule, avoiding a second subtraction of the rule's native paragraph spacing.
 

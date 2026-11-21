@@ -1,0 +1,399 @@
+{
+  "base": "1471f521ac4c3b4c037f7dabffbf0f22ba747066",
+  "product_files_sha256": {
+    "src/wps_ai_agent_cli/html_editable.py": "6110d8f0960c2bfd9d9181130ce900ca905e01a69611ac206133bfbe53f85b99",
+    "src/wps_ai_agent_cli/fidelity.py": "9f3b322cf02bbef87ec744e288e111179e082e5688fb14a594b549f60f838cbb"
+  },
+  "cases": {
+    "report": {
+      "before": {
+        "images": [
+          "artifacts/html-docx-wps-matrix-20261121/A-report-docx/pages/page-001-0.883.png",
+          "artifacts/html-docx-wps-matrix-20261121/A-report-docx/pages/page-002-0.962.png"
+        ],
+        "status": "measured",
+        "renderer": "wps",
+        "score": 0.9224,
+        "pages": {
+          "source": 2,
+          "target": 2
+        },
+        "page_scores": [
+          0.8826,
+          0.9622
+        ],
+        "missing_fonts": [
+          "Noto Sans CJK SC"
+        ]
+      },
+      "after": {
+        "images": [
+          "artifacts/closed-details-mapping-20261121/A-report-docx/pages/page-001-0.883.png",
+          "artifacts/closed-details-mapping-20261121/A-report-docx/pages/page-002-0.968.png"
+        ],
+        "status": "measured",
+        "renderer": "wps",
+        "score": 0.9255,
+        "pages": {
+          "source": 2,
+          "target": 2
+        },
+        "page_scores": [
+          0.8826,
+          0.9684
+        ],
+        "missing_fonts": [
+          "Noto Sans CJK SC"
+        ]
+      },
+      "gates": {
+        "execution": true,
+        "aggregate": true,
+        "pages": true,
+        "per_page": true,
+        "semantics": true
+      },
+      "hashes_verified": true
+    },
+    "contract": {
+      "before": {
+        "images": [
+          "artifacts/contract-merge-borders-20261121/contract/pages/page-001-0.849.png"
+        ],
+        "status": "measured",
+        "renderer": "wps",
+        "score": 0.8492,
+        "pages": {
+          "source": 1,
+          "target": 1
+        },
+        "page_scores": [
+          0.8492
+        ],
+        "missing_fonts": [
+          "Noto Sans CJK SC"
+        ]
+      },
+      "after": {
+        "images": [
+          "artifacts/closed-details-mapping-20261121/A-contract-docx/pages/page-001-0.849.png"
+        ],
+        "status": "measured",
+        "renderer": "wps",
+        "score": 0.8492,
+        "pages": {
+          "source": 1,
+          "target": 1
+        },
+        "page_scores": [
+          0.8492
+        ],
+        "missing_fonts": [
+          "Noto Sans CJK SC"
+        ]
+      },
+      "gates": {
+        "execution": true,
+        "aggregate": true,
+        "pages": true,
+        "per_page": true,
+        "semantics": true
+      },
+      "hashes_verified": true
+    },
+    "newsletter": {
+      "before": {
+        "images": [
+          "artifacts/html-docx-wps-matrix-20261121/A-newsletter-docx/pages/page-001-0.917.png"
+        ],
+        "status": "measured",
+        "renderer": "wps",
+        "score": 0.9168,
+        "pages": {
+          "source": 1,
+          "target": 1
+        },
+        "page_scores": [
+          0.9168
+        ],
+        "missing_fonts": [
+          "Noto Sans CJK SC"
+        ]
+      },
+      "after": {
+        "images": [
+          "artifacts/closed-details-mapping-20261121/A-newsletter-docx/pages/page-001-0.917.png"
+        ],
+        "status": "measured",
+        "renderer": "wps",
+        "score": 0.9168,
+        "pages": {
+          "source": 1,
+          "target": 1
+        },
+        "page_scores": [
+          0.9168
+        ],
+        "missing_fonts": [
+          "Noto Sans CJK SC"
+        ]
+      },
+      "gates": {
+        "execution": true,
+        "aggregate": true,
+        "pages": true,
+        "per_page": true,
+        "semantics": true
+      },
+      "hashes_verified": true
+    },
+    "manual": {
+      "before": {
+        "images": [
+          "artifacts/manual-rule-spacing-20261121/manual/pages/page-001-0.896.png"
+        ],
+        "status": "measured",
+        "renderer": "wps",
+        "score": 0.8959,
+        "pages": {
+          "source": 1,
+          "target": 1
+        },
+        "page_scores": [
+          0.8959
+        ],
+        "missing_fonts": [
+          "Noto Sans CJK SC"
+        ]
+      },
+      "after": {
+        "images": [
+          "artifacts/closed-details-mapping-20261121/A-manual-docx/pages/page-001-0.896.png"
+        ],
+        "status": "measured",
+        "renderer": "wps",
+        "score": 0.8959,
+        "pages": {
+          "source": 1,
+          "target": 1
+        },
+        "page_scores": [
+          0.8959
+        ],
+        "missing_fonts": [
+          "Noto Sans CJK SC"
+        ]
+      },
+      "gates": {
+        "execution": true,
+        "aggregate": true,
+        "pages": true,
+        "per_page": true,
+        "semantics": true
+      },
+      "hashes_verified": true
+    },
+    "pdfsource": {
+      "before": {
+        "images": [
+          "artifacts/html-docx-wps-matrix-20261121/A-pdfsource-docx/pages/page-001-0.900.png",
+          "artifacts/html-docx-wps-matrix-20261121/A-pdfsource-docx/pages/page-002-0.925.png"
+        ],
+        "status": "measured",
+        "renderer": "wps",
+        "score": 0.9123,
+        "pages": {
+          "source": 2,
+          "target": 2
+        },
+        "page_scores": [
+          0.9,
+          0.9246
+        ],
+        "missing_fonts": [
+          "Noto Sans CJK SC"
+        ]
+      },
+      "after": {
+        "images": [
+          "artifacts/closed-details-mapping-20261121/A-pdfsource-docx/pages/page-001-0.900.png",
+          "artifacts/closed-details-mapping-20261121/A-pdfsource-docx/pages/page-002-0.925.png"
+        ],
+        "status": "measured",
+        "renderer": "wps",
+        "score": 0.9123,
+        "pages": {
+          "source": 2,
+          "target": 2
+        },
+        "page_scores": [
+          0.9,
+          0.9246
+        ],
+        "missing_fonts": [
+          "Noto Sans CJK SC"
+        ]
+      },
+      "gates": {
+        "execution": true,
+        "aggregate": true,
+        "pages": true,
+        "per_page": true,
+        "semantics": true
+      },
+      "hashes_verified": true
+    }
+  },
+  "report_visible_state": {
+    "browser": {
+      "summary": {
+        "page": 2,
+        "text": "计算口径",
+        "top": 166.6406180566405,
+        "x": 46.45312306445312,
+        "page_width": 595.91998,
+        "top_at_800px": 223.70871747799498,
+        "x_at_800px": 62.361558093021976
+      },
+      "mail": {
+        "page": 2,
+        "text": "联系人：finance@example.com",
+        "top": 194.39061690039046,
+        "x": 33.74999859375,
+        "page_width": 595.91998,
+        "top_at_800px": 260.96203976968917,
+        "x_at_800px": 45.30809467908762
+      },
+      "phone": {
+        "page": 2,
+        "text": "021-0000-0000",
+        "top": 194.39061690039046,
+        "x": 249.49217710449219,
+        "page_width": 595.91998,
+        "top_at_800px": 260.96203976968917,
+        "x_at_800px": 334.93379712422757
+      },
+      "unsafe_label": {
+        "page": 2,
+        "text": "不安全链接",
+        "top": 222.14061574414052,
+        "x": 33.74999859375,
+        "page_width": 595.91998,
+        "top_at_800px": 298.21536206138353,
+        "x_at_800px": 45.30809467908762
+      }
+    },
+    "before": {
+      "summary": {
+        "page": 2,
+        "text": "计算口径",
+        "top": 155.63,
+        "x": 34.32,
+        "page_width": 595.3,
+        "top_at_800px": 209.144968923232,
+        "x_at_800px": 46.12128338652781
+      },
+      "hidden_body": {
+        "page": 2,
+        "text": "收入按权责发生制确认。",
+        "top": 183.3499999999999,
+        "x": 34.32,
+        "page_width": 595.3,
+        "top_at_800px": 246.39677473542744,
+        "x_at_800px": 46.12128338652781
+      },
+      "mail": {
+        "page": 2,
+        "text": "联系人：finance@example.com",
+        "top": 211.18999999999994,
+        "x": 34.32,
+        "page_width": 595.3,
+        "top_at_800px": 283.8098437762472,
+        "x_at_800px": 46.12128338652781
+      },
+      "phone": {
+        "page": 2,
+        "text": "021-0000-0000",
+        "top": 211.18999999999994,
+        "x": 250.08,
+        "page_width": 595.3,
+        "top_at_800px": 283.8098437762472,
+        "x_at_800px": 336.07256845288094
+      },
+      "unsafe_label": {
+        "page": 2,
+        "text": "不安全链接",
+        "top": 238.90999999999997,
+        "x": 34.32,
+        "page_width": 595.3,
+        "top_at_800px": 321.0616495884428,
+        "x_at_800px": 46.12128338652781
+      }
+    },
+    "after": {
+      "summary": {
+        "page": 2,
+        "text": "计算口径",
+        "top": 155.63,
+        "x": 34.32,
+        "page_width": 595.3,
+        "top_at_800px": 209.144968923232,
+        "x_at_800px": 46.12128338652781
+      },
+      "mail": {
+        "page": 2,
+        "text": "联系人：finance@example.com",
+        "top": 183.3499999999999,
+        "x": 34.32,
+        "page_width": 595.3,
+        "top_at_800px": 246.39677473542744,
+        "x_at_800px": 46.12128338652781
+      },
+      "phone": {
+        "page": 2,
+        "text": "021-0000-0000",
+        "top": 183.3499999999999,
+        "x": 250.08,
+        "page_width": 595.3,
+        "top_at_800px": 246.39677473542744,
+        "x_at_800px": 336.07256845288094
+      },
+      "unsafe_label": {
+        "page": 2,
+        "text": "不安全链接",
+        "top": 211.18999999999994,
+        "x": 34.32,
+        "page_width": 595.3,
+        "top_at_800px": 283.8098437762472,
+        "x_at_800px": 46.12128338652781
+      }
+    },
+    "body_xml_count": 1,
+    "summary_body_runs": [
+      {
+        "text": "计算口径",
+        "hidden": null
+      },
+      {
+        "text": "收入按权责发生制确认。",
+        "hidden": true
+      }
+    ],
+    "old_docx_new_scorer": {
+      "score": 0.9973,
+      "problems": [
+        "收入按权责发生制确认。: hidden True -> False"
+      ]
+    }
+  },
+  "report_gates": {
+    "body_retained_once": true,
+    "body_hidden_xml": true,
+    "body_not_visible": true,
+    "summary_unchanged": true,
+    "page1_pixels": true,
+    "following_positions": true,
+    "old_expanded_rejected": true
+  },
+  "passed": true
+}
