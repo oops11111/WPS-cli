@@ -1388,3 +1388,82 @@ authoritative status, commit/PR/run evidence, blockers and exact next action.
   requirements above stay unchanged. No Stage40report or Stage41capture reuse,
   threshold/eligibility/input adjustment, semantic reader recapture or product PR
   on failure. This registered N/A schema handling is not post-hoc continuation.
+
+## Stage43 PLAN ONLY: merged-contract row-minimum accounting experiment
+
+- Await primary review. Exact main551fe7fad79d6b96423caca73e816b4ab35aebc7, fresh
+  fidelity-contract-row / docs/contract-row-mechanism-plan. Evidence-only; no product,
+  fixture/threshold/baseline changes or new render/test/WPS yet. Old Stage10/12/
+  32STOPs remain unchanged. Stage10 excluded this merged contract, so did NOT test it.
+- Control: committed Stage42 full contract candidate.docx SHA256
+ 760bb182bf74f3b491ed103f8d56fc5089d99f1c22bf4ff6f8226fcd1d1dbab1, its accepted
+  WPS12.8.2.18913 PDF and immutable source browser PDF/snapshot. Current whole.8719;
+  source five row pitches23.25pt vs native24pt. Source boundaries348.375/371.625/
+  394.875/418.125/441.375/464.625; native347.81/371.81/395.81/419.81/443.81/467.81pt.
+- Source trace: every computed tr is31px tall (22px line+8px vertical padding+
+  1px collapsed border), natural CSS with no author height. apply_table requests
+ 465twips=23.25pt AT_LEAST and native adds nominal.75pt border accounting, consistent
+  with Stage9's unmerged mechanism. Ordinary cells have exact330+before60+after45
+  =435twips(21.75pt); adding two .75pt border extents reaches23.25pt. This is near
+  a content minimum, not proof it will shrink; effective WPS metrics may dominate.
+- Both outer header rowspan origins have exact line390 (19.5pt), not330: existing
+  _measured_pitch uses62px box minus10px padding/border =52px, round(52/22)=2,
+  pitch26px. This unrelated line-pitch inference is recorded but NOT changed.
+  Its paragraph-plus-spacing24.75pt/border26.25pt fits across two predicted rows
+  (46.5pt); empty continuation paragraphs may still affect native constraints.
+- Sole candidate: second table's five trHeight @w:val465->450, hRule=atLeast
+  UNCHANGED. Formula=(31px source row minus1px collapsed nominal border)*15twips.
+  Exactly FIVE attributes. No exact-height coercion, hideMark, line/font/padding/
+  mark/merge/grid/width/margin/paragraph/flow changes, alternate heights or offsets.
+  All Stage42 corrected widths preserved. Candidate may have zero/partial effect;
+  do not lower height further if contents force it. Official atLeast is a minimum:
+  https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.heightrulevalues?view=openxml-3.0.1
+- Offline hard gate after approval: exact immutable SHA/topology5rows/19cells/
+  17origins/2continuations; five original465/atLeast, borders6eighth-points, unchanged
+  pPr330(or390 for two rowspan origins)/before60/after45; expected source31px boxes.
+  Five-value inverse restores complete original document.xml bytes; every other
+  package payload and metadata same; deterministic package. Wrong row/height/rule,
+  extra content/style/part differences STOP before WPS. Content/rowspan constraints
+  above must be auditable; no claim static arithmetic certifies WPS no-clipping.
+- Focused inverse/determinism/negative-XML and prediction/STOP tests, relevant table/
+  semantic/environment/packaging tests, Ruff/format/diff before native work. Use
+  verified Stage42 source snapshot with exact hash/annotations for semantic scoring,
+  applicable perfect/N/A normalized gates, no cascade fallback or implicit capture.
+  Explicit Node/Playwright/workspaceTEMP/UTF8 environment check before ANY WPS.
+- ONE safe full-contract candidate export against cached baseline, same12.8.2.18913,
+  empty process probe/own instance release only. No browser or baseline re-export,
+  taskkill/user documents/preferences/font install/retry. No other-case export.
+- Registered row mechanism prediction: anchored top347.81±.05pt; five pitches
+ 23.25±.05pt, total116.25±.10pt; horizontal centers347.81/371.06/394.31/417.56/
+ 440.81/464.06±.10pt. All vertical x/width/rule segments unchanged except their y
+  extent. Body glyph baseline shifts rows2/3/4 predicted-1.875/-2.625/-3.375pt,
+  error<=.10pt; header single-row cells shift-(r+.5)*.75, two-row origins-.75pt.
+  If rows do not follow that mechanism, classify zero/content-dominated or STOP,
+  never force exact/another minimum/paragraph relief to obtain predicted height.
+- Strict content/geometry: same page1, all17origin streams single-line, effective
+  PDF fonts/sizes/advances/ink heights unchanged, no missing/clipped/cross-rule
+  glyph; merge segments and all horizontal x positions preserved. Every character
+  before table unchanged x/y≤.05; every downstream character x unchanged≤.05 and
+  y shift MUST uniformly equal-3.75±.10pt, relative interparagraph intervals stable
+  within.05pt. This tests real flow rather than silently accepting unrelated moves.
+- Counterevidence registered: price baseline492.409 vs source488.99998 predicts
+ 488.659(-.341 error) after reduction. But heading3 error+1.49->-2.26 and heading4
+  -1.51->-5.26pt become WORSE; a local table gain may fail global fidelity as in
+  Stage10. This is not a preclaimed repair. Price absolute source error must reduce
+  by>=3pt; report ALL later anchor errors including overshoot, not just improved one.
+- Positive acceptance requires table body395..470 and total348..470 SSIM BOTH
+  improve over Stage42.595552511/.693273755; header348..395 not below.882552033;
+  later_text470..640 not below.755426525, plus whole rounded>.8719. Fixed x30..770px,
+  int(y*800/595.92), repository800px grayscale/target resize, no alignment/ROI search.
+  Applicable semantics perfect/N/A recorded, no page/line/content regression. The
+  downstream counterevidence may cause this gate to fail; preserve that result.
+- STOP on any offline/env/safety/export, mechanism/flow/content/clipping/page/
+  semantic/ROI/whole failure. Pixel-identical and geometry identical =>bounded
+  zero influence. Mixed or score-regressing effects remain negative evidence;
+  no threshold/height/offset/font/boundary tuning or second export/product PR.
+- Deliverables after approval: bounded builder/assessor/tests, source/inverse/hash/
+  constraints audit, single rawPDF/PNG/probe/version/export, per-origin/rule/anchor
+  coordinates and score report with counterevidence. Only independently reviewed
+  reusable evidence may be committed/pushed as evidence PR; six green CI before
+  primary merge, implementation agent never merges. Product/full-five separately
+  reviewed only if new evidence supports it, never inferred from a local gain.
