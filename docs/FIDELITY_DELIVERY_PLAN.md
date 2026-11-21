@@ -526,3 +526,78 @@ authoritative status, commit/PR/run evidence, blockers and exact next action.
 - Integration: same continuing agent; English Conventional Commit/push/PR to main
   only after acceptance, primary-agent diff/XML/image review and all six CI jobs
   green before merge. Implementation agent does not merge.
+
+## Stage 16: native vector picture-bullet mechanism
+
+- Dependency/base: stage15 PR #166 merged with six green CI jobs; exact main
+  `c113181c7977648294652a9e6d53b620aefbe768`, clean fidelity-details worktree
+  on `docs/summary-picture-bullet-mechanism`. Preserve all prior evidence/logs
+  and frozen stage6/10/12 worktrees. Plan-only pending review; no product conversion
+  or browser style-reader edits, tests or WPS execution before approval.
+- Grounding: original report browser filled triangle vertices approximately
+  (33.7500,167.5898),(40.5527,171.5449),(33.7500,175.5000)pt, summary text
+  starts46.4531pt. Chromium's documented disclosure implementation uses0.66em
+  symbol square,0.4em end gap and bottom aligned to text baseline, consistent
+  with observed symbol height7.9102pt and advance12.7031pt at12pt font. These are
+  font-relative predictions, not a fixture-specific text shift. Existing UA
+  marker is inside; this single-line experiment does not claim inside wrapping.
+  Sources: [Chromium disclosure layout](https://chromium.googlesource.com/chromium/src.git/+/cb11d5949b731a22810c46c99c4d3ad64b2e91ec%5E%21/)
+  (historical implementation, corroborated by current PDF, not proof of every UA),
+  [OOXML picture reference](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.levelpicturebulletid?view=openxml-3.0.1)
+  and [VML picture container](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.picture?view=openxml-3.0.1).
+- Synthetic input only: deterministic A4 DOCX,1inch margins, Arial font S,
+  exact1.5S line pitch and zero paragraph before/after. SUMMARY plus vanished
+  RETAINED-BODY runs in the first paragraph, FOLLOWING in the second, identical
+  underlying text across controls. No source report, fixture, baseline, threshold,
+  fonts/install, global display/printing preferences or scorer/product changes.
+- Exactly six predeclared variants: C12/Z12/N12 and C18/Z18/N18, S=12/18pt.
+  C has plain unnumbered SUMMARY and no new numbering definition. Z adds one
+  document-local w:numPicBullet with w:pict/VML black filled unstroked triangle,
+  one abstractNum/num referencing it via lvlPicBulletId, suff=nothing and zero
+  level indentation; it diagnoses support/default intrinsic advance. N uses
+  the identical vector definition but suff=tab, left indent A and hanging A,
+  with a numbering tab stop at A, where A=1.06S rounded once to native twips.
+  Marker origin is the original C text origin, N summary text is advanced by A.
+  No arbitrary offset, glyph substitution, raster fallback or iterative variants.
+- Vector definition: square side0.66S, canonical normalized right-pointing
+  triangle vertices(0,0),(.86,.5),(0,1), black fill/no stroke; expected painted
+  width0.86*0.66S and height0.66S. Normalized geometry is corroborated by observed
+  browser PDF, with historical-UA uncertainty recorded. Use native picture-bullet
+  baseline behavior; do not add VML top/y nudges or run raise/lower adjustments.
+  lvlText has a single placeholder X, replaced by picture per OOXML; if X is
+  painted, that is failed picture support, never permission to substitute a glyph.
+  Allocate fresh IDs without changing existing template numbering definitions.
+- Deliverables after approval: narrow synthetic builder/opt-in runner, deterministic
+  XML/package tests, six input DOCX/PDF/page images, input/output/script SHA and
+  tool/WPS versions, raw pre-case probes/exports, vector vertices/bounds/size,
+  summary/FOLLOWING text tops/x and text-matrix baselines. Record hidden-body
+  retention versus PDF visibility, original predictions and all mismatches.
+- Tests: deterministic ZIP metadata/order/properties; only document.xml and
+  numbering.xml differ as declared, all unrelated parts byte-identical; fresh
+  IDs/references, one closed filled vector, dimension scaling, exact native
+  indent/tab/suffix controls, no marker characters/tabs in paragraph text, retained
+  body exactly once/hidden and plain controls unnumbered. Run focused tests plus
+  full Ruff/format and whitespace checks before the real experiment.
+- Safe execution: exactly one sequential six-export WPS set, pre-case no-existing-
+  process/version probes,120s normal export timeout and own-instance release.
+  Existing processes/probe failure stop before COM. No taskkill, user-document
+  closure/attachment, preference changes, browser/HTML conversion or tuning rerun.
+- Acceptance as mechanism evidence: each case1page with SUMMARY/FOLLOWING visible
+  and RETAINED-BODY present once in DOCX but absent in PDF. For both N sizes require
+  a measurable filled right-pointing vector (not placeholder X), painted width/
+  height within0.10pt of predictions, marker left within0.10pt of C text left,
+  marker bottom within0.10pt of SUMMARY native text baseline, N text advance within
+ 0.10pt of twip-rounded A, and SUMMARY/FOLLOWING y positions within0.05pt of C.
+  Compare font-relative scaling across12/18 rather than accepting one-size luck.
+  Z outcomes are diagnostic, not required to match N advance. No F2 score or
+  original report success claim follows from synthetic support alone.
+- Uncertainty/stop: WPS may ignore VML vector picture bullets, paint placeholder,
+  rescale them, apply native baseline/indent rules differently or produce geometry
+  not reliably measurable as vectors. Any required N/retention/page/position gate
+  failure or unsafe/export error stops without tuning/retry or product PR. Preserve
+  all completed raw evidence, label unsupported/ambiguous outcomes. No inside-wrap,
+  RTL, custom-marker, interaction, accessibility or cross-host/settings claim.
+- Integration: reusable verified positive/negative mechanism evidence may form an
+  evidence-only English Conventional Commit/push/PR to main by the same agent;
+  primary XML/image review and all six CI jobs green before merge. A product
+  mapping or broader experiment needs a separately reviewed plan afterward.

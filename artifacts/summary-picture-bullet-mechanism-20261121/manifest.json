@@ -1,0 +1,354 @@
+{
+  "base": "c113181c7977648294652a9e6d53b620aefbe768",
+  "runner_sha256": "e68867ce4ac14d88b85f02e2d387e313a60c5895817fef5327243d7b279c2bfb",
+  "python": "3.13.17",
+  "pdfplumber": "0.11.10",
+  "python_docx": "1.2.0",
+  "settings": "Unqueried and unchanged",
+  "cases": {
+    "C12": {
+      "prediction": {
+        "square_pt": 7.92,
+        "width_pt": 6.8111999999999995,
+        "advance_twips": 254,
+        "advance_pt": 12.7
+      },
+      "docx_sha256": "10a151153582831c7af2f55b7c2e81a902b267a7638f25c81b6b62f061d906e7",
+      "retained": [
+        "SUMMARY",
+        "RETAINED-BODY",
+        "FOLLOWING"
+      ],
+      "hidden_xml": true,
+      "wps_versions": [
+        {
+          "path": "C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\wps.exe",
+          "file_version": "12,8,2,18913",
+          "product_version": "12,8,2,18913"
+        }
+      ],
+      "pdf_sha256": "f0ba2395be5745d7093d64852e56495db8211e3343b6d3d77d71419d3c74166f",
+      "pdf": {
+        "pages": 1,
+        "words": [
+          {
+            "text": "SUMMARY",
+            "x0": 72.0,
+            "x1": 133.2702,
+            "top": 78.33800000000008,
+            "bottom": 90.33800000000008
+          },
+          {
+            "text": "FOLLOWING",
+            "x0": 72.0,
+            "x1": 144.08115,
+            "top": 96.33800000000008,
+            "bottom": 108.33800000000008
+          }
+        ],
+        "vectors": [],
+        "summary_baseline": 86.45000000000005,
+        "images": 0
+      }
+    },
+    "Z12": {
+      "prediction": {
+        "square_pt": 7.92,
+        "width_pt": 6.8111999999999995,
+        "advance_twips": 254,
+        "advance_pt": 12.7
+      },
+      "docx_sha256": "0bc6b8b9ebf3a254b94f04132e592f9809010ef5c62641ed2b2ed2101b201aa4",
+      "retained": [
+        "SUMMARY",
+        "RETAINED-BODY",
+        "FOLLOWING"
+      ],
+      "hidden_xml": true,
+      "wps_versions": [
+        {
+          "path": "C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\wps.exe",
+          "file_version": "12,8,2,18913",
+          "product_version": "12,8,2,18913"
+        }
+      ],
+      "pdf_sha256": "84a00692db21fa4d1b58a333bad2fbd8c68584ca6409ea713e8510e7bb019dd0",
+      "pdf": {
+        "pages": 1,
+        "words": [
+          {
+            "text": "XSUMMARY",
+            "x0": 72.0,
+            "x1": 141.3102,
+            "top": 78.33800000000008,
+            "bottom": 90.33800000000008
+          },
+          {
+            "text": "FOLLOWING",
+            "x0": 72.0,
+            "x1": 144.08115,
+            "top": 96.33800000000008,
+            "bottom": 108.33800000000008
+          }
+        ],
+        "vectors": [],
+        "summary_baseline": 86.45000000000005,
+        "images": 0
+      }
+    },
+    "N12": {
+      "prediction": {
+        "square_pt": 7.92,
+        "width_pt": 6.8111999999999995,
+        "advance_twips": 254,
+        "advance_pt": 12.7
+      },
+      "docx_sha256": "14e3b1861cd84ea7396dc62d5db9bac901257667b82a1463edeb4f467a5e784b",
+      "retained": [
+        "SUMMARY",
+        "RETAINED-BODY",
+        "FOLLOWING"
+      ],
+      "hidden_xml": true,
+      "wps_versions": [
+        {
+          "path": "C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\wps.exe",
+          "file_version": "12,8,2,18913",
+          "product_version": "12,8,2,18913"
+        }
+      ],
+      "pdf_sha256": "9d03a5b3df1185e1ed0326d2364cd83f95a195513929ca768329a7836c830e2d",
+      "pdf": {
+        "pages": 1,
+        "words": [
+          {
+            "text": "X",
+            "x0": 72.0,
+            "x1": 79.992,
+            "top": 78.33800000000008,
+            "bottom": 90.33800000000008
+          },
+          {
+            "text": "SUMMARY",
+            "x0": 84.72,
+            "x1": 145.9902,
+            "top": 78.33800000000008,
+            "bottom": 90.33800000000008
+          },
+          {
+            "text": "FOLLOWING",
+            "x0": 72.0,
+            "x1": 144.08115,
+            "top": 96.33800000000008,
+            "bottom": 108.33800000000008
+          }
+        ],
+        "vectors": [],
+        "summary_baseline": 86.45000000000005,
+        "images": 0
+      }
+    },
+    "C18": {
+      "prediction": {
+        "square_pt": 11.88,
+        "width_pt": 10.2168,
+        "advance_twips": 382,
+        "advance_pt": 19.1
+      },
+      "docx_sha256": "26c5c28b1a6690d62c380ee65438ee59da52bc6dff4977f14486452cea538777",
+      "retained": [
+        "SUMMARY",
+        "RETAINED-BODY",
+        "FOLLOWING"
+      ],
+      "hidden_xml": true,
+      "wps_versions": [
+        {
+          "path": "C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\wps.exe",
+          "file_version": "12,8,2,18913",
+          "product_version": "12,8,2,18913"
+        }
+      ],
+      "pdf_sha256": "6ee84d7f67e72459b31c3bb4ac7c5ee47550b6ddbc8e131e045dd3a62ae90930",
+      "pdf": {
+        "pages": 1,
+        "words": [
+          {
+            "text": "SUMMARY",
+            "x0": 72.0,
+            "x1": 163.9068,
+            "top": 81.48199999999997,
+            "bottom": 99.48199999999997
+          },
+          {
+            "text": "FOLLOWING",
+            "x0": 72.0,
+            "x1": 180.06345,
+            "top": 108.48199999999997,
+            "bottom": 126.48199999999997
+          }
+        ],
+        "vectors": [],
+        "summary_baseline": 93.64999999999998,
+        "images": 0
+      }
+    },
+    "Z18": {
+      "prediction": {
+        "square_pt": 11.88,
+        "width_pt": 10.2168,
+        "advance_twips": 382,
+        "advance_pt": 19.1
+      },
+      "docx_sha256": "52eaf801c0894df99d5c41621990b5dc9b2bf15ce9e7f13286d3dfe140ea62db",
+      "retained": [
+        "SUMMARY",
+        "RETAINED-BODY",
+        "FOLLOWING"
+      ],
+      "hidden_xml": true,
+      "wps_versions": [
+        {
+          "path": "C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\wps.exe",
+          "file_version": "12,8,2,18913",
+          "product_version": "12,8,2,18913"
+        }
+      ],
+      "pdf_sha256": "490f922d6fe31476bdb633a322cb7d60281b9625527f61ad78e235d7f6e8fe24",
+      "pdf": {
+        "pages": 1,
+        "words": [
+          {
+            "text": "XSUMMARY",
+            "x0": 72.0,
+            "x1": 175.9068,
+            "top": 81.48199999999997,
+            "bottom": 99.48199999999997
+          },
+          {
+            "text": "FOLLOWING",
+            "x0": 72.0,
+            "x1": 180.06345,
+            "top": 108.48199999999997,
+            "bottom": 126.48199999999997
+          }
+        ],
+        "vectors": [],
+        "summary_baseline": 93.64999999999998,
+        "images": 0
+      }
+    },
+    "N18": {
+      "prediction": {
+        "square_pt": 11.88,
+        "width_pt": 10.2168,
+        "advance_twips": 382,
+        "advance_pt": 19.1
+      },
+      "docx_sha256": "75938a8a40fbca493f9f15fb81b327225500f15dc8864689a3dde817fded9a03",
+      "retained": [
+        "SUMMARY",
+        "RETAINED-BODY",
+        "FOLLOWING"
+      ],
+      "hidden_xml": true,
+      "wps_versions": [
+        {
+          "path": "C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\wps.exe",
+          "file_version": "12,8,2,18913",
+          "product_version": "12,8,2,18913"
+        }
+      ],
+      "pdf_sha256": "7ccae298eab6000810eb16ad12ddf6ac21c266524881ac0062dd472be9070240",
+      "pdf": {
+        "pages": 1,
+        "words": [
+          {
+            "text": "X",
+            "x0": 72.0,
+            "x1": 83.988,
+            "top": 81.48199999999997,
+            "bottom": 99.48199999999997
+          },
+          {
+            "text": "SUMMARY",
+            "x0": 91.08,
+            "x1": 182.9868,
+            "top": 81.48199999999997,
+            "bottom": 99.48199999999997
+          },
+          {
+            "text": "FOLLOWING",
+            "x0": 72.0,
+            "x1": 180.06345,
+            "top": 108.48199999999997,
+            "bottom": 126.48199999999997
+          }
+        ],
+        "vectors": [],
+        "summary_baseline": 93.64999999999998,
+        "images": 0
+      }
+    }
+  },
+  "gates": {
+    "required_N": {
+      "12": {
+        "vector": false,
+        "size": false,
+        "marker_left": false,
+        "baseline": false,
+        "advance": true,
+        "y": true
+      },
+      "18": {
+        "vector": false,
+        "size": false,
+        "marker_left": false,
+        "baseline": false,
+        "advance": true,
+        "y": true
+      }
+    },
+    "common": {
+      "C12": {
+        "page": true,
+        "visible": true,
+        "retained": true,
+        "hidden_xml": true
+      },
+      "Z12": {
+        "page": true,
+        "visible": false,
+        "retained": true,
+        "hidden_xml": true
+      },
+      "N12": {
+        "page": true,
+        "visible": false,
+        "retained": true,
+        "hidden_xml": true
+      },
+      "C18": {
+        "page": true,
+        "visible": true,
+        "retained": true,
+        "hidden_xml": true
+      },
+      "Z18": {
+        "page": true,
+        "visible": false,
+        "retained": true,
+        "hidden_xml": true
+      },
+      "N18": {
+        "page": true,
+        "visible": false,
+        "retained": true,
+        "hidden_xml": true
+      }
+    },
+    "passed": false,
+    "Z": "diagnostic geometry retained in case records; no advance target"
+  }
+}
