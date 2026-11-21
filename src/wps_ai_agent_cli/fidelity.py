@@ -334,7 +334,9 @@ def _read_docx(path: Path) -> Model:
             paragraph = Paragraph(child, document)
             text = _norm(paragraph.text)
             style = paragraph.style.name if paragraph.style is not None else ""
-            images = len(child.findall(".//" + qn("w:drawing")))
+            from .docx_details_marker import is_managed_marker
+
+            images = sum(not is_managed_marker(d) for d in child.findall(".//" + qn("w:drawing")))
             runs = [_docx_run(r) for r in _paragraph_runs(paragraph) if r.text]
             if text:
                 match = re.match(r"Heading (\d)", style)

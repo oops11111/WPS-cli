@@ -162,7 +162,13 @@ def run_case(case, relative, folder, baselines):
             "browser": styled.browser,
             "warnings": styled.warnings,
             "elements": [
-                {"tag": n.tag, "attrs": n.attrs, "style": styled.style(n), "box": styled.box(n)}
+                {
+                    "tag": n.tag,
+                    "attrs": n.attrs,
+                    "style": styled.style(n),
+                    "box": styled.box(n),
+                    **({"summary_marker": styled.summary_markers.get(id(n))} if n.tag == "summary" else {}),
+                }
                 for n in _walk(styled.root)
             ],
         },

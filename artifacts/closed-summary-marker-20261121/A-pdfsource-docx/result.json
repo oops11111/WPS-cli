@@ -1,0 +1,144 @@
+{
+  "case": "A-pdfsource-docx",
+  "original_source": "fixtures/fidelity/pdf_source.html",
+  "input_manifest": [
+    {
+      "reference": "pdf_source.html",
+      "exists": true,
+      "repository_path": "fixtures/fidelity/pdf_source.html",
+      "sha256": "f33d7d7c204abd1340d92c7108ba699d2f6b43fdf516fb5d840037a7264dcdaa"
+    }
+  ],
+  "browser_version": "157.0.4341.60",
+  "semantic": {
+    "source": "artifacts/closed-summary-marker-20261121/A-pdfsource-docx/input/pdf_source.html",
+    "target": "artifacts/closed-summary-marker-20261121/A-pdfsource-docx/converted.docx",
+    "group": "A",
+    "thresholds": {
+      "text": 1.0,
+      "structure": 1.0,
+      "formatting": 1.0,
+      "animations": 1.0,
+      "data": 1.0,
+      "layout": 0.9
+    },
+    "aspects": {
+      "text": {
+        "score": 1.0,
+        "missing": []
+      },
+      "structure": {
+        "score": 1.0,
+        "differences": {}
+      },
+      "formatting": {
+        "score": 1.0,
+        "problems": []
+      },
+      "animations": {
+        "status": "not applicable"
+      },
+      "data": {
+        "score": 1.0,
+        "missing": []
+      },
+      "layout": {
+        "status": "skipped"
+      }
+    },
+    "verdict": {
+      "text": true,
+      "structure": true,
+      "formatting": true,
+      "data": true
+    },
+    "passed": true
+  },
+  "wps_executables": [
+    {
+      "path": "C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\wps.exe",
+      "file_version": "12,8,2,18913",
+      "product_version": "12,8,2,18913"
+    }
+  ],
+  "execution_ok": true,
+  "layout": {
+    "images": [
+      "artifacts/closed-summary-marker-20261121/A-pdfsource-docx/pages/page-001-0.900.png",
+      "artifacts/closed-summary-marker-20261121/A-pdfsource-docx/pages/page-002-0.925.png"
+    ],
+    "status": "measured",
+    "renderer": "wps",
+    "score": 0.9123,
+    "pages": {
+      "source": 2,
+      "target": 2
+    },
+    "page_scores": [
+      0.9,
+      0.9246
+    ],
+    "missing_fonts": [
+      "Noto Sans CJK SC"
+    ]
+  },
+  "color_pages": {
+    "browser": [
+      "artifacts/closed-summary-marker-20261121/A-pdfsource-docx/browser-page-001.png",
+      "artifacts/closed-summary-marker-20261121/A-pdfsource-docx/browser-page-002.png"
+    ],
+    "wps": [
+      "artifacts/closed-summary-marker-20261121/A-pdfsource-docx/wps-page-001.png",
+      "artifacts/closed-summary-marker-20261121/A-pdfsource-docx/wps-page-002.png"
+    ]
+  },
+  "strict_f2": {
+    "passed": true,
+    "verdict": {
+      "text": true,
+      "structure": true,
+      "formatting": true,
+      "data": true,
+      "layout": true
+    },
+    "layout_minimum": 0.9
+  },
+  "decision10": {
+    "status": "strict_pass",
+    "floor": null,
+    "historical_reason": null
+  },
+  "environment": {
+    "missing_fonts": [
+      "Noto Sans CJK SC"
+    ],
+    "missing_input_assets": [],
+    "limit": "Missing fallback does not establish missing effective font. Glyph-vs-layout attribution requires page review."
+  },
+  "historical": {
+    "libreoffice": {
+      "group": "A",
+      "route": [
+        "html-editable"
+      ],
+      "scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "formatting": 1.0,
+        "data": 1.0,
+        "layout": 0.8998
+      },
+      "passed": true
+    },
+    "libreoffice_comparable_to_wps": false,
+    "prior_wps_layout": 0.9123,
+    "source": "docs/PHASE13_PLAN.md, tenth Windows check",
+    "limit": "Historical host/version conditions are not revalidated; no cross-renderer baseline-minus-0.02 rule applied."
+  },
+  "hashes": {
+    "pdf_source.html": "f33d7d7c204abd1340d92c7108ba699d2f6b43fdf516fb5d840037a7264dcdaa",
+    "converted.docx": "ae0f4228b929aef87af6ad1f7c6555c0ce7bd18a415deb867753648211c1e895",
+    "browser.pdf": "995460cfecf47e2f37515bdbc98f5e3f58505817f82ab084c6cf1400288ed9ef",
+    "wps.pdf": "a554f20fe729150061c1e3a8d07b2b6b3c62421737b005d540e7a92cb7bcb500"
+  }
+}

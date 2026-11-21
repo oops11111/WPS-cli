@@ -944,6 +944,13 @@ def convert_html_editable(
                     docx_styling.apply_paragraph(paragraph, summary, ancestors(summary), context)
                     add_text_with_links(paragraph, summary)
                     trim(paragraph)
+                    from .docx_details_marker import insert_marker, marker_size
+
+                    size, marker_warning = marker_size(context.styled, summary)
+                    if size is not None:
+                        insert_marker(paragraph, size)
+                    elif marker_warning:
+                        warnings.append(marker_warning)
                     first_hidden = len(paragraph.runs)
                     add_text_with_links(paragraph, body)
                     for run in paragraph.runs[first_hidden:]:

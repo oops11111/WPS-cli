@@ -105,6 +105,20 @@ async function main() {
           pseudo.push(v);
         }
         if (pseudo.length) values['pseudo'] = pseudo;
+        if (element.tagName === 'SUMMARY') {
+          const marker = getComputedStyle(element, '::marker');
+          const range = document.createRange();
+          range.selectNodeContents(element);
+          const props = ['display', 'list-style-type', 'list-style-position', 'list-style-image',
+            'direction', 'writing-mode', 'text-indent', 'font-size', 'font-family', 'font-style', 'font-weight', 'color'];
+          const mprops = ['content', 'font-size', 'font-family', 'font-style', 'font-weight', 'color'];
+          values['summary-marker'] = {
+            style: Object.fromEntries(props.map(p => [p, style.getPropertyValue(p)])),
+            marker: Object.fromEntries(mprops.map(p => [p, marker.getPropertyValue(p)])),
+            box: { x: box.x, y: box.y, width: box.width, height: box.height },
+            textRects: Array.from(range.getClientRects()).map(r => ({ x: r.x, y: r.y, width: r.width, height: r.height })),
+          };
+        }
         result[element.getAttribute('data-wps-i')] = {
           tag: element.tagName.toLowerCase(),
           box: { x: box.left + window.scrollX, y: box.top + window.scrollY, width: box.width, height: box.height },

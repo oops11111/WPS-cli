@@ -1,0 +1,9 @@
+{
+  "scope": "First product metadata smoke command, after the independent browser preflight passed",
+  "initial_environment": "The smoke command omitted the established workspace TEMP/TMP overrides",
+  "observed_error": "browserType.launch: EPERM: operation not permitted, mkdtemp 'C:\\Users\\admin\\AppData\\Local\\Temp\\playwright-artifacts-XXXXXX'",
+  "observed_result": "Browser load fell back to cascade, metadata absent; eligibility correctly rejected marker insertion",
+  "correction": "Set TEMP and TMP to fidelity-details/.codex-test-temp, as used throughout existing WPS/browser evidence",
+  "corrected_result": "Actual browser metadata available; one managed marker and one real chart image, semantic gates pass",
+  "limit": "This is an environment-corrected browser smoke run, not a WPS retry or evidence of unsupported ::marker"
+}

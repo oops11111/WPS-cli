@@ -1,0 +1,24 @@
+[
+  true,
+  {
+    "input_path": "artifacts/closed-summary-marker-20261121/A-pdfsource-docx/input/pdf_source.html",
+    "output_path": "artifacts/closed-summary-marker-20261121/A-pdfsource-docx/browser.pdf",
+    "format": "pdf",
+    "bytes": 91083,
+    "sha256": "995460cfecf47e2f37515bdbc98f5e3f58505817f82ab084c6cf1400288ed9ef",
+    "backend": "playwright-edge",
+    "page_size": "A4",
+    "viewport": {
+      "width": 1280,
+      "height": 900
+    },
+    "javascript_enabled": false,
+    "network_access": false,
+    "websocket_blocked": true,
+    "resource_root": "artifacts/closed-summary-marker-20261121/A-pdfsource-docx/input",
+    "browser": "157.0.4341.60",
+    "page_title": "供应商评估报告",
+    "document_height": 900
+  },
+  []
+]
