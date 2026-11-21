@@ -1,0 +1,32 @@
+[
+  true,
+  {
+    "input_path": "artifacts/html-docx-wps-matrix-20261121/A-newsletter-docx/input/newsletter.html",
+    "output_path": "artifacts/html-docx-wps-matrix-20261121/A-newsletter-docx/converted.docx",
+    "bytes": 38566,
+    "sha256": "831dc6d35e541f7e15af1c6b5749483aa596b0af4b2c0d0ef11380cb4b12a902",
+    "backend": "python-docx-semantic-mapping",
+    "editable": true,
+    "mapped_objects": {
+      "paragraphs": 6,
+      "headings": 3,
+      "lists": 3,
+      "tables": 0,
+      "images": 1
+    },
+    "unsupported_css": [],
+    "warnings": [],
+    "fidelity": "editable",
+    "style_source": "browser",
+    "applied_styles": [
+      "border",
+      "character",
+      "paragraph"
+    ],
+    "source_encoding": "utf-8",
+    "javascript_executed": false,
+    "remote_resources_fetched": false,
+    "roundtrip_bookmarks": 0
+  },
+  []
+]

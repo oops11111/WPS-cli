@@ -1,0 +1,37 @@
+[
+  true,
+  {
+    "input_path": "artifacts/html-docx-wps-matrix-20261121/A-pdfsource-docx/input/pdf_source.html",
+    "output_path": "artifacts/html-docx-wps-matrix-20261121/A-pdfsource-docx/converted.docx",
+    "bytes": 39767,
+    "sha256": "db0dc42816e968bbeefd90c874370f1ddf8f8600193465a7966344436c93b477",
+    "backend": "python-docx-semantic-mapping",
+    "editable": true,
+    "mapped_objects": {
+      "paragraphs": 4,
+      "headings": 5,
+      "lists": 3,
+      "tables": 2,
+      "images": 0
+    },
+    "unsupported_css": [
+      "absolute positioning (kept only with --fidelity appearance)"
+    ],
+    "warnings": [],
+    "fidelity": "editable",
+    "style_source": "browser",
+    "applied_styles": [
+      "cell borders",
+      "character",
+      "column widths",
+      "page footer",
+      "page header",
+      "paragraph"
+    ],
+    "source_encoding": "utf-8",
+    "javascript_executed": false,
+    "remote_resources_fetched": false,
+    "roundtrip_bookmarks": 0
+  },
+  []
+]

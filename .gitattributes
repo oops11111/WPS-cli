@@ -1,0 +1,2 @@
+# Preserve the measured input snapshot bytes used by the evidence SHA-256 manifests.
+artifacts/html-docx-wps-matrix-20261121/**/input/** -text whitespace=cr-at-eol
