@@ -1,0 +1,256 @@
+{
+  "candidate_page_scores": [
+    0.9865,
+    0.9852,
+    0.9862,
+    0.9822,
+    0.9475,
+    0.9981
+  ],
+  "baseline_page_scores": [
+    0.9865,
+    0.9852,
+    0.9862,
+    0.9822,
+    0.9475,
+    0.9981
+  ],
+  "page_score_delta": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+  ],
+  "candidate_aggregate": 0.9809,
+  "baseline_aggregate": 0.9809,
+  "semantic_aspects": {
+    "text": 1.0,
+    "structure": 1.0,
+    "formatting": 1.0,
+    "animations": 1.0,
+    "data": 1.0
+  },
+  "report": {
+    "source": "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\html-pptx-inline-audit\\fixtures\\html_complex\\launch.html",
+    "target": "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\html-pptx-inline-audit\\artifacts\\html-pptx-inline-stage4-20261122\\launch-char-range-candidate.pptx",
+    "group": "A",
+    "thresholds": {
+      "text": 1.0,
+      "structure": 1.0,
+      "formatting": 1.0,
+      "animations": 1.0,
+      "data": 1.0,
+      "layout": 0.9
+    },
+    "aspects": {
+      "text": {
+        "score": 1.0,
+        "missing": []
+      },
+      "structure": {
+        "score": 1.0,
+        "differences": {}
+      },
+      "formatting": {
+        "score": 1.0,
+        "problems": []
+      },
+      "animations": {
+        "score": 1.0,
+        "missing": []
+      },
+      "data": {
+        "score": 1.0,
+        "missing": []
+      },
+      "layout": {
+        "images": [
+          "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\html-pptx-inline-audit\\artifacts\\html-pptx-inline-stage4-20261122\\candidate-static\\pages\\page-001-0.987.png",
+          "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\html-pptx-inline-audit\\artifacts\\html-pptx-inline-stage4-20261122\\candidate-static\\pages\\page-002-0.985.png",
+          "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\html-pptx-inline-audit\\artifacts\\html-pptx-inline-stage4-20261122\\candidate-static\\pages\\page-003-0.986.png",
+          "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\html-pptx-inline-audit\\artifacts\\html-pptx-inline-stage4-20261122\\candidate-static\\pages\\page-004-0.982.png",
+          "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\html-pptx-inline-audit\\artifacts\\html-pptx-inline-stage4-20261122\\candidate-static\\pages\\page-005-0.948.png",
+          "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\html-pptx-inline-audit\\artifacts\\html-pptx-inline-stage4-20261122\\candidate-static\\pages\\page-006-0.998.png"
+        ],
+        "legacy_images": [
+          "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\html-pptx-inline-audit\\artifacts\\html-pptx-inline-stage4-20261122\\candidate-static\\pages\\legacy\\page-001-0.881.png",
+          "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\html-pptx-inline-audit\\artifacts\\html-pptx-inline-stage4-20261122\\candidate-static\\pages\\legacy\\page-002-0.928.png",
+          "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\html-pptx-inline-audit\\artifacts\\html-pptx-inline-stage4-20261122\\candidate-static\\pages\\legacy\\page-003-0.931.png",
+          "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\html-pptx-inline-audit\\artifacts\\html-pptx-inline-stage4-20261122\\candidate-static\\pages\\legacy\\page-004-0.907.png",
+          "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\html-pptx-inline-audit\\artifacts\\html-pptx-inline-stage4-20261122\\candidate-static\\pages\\legacy\\page-005-0.878.png",
+          "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\html-pptx-inline-audit\\artifacts\\html-pptx-inline-stage4-20261122\\candidate-static\\pages\\legacy\\page-006-0.976.png"
+        ],
+        "status": "measured",
+        "renderer": "wps",
+        "score": 0.9809,
+        "pages": {
+          "source": 6,
+          "target": 6
+        },
+        "page_scores": [
+          0.9865,
+          0.9852,
+          0.9862,
+          0.9822,
+          0.9475,
+          0.9981
+        ],
+        "canvas_mode": "browser-native-1280x720-slide-viewport",
+        "source_canvas_px": [
+          1280,
+          720
+        ],
+        "source_capture": {
+          "status": "measured",
+          "canvas": [
+            1280,
+            720
+          ],
+          "normalization": "section is slide; hide other slides; translate current section top-left to origin; no reflow",
+          "original": [
+            {
+              "top": 21.4375,
+              "left": 8,
+              "width": 1264,
+              "height": 84.4375,
+              "transform": "none",
+              "position": "static",
+              "visibility": "",
+              "visibilityPriority": "",
+              "inlineTransform": "",
+              "transformPriority": ""
+            },
+            {
+              "top": 125.78125,
+              "left": 8,
+              "width": 1264,
+              "height": 150.90625,
+              "transform": "none",
+              "position": "static",
+              "visibility": "",
+              "visibilityPriority": "",
+              "inlineTransform": "",
+              "transformPriority": ""
+            },
+            {
+              "top": 296.59375,
+              "left": 8,
+              "width": 1264,
+              "height": 127.90625,
+              "transform": "none",
+              "position": "static",
+              "visibility": "",
+              "visibilityPriority": "",
+              "inlineTransform": "",
+              "transformPriority": ""
+            },
+            {
+              "top": 444.40625,
+              "left": 8,
+              "width": 1264,
+              "height": 251.90625,
+              "transform": "none",
+              "position": "static",
+              "visibility": "",
+              "visibilityPriority": "",
+              "inlineTransform": "",
+              "transformPriority": ""
+            },
+            {
+              "top": 716.21875,
+              "left": 8,
+              "width": 1264,
+              "height": 329.34375,
+              "transform": "none",
+              "position": "static",
+              "visibility": "",
+              "visibilityPriority": "",
+              "inlineTransform": "",
+              "transformPriority": ""
+            },
+            {
+              "top": 1065.46875,
+              "left": 8,
+              "width": 1264,
+              "height": 71.90625,
+              "transform": "none",
+              "position": "static",
+              "visibility": "",
+              "visibilityPriority": "",
+              "inlineTransform": "",
+              "transformPriority": ""
+            }
+          ],
+          "proofs": [
+            {
+              "left": 0,
+              "top": 0,
+              "width": 1264,
+              "height": 84.4375,
+              "leaking": false
+            },
+            {
+              "left": 0,
+              "top": 0,
+              "width": 1264,
+              "height": 150.90625,
+              "leaking": false
+            },
+            {
+              "left": 0,
+              "top": 0,
+              "width": 1264,
+              "height": 127.90625,
+              "leaking": false
+            },
+            {
+              "left": 0,
+              "top": 0,
+              "width": 1264,
+              "height": 251.90625,
+              "leaking": false
+            },
+            {
+              "left": 0,
+              "top": 0,
+              "width": 1264,
+              "height": 329.34375,
+              "leaking": false
+            },
+            {
+              "left": 0,
+              "top": 0,
+              "width": 1264,
+              "height": 71.90625,
+              "leaking": false
+            }
+          ],
+          "browser": "158.0.4370.33"
+        },
+        "legacy_score": 0.9168,
+        "legacy_page_scores": [
+          0.8809,
+          0.9283,
+          0.9311,
+          0.9073,
+          0.8777,
+          0.9757
+        ],
+        "missing_fonts": [
+          "Noto Sans CJK SC"
+        ]
+      }
+    },
+    "verdict": {
+      "text": true,
+      "structure": true,
+      "formatting": true,
+      "animations": true,
+      "data": true,
+      "layout": true
+    },
+    "passed": true
+  }
+}

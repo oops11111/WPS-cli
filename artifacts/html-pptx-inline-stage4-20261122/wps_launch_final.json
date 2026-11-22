@@ -1,0 +1,16 @@
+[
+  {
+    "name": "end14-control",
+    "path": "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\html-pptx-inline-audit\\.tmp\\html-pptx-stage4-wps\\end14-control.pptx",
+    "pid": 8256,
+    "sha256": "4c7770623e5f5234e5d7bfa7478cab97cf2eb087589d6d65bce3fad476287613",
+    "started_utc": "2026-11-22T05:53:04.5373490Z"
+  },
+  {
+    "name": "end15-candidate",
+    "path": "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\html-pptx-inline-audit\\.tmp\\html-pptx-stage4-wps\\end15-candidate.pptx",
+    "pid": 13292,
+    "sha256": "68eb0547a496da8c65005ddd4efd0cf89f5cd081a56f3135fe0472c45be49079",
+    "started_utc": "2026-11-22T05:53:07.6064824Z"
+  }
+]

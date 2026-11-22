@@ -1,0 +1,51 @@
+﻿{
+    "generated_at_utc":  "2026-11-22T05:51:11.7555590Z",
+    "records":  [
+                    {
+                        "deck":  "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\html-pptx-inline-audit\\.tmp\\html-pptx-stage4-wps\\baseline.pptx",
+                        "rot_matches":  1,
+                        "slide5_effects":  [
+                                               {
+                                                   "order":  1,
+                                                   "effect_type":  10,
+                                                   "shape_name":  "TextBox 4",
+                                                   "shape_text":  "10 月 24 日 全渠道开售",
+                                                   "text_range_start":  0,
+                                                   "text_range_length":  0,
+                                                   "paragraph":  0,
+                                                   "trigger_type":  2,
+                                                   "delay_seconds":  0.5,
+                                                   "duration_seconds":  1.2000000476837158
+                                               }
+                                           ],
+                        "errors":  [
+
+                                   ],
+                        "slide_count":  6,
+                        "slide5_effect_count":  1
+                    },
+                    {
+                        "deck":  "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\html-pptx-inline-audit\\.tmp\\html-pptx-stage4-wps\\candidate.pptx",
+                        "rot_matches":  1,
+                        "slide5_effects":  [
+                                               {
+                                                   "order":  1,
+                                                   "effect_type":  10,
+                                                   "shape_name":  "TextBox 4",
+                                                   "shape_text":  "10 月 24 日 全渠道开售",
+                                                   "text_range_start":  10,
+                                                   "text_range_length":  15,
+                                                   "paragraph":  0,
+                                                   "trigger_type":  2,
+                                                   "delay_seconds":  0.5,
+                                                   "duration_seconds":  1.2000000476837158
+                                               }
+                                           ],
+                        "errors":  [
+
+                                   ],
+                        "slide_count":  6,
+                        "slide5_effect_count":  1
+                    }
+                ]
+}

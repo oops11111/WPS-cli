@@ -1,0 +1,16 @@
+[
+  {
+    "pid": 26500,
+    "name": "baseline",
+    "sha256": "91644f6b96f94388c836845dae5e8426c62acb61750d05c5990f9e98dadb2890",
+    "path": "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\html-pptx-inline-audit\\.tmp\\html-pptx-stage4-wps\\baseline.pptx",
+    "started_utc": "2026-11-22T05:50:38.4804469Z"
+  },
+  {
+    "pid": 72688,
+    "name": "candidate",
+    "sha256": "26622f8cc7c5cefb1822cc69cb4bea8b2bb3b4920b77ceb0c92112ee78f944cb",
+    "path": "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\html-pptx-inline-audit\\.tmp\\html-pptx-stage4-wps\\candidate.pptx",
+    "started_utc": "2026-11-22T05:50:41.5457718Z"
+  }
+]
