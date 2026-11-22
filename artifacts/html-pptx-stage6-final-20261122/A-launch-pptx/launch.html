@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><title>新品发布会</title>
+<style>
+  @keyframes fly-in { from { transform: translateX(-100%); opacity: 0; } to { transform: none; opacity: 1; } }
+  @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+  .slide { transition: opacity 0.6s ease-in-out; }
+  .fly { animation: fly-in 0.8s ease-out both; }
+  .fade { animation: fade 1.2s 0.5s both; }
+  .zoom:hover { transform: scale(1.2); }
+</style></head>
+<body>
+<section class="slide" data-transition="fade">
+  <h1 class="fly">星河 X1 新品发布会</h1>
+  <p class="fade">2026 年 10 月 · 上海</p>
+</section>
+<section class="slide" data-transition="push">
+  <h2>为什么是 X1</h2>
+  <ul>
+    <li class="fly" style="animation-delay:0.2s">续航提升 <b>40%</b></li>
+    <li class="fly" style="animation-delay:0.4s">重量仅 <em>1.1 kg</em></li>
+    <li class="fly" style="animation-delay:0.6s">支持 Wi-Fi 7</li>
+  </ul>
+  <aside class="notes">演讲者备注：这里停顿，等掌声。</aside>
+</section>
+<section class="slide">
+  <h2>规格对比</h2>
+  <table>
+    <tr><th>项目</th><th>X1</th><th>上一代</th></tr>
+    <tr><td>续航</td><td>14 小时</td><td>10 小时</td></tr>
+    <tr><td>重量</td><td>1.1 kg</td><td>1.4 kg</td></tr>
+  </table>
+</section>
+<section class="slide">
+  <h2>销量预测</h2>
+  <img class="zoom" src="chart.png" alt="销量预测图">
+  <svg width="100" height="40"><text x="0" y="20">SVG 文本</text></svg>
+  <p>首年目标 <strong>50 万台</strong></p>
+</section>
+<section class="slide">
+  <h2>价格与上市</h2>
+  <h3>标准版 ¥6,999</h3>
+  <h3>Pro 版 ¥8,999</h3>
+  <p>10 月 24 日 <span class="fade">全渠道开售</span></p>
+  <video src="teaser.mp4" controls></video>
+</section>
+<section class="slide"><h2>谢谢</h2><p>Q &amp; A</p></section>
+<script>setInterval(function(){}, 1000);</script>
+</body>
+</html>
