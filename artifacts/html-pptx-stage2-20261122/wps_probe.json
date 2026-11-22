@@ -1,0 +1,27 @@
+{
+  "stage": "2",
+  "host": "Windows",
+  "application": "WPS Presentation",
+  "executable": "C:\\Program Files (x86)\\Kingsoft\\WPS Office\\12.8.2.18913\\office6\\wpp.exe",
+  "file_version": "12.8.2.18913",
+  "executable_sha256": "a2ea30ba8ac955566d3b7e5bf8144265e0dc348feee8b333ab942ecc1420e4c0",
+  "probe_sequence": [
+    {
+      "api": "@oai/sky.list_apps",
+      "result": "success; app inventory did not show a running WPS Presentation window"
+    },
+    {
+      "api": "@oai/sky.launch_app",
+      "argument": "existing wpp.exe path above",
+      "result": "no return for approximately 1409 seconds; active turn was interrupted; no success or error payload obtained"
+    },
+    {
+      "api": "PowerShell Get-Process wpp -ErrorAction SilentlyContinue",
+      "result": "NO_WPP_PROCESS"
+    }
+  ],
+  "com_probe": "not attempted",
+  "opened_decks": 0,
+  "new_playback_screenshots": 0,
+  "conclusion": "WPS acceptance and visual playback unverified; animation acceptance STOP"
+}
