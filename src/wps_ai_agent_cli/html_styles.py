@@ -11,6 +11,7 @@ colours and booleans for the converters.
 
 from __future__ import annotations
 
+import base64
 import json
 import os
 import re
@@ -521,6 +522,9 @@ class StyledDocument:
     print_context: dict[str, Any] = field(default_factory=dict)
     slide_screenshots: list[str] = field(default_factory=list)
     slide_capture: dict[str, Any] = field(default_factory=dict)
+    # Per-<svg> assets from the browser, {id(node): {"svg": bytes, "png": bytes, "has_foreign_object": bool}}:
+    # the SVG markup with computed styles inlined, and a 2x transparent screenshot as the raster fallback.
+    svg_assets: dict[int, dict[str, Any]] = field(default_factory=dict)
 
     def style(self, node: _Node) -> dict[str, str]:
         return self.styles.get(id(node), DEFAULT_STYLE)
@@ -611,6 +615,7 @@ def _browser_layout(
     viewport: tuple[int, int],
     shots_dir: Path | None,
     slide_shots_dir: Path | None = None,
+    svg_assets: bool = False,
 ) -> dict[str, Any]:
     request = {
         "input_path": str(annotated),
@@ -621,6 +626,7 @@ def _browser_layout(
         "timeout_seconds": 60,
         "section_screenshots_dir": str(shots_dir) if shots_dir else None,
         "slide_screenshots_dir": str(slide_shots_dir) if slide_shots_dir else None,
+        "svg_assets": svg_assets,
     }
     completed = subprocess.run(
         [node, str(_LAYOUT_SCRIPT)],
@@ -644,6 +650,7 @@ def load(
     viewport: tuple[int, int] = (1280, 720),
     screenshots_dir: Path | None = None,
     slide_screenshots_dir: Path | None = None,
+    svg_assets: bool = False,
 ) -> StyledDocument:
     """Parse the HTML at source and compute each element's style, with the browser when it is available."""
     path = Path(source)
@@ -672,7 +679,8 @@ def load(
             with handle:
                 handle.write(marked)
             reply = _browser_layout(
-                Path(handle.name), path.parent, node_bin, browser, viewport, screenshots_dir, slide_screenshots_dir
+                Path(handle.name), path.parent, node_bin, browser, viewport, screenshots_dir, slide_screenshots_dir,
+                svg_assets=svg_assets and any(n.tag == "svg" for n in _walk(parser.root)),
             )
         finally:
             Path(handle.name).unlink(missing_ok=True)
@@ -689,6 +697,15 @@ def load(
                         pseudo[id(node)] = decorations
                     styles[id(node)] = entry["style"]
                     boxes[id(node)] = entry["box"]
+            assets: dict[int, dict[str, Any]] = {}
+            for key, asset in (reply.get("svg_assets") or {}).items():
+                node = nodes.get(key)
+                if node is not None:
+                    assets[id(node)] = {
+                        "svg": asset["svg"].encode("utf-8"),
+                        "png": base64.b64decode(asset["png_base64"]),
+                        "has_foreign_object": bool(asset.get("has_foreign_object")),
+                    }
             # Elements the browser does not report (the parser's document root) inherit the defaults.
             return StyledDocument(
                 path,
@@ -707,6 +724,7 @@ def load(
                 reply.get("print_context") or {},
                 list(reply.get("slide_screenshots") or []),
                 reply.get("slide_capture") or {},
+                assets,
             )
         warnings.append(
             f"The browser could not lay the page out ({reply.get('message', 'no reply')}); used the cascade."

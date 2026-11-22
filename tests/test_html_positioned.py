@@ -5,10 +5,12 @@ These need Node.js, Playwright and Edge or Chromium (WPS_AGENT_EDGE); they are s
 
 from __future__ import annotations
 
+import io
 import os
 import shutil
 import tempfile
 import unittest
+import zipfile
 from pathlib import Path
 from unittest import mock
 
@@ -121,6 +123,50 @@ class PositionedTests(unittest.TestCase):
             self.assertTrue(ok, errors)
             self.assertEqual(data["slides"], 2)
             self.assertTrue(any("every slide" in warning for warning in data["warnings"]), data["warnings"])
+
+    def test_svg_becomes_a_picture_in_appearance_mode(self):
+        # A plain SVG becomes a native vector picture (svgBlip + raster fallback, with the computed
+        # fill inlined); one whose labels are HTML (foreignObject) becomes the raster fallback alone,
+        # because no Office SVG renderer supports foreignObject.
+        html = (
+            "<!doctype html><html><head><style>"
+            "body{background:#111111}"
+            ".slide{background:#1A1A2E;color:#FFFFFF;min-height:300px}"
+            ".node{fill:#FF0000;stroke:#00FF00;stroke-width:2}"
+            "</style></head><body>"
+            '<section class="slide"><h1>Diagrams</h1>'
+            '<svg viewBox="0 0 100 50" width="100" height="50">'
+            '<rect class="node" x="5" y="5" width="90" height="40"/></svg>'
+            '<svg viewBox="0 0 100 50" width="100" height="50">'
+            '<foreignObject x="5" y="5" width="90" height="40">'
+            '<div xmlns="http://www.w3.org/1999/xhtml">Label</div></foreignObject>'
+            '<rect x="5" y="5" width="90" height="40" fill="none" stroke="#FFFFFF"/></svg>'
+            "</section></body></html>"
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            source = Path(tmp) / "deck.html"
+            source.write_text(html, encoding="utf-8")
+            ok, data, errors = convert_html_to_office(source, Path(tmp) / "deck.pptx", "pptx", fidelity="appearance")
+            self.assertTrue(ok, errors)
+            self.assertEqual(data["slides"], 1)
+            self.assertEqual(data["mapped_objects"].get("svg"), 2)
+            self.assertFalse(any("<svg>" in warning for warning in data["warnings"]), data["warnings"])
+            with zipfile.ZipFile(Path(tmp) / "deck.pptx") as archive:
+                svg_parts = [name for name in archive.namelist() if name.endswith(".svg")]
+                self.assertEqual(len(svg_parts), 1)  # only the plain SVG is kept as vector
+                self.assertIn(b"rgb(255, 0, 0)", archive.read(svg_parts[0]))  # the class fill, inlined
+                xml = archive.read("ppt/slides/slide1.xml").decode()
+                self.assertEqual(xml.count("svgBlip"), 1)
+                self.assertEqual(xml.count("<p:pic>"), 2)
+            presentation = Presentation(Path(tmp) / "deck.pptx")
+            pictures = [s for s in presentation.slides[0].shapes if s.shape_type == 13]
+            self.assertEqual(len(pictures), 2)
+            from PIL import Image
+
+            fallback = next(p for p in pictures if "svgBlip" not in p._element.xml)
+            image = Image.open(io.BytesIO(fallback.image.blob))
+            self.assertEqual(image.mode, "RGBA")
+            self.assertEqual(image.getpixel((0, 0))[3], 0)  # transparent, not the section's background
 
 
 class WithoutBrowserTests(unittest.TestCase):

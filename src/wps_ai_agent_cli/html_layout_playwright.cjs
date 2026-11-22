@@ -28,6 +28,13 @@ const PSEUDO_PROPERTIES = [
   'content', 'position', 'top', 'right', 'bottom', 'left', 'width', 'height', 'background-color', 'background-image',
   'border-top-left-radius', 'opacity', 'display',
 ];
+// What an SVG picture needs to render on its own: paint and text styles live in the SVG's <style> block or the
+// page's CSS, which an Office SVG renderer does not apply, so the computed values are inlined instead.
+const SVG_INLINE_PROPERTIES = [
+  'fill', 'fill-opacity', 'fill-rule', 'stroke', 'stroke-width', 'stroke-linecap', 'stroke-linejoin',
+  'stroke-dasharray', 'stroke-dashoffset', 'stroke-opacity', 'opacity', 'font-family', 'font-size', 'font-weight',
+  'font-style', 'text-anchor', 'dominant-baseline', 'letter-spacing',
+];
 // A slide is a <section> or an element with the class "slide", not inside another one (html_slides.collect_slides).
 const SLIDE_SELECTOR = 'section, .slide';
 
@@ -81,8 +88,7 @@ async function main() {
       javaScriptEnabled: false,
       acceptDownloads: false,
     });
-    const page = await context.newPage();
-    await page.route('**/*', async route => {
+    const guardRoute = async route => {
       const url = route.request().url();
       if (url.startsWith('data:') || url.startsWith('about:')) return route.continue();
       if (!url.startsWith('file:')) return route.abort('blockedbyclient');
@@ -93,7 +99,9 @@ async function main() {
         return route.abort('blockedbyclient');
       }
       return route.continue();
-    });
+    };
+    const page = await context.newPage();
+    await page.route('**/*', guardRoute);
     await page.goto(pathToFileURL(mainFile).href, { waitUntil: 'load', timeout: request.timeout_seconds * 1000 });
     await page.evaluate(() => document.fonts.ready);
     const elements = await page.evaluate(([properties, pseudoProperties]) => {
@@ -305,9 +313,61 @@ async function main() {
         }
       }
     }
+    const svgAssets = {};
+    if (request.svg_assets && (await page.$$('svg[data-wps-i]')).length) {
+      // A second page at 2x, so the raster fallback stays sharp when the renderer falls back to it; the main
+      // page is left alone (its section screenshots keep their backgrounds, the SVG page nulls them for a
+      // transparent fallback, and the inlining below mutates the SVG's own styles).
+      const assetContext = await browser.newContext({
+        viewport: { width: request.viewport_width, height: request.viewport_height },
+        deviceScaleFactor: 2,
+        javaScriptEnabled: false,
+        acceptDownloads: false,
+      });
+      const assetPage = await assetContext.newPage();
+      await assetPage.route('**/*', guardRoute);
+      await assetPage.goto(pathToFileURL(mainFile).href, { waitUntil: 'load', timeout: request.timeout_seconds * 1000 });
+      await assetPage.evaluate(() => document.fonts.ready);
+      // The deck can be wider than the viewport (fixed-size slides): an element screenshot of an
+      // off-viewport element scrolls the page, and the next element's screenshot then captures the wrong
+      // region. Make the viewport as wide as the document so nothing scrolls horizontally.
+      const docWidth = await assetPage.evaluate(
+        () => Math.max(document.documentElement.scrollWidth, document.body ? document.body.scrollWidth : 0),
+      );
+      await assetPage.setViewportSize({
+        width: Math.min(Math.max(docWidth, request.viewport_width), 4096),
+        height: request.viewport_height,
+      });
+      for (const element of await assetPage.$$('svg[data-wps-i]')) {
+        const index = await element.getAttribute('data-wps-i');
+        const asset = await element.evaluate((node, props) => {
+          const walk = (el) => {
+            const cs = getComputedStyle(el);
+            for (const name of props) {
+              const value = cs.getPropertyValue(name);
+              if (value) el.style.setProperty(name, value);
+            }
+            for (const child of el.children) walk(child);
+          };
+          walk(node);
+          let ancestor = node.parentElement;
+          while (ancestor) {
+            ancestor.style.backgroundColor = 'transparent';
+            ancestor.style.backgroundImage = 'none';
+            ancestor = ancestor.parentElement;
+          }
+          document.documentElement.style.background = 'transparent';
+          if (document.body) document.body.style.background = 'transparent';
+          return { markup: node.outerHTML, hasForeignObject: node.querySelector('foreignObject') !== null };
+        }, SVG_INLINE_PROPERTIES);
+        const shot = await element.screenshot({ omitBackground: true, animations: 'disabled' });
+        svgAssets[index] = { svg: asset.markup, png_base64: shot.toString('base64'), has_foreign_object: asset.hasForeignObject };
+      }
+      await assetContext.close();
+    }
     process.stdout.write(JSON.stringify({ ok: true, browser: await browser.version(), elements,
       section_screenshots: shots, slide_screenshots: slideShots, slide_capture: slideCapture,
-      print_context: printContext }));
+      print_context: printContext, svg_assets: svgAssets }));
   } finally {
     await browser.close();
   }

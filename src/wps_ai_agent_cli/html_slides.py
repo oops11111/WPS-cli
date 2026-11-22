@@ -12,7 +12,10 @@ CSS animations become entrance effects. An element whose class (or style attribu
 that side, keyframes that scale it zoom in, anything else fades in. Every effect starts with the slide, after
 its CSS animation-delay, as the browser would play it. A slide's transition comes from data-transition (fade,
 push, wipe, cover, split, dissolve, zoom, cut) or, without one, from a CSS `transition` on the section (fade).
-What cannot be represented (hover effects, SVG, scripts, unavailable media) is reported in the warnings.
+What cannot be represented (hover effects, scripts, unavailable media, and SVG outside appearance mode) is
+reported in the warnings. In appearance mode an <svg> becomes a picture where the browser put it: a native SVG
+picture where the element is plain SVG, the raster fallback where its labels are HTML (foreignObject), which no
+Office SVG renderer supports.
 """
 
 from __future__ import annotations
@@ -36,6 +39,7 @@ from .html_editable import (
     validate_office_paths,
 )
 from .html_text import decode_html_bytes
+from .svg_picture import add_svg_picture, svg_fallback_bytes
 
 MAX_SLIDES = 200
 _TEXT_BLOCKS = {"p", "li", "h3", "h4", "h5", "h6", "blockquote", "pre", "dt", "dd", "figcaption"}
@@ -333,6 +337,8 @@ def collect_slides(root: _Node, styled=None) -> list[_Slide]:
                 slides[-1].tables.append(child)
             elif tag == "img":
                 slides[-1].images.append(child)
+            elif tag == "svg":
+                slides[-1].media.append(child)
             elif tag in _MEDIA:
                 slides[-1].media.append(child)
             elif tag in {"ul", "ol"}:
@@ -345,7 +351,7 @@ def collect_slides(root: _Node, styled=None) -> list[_Slide]:
                         for sub in nested:
                             visit(_Node("div", children=[sub]), level + 1)
             elif tag in _TEXT_BLOCKS:
-                inner = [n for n in _walk(child) if n is not child and n.tag in {"img", "table"} | set(_MEDIA)]
+                inner = [n for n in _walk(child) if n is not child and n.tag in {"img", "table", "svg"} | set(_MEDIA)]
                 if _normalise(_text(child)):
                     slides[-1].lines.append(_Line(child, level, heading=tag in {"h3", "h4", "h5", "h6"}))
                 for item in inner:
@@ -773,7 +779,7 @@ def _positioned_slide(slide, data: _Slide, styled, css: _Css, source: Path, appe
         for decoration in styled.pseudo_elements(data.section):
             _draw_decoration(slide, place, data.section, styled, decoration, factor, counts)
         for node in _walk(data.section):
-            if node is data.section or id(node) in in_tables or node.tag in {"br", "img", *(_MEDIA)}:
+            if node is data.section or id(node) in in_tables or node.tag in {"br", "img", "svg", *(_MEDIA)}:
                 continue
             spot = place(node)
             box = styled.box(node)
@@ -891,6 +897,24 @@ def _positioned_slide(slide, data: _Slide, styled, css: _Css, source: Path, appe
         if animation:
             effects.append((picture.shape_id, None, animation, "picture"))
     for node in data.media:
+        if node.tag == "svg":
+            # A native SVG picture where the element is plain SVG; the raster fallback where its labels
+            # are HTML (foreignObject), which no Office SVG renderer supports.
+            asset = styled.svg_assets.get(id(node))
+            spot = place(node)
+            if asset is None or spot is None:
+                warnings.append("<svg> could not be converted: no browser layout was available for it.")
+                continue
+            fallback = svg_fallback_bytes(asset["png"])
+            if asset["has_foreign_object"]:
+                picture = slide.shapes.add_picture(fallback, *spot)
+            else:
+                picture = add_svg_picture(slide, asset["svg"], fallback, *spot)
+            counts["svg"] = counts.get("svg", 0) + 1
+            animation = _animation_of(node, css)
+            if animation:
+                effects.append((picture.shape_id, None, animation, "picture"))
+            continue
         path, mime = _media_source(source, node, warnings)
         spot = place(node)
         if path is None or spot is None:
@@ -1186,7 +1210,7 @@ def convert_html_to_pptx(
     from .html_styles import load as load_styles
 
     html, _encoding, decode_warning = decode_html_bytes(source.read_bytes())
-    styled = load_styles(source, use_browser=use_browser, viewport=(1280, 720))
+    styled = load_styles(source, use_browser=use_browser, viewport=(1280, 720), svg_assets=True)
     parser = styled.parser
     css = parse_css(html)
     slides = collect_slides(styled.root, styled)
@@ -1223,7 +1247,9 @@ def convert_html_to_pptx(
         slides = slides[:MAX_SLIDES]
     if parser.warnings:
         warnings += sorted(parser.warnings)
-    for tag in sorted(parser.unsupported_elements):
+    # <svg> is handled per element below (converted in positioned slides, reported when an editable
+    # slide omits one), not by this blanket warning.
+    for tag in sorted(parser.unsupported_elements - {"svg"}):
         warnings.append(f"<{tag}> elements cannot be converted and were omitted.")
     if css.hover:
         warnings.append("Hover effects (:hover, :focus) cannot be represented in a presentation and were omitted.")
@@ -1240,6 +1266,7 @@ def convert_html_to_pptx(
     width, height = presentation.slide_width, presentation.slide_height
     margin = Inches(0.5)
     counts = {"tables": 0, "images": 0, "media": 0, "notes": 0, "animations": 0, "transitions": 0}
+    svg_omitted = 0
     partial_animations = 0
     unknown_transitions: set[str] = set()
     by_index = {n.attrs.get("data-wps-i"): n for n in _walk(styled.root) if n.attrs.get("data-wps-i")}
@@ -1342,6 +1369,9 @@ def convert_html_to_pptx(
                 if animation:
                     effects.append((picture.shape_id, None, animation, "picture"))
             else:
+                if node.tag == "svg":
+                    svg_omitted += 1
+                    continue
                 path, mime = _media_source(source, node, warnings)
                 if path is None:
                     continue
@@ -1350,6 +1380,8 @@ def convert_html_to_pptx(
                 del movie
             position += slot
         _finish_slide(slide, data, effects, css, counts, unknown_transitions)
+    if svg_omitted:
+        warnings.append(f"{svg_omitted} <svg> element(s) were omitted: SVG needs appearance mode with a browser.")
     partial_animations += counts.pop("partial_animations", 0)
     if partial_animations:
         warnings.append(

@@ -173,6 +173,11 @@ class _TreeParser(HTMLParser):
             if tag in _SKIP:
                 self.suppressed += 1
             return
+        if tag == "svg":
+            # The SVG subtree stays opaque (its children are suppressed below), but the
+            # element itself is kept as a leaf: the slide converter places it as a picture.
+            node = _Node(tag, {key.lower(): value or "" for key, value in attrs})
+            self.stack[-1].children.append(node)
         if tag in _SKIP:
             self.suppressed = 1
             return
