@@ -1,0 +1,13 @@
+{
+  "case": "training",
+  "method": "Start-Process wpp.exe with a disposable copy path argument",
+  "started_utc": "2026-11-22T03:40:58Z",
+  "wpp_pid": 72356,
+  "source_pptx_sha256": "77f74d284f75daf3465c56848492d84f29f81d3081bc5df158283954e9af5ccb",
+  "copy_sha256_before_launch": "not recorded",
+  "copy_sha256_after_close": "not recorded; original source PPTX SHA-256 rechecked after process close",
+  "first_probe_error": "Get-FileHash on the open disposable copy: The process cannot access the file because it is being used by another process.",
+  "subsequent_window": "wps-fallback-training.pptx - WPS 演示",
+  "subsequent_rot_full_name": "disposable training copy, recorded in direct_launch_com_diagnostic.json",
+  "process_closed_after_probe": true
+}

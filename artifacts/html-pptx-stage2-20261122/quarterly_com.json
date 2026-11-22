@@ -1,0 +1,50 @@
+﻿{
+    "generated_at":  "2026-11-22T03:58:56.2982522Z",
+    "deck":  "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\html-pptx-animation\\artifacts\\html-pptx-stage2-20261122\\wps-fallback-quarterly.pptx",
+    "rot_matches":  1,
+    "presentation":  {
+                         "name":  "wps-fallback-quarterly.pptx",
+                         "full_name":  "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\html-pptx-animation\\artifacts\\html-pptx-stage2-20261122\\wps-fallback-quarterly.pptx",
+                         "slide_count":  3,
+                         "slideshow_window_count":  0,
+                         "slides":  [
+                                        {
+                                            "number":  1,
+                                            "effect_count":  0,
+                                            "effects":  [
+
+                                                        ],
+                                            "transition_entry_effect":  3849,
+                                            "notes_shape_count":  2
+                                        },
+                                        {
+                                            "number":  2,
+                                            "effect_count":  1,
+                                            "effects":  [
+                                                            {
+                                                                "order":  1,
+                                                                "effect_type":  48,
+                                                                "shape_name":  "Table 2",
+                                                                "trigger_type":  2,
+                                                                "trigger_delay_seconds":  0.20000000298023224,
+                                                                "duration_seconds":  0.800000011920929
+                                                            }
+                                                        ],
+                                            "transition_entry_effect":  1281,
+                                            "notes_shape_count":  3
+                                        },
+                                        {
+                                            "number":  3,
+                                            "effect_count":  0,
+                                            "effects":  [
+
+                                                        ],
+                                            "transition_entry_effect":  3585,
+                                            "notes_shape_count":  2
+                                        }
+                                    ]
+                     },
+    "errors":  [
+
+               ]
+}

@@ -1,0 +1,16 @@
+[
+  {
+    "pid": 47756,
+    "copy_sha256": "2c59eba293fb6f8264bcebad69b0ad37f37b6bff907e0dc841a1b68e467bfdcf",
+    "started_utc": "2026-11-22T03:58:15.3455454Z",
+    "case": "launch",
+    "source_sha256": "2c59eba293fb6f8264bcebad69b0ad37f37b6bff907e0dc841a1b68e467bfdcf"
+  },
+  {
+    "pid": 59832,
+    "copy_sha256": "8a0fb90e510d7c3afd13e7a8f5e18dcca7cb82801b317a5815ed2a7aca793cf7",
+    "started_utc": "2026-11-22T03:58:18.4158162Z",
+    "case": "quarterly",
+    "source_sha256": "8a0fb90e510d7c3afd13e7a8f5e18dcca7cb82801b317a5815ed2a7aca793cf7"
+  }
+]

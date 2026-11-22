@@ -1,0 +1,88 @@
+﻿{
+    "generated_at":  "2026-11-22T03:54:48.7951631Z",
+    "deck":  "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\html-pptx-animation\\artifacts\\html-pptx-stage2-20261122\\wps-fallback-training.pptx",
+    "rot_matches":  1,
+    "presentation":  {
+                         "name":  "wps-fallback-training.pptx",
+                         "full_name":  "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\html-pptx-animation\\artifacts\\html-pptx-stage2-20261122\\wps-fallback-training.pptx",
+                         "slide_count":  3,
+                         "slideshow_window_count":  0,
+                         "slides":  [
+                                        {
+                                            "number":  1,
+                                            "effect_count":  1,
+                                            "effects":  [
+                                                            {
+                                                                "order":  1,
+                                                                "effect_type":  2,
+                                                                "shape_name":  "Title 1",
+                                                                "trigger_type":  2,
+                                                                "trigger_delay_seconds":  0,
+                                                                "duration_seconds":  0.60000002384185791
+                                                            }
+                                                        ],
+                                            "transition_entry_effect":  3849,
+                                            "notes_shape_count":  2
+                                        },
+                                        {
+                                            "number":  2,
+                                            "effect_count":  3,
+                                            "effects":  [
+                                                            {
+                                                                "order":  1,
+                                                                "effect_type":  2,
+                                                                "shape_name":  "TextBox 2",
+                                                                "trigger_type":  2,
+                                                                "trigger_delay_seconds":  0,
+                                                                "duration_seconds":  0.60000002384185791
+                                                            },
+                                                            {
+                                                                "order":  2,
+                                                                "effect_type":  2,
+                                                                "shape_name":  "TextBox 2",
+                                                                "trigger_type":  1,
+                                                                "trigger_delay_seconds":  0,
+                                                                "duration_seconds":  0.60000002384185791
+                                                            },
+                                                            {
+                                                                "order":  3,
+                                                                "effect_type":  2,
+                                                                "shape_name":  "TextBox 2",
+                                                                "trigger_type":  2,
+                                                                "trigger_delay_seconds":  0.60000002384185791,
+                                                                "duration_seconds":  0.60000002384185791
+                                                            }
+                                                        ],
+                                            "transition_entry_effect":  3855,
+                                            "notes_shape_count":  2
+                                        },
+                                        {
+                                            "number":  3,
+                                            "effect_count":  2,
+                                            "effects":  [
+                                                            {
+                                                                "order":  1,
+                                                                "effect_type":  59,
+                                                                "shape_name":  "TextBox 3",
+                                                                "trigger_type":  2,
+                                                                "trigger_delay_seconds":  0,
+                                                                "duration_seconds":  1
+                                                            },
+                                                            {
+                                                                "order":  2,
+                                                                "effect_type":  10,
+                                                                "shape_name":  "TextBox 4",
+                                                                "trigger_type":  2,
+                                                                "trigger_delay_seconds":  0.5,
+                                                                "duration_seconds":  0.5
+                                                            }
+                                                        ],
+                                            "transition_entry_effect":  2817,
+                                            "notes_shape_count":  3
+                                        }
+                                    ]
+                     },
+    "errors":  [
+
+               ]
+}

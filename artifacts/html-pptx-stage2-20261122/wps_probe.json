@@ -20,8 +20,15 @@
       "result": "NO_WPP_PROCESS"
     }
   ],
-  "com_probe": "not attempted",
-  "opened_decks": 0,
-  "new_playback_screenshots": 0,
-  "conclusion": "WPS acceptance and visual playback unverified; animation acceptance STOP"
+  "initial_com_probe": "not attempted on the sky path",
+  "fallback": {
+    "direct_launch": "succeeded on disposable training, launch and quarterly copies",
+    "training_wpp_pid": 72356,
+    "rot_and_com": "three unique document monikers; WPS effect, trigger, delay, duration and transition properties readable",
+    "training_slideshow": "Run, GotoSlide 2, Next, GotoSlide 3 and Exit completed",
+    "screen_capture": "CopyFromScreen frames contaminated by pre-existing python.exe error dialog; PrintWindow returned false and black frames",
+    "original_package_sha256_rechecked_after_close": true,
+    "wpp_process_closed": true
+  },
+  "conclusion": "WPS property acceptance and training page progression observed; clean visual motion and full three-deck playback unverified; animation acceptance STOP"
 }

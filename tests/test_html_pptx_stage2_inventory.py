@@ -3,13 +3,16 @@
 from __future__ import annotations
 
 import copy
-import sys
+import importlib.util
 import unittest
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
-
-from html_pptx_stage2_inventory import audit, compare  # noqa: E402
+SCRIPT = Path(__file__).resolve().parents[1] / "scripts" / "html_pptx_stage2_inventory.py"
+SPEC = importlib.util.spec_from_file_location("html_pptx_stage2_inventory", SCRIPT)
+assert SPEC is not None and SPEC.loader is not None
+MODULE = importlib.util.module_from_spec(SPEC)
+SPEC.loader.exec_module(MODULE)
+audit, compare = MODULE.audit, MODULE.compare
 
 
 class FixedAnimationInventoryTests(unittest.TestCase):

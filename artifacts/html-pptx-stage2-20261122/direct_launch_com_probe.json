@@ -1,0 +1,9 @@
+{
+  "started_utc": "2026-11-22T03:52:46.7610126Z",
+  "helper_pid": 67312,
+  "completed": true,
+  "exit_code": 0,
+  "json_exists": true,
+  "stdout": "written: C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\html-pptx-animation\\artifacts\\html-pptx-stage2-20261122\\direct_launch_com_diagnostic.json\r\n",
+  "stderr": null
+}
