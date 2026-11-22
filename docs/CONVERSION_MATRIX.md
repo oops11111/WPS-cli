@@ -129,12 +129,17 @@ run offline and do not use WPS. Their output has been opened in WPS on one
 machine: the xlsx in WPS Spreadsheets and the pptx in WPS Presentation, and
 both exported back to HTML with their sheet name, cell text, slide titles and
 bodies kept (`scripts/real_wps_verify_remaining/RESULTS-4898428.md`, section
-4). No visual-fidelity or cross-version matrix has been run.
+4). That export-back check did not measure visual fidelity; the later
+HTML→PPTX assessment is recorded below. No cross-version matrix has been run.
 
 ```powershell
 python -m wps_ai_agent_cli html-editable --input .\page.html --output .\page.xlsx --format xlsx
 python -m wps_ai_agent_cli html-editable --input .\deck.html --output .\deck.pptx --format pptx
 ```
+
+### HTML to PPTX fidelity status (2026-11-22)
+
+Support remains **best-effort**. On `main` `8df12982bb5984fba18dbee92ece17bfd8166f9d`, a fresh Windows Edge/WPS run of the fixed launch, training and quarterly demos measured all 12 slides on equal 1280×720 canvases at SSIM >=.9349 (aggregates .9809, .9596, .9667). Applicable text, structure, formatting and OOXML animation-inventory scores were 1.0. Stage2 matched 13/13 source effects to OOXML and WPS COM read their animation properties. These measurements do not establish complete high fidelity: launch slide 5 has a visible source video control but no target media because `teaser.mp4` is absent; its inline span animation becomes a whole-paragraph effect; and clean WPS screen evidence of motion, timing and transitions remains unverified. See the [Stage3 final report](HTML_PPTX_STAGE3_FINAL.md) and [fresh evidence](../artifacts/html-pptx-stage3-20261122/final_manifest.json). The earlier section-crop scores and 2026-10-22 playback record are historical, not substitutes for these gates.
 
 ## HTML controlled round-trip identity prototype (P3-116)
 
