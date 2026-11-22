@@ -1,0 +1,30 @@
+{
+  "base_commit": "0a65bb1f54f7ec3e788d9f4fb9af50a7800a4669",
+  "source_sha256": "f6ddc1768db381e7b3589bfbd516daa9a2d03db4595c7bb2ea82b2cc0c2f520c",
+  "original_pptx_sha256": "91644f6b96f94388c836845dae5e8426c62acb61750d05c5990f9e98dadb2890",
+  "candidate_pptx_sha256": "68eb0547a496da8c65005ddd4efd0cf89f5cd081a56f3135fe0472c45be49079",
+  "end14_control_pptx_sha256": "4c7770623e5f5234e5d7bfa7478cab97cf2eb087589d6d65bce3fad476287613",
+  "target_shape_id": "5",
+  "text_runs": [
+    "10 月 24 日 ",
+    "全渠道开售"
+  ],
+  "target_text": "全渠道开售",
+  "range_units_hypothesis": "UTF-16 code units, start inclusive, end exclusive; WPS behavior not yet proven",
+  "char_range": {
+    "st": 10,
+    "end": 15
+  },
+  "modified_target_elements": 2,
+  "changed_uncompressed_pptx_members": [
+    "ppt/slides/slide5.xml"
+  ],
+  "static_slide_prefix_sha256_before": "f384c029ebea865f405ffc4f19f122c2dcf4a7b2b9b2705004ba402c280cbefc",
+  "static_slide_prefix_sha256_after": "f384c029ebea865f405ffc4f19f122c2dcf4a7b2b9b2705004ba402c280cbefc",
+  "counterexamples": [
+    "An end-minus-one OOXML control distinguishes whether WPS COM reports the raw end or a range length",
+    "Non-BMP prefix such as 🚀 occupies one Python code point but two UTF-16 code units",
+    "Repeated identical inline text needs DOM/run identity rather than substring search",
+    "HTML whitespace collapse can change source offsets before PPTX serialization"
+  ]
+}
