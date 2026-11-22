@@ -1,0 +1,707 @@
+{
+  "baseline": "e6b7405b3602f4a0bf11ddf84d5442ce65c6c7d8",
+  "renderer": "wps",
+  "python": "3.12.14",
+  "cases": {
+    "A-launch-pptx": {
+      "source": "fixtures/html_complex/launch.html",
+      "source_sha256": "f6ddc1768db381e7b3589bfbd516daa9a2d03db4595c7bb2ea82b2cc0c2f520c",
+      "mode": "editable",
+      "conversion": {
+        "ok": true,
+        "data": {
+          "input_path": "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\html-pptx-fidelity\\artifacts\\html-pptx-stage0-verified-20261122\\A-launch-pptx\\launch.html",
+          "output_path": "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\html-pptx-fidelity\\artifacts\\html-pptx-stage0-verified-20261122\\A-launch-pptx\\candidate.pptx",
+          "format": "pptx",
+          "slides": 6,
+          "mapped_objects": {
+            "tables": 1,
+            "images": 1,
+            "media": 0,
+            "notes": 1,
+            "animations": 6,
+            "transitions": 6
+          },
+          "warnings": [
+            "Scripts and executable content were omitted.",
+            "<svg> elements cannot be converted and were omitted.",
+            "Hover effects (:hover, :focus) cannot be represented in a presentation and were omitted.",
+            "<video> teaser.mp4 was not converted: the file is unavailable or outside the input folder.",
+            "1 animation(s) on part of a paragraph were applied to the whole paragraph."
+          ],
+          "route": [
+            "html-editable"
+          ],
+          "output_summary": {
+            "slides": 6,
+            "slide_titles": [
+              "星河 X1 新品发布会",
+              "为什么是 X1",
+              "规格对比",
+              "销量预测",
+              "价格与上市",
+              "谢谢"
+            ]
+          }
+        },
+        "errors": []
+      },
+      "pptx_sha256": "cdb7cd7fadbd97c8308707675c43a66bc79667458b8d7e9798856ee71d1c30c9",
+      "slides": [
+        {
+          "slide": 1,
+          "transition": "fade",
+          "effects": [
+            {
+              "class": "entr",
+              "preset": "2",
+              "subtype": "8",
+              "node_type": "withEffect",
+              "duration_ms": null,
+              "delay_ms": "0",
+              "targets": [
+                {
+                  "shape_id": "2",
+                  "paragraph": null
+                },
+                {
+                  "shape_id": "2",
+                  "paragraph": null
+                },
+                {
+                  "shape_id": "2",
+                  "paragraph": null
+                }
+              ]
+            },
+            {
+              "class": "entr",
+              "preset": "10",
+              "subtype": "0",
+              "node_type": "withEffect",
+              "duration_ms": null,
+              "delay_ms": "500",
+              "targets": [
+                {
+                  "shape_id": "3",
+                  "paragraph": null
+                },
+                {
+                  "shape_id": "3",
+                  "paragraph": null
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slide": 2,
+          "transition": "push",
+          "effects": [
+            {
+              "class": "entr",
+              "preset": "2",
+              "subtype": "8",
+              "node_type": "withEffect",
+              "duration_ms": null,
+              "delay_ms": "200",
+              "targets": [
+                {
+                  "shape_id": "3",
+                  "paragraph": "0"
+                },
+                {
+                  "shape_id": "3",
+                  "paragraph": "0"
+                },
+                {
+                  "shape_id": "3",
+                  "paragraph": "0"
+                }
+              ]
+            },
+            {
+              "class": "entr",
+              "preset": "2",
+              "subtype": "8",
+              "node_type": "withEffect",
+              "duration_ms": null,
+              "delay_ms": "400",
+              "targets": [
+                {
+                  "shape_id": "3",
+                  "paragraph": "1"
+                },
+                {
+                  "shape_id": "3",
+                  "paragraph": "1"
+                },
+                {
+                  "shape_id": "3",
+                  "paragraph": "1"
+                }
+              ]
+            },
+            {
+              "class": "entr",
+              "preset": "2",
+              "subtype": "8",
+              "node_type": "withEffect",
+              "duration_ms": null,
+              "delay_ms": "600",
+              "targets": [
+                {
+                  "shape_id": "3",
+                  "paragraph": "2"
+                },
+                {
+                  "shape_id": "3",
+                  "paragraph": "2"
+                },
+                {
+                  "shape_id": "3",
+                  "paragraph": "2"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slide": 3,
+          "transition": "fade",
+          "effects": []
+        },
+        {
+          "slide": 4,
+          "transition": "fade",
+          "effects": []
+        },
+        {
+          "slide": 5,
+          "transition": "fade",
+          "effects": [
+            {
+              "class": "entr",
+              "preset": "10",
+              "subtype": "0",
+              "node_type": "withEffect",
+              "duration_ms": null,
+              "delay_ms": "500",
+              "targets": [
+                {
+                  "shape_id": "5",
+                  "paragraph": null
+                },
+                {
+                  "shape_id": "5",
+                  "paragraph": null
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slide": 6,
+          "transition": "fade",
+          "effects": []
+        }
+      ],
+      "fidelity": {
+        "ok": true,
+        "report": {
+          "source": "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\html-pptx-fidelity\\artifacts\\html-pptx-stage0-verified-20261122\\A-launch-pptx\\launch.html",
+          "target": "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\html-pptx-fidelity\\artifacts\\html-pptx-stage0-verified-20261122\\A-launch-pptx\\candidate.pptx",
+          "group": "A",
+          "thresholds": {
+            "text": 1.0,
+            "structure": 1.0,
+            "formatting": 1.0,
+            "animations": 1.0,
+            "data": 1.0,
+            "layout": 0.9
+          },
+          "aspects": {
+            "text": {
+              "score": 1.0,
+              "missing": []
+            },
+            "structure": {
+              "score": 1.0,
+              "differences": {}
+            },
+            "formatting": {
+              "score": 1.0,
+              "problems": []
+            },
+            "animations": {
+              "score": 1.0,
+              "missing": []
+            },
+            "data": {
+              "score": 1.0,
+              "missing": []
+            },
+            "layout": {
+              "images": [
+                "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\html-pptx-fidelity\\artifacts\\html-pptx-stage0-verified-20261122\\A-launch-pptx\\pages\\page-001-0.881.png",
+                "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\html-pptx-fidelity\\artifacts\\html-pptx-stage0-verified-20261122\\A-launch-pptx\\pages\\page-002-0.928.png",
+                "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\html-pptx-fidelity\\artifacts\\html-pptx-stage0-verified-20261122\\A-launch-pptx\\pages\\page-003-0.931.png",
+                "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\html-pptx-fidelity\\artifacts\\html-pptx-stage0-verified-20261122\\A-launch-pptx\\pages\\page-004-0.907.png",
+                "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\html-pptx-fidelity\\artifacts\\html-pptx-stage0-verified-20261122\\A-launch-pptx\\pages\\page-005-0.878.png",
+                "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\html-pptx-fidelity\\artifacts\\html-pptx-stage0-verified-20261122\\A-launch-pptx\\pages\\page-006-0.976.png"
+              ],
+              "status": "measured",
+              "renderer": "wps",
+              "score": 0.9169,
+              "pages": {
+                "source": 6,
+                "target": 6
+              },
+              "page_scores": [
+                0.8809,
+                0.9283,
+                0.9311,
+                0.9073,
+                0.878,
+                0.9757
+              ],
+              "missing_fonts": [
+                "Noto Sans CJK SC"
+              ]
+            }
+          },
+          "verdict": {
+            "text": true,
+            "structure": true,
+            "formatting": true,
+            "animations": true,
+            "data": true,
+            "layout": true
+          },
+          "passed": true
+        },
+        "errors": []
+      },
+      "files_sha256": {
+        "candidate.pptx": "cdb7cd7fadbd97c8308707675c43a66bc79667458b8d7e9798856ee71d1c30c9",
+        "chart.png": "ed89838a4de750fe6336580240367518c4507448844463c4357d62481d482fe5",
+        "launch.html": "f6ddc1768db381e7b3589bfbd516daa9a2d03db4595c7bb2ea82b2cc0c2f520c",
+        "pages/page-001-0.881.png": "35fdf87082796ebc80c516ee249b054398ab20830eed8fd44395c34a4d540188",
+        "pages/page-002-0.928.png": "4e0aa785fe597de129bafa16bc25f5393117330c877f8a4b8ea54375d51901b5",
+        "pages/page-003-0.931.png": "1c81c7bb59a19970edad8865ce76965dec99723416992838e9914fe19e20334e",
+        "pages/page-004-0.907.png": "bba69c70d276a90b63da40bb4f06d81aae9b86bf5e5cd6784ed2fb6f69415583",
+        "pages/page-005-0.878.png": "5bfb6f9fbf2b0f08d543bd4e3b0dee7b60df1c70a25d818284bccdde00e85bd9",
+        "pages/page-006-0.976.png": "f19282af70ae9fc2e200c5c58d7952db893c1f046169b7439b74dfb417f69468"
+      }
+    },
+    "A-training-pptx": {
+      "source": "fixtures/fidelity/training.html",
+      "source_sha256": "44d03541b64858651dec6a732d34c0d97194553374ac4d689db51007e7583aea",
+      "mode": "appearance",
+      "conversion": {
+        "ok": true,
+        "data": {
+          "input_path": "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\html-pptx-fidelity\\artifacts\\html-pptx-stage0-verified-20261122\\A-training-pptx\\training.html",
+          "output_path": "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\html-pptx-fidelity\\artifacts\\html-pptx-stage0-verified-20261122\\A-training-pptx\\candidate.pptx",
+          "format": "pptx",
+          "slides": 3,
+          "mapped_objects": {
+            "tables": 0,
+            "images": 0,
+            "media": 0,
+            "notes": 1,
+            "animations": 6,
+            "transitions": 3,
+            "shapes": 1
+          },
+          "warnings": [],
+          "route": [
+            "html-editable"
+          ],
+          "output_summary": {
+            "slides": 3,
+            "slide_titles": [
+              "新员工培训",
+              "培训安排",
+              "考核方式"
+            ]
+          }
+        },
+        "errors": []
+      },
+      "pptx_sha256": "d56914d10d860a1d10173d1b31f19315433a48dbd3a8792fcf75b96464f6acaa",
+      "slides": [
+        {
+          "slide": 1,
+          "transition": "fade",
+          "effects": [
+            {
+              "class": "entr",
+              "preset": "2",
+              "subtype": "8",
+              "node_type": "withEffect",
+              "duration_ms": null,
+              "delay_ms": "0",
+              "targets": [
+                {
+                  "shape_id": "2",
+                  "paragraph": null
+                },
+                {
+                  "shape_id": "2",
+                  "paragraph": null
+                },
+                {
+                  "shape_id": "2",
+                  "paragraph": null
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slide": 2,
+          "transition": "push",
+          "effects": [
+            {
+              "class": "entr",
+              "preset": "2",
+              "subtype": "8",
+              "node_type": "withEffect",
+              "duration_ms": null,
+              "delay_ms": "0",
+              "targets": [
+                {
+                  "shape_id": "3",
+                  "paragraph": "0"
+                },
+                {
+                  "shape_id": "3",
+                  "paragraph": "0"
+                },
+                {
+                  "shape_id": "3",
+                  "paragraph": "0"
+                }
+              ]
+            },
+            {
+              "class": "entr",
+              "preset": "2",
+              "subtype": "8",
+              "node_type": "clickEffect",
+              "duration_ms": null,
+              "delay_ms": "0",
+              "targets": [
+                {
+                  "shape_id": "3",
+                  "paragraph": "1"
+                },
+                {
+                  "shape_id": "3",
+                  "paragraph": "1"
+                },
+                {
+                  "shape_id": "3",
+                  "paragraph": "1"
+                }
+              ]
+            },
+            {
+              "class": "entr",
+              "preset": "2",
+              "subtype": "8",
+              "node_type": "withEffect",
+              "duration_ms": null,
+              "delay_ms": "600",
+              "targets": [
+                {
+                  "shape_id": "3",
+                  "paragraph": "2"
+                },
+                {
+                  "shape_id": "3",
+                  "paragraph": "2"
+                },
+                {
+                  "shape_id": "3",
+                  "paragraph": "2"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slide": 3,
+          "transition": "wipe",
+          "effects": [
+            {
+              "class": "emph",
+              "preset": "6",
+              "subtype": "0",
+              "node_type": "withEffect",
+              "duration_ms": null,
+              "delay_ms": "0",
+              "targets": [
+                {
+                  "shape_id": "4",
+                  "paragraph": null
+                }
+              ]
+            },
+            {
+              "class": "exit",
+              "preset": "10",
+              "subtype": "0",
+              "node_type": "withEffect",
+              "duration_ms": null,
+              "delay_ms": "500",
+              "targets": [
+                {
+                  "shape_id": "5",
+                  "paragraph": null
+                },
+                {
+                  "shape_id": "5",
+                  "paragraph": null
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "fidelity": {
+        "ok": true,
+        "report": {
+          "source": "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\html-pptx-fidelity\\artifacts\\html-pptx-stage0-verified-20261122\\A-training-pptx\\training.html",
+          "target": "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\html-pptx-fidelity\\artifacts\\html-pptx-stage0-verified-20261122\\A-training-pptx\\candidate.pptx",
+          "group": "A",
+          "thresholds": {
+            "text": 1.0,
+            "structure": 1.0,
+            "formatting": 1.0,
+            "animations": 1.0,
+            "data": 1.0,
+            "layout": 0.9
+          },
+          "aspects": {
+            "text": {
+              "score": 1.0,
+              "missing": []
+            },
+            "structure": {
+              "score": 1.0,
+              "differences": {}
+            },
+            "formatting": {
+              "score": 1.0,
+              "problems": []
+            },
+            "animations": {
+              "score": 1.0,
+              "missing": []
+            },
+            "data": {
+              "status": "not applicable"
+            },
+            "layout": {
+              "images": [
+                "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\html-pptx-fidelity\\artifacts\\html-pptx-stage0-verified-20261122\\A-training-pptx\\pages\\page-001-0.971.png",
+                "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\html-pptx-fidelity\\artifacts\\html-pptx-stage0-verified-20261122\\A-training-pptx\\pages\\page-002-0.960.png",
+                "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\html-pptx-fidelity\\artifacts\\html-pptx-stage0-verified-20261122\\A-training-pptx\\pages\\page-003-0.946.png"
+              ],
+              "status": "measured",
+              "renderer": "wps",
+              "score": 0.9594,
+              "pages": {
+                "source": 3,
+                "target": 3
+              },
+              "page_scores": [
+                0.9713,
+                0.9604,
+                0.9464
+              ],
+              "missing_fonts": [
+                "Noto Sans CJK SC"
+              ]
+            }
+          },
+          "verdict": {
+            "text": true,
+            "structure": true,
+            "formatting": true,
+            "animations": true,
+            "layout": true
+          },
+          "passed": true
+        },
+        "errors": []
+      },
+      "files_sha256": {
+        "candidate.pptx": "d56914d10d860a1d10173d1b31f19315433a48dbd3a8792fcf75b96464f6acaa",
+        "pages/page-001-0.971.png": "719d514d7003791ad7c83d8d90a3b1cf3b4bd286f1a376f87614096a5c5bab3e",
+        "pages/page-002-0.960.png": "e862c4204d9ac0d5c9c412935ea306146168b71ba34edc32ce0672f730f46d46",
+        "pages/page-003-0.946.png": "acd54b246b7c63c4413b482fe0b6d21c3aec92471f4ab3b0895921552b866622",
+        "training.html": "44d03541b64858651dec6a732d34c0d97194553374ac4d689db51007e7583aea"
+      }
+    },
+    "A-quarterly-pptx": {
+      "source": "fixtures/fidelity/quarterly.html",
+      "source_sha256": "a1fb04f3364e5e94bfefc9b8f83a1cf0c57b8daa9d710d6b4d1a203a09f33b92",
+      "mode": "editable",
+      "conversion": {
+        "ok": true,
+        "data": {
+          "input_path": "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\html-pptx-fidelity\\artifacts\\html-pptx-stage0-verified-20261122\\A-quarterly-pptx\\quarterly.html",
+          "output_path": "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\html-pptx-fidelity\\artifacts\\html-pptx-stage0-verified-20261122\\A-quarterly-pptx\\candidate.pptx",
+          "format": "pptx",
+          "slides": 3,
+          "mapped_objects": {
+            "tables": 1,
+            "images": 0,
+            "media": 0,
+            "notes": 1,
+            "animations": 1,
+            "transitions": 3
+          },
+          "warnings": [],
+          "route": [
+            "html-editable"
+          ],
+          "output_summary": {
+            "slides": 3,
+            "slide_titles": [
+              "2026 Q3 经营回顾",
+              "核心指标",
+              "下季度重点"
+            ]
+          }
+        },
+        "errors": []
+      },
+      "pptx_sha256": "7fdcd1af5919712e5573c50cd35c2928952d7d00410dc29cfeff9fdec2efdefc",
+      "slides": [
+        {
+          "slide": 1,
+          "transition": "fade",
+          "effects": []
+        },
+        {
+          "slide": 2,
+          "transition": "cover",
+          "effects": [
+            {
+              "class": "entr",
+              "preset": "53",
+              "subtype": "16",
+              "node_type": "withEffect",
+              "duration_ms": null,
+              "delay_ms": "200",
+              "targets": [
+                {
+                  "shape_id": "3",
+                  "paragraph": null
+                },
+                {
+                  "shape_id": "3",
+                  "paragraph": null
+                },
+                {
+                  "shape_id": "3",
+                  "paragraph": null
+                },
+                {
+                  "shape_id": "3",
+                  "paragraph": null
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "slide": 3,
+          "transition": "split",
+          "effects": []
+        }
+      ],
+      "fidelity": {
+        "ok": true,
+        "report": {
+          "source": "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\html-pptx-fidelity\\artifacts\\html-pptx-stage0-verified-20261122\\A-quarterly-pptx\\quarterly.html",
+          "target": "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\html-pptx-fidelity\\artifacts\\html-pptx-stage0-verified-20261122\\A-quarterly-pptx\\candidate.pptx",
+          "group": "A",
+          "thresholds": {
+            "text": 1.0,
+            "structure": 1.0,
+            "formatting": 1.0,
+            "animations": 1.0,
+            "data": 1.0,
+            "layout": 0.9
+          },
+          "aspects": {
+            "text": {
+              "score": 1.0,
+              "missing": []
+            },
+            "structure": {
+              "score": 1.0,
+              "differences": {}
+            },
+            "formatting": {
+              "score": 1.0,
+              "problems": []
+            },
+            "animations": {
+              "score": 1.0,
+              "missing": []
+            },
+            "data": {
+              "score": 1.0,
+              "missing": []
+            },
+            "layout": {
+              "images": [
+                "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\html-pptx-fidelity\\artifacts\\html-pptx-stage0-verified-20261122\\A-quarterly-pptx\\pages\\page-001-0.980.png",
+                "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\html-pptx-fidelity\\artifacts\\html-pptx-stage0-verified-20261122\\A-quarterly-pptx\\pages\\page-002-0.935.png",
+                "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\html-pptx-fidelity\\artifacts\\html-pptx-stage0-verified-20261122\\A-quarterly-pptx\\pages\\page-003-0.985.png"
+              ],
+              "status": "measured",
+              "renderer": "wps",
+              "score": 0.9667,
+              "pages": {
+                "source": 3,
+                "target": 3
+              },
+              "page_scores": [
+                0.9802,
+                0.9349,
+                0.9849
+              ],
+              "missing_fonts": [
+                "Noto Sans CJK SC"
+              ]
+            }
+          },
+          "verdict": {
+            "text": true,
+            "structure": true,
+            "formatting": true,
+            "animations": true,
+            "data": true,
+            "layout": true
+          },
+          "passed": true
+        },
+        "errors": []
+      },
+      "files_sha256": {
+        "candidate.pptx": "7fdcd1af5919712e5573c50cd35c2928952d7d00410dc29cfeff9fdec2efdefc",
+        "pages/page-001-0.980.png": "88539201795c82e5c05ad2bade9d68b6e2cb7180ee87fb13540bb3ab78e125df",
+        "pages/page-002-0.935.png": "0fe0718ff9040a46435e079bddf12d8f8cdc20f18ffeb369a786ad74eecac843",
+        "pages/page-003-0.985.png": "32561d17699031293f22036ea58b4fe3da1ae201899069fb0a59d4557b2a53dd",
+        "quarterly.html": "a1fb04f3364e5e94bfefc9b8f83a1cf0c57b8daa9d710d6b4d1a203a09f33b92"
+      }
+    }
+  }
+}
