@@ -1,0 +1,76 @@
+﻿{
+    "screen":  {
+                   "height":  864,
+                   "width":  1536
+               },
+    "capture_mode":  "PrintWindow",
+    "events":  [
+                   {
+                       "label":  "slide1_early",
+                       "at_utc":  "2026-11-22T03:57:18.1816861Z",
+                       "png":  "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\html-pptx-animation\\artifacts\\html-pptx-stage2-20261122\\training-window-capture\\slide1_early.png",
+                       "capture_ok":  false,
+                       "slide":  1,
+                       "view_state":  1
+                   },
+                   {
+                       "label":  "slide1_late",
+                       "at_utc":  "2026-11-22T03:57:19.1439955Z",
+                       "png":  "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\html-pptx-animation\\artifacts\\html-pptx-stage2-20261122\\training-window-capture\\slide1_late.png",
+                       "capture_ok":  false,
+                       "slide":  1,
+                       "view_state":  1
+                   },
+                   {
+                       "label":  "slide2_early",
+                       "at_utc":  "2026-11-22T03:57:19.3666465Z",
+                       "png":  "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\html-pptx-animation\\artifacts\\html-pptx-stage2-20261122\\training-window-capture\\slide2_early.png",
+                       "capture_ok":  false,
+                       "slide":  2,
+                       "view_state":  1
+                   },
+                   {
+                       "label":  "slide2_initial_done",
+                       "at_utc":  "2026-11-22T03:57:20.3301510Z",
+                       "png":  "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\html-pptx-animation\\artifacts\\html-pptx-stage2-20261122\\training-window-capture\\slide2_initial_done.png",
+                       "capture_ok":  false,
+                       "slide":  2,
+                       "view_state":  1
+                   },
+                   {
+                       "label":  "slide2_click_early",
+                       "at_utc":  "2026-11-22T03:57:20.5474129Z",
+                       "png":  "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\html-pptx-animation\\artifacts\\html-pptx-stage2-20261122\\training-window-capture\\slide2_click_early.png",
+                       "capture_ok":  false,
+                       "slide":  2,
+                       "view_state":  1
+                   },
+                   {
+                       "label":  "slide2_click_after_done",
+                       "at_utc":  "2026-11-22T03:57:22.0422950Z",
+                       "png":  "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\html-pptx-animation\\artifacts\\html-pptx-stage2-20261122\\training-window-capture\\slide2_click_after_done.png",
+                       "capture_ok":  false,
+                       "slide":  2,
+                       "view_state":  1
+                   },
+                   {
+                       "label":  "slide3_early",
+                       "at_utc":  "2026-11-22T03:57:22.2484558Z",
+                       "png":  "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\html-pptx-animation\\artifacts\\html-pptx-stage2-20261122\\training-window-capture\\slide3_early.png",
+                       "capture_ok":  false,
+                       "slide":  3,
+                       "view_state":  1
+                   },
+                   {
+                       "label":  "slide3_late",
+                       "at_utc":  "2026-11-22T03:57:23.7155692Z",
+                       "png":  "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\html-pptx-animation\\artifacts\\html-pptx-stage2-20261122\\training-window-capture\\slide3_late.png",
+                       "capture_ok":  false,
+                       "slide":  3,
+                       "view_state":  1
+                   }
+               ],
+    "started_at_utc":  "2026-11-22T03:57:18.1816861Z",
+    "deck":  "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\html-pptx-animation\\artifacts\\html-pptx-stage2-20261122\\wps-fallback-training.pptx",
+    "window_hwnd":  0
+}

@@ -1,0 +1,815 @@
+{
+  "base_commit": "5279bd35a625d190895d9484057047ebe7e30cfe",
+  "converter_sha256": "cd73a7e06a4de7e0d4386038a9cc0923fbb72490ff3bcd432c5d97b305c65827",
+  "layout_renderer_sha256": "48263b2aba45ae0de9f3eaa4091c732442751a26e61c90fadf6f947341d027b4",
+  "limitations": [
+    "launch slide 5 inline span animation targets its containing paragraph in the PPTX",
+    "hover animation and missing teaser.mp4 are outside this OOXML animation match",
+    "OOXML match does not establish WPS playback"
+  ],
+  "cases": {
+    "launch": {
+      "source": "fixtures\\html_complex\\launch.html",
+      "source_sha256": "f6ddc1768db381e7b3589bfbd516daa9a2d03db4595c7bb2ea82b2cc0c2f520c",
+      "pptx": "artifacts\\html-pptx-full-canvas-verified-20261122\\A-launch-pptx\\candidate.pptx",
+      "pptx_sha256": "2c59eba293fb6f8264bcebad69b0ad37f37b6bff907e0dc841a1b68e467bfdcf",
+      "source_slides": [
+        {
+          "slide": 1,
+          "transition": "fade",
+          "speed": "med",
+          "notes": [],
+          "effects": [
+            {
+              "tag": "h1",
+              "text": "星河 X1 新品发布会",
+              "effect": "fly",
+              "direction": "left",
+              "duration": 800,
+              "delay": 0,
+              "kind": "entrance",
+              "trigger": "with"
+            },
+            {
+              "tag": "p",
+              "text": "2026 年 10 月 · 上海",
+              "effect": "fade",
+              "direction": "",
+              "duration": 1200,
+              "delay": 500,
+              "kind": "entrance",
+              "trigger": "with"
+            }
+          ]
+        },
+        {
+          "slide": 2,
+          "transition": "push",
+          "speed": "med",
+          "notes": [
+            "演讲者备注：这里停顿，等掌声。"
+          ],
+          "effects": [
+            {
+              "tag": "li",
+              "text": "续航提升 40%",
+              "effect": "fly",
+              "direction": "left",
+              "duration": 800,
+              "delay": 200,
+              "kind": "entrance",
+              "trigger": "with"
+            },
+            {
+              "tag": "li",
+              "text": "重量仅 1.1 kg",
+              "effect": "fly",
+              "direction": "left",
+              "duration": 800,
+              "delay": 400,
+              "kind": "entrance",
+              "trigger": "with"
+            },
+            {
+              "tag": "li",
+              "text": "支持 Wi-Fi 7",
+              "effect": "fly",
+              "direction": "left",
+              "duration": 800,
+              "delay": 600,
+              "kind": "entrance",
+              "trigger": "with"
+            }
+          ]
+        },
+        {
+          "slide": 3,
+          "transition": "fade",
+          "speed": "med",
+          "notes": [],
+          "effects": []
+        },
+        {
+          "slide": 4,
+          "transition": "fade",
+          "speed": "med",
+          "notes": [],
+          "effects": []
+        },
+        {
+          "slide": 5,
+          "transition": "fade",
+          "speed": "med",
+          "notes": [],
+          "effects": [
+            {
+              "tag": "span",
+              "text": "全渠道开售",
+              "effect": "fade",
+              "direction": "",
+              "duration": 1200,
+              "delay": 500,
+              "kind": "entrance",
+              "trigger": "with"
+            }
+          ]
+        },
+        {
+          "slide": 6,
+          "transition": "fade",
+          "speed": "med",
+          "notes": [],
+          "effects": []
+        }
+      ],
+      "pptx_slides": [
+        {
+          "slide": 1,
+          "transition": "fade",
+          "transition_speed": "med",
+          "effects": [
+            {
+              "class": "entr",
+              "preset": "2",
+              "subtype": "8",
+              "node_type": "withEffect",
+              "delay_ms": "0",
+              "behavior_duration_ms": "800",
+              "attributes": [
+                "style.visibility",
+                "ppt_x",
+                "ppt_y"
+              ],
+              "filter": null,
+              "targets": [
+                {
+                  "shape_id": "2",
+                  "shape_text": "星河 X1 新品发布会"
+                }
+              ]
+            },
+            {
+              "class": "entr",
+              "preset": "10",
+              "subtype": "0",
+              "node_type": "withEffect",
+              "delay_ms": "500",
+              "behavior_duration_ms": "1200",
+              "attributes": [
+                "style.visibility"
+              ],
+              "filter": "fade",
+              "targets": [
+                {
+                  "shape_id": "3",
+                  "shape_text": "2026 年 10 月 · 上海"
+                }
+              ]
+            }
+          ],
+          "notes_xml_text": []
+        },
+        {
+          "slide": 2,
+          "transition": "push",
+          "transition_speed": "med",
+          "effects": [
+            {
+              "class": "entr",
+              "preset": "2",
+              "subtype": "8",
+              "node_type": "withEffect",
+              "delay_ms": "200",
+              "behavior_duration_ms": "800",
+              "attributes": [
+                "style.visibility",
+                "ppt_x",
+                "ppt_y"
+              ],
+              "filter": null,
+              "targets": [
+                {
+                  "shape_id": "3",
+                  "shape_text": "续航提升  40% 重量仅  1.1 kg 支持 Wi-Fi 7",
+                  "paragraph": "0",
+                  "paragraph_text": "续航提升  40%"
+                }
+              ]
+            },
+            {
+              "class": "entr",
+              "preset": "2",
+              "subtype": "8",
+              "node_type": "withEffect",
+              "delay_ms": "400",
+              "behavior_duration_ms": "800",
+              "attributes": [
+                "style.visibility",
+                "ppt_x",
+                "ppt_y"
+              ],
+              "filter": null,
+              "targets": [
+                {
+                  "shape_id": "3",
+                  "shape_text": "续航提升  40% 重量仅  1.1 kg 支持 Wi-Fi 7",
+                  "paragraph": "1",
+                  "paragraph_text": "重量仅  1.1 kg"
+                }
+              ]
+            },
+            {
+              "class": "entr",
+              "preset": "2",
+              "subtype": "8",
+              "node_type": "withEffect",
+              "delay_ms": "600",
+              "behavior_duration_ms": "800",
+              "attributes": [
+                "style.visibility",
+                "ppt_x",
+                "ppt_y"
+              ],
+              "filter": null,
+              "targets": [
+                {
+                  "shape_id": "3",
+                  "shape_text": "续航提升  40% 重量仅  1.1 kg 支持 Wi-Fi 7",
+                  "paragraph": "2",
+                  "paragraph_text": "支持 Wi-Fi 7"
+                }
+              ]
+            }
+          ],
+          "notes_xml_text": [
+            "演讲者备注：这里停顿，等掌声。"
+          ]
+        },
+        {
+          "slide": 3,
+          "transition": "fade",
+          "transition_speed": "med",
+          "effects": [],
+          "notes_xml_text": []
+        },
+        {
+          "slide": 4,
+          "transition": "fade",
+          "transition_speed": "med",
+          "effects": [],
+          "notes_xml_text": []
+        },
+        {
+          "slide": 5,
+          "transition": "fade",
+          "transition_speed": "med",
+          "effects": [
+            {
+              "class": "entr",
+              "preset": "10",
+              "subtype": "0",
+              "node_type": "withEffect",
+              "delay_ms": "500",
+              "behavior_duration_ms": "1200",
+              "attributes": [
+                "style.visibility"
+              ],
+              "filter": "fade",
+              "targets": [
+                {
+                  "shape_id": "5",
+                  "shape_text": "10 月 24 日  全渠道开售"
+                }
+              ]
+            }
+          ],
+          "notes_xml_text": []
+        },
+        {
+          "slide": 6,
+          "transition": "fade",
+          "transition_speed": "med",
+          "effects": [],
+          "notes_xml_text": []
+        }
+      ],
+      "findings": [
+        {
+          "slide": 1,
+          "effect": 1,
+          "source_text": "星河 X1 新品发布会",
+          "target": [
+            {
+              "shape_id": "2",
+              "shape_text": "星河 X1 新品发布会"
+            }
+          ],
+          "status": "ooxml_match",
+          "reasons": []
+        },
+        {
+          "slide": 1,
+          "effect": 2,
+          "source_text": "2026 年 10 月 · 上海",
+          "target": [
+            {
+              "shape_id": "3",
+              "shape_text": "2026 年 10 月 · 上海"
+            }
+          ],
+          "status": "ooxml_match",
+          "reasons": []
+        },
+        {
+          "slide": 2,
+          "effect": 1,
+          "source_text": "续航提升 40%",
+          "target": [
+            {
+              "shape_id": "3",
+              "shape_text": "续航提升  40% 重量仅  1.1 kg 支持 Wi-Fi 7",
+              "paragraph": "0",
+              "paragraph_text": "续航提升  40%"
+            }
+          ],
+          "status": "ooxml_match",
+          "reasons": []
+        },
+        {
+          "slide": 2,
+          "effect": 2,
+          "source_text": "重量仅 1.1 kg",
+          "target": [
+            {
+              "shape_id": "3",
+              "shape_text": "续航提升  40% 重量仅  1.1 kg 支持 Wi-Fi 7",
+              "paragraph": "1",
+              "paragraph_text": "重量仅  1.1 kg"
+            }
+          ],
+          "status": "ooxml_match",
+          "reasons": []
+        },
+        {
+          "slide": 2,
+          "effect": 3,
+          "source_text": "支持 Wi-Fi 7",
+          "target": [
+            {
+              "shape_id": "3",
+              "shape_text": "续航提升  40% 重量仅  1.1 kg 支持 Wi-Fi 7",
+              "paragraph": "2",
+              "paragraph_text": "支持 Wi-Fi 7"
+            }
+          ],
+          "status": "ooxml_match",
+          "reasons": []
+        },
+        {
+          "slide": 5,
+          "effect": 1,
+          "source_text": "全渠道开售",
+          "target": [
+            {
+              "shape_id": "5",
+              "shape_text": "10 月 24 日  全渠道开售"
+            }
+          ],
+          "status": "ooxml_match",
+          "reasons": []
+        }
+      ]
+    },
+    "training": {
+      "source": "fixtures\\fidelity\\training.html",
+      "source_sha256": "44d03541b64858651dec6a732d34c0d97194553374ac4d689db51007e7583aea",
+      "pptx": "artifacts\\html-pptx-full-canvas-verified-20261122\\A-training-pptx\\candidate.pptx",
+      "pptx_sha256": "77f74d284f75daf3465c56848492d84f29f81d3081bc5df158283954e9af5ccb",
+      "source_slides": [
+        {
+          "slide": 1,
+          "transition": "fade",
+          "speed": "med",
+          "notes": [],
+          "effects": [
+            {
+              "tag": "h1",
+              "text": "新员工培训",
+              "effect": "fly",
+              "direction": "left",
+              "duration": 600,
+              "delay": 0,
+              "kind": "entrance",
+              "trigger": "with"
+            }
+          ]
+        },
+        {
+          "slide": 2,
+          "transition": "push",
+          "speed": "med",
+          "notes": [],
+          "effects": [
+            {
+              "tag": "li",
+              "text": "第一天：公司文化与制度",
+              "effect": "fly",
+              "direction": "left",
+              "duration": 600,
+              "delay": 0,
+              "kind": "entrance",
+              "trigger": "with"
+            },
+            {
+              "tag": "li",
+              "text": "第二天：产品与业务",
+              "effect": "fly",
+              "direction": "left",
+              "duration": 600,
+              "delay": 0,
+              "kind": "entrance",
+              "trigger": "click"
+            },
+            {
+              "tag": "li",
+              "text": "第三天：岗位实操",
+              "effect": "fly",
+              "direction": "left",
+              "duration": 600,
+              "delay": 0,
+              "kind": "entrance",
+              "trigger": "after"
+            }
+          ]
+        },
+        {
+          "slide": 3,
+          "transition": "wipe",
+          "speed": "med",
+          "notes": [
+            "提醒学员带好工牌。"
+          ],
+          "effects": [
+            {
+              "tag": "div",
+              "text": "笔试 40% + 实操 60%，总分 80 分合格",
+              "effect": "pulse",
+              "direction": "",
+              "duration": 1000,
+              "delay": 0,
+              "kind": "emphasis",
+              "trigger": "with"
+            },
+            {
+              "tag": "p",
+              "text": "（本页提示将在 0.5 秒后淡出）",
+              "effect": "fade",
+              "direction": "",
+              "duration": 500,
+              "delay": 500,
+              "kind": "exit",
+              "trigger": "with"
+            }
+          ]
+        }
+      ],
+      "pptx_slides": [
+        {
+          "slide": 1,
+          "transition": "fade",
+          "transition_speed": "med",
+          "effects": [
+            {
+              "class": "entr",
+              "preset": "2",
+              "subtype": "8",
+              "node_type": "withEffect",
+              "delay_ms": "0",
+              "behavior_duration_ms": "600",
+              "attributes": [
+                "style.visibility",
+                "ppt_x",
+                "ppt_y"
+              ],
+              "filter": null,
+              "targets": [
+                {
+                  "shape_id": "2",
+                  "shape_text": "新员工培训"
+                }
+              ]
+            }
+          ],
+          "notes_xml_text": []
+        },
+        {
+          "slide": 2,
+          "transition": "push",
+          "transition_speed": "med",
+          "effects": [
+            {
+              "class": "entr",
+              "preset": "2",
+              "subtype": "8",
+              "node_type": "withEffect",
+              "delay_ms": "0",
+              "behavior_duration_ms": "600",
+              "attributes": [
+                "style.visibility",
+                "ppt_x",
+                "ppt_y"
+              ],
+              "filter": null,
+              "targets": [
+                {
+                  "shape_id": "3",
+                  "shape_text": "第一天：公司文化与制度 第二天：产品与业务 第三天：岗位实操",
+                  "paragraph": "0",
+                  "paragraph_text": "第一天：公司文化与制度"
+                }
+              ]
+            },
+            {
+              "class": "entr",
+              "preset": "2",
+              "subtype": "8",
+              "node_type": "clickEffect",
+              "delay_ms": "0",
+              "behavior_duration_ms": "600",
+              "attributes": [
+                "style.visibility",
+                "ppt_x",
+                "ppt_y"
+              ],
+              "filter": null,
+              "targets": [
+                {
+                  "shape_id": "3",
+                  "shape_text": "第一天：公司文化与制度 第二天：产品与业务 第三天：岗位实操",
+                  "paragraph": "1",
+                  "paragraph_text": "第二天：产品与业务"
+                }
+              ]
+            },
+            {
+              "class": "entr",
+              "preset": "2",
+              "subtype": "8",
+              "node_type": "withEffect",
+              "delay_ms": "600",
+              "behavior_duration_ms": "600",
+              "attributes": [
+                "style.visibility",
+                "ppt_x",
+                "ppt_y"
+              ],
+              "filter": null,
+              "targets": [
+                {
+                  "shape_id": "3",
+                  "shape_text": "第一天：公司文化与制度 第二天：产品与业务 第三天：岗位实操",
+                  "paragraph": "2",
+                  "paragraph_text": "第三天：岗位实操"
+                }
+              ]
+            }
+          ],
+          "notes_xml_text": []
+        },
+        {
+          "slide": 3,
+          "transition": "wipe",
+          "transition_speed": "med",
+          "effects": [
+            {
+              "class": "emph",
+              "preset": "6",
+              "subtype": "0",
+              "node_type": "withEffect",
+              "delay_ms": "0",
+              "behavior_duration_ms": "1000",
+              "attributes": [],
+              "filter": null,
+              "targets": [
+                {
+                  "shape_id": "4",
+                  "shape_text": "笔试 40% + 实操 60%，总分 80 分合格"
+                }
+              ]
+            },
+            {
+              "class": "exit",
+              "preset": "10",
+              "subtype": "0",
+              "node_type": "withEffect",
+              "delay_ms": "500",
+              "behavior_duration_ms": "500",
+              "attributes": [
+                "style.visibility"
+              ],
+              "filter": "fade",
+              "targets": [
+                {
+                  "shape_id": "5",
+                  "shape_text": "（本页提示将在 0.5 秒后淡出）"
+                }
+              ]
+            }
+          ],
+          "notes_xml_text": [
+            "提醒学员带好工牌。"
+          ]
+        }
+      ],
+      "findings": [
+        {
+          "slide": 1,
+          "effect": 1,
+          "source_text": "新员工培训",
+          "target": [
+            {
+              "shape_id": "2",
+              "shape_text": "新员工培训"
+            }
+          ],
+          "status": "ooxml_match",
+          "reasons": []
+        },
+        {
+          "slide": 2,
+          "effect": 1,
+          "source_text": "第一天：公司文化与制度",
+          "target": [
+            {
+              "shape_id": "3",
+              "shape_text": "第一天：公司文化与制度 第二天：产品与业务 第三天：岗位实操",
+              "paragraph": "0",
+              "paragraph_text": "第一天：公司文化与制度"
+            }
+          ],
+          "status": "ooxml_match",
+          "reasons": []
+        },
+        {
+          "slide": 2,
+          "effect": 2,
+          "source_text": "第二天：产品与业务",
+          "target": [
+            {
+              "shape_id": "3",
+              "shape_text": "第一天：公司文化与制度 第二天：产品与业务 第三天：岗位实操",
+              "paragraph": "1",
+              "paragraph_text": "第二天：产品与业务"
+            }
+          ],
+          "status": "ooxml_match",
+          "reasons": []
+        },
+        {
+          "slide": 2,
+          "effect": 3,
+          "source_text": "第三天：岗位实操",
+          "target": [
+            {
+              "shape_id": "3",
+              "shape_text": "第一天：公司文化与制度 第二天：产品与业务 第三天：岗位实操",
+              "paragraph": "2",
+              "paragraph_text": "第三天：岗位实操"
+            }
+          ],
+          "status": "ooxml_match",
+          "reasons": []
+        },
+        {
+          "slide": 3,
+          "effect": 1,
+          "source_text": "笔试 40% + 实操 60%，总分 80 分合格",
+          "target": [
+            {
+              "shape_id": "4",
+              "shape_text": "笔试 40% + 实操 60%，总分 80 分合格"
+            }
+          ],
+          "status": "ooxml_match",
+          "reasons": []
+        },
+        {
+          "slide": 3,
+          "effect": 2,
+          "source_text": "（本页提示将在 0.5 秒后淡出）",
+          "target": [
+            {
+              "shape_id": "5",
+              "shape_text": "（本页提示将在 0.5 秒后淡出）"
+            }
+          ],
+          "status": "ooxml_match",
+          "reasons": []
+        }
+      ]
+    },
+    "quarterly": {
+      "source": "fixtures\\fidelity\\quarterly.html",
+      "source_sha256": "a1fb04f3364e5e94bfefc9b8f83a1cf0c57b8daa9d710d6b4d1a203a09f33b92",
+      "pptx": "artifacts\\html-pptx-full-canvas-verified-20261122\\A-quarterly-pptx\\candidate.pptx",
+      "pptx_sha256": "8a0fb90e510d7c3afd13e7a8f5e18dcca7cb82801b317a5815ed2a7aca793cf7",
+      "source_slides": [
+        {
+          "slide": 1,
+          "transition": "fade",
+          "speed": "med",
+          "notes": [],
+          "effects": []
+        },
+        {
+          "slide": 2,
+          "transition": "cover",
+          "speed": "med",
+          "notes": [
+            "重点解释毛利率下降原因。"
+          ],
+          "effects": [
+            {
+              "tag": "table",
+              "text": "指标Q2Q3环比 收入（万元）4,0104,820+20.2% 毛利率39.3%38.2%-1.1pt 新客户126158+25.4%",
+              "effect": "zoom",
+              "direction": "",
+              "duration": 800,
+              "delay": 200,
+              "kind": "entrance",
+              "trigger": "with"
+            }
+          ]
+        },
+        {
+          "slide": 3,
+          "transition": "split",
+          "speed": "med",
+          "notes": [],
+          "effects": []
+        }
+      ],
+      "pptx_slides": [
+        {
+          "slide": 1,
+          "transition": "fade",
+          "transition_speed": "med",
+          "effects": [],
+          "notes_xml_text": []
+        },
+        {
+          "slide": 2,
+          "transition": "cover",
+          "transition_speed": "med",
+          "effects": [
+            {
+              "class": "entr",
+              "preset": "53",
+              "subtype": "16",
+              "node_type": "withEffect",
+              "delay_ms": "200",
+              "behavior_duration_ms": "800",
+              "attributes": [
+                "style.visibility",
+                "ppt_w",
+                "ppt_h"
+              ],
+              "filter": "fade",
+              "targets": [
+                {
+                  "shape_id": "3",
+                  "shape_text": "指标 Q2 Q3 环比 收入（万元） 4,010 4,820 +20.2% 毛利率 39.3% 38.2% -1.1pt 新客户 126 158 +25.4%"
+                }
+              ]
+            }
+          ],
+          "notes_xml_text": [
+            "重点解释毛利率下降原因。"
+          ]
+        },
+        {
+          "slide": 3,
+          "transition": "split",
+          "transition_speed": "med",
+          "effects": [],
+          "notes_xml_text": []
+        }
+      ],
+      "findings": [
+        {
+          "slide": 2,
+          "effect": 1,
+          "source_text": "指标Q2Q3环比 收入（万元）4,0104,820+20.2% 毛利率39.3%38.2%-1.1pt 新客户126158+25.4%",
+          "target": [
+            {
+              "shape_id": "3",
+              "shape_text": "指标 Q2 Q3 环比 收入（万元） 4,010 4,820 +20.2% 毛利率 39.3% 38.2% -1.1pt 新客户 126 158 +25.4%"
+            }
+          ],
+          "status": "ooxml_match",
+          "reasons": []
+        }
+      ]
+    }
+  }
+}

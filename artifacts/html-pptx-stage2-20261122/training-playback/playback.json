@@ -1,0 +1,66 @@
+﻿{
+    "events":  [
+                   {
+                       "label":  "slide1_early",
+                       "at_utc":  "2026-11-22T03:56:00.0831023Z",
+                       "png":  "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\html-pptx-animation\\artifacts\\html-pptx-stage2-20261122\\training-playback\\slide1_early.png",
+                       "slide":  1,
+                       "view_state":  1
+                   },
+                   {
+                       "label":  "slide1_late",
+                       "at_utc":  "2026-11-22T03:56:01.0444919Z",
+                       "png":  "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\html-pptx-animation\\artifacts\\html-pptx-stage2-20261122\\training-playback\\slide1_late.png",
+                       "slide":  1,
+                       "view_state":  1
+                   },
+                   {
+                       "label":  "slide2_early",
+                       "at_utc":  "2026-11-22T03:56:01.2623870Z",
+                       "png":  "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\html-pptx-animation\\artifacts\\html-pptx-stage2-20261122\\training-playback\\slide2_early.png",
+                       "slide":  2,
+                       "view_state":  1
+                   },
+                   {
+                       "label":  "slide2_initial_done",
+                       "at_utc":  "2026-11-22T03:56:02.2271688Z",
+                       "png":  "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\html-pptx-animation\\artifacts\\html-pptx-stage2-20261122\\training-playback\\slide2_initial_done.png",
+                       "slide":  2,
+                       "view_state":  1
+                   },
+                   {
+                       "label":  "slide2_click_early",
+                       "at_utc":  "2026-11-22T03:56:02.4557912Z",
+                       "png":  "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\html-pptx-animation\\artifacts\\html-pptx-stage2-20261122\\training-playback\\slide2_click_early.png",
+                       "slide":  2,
+                       "view_state":  1
+                   },
+                   {
+                       "label":  "slide2_click_after_done",
+                       "at_utc":  "2026-11-22T03:56:03.9541380Z",
+                       "png":  "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\html-pptx-animation\\artifacts\\html-pptx-stage2-20261122\\training-playback\\slide2_click_after_done.png",
+                       "slide":  2,
+                       "view_state":  1
+                   },
+                   {
+                       "label":  "slide3_early",
+                       "at_utc":  "2026-11-22T03:56:04.1643074Z",
+                       "png":  "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\html-pptx-animation\\artifacts\\html-pptx-stage2-20261122\\training-playback\\slide3_early.png",
+                       "slide":  3,
+                       "view_state":  1
+                   },
+                   {
+                       "label":  "slide3_late",
+                       "at_utc":  "2026-11-22T03:56:05.6297214Z",
+                       "png":  "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\html-pptx-animation\\artifacts\\html-pptx-stage2-20261122\\training-playback\\slide3_late.png",
+                       "slide":  3,
+                       "view_state":  1
+                   }
+               ],
+    "screen":  {
+                   "height":  864,
+                   "width":  1536
+               },
+    "started_at_utc":  "2026-11-22T03:56:00.0831023Z",
+    "deck":  "C:\\Users\\admin\\Documents\\wps cli\\.codex-build\\html-pptx-animation\\artifacts\\html-pptx-stage2-20261122\\wps-fallback-training.pptx"
+}
