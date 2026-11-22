@@ -1,0 +1,9 @@
+{
+  "date_local": "2026-11-22",
+  "scope": "one read-only primary-screen CopyFromScreen feasibility attempt; no slideshow or dialog interaction",
+  "method": "PowerShell System.Drawing.Graphics.CopyFromScreen(primary screen bounds)",
+  "exit_code": 1,
+  "screenshot_written": false,
+  "stderr": "MethodInvocationException: CopyFromScreen with 3 arguments: invalid handle (句柄无效。)",
+  "conclusion": "Current desktop capture path unavailable; no clean WPS motion evidence obtained. Stage2's earlier polluted/black frames remain historical."
+}

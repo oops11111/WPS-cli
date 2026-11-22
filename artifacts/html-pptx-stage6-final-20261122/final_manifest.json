@@ -1,0 +1,169 @@
+{
+  "executed_main_base": "e10b10a45f63b2f8d315c0c1ed90a2d81f11b2ba",
+  "fresh_audit_manifest_sha256": "6e9cd766108e545e32320e48e8b9b956441e3f92818720af6193c9deda89994c",
+  "stage2_manifest_sha256": "88c7a2a7bce462bc93e12620994a9ca207c827f7daff8f6b3aad924aab4abbb7",
+  "stage2_probe_sha256": "2149c80a49e275d630e1545631744eb9a50d5171c13a83a26dc6af8df03ce682",
+  "renderer_sha256": {
+    "fidelity_py": "eacb6854e3b70c98983de23f85e2e0f02b5972c94f046ae103d2133b32778711",
+    "html_styles_py": "211ce1c5d7fb6f385ffffe5d2582084e10a1817dbe7be5c4d3d1df1f5afb769a",
+    "html_layout_playwright_cjs": "48263b2aba45ae0de9f3eaa4091c732442751a26e61c90fadf6f947341d027b4",
+    "node": "b3094d0b49f9ad602262a9921551737bb97637c05dd357a06ae98188d7290aa3",
+    "playwright_entrypoint": "4e98f65f0a9d9bcab8cffc0c5cfdd87fd3f5b0be74fc494ff166a466b204cd44",
+    "edge": "5b07e50eaba5ca60fe6b900cc418a2081cdb8de6c621bfaf85b58865ede378ee",
+    "wps_presentation": "a2ea30ba8ac955566d3b7e5bf8144265e0dc348feee8b333ab942ecc1420e4c0"
+  },
+  "cases": {
+    "launch": {
+      "source_sha256": "f6ddc1768db381e7b3589bfbd516daa9a2d03db4595c7bb2ea82b2cc0c2f520c",
+      "fresh_pptx_sha256": "5b29d861f1eee26a1a7ca8e35656a81395e3256f0ff85b8afb2c87856d585ae7",
+      "stage2_com_tested_pptx_sha256": "2c59eba293fb6f8264bcebad69b0ad37f37b6bff907e0dc841a1b68e467bfdcf",
+      "changed_uncompressed_pptx_members_vs_stage2": [],
+      "aggregate_full_canvas_ssim": 0.9809,
+      "page_full_canvas_ssim": [
+        0.9865,
+        0.9852,
+        0.9862,
+        0.9822,
+        0.9475,
+        0.9981
+      ],
+      "legacy_page_ssim": [
+        0.8809,
+        0.9283,
+        0.9311,
+        0.9073,
+        0.8778,
+        0.9757
+      ],
+      "semantic_scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "formatting": 1.0,
+        "animations": 1.0,
+        "data": 1.0
+      },
+      "mapped_objects": {
+        "tables": 1,
+        "images": 1,
+        "media": 0,
+        "notes": 1,
+        "animations": 6,
+        "transitions": 6
+      },
+      "warnings": [
+        "Scripts and executable content were omitted.",
+        "<svg> elements cannot be converted and were omitted.",
+        "Hover effects (:hover, :focus) cannot be represented in a presentation and were omitted.",
+        "<video> teaser.mp4 was not converted: the file is unavailable or outside the input folder.",
+        "1 animation(s) on part of a paragraph were applied to the whole paragraph."
+      ]
+    },
+    "training": {
+      "source_sha256": "44d03541b64858651dec6a732d34c0d97194553374ac4d689db51007e7583aea",
+      "fresh_pptx_sha256": "bf42ad14c81a2e8072510eeba18cffa077d4bb219ad4c77a8caaff2fe020a9e5",
+      "stage2_com_tested_pptx_sha256": "77f74d284f75daf3465c56848492d84f29f81d3081bc5df158283954e9af5ccb",
+      "changed_uncompressed_pptx_members_vs_stage2": [],
+      "aggregate_full_canvas_ssim": 0.9596,
+      "page_full_canvas_ssim": [
+        0.9713,
+        0.9603,
+        0.9472
+      ],
+      "legacy_page_ssim": [
+        0.9713,
+        0.9604,
+        0.9464
+      ],
+      "semantic_scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "formatting": 1.0,
+        "animations": 1.0,
+        "data": null
+      },
+      "mapped_objects": {
+        "tables": 0,
+        "images": 0,
+        "media": 0,
+        "notes": 1,
+        "animations": 6,
+        "transitions": 3,
+        "shapes": 1
+      },
+      "warnings": []
+    },
+    "quarterly": {
+      "source_sha256": "a1fb04f3364e5e94bfefc9b8f83a1cf0c57b8daa9d710d6b4d1a203a09f33b92",
+      "fresh_pptx_sha256": "3d0021df4ac34cd9ee98746327aa3f936117ee8d9c3f558a358bb87a62c48241",
+      "stage2_com_tested_pptx_sha256": "8a0fb90e510d7c3afd13e7a8f5e18dcca7cb82801b317a5815ed2a7aca793cf7",
+      "changed_uncompressed_pptx_members_vs_stage2": [],
+      "aggregate_full_canvas_ssim": 0.9667,
+      "page_full_canvas_ssim": [
+        0.9802,
+        0.9349,
+        0.9849
+      ],
+      "legacy_page_ssim": [
+        0.9802,
+        0.9349,
+        0.9849
+      ],
+      "semantic_scores": {
+        "text": 1.0,
+        "structure": 1.0,
+        "formatting": 1.0,
+        "animations": 1.0,
+        "data": 1.0
+      },
+      "mapped_objects": {
+        "tables": 1,
+        "images": 0,
+        "media": 0,
+        "notes": 1,
+        "animations": 1,
+        "transitions": 3
+      },
+      "warnings": []
+    }
+  },
+  "media": {
+    "source_video_controls": true,
+    "source_teaser_exists": false,
+    "target_mapped_media": 0,
+    "visible_object_gate": "failed",
+    "page5_pair": "A-launch-pptx/pages/page-005-0.948.png"
+  },
+  "animation_ooxml": "13/13 matched in Stage2; current PPTX uncompressed members identical",
+  "wps_com": "three unique document monikers; WPS effect, trigger, delay, duration and transition properties readable",
+  "wps_clean_visual_playback": "unverified: current read-only CopyFromScreen probe failed (invalid handle)",
+  "overall": "best-effort; complete high-fidelity acceptance failed",
+  "stage3_summary_reused_for_package_comparison": true,
+  "case_slide_counts": {
+    "launch": 6,
+    "training": 3,
+    "quarterly": 3
+  },
+  "case_effect_counts": {
+    "launch": 6,
+    "training": 6,
+    "quarterly": 1
+  },
+  "case_transition_counts": {
+    "launch": 6,
+    "training": 3,
+    "quarterly": 3
+  },
+  "case_notes_counts": {
+    "launch": 1,
+    "training": 1,
+    "quarterly": 1
+  },
+  "inline_animation": {
+    "source_span_fade": true,
+    "slide5_whole_shape_targets": 2,
+    "slide5_paragraph_range_targets": 0,
+    "slide5_character_range_targets": 0,
+    "whole_paragraph_warning": true,
+    "gate": "failed"
+  }
+}
