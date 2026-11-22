@@ -1,0 +1,27 @@
+# HTML to PPTX stage 1A: comparable full-slide measurement
+
+Product base: `main` at `dd0d1eaa719f26c3b168507083340ca5645e282d`. This stage changes the HTML→PPTX **measurement path**, not the converter. Raw evidence from one final three-deck browser/WPS run is `artifacts/html-pptx-full-canvas-verified-20261122/manifest.json` with source/PPTX/Node/Playwright/Edge/WPS and scorer-file SHA-256 hashes, OOXML animation inventory, per-slide comparison PNGs and the old crop comparison PNGs in each `pages/legacy/` directory. Reproduce with `PYTHONPATH=src`, Node Playwright on `NODE_PATH`, and `python scripts/html_pptx_full_canvas_audit.py --out NEW_EMPTY_DIR --wps-executable PATH_TO_WPP_EXE`. The original stage 0 audit script and evidence remain unchanged.
+
+## Canvas rule and proof
+
+Each top-level HTML section is a slide. Edge loads the original document at 1280×720 with scripts disabled, local resources confined to the source folder, and animations disabled during screenshots. It measures the original section rectangles, then hides the other slide sections with `visibility:hidden` (no reflow) and translates the current section's top-left to viewport (0,0). It does not change section width/height or child layout. Body margin locates sections in the long HTML document and is excluded from an individual slide. The browser captures the **entire 1280×720 viewport**, including blank space and the source video control. This is a documented slide presentation view, not an original document scroll position and not a raster composition of a cropped section. The raw `source_capture` includes original geometry and each slide's proof that width/height stayed constant, position reached the origin, other slides stayed hidden and no section exceeded the viewport. All 12 captures succeeded at 1280×720. The scorer compares the WPS 16:9 page after one uniform resize to that size; unequal aspect ratios fail closed.
+
+The source capture also fails closed for visible direct body siblings/text outside slide sections, sections with their own transforms or fixed/sticky positioning, visible descendants leaking from hidden slides, and sections exceeding the canvas. Browser screenshot and WPS rendering remain separate gates. The old natural-height section crop is still scored and reported as `legacy_score`/`legacy_page_scores`, and old PNG pairs remain in `pages/legacy/`; this historical output is never relabeled as full-slide fidelity.
+
+| Case | Full-slide WPS SSIM | Full-slide page scores | Legacy crop SSIM | Semantic and OOXML |
+| --- | ---: | --- | ---: | --- |
+| launch | **0.9809** | .9865, .9852, .9862, .9822, **.9475**, .9981 | .9168 | All applicable text/structure/formatting/animation/data scores 1.0; slide XML and effects/transitions exactly match stage 0. |
+| training | **0.9596** | .9713, .9603, .9472 | .9594 | All applicable scores 1.0; data N/A; slide XML and effects/transitions exactly match stage 0. |
+| quarterly | **0.9667** | .9802, .9349, .9849 | .9667 | All applicable scores 1.0; slide XML and effects/transitions exactly match stage 0. |
+
+Every measured page reaches the proposed >=.90 same-canvas SSIM target. Legacy page scores in this run reproduce the merged stage 0 scores within .002; the runner rejects larger drift. The converter was unchanged, and every generated `ppt/slides/slide*.xml` plus the animation/transition inventory equals stage 0. This Windows run used Edge 158.0.4370.33 and WPS Presentation 12.8.2.18913; binary hashes are in the manifest. The host still lacks `Noto Sans CJK SC`, so font fallback remains in each layout report. New WPS slideshow playback was **not** run; OOXML and semantic animation scores alone do not establish playback fidelity.
+
+## Visible content limitation
+
+The [launch slide 5 comparison](../artifacts/html-pptx-full-canvas-verified-20261122/A-launch-pptx/pages/page-005-0.948.png) shows the browser's roughly 300×118 px video control on the left and no corresponding object on the right, despite SSIM .9475. `teaser.mp4` is absent from the fixture folder; the converter truthfully warns that it omitted the unavailable video. The large white slide area dominates whole-slide SSIM. The source's SVG, script, hover effect and partial paragraph animation warning also remain documented limitations. Thus **the numeric page gate passes, but complete visible-object fidelity does not**. No media was added, source/thresholds were not edited, and no full high-fidelity claim is made.
+
+## Verification and next step
+
+The final run produced all three new PPTX files, 12 full-slide WPS comparisons and 12 legacy comparisons. It checked exact source hashes, slide XML equality and animation inventories against stage 0, applicable semantic scores at 1.0, and legacy score drift <=.002. On the same host, 33 focused slide/browser tests passed, including a three-deck browser integration test for dimensions, unchanged section geometry and hidden-slide isolation. Ruff check/format, Python compile, Node syntax and diff whitespace checks passed. CI is a separate merge gate.
+
+Stage 1B has no evidence-based **layout** code change to make: every comparable page passes, so skip layout tuning. It still needs to record the independently failed visible-media object gate and its missing source file; do not count the high SSIM as fixing it. Stage 2 must test effect target/order/timing and fresh WPS slideshow playback. The overall high-fidelity acceptance remains open.

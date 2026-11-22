@@ -519,6 +519,8 @@ class StyledDocument:
     pseudo: dict[int, list[dict[str, str]]] = field(default_factory=dict)
     summary_markers: dict[int, dict[str, Any]] = field(default_factory=dict)
     print_context: dict[str, Any] = field(default_factory=dict)
+    slide_screenshots: list[str] = field(default_factory=list)
+    slide_capture: dict[str, Any] = field(default_factory=dict)
 
     def style(self, node: _Node) -> dict[str, str]:
         return self.styles.get(id(node), DEFAULT_STYLE)
@@ -602,7 +604,13 @@ def _cascade(root: _Node, sheet: StyleSheet) -> dict[int, dict[str, str]]:
 
 
 def _browser_layout(
-    annotated: Path, root_dir: Path, node: str, browser: str, viewport: tuple[int, int], shots_dir: Path | None
+    annotated: Path,
+    root_dir: Path,
+    node: str,
+    browser: str,
+    viewport: tuple[int, int],
+    shots_dir: Path | None,
+    slide_shots_dir: Path | None = None,
 ) -> dict[str, Any]:
     request = {
         "input_path": str(annotated),
@@ -612,6 +620,7 @@ def _browser_layout(
         "viewport_height": viewport[1],
         "timeout_seconds": 60,
         "section_screenshots_dir": str(shots_dir) if shots_dir else None,
+        "slide_screenshots_dir": str(slide_shots_dir) if slide_shots_dir else None,
     }
     completed = subprocess.run(
         [node, str(_LAYOUT_SCRIPT)],
@@ -634,6 +643,7 @@ def load(
     use_browser: bool = True,
     viewport: tuple[int, int] = (1280, 720),
     screenshots_dir: Path | None = None,
+    slide_screenshots_dir: Path | None = None,
 ) -> StyledDocument:
     """Parse the HTML at source and compute each element's style, with the browser when it is available."""
     path = Path(source)
@@ -661,7 +671,9 @@ def load(
         try:
             with handle:
                 handle.write(marked)
-            reply = _browser_layout(Path(handle.name), path.parent, node_bin, browser, viewport, screenshots_dir)
+            reply = _browser_layout(
+                Path(handle.name), path.parent, node_bin, browser, viewport, screenshots_dir, slide_screenshots_dir
+            )
         finally:
             Path(handle.name).unlink(missing_ok=True)
         if reply.get("ok"):
@@ -693,6 +705,8 @@ def load(
                 pseudo,
                 summary_markers,
                 reply.get("print_context") or {},
+                list(reply.get("slide_screenshots") or []),
+                reply.get("slide_capture") or {},
             )
         warnings.append(
             f"The browser could not lay the page out ({reply.get('message', 'no reply')}); used the cascade."

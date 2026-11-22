@@ -205,7 +205,9 @@ async function main() {
       await cdp.detach();
     } catch (error) { printContext = { error: String(error) }; }
     const shots = [];
-    if (request.section_screenshots_dir) {
+    const slideShots = [];
+    let slideCapture = { status: 'not-requested' };
+    if (request.section_screenshots_dir || request.slide_screenshots_dir) {
       const sections = [];
       for (const element of await page.$$(SLIDE_SELECTOR)) {
         if (await element.evaluate((node, selector) => !node.parentElement?.closest(selector), SLIDE_SELECTOR)) {
@@ -213,14 +215,99 @@ async function main() {
         }
       }
       let index = 0;
-      for (const section of sections) {
-        index += 1;
-        const file = path.join(request.section_screenshots_dir, `section-${String(index).padStart(3, '0')}.png`);
-        await section.screenshot({ path: file, animations: 'disabled' });
-        shots.push(file);
+      if (request.section_screenshots_dir) {
+        for (const section of sections) {
+          index += 1;
+          const file = path.join(request.section_screenshots_dir, `section-${String(index).padStart(3, '0')}.png`);
+          await section.screenshot({ path: file, animations: 'disabled' });
+          shots.push(file);
+        }
+      }
+      if (request.slide_screenshots_dir) {
+        // Element screenshots above may have scrolled the document to its last section.
+        await page.evaluate(() => window.scrollTo(0, 0));
+        // One slide's viewport, rather than a crop of its natural-height section. The section is the slide:
+        // keep its original size and inner layout, omit the long document's body margin, and place its top-left
+        // at the viewport origin. Hide other slides without reflow. This is not a scroll position in the document.
+        const original = await page.evaluate(selector => {
+          const sections = [...document.querySelectorAll(selector)].filter(el => !el.parentElement?.closest(selector));
+          return sections.map(el => {
+            const box = el.getBoundingClientRect();
+            const style = getComputedStyle(el);
+            return { top: box.top + window.scrollY, left: box.left + window.scrollX,
+              width: box.width, height: box.height, transform: style.transform, position: style.position,
+              visibility: el.style.getPropertyValue('visibility'), visibilityPriority: el.style.getPropertyPriority('visibility'),
+              inlineTransform: el.style.getPropertyValue('transform'), transformPriority: el.style.getPropertyPriority('transform') };
+          });
+        }, SLIDE_SELECTOR);
+        const outside = await page.evaluate(selector => {
+          const sections = [...document.querySelectorAll(selector)].filter(el => !el.parentElement?.closest(selector));
+          const text = [...document.body.childNodes].some(node => node.nodeType === Node.TEXT_NODE && node.textContent.trim());
+          const visual = [...document.body.children].some(el => {
+            if (sections.some(section => el === section || el.contains(section))) return false;
+            const box = el.getBoundingClientRect();
+            const style = getComputedStyle(el);
+            return style.display !== 'none' && style.visibility === 'visible' && box.width > 0 && box.height > 0;
+          });
+          return text || visual;
+        }, SLIDE_SELECTOR);
+        const unsupported = original.findIndex(g => g.transform !== 'none' || ['fixed', 'sticky'].includes(g.position));
+        if (!sections.length) {
+          slideCapture = { status: 'unavailable', reason: 'no top-level slide sections' };
+        } else if (outside) {
+          slideCapture = { status: 'unavailable', reason: 'visible content outside slide sections' };
+        } else if (unsupported >= 0) {
+          slideCapture = { status: 'unavailable', reason: `slide ${unsupported + 1} has a transform or fixed/sticky position` };
+        } else {
+          slideCapture = { status: 'measured', canvas: [request.viewport_width, request.viewport_height],
+            normalization: 'section is slide; hide other slides; translate current section top-left to origin; no reflow',
+            original, proofs: [] };
+          try {
+            for (let slide = 0; slide < sections.length; slide++) {
+              await page.evaluate(({ selector, original, slide }) => {
+                const sections = [...document.querySelectorAll(selector)].filter(el => !el.parentElement?.closest(selector));
+                sections.forEach((el, index) => {
+                  const saved = original[index];
+                  if (index === slide) {
+                    if (saved.visibility) el.style.setProperty('visibility', saved.visibility, saved.visibilityPriority);
+                    else el.style.removeProperty('visibility');
+                    el.style.setProperty('transform', `translate(${-saved.left}px, ${-saved.top}px)`, 'important');
+                  } else {
+                    el.style.setProperty('visibility', 'hidden', 'important');
+                    if (saved.inlineTransform) el.style.setProperty('transform', saved.inlineTransform, saved.transformPriority);
+                    else el.style.removeProperty('transform');
+                  }
+                });
+              }, { selector: SLIDE_SELECTOR, original, slide });
+              const proof = await page.evaluate(({ selector, slide }) => {
+                const sections = [...document.querySelectorAll(selector)].filter(el => !el.parentElement?.closest(selector));
+                const current = sections[slide].getBoundingClientRect();
+                const leaking = sections.some((section, index) => index !== slide &&
+                  [...section.querySelectorAll('*'), section].some(el => getComputedStyle(el).visibility === 'visible'));
+                return { left: current.left, top: current.top, width: current.width, height: current.height, leaking };
+              }, { selector: SLIDE_SELECTOR, slide });
+              if (proof.leaking || proof.left < -1 || proof.top < -1 ||
+                  proof.left + proof.width > request.viewport_width + 1 ||
+                  proof.top + proof.height > request.viewport_height + 1 ||
+                  Math.abs(proof.width - original[slide].width) > 1 ||
+                  Math.abs(proof.height - original[slide].height) > 1) {
+                throw new Error(`slide ${slide + 1} cannot be shown completely without overlap or clipping: ${JSON.stringify(proof)}`);
+              }
+              slideCapture.proofs.push(proof);
+              const file = path.join(request.slide_screenshots_dir, `slide-${String(slide + 1).padStart(3, '0')}.png`);
+              await page.screenshot({ path: file, animations: 'disabled', timeout: 15000 });
+              slideShots.push(file);
+            }
+          } catch (error) {
+            slideShots.length = 0;
+            slideCapture = { status: 'unavailable', reason: String(error).slice(0, 500), original };
+          }
+        }
       }
     }
-    process.stdout.write(JSON.stringify({ ok: true, browser: await browser.version(), elements, section_screenshots: shots, print_context: printContext }));
+    process.stdout.write(JSON.stringify({ ok: true, browser: await browser.version(), elements,
+      section_screenshots: shots, slide_screenshots: slideShots, slide_capture: slideCapture,
+      print_context: printContext }));
   } finally {
     await browser.close();
   }
