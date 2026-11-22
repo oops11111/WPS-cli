@@ -859,9 +859,9 @@ def _office_pdf(path: Path, out_dir: Path, renderer: str) -> tuple[Path | None, 
 
 
 def _html_images(path: Path, out_dir: Path, width: int, slides: bool) -> tuple[list[Any] | None, str | None]:
-    from PIL import Image
-
     if slides:
+        from PIL import Image
+
         from .html_styles import load
 
         shots = out_dir / "sections"
@@ -877,6 +877,33 @@ def _html_images(path: Path, out_dir: Path, width: int, slides: bool) -> tuple[l
     if not ok:
         return None, errors[0]["message"] if errors else "the HTML could not be rendered"
     return _pdf_pages(output, width), None
+
+
+def _html_slide_images(
+    path: Path, out_dir: Path
+) -> tuple[list[Any] | None, list[Any] | None, dict[str, Any] | None, str | None]:
+    """Browser-native full-slide viewports and separately retained legacy section crops."""
+    from PIL import Image
+
+    from .html_styles import load
+
+    sections, slides = out_dir / "sections", out_dir / "slides"
+    sections.mkdir(exist_ok=True)
+    slides.mkdir(exist_ok=True)
+    styled = load(path, screenshots_dir=sections, slide_screenshots_dir=slides, viewport=(1280, 720))
+    if styled.mode != "browser":
+        return None, None, None, "a Chromium browser is needed to render the HTML slides"
+    if styled.slide_capture.get("status") != "measured" or not styled.slide_screenshots:
+        reason = styled.slide_capture.get("reason", "no full-slide screenshots")
+        return None, None, styled.slide_capture, f"full-slide browser capture unavailable: {reason}"
+    if len(styled.slide_screenshots) != len(styled.section_screenshots):
+        return None, None, styled.slide_capture, "browser slide and section screenshot counts differ"
+    return (
+        [Image.open(name).convert("L") for name in styled.slide_screenshots],
+        [Image.open(name).convert("L") for name in styled.section_screenshots],
+        {**styled.slide_capture, "browser": styled.browser},
+        None,
+    )
 
 
 def _images_for(
@@ -938,30 +965,69 @@ def score_layout(source: Path, target: Path, renderer: str = "auto", images_dir:
         return {"status": "skipped", "reason": "renderer none"}
     width = 800
     slides = target.suffix.casefold() == ".pptx" or source.suffix.casefold() == ".pptx"
+    full_slide_source = source.suffix.casefold() in HTML and target.suffix.casefold() == ".pptx"
     with tempfile.TemporaryDirectory(prefix="wps-fidelity-") as tmp:
         work = Path(tmp)
         (work / "a").mkdir()
         (work / "b").mkdir()
-        first, problem = _images_for(source, work / "a", renderer, width, slides)
+        legacy = None
+        source_capture = None
+        if full_slide_source:
+            first, legacy, source_capture, problem = _html_slide_images(source, work / "a")
+        else:
+            first, problem = _images_for(source, work / "a", renderer, width, slides)
         if first is None:
             return {"status": "unavailable", "reason": problem, "renderer": renderer}
         second, problem = _images_for(target, work / "b", renderer, width, slides)
         if second is None:
             return {"status": "unavailable", "reason": problem, "renderer": renderer}
         scores = []
+        legacy_scores = []
+        aligned = []
         for a, b in zip(first, second, strict=False):
-            b = b.resize(a.size)
-            scores.append(round(ssim(np.asarray(a), np.asarray(b)), 4))
+            if full_slide_source and abs(a.width * b.height - a.height * b.width) > max(a.width, a.height):
+                return {
+                    "status": "unavailable",
+                    "reason": "source and WPS pages have different aspect ratios",
+                    "renderer": renderer,
+                }
+            aligned_page = b.resize(a.size)
+            aligned.append(aligned_page)
+            scores.append(round(ssim(np.asarray(a), np.asarray(aligned_page)), 4))
+        if legacy is not None:
+            for a, b in zip(legacy, second, strict=False):
+                legacy_scores.append(round(ssim(np.asarray(a), np.asarray(b.resize(a.size))), 4))
         missing = abs(len(first) - len(second))
         mean = sum(scores) / (len(scores) + missing) if scores else 0.0
-        images = _save_pairs(first, second, Path(images_dir), scores) if images_dir else None
+        images = (
+            _save_pairs(first, aligned if full_slide_source else second, Path(images_dir), scores)
+            if images_dir
+            else None
+        )
+        legacy_images = (
+            _save_pairs(legacy, second, Path(images_dir) / "legacy", legacy_scores)
+            if images_dir and legacy is not None
+            else None
+        )
         return {
             **({"images": images} if images else {}),
+            **({"legacy_images": legacy_images} if legacy_images else {}),
             "status": "measured",
             "renderer": renderer,
             "score": round(mean, 4),
             "pages": {"source": len(first), "target": len(second)},
             "page_scores": scores,
+            **(
+                {
+                    "canvas_mode": "browser-native-1280x720-slide-viewport",
+                    "source_canvas_px": [1280, 720],
+                    "source_capture": source_capture,
+                    "legacy_score": round(sum(legacy_scores) / (len(legacy_scores) + missing), 4),
+                    "legacy_page_scores": legacy_scores,
+                }
+                if legacy is not None
+                else {}
+            ),
             "missing_fonts": missing_fonts(),
         }
 
