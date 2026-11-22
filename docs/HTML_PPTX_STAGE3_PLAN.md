@@ -1,0 +1,10 @@
+# HTML to PPTX stage 3 final acceptance plan
+
+Base `main`: `8df12982bb5984fba18dbee92ece17bfd8166f9d`. Depends on merged stages 0, 1, 1A, 1B and 2. Scope: the existing launch, training and quarterly HTML→PPTX cases only. This stage records final evidence and updates the conversion claim; it does not change the converter, source fixtures, scoring threshold or another format.
+
+| Gate | Dependency and work | Deliverable, test and acceptance | Stop condition |
+| --- | --- | --- | --- |
+| Fresh static run | Browser/Playwright and WPS Presentation available on this Windows host. Reconvert the three sources on this base and measure each 1280×720 source viewport against each full WPS slide. | One single-run manifest with exact main/source/PPTX/renderer hashes, 12 page scores, aggregate and legacy scores, semantic aspects, slide OOXML and page image pairs. Every current page >=0.90; all text/structure/formatting/animation inventory aspects remain 1.0. | If Edge/WPS cannot render, report the exact error and STOP; never substitute Stage1A scores as fresh. |
+| Visible objects | Fresh launch page 5 images and source file inventory. | Explicit source video control versus target object presence and `teaser.mp4` existence. This gate remains failed if target media is absent. | Do not create media or hide its absence through a whole-page score. |
+| Animation | Exact Stage2 package hashes and OOXML/COM records. | Verify current regenerated slide XML matches the accepted package; cite 13 source→OOXML effects, 12 transitions, 3 notes and WPS COM property acceptance separately. | Contaminated screenshots/black PrintWindow frames cannot prove clean motion or transitions; mark visual playback unverified. |
+| Final claim and PR | Gates above, targeted tests and Ruff. Primary agent owns CI and merge. | Final report and `docs/CONVERSION_MATRIX.md` with best-effort status, residual risks and reproduction commands; one Conventional Commit/PR. | Full high-fidelity acceptance requires every visible object and clean playback gate. All six CI jobs must pass before the primary agent merges this evidence PR. |
