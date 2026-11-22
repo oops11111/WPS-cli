@@ -268,14 +268,30 @@ _BLOCK_LEVEL = {
     "address", "hr", "figcaption",
 }  # fmt: skip
 
+# Displays that lay an element out as a unit of its own rather than inline flow. A container holding one is a
+# container of units, not one paragraph, even when the unit's tag reads inline: a grid of <a> cards has the
+# computed display grid while <a> itself is not a block-level tag, and flattening the grid into one paragraph
+# put every card's text in a single box at the grid's place.
+_BLOCK_DISPLAYS = {"block", "flex", "grid", "list-item", "flow-root", "table"}
+
 
 def _is_slide_container(node: _Node) -> bool:
     """A <section>, or an element whose class names it a slide (<div class="slide">, a common way to write decks)."""
     return node.tag == "section" or "slide" in node.attrs.get("class", "").split()
 
 
-def collect_slides(root: _Node) -> list[_Slide]:
+def collect_slides(root: _Node, styled=None) -> list[_Slide]:
+    """Split a parsed deck into slides. With styled (a StyledDocument), a child whose computed display lays it
+    out as a unit of its own also splits its container, so a grid of cards keeps one text holder per card."""
     slides = [_Slide()]
+
+    def _is_unit(child) -> bool:
+        """Whether a child is laid out as a unit of its own, so its parent is walked into, not flattened."""
+        if not isinstance(child, _Node):
+            return False
+        if child.tag in _BLOCK_LEVEL or _is_notes(child):
+            return True
+        return styled is not None and styled.style(child).get("display", "inline") in _BLOCK_DISPLAYS
 
     def start(section: _Node | None = None) -> None:
         if slides[-1].empty():
@@ -337,9 +353,17 @@ def collect_slides(root: _Node) -> list[_Slide]:
             elif (
                 tag not in {"html", "body", "head"}
                 and _normalise(_text(child))
-                and not any(isinstance(c, _Node) and (c.tag in _BLOCK_LEVEL or _is_notes(c)) for c in child.children)
+                and (
+                    # Bare text mixed with units stays one paragraph: the bare text has no box of its own, and
+                    # walking into the container would strand it in a positioned slide (a link's label next to
+                    # its arrow). Only a container of units alone is walked into.
+                    any(isinstance(c, str) and _normalise(c) for c in child.children)
+                    or not any(_is_unit(c) for c in child.children)
+                )
             ):
-                # A <div> (or any container) holding only text and inline elements is one paragraph.
+                # A <div> (or any container) holding only text and inline elements is one paragraph. An element
+                # whose computed display lays it out as a unit of its own (a grid card) is not inline: a
+                # container of such units alone is walked into so each unit keeps its own text and place.
                 slides[-1].lines.append(_Line(child, level))
             else:
                 visit(child, level)
@@ -1165,7 +1189,7 @@ def convert_html_to_pptx(
     styled = load_styles(source, use_browser=use_browser, viewport=(1280, 720))
     parser = styled.parser
     css = parse_css(html)
-    slides = collect_slides(styled.root)
+    slides = collect_slides(styled.root, styled)
     browser_ok = styled.mode == "browser"
     if fidelity == "appearance" and not browser_ok:
         return (
