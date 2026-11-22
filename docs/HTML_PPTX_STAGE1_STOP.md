@@ -1,0 +1,17 @@
+# HTML to PPTX stage 1 STOP: static scores lack a common canvas
+
+Product base and merge target: `main` at `309954b71103893aaf4eaf94baaa9a501003b769`. This stage makes **no converter or scoring change**. Source, PPTX and page-pair hashes are checked against the merged stage 0 manifest before geometry is recorded. Reproduce the read-only result with `PYTHONPATH=src`, Node Playwright on `NODE_PATH`, and `python scripts/html_pptx_stage1_geometry.py --out NEW_EMPTY_DIR`; see `artifacts/html-pptx-stage1-stop-20261122/geometry.json`. The temporary browser screenshots are not needed to review the committed dimensions or source/pair hashes.
+
+| Deck | Source section screenshots, pixels | WPS page, pixels | Scorer action |
+| --- | --- | --- | --- |
+| launch | 1264×85, 1264×152, 1264×129, 1264×253, 1264×330, 1264×73 | 800×450 for every slide | Each target page is resized to a source screenshot with a different, short height. |
+| training | 1280×720 on all 3 slides | 800×450 | Uniform 1.6× resize in both axes. |
+| quarterly | 1280×720 on all 3 slides | 800×450 | Uniform 1.6× resize in both axes. |
+
+The `launch` PPTX canvas is 12,192,000×6,858,000 EMU (16:9), but its HTML `<section>` elements have auto heights. `src/wps_ai_agent_cli/fidelity.py:_html_images` captures each section's natural box; `_pdf_pages` renders the complete WPS PDF page at width 800; `score_layout` calls `b.resize(a.size)` before SSIM. For launch slide 1 this stretches the 800×450 target horizontally by 1.58× while squeezing it vertically to 85/450 = **0.189×**. For slide 5 the vertical factor is 330/450 = **0.733×**. Stage 0's `.8809` and `.8780` values are outputs of this comparison path, not a same-canvas measurement of a product layout defect. The stage 0 aggregate `.9169` likewise must be retained as a historical reported value, not proof of full-slide fidelity. The source and target side-by-side PNGs visibly show grey uncovered space below the short launch source sections.
+
+There is a separate, genuine omission on launch slide 5: the HTML references `teaser.mp4`, no such local file exists in `fixtures/html_complex/`, and stage 0's conversion warning says it was omitted. The browser draws a video control box; the PPTX does not. This does **not** license adding external media, silently replacing the video or changing the fixture. It cannot be assigned a valid full-slide SSIM effect until the canvases are comparable. `Noto Sans CJK SC` was also missing on the stage 0 host, so font fallback remains a separate rendering variable.
+
+The merged stage 0 package hashes, semantic scores (all applicable text/structure/formatting/animation/data aspects 1.0) and OOXML effect/transition inventories remain the regression controls. The new geometry script validates those exact source and PPTX hashes and reads the committed page pairs; no new converter candidate or WPS render was produced here. It does not prove slideshow playback, which remains a separate stage 2 requirement.
+
+**Decision: STOP static product changes.** The prerequisite is a full-slide, same-canvas source render with the legacy score retained separately. The plan now adds stage 1A for that metric and stage 1B for a product change only if a comparable run demonstrates a generalizable defect. Stage 1 accepted its diagnostic deliverable; the project high-fidelity goal remains open. CI lint, unit tests, build, Windows install and PowerShell fake-COM remain independent PR merge gates.
