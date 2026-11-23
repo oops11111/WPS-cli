@@ -679,7 +679,13 @@ def load(
             with handle:
                 handle.write(marked)
             reply = _browser_layout(
-                Path(handle.name), path.parent, node_bin, browser, viewport, screenshots_dir, slide_screenshots_dir,
+                Path(handle.name),
+                path.parent,
+                node_bin,
+                browser,
+                viewport,
+                screenshots_dir,
+                slide_screenshots_dir,
                 svg_assets=svg_assets and any(n.tag == "svg" for n in _walk(parser.root)),
             )
         finally:
